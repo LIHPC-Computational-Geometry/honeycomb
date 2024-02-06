@@ -6,7 +6,7 @@
 
 ## Links
 
-- **honeycomb-core** documentation:
+- [**honeycomb-core**](honeycomb_core)
 
 ## Contributing
 

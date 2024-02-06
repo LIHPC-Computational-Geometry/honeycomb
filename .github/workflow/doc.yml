@@ -25,11 +25,13 @@ jobs:
       - uses: peaceiris/actions-mdbook@v1
         with:
           mdbook-version: "0.4.36"
-      
-      - name: Generate Rust Docs
-        run: cargo doc --all --no-deps
+      # Generate user guide first because it removes all existing files
+      # from the target directory
       - name: Generate User Guide
         run: mdbook build -d ../target/doc/ honeycomb-guide/
+      - name: Generate Rust Docs
+        run: cargo doc --all --no-deps
+        
       - name: Deploy Docs
         uses: peaceiris/actions-gh-pages@v3
         with:
