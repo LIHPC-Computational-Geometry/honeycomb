@@ -1,0 +1,6 @@
+[workspace]
+
+members = ["honeycomb-core"]
+
+# Remove this & switch members' cargo edition to 2024 when stable (r1.75?)
+resolver = "2"
