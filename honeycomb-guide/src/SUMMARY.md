@@ -4,6 +4,6 @@
 
 # Project Structure
 
-- [Workspace](./workspace.md)
-- [Members](./members.md)
-    - [honeycomb-core](honeycomb-core.md)
+- [Workspace](./project-structure/workspace.md)
+- [Members](./project-structure/members.md)
+    - [honeycomb-core](./project-structure/honeycomb-core.md)
