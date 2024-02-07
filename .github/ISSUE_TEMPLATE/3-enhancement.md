@@ -18,7 +18,7 @@ assignees:
 
 ### Current state
 
-If relevant, add here the affected part of the code.
+If relevant, add the affected part of the code.
 
 ### Proposal
 

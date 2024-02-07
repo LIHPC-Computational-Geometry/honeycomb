@@ -24,11 +24,11 @@ assignees:
 
 Describe the problem.
 
-If relevant, add a crash log here.
+If relevant, add crash log.
 
 ### Expected behavior
 
-If relevant, describe the result you would expect here.
+If relevant, describe the result you would expect.
 
 ## Minimal reproducible example
 
