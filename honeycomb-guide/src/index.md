@@ -13,7 +13,7 @@ issues, thanks to the language's guarantees.
 
 ### Requirements
 
-- **Rust 1.74** - *The code may compile and work for earlier versions, but we do not test for those*
+- **Rust 1.75** - *The code may compile and work for earlier versions, but we do not test for those*
 
 ## Links
 
