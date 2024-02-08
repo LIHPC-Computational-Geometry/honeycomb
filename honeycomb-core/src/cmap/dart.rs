@@ -1,23 +1,70 @@
-//! Module short description
+//! Basic dart structure
 //!
-//! Should you interact with this module directly?
+//! Useful definitions of this module being re-exported, the user should
+//! most likely not interact directly with it.
 //!
-//! Content description if needed
-
-// ------ MODULE DECLARATIONS
+//! This module contains all code used to model darts as element of the
+//! combinatorial map. This does not include any form of geometric
+//! embedding as this is stored separately for the moment.
 
 // ------ IMPORTS
 
 // ------ CONTENT
+
+/// Type definition for dart identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type DartIdentifier = u32;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// Dart object
+///
+/// Structure used to represent darts. This does not include any geometric
+/// embedding.
+///
+/// # Example
+///
+/// ```
+/// use honeycomb_core::Dart;
+///
+/// // Create a list containing:
+/// // - the null dart
+/// // - 10 darts with IDs ranging from one to 10 (included)
+/// let mut darts = vec![Dart::NULL];
+/// darts.extend((1..11).map(|i| Dart::from(i)));
+///
+/// (0..11).for_each(|i| assert_eq!(i, darts[i].id()));
+/// ```
+///
+pub struct Dart {
+    id: DartIdentifier,
+}
+
+impl Dart {
+    pub const NULL: Dart = Dart { id: 0 };
+
+    pub fn id(&self) -> usize {
+        self.id as usize
+    }
+}
+
+impl From<usize> for Dart {
+    fn from(value: usize) -> Self {
+        Self {
+            id: value as DartIdentifier,
+        }
+    }
+}
+
+impl Default for Dart {
+    fn default() -> Self {
+        Self::NULL
+    }
+}
 
 // ------ TESTS
 
 #[cfg(test)]
 mod tests {
     //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
 }
