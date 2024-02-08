@@ -1,14 +1,28 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! # honeycomb-core
+//!
+//! This crate implements all basic structure and methods for
+//! 2D and 3D combinatorial map modeling.
+//!
+//! This documentation focus on the implementation side of things
+//! and API usage, for more formal information about combinatorial
+//! maps, refer to the **Definitions** section of the user guide.
+
+// ------ MODULE DECLARATIONS
+
+pub mod cmap;
+
+// ------ IMPORTS
+
+// ------ CONTENT
+
+// ------ TESTS
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn some_test() {
+        assert_eq!(1, 1);
     }
 }
