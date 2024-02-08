@@ -41,8 +41,23 @@ pub struct Dart {
 }
 
 impl Dart {
+    /// Null dart value for the structure. This is used as the returned
+    /// value for the [Default] trait implementation.
     pub const NULL: Dart = Dart { id: 0 };
 
+    /// Getter for the dart's identifier. This is preferred to making
+    /// the `id` field public because there is currently no good reason
+    /// to allow identifier overwriting.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns the identifier of the dart, of type [DartIdentifier]. A
+    /// value of *0* implies that the dart is the null dart.
+    ///
+    /// # Example
+    ///
+    /// See structure example.
+    ///
     pub fn id(&self) -> usize {
         self.id as usize
     }
