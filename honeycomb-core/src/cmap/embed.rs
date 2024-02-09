@@ -96,7 +96,7 @@ pub struct Edge {
 /// to build 2 faces: a square and a triangle, both aligned on the origin.
 ///
 /// ```
-/// use honeycomb_core::cmap::embed::{Vertex, Edge};
+/// use honeycomb_core::cmap::embed::{Vertex, Edge, Face};
 ///
 /// let vertices = [
 ///     [0.0, 0.0, 0.0],
