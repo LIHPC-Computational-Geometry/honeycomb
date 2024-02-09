@@ -14,6 +14,26 @@
 
 // ------ CONTENT
 
+/// Type definition for vertex identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type VertexIdentifier = usize;
+
+/// Type definition for edge identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type EdgeIdentifier = usize;
+
+/// Type definition for face identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type FaceIdentifier = usize;
+
+/// Type definition for volume identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type VolumeIdentifier = usize;
+
 #[derive(Clone, Copy, Debug)]
 /// Dart-cell associative structure
 ///
@@ -39,11 +59,11 @@
 ///
 pub struct DartCells {
     /// Vertex unique identifier.
-    pub vertex_id: usize,
+    pub vertex_id: VertexIdentifier,
     /// Face unique identifier.
-    pub face_id: usize,
+    pub face_id: FaceIdentifier,
     /// Volume unique identifier.
-    pub volume_id: usize,
+    pub volume_id: VolumeIdentifier,
 }
 
 impl DartCells {
@@ -75,9 +95,9 @@ pub type Vertex = [f64; 3];
 ///
 pub struct Edge {
     /// First vertex.
-    pub v1: usize,
+    pub v1: VertexIdentifier,
     /// Second vertex.
-    pub v2: usize,
+    pub v2: VertexIdentifier,
 }
 
 /// Face object
@@ -119,7 +139,7 @@ pub struct Edge {
 ///
 pub struct Face {
     /// List of all edges composing the face.
-    pub edges: Vec<usize>,
+    pub edges: Vec<EdgeIdentifier>,
 }
 
 // ------ TESTS
