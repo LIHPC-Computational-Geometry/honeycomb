@@ -15,6 +15,7 @@ pub mod cmap;
 
 pub use cmap::{
     dart::{Dart, DartIdentifier},
+    embed::{EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier},
     map::TwoMap,
 };
 

@@ -58,16 +58,14 @@ impl Dart {
     ///
     /// See structure example.
     ///
-    pub fn id(&self) -> usize {
-        self.id as usize
+    pub fn id(&self) -> DartIdentifier {
+        self.id
     }
 }
 
-impl From<usize> for Dart {
-    fn from(value: usize) -> Self {
-        Self {
-            id: value as DartIdentifier,
-        }
+impl From<DartIdentifier> for Dart {
+    fn from(value: DartIdentifier) -> Self {
+        Self { id: value }
     }
 }
 

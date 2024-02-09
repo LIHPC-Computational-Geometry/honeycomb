@@ -8,7 +8,7 @@
 
 // ------ IMPORTS
 
-use crate::Dart;
+use crate::{Dart, DartIdentifier, FaceIdentifier, VertexIdentifier};
 
 use super::embed::DartCells;
 
@@ -40,10 +40,10 @@ pub struct TwoMap {
     ///
     /// This should eventually be replaced by a better
     /// structure, supported by benchmarking.
-    betas: Vec<[usize; 2]>,
+    betas: Vec<[DartIdentifier; 2]>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list.
-    free_darts: Vec<usize>,
+    free_darts: Vec<DartIdentifier>,
 }
 
 impl TwoMap {
@@ -67,7 +67,7 @@ impl TwoMap {
     ///
     pub fn new(n_darts: usize) -> Self {
         let mut darts = vec![Dart::NULL];
-        darts.extend((1..n_darts + 1).map(Dart::from));
+        darts.extend((1..n_darts as DartIdentifier + 1).map(Dart::from));
 
         let cells = vec![DartCells::NULL; n_darts + 1];
 
@@ -104,10 +104,10 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn beta<const I: u8>(&self, dart: Dart) -> Dart {
+    pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 2);
         assert!(I > 0);
-        Dart::from(self.betas[dart.id()][(I - 1) as usize])
+        self.betas[dart_id as usize][(I - 1) as usize]
     }
 
     /// Fetch cells associated to a given dart.
@@ -125,8 +125,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn cell_of(&self, dart: Dart) -> DartCells {
-        self.cells[dart.id()]
+    pub fn cell_of(&self, dart_id: DartIdentifier) -> DartCells {
+        self.cells[dart_id as usize]
     }
 
     /// Check if a given dart is I-free.
@@ -143,8 +143,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn is_i_free<const I: u8>(&self, dart: Dart) -> bool {
-        self.beta::<I>(dart) == Dart::NULL
+    pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
+        self.beta::<I>(dart_id) == 0
     }
 
     /// Check if a given dart is I-free, for all I.
@@ -161,8 +161,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn is_free(&self, dart: Dart) -> bool {
-        self.beta::<1>(dart) == Dart::NULL && self.beta::<2>(dart) == Dart::NULL
+    pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
+        self.beta::<1>(dart_id) == 0 && self.beta::<2>(dart_id) == 0
     }
 
     // --- editing interfaces
@@ -181,12 +181,12 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn add_free_dart(&mut self) -> Dart {
-        let new_id = self.darts.len();
+    pub fn add_free_dart(&mut self) -> DartIdentifier {
+        let new_id = self.darts.len() as DartIdentifier;
         self.darts.push(Dart::from(new_id));
         self.cells.push(DartCells::NULL);
         self.betas.push([0; 2]);
-        Dart::from(new_id)
+        new_id
     }
 
     /// Insert a new free dart to the combinatorial map.
@@ -203,12 +203,12 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn insert_free_dart(&mut self) -> Dart {
+    pub fn insert_free_dart(&mut self) -> DartIdentifier {
         if let Some(new_id) = self.free_darts.pop() {
-            self.darts[new_id] = Dart::from(new_id);
-            self.cells[new_id] = DartCells::NULL;
-            self.betas[new_id] = [0; 2];
-            Dart::from(new_id)
+            self.darts[new_id as usize] = Dart::from(new_id);
+            self.cells[new_id as usize] = DartCells::NULL;
+            self.betas[new_id as usize] = [0; 2];
+            new_id
         } else {
             self.add_free_dart()
         }
@@ -232,12 +232,12 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn remove_free_dart(&mut self, dart: Dart) {
-        assert!(self.is_free(dart));
-        self.free_darts.push(dart.id());
-        self.betas[dart.id()] = [0; 2];
-        self.cells[dart.id()] = DartCells::NULL;
-        self.darts[dart.id()] = Dart::NULL;
+    pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
+        assert!(self.is_free(dart_id));
+        self.free_darts.push(dart_id);
+        self.betas[dart_id as usize] = [0; 2];
+        self.cells[dart_id as usize] = DartCells::NULL;
+        self.darts[dart_id as usize] = Dart::NULL;
     }
 
     /// i-sewing operation.
@@ -269,7 +269,7 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_sew<const I: u8>(&mut self, lhs_dart: Dart, rhs_dart: Dart) {
+    pub fn i_sew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         match I {
             1 => todo!(),
             2 => todo!(),
@@ -305,7 +305,7 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_unsew<const I: u8>(&mut self, lhs_dart: Dart) {
+    pub fn i_unsew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier) {
         match I {
             1 => todo!(),
             2 => todo!(),
@@ -324,8 +324,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_betas(&mut self, dart: Dart, betas: [usize; 2]) {
-        self.betas[dart.id()] = betas;
+    pub fn set_d_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; 2]) {
+        self.betas[dart_id as usize] = betas;
     }
 
     /// Set the vertex ID associated to a dart.
@@ -339,8 +339,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_vertex(&mut self, dart: Dart, vertex_id: usize) {
-        self.cells[dart.id()].vertex_id = vertex_id;
+    pub fn set_d_vertex(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
+        self.cells[dart_id as usize].vertex_id = vertex_id;
     }
 
     /// Set the face ID associated to a dart.
@@ -354,8 +354,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_face(&mut self, dart: Dart, face_id: usize) {
-        self.cells[dart.id()].face_id = face_id;
+    pub fn set_d_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
+        self.cells[dart_id as usize].face_id = face_id;
     }
 }
 
