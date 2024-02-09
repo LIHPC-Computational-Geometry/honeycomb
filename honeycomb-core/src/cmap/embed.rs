@@ -54,7 +54,7 @@ pub type VolumeIdentifier = usize;
 /// let darts = vec![Dart::NULL, Dart::from(1)];
 /// let embedded_cells = vec![DartCells::NULL; 2];
 ///
-/// println!("dart {} associated cells: {:#?}", darts[1].id(), embedded_cells[darts[1].id()]);
+/// println!("dart {} associated cells: {:#?}", darts[1].id(), embedded_cells[darts[1].id() as usize]);
 /// ```
 ///
 pub struct DartCells {

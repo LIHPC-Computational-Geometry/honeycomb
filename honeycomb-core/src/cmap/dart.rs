@@ -33,7 +33,7 @@ pub type DartIdentifier = u32;
 /// let mut darts = vec![Dart::NULL];
 /// darts.extend((1..11).map(|i| Dart::from(i)));
 ///
-/// (0..11).for_each(|i| assert_eq!(i, darts[i].id()));
+/// (0..11).for_each(|i| assert_eq!(i, darts[i].id() as usize));
 /// ```
 ///
 pub struct Dart {
