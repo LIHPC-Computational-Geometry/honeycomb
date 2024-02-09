@@ -13,7 +13,10 @@ pub mod cmap;
 
 // ------ RE-EXPORTS
 
-pub use cmap::dart::{Dart, DartIdentifier};
+pub use cmap::{
+    dart::{Dart, DartIdentifier},
+    map::TwoMap,
+};
 
 // ------ IMPORTS
 
