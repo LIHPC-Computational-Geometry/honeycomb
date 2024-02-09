@@ -34,7 +34,7 @@ pub struct TwoMap {
     cells: Vec<DartCells>,
     /// List of darts composing the map.
     ///
-    /// Used to ...
+    /// This is mainly used for operations that require graph search.
     darts: Vec<Dart>,
     /// Array representation of the beta functions.
     ///
@@ -87,7 +87,7 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
     /// ## Generics
     ///
@@ -96,9 +96,8 @@ impl TwoMap {
     ///
     /// # Return / Panic
     ///
-    /// Return the dart *d* such that *d = beta_I(dart)*. If the
-    /// returned value is the null dart, this means that *dart* is
-    /// I-free.
+    /// Return the identifier of the dart *d* such that *d = beta_I(dart)*. If
+    /// the returned value is the null dart, this means that *dart* is I-free.
     ///
     /// # Example
     ///
@@ -114,12 +113,12 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
     /// # Return / Panic
     ///
     /// Return a [DartCells] structure that contain identifiers to
-    /// the different i-cells the dart models.
+    /// the different i-cells *dart* models.
     ///
     /// # Example
     ///
@@ -133,11 +132,11 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if the dart is I-free.
+    /// Return a boolean indicating if *dart* is I-free.
     ///
     /// # Example
     ///
@@ -151,11 +150,11 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if the dart is 1-free and 2-free.
+    /// Return a boolean indicating if *dart* is 1-free and 2-free.
     ///
     /// # Example
     ///
@@ -171,11 +170,11 @@ impl TwoMap {
     ///
     /// The dart is I-free for all I and is pushed to the list of existing
     /// darts, effectively making its identifier equal to the total number
-    /// of darts.
+    /// of darts (post-push).
     ///
     /// # Return / Panic
     ///
-    /// Return the created dart to allow for direct operations.
+    /// Return the ID of the created dart to allow for direct operations.
     ///
     /// # Example
     ///
@@ -197,7 +196,7 @@ impl TwoMap {
     ///
     /// # Return / Panic
     ///
-    /// Return the created dart to allow for direct operations.
+    /// Return the ID of the created dart to allow for direct operations.
     ///
     /// # Example
     ///
@@ -226,7 +225,7 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart to remove.
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
     ///
     /// # Example
     ///
@@ -236,6 +235,8 @@ impl TwoMap {
         assert!(self.is_free(dart_id));
         self.free_darts.push(dart_id);
         self.betas[dart_id as usize] = [0; 2];
+        // the following two lines are more safety than anything else
+        // this prevents having to deal w/ artifacts in case of re-insertion
         self.cells[dart_id as usize] = DartCells::NULL;
         self.darts[dart_id as usize] = Dart::NULL;
     }
@@ -250,8 +251,8 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart: Dart` -- First dart to be linked.
-    /// - `rhs_dart: Dart` -- Second dart to be linked.
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
     ///
     /// After the sewing operation, these darts will verify
     /// `beta_I(lhs_dart) == rhs_dart`.
@@ -287,7 +288,7 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart: Dart` -- Dart to separate.
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
     ///
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the beta_I function.
@@ -317,8 +318,8 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
-    /// - `betas: [usize; 2]` -- Value of the images as `[beta_1(dart), beta_2(dart)]`
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `betas: [DartIdentifier; 2]` -- Value of the images as `[beta_1(dart), beta_2(dart)]`
     ///
     /// # Example
     ///
@@ -332,8 +333,8 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
-    /// - `vertex_id: usize` -- Unique vertex identifier.
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `vertex_id: VertexIdentifier` -- Unique vertex identifier.
     ///
     /// # Example
     ///
@@ -347,8 +348,8 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `dart: Dart` -- Dart of interest.
-    /// - `face_id: usize` -- Unique face identifier.
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `face_id: FaceIdentifier` -- Unique face identifier.
     ///
     /// # Example
     ///
