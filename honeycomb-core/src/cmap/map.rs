@@ -25,7 +25,7 @@ use super::embed::DartCells;
 /// ```
 /// use honeycomb_core::TwoMap;
 ///
-/// // TODO: one example to rule them all
+/// // TODO: two examples to rule them all
 ///
 /// ```
 ///
@@ -51,7 +51,7 @@ impl TwoMap {
     ///
     /// # Arguments
     ///
-    /// - `n_darts: usize` -- Number of darts  composing the new combinatorial map.
+    /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
     ///
     /// # Return / Panic
     ///
@@ -83,26 +83,104 @@ impl TwoMap {
 
     // --- reading interfaces
 
+    /// Compute the value of the I-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be either 1 or 2 in the case of a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the dart *d* such that *d = beta_I(dart)*. If the
+    /// returned value is the null dart, this means that *dart* is
+    /// I-free.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn beta<const I: u8>(&self, dart: Dart) -> Dart {
         assert!(I < 2);
         assert!(I > 0);
         Dart::from(self.betas[dart.id()][(I - 1) as usize])
     }
 
+    /// Fetch cells associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a [DartCells] structure that contain identifiers to
+    /// the different i-cells the dart models.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn cell_of(&self, dart: Dart) -> DartCells {
         self.cells[dart.id()]
     }
 
+    /// Check if a given dart is I-free.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a boolean indicating if the dart is I-free.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn is_i_free<const I: u8>(&self, dart: Dart) -> bool {
         self.beta::<I>(dart) == Dart::NULL
     }
 
+    /// Check if a given dart is I-free, for all I.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a boolean indicating if the dart is 1-free and 2-free.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn is_free(&self, dart: Dart) -> bool {
         self.beta::<1>(dart) == Dart::NULL && self.beta::<2>(dart) == Dart::NULL
     }
 
     // --- editing interfaces
 
+    /// Add a new free dart to the combinatorial map.
+    ///
+    /// The dart is I-free for all I and is pushed to the list of existing
+    /// darts, effectively making its identifier equal to the total number
+    /// of darts.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the created dart to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn add_free_dart(&mut self) -> Dart {
         let new_id = self.darts.len();
         self.darts.push(Dart::from(new_id));
@@ -111,6 +189,20 @@ impl TwoMap {
         Dart::from(new_id)
     }
 
+    /// Insert a new free dart to the combinatorial map.
+    ///
+    /// The dart is I-free for all I and may be inserted into a free spot in
+    /// the existing dart list. If no free spots exist, it will be pushed to
+    /// the end of the list.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the created dart to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn insert_free_dart(&mut self) -> Dart {
         if let Some(new_id) = self.free_darts.pop() {
             self.darts[new_id] = Dart::from(new_id);
@@ -122,6 +214,24 @@ impl TwoMap {
         }
     }
 
+    /// Remove a free dart from the combinatorial map.
+    ///
+    /// The removed dart identifier is added to the list of free dart.
+    /// This way of proceeding is necessary as the structure relies on
+    /// darts indexing for encoding data, making reordering of any sort
+    /// extremely costly.
+    ///
+    /// By keeping track of free spots in the dart arrays, we can prevent too
+    /// much memory waste, although at the cost of locality of reference.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart to remove.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn remove_free_dart(&mut self, dart: Dart) {
         assert!(self.is_free(dart));
         self.free_darts.push(dart.id());
@@ -130,7 +240,36 @@ impl TwoMap {
         self.darts[dart.id()] = Dart::NULL;
     }
 
-    pub fn i_sew<const I: usize>(&mut self, lhs_dart: Dart, rhs_dart: Dart) {
+    /// i-sewing operation.
+    ///
+    /// This operation corresponds to *coherently linking* two darts via
+    /// the beta_I function. For a thorough explanation of this operation
+    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    ///
+    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart: Dart` -- First dart to be linked.
+    /// - `rhs_dart: Dart` -- Second dart to be linked.
+    ///
+    /// After the sewing operation, these darts will verify
+    /// `beta_I(lhs_dart) == rhs_dart`.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be either 1 or 2 in the case of a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// The method may panic if *I* is neither 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn i_sew<const I: u8>(&mut self, lhs_dart: Dart, rhs_dart: Dart) {
         match I {
             1 => todo!(),
             2 => todo!(),
@@ -138,7 +277,35 @@ impl TwoMap {
         }
     }
 
-    pub fn i_unsew<const I: usize>(&mut self, lhs_dart: Dart) {
+    /// i-unsewing operation.
+    ///
+    /// This operation corresponds to *coherently separating* two darts linked
+    /// via the beta_I function. For a thorough explanation of this operation
+    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    ///
+    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart: Dart` -- Dart to separate.
+    ///
+    /// Note that we do not need to take two darts as arguments since the
+    /// second dart can be obtained through the beta_I function.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be either 1 or 2 in the case of a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// The method may panic if *I* is neither 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn i_unsew<const I: u8>(&mut self, lhs_dart: Dart) {
         match I {
             1 => todo!(),
             2 => todo!(),
@@ -146,14 +313,47 @@ impl TwoMap {
         }
     }
 
+    /// Set the values of the betas function of a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    /// - `betas: [usize; 2]` -- Value of the images as `[beta_1(dart), beta_2(dart)]`
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn set_d_betas(&mut self, dart: Dart, betas: [usize; 2]) {
         self.betas[dart.id()] = betas;
     }
 
+    /// Set the vertex ID associated to a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    /// - `vertex_id: usize` -- Unique vertex identifier.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn set_d_vertex(&mut self, dart: Dart, vertex_id: usize) {
         self.cells[dart.id()].vertex_id = vertex_id;
     }
 
+    /// Set the face ID associated to a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart: Dart` -- Dart of interest.
+    /// - `face_id: usize` -- Unique face identifier.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
     pub fn set_d_face(&mut self, dart: Dart, face_id: usize) {
         self.cells[dart.id()].face_id = face_id;
     }
