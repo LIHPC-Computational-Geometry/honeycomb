@@ -101,7 +101,62 @@ impl TwoMap {
         self.beta::<1>(dart) == Dart::NULL && self.beta::<2>(dart) == Dart::NULL
     }
 
-    // -- editing interfaces
+    // --- editing interfaces
+
+    pub fn add_free_dart(&mut self) -> Dart {
+        let new_id = self.darts.len();
+        self.darts.push(Dart::from(new_id));
+        self.cells.push(DartCells::NULL);
+        self.betas.push([0; 2]);
+        Dart::from(new_id)
+    }
+
+    pub fn insert_free_dart(&mut self) -> Dart {
+        if let Some(new_id) = self.free_darts.pop() {
+            self.darts[new_id] = Dart::from(new_id);
+            self.cells[new_id] = DartCells::NULL;
+            self.betas[new_id] = [0; 2];
+            Dart::from(new_id)
+        } else {
+            self.add_free_dart()
+        }
+    }
+
+    pub fn remove_free_dart(&mut self, dart: Dart) {
+        assert!(self.is_free(dart));
+        self.free_darts.push(dart.id());
+        self.betas[dart.id()] = [0; 2];
+        self.cells[dart.id()] = DartCells::NULL;
+        self.darts[dart.id()] = Dart::NULL;
+    }
+
+    pub fn i_sew<const I: usize>(&mut self, lhs_dart: Dart, rhs_dart: Dart) {
+        match I {
+            1 => todo!(),
+            2 => todo!(),
+            _ => panic!(),
+        }
+    }
+
+    pub fn i_unsew<const I: usize>(&mut self, lhs_dart: Dart) {
+        match I {
+            1 => todo!(),
+            2 => todo!(),
+            _ => panic!(),
+        }
+    }
+
+    pub fn set_d_betas(&mut self, dart: Dart, betas: [usize; 2]) {
+        self.betas[dart.id()] = betas;
+    }
+
+    pub fn set_d_vertex(&mut self, dart: Dart, vertex_id: usize) {
+        self.cells[dart.id()].vertex_id = vertex_id;
+    }
+
+    pub fn set_d_face(&mut self, dart: Dart, face_id: usize) {
+        self.cells[dart.id()].face_id = face_id;
+    }
 }
 
 // --- 3-MAP
