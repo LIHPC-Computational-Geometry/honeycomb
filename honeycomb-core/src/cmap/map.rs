@@ -164,6 +164,73 @@ impl TwoMap {
         self.beta::<1>(dart_id) == 0 && self.beta::<2>(dart_id) == 0
     }
 
+    // orbits / i-cells
+
+    /// Description
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
+    /// be 0 (vertex), 1 (edge) or 2 (face) in the case of a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns a vector of IDs of the darts of the I-cell of *dart* (including
+    /// *dart*).
+    ///
+    /// In the case of a 2-cell, the vec is ordered to fit the orientation
+    /// of the face.
+    ///
+    /// KNOWN ISSUE:
+    ///
+    /// - if beta I is a partial permutation, the returned cell might not be
+    /// complete, this is especially a problem for beta 1 since 0-cell and
+    /// 2-cell might be incomplete.
+    /// - returning a vector is highly inefficient; a few alternatives to consider:
+    /// ArrayVec or heapless Vec (requires a hard cap on the number of elements),
+    /// an iterator...
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn i_cell_of<const I: usize>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
+        let mut cell: Vec<DartIdentifier> = vec![dart_id];
+        let mut curr_dart = dart_id;
+        match I {
+            0 => {
+                // rotate around the vertex until we get back to the first dart
+                while self.beta::<1>(self.beta::<2>(curr_dart)) != dart_id {
+                    curr_dart = self.beta::<1>(self.beta::<2>(curr_dart));
+                    cell.push(curr_dart);
+                    if curr_dart == 0 {
+                        break; // stop if we land on the null dart
+                    }
+                }
+            }
+            1 => {
+                // in the case of a 2-map, the 1-cell corresponds to [dart, beta_2(dart)]
+                cell.push(self.beta::<2>(dart_id))
+            }
+            2 => {
+                // travel along the edges of the face until we get back to the first dart
+                while self.beta::<1>(curr_dart) != dart_id {
+                    curr_dart = self.beta::<1>(curr_dart);
+                    cell.push(curr_dart);
+                    if curr_dart == 0 {
+                        break; // stop if we land on the null dart
+                    }
+                }
+            }
+            _ => panic!(),
+        }
+        cell
+    }
+
     // --- editing interfaces
 
     /// Add a new free dart to the combinatorial map.
