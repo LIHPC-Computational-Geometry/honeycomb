@@ -339,8 +339,32 @@ impl TwoMap {
     ///
     pub fn i_sew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         match I {
-            1 => todo!(),
-            2 => todo!(),
+            1 => {
+                // --- topological update
+                // set beta_1(lhs_dart) to rhs_dart
+
+                // we could technically overwrite the value, but this assertion
+                // makes it easier to assert algorithm correctness
+                assert!(self.is_i_free::<1>(lhs_dart_id));
+                self.betas[lhs_dart_id as usize][0] = rhs_dart_id;
+
+                // --- geometrical update
+            }
+            2 => {
+                // --- topological update
+                // set
+                // beta_2(lhs_dart) to rhs_dart
+                // beta_2(rhs_dart) to lhs_dart
+
+                // we could technically overwrite the value, but these assertions
+                // make it easier to assert algorithm correctness
+                assert!(self.is_i_free::<2>(lhs_dart_id));
+                assert!(self.is_i_free::<2>(rhs_dart_id));
+                self.betas[lhs_dart_id as usize][1] = rhs_dart_id;
+                self.betas[rhs_dart_id as usize][1] = lhs_dart_id;
+
+                // --- geometrical update
+            }
             _ => panic!(),
         }
     }
@@ -375,8 +399,26 @@ impl TwoMap {
     ///
     pub fn i_unsew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier) {
         match I {
-            1 => todo!(),
-            2 => todo!(),
+            1 => {
+                // --- topological update
+                // set beta_1(dart) to NullDart
+
+                self.betas[lhs_dart_id as usize][0] = 0;
+
+                // --- geometrical update
+            }
+            2 => {
+                // --- topological update
+                // set
+                // beta_2(dart) to NullDart
+                // beta_2(beta_2(dart)) to NullDart
+
+                let opp = self.beta::<2>(lhs_dart_id);
+                self.betas[lhs_dart_id as usize][1] = 0;
+                self.betas[opp as usize][1] = 0;
+
+                // --- geometrical update
+            }
             _ => panic!(),
         }
     }
