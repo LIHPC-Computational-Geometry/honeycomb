@@ -6,7 +6,7 @@
 //! -
 //!
 //! The definitions are re-exported, direct interaction with this module
-//! should be minimal.
+//! should be minimal, if existing at all.
 
 // ------ MODULE DECLARATIONS
 
@@ -20,6 +20,8 @@ use super::embed::{DartCells, SewPolicy, UnsewPolicy, Vertex};
 
 // --- 2-MAP
 
+const TWO_MAP_BETA: usize = 3;
+
 /// Main map object.
 ///
 /// Structure used to model 2D combinatorial map. The structure implements
@@ -31,7 +33,7 @@ use super::embed::{DartCells, SewPolicy, UnsewPolicy, Vertex};
 /// Definition of the structure and its logic can be found in the [user guide][UG].
 /// This documentation focuses on the implementation and its API.
 ///
-/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/definitions/cmaps
 ///
 /// # Example
 ///
@@ -53,9 +55,15 @@ pub struct TwoMap {
     darts: Vec<Dart>,
     /// Array representation of the beta functions.
     ///
+    /// Note that we encode beta_0 as the inverse function of β 1.
+    /// This is extremely useful (read *required*) to implement
+    /// correct and efficient I-cell computation. Note that while beta O
+    /// can be accessed using the [Self::beta] method, we do not define
+    /// 0-sew or 0-unsew operations.
+    ///
     /// This should eventually be replaced by a better
     /// structure, supported by benchmarking.
-    betas: Vec<[DartIdentifier; 2]>,
+    betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list.
     free_darts: Vec<DartIdentifier>,
@@ -72,7 +80,7 @@ impl TwoMap {
     ///
     /// Returns a combinatorial map containing:
     /// - `n_darts + 1`, the amount of darts wanted plus the null dart (at index 0).
-    /// - 2 beta functions, stored with an offset of 1 due to the absence of beta 0.
+    /// - 3 β functions, *β<sub>0</sub>* being defined as the inverse of beta 1.
     /// - Default embed data associated to each dart.
     /// - An empty list of currently free darts. This may be used for dart creation.
     ///
@@ -86,7 +94,7 @@ impl TwoMap {
 
         let cells = vec![DartCells::NULL; n_darts + 1];
 
-        let betas = vec![[0; 2]; n_darts + 1];
+        let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
             vertices: Vec::with_capacity(n_darts),
@@ -121,8 +129,7 @@ impl TwoMap {
     ///
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 2);
-        assert!(I > 0);
-        self.betas[dart_id as usize][(I - 1) as usize]
+        self.betas[dart_id as usize][I as usize]
     }
 
     /// Fetch cells associated to a given dart.
@@ -267,7 +274,7 @@ impl TwoMap {
         let new_id = self.darts.len() as DartIdentifier;
         self.darts.push(Dart::from(new_id));
         self.cells.push(DartCells::NULL);
-        self.betas.push([0; 2]);
+        self.betas.push([0; TWO_MAP_BETA]);
         new_id
     }
 
@@ -289,7 +296,7 @@ impl TwoMap {
         if let Some(new_id) = self.free_darts.pop() {
             self.darts[new_id as usize] = Dart::from(new_id);
             self.cells[new_id as usize] = DartCells::NULL;
-            self.betas[new_id as usize] = [0; 2];
+            self.betas[new_id as usize] = [0; TWO_MAP_BETA];
             new_id
         } else {
             self.add_free_dart()
@@ -317,7 +324,7 @@ impl TwoMap {
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
         self.free_darts.push(dart_id);
-        self.betas[dart_id as usize] = [0; 2];
+        self.betas[dart_id as usize] = [0; TWO_MAP_BETA];
         // the following two lines are more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
         self.cells[dart_id as usize] = DartCells::NULL;
@@ -362,21 +369,23 @@ impl TwoMap {
         match I {
             1 => {
                 // --- topological update
-                // set beta_1(lhs_dart) to rhs_dart
 
-                // we could technically overwrite the value, but this assertion
+                // we could technically overwrite the value, but these assertions
                 // makes it easier to assert algorithm correctness
                 assert!(self.is_i_free::<1>(lhs_dart_id));
-                self.betas[lhs_dart_id as usize][0] = rhs_dart_id;
+                assert!(self.is_i_free::<0>(rhs_dart_id));
+                self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
+                self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
 
                 // --- geometrical update
-                // In case of a 1-sew, we need to update the 0-cell geometry
+
+                // in case of a 1-sew, we need to update the 0-cell geometry
                 // of rhs_dart to ensure no vertex is duplicated
                 let zero_cell = self.i_cell_of::<0>(rhs_dart_id);
-                // if there was an existing 0-cell
                 if zero_cell.len() > 1 {
+                    // if there was an existing 0-cell, update according to sewing policy
                     match policy {
-                        // move rhs_dart to existing 0-cell
+                        // "move" rhs_dart to existing 0-cell
                         SewPolicy::MergeToExisting => {
                             self.cells[rhs_dart_id as usize].vertex_id =
                                 self.cell_of(zero_cell[1]).vertex_id
@@ -386,16 +395,13 @@ impl TwoMap {
             }
             2 => {
                 // --- topological update
-                // set
-                // beta_2(lhs_dart) to rhs_dart
-                // beta_2(rhs_dart) to lhs_dart
 
                 // we could technically overwrite the value, but these assertions
                 // make it easier to assert algorithm correctness
                 assert!(self.is_i_free::<2>(lhs_dart_id));
                 assert!(self.is_i_free::<2>(rhs_dart_id));
-                self.betas[lhs_dart_id as usize][1] = rhs_dart_id;
-                self.betas[rhs_dart_id as usize][1] = lhs_dart_id;
+                self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
+                self.betas[rhs_dart_id as usize][1] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
 
                 // --- geometrical update
             }
@@ -435,10 +441,11 @@ impl TwoMap {
         match I {
             1 => {
                 // --- topological update
-                // set beta_1(dart) to NullDart
 
+                // fetch id of beta_1(lhs_dart)
                 let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-                self.betas[lhs_dart_id as usize][0] = 0;
+                self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
+                self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
 
                 // --- geometrical update
                 match policy {
@@ -451,13 +458,10 @@ impl TwoMap {
             }
             2 => {
                 // --- topological update
-                // set
-                // beta_2(dart) to NullDart
-                // beta_2(beta_2(dart)) to NullDart
 
                 let opp = self.beta::<2>(lhs_dart_id);
-                self.betas[lhs_dart_id as usize][1] = 0;
-                self.betas[opp as usize][1] = 0;
+                self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
+                self.betas[opp as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
 
                 // --- geometrical update
             }
@@ -476,7 +480,7 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; 2]) {
+    pub fn set_d_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
 
