@@ -28,12 +28,29 @@ const TWO_MAP_BETA: usize = 3;
 /// basic operations:
 ///
 /// - free dart addition/insertion/removal
-/// - I-sewing/unsewing
+/// - i-sewing/unsewing
 ///
 /// Definition of the structure and its logic can be found in the [user guide][UG].
 /// This documentation focuses on the implementation and its API.
 ///
 /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/definitions/cmaps
+///
+/// # Fields
+///
+/// Fields are kept private in order to better define interfaces. The structure
+/// contains the following data:
+///
+/// - `vertices: Vec<Vertex>`: List of vertices making up the represented mesh
+/// - `cells: Vec<DartCells>`: List of associated cells of each dart
+/// - `darts: Vec<Dart>`: List of darts composing the map
+/// - `free_darts: Vec<DartIdentifier>`: List of free darts identifiers, i.e. empty
+///   spots in the current dart list.
+/// - `betas: Vec<[DartIdentifier; 3]>`: Array representation of the beta functions
+///
+/// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
+/// This is extremely useful (read *required*) to implement correct and efficient
+/// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
+/// the [Self::beta] method, we do not define 0-sew or 0-unsew operations.
 ///
 /// # Example
 ///
@@ -53,20 +70,14 @@ pub struct TwoMap {
     ///
     /// This is mainly used for operations that require graph search.
     darts: Vec<Dart>,
+    /// List of free darts identifiers, i.e. empty spots
+    /// in the current dart list.
+    free_darts: Vec<DartIdentifier>,
     /// Array representation of the beta functions.
-    ///
-    /// Note that we encode beta_0 as the inverse function of β 1.
-    /// This is extremely useful (read *required*) to implement
-    /// correct and efficient I-cell computation. Note that while beta O
-    /// can be accessed using the [Self::beta] method, we do not define
-    /// 0-sew or 0-unsew operations.
     ///
     /// This should eventually be replaced by a better
     /// structure, supported by benchmarking.
     betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
-    /// List of free darts identifiers, i.e. empty spots
-    /// in the current dart list.
-    free_darts: Vec<DartIdentifier>,
 }
 
 impl TwoMap {
@@ -80,8 +91,9 @@ impl TwoMap {
     ///
     /// Returns a combinatorial map containing:
     /// - `n_darts + 1`, the amount of darts wanted plus the null dart (at index 0).
-    /// - 3 β functions, *β<sub>0</sub>* being defined as the inverse of beta 1.
+    /// - 3 beta functions, *β<sub>0</sub>* being defined as the inverse of *β<sub>1</sub>*.
     /// - Default embed data associated to each dart.
+    /// - An empty list of for vertices of the mesh.
     /// - An empty list of currently free darts. This may be used for dart creation.
     ///
     /// # Example
@@ -97,10 +109,10 @@ impl TwoMap {
         let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
-            vertices: Vec::with_capacity(n_darts),
             cells,
             darts,
             betas,
+            vertices: Vec::with_capacity(n_darts),
             free_darts: Vec::with_capacity(n_darts + 1),
         }
     }
@@ -116,11 +128,11 @@ impl TwoMap {
     /// ## Generics
     ///
     /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be either 1 or 2 in the case of a 2D map.
+    /// be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = beta_I(dart)*. If
+    /// Return the identifier of the dart *d* such that *d = β<sub>I</sub>(dart)*. If
     /// the returned value is the null dart, this means that *dart* is I-free.
     ///
     /// # Example
@@ -128,7 +140,7 @@ impl TwoMap {
     /// See [TwoMap] example.
     ///
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
-        assert!(I < 2);
+        assert!(I < 3);
         self.betas[dart_id as usize][I as usize]
     }
 
@@ -157,9 +169,15 @@ impl TwoMap {
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be 0, 1 or 2 for a 2D map.
+    ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is I-free.
+    /// Return a boolean indicating if *dart* is I-free, i.e.
+    /// *β<sub>I</sub>(dart) = NullDart*.
     ///
     /// # Example
     ///
@@ -177,14 +195,14 @@ impl TwoMap {
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is 1-free and 2-free.
+    /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
     ///
     /// # Example
     ///
     /// See [TwoMap] example.
     ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
-        self.beta::<1>(dart_id) == 0 && self.beta::<2>(dart_id) == 0
+        self.beta::<0>(dart_id) == 0 && self.beta::<1>(dart_id) == 0 && self.beta::<2>(dart_id) == 0
     }
 
     // orbits / i-cells
@@ -198,15 +216,12 @@ impl TwoMap {
     /// ## Generics
     ///
     /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) in the case of a 2D map.
+    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
     ///
     /// # Return / Panic
     ///
     /// Returns a vector of IDs of the darts of the I-cell of *dart* (including
-    /// *dart*).
-    ///
-    /// In the case of a 2-cell, the vec is ordered to fit the orientation
-    /// of the face.
+    /// *dart* at index 0).
     ///
     /// KNOWN ISSUE:
     ///
@@ -258,7 +273,7 @@ impl TwoMap {
 
     /// Add a new free dart to the combinatorial map.
     ///
-    /// The dart is I-free for all I and is pushed to the list of existing
+    /// The dart is i-free for all i and is pushed to the list of existing
     /// darts, effectively making its identifier equal to the total number
     /// of darts (post-push).
     ///
@@ -280,7 +295,7 @@ impl TwoMap {
 
     /// Insert a new free dart to the combinatorial map.
     ///
-    /// The dart is I-free for all I and may be inserted into a free spot in
+    /// The dart is i-free for all i and may be inserted into a free spot in
     /// the existing dart list. If no free spots exist, it will be pushed to
     /// the end of the list.
     ///
@@ -334,7 +349,7 @@ impl TwoMap {
     /// i-sewing operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
-    /// the beta_I function. For a thorough explanation of this operation
+    /// the *β<sub>i</sub>* function. For a thorough explanation of this operation
     /// (and implied hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
@@ -345,12 +360,13 @@ impl TwoMap {
     /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
     ///
     /// After the sewing operation, these darts will verify
-    /// `beta_I(lhs_dart) == rhs_dart`.
+    /// `*β<sub>i</sub>*(lhs_dart) == rhs_dart`.
     ///
     /// ## Generics
     ///
     /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be either 1 or 2 in the case of a 2D map.
+    /// be either 1 or 2 in the case of a 2D map. Note that *β<sub>0</sub>*
+    /// will be updated in case of a 1-sew.
     ///
     /// # Return / Panic
     ///
@@ -412,7 +428,7 @@ impl TwoMap {
     /// i-unsewing operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
-    /// via the beta_I function. For a thorough explanation of this operation
+    /// via the *β<sub>i</sub>* function. For a thorough explanation of this operation
     /// (and implied hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
@@ -422,12 +438,13 @@ impl TwoMap {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
     ///
     /// Note that we do not need to take two darts as arguments since the
-    /// second dart can be obtained through the beta_I function.
+    /// second dart can be obtained through the *β<sub>i</sub>* function.
     ///
     /// ## Generics
     ///
     /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be either 1 or 2 in the case of a 2D map.
+    /// be either 1 or 2 in the case of a 2D map. Note that *β<sub>0</sub>*
+    /// will be updated in case of a 1-unsew.
     ///
     /// # Return / Panic
     ///
@@ -469,12 +486,13 @@ impl TwoMap {
         }
     }
 
-    /// Set the values of the betas function of a dart.
+    /// Set the values of the beta functions of a dart.
     ///
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `betas: [DartIdentifier; 2]` -- Value of the images as `[beta_1(dart), beta_2(dart)]`
+    /// - `betas: [DartIdentifier; 3]` -- Value of the images as
+    ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
     /// # Example
     ///
