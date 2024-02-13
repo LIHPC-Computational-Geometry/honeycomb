@@ -1,8 +1,12 @@
-//! Module short description
+//! Map objects
 //!
-//! Should you interact with this module directly?
+//! This module contains code for the two main structures provided
+//! by the crate:
+//! - [TwoMap], a 2D combinatorial map implementation
+//! -
 //!
-//! Content description if needed
+//! The definitions are re-exported, direct interaction with this module
+//! should be minimal.
 
 // ------ MODULE DECLARATIONS
 
@@ -18,7 +22,16 @@ use super::embed::{DartCells, SewPolicy, UnsewPolicy, Vertex};
 
 /// Main map object.
 ///
-/// Detailed description.
+/// Structure used to model 2D combinatorial map. The structure implements
+/// basic operations:
+///
+/// - free dart addition/insertion/removal
+/// - I-sewing/unsewing
+///
+/// Definition of the structure and its logic can be found in the [user guide][UG].
+/// This documentation focuses on the implementation and its API.
+///
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
 ///
 /// # Example
 ///
