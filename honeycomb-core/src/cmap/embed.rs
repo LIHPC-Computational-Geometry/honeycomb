@@ -34,6 +34,18 @@ pub type FaceIdentifier = usize;
 /// This is used for better control over memory usage and ID encoding.
 pub type VolumeIdentifier = usize;
 
+#[derive(Debug, Default)]
+pub enum SewPolicy {
+    #[default]
+    MergeToExisting,
+}
+
+#[derive(Debug, Default)]
+pub enum UnsewPolicy {
+    #[default]
+    Duplicate,
+}
+
 #[derive(Clone, Copy, Debug)]
 /// Dart-cell associative structure
 ///

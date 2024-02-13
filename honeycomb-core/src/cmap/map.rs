@@ -10,7 +10,7 @@
 
 use crate::{Dart, DartIdentifier, FaceIdentifier, VertexIdentifier};
 
-use super::embed::DartCells;
+use super::embed::{DartCells, SewPolicy, UnsewPolicy, Vertex};
 
 // ------ CONTENT
 
@@ -30,6 +30,8 @@ use super::embed::DartCells;
 /// ```
 ///
 pub struct TwoMap {
+    /// List of vertices making up the represented mesh
+    vertices: Vec<Vertex>,
     /// List of associated cells of each dart.
     cells: Vec<DartCells>,
     /// List of darts composing the map.
@@ -74,6 +76,7 @@ impl TwoMap {
         let betas = vec![[0; 2]; n_darts + 1];
 
         Self {
+            vertices: Vec::with_capacity(n_darts),
             cells,
             darts,
             betas,
@@ -337,7 +340,12 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_sew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn i_sew<const I: u8>(
+        &mut self,
+        lhs_dart_id: DartIdentifier,
+        rhs_dart_id: DartIdentifier,
+        policy: SewPolicy,
+    ) {
         match I {
             1 => {
                 // --- topological update
@@ -349,6 +357,19 @@ impl TwoMap {
                 self.betas[lhs_dart_id as usize][0] = rhs_dart_id;
 
                 // --- geometrical update
+                // In case of a 1-sew, we need to update the 0-cell geometry
+                // of rhs_dart to ensure no vertex is duplicated
+                let zero_cell = self.i_cell_of::<0>(rhs_dart_id);
+                // if there was an existing 0-cell
+                if zero_cell.len() > 1 {
+                    match policy {
+                        // move rhs_dart to existing 0-cell
+                        SewPolicy::MergeToExisting => {
+                            self.cells[rhs_dart_id as usize].vertex_id =
+                                self.cell_of(zero_cell[1]).vertex_id
+                        }
+                    };
+                }
             }
             2 => {
                 // --- topological update
@@ -397,15 +418,23 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_unsew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn i_unsew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         match I {
             1 => {
                 // --- topological update
                 // set beta_1(dart) to NullDart
 
+                let rhs_dart_id = self.beta::<1>(lhs_dart_id);
                 self.betas[lhs_dart_id as usize][0] = 0;
 
                 // --- geometrical update
+                match policy {
+                    UnsewPolicy::Duplicate => {
+                        let old_vertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id];
+                        self.vertices.push(old_vertex);
+                        self.set_d_vertex(rhs_dart_id, self.vertices.len() - 1);
+                    }
+                }
             }
             2 => {
                 // --- topological update
