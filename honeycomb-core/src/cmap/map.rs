@@ -221,9 +221,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// KNOWN ISSUE:
     ///
-    /// - if beta I is a partial permutation, the returned cell might not be
-    /// complete, this is especially a problem for beta 1 since 0-cell and
-    /// 2-cell might be incomplete.
     /// - returning a vector is highly inefficient; a few alternatives to consider:
     /// ArrayVec or heapless Vec (requires a hard cap on the number of elements),
     /// an iterator...
@@ -237,12 +234,23 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         let mut curr_dart = dart_id;
         match I {
             0 => {
+                let mut completeness = true;
                 // rotate around the vertex until we get back to the first dart
                 while self.beta::<1>(self.beta::<2>(curr_dart)) != dart_id {
                     curr_dart = self.beta::<1>(self.beta::<2>(curr_dart));
                     cell.push(curr_dart);
                     if curr_dart == 0 {
+                        completeness = false;
                         break; // stop if we land on the null dart
+                    }
+                }
+                // if not complete, we need to rotate in the other direction to make sure
+                // no dart is missing
+                if !completeness {
+                    curr_dart = self.beta::<2>(self.beta::<0>(dart_id));
+                    while curr_dart != NULL_DART_ID {
+                        cell.push(curr_dart);
+                        curr_dart = self.beta::<2>(self.beta::<0>(curr_dart));
                     }
                 }
             }
@@ -251,12 +259,21 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 cell.push(self.beta::<2>(dart_id))
             }
             2 => {
+                let mut completeness = true;
                 // travel along the edges of the face until we get back to the first dart
                 while self.beta::<1>(curr_dart) != dart_id {
                     curr_dart = self.beta::<1>(curr_dart);
                     cell.push(curr_dart);
                     if curr_dart == 0 {
+                        completeness = false;
                         break; // stop if we land on the null dart
+                    }
+                }
+                if !completeness {
+                    curr_dart = self.beta::<0>(dart_id);
+                    while curr_dart != NULL_DART_ID {
+                        cell.push(curr_dart);
+                        curr_dart = self.beta::<0>(curr_dart);
                     }
                 }
             }
