@@ -14,7 +14,7 @@ pub mod cmap;
 // ------ RE-EXPORTS
 
 pub use cmap::{
-    dart::{Dart, DartIdentifier},
+    dart::DartIdentifier,
     embed::{FaceIdentifier, VertexIdentifier, VolumeIdentifier},
     map::TwoMap,
 };

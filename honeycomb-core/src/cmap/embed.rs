@@ -17,17 +17,17 @@
 /// Type definition for vertex identifiers
 ///
 /// This is used for better control over memory usage and ID encoding.
-pub type VertexIdentifier = usize;
+pub type VertexIdentifier = u32;
 
 /// Type definition for face identifiers
 ///
 /// This is used for better control over memory usage and ID encoding.
-pub type FaceIdentifier = usize;
+pub type FaceIdentifier = u32;
 
 /// Type definition for volume identifiers
 ///
 /// This is used for better control over memory usage and ID encoding.
-pub type VolumeIdentifier = usize;
+pub type VolumeIdentifier = u32;
 
 #[derive(Debug, Default)]
 pub enum SewPolicy {

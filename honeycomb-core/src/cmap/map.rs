@@ -428,13 +428,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         SewPolicy::StretchAverage => {
                             // this works under the assumption that a valid vertex is
                             // associated to rhs_dart
-                            let lid_vertex = self.vertices[self.cell_of(lid).vertex_id];
-                            let rhs_vertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id];
+                            let lid_vertex = self.vertices[self.cell_of(lid).vertex_id as usize];
+                            let rhs_vertex =
+                                self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
                             self.vertices.push([
                                 (lid_vertex[0] + rhs_vertex[0]) / 2.0,
                                 (lid_vertex[1] + rhs_vertex[1]) / 2.0,
                             ]);
-                            let new_id = self.vertices.len() - 1 as VertexIdentifier;
+                            let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                             stretch!(lid, new_id);
                             stretch!(rhs_dart_id, new_id);
                         }
@@ -499,9 +500,13 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 // --- geometrical update
                 match policy {
                     UnsewPolicy::Duplicate => {
-                        let old_vertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id];
+                        let old_vertex =
+                            self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
                         self.vertices.push(old_vertex);
-                        self.set_d_vertex(rhs_dart_id, self.vertices.len() - 1);
+                        self.set_d_vertex(
+                            rhs_dart_id,
+                            (self.vertices.len() - 1) as VertexIdentifier,
+                        );
                     }
                 }
             }
