@@ -213,6 +213,20 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
             }
         }
     }
+
+    pub fn add_entry(&mut self) {
+        self.marks
+            .iter_mut()
+            .for_each(|mark| mark.push(AtomicBool::new(false)));
+        self.associated_cells.push(CellIdentifiers::default());
+    }
+
+    pub fn reset_entry(&mut self, dart_id: DartIdentifier) {
+        self.marks.iter().for_each(|mark| {
+            mark[dart_id as usize].store(false, std::sync::atomic::Ordering::Relaxed)
+        });
+        self.associated_cells[dart_id as usize] = CellIdentifiers::default();
+    }
 }
 
 // ------ TESTS

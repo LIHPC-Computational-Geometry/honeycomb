@@ -12,9 +12,12 @@
 
 // ------ IMPORTS
 
-use crate::{Dart, DartIdentifier, FaceIdentifier, VertexIdentifier};
+use crate::{DartIdentifier, FaceIdentifier, VertexIdentifier};
 
-use super::embed::{DartCells, SewPolicy, UnsewPolicy, Vertex};
+use super::{
+    dart::{CellIdentifiers, DartData},
+    embed::{SewPolicy, UnsewPolicy, Vertex},
+};
 
 // ------ CONTENT
 
@@ -61,15 +64,11 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// ```
 ///
-pub struct TwoMap {
+pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex>,
-    /// List of associated cells of each dart.
-    cells: Vec<DartCells>,
-    /// List of darts composing the map.
-    ///
-    /// This is mainly used for operations that require graph search.
-    darts: Vec<Dart>,
+    /// Structure holding data related to darts (marks, associated cells)
+    dart_data: DartData<N_MARKS>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list.
     free_darts: Vec<DartIdentifier>,
@@ -80,7 +79,7 @@ pub struct TwoMap {
     betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
 }
 
-impl TwoMap {
+impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// Creates a new 2D combinatorial map.
     ///
     /// # Arguments
@@ -101,16 +100,10 @@ impl TwoMap {
     /// See [TwoMap] example.
     ///
     pub fn new(n_darts: usize) -> Self {
-        let mut darts = vec![Dart::NULL];
-        darts.extend((1..n_darts as DartIdentifier + 1).map(Dart::from));
-
-        let cells = vec![DartCells::NULL; n_darts + 1];
-
         let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
-            cells,
-            darts,
+            dart_data: DartData::new(n_darts),
             betas,
             vertices: Vec::with_capacity(n_darts),
             free_darts: Vec::with_capacity(n_darts + 1),
@@ -159,8 +152,8 @@ impl TwoMap {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn cell_of(&self, dart_id: DartIdentifier) -> DartCells {
-        self.cells[dart_id as usize]
+    pub fn cell_of(&self, dart_id: DartIdentifier) -> CellIdentifiers {
+        self.dart_data.associated_cells[dart_id as usize]
     }
 
     /// Check if a given dart is I-free.
@@ -286,9 +279,8 @@ impl TwoMap {
     /// See [TwoMap] example.
     ///
     pub fn add_free_dart(&mut self) -> DartIdentifier {
-        let new_id = self.darts.len() as DartIdentifier;
-        self.darts.push(Dart::from(new_id));
-        self.cells.push(DartCells::NULL);
+        let new_id = self.dart_data.associated_cells.len() as DartIdentifier;
+        self.dart_data.add_entry();
         self.betas.push([0; TWO_MAP_BETA]);
         new_id
     }
@@ -309,8 +301,7 @@ impl TwoMap {
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
         if let Some(new_id) = self.free_darts.pop() {
-            self.darts[new_id as usize] = Dart::from(new_id);
-            self.cells[new_id as usize] = DartCells::NULL;
+            self.dart_data.reset_entry(new_id);
             self.betas[new_id as usize] = [0; TWO_MAP_BETA];
             new_id
         } else {
@@ -342,8 +333,7 @@ impl TwoMap {
         self.betas[dart_id as usize] = [0; TWO_MAP_BETA];
         // the following two lines are more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
-        self.cells[dart_id as usize] = DartCells::NULL;
-        self.darts[dart_id as usize] = Dart::NULL;
+        self.dart_data.reset_entry(dart_id);
     }
 
     /// i-sewing operation.
@@ -403,7 +393,7 @@ impl TwoMap {
                     match policy {
                         // "move" rhs_dart to existing 0-cell
                         SewPolicy::MergeToExisting => {
-                            self.cells[rhs_dart_id as usize].vertex_id =
+                            self.dart_data.associated_cells[rhs_dart_id as usize].vertex_id =
                                 self.cell_of(zero_cell[1]).vertex_id
                         }
                     };
@@ -514,7 +504,7 @@ impl TwoMap {
     /// See [TwoMap] example.
     ///
     pub fn set_d_vertex(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
-        self.cells[dart_id as usize].vertex_id = vertex_id;
+        self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
     }
 
     /// Set the face ID associated to a dart.
@@ -529,7 +519,7 @@ impl TwoMap {
     /// See [TwoMap] example.
     ///
     pub fn set_d_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
-        self.cells[dart_id as usize].face_id = face_id;
+        self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 }
 
