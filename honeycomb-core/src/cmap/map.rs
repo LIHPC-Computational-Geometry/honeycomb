@@ -407,16 +407,38 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
                 // in case of a 1-sew, we need to update the 0-cell geometry
                 // of rhs_dart to ensure no vertex is duplicated
-                let zero_cell = self.i_cell_of::<0>(rhs_dart_id);
-                if zero_cell.len() > 1 {
-                    // if there was an existing 0-cell, update according to sewing policy
-                    match policy {
-                        // "move" rhs_dart to existing 0-cell
-                        SewPolicy::MergeToExisting => {
-                            self.dart_data.associated_cells[rhs_dart_id as usize].vertex_id =
-                                self.cell_of(zero_cell[1]).vertex_id
-                        }
+                macro_rules! stretch {
+                    ($replaced: expr, $replacer: expr) => {
+                        self.dart_data.associated_cells[$replaced as usize].vertex_id =
+                            self.dart_data.associated_cells[$replacer as usize].vertex_id
                     };
+                }
+
+                // this operation only makes sense if lhs_dart is associated
+                // to a fully defined edge, i.e. its image through beta2 is defined.
+                let lid = self.beta::<2>(lhs_dart_id);
+                if lid != NULL_DART_ID {
+                    match policy {
+                        SewPolicy::StretchLeft => {
+                            stretch!(rhs_dart_id, lid);
+                        }
+                        SewPolicy::StretchRight => {
+                            stretch!(lid, rhs_dart_id);
+                        }
+                        SewPolicy::StretchAverage => {
+                            // this works under the assumption that a valid vertex is
+                            // associated to rhs_dart
+                            let lid_vertex = self.vertices[self.cell_of(lid).vertex_id];
+                            let rhs_vertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id];
+                            self.vertices.push([
+                                (lid_vertex[0] + rhs_vertex[0]) / 2.0,
+                                (lid_vertex[1] + rhs_vertex[1]) / 2.0,
+                            ]);
+                            let new_id = self.vertices.len() - 1 as VertexIdentifier;
+                            stretch!(lid, new_id);
+                            stretch!(rhs_dart_id, new_id);
+                        }
+                    }
                 }
             }
             2 => {

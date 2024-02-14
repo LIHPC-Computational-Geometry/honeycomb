@@ -32,7 +32,9 @@ pub type VolumeIdentifier = usize;
 #[derive(Debug, Default)]
 pub enum SewPolicy {
     #[default]
-    MergeToExisting,
+    StretchLeft,
+    StretchRight,
+    StretchAverage,
 }
 
 #[derive(Debug, Default)]
@@ -64,7 +66,7 @@ pub type Vertex3 = [f64; 3];
 /// 2 faces: a square and a triangle.
 ///
 /// ```
-/// use honeycomb_core::cmap::embed::{Vertex2, Edge, Face};
+/// use honeycomb_core::cmap::embed::{Vertex2, Face};
 ///
 /// let vertices = [
 ///     [0.0, 0.0],
