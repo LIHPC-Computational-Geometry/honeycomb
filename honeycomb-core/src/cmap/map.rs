@@ -12,11 +12,11 @@
 
 // ------ IMPORTS
 
-use crate::{DartIdentifier, FaceIdentifier, VertexIdentifier};
+use crate::{cmap::dart::NULL_DART_ID, DartIdentifier, FaceIdentifier, VertexIdentifier};
 
 use super::{
     dart::{CellIdentifiers, DartData},
-    embed::{SewPolicy, UnsewPolicy, Vertex},
+    embed::{Face, SewPolicy, UnsewPolicy, Vertex2},
 };
 
 // ------ CONTENT
@@ -66,13 +66,15 @@ const TWO_MAP_BETA: usize = 3;
 ///
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex>,
+    vertices: Vec<Vertex2>,
+    /// List of faces making up the represented mesh
+    faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
     dart_data: DartData<N_MARKS>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list.
     free_darts: Vec<DartIdentifier>,
-    /// Array representation of the beta functions.
+    /// Array representation of the beta functions
     ///
     /// This should eventually be replaced by a better
     /// structure, supported by benchmarking.
@@ -106,6 +108,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             dart_data: DartData::new(n_darts),
             betas,
             vertices: Vec::with_capacity(n_darts),
+            faces: Vec::with_capacity(n_darts / 3),
             free_darts: Vec::with_capacity(n_darts + 1),
         }
     }
@@ -520,6 +523,55 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     pub fn set_d_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
+    }
+
+    pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
+        let mut part_one = vec![dart_id];
+        let mut closed = true;
+        let mut curr_dart = self.beta::<1>(dart_id);
+        // search the face using beta1
+        while curr_dart != dart_id {
+            // if we encouter the null dart, it means the face is open
+            if curr_dart == NULL_DART_ID {
+                closed = false;
+                break;
+            }
+            part_one.push(curr_dart);
+            curr_dart = self.beta::<1>(curr_dart);
+        }
+
+        let res = if !closed {
+            // if the face is open, we might have missed some darts
+            // that were before the starting dart.
+            curr_dart = self.beta::<0>(dart_id);
+            let mut part_two = Vec::new();
+            // search the face in the other direction using beta0
+            while curr_dart != NULL_DART_ID {
+                part_two.push(curr_dart);
+                curr_dart = self.beta::<0>(curr_dart);
+            }
+            // to have the ordered face, we need to reverse the beta 0 part and
+            // add the beta 1 part to its end
+            part_two.reverse();
+            part_two.extend(part_one);
+            part_two
+        } else {
+            // if the face was closed
+            // => we looped around its edges
+            // => the list is already complete & ordered
+            part_one
+        };
+
+        let face = Face {
+            corners: res
+                .iter()
+                .map(|d_id| self.dart_data.associated_cells[*d_id as usize].vertex_id)
+                .collect(),
+            closed,
+        };
+
+        self.faces.push(face);
+        (self.faces.len() - 1) as FaceIdentifier
     }
 }
 

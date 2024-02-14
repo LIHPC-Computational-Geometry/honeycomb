@@ -19,11 +19,6 @@
 /// This is used for better control over memory usage and ID encoding.
 pub type VertexIdentifier = usize;
 
-/// Type definition for edge identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type EdgeIdentifier = usize;
-
 /// Type definition for face identifiers
 ///
 /// This is used for better control over memory usage and ID encoding.
@@ -46,77 +41,18 @@ pub enum UnsewPolicy {
     Duplicate,
 }
 
-#[derive(Clone, Copy, Debug)]
-/// Dart-cell associative structure
-///
-/// Structure used to store the associated vertex, face and volume
-/// identifiers to a dart. The structure technically contains only
-/// cell identifiers, the association with a dart ID is done implicitly
-/// through storage indexing.
-///
-/// Each field is kept public as editing operations can happen during
-/// execution (e.g. a sewing operation will "fuse" some geometric
-/// objects).
-///
-/// # Example
-///
-/// ```
-/// use honeycomb_core::{cmap::embed::DartCells, Dart};
-///
-/// let darts = vec![Dart::NULL, Dart::from(1)];
-/// let embedded_cells = vec![DartCells::NULL; 2];
-///
-/// println!("dart {} associated cells: {:#?}", darts[1].id(), embedded_cells[darts[1].id() as usize]);
-/// ```
-///
-pub struct DartCells {
-    /// Vertex unique identifier.
-    pub vertex_id: VertexIdentifier,
-    /// Face unique identifier.
-    pub face_id: FaceIdentifier,
-    /// Volume unique identifier.
-    pub volume_id: VolumeIdentifier,
-}
-
-impl DartCells {
-    /// Null value for the structure. This technically should not be used
-    /// since acessing the null dart means stopping whatever operation
-    /// was happening.
-    pub const NULL: DartCells = Self {
-        vertex_id: 0,
-        face_id: 0,
-        volume_id: 0,
-    };
-}
+/// Type definition for 2D vertices representation.
+pub type Vertex2 = [f64; 2];
 
 /// Type definition for 3D vertices representation.
-///
-/// This type can also be used for 2D spaces by fixing one of the three
-/// coordinates.
-pub type Vertex = [f64; 3];
-
-/// Edge object
-///
-/// An edge is composed of two vertices. Those are stored using their
-/// indices in order to avoid duplicating floating-point numbers. If
-/// needed, the structure can be interepreted as oriented.
-///
-/// # Example
-///
-/// See [Face] example.
-///
-pub struct Edge {
-    /// First vertex.
-    pub v1: VertexIdentifier,
-    /// Second vertex.
-    pub v2: VertexIdentifier,
-}
+pub type Vertex3 = [f64; 3];
 
 /// Face object
 ///
-/// A face is made up of a varying number of edges (e.g. 3 for a triangle).
-/// The faces are stored using indices to avoid duplicating floating-point
-/// numbers.
+/// A face is made up of a varying number of corners (e.g. 3 for a triangle).
+/// The corners are stored in specific order to model the connections forming
+/// the face; Additionally, a boolean indicates whether there is a connection
+/// between the last corner and the first, effectively closing the face.
 ///
 /// NOTE: It may be possible to replace the Vec with an upper-bound structure
 /// to limit heap allocation during execution. We could also add references to
@@ -124,34 +60,43 @@ pub struct Edge {
 ///
 /// # Example
 ///
-/// This code corresponds to the initialization of 4 vertices, 5 edges, used
-/// to build 2 faces: a square and a triangle, both aligned on the origin.
+/// This code corresponds to the initialization of 4 vertices used to build
+/// 2 faces: a square and a triangle.
 ///
 /// ```
-/// use honeycomb_core::cmap::embed::{Vertex, Edge, Face};
+/// use honeycomb_core::cmap::embed::{Vertex2, Edge, Face};
 ///
 /// let vertices = [
-///     [0.0, 0.0, 0.0],
-///     [1.0, 0.0, 0.0],
-///     [1.0, 1.0, 0.0],
-///     [0.0, 1.0, 0.0],
+///     [0.0, 0.0],
+///     [1.0, 0.0],
+///     [1.0, 1.0],
+///     [0.0, 1.0],
+///     [2.0, 0.0],
 /// ];
 ///
-/// let edges = [
-///     Edge { v1: 0, v2: 1 },
-///     Edge { v1: 1, v2: 2 },
-///     Edge { v1: 2, v2: 3 },
-///     Edge { v1: 3, v2: 0 },
-///     Edge { v1: 2, v2: 0 },
-/// ];
+/// let square_face = Face { corners: vec![0, 1, 2, 3], closed: true };
+/// let triangle_face = Face { corners: vec![1, 4, 2], closed: true };
 ///
-/// let square_face = Face { edges: vec![0, 1, 2, 3] };
-/// let triangle_face = Face { edges: vec![0, 1, 4] };
 /// ```
 ///
+/// This corresponds to the following figure:
+///
+/// ```text
+///
+/// 1.0  +------+\_
+///      |      |  \_
+///      |      |    \_
+///      |      |      \
+/// 0.0  +------+------+
+///      0.0    1.0    2.0
+///
+/// ```
 pub struct Face {
-    /// List of all edges composing the face.
-    pub edges: Vec<EdgeIdentifier>,
+    /// Ordered list of all corners composing the face.
+    pub corners: Vec<VertexIdentifier>,
+    /// Boolean indicating whether there is a connection between
+    /// `self.corners.last()` and `self.corners.first`.
+    pub closed: bool,
 }
 
 // ------ TESTS
