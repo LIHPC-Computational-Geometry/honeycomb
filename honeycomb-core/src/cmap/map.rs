@@ -43,17 +43,23 @@ const TWO_MAP_BETA: usize = 3;
 /// Fields are kept private in order to better define interfaces. The structure
 /// contains the following data:
 ///
-/// - `vertices: Vec<Vertex>`: List of vertices making up the represented mesh
-/// - `cells: Vec<DartCells>`: List of associated cells of each dart
-/// - `darts: Vec<Dart>`: List of darts composing the map
-/// - `free_darts: Vec<DartIdentifier>`: List of free darts identifiers, i.e. empty
-///   spots in the current dart list.
-/// - `betas: Vec<[DartIdentifier; 3]>`: Array representation of the beta functions
+/// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
+/// - `faces: Vec<Face>` -- List of faces making up the represented mesh
+/// - `dart_data: DartData<N_MARKS>` -- List of embedded data associated with darts
+/// - `free_darts: Vec<DartIdentifier>` -- List of free darts identifiers, i.e. empty
+///   spots in the current dart list
+/// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
+/// - `n_darts: usize` -- Current number of darts (including the null dart)
 ///
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
 /// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
 /// the [Self::beta] method, we do not define 0-sew or 0-unsew operations.
+///
+/// # Generics
+///
+/// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
+///   This corresponds to the number of search that can be done concurrently.
 ///
 /// # Example
 ///
@@ -79,6 +85,8 @@ pub struct TwoMap<const N_MARKS: usize> {
     /// This should eventually be replaced by a better
     /// structure, supported by benchmarking.
     betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
+    /// Current number of darts
+    n_darts: usize,
 }
 
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
@@ -110,6 +118,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             vertices: Vec::with_capacity(n_darts),
             faces: Vec::with_capacity(n_darts / 3),
             free_darts: Vec::with_capacity(n_darts + 1),
+            n_darts: n_darts + 1,
         }
     }
 
@@ -155,8 +164,44 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn cell_of(&self, dart_id: DartIdentifier) -> CellIdentifiers {
+    pub fn cells_of(&self, dart_id: DartIdentifier) -> CellIdentifiers {
         self.dart_data.associated_cells[dart_id as usize]
+    }
+
+    /// Fetch vertex associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated vertex.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn vertex_of(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+        self.dart_data.associated_cells[dart_id as usize].vertex_id
+    }
+
+    /// Fetch face associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated face.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn face_of(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+        self.dart_data.associated_cells[dart_id as usize].face_id
     }
 
     /// Check if a given dart is I-free.
@@ -180,7 +225,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
-        self.beta::<I>(dart_id) == 0
+        self.beta::<I>(dart_id) == NULL_DART_ID
     }
 
     /// Check if a given dart is I-free, for all I.
@@ -198,7 +243,9 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
-        self.beta::<0>(dart_id) == 0 && self.beta::<1>(dart_id) == 0 && self.beta::<2>(dart_id) == 0
+        self.beta::<0>(dart_id) == NULL_DART_ID
+            && self.beta::<1>(dart_id) == NULL_DART_ID
+            && self.beta::<2>(dart_id) == NULL_DART_ID
     }
 
     // orbits / i-cells
@@ -229,7 +276,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_cell_of<const I: usize>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
+    pub fn get_i_cell<const I: usize>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
         let mut cell: Vec<DartIdentifier> = vec![dart_id];
         let mut curr_dart = dart_id;
         match I {
@@ -239,7 +286,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 while self.beta::<1>(self.beta::<2>(curr_dart)) != dart_id {
                     curr_dart = self.beta::<1>(self.beta::<2>(curr_dart));
                     cell.push(curr_dart);
-                    if curr_dart == 0 {
+                    if curr_dart == NULL_DART_ID {
                         completeness = false;
                         break; // stop if we land on the null dart
                     }
@@ -264,7 +311,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 while self.beta::<1>(curr_dart) != dart_id {
                     curr_dart = self.beta::<1>(curr_dart);
                     cell.push(curr_dart);
-                    if curr_dart == 0 {
+                    if curr_dart == NULL_DART_ID {
                         completeness = false;
                         break; // stop if we land on the null dart
                     }
@@ -299,7 +346,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn add_free_dart(&mut self) -> DartIdentifier {
-        let new_id = self.dart_data.associated_cells.len() as DartIdentifier;
+        let new_id = self.n_darts as DartIdentifier;
+        self.n_darts += 1;
         self.dart_data.add_entry();
         self.betas.push([0; TWO_MAP_BETA]);
         new_id
@@ -350,16 +398,22 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
         self.free_darts.push(dart_id);
+        let b0d = self.beta::<0>(dart_id);
+        let b1d = self.beta::<1>(dart_id);
+        let b2d = self.beta::<2>(dart_id);
         self.betas[dart_id as usize] = [0; TWO_MAP_BETA];
+        self.betas[b0d as usize][1] = 0 as DartIdentifier;
+        self.betas[b1d as usize][0] = 0 as DartIdentifier;
+        self.betas[b2d as usize][2] = 0 as DartIdentifier;
         // the following two lines are more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
         self.dart_data.reset_entry(dart_id);
     }
 
-    /// i-sewing operation.
+    /// 1-sewing operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
-    /// the *β<sub>i</sub>* function. For a thorough explanation of this operation
+    /// the *β<sub>1</sub>* function. For a thorough explanation of this operation
     /// (and implied hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
@@ -368,25 +422,21 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
     /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// `*β<sub>i</sub>*(lhs_dart) == rhs_dart`.
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be either 1 or 2 in the case of a 2D map. Note that *β<sub>0</sub>*
-    /// will be updated in case of a 1-sew.
+    /// `*β<sub>1</sub>*(lhs_dart) == rhs_dart`. The *β<sub>0</sub>*
+    /// function is also updated.
     ///
     /// # Return / Panic
     ///
-    /// The method may panic if *I* is neither 1 or 2.
+    /// The method may panic if the two darts are not 1-sewable.
     ///
     /// # Example
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_sew<const I: u8>(
+    pub fn one_sew(
         &mut self,
         lhs_dart_id: DartIdentifier,
         rhs_dart_id: DartIdentifier,
@@ -398,191 +448,223 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     self.dart_data.associated_cells[$replacer as usize].vertex_id
             };
         }
-        match I {
-            1 => {
-                // --- topological update
+        // --- topological update
 
-                // we could technically overwrite the value, but these assertions
-                // makes it easier to assert algorithm correctness
-                assert!(self.is_i_free::<1>(lhs_dart_id));
-                assert!(self.is_i_free::<0>(rhs_dart_id));
-                self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
-                self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
+        // we could technically overwrite the value, but these assertions
+        // makes it easier to assert algorithm correctness
+        assert!(self.is_i_free::<1>(lhs_dart_id));
+        assert!(self.is_i_free::<0>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
 
-                // --- geometrical update
+        // --- geometrical update
 
-                // in case of a 1-sew, we need to update the 0-cell geometry
-                // of rhs_dart to ensure no vertex is duplicated
+        // in case of a 1-sew, we need to update the 0-cell geometry
+        // of rhs_dart to ensure no vertex is duplicated
 
-                // this operation only makes sense if lhs_dart is associated
-                // to a fully defined edge, i.e. its image through beta2 is defined
-                // & has a valid associated vertex (we assume the second condition
-                // is valid if the first one is).
-                let lid = self.beta::<2>(lhs_dart_id);
-                if lid != NULL_DART_ID {
-                    match policy {
-                        SewPolicy::StretchLeft => {
-                            stretch!(rhs_dart_id, lid);
-                        }
-                        SewPolicy::StretchRight => {
-                            stretch!(lid, rhs_dart_id);
-                        }
-                        SewPolicy::StretchAverage => {
-                            // this works under the assumption that a valid vertex is
-                            // associated to rhs_dart
-                            let lid_vertex = self.vertices[self.cell_of(lid).vertex_id as usize];
-                            let rhs_vertex =
-                                self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
-                            self.vertices.push([
-                                (lid_vertex[0] + rhs_vertex[0]) / 2.0,
-                                (lid_vertex[1] + rhs_vertex[1]) / 2.0,
-                            ]);
-                            let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-                            stretch!(lid, new_id);
-                            stretch!(rhs_dart_id, new_id);
-                        }
-                    }
+        // this operation only makes sense if lhs_dart is associated
+        // to a fully defined edge, i.e. its image through beta2 is defined
+        // & has a valid associated vertex (we assume the second condition
+        // is valid if the first one is).
+        let lid = self.beta::<2>(lhs_dart_id);
+        if lid != NULL_DART_ID {
+            match policy {
+                SewPolicy::StretchLeft => {
+                    stretch!(rhs_dart_id, lid);
+                }
+                SewPolicy::StretchRight => {
+                    stretch!(lid, rhs_dart_id);
+                }
+                SewPolicy::StretchAverage => {
+                    // this works under the assumption that a valid vertex is
+                    // associated to rhs_dart
+                    let lid_vertex = self.vertices[self.cells_of(lid).vertex_id as usize];
+                    let rhs_vertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                    self.vertices.push([
+                        (lid_vertex[0] + rhs_vertex[0]) / 2.0,
+                        (lid_vertex[1] + rhs_vertex[1]) / 2.0,
+                    ]);
+                    let new_id = (self.vertices.len() - 1) as VertexIdentifier;
+                    stretch!(lid, new_id);
+                    stretch!(rhs_dart_id, new_id);
                 }
             }
-            2 => {
-                // --- topological update
-
-                // we could technically overwrite the value, but these assertions
-                // make it easier to assert algorithm correctness
-                assert!(self.is_i_free::<2>(lhs_dart_id));
-                assert!(self.is_i_free::<2>(rhs_dart_id));
-                self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
-                self.betas[rhs_dart_id as usize][1] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
-
-                // --- geometrical update
-
-                // in the case of a 2-sew, we need to ensure consistent orientation before completing
-                // the operation
-                // we can do this check while working on the embedded data we use those to verify
-                // orientation
-
-                // I swear this works
-                // also, there is an urgent need for a custom vertex/vector type
-                let l_is1free = self.is_i_free::<1>(lhs_dart_id);
-                let r_is1free = self.is_i_free::<1>(rhs_dart_id);
-
-                // depending on existing connections, different things are required
-                match (l_is1free, r_is1free) {
-                    (true, true) => {} // do nothing
-                    (true, false) => {
-                        let b1rid = self.beta::<1>(rhs_dart_id);
-                        match policy {
-                            SewPolicy::StretchLeft => {
-                                stretch!(lhs_dart_id, b1rid)
-                            }
-                            SewPolicy::StretchRight => {
-                                stretch!(b1rid, lhs_dart_id)
-                            }
-                            SewPolicy::StretchAverage => {
-                                let vertex1 = self.vertices[self.cell_of(b1rid).vertex_id as usize];
-                                let vertex2 =
-                                    self.vertices[self.cell_of(lhs_dart_id).vertex_id as usize];
-
-                                self.vertices.push([
-                                    (vertex1[0] + vertex2[0]) / 2.0,
-                                    (vertex1[1] + vertex2[1]) / 2.0,
-                                ]);
-                                let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                                stretch!(b1rid, new_id);
-                                stretch!(lhs_dart_id, new_id);
-                            }
-                        }
-                    }
-                    (false, true) => {
-                        let b1lid = self.beta::<1>(lhs_dart_id);
-                        match policy {
-                            SewPolicy::StretchLeft => {
-                                stretch!(rhs_dart_id, b1lid)
-                            }
-                            SewPolicy::StretchRight => {
-                                stretch!(b1lid, rhs_dart_id)
-                            }
-                            SewPolicy::StretchAverage => {
-                                let vertex1 = self.vertices[self.cell_of(b1lid).vertex_id as usize];
-                                let vertex2 =
-                                    self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
-
-                                self.vertices.push([
-                                    (vertex1[0] + vertex2[0]) / 2.0,
-                                    (vertex1[1] + vertex2[1]) / 2.0,
-                                ]);
-                                let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                                stretch!(b1lid, new_id);
-                                stretch!(rhs_dart_id, new_id);
-                            }
-                        }
-                    }
-                    (false, false) => {
-                        // ensure orientation consistency
-
-                        let b1lid = self.beta::<1>(lhs_dart_id);
-                        let b1rid = self.beta::<1>(rhs_dart_id);
-
-                        let b1_lvertex = self.vertices[self.cell_of(b1lid).vertex_id as usize];
-                        let lvertex = self.vertices[self.cell_of(lhs_dart_id).vertex_id as usize];
-                        let b1_rvertex = self.vertices[self.cell_of(b1rid).vertex_id as usize];
-                        let rvertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
-
-                        let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
-                        let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
-
-                        // dot product should be negative if the two darts have opposite direction
-                        let current = lhs_vec[0] * rhs_vec[0] + lhs_vec[1] * rhs_vec[1] < 0.0;
-
-                        if !current {
-                            // we need reverse the orientation of the 2-cell
-                            // i.e. swap values of beta 1 & beta 0
-                            // for all elements connected to rhs & offset the
-                            // associated vertices to keep consistency between
-                            // placement & numbering
-                            todo!("figure out how to reverse orientation of closed & open 2-cell")
-                        }
-
-                        match policy {
-                            SewPolicy::StretchLeft => {
-                                stretch!(rhs_dart_id, b1lid);
-                                stretch!(b1rid, lhs_dart_id);
-                            }
-                            SewPolicy::StretchRight => {
-                                stretch!(b1lid, rhs_dart_id);
-                                stretch!(lhs_dart_id, b1rid);
-                            }
-                            SewPolicy::StretchAverage => {
-                                let new_lvertex = [
-                                    (lvertex[0] + b1_rvertex[0]) / 2.0,
-                                    (lvertex[1] + b1_rvertex[1]) / 2.0,
-                                ];
-                                let new_rvertex = [
-                                    (rvertex[0] + b1_lvertex[0]) / 2.0,
-                                    (rvertex[1] + b1_lvertex[1]) / 2.0,
-                                ];
-                                self.vertices.push(new_lvertex);
-                                self.vertices.push(new_rvertex);
-                                let new_lid = self.vertices.len() - 2;
-                                let new_rid = self.vertices.len() - 1;
-
-                                stretch!(lhs_dart_id, new_lid);
-                                stretch!(b1rid, new_lid);
-
-                                stretch!(rhs_dart_id, new_rid);
-                                stretch!(b1lid, new_rid);
-                            }
-                        }
-                    }
-                }
-            }
-            _ => panic!(),
         }
     }
 
-    /// i-unsewing operation.
+    /// 2-sewing operation.
+    ///
+    /// This operation corresponds to *coherently linking* two darts via
+    /// the *β<sub>2</sub>* function. For a thorough explanation of this operation
+    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    ///
+    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
+    ///
+    /// After the sewing operation, these darts will verify
+    /// `*β<sub>2</sub>*(lhs_dart) == rhs_dart`.
+    ///
+    /// # Return / Panic
+    ///
+    /// The method may panic if:
+    /// - the two darts are not 2-sewable,
+    /// - the method cannot resolve orientation issues.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn two_sew(
+        &mut self,
+        lhs_dart_id: DartIdentifier,
+        rhs_dart_id: DartIdentifier,
+        policy: SewPolicy,
+    ) {
+        macro_rules! stretch {
+            ($replaced: expr, $replacer: expr) => {
+                self.dart_data.associated_cells[$replaced as usize].vertex_id =
+                    self.dart_data.associated_cells[$replacer as usize].vertex_id
+            };
+        }
+
+        // --- topological update
+
+        // we could technically overwrite the value, but these assertions
+        // make it easier to assert algorithm correctness
+        assert!(self.is_i_free::<2>(lhs_dart_id));
+        assert!(self.is_i_free::<2>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
+
+        // --- geometrical update
+
+        // in the case of a 2-sew, we need to ensure consistent orientation before completing
+        // the operation
+        // we can do this check while working on the embedded data we use those to verify
+        // orientation
+
+        // I swear this works
+        // also, there is an urgent need for a custom vertex/vector type
+        let l_is1free = self.is_i_free::<1>(lhs_dart_id);
+        let r_is1free = self.is_i_free::<1>(rhs_dart_id);
+
+        // depending on existing connections, different things are required
+        match (l_is1free, r_is1free) {
+            (true, true) => {} // do nothing
+            (true, false) => {
+                let b1rid = self.beta::<1>(rhs_dart_id);
+                match policy {
+                    SewPolicy::StretchLeft => {
+                        stretch!(lhs_dart_id, b1rid)
+                    }
+                    SewPolicy::StretchRight => {
+                        stretch!(b1rid, lhs_dart_id)
+                    }
+                    SewPolicy::StretchAverage => {
+                        let vertex1 = self.vertices[self.cells_of(b1rid).vertex_id as usize];
+                        let vertex2 = self.vertices[self.cells_of(lhs_dart_id).vertex_id as usize];
+
+                        self.vertices.push([
+                            (vertex1[0] + vertex2[0]) / 2.0,
+                            (vertex1[1] + vertex2[1]) / 2.0,
+                        ]);
+                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
+
+                        stretch!(b1rid, new_id);
+                        stretch!(lhs_dart_id, new_id);
+                    }
+                }
+            }
+            (false, true) => {
+                let b1lid = self.beta::<1>(lhs_dart_id);
+                match policy {
+                    SewPolicy::StretchLeft => {
+                        stretch!(rhs_dart_id, b1lid)
+                    }
+                    SewPolicy::StretchRight => {
+                        stretch!(b1lid, rhs_dart_id)
+                    }
+                    SewPolicy::StretchAverage => {
+                        let vertex1 = self.vertices[self.cells_of(b1lid).vertex_id as usize];
+                        let vertex2 = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+
+                        self.vertices.push([
+                            (vertex1[0] + vertex2[0]) / 2.0,
+                            (vertex1[1] + vertex2[1]) / 2.0,
+                        ]);
+                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
+
+                        stretch!(b1lid, new_id);
+                        stretch!(rhs_dart_id, new_id);
+                    }
+                }
+            }
+            (false, false) => {
+                // ensure orientation consistency
+
+                let b1lid = self.beta::<1>(lhs_dart_id);
+                let b1rid = self.beta::<1>(rhs_dart_id);
+
+                let b1_lvertex = self.vertices[self.cells_of(b1lid).vertex_id as usize];
+                let lvertex = self.vertices[self.cells_of(lhs_dart_id).vertex_id as usize];
+                let b1_rvertex = self.vertices[self.cells_of(b1rid).vertex_id as usize];
+                let rvertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+
+                let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
+                let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
+
+                // dot product should be negative if the two darts have opposite direction
+                let current = lhs_vec[0] * rhs_vec[0] + lhs_vec[1] * rhs_vec[1] < 0.0;
+
+                if !current {
+                    // we need reverse the orientation of the 2-cell
+                    // i.e. swap values of beta 1 & beta 0
+                    // for all elements connected to rhs & offset the
+                    // associated vertices to keep consistency between
+                    // placement & numbering
+                    todo!("figure out how to reverse orientation of closed & open 2-cell")
+                }
+
+                match policy {
+                    SewPolicy::StretchLeft => {
+                        stretch!(rhs_dart_id, b1lid);
+                        stretch!(b1rid, lhs_dart_id);
+                    }
+                    SewPolicy::StretchRight => {
+                        stretch!(b1lid, rhs_dart_id);
+                        stretch!(lhs_dart_id, b1rid);
+                    }
+                    SewPolicy::StretchAverage => {
+                        let new_lvertex = [
+                            (lvertex[0] + b1_rvertex[0]) / 2.0,
+                            (lvertex[1] + b1_rvertex[1]) / 2.0,
+                        ];
+                        let new_rvertex = [
+                            (rvertex[0] + b1_lvertex[0]) / 2.0,
+                            (rvertex[1] + b1_lvertex[1]) / 2.0,
+                        ];
+                        self.vertices.push(new_lvertex);
+                        self.vertices.push(new_rvertex);
+                        let new_lid = self.vertices.len() - 2;
+                        let new_rid = self.vertices.len() - 1;
+
+                        stretch!(lhs_dart_id, new_lid);
+                        stretch!(b1rid, new_lid);
+
+                        stretch!(rhs_dart_id, new_rid);
+                        stretch!(b1lid, new_rid);
+                    }
+                }
+            }
+        }
+    }
+
+    /// 1-unsewing operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
     /// via the *β<sub>i</sub>* function. For a thorough explanation of this operation
@@ -597,11 +679,49 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>i</sub>* function.
     ///
-    /// ## Generics
+    /// # Return / Panic
     ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be either 1 or 2 in the case of a 2D map. Note that *β<sub>0</sub>*
-    /// will be updated in case of a 1-unsew.
+    /// The method may panic if *I* is neither 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
+        // --- topological update
+
+        // fetch id of beta_1(lhs_dart)
+        let rhs_dart_id = self.beta::<1>(lhs_dart_id);
+        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
+        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+
+        // --- geometrical update
+        match policy {
+            UnsewPolicy::Duplicate => {
+                // if the vertex was shared, duplicate it
+                if self.get_i_cell::<0>(rhs_dart_id).len() > 1 {
+                    let old_vertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                    self.vertices.push(old_vertex);
+                    self.set_vertex(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
+                }
+            }
+        }
+    }
+
+    /// 2-unsewing operation.
+    ///
+    /// This operation corresponds to *coherently separating* two darts linked
+    /// via the *β<sub>i</sub>* function. For a thorough explanation of this operation
+    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    ///
+    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
+    ///
+    /// Note that we do not need to take two darts as arguments since the
+    /// second dart can be obtained through the *β<sub>i</sub>* function.
     ///
     /// # Return / Panic
     ///
@@ -611,40 +731,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn i_unsew<const I: u8>(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        match I {
-            1 => {
-                // --- topological update
+    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
+        // --- topological update
 
-                // fetch id of beta_1(lhs_dart)
-                let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-                self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
-                self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+        let opp = self.beta::<2>(lhs_dart_id);
+        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
+        self.betas[opp as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
 
-                // --- geometrical update
-                match policy {
-                    UnsewPolicy::Duplicate => {
-                        let old_vertex =
-                            self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
-                        self.vertices.push(old_vertex);
-                        self.set_d_vertex(
-                            rhs_dart_id,
-                            (self.vertices.len() - 1) as VertexIdentifier,
-                        );
-                    }
-                }
-            }
-            2 => {
-                // --- topological update
-
-                let opp = self.beta::<2>(lhs_dart_id);
-                self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
-                self.betas[opp as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
-
-                // --- geometrical update
-            }
-            _ => panic!(),
-        }
+        // --- geometrical update
     }
 
     /// Set the values of the beta functions of a dart.
@@ -659,8 +753,24 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
+    pub fn set_betas_of(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
         self.betas[dart_id as usize] = betas;
+    }
+
+    /// Set the values of the *β<sub>I</sub>* function of a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_beta_i_of<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
+        assert!(I < 3);
+        self.betas[dart_id as usize][I as usize] = beta;
     }
 
     /// Set the vertex ID associated to a dart.
@@ -674,7 +784,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_vertex(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
+    pub fn set_vertex(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
     }
 
@@ -689,7 +799,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_d_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
+    pub fn set_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 
