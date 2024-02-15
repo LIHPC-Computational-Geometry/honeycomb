@@ -12,11 +12,13 @@
 
 // ------ IMPORTS
 
-use crate::{cmap::dart::NULL_DART_ID, DartIdentifier, FaceIdentifier, VertexIdentifier};
+use crate::{
+    DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
+};
 
 use super::{
     dart::{CellIdentifiers, DartData},
-    embed::{Face, SewPolicy, UnsewPolicy, Vertex2},
+    embed::{Face, Vertex2},
 };
 
 // ------ CONTENT

@@ -25,7 +25,7 @@ pub const NULL_DART_ID: DartIdentifier = 0;
 #[derive(Clone, Copy, Debug, Default)]
 /// Dart-cell associative structure
 ///
-/// Structure used to store the associated vertex, face and volume
+/// Structure used to store the associated vertex and face
 /// identifiers to a dart. The structure technically contains only
 /// cell identifiers, the association with a dart ID is done implicitly
 /// through storage indexing.
@@ -36,13 +36,11 @@ pub const NULL_DART_ID: DartIdentifier = 0;
 ///
 /// # Example
 ///
-/// ```
-/// use honeycomb_core::{cmap::dart::CellIdentifiers, Dart};
+///  ```
+/// use honeycomb_core::cmap::dart::CellIdentifiers;
 ///
-/// let darts = vec![Dart::NULL, Dart::from(1)];
-/// let cell_ids = vec![CellIdentifiers::default(); 2];
+/// // TODO: example? it should not be used directly anyway
 ///
-/// println!("dart {} associated cells: {:#?}", darts[1].id(), cell_ids[darts[1].id() as usize]);
 /// ```
 ///
 pub struct CellIdentifiers {
