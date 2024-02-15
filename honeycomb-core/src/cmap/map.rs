@@ -392,6 +392,12 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         rhs_dart_id: DartIdentifier,
         policy: SewPolicy,
     ) {
+        macro_rules! stretch {
+            ($replaced: expr, $replacer: expr) => {
+                self.dart_data.associated_cells[$replaced as usize].vertex_id =
+                    self.dart_data.associated_cells[$replacer as usize].vertex_id
+            };
+        }
         match I {
             1 => {
                 // --- topological update
@@ -407,15 +413,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
                 // in case of a 1-sew, we need to update the 0-cell geometry
                 // of rhs_dart to ensure no vertex is duplicated
-                macro_rules! stretch {
-                    ($replaced: expr, $replacer: expr) => {
-                        self.dart_data.associated_cells[$replaced as usize].vertex_id =
-                            self.dart_data.associated_cells[$replacer as usize].vertex_id
-                    };
-                }
 
                 // this operation only makes sense if lhs_dart is associated
-                // to a fully defined edge, i.e. its image through beta2 is defined.
+                // to a fully defined edge, i.e. its image through beta2 is defined
+                // & has a valid associated vertex (we assume the second condition
+                // is valid if the first one is).
                 let lid = self.beta::<2>(lhs_dart_id);
                 if lid != NULL_DART_ID {
                     match policy {
@@ -453,6 +455,128 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 self.betas[rhs_dart_id as usize][1] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
 
                 // --- geometrical update
+
+                // in the case of a 2-sew, we need to ensure consistent orientation before completing
+                // the operation
+                // we can do this check while working on the embedded data we use those to verify
+                // orientation
+
+                // I swear this works
+                // also, there is an urgent need for a custom vertex/vector type
+                let l_is1free = self.is_i_free::<1>(lhs_dart_id);
+                let r_is1free = self.is_i_free::<1>(rhs_dart_id);
+
+                // depending on existing connections, different things are required
+                match (l_is1free, r_is1free) {
+                    (true, true) => {} // do nothing
+                    (true, false) => {
+                        let b1rid = self.beta::<1>(rhs_dart_id);
+                        match policy {
+                            SewPolicy::StretchLeft => {
+                                stretch!(lhs_dart_id, b1rid)
+                            }
+                            SewPolicy::StretchRight => {
+                                stretch!(b1rid, lhs_dart_id)
+                            }
+                            SewPolicy::StretchAverage => {
+                                let vertex1 = self.vertices[self.cell_of(b1rid).vertex_id as usize];
+                                let vertex2 =
+                                    self.vertices[self.cell_of(lhs_dart_id).vertex_id as usize];
+
+                                self.vertices.push([
+                                    (vertex1[0] + vertex2[0]) / 2.0,
+                                    (vertex1[1] + vertex2[1]) / 2.0,
+                                ]);
+                                let new_id = (self.vertices.len() - 1) as VertexIdentifier;
+
+                                stretch!(b1rid, new_id);
+                                stretch!(lhs_dart_id, new_id);
+                            }
+                        }
+                    }
+                    (false, true) => {
+                        let b1lid = self.beta::<1>(lhs_dart_id);
+                        match policy {
+                            SewPolicy::StretchLeft => {
+                                stretch!(rhs_dart_id, b1lid)
+                            }
+                            SewPolicy::StretchRight => {
+                                stretch!(b1lid, rhs_dart_id)
+                            }
+                            SewPolicy::StretchAverage => {
+                                let vertex1 = self.vertices[self.cell_of(b1lid).vertex_id as usize];
+                                let vertex2 =
+                                    self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
+
+                                self.vertices.push([
+                                    (vertex1[0] + vertex2[0]) / 2.0,
+                                    (vertex1[1] + vertex2[1]) / 2.0,
+                                ]);
+                                let new_id = (self.vertices.len() - 1) as VertexIdentifier;
+
+                                stretch!(b1lid, new_id);
+                                stretch!(rhs_dart_id, new_id);
+                            }
+                        }
+                    }
+                    (false, false) => {
+                        // ensure orientation consistency
+
+                        let b1lid = self.beta::<1>(lhs_dart_id);
+                        let b1rid = self.beta::<1>(rhs_dart_id);
+
+                        let b1_lvertex = self.vertices[self.cell_of(b1lid).vertex_id as usize];
+                        let lvertex = self.vertices[self.cell_of(lhs_dart_id).vertex_id as usize];
+                        let b1_rvertex = self.vertices[self.cell_of(b1rid).vertex_id as usize];
+                        let rvertex = self.vertices[self.cell_of(rhs_dart_id).vertex_id as usize];
+
+                        let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
+                        let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
+
+                        // dot product should be negative if the two darts have opposite direction
+                        let current = lhs_vec[0] * rhs_vec[0] + lhs_vec[1] * rhs_vec[1] < 0.0;
+
+                        if !current {
+                            // we need reverse the orientation of the 2-cell
+                            // i.e. swap values of beta 1 & beta 0
+                            // for all elements connected to rhs & offset the
+                            // associated vertices to keep consistency between
+                            // placement & numbering
+                            todo!("figure out how to reverse orientation of closed & open 2-cell")
+                        }
+
+                        match policy {
+                            SewPolicy::StretchLeft => {
+                                stretch!(rhs_dart_id, b1lid);
+                                stretch!(b1rid, lhs_dart_id);
+                            }
+                            SewPolicy::StretchRight => {
+                                stretch!(b1lid, rhs_dart_id);
+                                stretch!(lhs_dart_id, b1rid);
+                            }
+                            SewPolicy::StretchAverage => {
+                                let new_lvertex = [
+                                    (lvertex[0] + b1_rvertex[0]) / 2.0,
+                                    (lvertex[1] + b1_rvertex[1]) / 2.0,
+                                ];
+                                let new_rvertex = [
+                                    (rvertex[0] + b1_lvertex[0]) / 2.0,
+                                    (rvertex[1] + b1_lvertex[1]) / 2.0,
+                                ];
+                                self.vertices.push(new_lvertex);
+                                self.vertices.push(new_rvertex);
+                                let new_lid = self.vertices.len() - 2;
+                                let new_rid = self.vertices.len() - 1;
+
+                                stretch!(lhs_dart_id, new_lid);
+                                stretch!(b1rid, new_lid);
+
+                                stretch!(rhs_dart_id, new_rid);
+                                stretch!(b1lid, new_rid);
+                            }
+                        }
+                    }
+                }
             }
             _ => panic!(),
         }
