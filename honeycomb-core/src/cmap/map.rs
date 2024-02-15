@@ -124,7 +124,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
     // --- reading interfaces
 
-    /// Compute the value of the I-th beta function of a given dart.
+    /// Compute the value of the i-th beta function of a given dart.
     ///
     /// # Arguments
     ///
@@ -137,8 +137,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>I</sub>(dart)*. If
-    /// the returned value is the null dart, this means that *dart* is I-free.
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
+    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
+    /// means that *dart* is i-free .
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
     ///
     /// # Example
     ///
@@ -157,8 +160,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Return / Panic
     ///
-    /// Return a [DartCells] structure that contain identifiers to
-    /// the different i-cells *dart* models.
+    /// Return a [CellIdentifiers] structure that contain identifiers to
+    /// the different **geometrical** i-cells *dart* models.
     ///
     /// # Example
     ///
@@ -204,7 +207,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.dart_data.associated_cells[dart_id as usize].face_id
     }
 
-    /// Check if a given dart is I-free.
+    /// Check if a given dart is i-free.
     ///
     /// # Arguments
     ///
@@ -217,8 +220,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is I-free, i.e.
-    /// *β<sub>I</sub>(dart) = NullDart*.
+    /// Return a boolean indicating if *dart* is i-free, i.e.
+    /// *β<sub>i</sub>(dart) = NullDart*.
+    ///
+    /// The function will panic if *I* is not 0, 1 or 2.
     ///
     /// # Example
     ///
@@ -228,7 +233,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
 
-    /// Check if a given dart is I-free, for all I.
+    /// Check if a given dart is i-free, for all i.
     ///
     /// # Arguments
     ///
@@ -250,7 +255,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
     // orbits / i-cells
 
-    /// Description
+    /// Return the identifiers of all dart composing an i-cell.
     ///
     /// # Arguments
     ///
@@ -263,7 +268,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Return / Panic
     ///
-    /// Returns a vector of IDs of the darts of the I-cell of *dart* (including
+    /// Returns a vector of IDs of the darts of the i-cell of *dart* (including
     /// *dart* at index 0).
     ///
     /// KNOWN ISSUE:
@@ -276,7 +281,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn get_i_cell<const I: usize>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
+    pub fn get_i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
         let mut cell: Vec<DartIdentifier> = vec![dart_id];
         let mut curr_dart = dart_id;
         match I {
@@ -425,7 +430,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// `*β<sub>1</sub>*(lhs_dart) == rhs_dart`. The *β<sub>0</sub>*
+    /// *β<sub>1</sub>(lhs_dart) = rhs_dart*. The *β<sub>0</sub>*
     /// function is also updated.
     ///
     /// # Return / Panic
@@ -507,7 +512,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// `*β<sub>2</sub>*(lhs_dart) == rhs_dart`.
+    /// *β<sub>2</sub>(lhs_dart) = rhs_dart* and *β<sub>2</sub>(rhs_dart) = lhs_dart*.
     ///
     /// # Return / Panic
     ///
@@ -667,7 +672,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// 1-unsewing operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
-    /// via the *β<sub>i</sub>* function. For a thorough explanation of this operation
+    /// via the *β<sub>1</sub>* function. For a thorough explanation of this operation
     /// (and implied hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
@@ -675,9 +680,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Arguments
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
+    /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
     ///
     /// Note that we do not need to take two darts as arguments since the
-    /// second dart can be obtained through the *β<sub>i</sub>* function.
+    /// second dart can be obtained through the *β<sub>1</sub>* function. The
+    /// *β<sub>0</sub>* function is also updated.
     ///
     /// # Return / Panic
     ///
@@ -711,7 +718,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// 2-unsewing operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
-    /// via the *β<sub>i</sub>* function. For a thorough explanation of this operation
+    /// via the *β<sub>2</sub>* function. For a thorough explanation of this operation
     /// (and implied hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
@@ -719,9 +726,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Arguments
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
+    /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
     ///
     /// Note that we do not need to take two darts as arguments since the
-    /// second dart can be obtained through the *β<sub>i</sub>* function.
+    /// second dart can be obtained through the *β<sub>2</sub>* function.
     ///
     /// # Return / Panic
     ///
@@ -771,12 +779,21 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.betas[dart_id as usize] = betas;
     }
 
-    /// Set the values of the *β<sub>I</sub>* function of a dart.
+    /// Set the values of the *β<sub>i</sub>* function of a dart.
     ///
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
     /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
+    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
     ///
     /// # Example
     ///
@@ -817,6 +834,22 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 
+    /// Build the geometrical face associated with a given dart
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created face to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
         let mut part_one = vec![dart_id];
         let mut closed = true;
