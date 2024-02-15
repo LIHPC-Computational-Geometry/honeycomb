@@ -700,7 +700,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
                 if self.get_i_cell::<0>(rhs_dart_id).len() > 1 {
-                    let old_vertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                    let old_vertex = self.vertices[self.vertex_of(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertex(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
@@ -734,11 +734,25 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
 
-        let opp = self.beta::<2>(lhs_dart_id);
+        let rhs_dart_id = self.beta::<2>(lhs_dart_id);
         self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
-        self.betas[opp as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
+        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
 
         // --- geometrical update
+        match policy {
+            UnsewPolicy::Duplicate => {
+                // if the vertex was shared, duplicate it
+                // repeat on both ends of the edge
+                let b1lid = self.beta::<1>(lhs_dart_id);
+                if b1lid != NULL_DART_ID {
+                    self.set_vertex(rhs_dart_id, self.vertex_of(b1lid));
+                }
+                let b1rid = self.beta::<1>(rhs_dart_id);
+                if b1rid != NULL_DART_ID {
+                    self.set_vertex(lhs_dart_id, self.vertex_of(b1rid));
+                }
+            }
+        }
     }
 
     /// Set the values of the beta functions of a dart.
