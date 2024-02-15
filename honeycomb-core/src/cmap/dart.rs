@@ -1,11 +1,12 @@
-//! Basic dart structure
+//! Basic dart utilities
 //!
-//! Useful definitions of this module being re-exported, the user should
-//! most likely not interact directly with it.
+//! **Useful definitions of this module being re-exported, the user should
+//! most likely not interact directly with it.**
 //!
 //! This module contains all code used to model darts as element of the
-//! combinatorial map. This does not include any form of geometric
-//! embedding as this is stored separately for the moment.
+//! combinatorial map. This includes geometric embedding as associated
+//! identifiers, though spatial representation is left to another part
+//! of the crate.
 
 // ------ IMPORTS
 
@@ -36,25 +37,19 @@ pub const NULL_DART_ID: DartIdentifier = 0;
 ///
 /// # Example
 ///
-///  ```
-/// use honeycomb_core::cmap::dart::CellIdentifiers;
-///
-/// // TODO: example? it should not be used directly anyway
-///
-/// ```
+/// No example is provided as the structure should not be used directly.
+/// The documentation is generated mostly for developing purposes.
 ///
 pub struct CellIdentifiers {
     /// Vertex unique identifier.
     pub vertex_id: VertexIdentifier,
     /// Face unique identifier.
     pub face_id: FaceIdentifier,
-    // /// Volume unique identifier.
-    // pub volume_id: VolumeIdentifier,
 }
 
 /// Dart-associated data
 ///
-/// This should not be used directly by the user.
+/// **This should not be used directly by the user.**
 ///
 /// Structure used to store dart-related data. The association of data with
 /// a given dart is done implictly through indexing.
@@ -64,17 +59,26 @@ pub struct CellIdentifiers {
 /// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
 ///   This corresponds to the number of search that can be done concurrently.
 ///
+/// # Example
+///
+/// No example is provided as the structure should not be used directly.
+/// The documentation is generated mostly for developing purposes.
+///
 pub struct DartData<const N_MARKS: usize> {
     /// Array of boolean used for algorithmic search.
+    ///
+    /// Atomics allow for non-mutable interfaces, i.e. parallel friendly
+    /// methods. Storage is done line-wise as it would be very rare to
+    /// access multiple marks of the same dart successively.
     pub marks: [Vec<AtomicBool>; N_MARKS],
     /// List of associated cell identifiers.
     pub associated_cells: Vec<CellIdentifiers>,
 }
 
 impl<const N_MARKS: usize> DartData<N_MARKS> {
-    /// Create a DartData object.
+    /// Create a [DartData] object.
     ///
-    /// This should not be used directly by the user.
+    /// **This should not be used directly by the user.**
     ///
     /// # Arguments
     ///
@@ -109,7 +113,7 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
 
     /// Free all darts of a given mark.
     ///
-    /// This should not be used directly by the user.
+    /// **This should not be used directly by the user.**
     ///
     /// # Arguments
     ///
@@ -127,12 +131,14 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
     ///  # Arguments
     ///
     /// - `mark_id: usize` -- Identifier of the mark that must be checked.
-    /// - `dart_id: usize` -- Identifier of the dart that must be checked.
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart that must be checked.
     ///
     /// # Return / Panic
     ///
     /// Returns a boolean to indicate whether the dart was marked or not. In
     /// both case, the dart is marked after the operation.
+    ///
+    /// The method will panic if the provided mark ID is invalid.
     ///
     pub fn was_marked(&self, mark_id: usize, dart_id: DartIdentifier) -> bool {
         assert!(mark_id < N_MARKS);
@@ -153,6 +159,10 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
         }
     }
 
+    /// Add a new entry to the structure.
+    ///
+    /// **This should not be used directly by the user.**
+    ///
     pub fn add_entry(&mut self) {
         self.marks
             .iter_mut()
@@ -160,6 +170,14 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
         self.associated_cells.push(CellIdentifiers::default());
     }
 
+    /// Reset a given entry of the structure.
+    ///
+    /// **This should not be used directly by the user.**
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart which entry should be reset.
+    ///
     pub fn reset_entry(&mut self, dart_id: DartIdentifier) {
         self.marks.iter().for_each(|mark| {
             mark[dart_id as usize].store(false, std::sync::atomic::Ordering::Relaxed)
