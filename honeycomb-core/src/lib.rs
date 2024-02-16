@@ -9,15 +9,17 @@
 
 // ------ MODULE DECLARATIONS
 
-pub mod cmap;
+pub mod dart;
+pub mod embed;
+pub mod twomap;
 
 // ------ RE-EXPORTS
 
-pub use cmap::{
-    dart::{DartIdentifier, NULL_DART_ID},
-    embed::{FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier},
-    map::TwoMap,
+pub use dart::{DartIdentifier, NULL_DART_ID};
+pub use embed::{
+    FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
 };
+pub use twomap::TwoMap;
 
 // ------ IMPORTS
 

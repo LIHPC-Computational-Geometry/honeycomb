@@ -116,7 +116,7 @@ pub type Vertex3 = [f64; 3];
 /// 2 faces: a square and a triangle.
 ///
 /// ```
-/// use honeycomb_core::cmap::embed::{Vertex2, Face};
+/// use honeycomb_core::{Vertex2, embed::Face};
 ///
 /// let vertices = [
 ///     [0.0, 0.0],
