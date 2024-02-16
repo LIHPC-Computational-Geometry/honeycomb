@@ -70,8 +70,12 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// ![TWOMAP_EXAMPLE](link_to_example_file.svg)
 ///
+/// Note that the map we operate on has no boundaries. In addition to the different
+/// operations realized at each step, we insert a few assertions to demonstrate the
+/// progressive changes applied to the structure.
+///
 /// ```
-/// use honeycomb_core::{TwoMap, DartIdentifier, VertexIdentifier, NULL_DART_ID};
+/// use honeycomb_core::{TwoMap, DartIdentifier, VertexIdentifier, NULL_DART_ID, SewPolicy};
 ///
 /// // --- Map creation
 ///
@@ -90,9 +94,9 @@ const TWO_MAP_BETA: usize = 3;
 /// map.set_vertex(d2, v2);
 /// map.set_vertex(d3, v3);
 /// // define beta values to form a face
-/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
-/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
-/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
+/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
+/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
+/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
 ///
 /// let fface_id = map.build_face(d1); // build the face we just linked & fetch the id for checks
 ///
@@ -126,15 +130,59 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// // --- (a)
 ///
+/// // add three new darts
+/// let d4 = map.add_free_dart(); // 4
+/// let d5 = map.add_free_dart(); // 5
+/// let d6 = map.add_free_dart(); // 6
+///
+/// assert!(map.is_free(d4));
+/// assert!(map.is_free(d5));
+/// assert!(map.is_free(d6));
+///
+/// // create the corresponding three vertices
+/// let (v4, v5, v6): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (3, 4, 5);
+/// map.vertices.push([15.0, 0.0]); // v4
+/// map.vertices.push([5.0, 10.0]); // v5
+/// map.vertices.push([15.0, 10.0]); // v6
+/// // associate dart to vertices
+/// map.set_vertex(d4, v4);
+/// map.set_vertex(d5, v5);
+/// map.set_vertex(d6, v6);
+/// // define beta values to form a second face
+/// map.set_betas(d4, [d6, d5, NULL_DART_ID]); // beta0(d4) = d6 / beta1(d4) = d5 / beta2(d4) = null
+/// map.set_betas(d5, [d4, d6, NULL_DART_ID]); // beta0(d5) = d4 / beta1(d5) = d6 / beta2(d5) = null
+/// map.set_betas(d6, [d5, d4, NULL_DART_ID]); // beta0(d6) = d5 / beta1(d6) = d4 / beta2(d6) = null
+///
+/// let sface_id =  map.build_face(d6); // build the second face
+///
 /// // --- checks
+///
+/// // d4 & d2 are 2-free, hence can be 2-sewn together
+/// assert!(map.is_i_free::<2>(d4));
+/// assert!(map.is_i_free::<2>(d2));
 ///
 /// // --- (b)
 ///
+/// // 2-sew d2 & d4, stretching d4 to d2's spatial position
+/// // this invalidates the face built before since vertex are overwritten
+/// // if we used a StretchRight policy, the invalidated face would have been the first one
+/// map.two_sew(d2, d4, SewPolicy::StretchLeft);
+///
 /// // --- checks
+///
+/// // check topological result
+/// assert_eq!(map.beta::<2>(d2), d4);
+/// assert_eq!(map.beta::<2>(d4), d2);
+/// // check geometrical result
+/// assert_eq!(map.vertex(d2), map.vertex(d5));
+/// assert_eq!(map.vertex(d3), map.vertex(d4));
 ///
 /// // --- (c)
 ///
-/// // --- checks
+/// // shift the position of d6 to build a square using the two faces
+/// // we could also use coordinates of other vertices instead of hardcoding the new coordinates
+/// let tmp = map.vertex(d6);
+/// map.vertices[tmp as usize] = [10.0, 10.0];
 ///
 /// // --- (d)
 ///
