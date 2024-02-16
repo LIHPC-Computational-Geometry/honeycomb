@@ -75,11 +75,14 @@ const TWO_MAP_BETA: usize = 3;
 /// progressive changes applied to the structure.
 ///
 /// ```
-/// use honeycomb_core::{TwoMap, DartIdentifier, VertexIdentifier, NULL_DART_ID, SewPolicy};
+/// use honeycomb_core::{
+///     DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
+/// };
 ///
 /// // --- Map creation
 ///
-/// let mut map: TwoMap<1> = TwoMap::new(3, 3); // create a map with 3 non-null darts & 3 vertices
+/// // create a map with 3 non-null darts & 3 vertices
+/// let mut map: TwoMap<1> = TwoMap::new(3, 3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -94,11 +97,12 @@ const TWO_MAP_BETA: usize = 3;
 /// map.set_vertex(d2, v2);
 /// map.set_vertex(d3, v3);
 /// // define beta values to form a face
-/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
-/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
-/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1) = null
+/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta 0 / 1 / 2 (d1) = d3 / d2 / null
+/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta 0 / 1 / 2 (d2) = d1 / d3 / null
+/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta 0 / 1 / 2 (d3) = d2 / d1 / null
 ///
-/// let fface_id = map.build_face(d1); // build the face we just linked & fetch the id for checks
+/// // build the face we just linked & fetch the id for checks
+/// let fface_id = map.build_face(d1);
 ///
 /// // --- checks
 ///
@@ -121,8 +125,8 @@ const TWO_MAP_BETA: usize = 3;
 /// // i.e. the face
 /// let two_cell = map.i_cell::<2>(d2);
 ///
-/// // check if all darts are here
-/// // we make no assumption on the ordering of the result with this method
+/// // check topology of the face
+/// // we make no assumption on the ordering of the result when using the i_cell method
 /// assert!(two_cell.contains(&d1));
 /// assert!(two_cell.contains(&d2));
 /// assert!(two_cell.contains(&d3));
@@ -149,9 +153,9 @@ const TWO_MAP_BETA: usize = 3;
 /// map.set_vertex(d5, v5);
 /// map.set_vertex(d6, v6);
 /// // define beta values to form a second face
-/// map.set_betas(d4, [d6, d5, NULL_DART_ID]); // beta0(d4) = d6 / beta1(d4) = d5 / beta2(d4) = null
-/// map.set_betas(d5, [d4, d6, NULL_DART_ID]); // beta0(d5) = d4 / beta1(d5) = d6 / beta2(d5) = null
-/// map.set_betas(d6, [d5, d4, NULL_DART_ID]); // beta0(d6) = d5 / beta1(d6) = d4 / beta2(d6) = null
+/// map.set_betas(d4, [d6, d5, NULL_DART_ID]); // beta 0 / 1 / 2 (d4) = d6 / d5 / null
+/// map.set_betas(d5, [d4, d6, NULL_DART_ID]); // beta 0 / 1 / 2 (d5) = d4 / d6 / null
+/// map.set_betas(d6, [d5, d4, NULL_DART_ID]); // beta 0 / 1 / 2 (d6) = d5 / d4 / null
 ///
 /// let sface_id =  map.build_face(d6); // build the second face
 ///
@@ -180,13 +184,52 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- (c)
 ///
 /// // shift the position of d6 to build a square using the two faces
-/// // we could also use coordinates of other vertices instead of hardcoding the new coordinates
 /// let tmp = map.vertex(d6);
 /// map.vertices[tmp as usize] = [10.0, 10.0];
 ///
 /// // --- (d)
 ///
+/// // disconnect d2 & d4 for removal
+/// map.one_unsew(d2, UnsewPolicy::Duplicate); // using unsew here allow proper vertices
+/// map.one_unsew(d4, UnsewPolicy::Duplicate); // modifications
+/// map.set_beta::<0>(d2, NULL_DART_ID);
+/// map.set_beta::<0>(d4, NULL_DART_ID);
+/// map.set_beta::<2>(d2, NULL_DART_ID);
+/// map.set_beta::<2>(d4, NULL_DART_ID);
+/// map.remove_free_dart(d2); // this checks if d2 is free for all i
+/// map.remove_free_dart(d4); // this checks if d4 is free for all i
+///
+/// // reconnect d1/d5 & d6/d3 to form the new face
+/// map.set_beta::<1>(d1, d5);
+/// map.set_beta::<0>(d5, d1);
+/// map.set_beta::<1>(d6, d3);
+/// map.set_beta::<0>(d3, d6);
+///
+/// // rebuild the face
+///
+/// let new_face_id = map.build_face(d6);
+///
 /// // --- checks
+///
+/// // check associated face
+/// assert_eq!(map.face(d1), new_face_id);
+/// assert_eq!(map.face(d5), new_face_id);
+/// assert_eq!(map.face(d6), new_face_id);
+/// assert_eq!(map.face(d3), new_face_id);
+///
+/// // check dart positions
+/// assert_eq!(map.vertices[map.vertex(d1) as usize], [0.0, 0.0]);
+/// assert_eq!(map.vertices[map.vertex(d5) as usize], [0.0, 10.0]);
+/// assert_eq!(map.vertices[map.vertex(d6) as usize], [10.0, 10.0]);
+/// assert_eq!(map.vertices[map.vertex(d3) as usize], [10.0, 0.0]);
+///
+/// // check topology of the new face
+/// let new_two_cell = map.i_cell::<2>(d3);
+/// assert!(new_two_cell.contains(&d1));
+/// assert!(new_two_cell.contains(&d5));
+/// assert!(new_two_cell.contains(&d6));
+/// assert!(new_two_cell.contains(&d3));
+/// assert_eq!(new_two_cell.len(), 4);
 ///
 /// ```
 ///
