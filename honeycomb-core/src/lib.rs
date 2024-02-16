@@ -15,7 +15,7 @@ pub mod cmap;
 
 pub use cmap::{
     dart::{DartIdentifier, NULL_DART_ID},
-    embed::{FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier},
+    embed::{FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier},
     map::TwoMap,
 };
 
