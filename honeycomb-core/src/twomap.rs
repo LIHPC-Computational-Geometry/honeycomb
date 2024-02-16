@@ -74,7 +74,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2>,
+    pub vertices: Vec<Vertex2>,
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
@@ -97,29 +97,31 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Arguments
     ///
     /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
+    /// - `n_vertices: usize` -- Number of vertices in the represented mesh.
     ///
     /// # Return / Panic
     ///
     /// Returns a combinatorial map containing:
-    /// - `n_darts + 1`, the amount of darts wanted plus the null dart (at index 0).
+    /// - `n_darts + 1` darts, the amount of darts wanted plus the null dart (at index 0).
     /// - 3 beta functions, *β<sub>0</sub>* being defined as the inverse of *β<sub>1</sub>*.
     /// - Default embed data associated to each dart.
-    /// - An empty list of for vertices of the mesh.
+    /// - `n_vertices` that the user will have to manually define a link to darts.
     /// - An empty list of currently free darts. This may be used for dart creation.
     ///
     /// # Example
     ///
     /// See [TwoMap] example.
     ///
-    pub fn new(n_darts: usize) -> Self {
+    pub fn new(n_darts: usize, n_vertices: usize) -> Self {
+        let vertices = vec![[0.0, 0.0]; n_vertices];
         let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
-            dart_data: DartData::new(n_darts),
-            betas,
-            vertices: Vec::with_capacity(n_darts),
+            vertices,
             faces: Vec::with_capacity(n_darts / 3),
+            dart_data: DartData::new(n_darts),
             free_darts: Vec::with_capacity(n_darts + 1),
+            betas,
             n_darts: n_darts + 1,
         }
     }
@@ -848,9 +850,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
-    ///
-    /// ```
+    /// See [TwoMap] example.
     ///
     pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
         let new_faceid = self.faces.len() as FaceIdentifier;
