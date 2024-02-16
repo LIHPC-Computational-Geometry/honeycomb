@@ -65,10 +65,33 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// # Example
 ///
+/// The following example goes over multiple operations on the mesh in order
+/// to demonstrate general usage of the structure and its methods.
+///
+/// ![TWOMAP_EXAMPLE](link_to_example_file.svg)
+///
 /// ```
 /// use honeycomb_core::TwoMap;
 ///
-/// // TODO: two examples to rule them all
+/// // --- Map creation
+///
+/// // --- checks
+///
+/// // --- (a)
+///
+/// // --- checks
+///
+/// // --- (b)
+///
+/// // --- checks
+///
+/// // --- (c)
+///
+/// // --- checks
+///
+/// // --- (d)
+///
+/// // --- checks
 ///
 /// ```
 ///
