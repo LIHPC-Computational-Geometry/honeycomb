@@ -853,6 +853,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// ```
     ///
     pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
+        let new_faceid = self.faces.len() as FaceIdentifier;
+        self.set_face(dart_id, new_faceid);
         let mut part_one = vec![dart_id];
         let mut closed = true;
         let mut curr_dart = self.beta::<1>(dart_id);
@@ -864,6 +866,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 break;
             }
             part_one.push(curr_dart);
+            self.set_face(curr_dart, new_faceid);
             curr_dart = self.beta::<1>(curr_dart);
         }
 
@@ -875,6 +878,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             // search the face in the other direction using beta0
             while curr_dart != NULL_DART_ID {
                 part_two.push(curr_dart);
+                self.set_face(curr_dart, new_faceid);
                 curr_dart = self.beta::<0>(curr_dart);
             }
             // to have the ordered face, we need to reverse the beta 0 part and
@@ -898,7 +902,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         };
 
         self.faces.push(face);
-        (self.faces.len() - 1) as FaceIdentifier
+        new_faceid
     }
 }
 
