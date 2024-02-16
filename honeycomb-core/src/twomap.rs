@@ -71,11 +71,58 @@ const TWO_MAP_BETA: usize = 3;
 /// ![TWOMAP_EXAMPLE](link_to_example_file.svg)
 ///
 /// ```
-/// use honeycomb_core::TwoMap;
+/// use honeycomb_core::{TwoMap, DartIdentifier, VertexIdentifier, NULL_DART_ID};
 ///
 /// // --- Map creation
 ///
+/// let mut map: TwoMap<1> = TwoMap::new(3, 3); // create a map with 3 non-null darts & 3 vertices
+///
+/// // the two following lines are not strictly necessary, you may use integers directly
+/// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
+/// let (v1, v2, v3): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (0, 1, 2);
+///
+/// // place the vertices in space
+/// map.vertices[v1 as usize] = [0.0, 0.0];
+/// map.vertices[v2 as usize] = [0.0, 10.0];
+/// map.vertices[v3 as usize] = [10.0, 0.0];
+/// // associate dart to vertices
+/// map.set_vertex(d1, v1);
+/// map.set_vertex(d2, v2);
+/// map.set_vertex(d3, v3);
+/// // define beta values to form a face
+/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
+/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
+/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta0(d1) = d3 / beta1(d1) = d2 / beta2(d1 = null)
+///
+/// let fface_id = map.build_face(d1); // build the face we just linked & fetch the id for checks
+///
 /// // --- checks
+///
+/// // fetch cells associated to each dart
+/// let d1_cells = map.cells(d1);
+/// let d2_cells = map.cells(d2);
+/// let d3_cells = map.cells(d3);
+///
+/// // check dart-vertex association
+/// assert_eq!(d1_cells.vertex_id, v1);
+/// assert_eq!(d2_cells.vertex_id, v2);
+/// assert_eq!(d3_cells.vertex_id, v3);
+///
+/// // check dart-face association
+/// assert_eq!(d1_cells.face_id, fface_id);
+/// assert_eq!(d2_cells.face_id, fface_id);
+/// assert_eq!(d3_cells.face_id, fface_id);
+///
+/// // fetch all darts of the two-cell d2 belongs to
+/// // i.e. the face
+/// let two_cell = map.i_cell::<2>(d2);
+///
+/// // check if all darts are here
+/// // we make no assumption on the ordering of the result with this method
+/// assert!(two_cell.contains(&d1));
+/// assert!(two_cell.contains(&d2));
+/// assert!(two_cell.contains(&d3));
+/// assert_eq!(two_cell.len(), 3);
 ///
 /// // --- (a)
 ///
