@@ -169,7 +169,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn cells_of(&self, dart_id: DartIdentifier) -> CellIdentifiers {
+    pub fn cells(&self, dart_id: DartIdentifier) -> CellIdentifiers {
         self.dart_data.associated_cells[dart_id as usize]
     }
 
@@ -187,7 +187,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn vertex_of(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+    pub fn vertex(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         self.dart_data.associated_cells[dart_id as usize].vertex_id
     }
 
@@ -205,7 +205,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn face_of(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+    pub fn face(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         self.dart_data.associated_cells[dart_id as usize].face_id
     }
 
@@ -283,7 +283,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn get_i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
         let mut cell: Vec<DartIdentifier> = vec![dart_id];
         let mut curr_dart = dart_id;
         match I {
@@ -485,8 +485,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 SewPolicy::StretchAverage => {
                     // this works under the assumption that a valid vertex is
                     // associated to rhs_dart
-                    let lid_vertex = self.vertices[self.cells_of(lid).vertex_id as usize];
-                    let rhs_vertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                    let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
+                    let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
                     self.vertices.push([
                         (lid_vertex[0] + rhs_vertex[0]) / 2.0,
                         (lid_vertex[1] + rhs_vertex[1]) / 2.0,
@@ -573,8 +573,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         stretch!(b1rid, lhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells_of(b1rid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells_of(lhs_dart_id).vertex_id as usize];
+                        let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
+                        let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
                         self.vertices.push([
                             (vertex1[0] + vertex2[0]) / 2.0,
@@ -597,8 +597,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         stretch!(b1lid, rhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells_of(b1lid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                        let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
+                        let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
                         self.vertices.push([
                             (vertex1[0] + vertex2[0]) / 2.0,
@@ -617,10 +617,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 let b1rid = self.beta::<1>(rhs_dart_id);
 
-                let b1_lvertex = self.vertices[self.cells_of(b1lid).vertex_id as usize];
-                let lvertex = self.vertices[self.cells_of(lhs_dart_id).vertex_id as usize];
-                let b1_rvertex = self.vertices[self.cells_of(b1rid).vertex_id as usize];
-                let rvertex = self.vertices[self.cells_of(rhs_dart_id).vertex_id as usize];
+                let b1_lvertex = self.vertices[self.cells(b1lid).vertex_id as usize];
+                let lvertex = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
+                let b1_rvertex = self.vertices[self.cells(b1rid).vertex_id as usize];
+                let rvertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
                 let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
                 let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
@@ -708,8 +708,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         match policy {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
-                if self.get_i_cell::<0>(rhs_dart_id).len() > 1 {
-                    let old_vertex = self.vertices[self.vertex_of(rhs_dart_id) as usize];
+                if self.i_cell::<0>(rhs_dart_id).len() > 1 {
+                    let old_vertex = self.vertices[self.vertex(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertex(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
@@ -755,11 +755,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 // repeat on both ends of the edge
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 if b1lid != NULL_DART_ID {
-                    self.set_vertex(rhs_dart_id, self.vertex_of(b1lid));
+                    self.set_vertex(rhs_dart_id, self.vertex(b1lid));
                 }
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 if b1rid != NULL_DART_ID {
-                    self.set_vertex(lhs_dart_id, self.vertex_of(b1rid));
+                    self.set_vertex(lhs_dart_id, self.vertex(b1rid));
                 }
             }
         }
@@ -777,7 +777,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_betas_of(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
+    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
 
@@ -801,7 +801,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_beta_i_of<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
+    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
         assert!(I < 3);
         self.betas[dart_id as usize][I as usize] = beta;
     }
