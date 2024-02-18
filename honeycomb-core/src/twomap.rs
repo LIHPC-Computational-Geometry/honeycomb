@@ -344,15 +344,15 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Return / Panic
     ///
-    /// Return a [CellIdentifiers] structure that contain identifiers to
-    /// the different **geometrical** i-cells *dart* models.
+    /// Return a reference to a [CellIdentifiers] structure that contain
+    /// identifiers to the different **geometrical** i-cells *dart* models.
     ///
     /// # Example
     ///
     /// See [TwoMap] example.
     ///
-    pub fn cells(&self, dart_id: DartIdentifier) -> CellIdentifiers {
-        self.dart_data.associated_cells[dart_id as usize]
+    pub fn cells(&self, dart_id: DartIdentifier) -> &CellIdentifiers {
+        &self.dart_data.associated_cells[dart_id as usize]
     }
 
     /// Fetch vertex value associated to a given identifier.
@@ -387,8 +387,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn face(&self, vertex_id: VertexIdentifier) -> &Face {
-        &self.faces[vertex_id as usize]
+    pub fn face(&self, face_id: FaceIdentifier) -> &Face {
+        &self.faces[face_id as usize]
     }
 
     /// Fetch vertex identifier associated to a given dart.
@@ -583,6 +583,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// All darts are i-free for all i and are pushed to the end of the list
     /// of existing darts.
     ///
+    /// # Arguments
+    ///
+    /// - `n_darts: usize` -- Number of darts to have.
+    ///
     /// # Return / Panic
     ///
     /// Return the ID of the first created dart to allow for direct operations.
@@ -657,15 +661,18 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.dart_data.reset_entry(dart_id);
     }
 
-    /// Add a new free dart to the combinatorial map.
+    /// Add a vertex to the combinatorial map.
     ///
-    /// The dart is i-free for all i and is pushed to the list of existing
-    /// darts, effectively making its identifier equal to the total number
-    /// of darts (post-push).
+    /// The user can provide a [Vertex2] to use as the initial value of the
+    /// added vertex.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
     ///
     /// # Return / Panic
     ///
-    /// Return the ID of the created dart to allow for direct operations.
+    /// Return the ID of the created vertex to allow for direct operations.
     ///
     /// # Example
     ///
@@ -678,15 +685,16 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         new_id
     }
 
-    /// Add multiple new free darts to the combinatorial map.
+    /// Add multiple vertices to the combinatorial map.
     ///
-    /// All darts are i-free for all i and are pushed to the end of the list
-    /// of existing darts.
+    /// # Arguments
+    ///
+    /// - `n_vertices: usize` -- Number of vertices to create.
     ///
     /// # Return / Panic
     ///
-    /// Return the ID of the first created dart to allow for direct operations.
-    /// Darts are positionned on range `ID..ID+n_darts`.
+    /// Return the ID of the first created vertex to allow for direct operations.
+    /// Vertices are positionned on range `ID..ID+n_darts`.
     ///
     /// # Example
     ///
@@ -700,11 +708,15 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         new_id
     }
 
-    /// Insert a new free dart to the combinatorial map.
+    /// Insert a vertex in the combinatorial map.
     ///
-    /// The dart is i-free for all i and may be inserted into a free spot in
-    /// the existing dart list. If no free spots exist, it will be pushed to
-    /// the end of the list.
+    /// The vertex may be inserted into a free spot in the existing list. If no free
+    /// spots exist, it will be pushed to the end of the list. The user can provide a
+    /// [Vertex2] to use as the initial value of the added vertex.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
     ///
     /// # Return / Panic
     ///
@@ -723,19 +735,19 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         }
     }
 
-    /// Remove a free dart from the combinatorial map.
+    /// Remove a vertex from the combinatorial map.
     ///
-    /// The removed dart identifier is added to the list of free dart.
+    /// The removed vertex identifier is added to the list of free vertex.
     /// This way of proceeding is necessary as the structure relies on
-    /// darts indexing for encoding data, making reordering of any sort
+    /// vertices indexing for encoding data, making reordering of any sort
     /// extremely costly.
     ///
-    /// By keeping track of free spots in the dart arrays, we can prevent too
+    /// By keeping track of free spots in the vertices array, we can prevent too
     /// much memory waste, although at the cost of locality of reference.
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
     /// # Example
     ///
@@ -753,7 +765,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
+    /// - `vertex: Vertex2` -- New value for the vertex.
     ///
     /// # Return / Panic
     ///
