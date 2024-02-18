@@ -23,6 +23,11 @@ use super::{
 
 // ------ CONTENT
 
+#[derive(Debug)]
+pub enum MapError {
+    VertexOOB,
+}
+
 // --- 2-MAP
 
 const TWO_MAP_BETA: usize = 3;
@@ -46,12 +51,15 @@ const TWO_MAP_BETA: usize = 3;
 /// contains the following data:
 ///
 /// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
+/// - `free_vertices: Vec<VertexIdentifier>` -- List of free vertex identifiers,
+///   i.e. empty spots in the current vertex list
 /// - `faces: Vec<Face>` -- List of faces making up the represented mesh
 /// - `dart_data: DartData<N_MARKS>` -- List of embedded data associated with darts
 /// - `free_darts: Vec<DartIdentifier>` -- List of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 /// - `n_darts: usize` -- Current number of darts (including the null dart)
+/// - `n_vertices: usize` -- Current number of vertices
 ///
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
@@ -235,21 +243,23 @@ const TWO_MAP_BETA: usize = 3;
 ///
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
-    pub vertices: Vec<Vertex2>,
+    vertices: Vec<Vertex2>,
+    /// List of free vertex identifiers, i.e. empty spots
+    /// in the current vertex list
+    free_vertices: Vec<VertexIdentifier>,
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
     dart_data: DartData<N_MARKS>,
     /// List of free darts identifiers, i.e. empty spots
-    /// in the current dart list.
+    /// in the current dart list
     free_darts: Vec<DartIdentifier>,
     /// Array representation of the beta functions
-    ///
-    /// This should eventually be replaced by a better
-    /// structure, supported by benchmarking.
     betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
     /// Current number of darts
     n_darts: usize,
+    /// Current number of vertices
+    n_vertices: usize,
 }
 
 macro_rules! stretch {
@@ -286,11 +296,13 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
         Self {
             vertices,
+            free_vertices: Vec::with_capacity(n_vertices),
             faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
             free_darts: Vec::with_capacity(n_darts + 1),
             betas,
             n_darts: n_darts + 1,
+            n_vertices,
         }
     }
 
@@ -566,6 +578,28 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         new_id
     }
 
+    /// Add multiple new free darts to the combinatorial map.
+    ///
+    /// All darts are i-free for all i and are pushed to the end of the list
+    /// of existing darts.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the first created dart to allow for direct operations.
+    /// Darts are positionned on range `ID..ID+n_darts`.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
+        let new_id = self.n_darts as DartIdentifier;
+        self.n_darts += n_darts;
+        self.dart_data.add_entries(n_darts);
+        self.betas.extend((0..n_darts).map(|_| [0; TWO_MAP_BETA]));
+        new_id
+    }
+
     /// Insert a new free dart to the combinatorial map.
     ///
     /// The dart is i-free for all i and may be inserted into a free spot in
@@ -621,6 +655,196 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // the following two lines are more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
         self.dart_data.reset_entry(dart_id);
+    }
+
+    /// Add a new free dart to the combinatorial map.
+    ///
+    /// The dart is i-free for all i and is pushed to the list of existing
+    /// darts, effectively making its identifier equal to the total number
+    /// of darts (post-push).
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created dart to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn add_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
+        let new_id = self.n_vertices as VertexIdentifier;
+        self.n_vertices += 1;
+        self.vertices.push(vertex.unwrap_or_default());
+        new_id
+    }
+
+    /// Add multiple new free darts to the combinatorial map.
+    ///
+    /// All darts are i-free for all i and are pushed to the end of the list
+    /// of existing darts.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the first created dart to allow for direct operations.
+    /// Darts are positionned on range `ID..ID+n_darts`.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
+        let new_id = self.n_vertices as VertexIdentifier;
+        self.n_vertices += n_vertices;
+        self.vertices
+            .extend((0..n_vertices).map(|_| Vertex2::default()));
+        new_id
+    }
+
+    /// Insert a new free dart to the combinatorial map.
+    ///
+    /// The dart is i-free for all i and may be inserted into a free spot in
+    /// the existing dart list. If no free spots exist, it will be pushed to
+    /// the end of the list.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created dart to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn insert_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
+        if let Some(new_id) = self.free_vertices.pop() {
+            self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
+            new_id
+        } else {
+            self.add_vertex(vertex)
+        }
+    }
+
+    /// Remove a free dart from the combinatorial map.
+    ///
+    /// The removed dart identifier is added to the list of free dart.
+    /// This way of proceeding is necessary as the structure relies on
+    /// darts indexing for encoding data, making reordering of any sort
+    /// extremely costly.
+    ///
+    /// By keeping track of free spots in the dart arrays, we can prevent too
+    /// much memory waste, although at the cost of locality of reference.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
+        self.free_vertices.push(vertex_id);
+        // the following line is more safety than anything else
+        // this prevents having to deal w/ artifacts in case of re-insertion
+        // it also panics on OOB
+        self.set_vertex(vertex_id, Vertex2::default()).unwrap();
+    }
+
+    /// Try to overwrite the given vertex with a new value.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a result indicating if the vertex could be overwritten. The main reason
+    /// of failure would be an out of bounds access.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_vertex(
+        &mut self,
+        vertex_id: VertexIdentifier,
+        vertex: Vertex2,
+    ) -> Result<(), MapError> {
+        if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
+            *val = vertex;
+            return Ok(());
+        }
+        Err(MapError::VertexOOB)
+    }
+
+    /// Set the values of the *β<sub>i</sub>* function of a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
+    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
+        assert!(I < 3);
+        self.betas[dart_id as usize][I as usize] = beta;
+    }
+
+    /// Set the values of the beta functions of a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `betas: [DartIdentifier; 3]` -- Value of the images as
+    ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
+        self.betas[dart_id as usize] = betas;
+    }
+
+    /// Set the vertex ID associated to a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `vertex_id: VertexIdentifier` -- Unique vertex identifier.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
+        self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
+    }
+
+    /// Set the face ID associated to a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `face_id: FaceIdentifier` -- Unique face identifier.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
+        self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 
     /// 1-sewing operation.
@@ -948,77 +1172,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 }
             }
         }
-    }
-
-    /// Set the values of the beta functions of a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `betas: [DartIdentifier; 3]` -- Value of the images as
-    ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
-    ///
-    /// # Example
-    ///
-    /// See [TwoMap] example.
-    ///
-    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
-        self.betas[dart_id as usize] = betas;
-    }
-
-    /// Set the values of the *β<sub>i</sub>* function of a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [TwoMap] example.
-    ///
-    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
-        assert!(I < 3);
-        self.betas[dart_id as usize][I as usize] = beta;
-    }
-
-    /// Set the vertex ID associated to a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `vertex_id: VertexIdentifier` -- Unique vertex identifier.
-    ///
-    /// # Example
-    ///
-    /// See [TwoMap] example.
-    ///
-    pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
-    }
-
-    /// Set the face ID associated to a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `face_id: FaceIdentifier` -- Unique face identifier.
-    ///
-    /// # Example
-    ///
-    /// See [TwoMap] example.
-    ///
-    pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 
     /// Build the geometrical face associated with a given dart

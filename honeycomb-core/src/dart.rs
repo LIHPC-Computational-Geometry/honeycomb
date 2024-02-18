@@ -170,6 +170,18 @@ impl<const N_MARKS: usize> DartData<N_MARKS> {
         self.associated_cells.push(CellIdentifiers::default());
     }
 
+    /// Add multiple new entries to the structure.
+    ///
+    /// **This should not be used directly by the user.**
+    ///
+    pub fn add_entries(&mut self, n_darts: usize) {
+        self.marks
+            .iter_mut()
+            .for_each(|mark| mark.extend((0..n_darts).map(|_| AtomicBool::new(false))));
+        self.associated_cells
+            .extend((0..n_darts).map(|_| CellIdentifiers::default()));
+    }
+
     /// Reset a given entry of the structure.
     ///
     /// **This should not be used directly by the user.**
