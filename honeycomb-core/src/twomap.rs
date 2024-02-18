@@ -97,9 +97,9 @@ const TWO_MAP_BETA: usize = 3;
 /// let (v1, v2, v3): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (0, 1, 2);
 ///
 /// // place the vertices in space
-/// map.vertices[v1 as usize] = [0.0, 0.0];
-/// map.vertices[v2 as usize] = [0.0, 10.0];
-/// map.vertices[v3 as usize] = [10.0, 0.0];
+/// map.set_vertex(v1, [0.0, 0.0]);
+/// map.set_vertex(v2, [0.0, 10.0]);
+/// map.set_vertex(v3, [10.0, 0.0]);
 /// // associate dart to vertices
 /// map.set_vertexid(d1, v1);
 /// map.set_vertexid(d2, v2);
@@ -152,10 +152,11 @@ const TWO_MAP_BETA: usize = 3;
 /// assert!(map.is_free(d6));
 ///
 /// // create the corresponding three vertices
-/// let (v4, v5, v6): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (3, 4, 5);
-/// map.vertices.push([15.0, 0.0]); // v4
-/// map.vertices.push([5.0, 10.0]); // v5
-/// map.vertices.push([15.0, 10.0]); // v6
+/// let v4 = map.add_vertex(Some([15.0, 0.0])); // v4
+/// let v5 = map.add_vertices(2); // v5, v6
+/// let v6 = v5 + 1;
+/// map.set_vertex(v5, [5.0, 10.0]); // v5
+/// map.set_vertex(v6, [15.0, 10.0]); // v6
 /// // associate dart to vertices
 /// map.set_vertexid(d4, v4);
 /// map.set_vertexid(d5, v5);
@@ -192,8 +193,7 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- (c)
 ///
 /// // shift the position of d6 to build a square using the two faces
-/// let tmp = map.vertexid(d6);
-/// map.vertices[tmp as usize] = [10.0, 10.0];
+/// map.set_vertex(map.vertexid(d6), [10.0, 10.0]);
 ///
 /// // --- (d)
 ///
@@ -226,10 +226,10 @@ const TWO_MAP_BETA: usize = 3;
 /// assert_eq!(map.faceid(d3), new_face_id);
 ///
 /// // check dart positions
-/// assert_eq!(map.vertices[map.vertexid(d1) as usize], [0.0, 0.0]);
-/// assert_eq!(map.vertices[map.vertexid(d5) as usize], [0.0, 10.0]);
-/// assert_eq!(map.vertices[map.vertexid(d6) as usize], [10.0, 10.0]);
-/// assert_eq!(map.vertices[map.vertexid(d3) as usize], [10.0, 0.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0]);
 ///
 /// // check topology of the new face
 /// let new_two_cell = map.i_cell::<2>(d3);
