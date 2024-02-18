@@ -845,10 +845,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// second dart can be obtained through the *β<sub>1</sub>* function. The
     /// *β<sub>0</sub>* function is also updated.
     ///
-    /// # Return / Panic
-    ///
-    /// The method may panic if *I* is neither 1 or 2.
-    ///
     /// # Example
     ///
     /// See [TwoMap] example.
@@ -889,10 +885,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>2</sub>* function.
-    ///
-    /// # Return / Panic
-    ///
-    /// The method may panic if *I* is neither 1 or 2.
     ///
     /// # Example
     ///
