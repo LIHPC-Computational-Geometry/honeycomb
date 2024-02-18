@@ -99,6 +99,7 @@ pub type Vertex2 = [f64; 2];
 /// Type definition for 3D vertices representation.
 pub type Vertex3 = [f64; 3];
 
+#[derive(Clone, Debug, Default)]
 /// Face object
 ///
 /// A face is made up of a varying number of corners (e.g. 3 for a triangle).

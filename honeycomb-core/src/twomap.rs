@@ -343,7 +343,43 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.dart_data.associated_cells[dart_id as usize]
     }
 
-    /// Fetch vertex associated to a given dart.
+    /// Fetch vertex value associated to a given identifier.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a reference to the [Vertex2] associated to the ID.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2 {
+        &self.vertices[vertex_id as usize]
+    }
+
+    /// Fetch face structure associated to a given identifier.
+    ///
+    /// # Arguments
+    ///
+    /// - `face_id: FaceIdentifier` -- Identifier of the given face.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a reference to the [Face] associated to the ID.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn face(&self, vertex_id: VertexIdentifier) -> &Face {
+        &self.faces[vertex_id as usize]
+    }
+
+    /// Fetch vertex identifier associated to a given dart.
     ///
     /// # Arguments
     ///
