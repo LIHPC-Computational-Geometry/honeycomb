@@ -93,9 +93,9 @@ const TWO_MAP_BETA: usize = 3;
 /// map.vertices[v2 as usize] = [0.0, 10.0];
 /// map.vertices[v3 as usize] = [10.0, 0.0];
 /// // associate dart to vertices
-/// map.set_vertex(d1, v1);
-/// map.set_vertex(d2, v2);
-/// map.set_vertex(d3, v3);
+/// map.set_vertexid(d1, v1);
+/// map.set_vertexid(d2, v2);
+/// map.set_vertexid(d3, v3);
 /// // define beta values to form a face
 /// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta 0 / 1 / 2 (d1) = d3 / d2 / null
 /// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta 0 / 1 / 2 (d2) = d1 / d3 / null
@@ -149,9 +149,9 @@ const TWO_MAP_BETA: usize = 3;
 /// map.vertices.push([5.0, 10.0]); // v5
 /// map.vertices.push([15.0, 10.0]); // v6
 /// // associate dart to vertices
-/// map.set_vertex(d4, v4);
-/// map.set_vertex(d5, v5);
-/// map.set_vertex(d6, v6);
+/// map.set_vertexid(d4, v4);
+/// map.set_vertexid(d5, v5);
+/// map.set_vertexid(d6, v6);
 /// // define beta values to form a second face
 /// map.set_betas(d4, [d6, d5, NULL_DART_ID]); // beta 0 / 1 / 2 (d4) = d6 / d5 / null
 /// map.set_betas(d5, [d4, d6, NULL_DART_ID]); // beta 0 / 1 / 2 (d5) = d4 / d6 / null
@@ -864,7 +864,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 if self.i_cell::<0>(rhs_dart_id).len() > 1 {
                     let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
-                    self.set_vertex(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
+                    self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
             }
         }
@@ -904,11 +904,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 // repeat on both ends of the edge
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 if b1lid != NULL_DART_ID {
-                    self.set_vertex(rhs_dart_id, self.vertexid(b1lid));
+                    self.set_vertexid(rhs_dart_id, self.vertexid(b1lid));
                 }
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 if b1rid != NULL_DART_ID {
-                    self.set_vertex(lhs_dart_id, self.vertexid(b1rid));
+                    self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
                 }
             }
         }
@@ -966,7 +966,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_vertex(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
+    pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
     }
 
@@ -981,7 +981,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn set_face(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
+    pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
     }
 
@@ -1001,7 +1001,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
         let new_faceid = self.faces.len() as FaceIdentifier;
-        self.set_face(dart_id, new_faceid);
+        self.set_faceid(dart_id, new_faceid);
         let mut part_one = vec![dart_id];
         let mut closed = true;
         let mut curr_dart = self.beta::<1>(dart_id);
@@ -1013,7 +1013,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 break;
             }
             part_one.push(curr_dart);
-            self.set_face(curr_dart, new_faceid);
+            self.set_faceid(curr_dart, new_faceid);
             curr_dart = self.beta::<1>(curr_dart);
         }
 
@@ -1025,7 +1025,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             // search the face in the other direction using beta0
             while curr_dart != NULL_DART_ID {
                 part_two.push(curr_dart);
-                self.set_face(curr_dart, new_faceid);
+                self.set_faceid(curr_dart, new_faceid);
                 curr_dart = self.beta::<0>(curr_dart);
             }
             // to have the ordered face, we need to reverse the beta 0 part and
