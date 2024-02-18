@@ -178,13 +178,13 @@ const TWO_MAP_BETA: usize = 3;
 /// assert_eq!(map.beta::<2>(d2), d4);
 /// assert_eq!(map.beta::<2>(d4), d2);
 /// // check geometrical result
-/// assert_eq!(map.vertex(d2), map.vertex(d5));
-/// assert_eq!(map.vertex(d3), map.vertex(d4));
+/// assert_eq!(map.vertexid(d2), map.vertexid(d5));
+/// assert_eq!(map.vertexid(d3), map.vertexid(d4));
 ///
 /// // --- (c)
 ///
 /// // shift the position of d6 to build a square using the two faces
-/// let tmp = map.vertex(d6);
+/// let tmp = map.vertexid(d6);
 /// map.vertices[tmp as usize] = [10.0, 10.0];
 ///
 /// // --- (d)
@@ -212,16 +212,16 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- checks
 ///
 /// // check associated face
-/// assert_eq!(map.face(d1), new_face_id);
-/// assert_eq!(map.face(d5), new_face_id);
-/// assert_eq!(map.face(d6), new_face_id);
-/// assert_eq!(map.face(d3), new_face_id);
+/// assert_eq!(map.faceid(d1), new_face_id);
+/// assert_eq!(map.faceid(d5), new_face_id);
+/// assert_eq!(map.faceid(d6), new_face_id);
+/// assert_eq!(map.faceid(d3), new_face_id);
 ///
 /// // check dart positions
-/// assert_eq!(map.vertices[map.vertex(d1) as usize], [0.0, 0.0]);
-/// assert_eq!(map.vertices[map.vertex(d5) as usize], [0.0, 10.0]);
-/// assert_eq!(map.vertices[map.vertex(d6) as usize], [10.0, 10.0]);
-/// assert_eq!(map.vertices[map.vertex(d3) as usize], [10.0, 0.0]);
+/// assert_eq!(map.vertices[map.vertexid(d1) as usize], [0.0, 0.0]);
+/// assert_eq!(map.vertices[map.vertexid(d5) as usize], [0.0, 10.0]);
+/// assert_eq!(map.vertices[map.vertexid(d6) as usize], [10.0, 10.0]);
+/// assert_eq!(map.vertices[map.vertexid(d3) as usize], [10.0, 0.0]);
 ///
 /// // check topology of the new face
 /// let new_two_cell = map.i_cell::<2>(d3);
@@ -357,7 +357,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn vertex(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+    pub fn vertexid(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         self.dart_data.associated_cells[dart_id as usize].vertex_id
     }
 
@@ -375,7 +375,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn face(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+    pub fn faceid(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         self.dart_data.associated_cells[dart_id as usize].face_id
     }
 
@@ -862,7 +862,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
                 if self.i_cell::<0>(rhs_dart_id).len() > 1 {
-                    let old_vertex = self.vertices[self.vertex(rhs_dart_id) as usize];
+                    let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertex(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
@@ -904,11 +904,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 // repeat on both ends of the edge
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 if b1lid != NULL_DART_ID {
-                    self.set_vertex(rhs_dart_id, self.vertex(b1lid));
+                    self.set_vertex(rhs_dart_id, self.vertexid(b1lid));
                 }
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 if b1rid != NULL_DART_ID {
-                    self.set_vertex(lhs_dart_id, self.vertex(b1rid));
+                    self.set_vertex(lhs_dart_id, self.vertexid(b1rid));
                 }
             }
         }
