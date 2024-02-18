@@ -252,6 +252,13 @@ pub struct TwoMap<const N_MARKS: usize> {
     n_darts: usize,
 }
 
+macro_rules! stretch {
+    ($slf: ident, $replaced: expr, $replacer: expr) => {
+        $slf.dart_data.associated_cells[$replaced as usize].vertex_id =
+            $slf.dart_data.associated_cells[$replacer as usize].vertex_id
+    };
+}
+
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -612,12 +619,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         rhs_dart_id: DartIdentifier,
         policy: SewPolicy,
     ) {
-        macro_rules! stretch {
-            ($replaced: expr, $replacer: expr) => {
-                self.dart_data.associated_cells[$replaced as usize].vertex_id =
-                    self.dart_data.associated_cells[$replacer as usize].vertex_id
-            };
-        }
         // --- topological update
 
         // we could technically overwrite the value, but these assertions
@@ -640,10 +641,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         if lid != NULL_DART_ID {
             match policy {
                 SewPolicy::StretchLeft => {
-                    stretch!(rhs_dart_id, lid);
+                    stretch!(self, rhs_dart_id, lid);
                 }
                 SewPolicy::StretchRight => {
-                    stretch!(lid, rhs_dart_id);
+                    stretch!(self, lid, rhs_dart_id);
                 }
                 SewPolicy::StretchAverage => {
                     // this works under the assumption that a valid vertex is
@@ -655,8 +656,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         (lid_vertex[1] + rhs_vertex[1]) / 2.0,
                     ]);
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-                    stretch!(lid, new_id);
-                    stretch!(rhs_dart_id, new_id);
+                    stretch!(self, lid, new_id);
+                    stretch!(self, rhs_dart_id, new_id);
                 }
             }
         }
@@ -695,13 +696,6 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         rhs_dart_id: DartIdentifier,
         policy: SewPolicy,
     ) {
-        macro_rules! stretch {
-            ($replaced: expr, $replacer: expr) => {
-                self.dart_data.associated_cells[$replaced as usize].vertex_id =
-                    self.dart_data.associated_cells[$replacer as usize].vertex_id
-            };
-        }
-
         // --- topological update
 
         // we could technically overwrite the value, but these assertions
@@ -730,10 +724,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 match policy {
                     SewPolicy::StretchLeft => {
-                        stretch!(lhs_dart_id, b1rid)
+                        stretch!(self, lhs_dart_id, b1rid)
                     }
                     SewPolicy::StretchRight => {
-                        stretch!(b1rid, lhs_dart_id)
+                        stretch!(self, b1rid, lhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
@@ -745,8 +739,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         ]);
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
-                        stretch!(b1rid, new_id);
-                        stretch!(lhs_dart_id, new_id);
+                        stretch!(self, b1rid, new_id);
+                        stretch!(self, lhs_dart_id, new_id);
                     }
                 }
             }
@@ -754,10 +748,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 match policy {
                     SewPolicy::StretchLeft => {
-                        stretch!(rhs_dart_id, b1lid)
+                        stretch!(self, rhs_dart_id, b1lid)
                     }
                     SewPolicy::StretchRight => {
-                        stretch!(b1lid, rhs_dart_id)
+                        stretch!(self, b1lid, rhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
@@ -769,8 +763,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         ]);
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
-                        stretch!(b1lid, new_id);
-                        stretch!(rhs_dart_id, new_id);
+                        stretch!(self, b1lid, new_id);
+                        stretch!(self, rhs_dart_id, new_id);
                     }
                 }
             }
@@ -802,12 +796,12 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
                 match policy {
                     SewPolicy::StretchLeft => {
-                        stretch!(rhs_dart_id, b1lid);
-                        stretch!(b1rid, lhs_dart_id);
+                        stretch!(self, rhs_dart_id, b1lid);
+                        stretch!(self, b1rid, lhs_dart_id);
                     }
                     SewPolicy::StretchRight => {
-                        stretch!(b1lid, rhs_dart_id);
-                        stretch!(lhs_dart_id, b1rid);
+                        stretch!(self, b1lid, rhs_dart_id);
+                        stretch!(self, lhs_dart_id, b1rid);
                     }
                     SewPolicy::StretchAverage => {
                         let new_lvertex = [
@@ -823,11 +817,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         let new_lid = self.vertices.len() - 2;
                         let new_rid = self.vertices.len() - 1;
 
-                        stretch!(lhs_dart_id, new_lid);
-                        stretch!(b1rid, new_lid);
+                        stretch!(self, lhs_dart_id, new_lid);
+                        stretch!(self, b1rid, new_lid);
 
-                        stretch!(rhs_dart_id, new_rid);
-                        stretch!(b1lid, new_rid);
+                        stretch!(self, rhs_dart_id, new_rid);
+                        stretch!(self, b1lid, new_rid);
                     }
                 }
             }
