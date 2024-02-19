@@ -5,7 +5,10 @@
 A general example is provided in the Rust doc of the TwoMap structure. 
 From a meshing perspective, it corresponds to the following operations:
 
-![TWOMAP_EXAMPLE](../images/TwoMapExample.svg)
+<figure style="text-align:center">
+    <img src="../images/TwoMapExample.svg" alt="TwoMapExample" />
+    <figcaption><i>Sample operations transforming two triangles into a square</i></figcaption>
+</figure>
 
 After the creation of an initial map modeling a simple triangle, we:
 - (a) add & initialize new darts to the map to model a second triangle.

@@ -14,6 +14,12 @@ With these elements, we can represent and operate on meshes.
 
 ## Example
 
-Successive operations on a 2D combinatorial map:
+Operations on a combinatorial map can affect its topology, shape or both:
 
-![TWOMAP_EXAMPLE](../images/TwoMapMesh.svg)
+<figure style="text-align:center">
+    <img src="../images/TwoMapMesh.svg" alt="MapMeshEquivalent" />
+    <figcaption><i>Mesh-Map equivalent of a four step transformation</i></figcaption>
+</figure>
+
+The specifics on how data is encoded is detailed in attribute-specific 
+sections.
