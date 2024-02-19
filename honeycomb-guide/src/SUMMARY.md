@@ -6,6 +6,7 @@
 
 - [Workspace](./project-structure/workspace.md)
     - [honeycomb-core](./project-structure/honeycomb-core.md)
+    - [honeycomb-guide](./project-structure/honeycomb-guide.md)
 
 # Definitions
 
@@ -27,6 +28,5 @@
 
 # Examples
 
-- [2D](./examples/2d.md)
-    - [TwoMap Quickstart](./examples/twomap.md)
+- [TwoMap](./examples/twomap.md)
 
