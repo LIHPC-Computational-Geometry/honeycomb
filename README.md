@@ -11,6 +11,15 @@ issues, thanks to the language's guarantees.
 
 ## Usage
 
+The [user guide][UG] provides an overview of everything available in the 
+project.
+
+[UG]: https://lihpc-computational-geometry.github.io/honeycomb/
+
+### Rust
+
+Basic structure are provided in the **honeycomb-core** crate.
+
 ## Contributing
 
 ## License
