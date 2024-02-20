@@ -76,7 +76,7 @@ const TWO_MAP_BETA: usize = 3;
 /// The following example goes over multiple operations on the mesh in order
 /// to demonstrate general usage of the structure and its methods.
 ///
-/// ![TWOMAP_EXAMPLE](https://lihpc-computational-geometry.github.io/honeycomb/images/TwoMapExample.svg)
+/// ![TWOMAP_EXAMPLE](../../images/TwoMapExample.svg)
 ///
 /// Note that the map we operate on has no boundaries. In addition to the different
 /// operations realized at each step, we insert a few assertions to demonstrate the
