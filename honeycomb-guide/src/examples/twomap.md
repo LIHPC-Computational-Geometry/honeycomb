@@ -2,8 +2,9 @@
 
 ## Usage
 
-A general example is provided in the Rust doc of the TwoMap structure. 
-From a meshing perspective, it corresponds to the following operations:
+A general example is [provided](../honeycomb_core/twomap/struct.TwoMap.html#example) in 
+the Rust doc of the TwoMap structure. From a meshing perspective, it corresponds to the 
+following operations:
 
 <figure style="text-align:center">
     <img src="../images/TwoMapExample.svg" alt="TwoMapExample" />

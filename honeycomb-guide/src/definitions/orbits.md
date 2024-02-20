@@ -1,7 +1,7 @@
 # Orbits
 
-We define orbits as a set of darts that are accessible from a gieven dart, 
-using a certain set of beta function. For example:
+We define orbits as a set of darts that are accessible from a given dart, 
+using a certain set of beta functions. For example:
 
 - *⟨β<sub>1</sub>⟩(d)* refers to all darts accessible from *d* using 
   *β<sub>1</sub>* recursively any number of times.
@@ -18,7 +18,7 @@ used in algorithms. The general definition is the following:
 
 In our case, we can use specialized definitions for our dimensions:
 
-| Cell | Geometry | 2-map | 3-map |
+| *i* | Geometry | 2-map | 3-map |
 | --- | --- | --- | --- |
 | 0 | Vertex | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* <br> **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* <br> **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
 | 1 | Edge | *⟨β<sub>2</sub>⟩(d)* | *⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)* |
