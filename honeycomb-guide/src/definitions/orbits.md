@@ -20,7 +20,7 @@ In our case, we can use specialized definitions for our dimensions:
 
 | Cell | Geometry | 2-map | 3-map |
 | --- | --- | --- | --- |
-| 0 | Vertex | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
+| 0 | Vertex | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* <br> **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* <br> **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
 | 1 | Edge | *⟨β<sub>2</sub>⟩(d)* | *⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)* |
 | 2 | Face | *⟨β<sub>1</sub>⟩(d)* | *⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)* |
 | 3 | Volume | - | *⟨β<sub>1</sub>, β<sub>2</sub>⟩(d)* |
