@@ -24,8 +24,7 @@ structures:
 
 ### Aliases
 
-- **Vertex2**: 2-elements vector; This should be replaced by a custom struct
-
+- **Vertex2**: 2-elements array
 - **DartIdentifier**: Integer identifier for darts
 - **VertexIdentifier**: Integer identifier for 0D cells
 - **FaceIdentifier**: Integer identifier for 2D cells
@@ -35,3 +34,13 @@ structures:
 
 - **SewPolicy**: Logic to follow for the geometrical part of the sewing operation.
 - **UnsewPolicy**: Logic to follow for the geometrical part of the unsewing operation.
+
+## Future additions
+
+- [ ] Add a custom vector type for spatial representation (2D & 3D)
+- [ ] Replace returned `Vec` by an alternative structure or type
+  to prevent too many runtime allocations.
+- [ ] Write structure benchmarks (2D)
+- [ ] Add I/O support for mesh formats (2D)
+- [ ] Add orientation checks (2D)
+- [ ] Implement 3D maps
