@@ -23,8 +23,9 @@ In the above example, the data would be organized in the following way:
 In this case, *v1 = 0*; *v2 = 1*; *v3 = 2*; *v4 = 3*.
 
 Association of darts and vertices ID is done implictly through indexing;
-In practice, the *darts* vector does not even exist. 
+In practice, the *darts* vector does not even exist. This example is limited
+to vertices, but we also keep track of faces, and volumes eventually.
 
 The embedding of geometrical data also has implication for operations
-on the map. This is detailed along operation specifities in their 
+on the map. This is detailed along operation specificities in their 
 dedicated sections.
