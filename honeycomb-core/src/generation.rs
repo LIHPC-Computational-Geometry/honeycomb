@@ -1,4 +1,14 @@
+//! Utility for sample map generation
+//!
+//! This module contains code used for sample map / mesh generation. This is mostly
+//! for testing and benchmarking, but could also be hijacked for very (topologically)
+//! simple mesh generation, hence this being kept public.
+
+// ------ IMPORTS
+
 use crate::{DartIdentifier, SewPolicy, TwoMap, VertexIdentifier};
+
+// ------ CONTENT
 
 /// Generate a [TwoMap] representing a mesh made up of squares.
 ///
@@ -113,4 +123,16 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
     });
 
     map
+}
+
+// ------ TESTS
+
+#[cfg(test)]
+mod tests {
+    //use super::*;
+
+    #[test]
+    fn square_two_map_correctness() {
+        todo!()
+    }
 }
