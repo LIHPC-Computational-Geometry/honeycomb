@@ -21,9 +21,25 @@ use crate::{DartIdentifier, SewPolicy, TwoMap, VertexIdentifier};
 ///
 /// # Example
 ///
-/// ```text
-///
 /// ```
+/// use honeycomb_core::{TwoMap, generation::square_two_map};
+///
+/// let cmap: TwoMap<1> = square_two_map(2);
+/// ```
+///
+/// The above code generates the following map:
+///
+/// ![SQUARETWOMAP](../../images/SquareTwoMap.svg)
+///
+/// Note that *β<sub>1</sub>* is only represented in one cell but is defined
+/// Everywhere following the same pattern. Dart indexing is also consistent
+/// with the following rules:
+///
+/// - inside a cell, the first dart is the one on the bottom, pointing towards
+///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
+///   orientation.
+/// - cells are ordered from left to right, from the bottom up. The same rule
+///   applies for face IDs.
 ///
 pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> {
     let mut map: TwoMap<N_MARKS> = TwoMap::new(4 * n_square.pow(2), (n_square + 1).pow(2));
