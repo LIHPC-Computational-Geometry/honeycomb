@@ -60,7 +60,7 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
             }
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
-                let up_neighbor = d3 + 30;
+                let up_neighbor = d1 + (4 * n_square) as DartIdentifier;
                 map.two_sew(d3, up_neighbor, SewPolicy::StretchLeft)
             }
         })
@@ -79,17 +79,25 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
                 map.i_cell::<0>(base_dart)
                     .iter()
                     .for_each(|dart_id| map.set_vertexid(*dart_id, vertex_id));
-                if x_idx == n_square - 1 {
+                let last_column = x_idx == n_square - 1;
+                let last_row = y_idx == n_square - 1;
+                if last_column {
                     // that last column of 0-cell needs special treatment
                     // bc there are no "horizontal" associated dart
                     map.i_cell::<0>(base_dart + 1)
                         .iter()
                         .for_each(|dart_id| map.set_vertexid(*dart_id, vertex_id + 1));
                 }
-                if y_idx == n_square - 1 {
+                if last_row {
                     // same as the case on x
                     map.i_cell::<0>(base_dart + 3).iter().for_each(|dart_id| {
                         map.set_vertexid(*dart_id, vertex_id + (n_square + 1) as VertexIdentifier)
+                    });
+                }
+                if last_row & last_column {
+                    // need to do the upper right corner
+                    map.i_cell::<0>(base_dart + 2).iter().for_each(|dart_id| {
+                        map.set_vertexid(*dart_id, vertex_id + (n_square + 2) as VertexIdentifier)
                     });
                 }
             }
