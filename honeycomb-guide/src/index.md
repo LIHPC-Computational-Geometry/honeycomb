@@ -13,7 +13,8 @@ issues, thanks to the language's guarantees.
 
 ### Requirements
 
-- **Rust 1.76** - *The code may compile and work for earlier versions, but we do not test for those*
+- **Rust stable release** - *Development started on 1.75, but we might use 
+  newer features as the project progresses*
 
 ### Quickstart
 
