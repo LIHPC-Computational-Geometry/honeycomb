@@ -91,6 +91,7 @@ pub enum UnsewPolicy {
     /// to allow for a shift in coordinates without mutual stretching.
     #[default]
     Duplicate,
+    DoNothing,
 }
 
 /// Type definition for 2D vertices representation.

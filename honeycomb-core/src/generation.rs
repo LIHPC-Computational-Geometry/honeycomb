@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{DartIdentifier, SewPolicy, TwoMap, VertexIdentifier};
+use crate::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
 
 // ------ CONTENT
 
@@ -121,6 +121,70 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
             _ = map.build_face(base_dart);
         })
     });
+
+    map
+}
+
+/// Generate a [TwoMap] representing a mesh made up of squares split diagonally.
+///
+/// This function builds and returns a 2-map representing a square mesh
+/// made of `n_square * n_square * 2` triangle cells.
+///
+/// # Arguments
+///
+/// - `n_square: usize` -- Dimension of the returned mesh.
+///
+/// ## Generics
+///
+/// - `const N_MARKS: usize` -- Generic parameter of the returned [TwoMap]
+///
+/// # Return / Panic
+///
+/// Returns a boundary-less [TwoMap] of the specified size. The map contains
+/// `6 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
+/// vertices.
+///
+/// # Example
+///
+/// ```
+/// use honeycomb_core::{TwoMap, generation::splitsquare_two_map};
+///
+/// let cmap: TwoMap<1> = splitsquare_two_map(2);
+/// ```
+///
+/// The above code generates the following map:
+///
+/// ![SPLITSQUARETWOMAP](../../images/SplitSquareTwoMap.svg)
+///
+/// Note that *β<sub>1</sub>* is only represented in one cell but is defined
+/// Everywhere following the same pattern. Dart indexing is also consistent
+/// with the following rules:
+///
+/// - inside a cell, the first dart is the one on the bottom, pointing towards
+///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
+///   orientation.
+/// - cells are ordered from left to right, from the bottom up. The same rule
+///   applies for face IDs.
+///
+pub fn splitsquare_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> {
+    let mut map: TwoMap<N_MARKS> = square_two_map(n_square);
+
+    (0..n_square.pow(2)).for_each(|square| {
+        let d1 = (1 + square * 4) as DartIdentifier;
+        let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+        // in a parallel impl, we would create all new darts before-hand
+        let dsplit1 = map.add_free_darts(2);
+        let dsplit2 = dsplit1 + 1;
+        map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
+        map.one_unsew(d1, UnsewPolicy::DoNothing);
+        map.one_unsew(d3, UnsewPolicy::DoNothing);
+        map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
+        map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
+        map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
+        map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
+    });
+
+    // rebuild faces
 
     map
 }

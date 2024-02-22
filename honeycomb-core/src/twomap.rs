@@ -1172,6 +1172,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
             }
+            UnsewPolicy::DoNothing => {}
         }
     }
 
@@ -1216,6 +1217,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
                 }
             }
+            UnsewPolicy::DoNothing => {}
         }
     }
 
