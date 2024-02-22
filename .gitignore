@@ -1,2 +1,4 @@
-
 /target
+
+serve_doc.sh
+kill_doc.sh
