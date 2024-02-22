@@ -1,9 +1,10 @@
 # Combinatorial Maps
 
-Combinatorial maps, noted *N-map*, are object made up of two main elements:
+N-dimensional combinatorial maps, noted *N-map*, are objects made up of 
+two main elements:
 
 - A set of darts, darts being the smallest elements making up the map
-- Beta functions, linking the darts of the map
+- N beta functions, linking the darts of the map
 
 Additionally, we can define *embedded data* as spatial anchoring of the 
 darts making up the map. While the first two elements hold topological

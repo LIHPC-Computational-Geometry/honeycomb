@@ -1,9 +1,10 @@
 # Beta Functions
 
-Each combinatorial map of dimension *N* contains *N* beta functions
-linking the set of darts together. These functions model the topology 
-of the map, giving information about connections of the different cells
-of the map / mesh. In our case, we mostly use:
+Each combinatorial map of dimension *N* defines *N* beta functions linking 
+the set of darts together (e.g. a 2-map contains *β<sub>1</sub>* and 
+*β<sub>2</sub>*). These functions model the topology of the map, giving 
+information about connections of the different cells of the map / mesh. In 
+our case, we mostly use:
 
 - *β<sub>1</sub>*, a (partial) permutation, 
 - *β<sub>2</sub>*, *β<sub>3</sub>*, two (partial) involutions
