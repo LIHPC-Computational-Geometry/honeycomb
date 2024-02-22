@@ -308,6 +308,38 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
     // --- reading interfaces
 
+    /// Return information about the current number of vertices.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a tuple of two elements:
+    ///
+    /// - the number of vertices
+    /// - a boolean indicating whether there are free vertices or not
+    ///
+    /// The boolean essentially indicates if it is safe to access all
+    /// vertex IDs in the `0..n_vertices` range.
+    ///
+    pub fn n_vertices(&self) -> (usize, bool) {
+        (self.n_vertices, !self.free_vertices.is_empty())
+    }
+
+    /// Return information about the current number of darts.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a tuple of two elements:
+    ///
+    /// - the number of darts
+    /// - a boolean indicating whether there are free darts or not
+    ///
+    /// The boolean essentially indicates if it is safe to access all
+    /// dart IDs in the `0..n_darts` range.
+    ///
+    pub fn n_darts(&self) -> (usize, bool) {
+        (self.n_darts, !self.free_darts.is_empty())
+    }
+
     /// Compute the value of the i-th beta function of a given dart.
     ///
     /// # Arguments
