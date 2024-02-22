@@ -18,7 +18,9 @@ project. It can be generated offline using **mdbook**:
 # Serve the doc on a local server
 mdbook serve --open -d ../target/doc/ honeycomb-guide/ &
 cargo doc --all --no-deps
+```
 
+```shell
 # Kill the local server
 kill $(pidof mdbook) 
 
@@ -26,15 +28,15 @@ kill $(pidof mdbook)
 kill $(ps -e | awk '/mdbook/ {print $1}')
 ```
 
-You may also use the `build` subcommand of mdbook and browse the files directly,
-but there may be navigation problems because of some implicit links (e.g. folders
-instead of index files) depending on your browser.
-
 [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
 
 ### Rust
 
-Basic structure are provided in the **honeycomb-core** crate.
+Basic structure are provided in the **honeycomb-core** crate. Its content is listed
+in the [user guide][UGHC] and details about its usage can be found in its [Rust documentation][DOCHC]
+
+[UGHC]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/honeycomb-core.html
+[DOCHC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_core/
 
 ## Contributing
 
