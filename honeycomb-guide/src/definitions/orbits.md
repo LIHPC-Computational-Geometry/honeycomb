@@ -10,7 +10,7 @@ using a certain set of beta functions. For example:
 
 ## *i*-cells
 
-A specific subset of orbits, refered to as *i*-cells are defined and often 
+A specific subset of orbits, referred to as *i*-cells are defined and often 
 used in algorithms. The general definition is the following: 
 
 - **if i = 0**:  *0-cell(d) = ⟨{ β<sub>j</sub> o β<sub>k</sub> with 1 ≤ j < k ≤ N }⟩(d)*
@@ -18,9 +18,9 @@ used in algorithms. The general definition is the following:
 
 In our case, we can use specialized definitions for our dimensions:
 
-| *i* | Geometry | 2-map | 3-map |
-| --- | --- | --- | --- |
-| 0 | Vertex | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* <br> **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* <br> **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
-| 1 | Edge | *⟨β<sub>2</sub>⟩(d)* | *⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)* |
-| 2 | Face | *⟨β<sub>1</sub>⟩(d)* | *⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)* |
-| 3 | Volume | - | *⟨β<sub>1</sub>, β<sub>2</sub>⟩(d)* |
+| *i* | Geometry | 2-map                                                                                       | 3-map                                                                                                                                                     |
+|-----|----------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 0   | Vertex   | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* <br> **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* <br> **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
+| 1   | Edge     | *⟨β<sub>2</sub>⟩(d)*                                                                        | *⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)*                                                                                                                       |
+| 2   | Face     | *⟨β<sub>1</sub>⟩(d)*                                                                        | *⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)*                                                                                                                       |
+| 3   | Volume   | -                                                                                           | *⟨β<sub>1</sub>, β<sub>2</sub>⟩(d)*                                                                                                                       |

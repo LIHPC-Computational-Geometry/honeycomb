@@ -494,7 +494,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// KNOWN ISSUE:
     ///
     /// - returning a vector is highly inefficient; a few alternatives to consider:
-    /// ArrayVec or heapless Vec (requires a hard cap on the number of elements),
+    /// ArrayVec or heap-less Vec (requires a hard cap on the number of elements),
     /// an iterator...
     ///
     /// # Example
@@ -590,7 +590,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Return / Panic
     ///
     /// Return the ID of the first created dart to allow for direct operations.
-    /// Darts are positionned on range `ID..ID+n_darts`.
+    /// Darts are positioned on range `ID..ID+n_darts`.
     ///
     /// # Example
     ///
@@ -694,7 +694,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Return / Panic
     ///
     /// Return the ID of the first created vertex to allow for direct operations.
-    /// Vertices are positionned on range `ID..ID+n_darts`.
+    /// Vertices are positioned on range `ID..ID+n_darts`.
     ///
     /// # Example
     ///
@@ -771,7 +771,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// # Return / Panic
     ///
     /// Return a result indicating if the vertex could be overwritten. The main reason
-    /// of failure would be an out of bounds access.
+    /// of failure would be an out-of-bounds access.
     ///
     /// # Example
     ///
@@ -1209,7 +1209,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         let mut curr_dart = self.beta::<1>(dart_id);
         // search the face using beta1
         while curr_dart != dart_id {
-            // if we encouter the null dart, it means the face is open
+            // if we encounter the null dart, it means the face is open
             if curr_dart == NULL_DART_ID {
                 closed = false;
                 break;

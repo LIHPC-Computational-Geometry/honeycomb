@@ -52,7 +52,7 @@ pub struct CellIdentifiers {
 /// **This should not be used directly by the user.**
 ///
 /// Structure used to store dart-related data. The association of data with
-/// a given dart is done implictly through indexing.
+/// a given dart is done implicitly through indexing.
 ///
 /// # Generics
 ///

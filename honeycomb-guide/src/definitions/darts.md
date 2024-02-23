@@ -9,7 +9,7 @@ beta functions.
     <figcaption><i>Boundless square modeling using four darts</i></figcaption>
 </figure>
 
-In our implementation, darts exist implictly through indexing and their
+In our implementation, darts exist implicitly through indexing and their
 associated data. There are no dart *objects* in a strict sense, there is
 only a given number of dart, their associated data ordered by an array-like
 logic, and a record of "unused" slots that can be used for dart insertion.

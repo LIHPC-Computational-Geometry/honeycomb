@@ -12,7 +12,7 @@ assignees:
 
 - [ ] Crash
 - [ ] Unexpected behavior (but no crash)
-- [ ] Abnormal ressource usage
+- [ ] Abnormal resource usage
 
 ## Affected version or commit
 

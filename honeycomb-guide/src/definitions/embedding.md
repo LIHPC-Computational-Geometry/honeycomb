@@ -22,7 +22,7 @@ In the above example, the data would be organized in the following way:
 
 In this case, *v1 = 0*; *v2 = 1*; *v3 = 2*; *v4 = 3*.
 
-Association of darts and vertices ID is done implictly through indexing;
+Association of darts and vertices ID is done implicitly through indexing;
 In practice, the *darts* vector does not even exist. This example is limited
 to vertices, but we also keep track of faces, and volumes eventually.
 
