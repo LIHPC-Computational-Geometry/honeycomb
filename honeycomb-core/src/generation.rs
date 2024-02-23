@@ -194,10 +194,97 @@ pub fn splitsquare_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MA
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
 
     #[test]
     fn square_two_map_correctness() {
-        todo!()
+        let cmap: TwoMap<1> = square_two_map(2);
+        // face 0
+        assert_eq!(cmap.faceid(1), 0);
+        assert_eq!(cmap.faceid(2), 0);
+        assert_eq!(cmap.faceid(3), 0);
+        assert_eq!(cmap.faceid(4), 0);
+        assert_eq!(cmap.face(0).corners.len(), 4);
+        assert!(cmap.face(0).corners.contains(&cmap.vertexid(1)));
+        assert!(cmap.face(0).corners.contains(&cmap.vertexid(2)));
+        assert!(cmap.face(0).corners.contains(&cmap.vertexid(3)));
+        assert!(cmap.face(0).corners.contains(&cmap.vertexid(4)));
+        assert!(cmap.face(0).closed);
+
+        assert_eq!(cmap.beta::<1>(1), 2);
+        assert_eq!(cmap.beta::<1>(2), 3);
+        assert_eq!(cmap.beta::<1>(3), 4);
+        assert_eq!(cmap.beta::<1>(4), 1);
+
+        assert_eq!(cmap.beta::<2>(1), 0);
+        assert_eq!(cmap.beta::<2>(2), 8);
+        assert_eq!(cmap.beta::<2>(3), 9);
+        assert_eq!(cmap.beta::<2>(4), 0);
+
+        // face 1
+        assert_eq!(cmap.faceid(5), 1);
+        assert_eq!(cmap.faceid(6), 1);
+        assert_eq!(cmap.faceid(7), 1);
+        assert_eq!(cmap.faceid(8), 1);
+        assert_eq!(cmap.face(1).corners.len(), 4);
+        assert!(cmap.face(1).corners.contains(&cmap.vertexid(5)));
+        assert!(cmap.face(1).corners.contains(&cmap.vertexid(6)));
+        assert!(cmap.face(1).corners.contains(&cmap.vertexid(7)));
+        assert!(cmap.face(1).corners.contains(&cmap.vertexid(8)));
+        assert!(cmap.face(1).closed);
+
+        assert_eq!(cmap.beta::<1>(5), 6);
+        assert_eq!(cmap.beta::<1>(6), 7);
+        assert_eq!(cmap.beta::<1>(7), 8);
+        assert_eq!(cmap.beta::<1>(8), 5);
+
+        assert_eq!(cmap.beta::<2>(5), 0);
+        assert_eq!(cmap.beta::<2>(6), 0);
+        assert_eq!(cmap.beta::<2>(7), 13);
+        assert_eq!(cmap.beta::<2>(8), 2);
+
+        // face 2
+        assert_eq!(cmap.faceid(9), 2);
+        assert_eq!(cmap.faceid(10), 2);
+        assert_eq!(cmap.faceid(11), 2);
+        assert_eq!(cmap.faceid(12), 2);
+        assert_eq!(cmap.face(2).corners.len(), 4);
+        assert!(cmap.face(2).corners.contains(&cmap.vertexid(9)));
+        assert!(cmap.face(2).corners.contains(&cmap.vertexid(10)));
+        assert!(cmap.face(2).corners.contains(&cmap.vertexid(11)));
+        assert!(cmap.face(2).corners.contains(&cmap.vertexid(12)));
+        assert!(cmap.face(2).closed);
+
+        assert_eq!(cmap.beta::<1>(9), 10);
+        assert_eq!(cmap.beta::<1>(10), 11);
+        assert_eq!(cmap.beta::<1>(11), 12);
+        assert_eq!(cmap.beta::<1>(12), 9);
+
+        assert_eq!(cmap.beta::<2>(9), 3);
+        assert_eq!(cmap.beta::<2>(10), 16);
+        assert_eq!(cmap.beta::<2>(11), 0);
+        assert_eq!(cmap.beta::<2>(12), 0);
+
+        // face 3
+        assert_eq!(cmap.faceid(13), 3);
+        assert_eq!(cmap.faceid(14), 3);
+        assert_eq!(cmap.faceid(15), 3);
+        assert_eq!(cmap.faceid(16), 3);
+        assert_eq!(cmap.face(3).corners.len(), 4);
+        assert!(cmap.face(3).corners.contains(&cmap.vertexid(13)));
+        assert!(cmap.face(3).corners.contains(&cmap.vertexid(14)));
+        assert!(cmap.face(3).corners.contains(&cmap.vertexid(15)));
+        assert!(cmap.face(3).corners.contains(&cmap.vertexid(16)));
+        assert!(cmap.face(3).closed);
+
+        assert_eq!(cmap.beta::<1>(13), 14);
+        assert_eq!(cmap.beta::<1>(14), 15);
+        assert_eq!(cmap.beta::<1>(15), 16);
+        assert_eq!(cmap.beta::<1>(16), 13);
+
+        assert_eq!(cmap.beta::<2>(13), 7);
+        assert_eq!(cmap.beta::<2>(14), 0);
+        assert_eq!(cmap.beta::<2>(15), 0);
+        assert_eq!(cmap.beta::<2>(16), 10);
     }
 }
