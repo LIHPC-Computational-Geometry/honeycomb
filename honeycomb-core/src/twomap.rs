@@ -324,6 +324,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         (self.n_vertices, !self.free_vertices.is_empty())
     }
 
+    /// Return the current number of faces.
+    pub fn n_faces(&self) -> usize {
+        self.faces.len()
+    }
+
     /// Return information about the current number of darts.
     ///
     /// # Return / Panic
