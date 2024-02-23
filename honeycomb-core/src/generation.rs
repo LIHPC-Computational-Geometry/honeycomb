@@ -115,12 +115,7 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
     });
 
     // and then build faces
-    (0..n_square).for_each(|y_idx| {
-        (0..n_square).for_each(|x_idx| {
-            let base_dart = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
-            _ = map.build_face(base_dart);
-        })
-    });
+    assert_eq!(map.build_all_faces(), n_square.pow(2));
 
     map
 }
