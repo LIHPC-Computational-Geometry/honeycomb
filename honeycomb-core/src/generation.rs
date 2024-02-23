@@ -6,12 +6,7 @@
 
 // ------ IMPORTS
 
-use std::sync::atomic::AtomicBool;
-
-use crate::{
-    dart::CellIdentifiers, DartIdentifier, FaceIdentifier, SewPolicy, TwoMap, UnsewPolicy, Vertex2,
-    VertexIdentifier,
-};
+use crate::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
 
 // ------ CONTENT
 
@@ -188,42 +183,6 @@ pub fn splitsquare_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MA
     assert_eq!(map.build_all_faces(), n_square.pow(2) * 2);
 
     map
-}
-
-/// Computes the total size of a given [TwoMap].
-///
-/// # Arguments
-///
-/// - `map: &TwoMap<N_MARKS>` -- Map to compute the size of.
-///
-/// ## Generics
-///
-/// - `const N_MARKS: usize` -- Number of marks used by the map structure.
-///
-/// # Return / Panic
-///
-/// Return the approximate size of the structure **in bytes**.
-///
-/// # Example
-///
-/// ```text
-///
-/// ```
-///
-pub fn map_size<const N_MARKS: usize>(map: &TwoMap<N_MARKS>) -> usize {
-    let (n_darts, _) = map.n_darts();
-    let (n_vertices, _) = map.n_vertices();
-    let mem_beta = n_darts * 3 * std::mem::size_of::<DartIdentifier>();
-    let mem_vertices = n_vertices * std::mem::size_of::<Vertex2>();
-    let mem_faces: usize = (0..map.n_faces())
-        .map(|face_id| {
-            (map.face(face_id as FaceIdentifier).corners.len() + 1)
-                * std::mem::size_of::<VertexIdentifier>()
-        })
-        .sum();
-    let mem_embed = n_darts
-        * (N_MARKS * std::mem::size_of::<AtomicBool>() + std::mem::size_of::<CellIdentifiers>());
-    mem_beta + mem_vertices + mem_faces + mem_embed
 }
 
 // ------ TESTS
