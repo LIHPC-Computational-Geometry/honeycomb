@@ -1221,6 +1221,37 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         }
     }
 
+    /// Clear and rebuild the face list defined by the map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns the number of faces built by the operation.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
+    pub fn build_all_faces(&mut self) -> usize {
+        self.faces.clear();
+        let mut n_faces = 0;
+        // go through all darts ? update
+        (0..self.n_darts as DartIdentifier).for_each(|id| {
+            if !self.dart_data.was_marked(0, id) {
+                let tmp = self.i_cell::<2>(id);
+                if tmp.len() > 1 {
+                    tmp.iter().for_each(|member| {
+                        let _ = self.dart_data.was_marked(0, *member);
+                    });
+                    self.build_face(id);
+                    n_faces += 1
+                }
+            }
+        });
+        n_faces
+    }
+
     /// Build the geometrical face associated with a given dart
     ///
     /// # Arguments

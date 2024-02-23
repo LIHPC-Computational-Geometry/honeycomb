@@ -185,6 +185,7 @@ pub fn splitsquare_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MA
     });
 
     // rebuild faces
+    assert_eq!(map.build_all_faces(), n_square.pow(2) * 2);
 
     map
 }
