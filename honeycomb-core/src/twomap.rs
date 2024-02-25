@@ -12,6 +12,8 @@
 
 // ------ IMPORTS
 
+use std::sync::atomic::AtomicBool;
+
 use crate::{
     DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
 };
@@ -307,6 +309,43 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 
     // --- reading interfaces
+
+    /// Return information about the current number of vertices.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a tuple of two elements:
+    ///
+    /// - the number of vertices
+    /// - a boolean indicating whether there are free vertices or not
+    ///
+    /// The boolean essentially indicates if it is safe to access all
+    /// vertex IDs in the `0..n_vertices` range.
+    ///
+    pub fn n_vertices(&self) -> (usize, bool) {
+        (self.n_vertices, !self.free_vertices.is_empty())
+    }
+
+    /// Return the current number of faces.
+    pub fn n_faces(&self) -> usize {
+        self.faces.len()
+    }
+
+    /// Return information about the current number of darts.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a tuple of two elements:
+    ///
+    /// - the number of darts
+    /// - a boolean indicating whether there are free darts or not
+    ///
+    /// The boolean essentially indicates if it is safe to access all
+    /// dart IDs in the `0..n_darts` range.
+    ///
+    pub fn n_darts(&self) -> (usize, bool) {
+        (self.n_darts, !self.free_darts.is_empty())
+    }
 
     /// Compute the value of the i-th beta function of a given dart.
     ///
@@ -1140,6 +1179,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
             }
+            UnsewPolicy::DoNothing => {}
         }
     }
 
@@ -1184,7 +1224,39 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
                 }
             }
+            UnsewPolicy::DoNothing => {}
         }
+    }
+
+    /// Clear and rebuild the face list defined by the map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns the number of faces built by the operation.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
+    pub fn build_all_faces(&mut self) -> usize {
+        self.faces.clear();
+        let mut n_faces = 0;
+        // go through all darts ? update
+        (0..self.n_darts as DartIdentifier).for_each(|id| {
+            if !self.dart_data.was_marked(0, id) {
+                let tmp = self.i_cell::<2>(id);
+                if tmp.len() > 1 {
+                    tmp.iter().for_each(|member| {
+                        let _ = self.dart_data.was_marked(0, *member);
+                    });
+                    self.build_face(id);
+                    n_faces += 1
+                }
+            }
+        });
+        n_faces
     }
 
     /// Build the geometrical face associated with a given dart
@@ -1255,7 +1327,41 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 }
 
-// --- 3-MAP
+/// Computes the total size of a given [TwoMap].
+///
+/// # Arguments
+///
+/// - `map: &TwoMap<N_MARKS>` -- Map to compute the size of.
+///
+/// ## Generics
+///
+/// - `const N_MARKS: usize` -- Number of marks used by the map structure.
+///
+/// # Return / Panic
+///
+/// Return the approximate size of the structure **in bytes**.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
+pub fn map_size<const N_MARKS: usize>(map: &TwoMap<N_MARKS>) -> usize {
+    let (n_darts, _) = map.n_darts();
+    let (n_vertices, _) = map.n_vertices();
+    let mem_beta = n_darts * 3 * std::mem::size_of::<DartIdentifier>();
+    let mem_vertices = n_vertices * std::mem::size_of::<Vertex2>();
+    let mem_faces: usize = (0..map.n_faces())
+        .map(|face_id| {
+            (map.face(face_id as FaceIdentifier).corners.len() + 1)
+                * std::mem::size_of::<VertexIdentifier>()
+        })
+        .sum();
+    let mem_embed = n_darts
+        * (N_MARKS * std::mem::size_of::<AtomicBool>() + std::mem::size_of::<CellIdentifiers>());
+    mem_beta + mem_vertices + mem_faces + mem_embed
+}
 
 // ------ TESTS
 
