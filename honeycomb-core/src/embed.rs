@@ -93,10 +93,10 @@ pub enum UnsewPolicy {
     Duplicate,
 }
 
-/// Type definition for 2D vertices representation.
+/// Type definition for 2D vertex representation.
 pub type Vertex2 = [f64; 2];
 
-/// Type definition for 3D vertices representation.
+/// Type definition for 3D vertex representation.
 pub type Vertex3 = [f64; 3];
 
 #[derive(Clone, Debug, Default)]
