@@ -1,5 +1,5 @@
 [package]
-name = "honeycomb-bench"
+name = "honeycomb-utils"
 version = "0.1.0"
 edition = "2021"
 

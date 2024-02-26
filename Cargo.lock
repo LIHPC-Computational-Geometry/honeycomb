@@ -3,9 +3,9 @@
 version = 3
 
 [[package]]
-name = "honeycomb-bench"
+name = "honeycomb-core"
 version = "0.1.0"
 
 [[package]]
-name = "honeycomb-core"
+name = "honeycomb-utils"
 version = "0.1.0"
