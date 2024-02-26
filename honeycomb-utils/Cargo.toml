@@ -23,6 +23,11 @@ path = "benches/squaremap/shift.rs"
 harness = false
 
 [[bench]]
+name = "squaremap-splitquads"
+path = "benches/squaremap/split.rs"
+harness = false
+
+[[bench]]
 name = "splitsquaremap-init"
 path = "benches/splitsquaremap/init.rs"
 harness = false
