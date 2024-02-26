@@ -1,9 +1,15 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
+    PlotConfiguration, Throughput,
+};
 use honeycomb_core::TwoMap;
 use honeycomb_utils::generation::square_two_map;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("squaremap-init");
+    let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
+    group.plot_config(plot_config);
+
     for pow in 5..13 {
         let n_square = 2_usize.pow(pow);
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
