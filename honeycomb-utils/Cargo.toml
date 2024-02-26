@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 honeycomb-core = { path = "../honeycomb-core/" }
-rand = "*"
+rand = { version = "*", features = ["small_rng"] }
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
@@ -15,6 +15,11 @@ criterion = { version = "0.4", features = ["html_reports"] }
 [[bench]]
 name = "squaremap-init"
 path = "benches/squaremap/init.rs"
+harness = false
+
+[[bench]]
+name = "squaremap-shift"
+path = "benches/squaremap/shift.rs"
 harness = false
 
 [[bench]]
