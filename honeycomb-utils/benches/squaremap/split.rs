@@ -27,7 +27,7 @@ fn split<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>) {
     });
 
     // rebuild faces
-    // assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }
@@ -51,7 +51,7 @@ fn split_some<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, split: &[bool]) {
         });
 
     // rebuild faces
-    // assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    map.build_all_faces();
 
     black_box(&mut map);
 }
@@ -82,7 +82,7 @@ fn split_diff<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, split: &[bool]) {
     });
 
     // rebuild faces
-    // assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }

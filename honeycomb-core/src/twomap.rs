@@ -1259,7 +1259,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.faces.clear();
         let mut n_faces = 0;
         // go through all darts ? update
-        (0..self.n_darts as DartIdentifier).for_each(|id| {
+        (1..self.n_darts as DartIdentifier).for_each(|id| {
             if !self.dart_data.was_marked(0, id) {
                 let tmp = self.i_cell::<2>(id);
                 if tmp.len() > 1 {
