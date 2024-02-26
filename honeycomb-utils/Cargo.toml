@@ -26,3 +26,8 @@ harness = false
 name = "splitsquaremap-init"
 path = "benches/splitsquaremap/init.rs"
 harness = false
+
+[[bench]]
+name = "splitsquaremap-shift"
+path = "benches/splitsquaremap/shift.rs"
+harness = false
