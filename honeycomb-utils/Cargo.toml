@@ -11,3 +11,13 @@ rand = "*"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "squaremap-init"
+path = "benches/squaremap/init.rs"
+harness = false
+
+[[bench]]
+name = "splitsquaremap-init"
+path = "benches/splitsquaremap/init.rs"
+harness = false
