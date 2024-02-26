@@ -75,6 +75,27 @@ pub struct DartData<const N_MARKS: usize> {
     pub associated_cells: Vec<CellIdentifiers>,
 }
 
+impl<const N_MARKS: usize> Clone for DartData<N_MARKS> {
+    fn clone(&self) -> Self {
+        Self {
+            marks: self
+                .marks
+                .iter()
+                .map(|elem| {
+                    elem.iter()
+                        .map(|atombool| {
+                            AtomicBool::new(atombool.load(std::sync::atomic::Ordering::Relaxed))
+                        })
+                        .collect::<Vec<AtomicBool>>()
+                })
+                .collect::<Vec<Vec<AtomicBool>>>()
+                .try_into()
+                .unwrap(),
+            associated_cells: self.associated_cells.clone(),
+        }
+    }
+}
+
 impl<const N_MARKS: usize> DartData<N_MARKS> {
     /// Create a [DartData] object.
     ///

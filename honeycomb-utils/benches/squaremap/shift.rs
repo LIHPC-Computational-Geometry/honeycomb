@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use rand::{
     distributions::{Distribution, Uniform},
@@ -5,20 +7,45 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{TwoMap, Vertex2};
+use honeycomb_core::{DartIdentifier, TwoMap, Vertex2, VertexIdentifier, NULL_DART_ID};
 use honeycomb_utils::generation::square_two_map;
 
-fn offset<const N_MARKS: usize>(map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
-    todo!()
+fn offset<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
+    (0..map.n_vertices().0).for_each(|vertex_id| {
+        let _ = map.set_vertex(vertex_id as VertexIdentifier, offsets[vertex_id]);
+    });
+    black_box(&mut map);
 }
 
-fn offset_if_inner<const N_MARKS: usize>(map: &mut TwoMap<N_MARKS>, offsets: &[Vertex2]) {
-    todo!()
+fn offset_if_inner<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
+    let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
+    // collect inner vertex IDs
+    (0..map.n_darts().0 as DartIdentifier).for_each(|dart_id| {
+        let neighbors_vertex_cell: Vec<DartIdentifier> = map
+            .i_cell::<0>(dart_id)
+            .iter()
+            .map(|d_id| map.beta::<2>(*d_id))
+            .collect();
+        if !neighbors_vertex_cell.contains(&NULL_DART_ID) {
+            inner.insert(map.vertexid(dart_id));
+        }
+    });
+    inner.iter().for_each(|vertex_id| {
+        let current_value = map.vertex(*vertex_id);
+        let _ = map.set_vertex(
+            *vertex_id,
+            [
+                current_value[0] + offsets[*vertex_id as usize][0],
+                current_value[1] + offsets[*vertex_id as usize][1],
+            ],
+        );
+    });
+    black_box(&mut map);
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let mut map: TwoMap<1> = square_two_map(N_SQUARE);
+    let map: TwoMap<1> = square_two_map(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
@@ -29,13 +56,18 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let offsets: Vec<Vertex2> = xs.zip(ys).map(|(x, y)| [x, y]).collect();
 
     let mut group = c.benchmark_group("squaremap-shift");
-    /*
+
     group.bench_with_input(
         BenchmarkId::new("precomputed-offsets", ""),
-        &(map, offsets),
-        |b, (map, offsets)| b.iter(|| offset(*map, &offsets)),
+        &(map.clone(), offsets.clone()),
+        |b, (map, offsets)| b.iter(|| offset(map.clone(), offsets)),
     );
-    */
+    group.bench_with_input(
+        BenchmarkId::new("precomputed-offsets-if-inner", ""),
+        &(map.clone(), offsets.clone()),
+        |b, (map, offsets)| b.iter(|| offset_if_inner(map.clone(), offsets)),
+    );
+
     group.finish();
 }
 
