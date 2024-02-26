@@ -1,14 +1,21 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! # honeycomb-utils
+//!
+//! This crate implements basic utilities used for tests & benchmarking
+//! of the structures & methods implemented in **honeycomb_core**.
+//!
+
+// ------ MODULE DECLARATIONS
+
+pub mod generation;
+
+// ------ TESTS
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn some_test() {
+        assert_eq!(1, 1);
     }
 }
