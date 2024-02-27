@@ -1343,7 +1343,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 }
 
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
-    pub fn map_capacity(&self, filename: &str) {
+    pub fn allocated_size(&self, filename: &str) {
         let mut file = File::create(filename).unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
@@ -1388,7 +1388,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
-    pub fn map_used_size(&self, filename: &str) {
+    pub fn used_size(&self, filename: &str) {
         let mut file = File::create(filename).unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
