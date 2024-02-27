@@ -1372,7 +1372,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // geometry
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
+        let geometry_face = self.faces.capacity() * std::mem::size_of::<Face>();
         let geometry_total = geometry_vertex + geometry_face;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
         writeln!(file, "geometry_face, {geometry_face}").unwrap();
@@ -1381,6 +1381,48 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.capacity();
         let others_freevertices = self.free_vertices.capacity();
+        let others_total =
+            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
+        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_total, {others_total}").unwrap();
+    }
+
+    pub fn effective_size(&self, filename: &str) {
+        let mut file = File::create(filename).unwrap();
+        writeln!(file, "key, memory (bytes)").unwrap();
+
+        // beta
+        let mut beta_total = 0;
+        (0..3).for_each(|beta_id| {
+            let mem = self.n_darts * std::mem::size_of::<DartIdentifier>();
+            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            beta_total += mem;
+        });
+        writeln!(file, "beta_total, {beta_total}").unwrap();
+
+        // embed
+        let embed_vertex = self.n_darts * std::mem::size_of::<VertexIdentifier>();
+        let embed_face = self.n_darts * std::mem::size_of::<FaceIdentifier>();
+        let embed_marks = self.n_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
+        let embed_total = embed_vertex + embed_face + embed_marks;
+        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
+        writeln!(file, "embed_face, {embed_face}").unwrap();
+        writeln!(file, "embed_marks, {embed_marks}").unwrap();
+        writeln!(file, "embed_total, {embed_total}").unwrap();
+
+        // geometry
+        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
+        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
+        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
+        let geometry_total = geometry_vertex + geometry_face;
+        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
+        writeln!(file, "geometry_face, {geometry_face}").unwrap();
+        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+
+        // others
+        let others_freedarts = self.free_darts.len();
+        let others_freevertices = self.free_vertices.len();
         let others_total =
             others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
