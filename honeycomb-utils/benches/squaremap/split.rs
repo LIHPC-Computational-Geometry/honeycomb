@@ -58,27 +58,41 @@ fn split_some<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, split: &[bool]) {
 
 fn split_diff<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, split: &[bool]) {
     (0..N_SQUARE.pow(2)).for_each(|square| {
-        let d1 = (1 + square * 4) as DartIdentifier;
-        let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+        let ddown = (1 + square * 4) as DartIdentifier;
+        let (dright, dup, dleft) = (ddown + 1, ddown + 2, ddown + 3);
         // in a parallel impl, we would create all new darts before-hand
         let dsplit1 = map.add_free_darts(2);
         let dsplit2 = dsplit1 + 1;
-        map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
-        if split[square] {
-            map.one_unsew(d1, UnsewPolicy::DoNothing);
-            map.one_unsew(d3, UnsewPolicy::DoNothing);
-            map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
+        // this leads to the same result as the commented code below; there doesn't seem
+        // to be any change in performances
+        let (dbefore1, dbefore2, dafter1, dafter2) = if split[square] {
+            (ddown, dup, dleft, dright)
         } else {
-            map.one_unsew(d2, UnsewPolicy::DoNothing);
-            map.one_unsew(d4, UnsewPolicy::DoNothing);
-            map.one_sew(d2, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(d4, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, d1, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, d3, SewPolicy::StretchRight);
-        }
+            (dright, dleft, ddown, dup)
+        };
+        map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
+        map.one_unsew(dbefore1, UnsewPolicy::DoNothing);
+        map.one_unsew(dbefore2, UnsewPolicy::DoNothing);
+        map.one_sew(dbefore1, dsplit1, SewPolicy::StretchLeft);
+        map.one_sew(dbefore2, dsplit2, SewPolicy::StretchLeft);
+        map.one_sew(dsplit1, dafter1, SewPolicy::StretchRight);
+        map.one_sew(dsplit2, dafter2, SewPolicy::StretchRight);
+        /*
+        if split[square] {
+            map.one_unsew(ddown, UnsewPolicy::DoNothing);
+            map.one_unsew(dup, UnsewPolicy::DoNothing);
+            map.one_sew(ddown, dsplit1, SewPolicy::StretchLeft);
+            map.one_sew(dup, dsplit2, SewPolicy::StretchLeft);
+            map.one_sew(dsplit1, dleft, SewPolicy::StretchRight);
+            map.one_sew(dsplit2, dright, SewPolicy::StretchRight);
+        } else {
+            map.one_unsew(dright, UnsewPolicy::DoNothing);
+            map.one_unsew(dleft, UnsewPolicy::DoNothing);
+            map.one_sew(dright, dsplit1, SewPolicy::StretchLeft);
+            map.one_sew(dleft, dsplit2, SewPolicy::StretchLeft);
+            map.one_sew(dsplit1, ddown, SewPolicy::StretchRight);
+            map.one_sew(dsplit2, dup, SewPolicy::StretchRight);
+        }*/
     });
 
     // rebuild faces
