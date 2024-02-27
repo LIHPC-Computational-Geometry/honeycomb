@@ -1343,8 +1343,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 }
 
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
-    pub fn allocated_size(&self, filename: &str) {
-        let mut file = File::create(filename).unwrap();
+    pub fn allocated_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
         // beta
@@ -1388,8 +1388,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
-    pub fn effective_size(&self, filename: &str) {
-        let mut file = File::create(filename).unwrap();
+    pub fn effective_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
         // beta
@@ -1430,8 +1430,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
-    pub fn used_size(&self, filename: &str) {
-        let mut file = File::create(filename).unwrap();
+    pub fn used_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
         let n_used_darts = self.n_darts - self.free_darts.len();
