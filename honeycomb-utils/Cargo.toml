@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-honeycomb-core = { path = "../honeycomb-core/", features = ["bench"] }
+honeycomb-core = { path = "../honeycomb-core/", features = [
+    "benchmarking_utils",
+] }
 rand = { version = "*", features = ["small_rng"] }
 
 [dev-dependencies]

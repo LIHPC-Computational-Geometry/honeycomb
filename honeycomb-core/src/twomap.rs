@@ -243,7 +243,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// ```
 ///
-#[cfg_attr(feature = "bench", derive(Clone))]
+#[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2>,
@@ -1328,6 +1328,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 }
 
+#[cfg(feature = "benchmarking_utils")]
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
