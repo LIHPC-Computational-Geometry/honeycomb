@@ -17,6 +17,11 @@ iai-callgrind = "*"
 
 # Iai-callgrind benchmarks
 
+[[bench]]
+name = "prof-twomap-editing"
+path = "benches/core/twomap/reading.rs"
+harness = false
+
 # Criterion benchmarks
 
 [[bench]]
