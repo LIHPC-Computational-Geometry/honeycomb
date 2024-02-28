@@ -15,7 +15,7 @@ use honeycomb_utils::generation::splitsquare_two_map;
 // ------ CONTENT
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let mut group = c.benchmark_group("squaremap-init");
+    let mut group = c.benchmark_group("splitsquaremap-init");
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
 
