@@ -1,3 +1,19 @@
+//! This benchmarks handle measurements for a given operation on TwoMap
+//! of a given topology (see `generation::square_two_map` doc).
+//!
+//! The operations applied here affect only geometry, topology is left unchanged
+//!
+//! The offset operation consists in shifting the position of all vertices
+//! of the map randomly; Each vertex is moved in the range (-0.5, 0.5) from
+//! its initial position, along both coordinates.
+//!
+//! The offset_if_inner operation consists has the same effect, but is only
+//! applied to vertices that are not on the border of the map, i.e. the
+//! vertices on the border stay at the same position while the inner ones
+//! are displaced.
+
+// ------ IMPORTS
+
 use std::collections::BTreeSet;
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
@@ -9,6 +25,8 @@ use rand::{
 
 use honeycomb_core::{DartIdentifier, TwoMap, Vertex2, VertexIdentifier, NULL_DART_ID};
 use honeycomb_utils::generation::square_two_map;
+
+// ------ CONTENT
 
 fn offset<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
     (0..map.n_vertices().0).for_each(|vertex_id| {

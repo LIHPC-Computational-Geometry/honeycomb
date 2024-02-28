@@ -1,3 +1,23 @@
+//! This benchmarks handle measurements for a given operation on TwoMap
+//! of a given topology (see `generation::splitsquare_two_map` doc).
+//!
+//! The operations applied here affect only topology, geometry is left unchanged
+//! aside from the new faces divisiosns.
+//!
+//! All splitting operations consist in splitting diagonally a square face to create
+//! two triangular faces; The specifities are as follow:
+//!
+//! - the `split` routine performs the splits uniformly across all squares making up
+//!   the map.
+//! - the `split_some` routine performs the splits uniformly only on certain squares
+//!   of the map. Whether a square is split or not is determined by a Bernoulli distribution.
+//! - the `split_diff` routine performs the splits along one diagonal or the other, across
+//!   all squares of the map. Which way a square is split is determined by a Bernoulli
+//!   distribution.
+//!
+
+// ------ IMPORTS
+
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use rand::{
     distributions::{Bernoulli, Distribution},
@@ -8,7 +28,10 @@ use rand::{
 use honeycomb_core::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy};
 use honeycomb_utils::generation::square_two_map;
 
+// ------ CONTENT
+
 const N_SQUARE: usize = 2_usize.pow(10);
+const P_BERNOULLI: f64 = 0.6;
 
 fn split<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>) {
     (0..N_SQUARE.pow(2)).for_each(|square| {
@@ -105,7 +128,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let map: TwoMap<1> = square_two_map(N_SQUARE);
     let seed: u64 = 9817498146784;
     let rng = SmallRng::seed_from_u64(seed);
-    let dist = Bernoulli::new(0.6).unwrap();
+    let dist = Bernoulli::new(P_BERNOULLI).unwrap();
     let splits: Vec<bool> = dist.sample_iter(rng).take(N_SQUARE.pow(2)).collect();
 
     let mut group = c.benchmark_group("squaremap-split");
