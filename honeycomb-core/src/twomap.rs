@@ -1330,6 +1330,40 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
 #[cfg(feature = "benchmarking_utils")]
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
+    /// Computes the total allocated space dedicated to the map.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
@@ -1375,6 +1409,40 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
+    /// Computes the total used space dedicated to the map.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
@@ -1417,6 +1485,43 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
+    /// Computes the actual used space dedicated to the map.
+    ///
+    /// *Actual used space* refers to the total used space minus empty spots
+    /// in the structure.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
