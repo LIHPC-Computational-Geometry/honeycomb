@@ -12,7 +12,7 @@
 
 // ------ IMPORTS
 
-use std::sync::atomic::AtomicBool;
+use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
 use crate::{
     DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
@@ -243,6 +243,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// ```
 ///
+#[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2>,
@@ -1244,7 +1245,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         self.faces.clear();
         let mut n_faces = 0;
         // go through all darts ? update
-        (0..self.n_darts as DartIdentifier).for_each(|id| {
+        (1..self.n_darts as DartIdentifier).for_each(|id| {
             if !self.dart_data.was_marked(0, id) {
                 let tmp = self.i_cell::<2>(id);
                 if tmp.len() > 1 {
@@ -1327,40 +1328,244 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 }
 
-/// Computes the total size of a given [TwoMap].
-///
-/// # Arguments
-///
-/// - `map: &TwoMap<N_MARKS>` -- Map to compute the size of.
-///
-/// ## Generics
-///
-/// - `const N_MARKS: usize` -- Number of marks used by the map structure.
-///
-/// # Return / Panic
-///
-/// Return the approximate size of the structure **in bytes**.
-///
-/// # Example
-///
-/// ```text
-///
-/// ```
-///
-pub fn map_size<const N_MARKS: usize>(map: &TwoMap<N_MARKS>) -> usize {
-    let (n_darts, _) = map.n_darts();
-    let (n_vertices, _) = map.n_vertices();
-    let mem_beta = n_darts * 3 * std::mem::size_of::<DartIdentifier>();
-    let mem_vertices = n_vertices * std::mem::size_of::<Vertex2>();
-    let mem_faces: usize = (0..map.n_faces())
-        .map(|face_id| {
-            (map.face(face_id as FaceIdentifier).corners.len() + 1)
-                * std::mem::size_of::<VertexIdentifier>()
-        })
-        .sum();
-    let mem_embed = n_darts
-        * (N_MARKS * std::mem::size_of::<AtomicBool>() + std::mem::size_of::<CellIdentifiers>());
-    mem_beta + mem_vertices + mem_faces + mem_embed
+#[cfg(feature = "benchmarking_utils")]
+impl<const N_MARKS: usize> TwoMap<N_MARKS> {
+    /// Computes the total allocated space dedicated to the map.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
+    pub fn allocated_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
+        writeln!(file, "key, memory (bytes)").unwrap();
+
+        // beta
+        let mut beta_total = 0;
+        (0..3).for_each(|beta_id| {
+            let mem = self.betas.capacity() * std::mem::size_of::<DartIdentifier>();
+            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            beta_total += mem;
+        });
+        writeln!(file, "beta_total, {beta_total}").unwrap();
+
+        // embed
+        let embed_vertex =
+            self.dart_data.associated_cells.capacity() * std::mem::size_of::<VertexIdentifier>();
+        let embed_face =
+            self.dart_data.associated_cells.capacity() * std::mem::size_of::<FaceIdentifier>();
+        let embed_marks =
+            self.dart_data.marks[0].capacity() * N_MARKS * std::mem::size_of::<AtomicBool>();
+        let embed_total = embed_vertex + embed_face + embed_marks;
+        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
+        writeln!(file, "embed_face, {embed_face}").unwrap();
+        writeln!(file, "embed_marks, {embed_marks}").unwrap();
+        writeln!(file, "embed_total, {embed_total}").unwrap();
+
+        // geometry
+        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
+        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
+        let geometry_face = self.faces.capacity() * std::mem::size_of::<Face>();
+        let geometry_total = geometry_vertex + geometry_face;
+        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
+        writeln!(file, "geometry_face, {geometry_face}").unwrap();
+        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+
+        // others
+        let others_freedarts = self.free_darts.capacity();
+        let others_freevertices = self.free_vertices.capacity();
+        let others_total =
+            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
+        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_total, {others_total}").unwrap();
+    }
+
+    /// Computes the total used space dedicated to the map.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
+    pub fn effective_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
+        writeln!(file, "key, memory (bytes)").unwrap();
+
+        // beta
+        let mut beta_total = 0;
+        (0..3).for_each(|beta_id| {
+            let mem = self.n_darts * std::mem::size_of::<DartIdentifier>();
+            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            beta_total += mem;
+        });
+        writeln!(file, "beta_total, {beta_total}").unwrap();
+
+        // embed
+        let embed_vertex = self.n_darts * std::mem::size_of::<VertexIdentifier>();
+        let embed_face = self.n_darts * std::mem::size_of::<FaceIdentifier>();
+        let embed_marks = self.n_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
+        let embed_total = embed_vertex + embed_face + embed_marks;
+        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
+        writeln!(file, "embed_face, {embed_face}").unwrap();
+        writeln!(file, "embed_marks, {embed_marks}").unwrap();
+        writeln!(file, "embed_total, {embed_total}").unwrap();
+
+        // geometry
+        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
+        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
+        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
+        let geometry_total = geometry_vertex + geometry_face;
+        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
+        writeln!(file, "geometry_face, {geometry_face}").unwrap();
+        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+
+        // others
+        let others_freedarts = self.free_darts.len();
+        let others_freevertices = self.free_vertices.len();
+        let others_total =
+            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
+        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_total, {others_total}").unwrap();
+    }
+
+    /// Computes the actual used space dedicated to the map.
+    ///
+    /// *Actual used space* refers to the total used space minus empty spots
+    /// in the structure.
+    ///
+    /// # Arguments
+    ///
+    /// - `rootname: &str` -- root of the filename used to save results.
+    ///
+    /// # Return / Panic
+    ///
+    /// The results of this method is saved as a csv file named `<rootname>_allocated.csv`.
+    /// The csv file is structured as follows:
+    ///
+    /// ```text
+    /// key, memory (bytes)
+    /// cat1_member1, val
+    /// cat1_member2, val
+    /// cat1_total, val
+    /// cat2_member1, val
+    /// cat2_member2, val
+    /// cat2_member3, val
+    /// cat2_total, val
+    /// cat3_member1, val
+    /// cat3_total, val
+    /// ```
+    ///
+    /// It is mainly designed to be used in dedicated scripts for plotting & analysis.
+    ///
+    /// The metod may panic if, for any reason, it is unable to write to the file.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
+    pub fn used_size(&self, rootname: &str) {
+        let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
+        writeln!(file, "key, memory (bytes)").unwrap();
+
+        let n_used_darts = self.n_darts - self.free_darts.len();
+        let n_used_vertices = self.n_vertices - self.free_vertices.len();
+
+        // beta
+        let mut beta_total = 0;
+        (0..3).for_each(|beta_id| {
+            let mem = n_used_darts * std::mem::size_of::<DartIdentifier>();
+            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            beta_total += mem;
+        });
+        writeln!(file, "beta_total, {beta_total}").unwrap();
+
+        // embed
+        let embed_vertex = n_used_darts * std::mem::size_of::<VertexIdentifier>();
+        let embed_face = n_used_darts * std::mem::size_of::<FaceIdentifier>();
+        let embed_marks = n_used_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
+        let embed_total = embed_vertex + embed_face + embed_marks;
+        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
+        writeln!(file, "embed_face, {embed_face}").unwrap();
+        writeln!(file, "embed_marks, {embed_marks}").unwrap();
+        writeln!(file, "embed_total, {embed_total}").unwrap();
+
+        // geometry
+        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
+        let geometry_vertex = n_used_vertices * 2 * std::mem::size_of::<f64>();
+        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
+        let geometry_total = geometry_vertex + geometry_face;
+        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
+        writeln!(file, "geometry_face, {geometry_face}").unwrap();
+        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+
+        // others
+        let others_freedarts = self.free_darts.len();
+        let others_freevertices = self.free_vertices.len();
+        let others_total =
+            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
+        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_total, {others_total}").unwrap();
+    }
 }
 
 // ------ TESTS

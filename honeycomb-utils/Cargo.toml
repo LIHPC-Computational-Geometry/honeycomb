@@ -1,0 +1,40 @@
+[package]
+name = "honeycomb-utils"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+honeycomb-core = { path = "../honeycomb-core/", features = [
+    "benchmarking_utils",
+] }
+rand = { version = "*", features = ["small_rng"] }
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "squaremap-init"
+path = "benches/squaremap/init.rs"
+harness = false
+
+[[bench]]
+name = "squaremap-shift"
+path = "benches/squaremap/shift.rs"
+harness = false
+
+[[bench]]
+name = "squaremap-splitquads"
+path = "benches/squaremap/split.rs"
+harness = false
+
+[[bench]]
+name = "splitsquaremap-init"
+path = "benches/splitsquaremap/init.rs"
+harness = false
+
+[[bench]]
+name = "splitsquaremap-shift"
+path = "benches/splitsquaremap/shift.rs"
+harness = false

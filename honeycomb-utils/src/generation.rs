@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
+use honeycomb_core::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
 
 // ------ CONTENT
 
@@ -32,7 +32,8 @@ use crate::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::{TwoMap, generation::square_two_map};
+/// use honeycomb_core::TwoMap;
+/// use honeycomb_utils::generation::square_two_map;
 ///
 /// let cmap: TwoMap<1> = square_two_map(2);
 /// ```
@@ -142,7 +143,8 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::{TwoMap, generation::splitsquare_two_map};
+/// use honeycomb_core::TwoMap;
+/// use honeycomb_utils::generation::splitsquare_two_map;
 ///
 /// let cmap: TwoMap<1> = splitsquare_two_map(2);
 /// ```

@@ -11,7 +11,6 @@
 
 pub mod dart;
 pub mod embed;
-pub mod generation;
 pub mod twomap;
 
 // ------ RE-EXPORTS
