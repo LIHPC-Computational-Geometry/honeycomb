@@ -18,7 +18,7 @@ iai-callgrind = "*"
 # Iai-callgrind benchmarks
 
 [[bench]]
-name = "prof-twomap-editing"
+name = "prof-twomap-reading"
 path = "benches/core/twomap/reading.rs"
 harness = false
 
