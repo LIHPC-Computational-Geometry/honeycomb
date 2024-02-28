@@ -75,6 +75,7 @@ pub struct DartData<const N_MARKS: usize> {
     pub associated_cells: Vec<CellIdentifiers>,
 }
 
+#[cfg(feature = "bench")]
 impl<const N_MARKS: usize> Clone for DartData<N_MARKS> {
     fn clone(&self) -> Self {
         Self {

@@ -243,6 +243,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// ```
 ///
+#[cfg_attr(feature = "bench", derive(Clone))]
 pub struct TwoMap<const N_MARKS: usize> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2>,
@@ -262,21 +263,6 @@ pub struct TwoMap<const N_MARKS: usize> {
     n_darts: usize,
     /// Current number of vertices
     n_vertices: usize,
-}
-
-impl<const N_MARKS: usize> Clone for TwoMap<N_MARKS> {
-    fn clone(&self) -> Self {
-        Self {
-            vertices: self.vertices.clone(),
-            free_vertices: self.free_vertices.clone(),
-            faces: self.faces.clone(),
-            dart_data: self.dart_data.clone(),
-            free_darts: self.free_darts.clone(),
-            betas: self.betas.clone(),
-            n_darts: self.n_darts,
-            n_vertices: self.n_vertices,
-        }
-    }
 }
 
 macro_rules! stretch {
