@@ -12,7 +12,7 @@ honeycomb-core = { path = "../honeycomb-core/", features = [
 rand = { version = "*", features = ["small_rng"] }
 
 [dev-dependencies]
-criterion = { version = "0.4", features = ["html_reports"] }
+criterion = { version = "*", features = ["html_reports"] }
 iai-callgrind = "*"
 
 # Iai-callgrind benchmarks
