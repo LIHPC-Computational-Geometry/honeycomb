@@ -21,10 +21,14 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
+
+      # Install the benchmark runner
+      - name: Requirements
+        run: cargo install --version 0.10.2 iai-callgrind-runner
       
       # Run all benchmarks
-      - name: Run
-        run: cargo bench --benches
+      - name: Run 
+        run: cargo bench --bench prof-twomap-editing --bench prof-twomap-reading --bench prof-twomap-sewing-unsewing --save-summary=json >> target/iai/honeycomb-utils/bench.out
         
       - name: Deploy Results
         uses: peaceiris/actions-gh-pages@v3
