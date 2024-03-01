@@ -15,9 +15,6 @@ rand = { version = "*", features = ["small_rng"] }
 criterion = { version = "*", features = ["html_reports"] }
 iai-callgrind = "*"
 
-[profile.bench]
-debug = true
-
 # Iai-callgrind benchmarks
 
 [[bench]]
