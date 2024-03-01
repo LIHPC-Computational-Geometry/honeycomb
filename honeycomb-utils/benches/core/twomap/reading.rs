@@ -16,7 +16,9 @@
 
 use honeycomb_core::{DartIdentifier, TwoMap};
 use honeycomb_utils::generation::square_two_map;
-use iai_callgrind::{library_benchmark, library_benchmark_group, main};
+use iai_callgrind::{
+    library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
+};
 use std::hint::black_box;
 
 // ------ CONTENT
@@ -136,6 +138,7 @@ library_benchmark_group!(
 );
 
 main!(
+    config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
     library_benchmark_groups = bench_read_beta,
     bench_is_free,
     bench_cell_computation
