@@ -22,6 +22,12 @@ name = "prof-twomap-reading"
 path = "benches/core/twomap/reading.rs"
 harness = false
 
+[[bench]]
+name = "prof-twomap-editing"
+path = "benches/core/twomap/editing.rs"
+harness = false
+
+
 # Criterion benchmarks
 
 [[bench]]
