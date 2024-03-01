@@ -15,7 +15,15 @@ rand = { version = "*", features = ["small_rng"] }
 criterion = { version = "*", features = ["html_reports"] }
 iai-callgrind = "*"
 
+[profile.bench]
+debug = true
+
 # Iai-callgrind benchmarks
+
+[[bench]]
+name = "prof-twomap-editing"
+path = "benches/core/twomap/editing.rs"
+harness = false
 
 [[bench]]
 name = "prof-twomap-reading"
@@ -23,8 +31,8 @@ path = "benches/core/twomap/reading.rs"
 harness = false
 
 [[bench]]
-name = "prof-twomap-editing"
-path = "benches/core/twomap/editing.rs"
+name = "prof-twomap-sewing-unsewing"
+path = "benches/core/twomap/sewing.rs"
 harness = false
 
 

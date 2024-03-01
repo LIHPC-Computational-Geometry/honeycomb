@@ -3,7 +3,7 @@
 //! available computing power.
 //!
 //! This file contains benchmarks of key reading methods, classfied into
-//! three groups
+//! three groups:
 //!
 //! - `bench_read_beta`: benches accesses to beta methods.
 //! - `bench_is_free`: benches `is_free` & `is_i_free` methods.

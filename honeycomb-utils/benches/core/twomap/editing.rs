@@ -3,7 +3,7 @@
 //! available computing power.
 //!
 //! This file contains benchmarks of key editing methods and constructors,
-//! classfied into three groups
+//! classfied into three groups:
 //!
 //! - `bench_new`: benches constructors and "add" methods.
 //! - `bench_insert`: benches insertion methods (both behaviors).
