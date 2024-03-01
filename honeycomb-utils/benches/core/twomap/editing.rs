@@ -27,6 +27,7 @@ fn get_map(n_square: usize) -> TwoMap<1> {
 
 fn get_sparse_map(n_square: usize) -> TwoMap<1> {
     let mut map = square_two_map::<1>(n_square);
+    map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
     map.remove_vertex(1);
     map
