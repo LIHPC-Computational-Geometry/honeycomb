@@ -25,19 +25,20 @@ jobs:
       # Install the benchmark runner
       - name: Requirements
         run: cargo install --version 0.10.2 iai-callgrind-runner
-
-      # Create a file to write in beforehand
-      - name: Chore
-        run: sudo mkdir target/iai/honeycomb-utils/ && sudo touch target/iai/honeycomb-utils/bench.out
       
       # Run all benchmarks
       - name: Run 
-        run: cargo bench --bench prof-twomap-editing --bench prof-twomap-reading --bench prof-twomap-sewing-unsewing -- --save-summary=json >> target/iai/honeycomb-utils/bench.out
+        run: cargo bench --bench prof-twomap-editing --bench prof-twomap-reading --bench prof-twomap-sewing-unsewing -- --save-summary=json > bench.out
+
+      # Move the bench.out file to target directory
+      # sudo because GitHub actions are insconsistent
+      - name: Chore 
+        run: sudo mv bench.out target/iai/honeycomb-utils/
         
       - name: Deploy Results
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: benches/${{ github.ref }}
-          publish_dir: ./target/criterion/report
+          publish_dir: ./target/iai/honeycomb-utils
           force_orphan: true
