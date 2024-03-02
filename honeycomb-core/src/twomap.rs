@@ -1402,10 +1402,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.capacity();
         let others_freevertices = self.free_vertices.capacity();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
@@ -1478,10 +1479,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.len();
         let others_freevertices = self.free_vertices.len();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
@@ -1560,10 +1562,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.len();
         let others_freevertices = self.free_vertices.len();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 }
