@@ -79,6 +79,23 @@ def run():
     
     print(totals)
 
+    categories = ["Beta", "Embed", "Geometry", "Others"]
+    explode = [0.03, 0.03, 0.03, 0.03]
+
+    save_file = filename[0:-4]
+
+    if overview:
+        fig, ax = plt.subplots()
+        ax.pie(totals, explode=explode, wedgeprops={"edgecolor":"black"}, autopct='%1.1f%%')
+        plt.legend(
+            title="Categories", 
+            labels= categories, 
+            loc="center right", 
+            bbox_to_anchor=(1.3, 0.5), 
+            ncol=1)
+        plt.title("Memory Usage Overview")
+        plt.savefig(save_file + "_overview.svg")
+
 
 if __name__ == "__main__":
     run()
