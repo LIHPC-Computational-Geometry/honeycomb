@@ -91,13 +91,17 @@ def run():
 
     if overview:
         ofig, oax = plt.subplots()
-        oax.pie(totals, explode=explode, wedgeprops={"edgecolor":"white"}, autopct='%1.1f%%')
+        oax.pie(totals, 
+            explode=explode, 
+            wedgeprops={"edgecolor":"white"}, 
+            autopct='%1.1f%%')
         plt.legend(
             title="Categories", 
+            ncol=1,
             labels= category_labels, 
             loc="center right", 
             bbox_to_anchor=(1.3, 0.5), 
-            ncol=1)
+            draggable=True)
         plt.title("Memory Usage: Overview")
         if show:
             plt.show()
@@ -112,21 +116,33 @@ def run():
 
         cmap = plt.colormaps["tab20c"]
         outer_colors = cmap([0, 4, 8, 12])
-        inner_colors = cmap([1, 2, 3, 5, 6, 7, 9, 10, 11, 12, 13])
+        inner_colors = cmap([1, 2, 3, 5, 6, 7, 9, 10, 13, 14, 15])
 
-        dax.pie(totals, radius=1, colors=outer_colors, explode=explode,
+        dax.pie(totals, 
+            radius=1, 
+            colors=outer_colors, 
+            autopct='%1.1f%%',
+            pctdistance=1.25,
+            explode=explode,
             wedgeprops=dict(width=size, edgecolor='w'))
 
-        dax.pie(vals, radius=1-size, colors=inner_colors, explode=[0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02],
+        dax.pie(vals, 
+            radius=1-size, 
+            colors=inner_colors, 
+            labels = beta_labels + embed_labels + geometry_labels + others_labels,
+            labeldistance=.65,
+            textprops={'size': 'xx-small'},
+            explode=[0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02],
             wedgeprops=dict(width=size, edgecolor='w'))
 
-        plt.title("Memory Usage: Overview")
+        plt.title("Memory Usage: Detailed")
         plt.legend(
             title="Categories", 
-            labels= category_labels + beta_labels + embed_labels + geometry_labels + others_labels, 
+            ncol=1,
+            labels= category_labels, 
             loc="center right", 
             bbox_to_anchor=(1.3, 0.5), 
-            ncol=1)
+            draggable=True)
         if show:
             plt.show()
         else: 
