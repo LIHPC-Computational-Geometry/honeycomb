@@ -149,9 +149,6 @@ def run():
             plt.savefig(save_file + "_detailed.svg")
     
     if all_cats:
-        afig, (aax1, aax2) = plt.subplots(1, 2, figsize=(9, 5))
-        afig.subplots_adjust(wspace=0)
-
         cmap = plt.colormaps["tab20c"]
         pie_colors = cmap([0, 4, 8, 12])
         beta_colors = cmap([1, 2, 3])
@@ -159,36 +156,133 @@ def run():
         geometry_colors = cmap([9, 10])
         others_colors = cmap([13, 14, 15])
 
-        aax1.pie(totals, 
+        # --- beta chart ---
+        beta_afig, (beta_aax1, beta_aax2) = plt.subplots(1, 2, figsize=(9, 5))
+        beta_afig.subplots_adjust(wspace=0)
+
+        beta_aax1.pie(totals, 
             labels=category_labels,
             explode=explode, 
             colors=pie_colors,
             wedgeprops={"edgecolor":"white"}, 
             autopct='%1.1f%%')
-        plt.title("Memory Usage: Overview")
+        plt.title("Memory Usage: Beta functions")
 
-        # beta bar chart
         beta_ratios = [b / totals[0] for b in beta]
         bottom = 1
         width = .2
 
-        # Adding from the top matches the legend.
         for j, (height, label) in enumerate(reversed([*zip(beta_ratios, beta_labels)])):
             bottom -= height
-            bc = aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+            bc = beta_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
                         alpha=0.1 + 0.25 * j)
-            aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+            beta_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
-        aax2.set_title("Beta functions")
-        aax2.legend()
-        aax2.axis('off')
-        aax2.set_xlim(- 2.5 * width, 2.5 * width)
+        beta_aax2.set_title("Beta functions")
+        beta_aax2.legend()
+        beta_aax2.axis('off')
+        beta_aax2.set_xlim(- 2.5 * width, 2.5 * width)
 
-        # show or save
         if show:
             plt.show()
         else: 
             plt.savefig(save_file + "_beta.svg")
+
+        # --- embed chart ---
+        embed_afig, (embed_aax1, embed_aax2) = plt.subplots(1, 2, figsize=(9, 5))
+        embed_afig.subplots_adjust(wspace=0)
+
+        embed_aax1.pie(totals, 
+            labels=category_labels,
+            explode=explode, 
+            colors=pie_colors,
+            wedgeprops={"edgecolor":"white"}, 
+            autopct='%1.1f%%')
+        plt.title("Memory Usage: Embedded data")
+
+        embed_ratios = [e / totals[1] for e in embed]
+        bottom = 1
+        width = .2
+
+        for j, (height, label) in enumerate(reversed([*zip(embed_ratios, embed_labels)])):
+            bottom -= height
+            bc = embed_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+                        alpha=0.1 + 0.25 * j)
+            embed_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+
+        embed_aax2.set_title("Embedded data")
+        embed_aax2.legend()
+        embed_aax2.axis('off')
+        embed_aax2.set_xlim(- 2.5 * width, 2.5 * width)
+
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_embed.svg")
+
+        # --- geometry chart ---
+        geometry_afig, (geometry_aax1, geometry_aax2) = plt.subplots(1, 2, figsize=(9, 5))
+        geometry_afig.subplots_adjust(wspace=0)
+
+        geometry_aax1.pie(totals, 
+            labels=category_labels,
+            explode=explode, 
+            colors=pie_colors,
+            wedgeprops={"edgecolor":"white"}, 
+            autopct='%1.1f%%')
+        plt.title("Memory Usage: Geometrical data")
+
+        geometry_ratios = [g / totals[2] for g in geometry]
+        bottom = 1
+        width = .2
+
+        for j, (height, label) in enumerate(reversed([*zip(geometry_ratios, geometry_labels)])):
+            bottom -= height
+            bc = geometry_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+                        alpha=0.1 + 0.25 * j)
+            geometry_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+
+        geometry_aax2.set_title("Geometrical data")
+        geometry_aax2.legend()
+        geometry_aax2.axis('off')
+        geometry_aax2.set_xlim(- 2.5 * width, 2.5 * width)
+
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_geometry.svg")
+
+        # --- others chart ---
+        others_afig, (others_aax1, others_aax2) = plt.subplots(1, 2, figsize=(9, 5))
+        others_afig.subplots_adjust(wspace=0)
+
+        others_aax1.pie(totals, 
+            labels=category_labels,
+            explode=explode, 
+            colors=pie_colors,
+            wedgeprops={"edgecolor":"white"}, 
+            autopct='%1.1f%%')
+        plt.title("Memory Usage: Miscellaneous data")
+
+        others_ratios = [o / totals[3] for o in others]
+        bottom = 1
+        width = .2
+
+        for j, (height, label) in enumerate(reversed([*zip(others_ratios, others_labels)])):
+            bottom -= height
+            bc = others_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+                        alpha=0.1 + 0.25 * j)
+            others_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+
+        others_aax2.set_title("Miscellaneous data")
+        others_aax2.legend()
+        others_aax2.axis('off')
+        others_aax2.set_xlim(- 2.5 * width, 2.5 * width)
+
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_others.svg")
 
 if __name__ == "__main__":
     run()
