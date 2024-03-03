@@ -1,6 +1,7 @@
-import sys
-import matplotlib.pyplot as plt
 import csv
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
 
 def parseCommandLine():
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
@@ -13,6 +14,7 @@ def parseCommandLine():
 
     filename = args[0]
 
+    show = False
     overview = False
     detailed = False
     all_cats = False
@@ -30,6 +32,8 @@ def parseCommandLine():
         print("  --all        -a  --  generates a zoomed-in plot for each category")
         exit(0)
     
+    if "--show" in opts:
+        show = True
     if "--overview" in opts or "-o" in opts:
         overview = True
     if "--detailed" in opts or "-d" in opts:
@@ -37,7 +41,7 @@ def parseCommandLine():
     if "--all" in opts or "-a" in opts:
         all_cats = True
     
-    return (filename, overview, detailed, all_cats)
+    return (filename, show, overview, detailed, all_cats)
 
 def parseDataFromFile(filename: str):
     beta = []
@@ -73,29 +77,63 @@ def parseDataFromFile(filename: str):
     return (beta, embed, geometry, others, totals)
 
 def run():
-    filename, overview, detailed, all_cats = parseCommandLine()
-
+    filename, show, overview, detailed, all_cats = parseCommandLine()
     beta, embed, geometry, others, totals = parseDataFromFile(filename)
-    
-    print(totals)
 
-    categories = ["Beta", "Embed", "Geometry", "Others"]
-    explode = [0.03, 0.03, 0.03, 0.03]
+    category_labels = ["Beta", "Embed", "Geometry", "Others"]
+    beta_labels = ["β0", "β1", "β2"]
+    embed_labels = ["vertexIDs", "faceIDs", "marks"]
+    geometry_labels = ["vertex", "face"]
+    others_labels = ["freedarts", "freevertices", "counters"]
+    explode = [0.02, 0.02, 0.02, 0.02]
 
     save_file = filename[0:-4]
 
     if overview:
-        fig, ax = plt.subplots()
-        ax.pie(totals, explode=explode, wedgeprops={"edgecolor":"black"}, autopct='%1.1f%%')
+        ofig, oax = plt.subplots()
+        oax.pie(totals, explode=explode, wedgeprops={"edgecolor":"white"}, autopct='%1.1f%%')
         plt.legend(
             title="Categories", 
-            labels= categories, 
+            labels= category_labels, 
             loc="center right", 
             bbox_to_anchor=(1.3, 0.5), 
             ncol=1)
-        plt.title("Memory Usage Overview")
-        plt.savefig(save_file + "_overview.svg")
+        plt.title("Memory Usage: Overview")
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_overview.svg")
 
+    if detailed:
+        dfig, dax = plt.subplots()
+
+        size = 0.3
+        vals = beta + embed + geometry + others
+
+        cmap = plt.colormaps["tab20c"]
+        outer_colors = cmap([0, 4, 8, 12])
+        inner_colors = cmap([1, 2, 3, 5, 6, 7, 9, 10, 11, 12, 13])
+
+        dax.pie(totals, radius=1, colors=outer_colors, explode=explode,
+            wedgeprops=dict(width=size, edgecolor='w'))
+
+        dax.pie(vals, radius=1-size, colors=inner_colors, explode=[0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02],
+            wedgeprops=dict(width=size, edgecolor='w'))
+
+        plt.title("Memory Usage: Overview")
+        plt.legend(
+            title="Categories", 
+            labels= category_labels + beta_labels + embed_labels + geometry_labels + others_labels, 
+            loc="center right", 
+            bbox_to_anchor=(1.3, 0.5), 
+            ncol=1)
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_detailed.svg")
+    
+    if all_cats:
+        dfig, dax = plt.subplots()
 
 if __name__ == "__main__":
     run()
