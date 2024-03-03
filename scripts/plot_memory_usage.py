@@ -149,7 +149,46 @@ def run():
             plt.savefig(save_file + "_detailed.svg")
     
     if all_cats:
-        dfig, dax = plt.subplots()
+        afig, (aax1, aax2) = plt.subplots(1, 2, figsize=(9, 5))
+        afig.subplots_adjust(wspace=0)
+
+        cmap = plt.colormaps["tab20c"]
+        pie_colors = cmap([0, 4, 8, 12])
+        beta_colors = cmap([1, 2, 3])
+        embed_colors = cmap([5, 6, 7])
+        geometry_colors = cmap([9, 10])
+        others_colors = cmap([13, 14, 15])
+
+        aax1.pie(totals, 
+            labels=category_labels,
+            explode=explode, 
+            colors=pie_colors,
+            wedgeprops={"edgecolor":"white"}, 
+            autopct='%1.1f%%')
+        plt.title("Memory Usage: Overview")
+
+        # beta bar chart
+        beta_ratios = [b / totals[0] for b in beta]
+        bottom = 1
+        width = .2
+
+        # Adding from the top matches the legend.
+        for j, (height, label) in enumerate(reversed([*zip(beta_ratios, beta_labels)])):
+            bottom -= height
+            bc = aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+                        alpha=0.1 + 0.25 * j)
+            aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+
+        aax2.set_title("Beta functions")
+        aax2.legend()
+        aax2.axis('off')
+        aax2.set_xlim(- 2.5 * width, 2.5 * width)
+
+        # show or save
+        if show:
+            plt.show()
+        else: 
+            plt.savefig(save_file + "_beta.svg")
 
 if __name__ == "__main__":
     run()
