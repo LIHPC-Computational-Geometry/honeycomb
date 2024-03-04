@@ -1360,9 +1360,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
@@ -1440,9 +1445,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
@@ -1520,9 +1530,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
