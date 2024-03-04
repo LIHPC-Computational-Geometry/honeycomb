@@ -1328,7 +1328,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 }
 
-#[cfg(feature = "benchmarking_utils")]
+#[cfg(any(doc, feature = "benchmarking_utils"))]
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// Computes the total allocated space dedicated to the map.
     ///
