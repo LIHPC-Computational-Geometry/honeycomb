@@ -174,7 +174,7 @@ def run():
 
         for j, (height, label) in enumerate(reversed([*zip(beta_ratios, beta_labels)])):
             bottom -= height
-            bc = beta_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+            bc = beta_aax2.bar(0, height, width, bottom=bottom, color=beta_colors, label=label,
                         alpha=0.1 + 0.25 * j)
             beta_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
@@ -206,7 +206,7 @@ def run():
 
         for j, (height, label) in enumerate(reversed([*zip(embed_ratios, embed_labels)])):
             bottom -= height
-            bc = embed_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+            bc = embed_aax2.bar(0, height, width, bottom=bottom, color=embed_colors, label=label,
                         alpha=0.1 + 0.25 * j)
             embed_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
@@ -238,7 +238,7 @@ def run():
 
         for j, (height, label) in enumerate(reversed([*zip(geometry_ratios, geometry_labels)])):
             bottom -= height
-            bc = geometry_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+            bc = geometry_aax2.bar(0, height, width, bottom=bottom, color=geometry_colors, label=label,
                         alpha=0.1 + 0.25 * j)
             geometry_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
@@ -270,7 +270,7 @@ def run():
 
         for j, (height, label) in enumerate(reversed([*zip(others_ratios, others_labels)])):
             bottom -= height
-            bc = others_aax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+            bc = others_aax2.bar(0, height, width, bottom=bottom, color=others_colors, label=label,
                         alpha=0.1 + 0.25 * j)
             others_aax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
 
