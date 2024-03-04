@@ -32,11 +32,14 @@ kill $(ps -e | awk '/mdbook/ {print $1}')
 
 ### Rust
 
-Basic structure are provided in the **honeycomb-core** crate. Its content is listed
-in the [user guide][UGHC] and details about its usage can be found in its [Rust documentation][DOCHC]
+The content of each member as well as instructions for usage are available in the [user guide][UGW].
 
-[UGHC]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/honeycomb-core.html
+- Basic structure are provided in the **honeycomb-core** crate ([Rust Doc][DOCHC]). 
+- Utilities for tests and benchmarks are provided in the **honeycomb-utils** crate ([Rust Doc][DOCHU])
+
+[UGW]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/workspace.html
 [DOCHC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_core/
+[DOCHU]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_utils/
 
 ## Contributing
 
