@@ -8,7 +8,7 @@
 
 // ------ IMPORTS
 
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 // ------ CONTENT
 
@@ -68,6 +68,37 @@ impl SubAssign<Coords2> for Coords2 {
     fn sub_assign(&mut self, rhs: Coords2) {
         self.x -= rhs.x;
         self.y -= rhs.y;
+    }
+}
+
+impl Mul<FloatType> for Coords2 {
+    type Output = Self;
+
+    fn mul(self, rhs: FloatType) -> Self::Output {
+        Self::from((self.x * rhs, self.y * rhs))
+    }
+}
+
+impl MulAssign<FloatType> for Coords2 {
+    fn mul_assign(&mut self, rhs: FloatType) {
+        self.x *= rhs;
+        self.y *= rhs;
+    }
+}
+
+impl Div<FloatType> for Coords2 {
+    type Output = Self;
+
+    fn div(self, rhs: FloatType) -> Self::Output {
+        assert_ne!(rhs, 0.0);
+        self * 1.0 / rhs
+    }
+}
+
+impl DivAssign<FloatType> for Coords2 {
+    fn div_assign(&mut self, rhs: FloatType) {
+        assert_ne!(rhs, 0.0);
+        *self *= 1.0 / rhs;
     }
 }
 
