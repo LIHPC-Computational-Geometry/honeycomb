@@ -154,7 +154,7 @@ const TWO_MAP_BETA: usize = 3;
 /// assert!(map.is_free(d6));
 ///
 /// // create the corresponding three vertices
-/// let v4 = map.add_vertex(Some([15.0, 0.0])); // v4
+/// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
 /// let v5 = map.add_vertices(2); // v5, v6
 /// let v6 = v5 + 1;
 /// map.set_vertex(v5, [5.0, 10.0]); // v5
@@ -228,10 +228,10 @@ const TWO_MAP_BETA: usize = 3;
 /// assert_eq!(map.faceid(d3), new_face_id);
 ///
 /// // check dart positions
-/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0].into());
 ///
 /// // check topology of the new face
 /// let new_two_cell = map.i_cell::<2>(d3);
@@ -820,10 +820,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     pub fn set_vertex(
         &mut self,
         vertex_id: VertexIdentifier,
-        vertex: Vertex2,
+        vertex: impl Into<Vertex2>,
     ) -> Result<(), MapError> {
         if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
-            *val = vertex;
+            *val = vertex.into();
             return Ok(());
         }
         Err(MapError::VertexOOB)
