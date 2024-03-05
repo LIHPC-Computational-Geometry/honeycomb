@@ -25,6 +25,7 @@ jobs:
       # Install the benchmark runner
       - name: Requirements
         run: cargo install --version 0.10.2 iai-callgrind-runner
+        run: sudo apt-get install -y valgrind
       
       # Run all benchmarks
       - name: Run 
