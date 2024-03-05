@@ -7,3 +7,4 @@ edition = "2021"
 benchmarking_utils = []
 
 [dependencies]
+cfg-if = "1"
