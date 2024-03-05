@@ -13,7 +13,7 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  rustdoc:
+  iai-benchmarks:
     runs-on: ubuntu-22.04
 
     steps:
@@ -25,6 +25,7 @@ jobs:
       # Install the benchmark runner
       - name: Requirements
         run: cargo install --version 0.10.2 iai-callgrind-runner
+        run: sudo apt-get install -y valgrind
       
       # Run all benchmarks
       - name: Run 
