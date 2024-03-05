@@ -1087,16 +1087,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let rhs_vec = b1_rvertex - rvertex;
 
                 // dot product should be negative if the two darts have opposite direction
-                let current = lhs_vec.x * rhs_vec.x + lhs_vec.y * rhs_vec.y < 0.0;
-
-                if !current {
-                    // we need reverse the orientation of the 2-cell
-                    // i.e. swap values of beta 1 & beta 0
-                    // for all elements connected to rhs & offset the
-                    // associated vertices to keep consistency between
-                    // placement & numbering
-                    todo!("figure out how to reverse orientation of closed & open 2-cell")
-                }
+                // we could also put restriction on the angle made by the two darts to prevent
+                // drastic deformation
+                assert!(
+                    lhs_vec.dot(&rhs_vec) < 0.0,
+                    "Dart {} and {} do not have consistent orientation for 2-sewing",
+                    lhs_dart_id,
+                    rhs_dart_id
+                );
 
                 match policy {
                     SewPolicy::StretchLeft => {
