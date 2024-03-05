@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 benchmarking_utils = []
+single_precision = []
 
 [dependencies]
 cfg-if = "1"
