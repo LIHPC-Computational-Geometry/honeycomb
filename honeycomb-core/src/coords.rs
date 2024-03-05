@@ -10,13 +10,13 @@
 
 // ------ CONTENT
 
-pub type FloatType = cfg_if::cfg_if! {
+cfg_if::cfg_if! {
     if #[cfg(feature = "single_precision")] {
-        f32
+        pub type FloatType = f32;
     } else {
-        f64
+        pub type FloatType = f64;
     }
-};
+}
 
 pub struct Coords2 {
     pub x: FloatType,

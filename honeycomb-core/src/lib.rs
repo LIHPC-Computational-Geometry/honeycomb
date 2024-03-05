@@ -9,6 +9,7 @@
 
 // ------ MODULE DECLARATIONS
 
+mod coords;
 pub mod dart;
 pub mod embed;
 pub mod twomap;
