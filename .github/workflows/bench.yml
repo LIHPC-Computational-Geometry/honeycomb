@@ -23,9 +23,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       # Install the benchmark runner
-      - name: Requirements
-        run: cargo install --version 0.10.2 iai-callgrind-runner
+      - name: Install Valgrind
         run: sudo apt-get install -y valgrind
+      - name: Install Runner
+        run: cargo install --version 0.10.2 iai-callgrind-runner
       
       # Run all benchmarks
       - name: Run 
