@@ -1,4 +1,6 @@
+Cargo.lock
 /target
 
-serve_doc.sh
-kill_doc.sh
+# ignore csv & svg files in root directory
+/*.csv
+/*.svg
