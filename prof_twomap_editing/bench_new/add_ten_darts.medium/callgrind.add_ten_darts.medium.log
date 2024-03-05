@@ -1,0 +1,27 @@
+==5189== Callgrind, a call-graph generating cache profiler
+==5189== Copyright (C) 2002-2017, and GNU GPL'd, by Josef Weidendorfer et al.
+==5189== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==5189== Command: /home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-4982a8088a8547d0 --iai-run bench_new 2 1 prof_twomap_editing::bench_new::add_ten_darts
+==5189== Parent PID: 5172
+==5189== 
+--5189-- warning: L3 cache found, using its data for the LL simulation.
+==5189== For interactive control, run 'callgrind_control -h'.
+==5189== 
+==5189== Events    : Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+==5189== Collected : 212279 210438 210293 48 3350 3307 47 0 3287
+==5189== 
+==5189== I   refs:      212,279
+==5189== I1  misses:         48
+==5189== LLi misses:         47
+==5189== I1  miss rate:    0.02%
+==5189== LLi miss rate:    0.02%
+==5189== 
+==5189== D   refs:      420,731  (210,438 rd + 210,293 wr)
+==5189== D1  misses:      6,657  (  3,350 rd +   3,307 wr)
+==5189== LLd misses:      3,287  (      0 rd +   3,287 wr)
+==5189== D1  miss rate:     1.6% (    1.6%   +     1.6%  )
+==5189== LLd miss rate:     0.8% (    0.0%   +     1.6%  )
+==5189== 
+==5189== LL refs:         6,705  (  3,398 rd +   3,307 wr)
+==5189== LL misses:       3,334  (     47 rd +   3,287 wr)
+==5189== LL miss rate:      0.5% (    0.0%   +     1.6%  )
