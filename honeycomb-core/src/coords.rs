@@ -20,8 +20,22 @@ cfg_if::cfg_if! {
     }
 }
 
+/// 2-dimensional coordinates structure
+///
+/// The floating type used for coordinate representation is determined
+/// using feature and the [FloatType] alias.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
+#[derive(Debug, Clone, Copy)]
 pub struct Coords2 {
+    /// First coordinate
     pub x: FloatType,
+    /// Second coordinate
     pub y: FloatType,
 }
 
