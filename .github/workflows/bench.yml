@@ -27,7 +27,6 @@ jobs:
         run: sudo apt-get install -y valgrind
       - name: Install Runner
         run: cargo install --version 0.10.2 iai-callgrind-runner
-        run: sudo apt-get install -y valgrind
       
       # Run all benchmarks
       - name: Run 
