@@ -33,7 +33,7 @@ jobs:
       # Move the bench.out file to target directory
       # sudo because GitHub actions are insconsistent
       - name: Chore 
-        run: sudo mv bench.out target/iai/honeycomb-utils/
+        run: mv bench.out target/iai/honeycomb-utils/
         
       - name: Deploy Results
         uses: peaceiris/actions-gh-pages@v3
