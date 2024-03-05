@@ -294,7 +294,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![[0.0, 0.0]; n_vertices];
+        let vertices = vec![Vertex2::from([0.0, 0.0]); n_vertices];
         let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
@@ -964,10 +964,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     // associated to rhs_dart
                     let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
                     let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-                    self.vertices.push([
-                        (lid_vertex[0] + rhs_vertex[0]) / 2.0,
-                        (lid_vertex[1] + rhs_vertex[1]) / 2.0,
-                    ]);
+                    self.vertices.push((lid_vertex + rhs_vertex) / 2.0);
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                     stretch!(self, lid, new_id);
                     stretch!(self, rhs_dart_id, new_id);
@@ -1046,10 +1043,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push([
-                            (vertex1[0] + vertex2[0]) / 2.0,
-                            (vertex1[1] + vertex2[1]) / 2.0,
-                        ]);
+                        self.vertices.push((vertex1 + vertex2) / 2.0);
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1rid, new_id);
@@ -1070,10 +1064,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push([
-                            (vertex1[0] + vertex2[0]) / 2.0,
-                            (vertex1[1] + vertex2[1]) / 2.0,
-                        ]);
+                        self.vertices.push((vertex1 + vertex2) / 2.0);
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1lid, new_id);
@@ -1092,11 +1083,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let b1_rvertex = self.vertices[self.cells(b1rid).vertex_id as usize];
                 let rvertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
-                let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
+                let lhs_vec = b1_lvertex - lvertex;
+                let rhs_vec = b1_rvertex - rvertex;
 
                 // dot product should be negative if the two darts have opposite direction
-                let current = lhs_vec[0] * rhs_vec[0] + lhs_vec[1] * rhs_vec[1] < 0.0;
+                let current = lhs_vec.x * rhs_vec.x + lhs_vec.y * rhs_vec.y < 0.0;
 
                 if !current {
                     // we need reverse the orientation of the 2-cell
@@ -1117,14 +1108,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         stretch!(self, lhs_dart_id, b1rid);
                     }
                     SewPolicy::StretchAverage => {
-                        let new_lvertex = [
-                            (lvertex[0] + b1_rvertex[0]) / 2.0,
-                            (lvertex[1] + b1_rvertex[1]) / 2.0,
-                        ];
-                        let new_rvertex = [
-                            (rvertex[0] + b1_lvertex[0]) / 2.0,
-                            (rvertex[1] + b1_lvertex[1]) / 2.0,
-                        ];
+                        let new_lvertex = (lvertex + b1_rvertex) / 2.0;
+                        let new_rvertex = (rvertex + b1_lvertex) / 2.0;
                         self.vertices.push(new_lvertex);
                         self.vertices.push(new_rvertex);
                         let new_lid = self.vertices.len() - 2;

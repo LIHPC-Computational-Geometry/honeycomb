@@ -14,7 +14,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{DartIdentifier, FaceIdentifier, TwoMap, VertexIdentifier};
+use honeycomb_core::{DartIdentifier, FaceIdentifier, TwoMap, Vertex2, VertexIdentifier};
 use honeycomb_utils::generation::square_two_map;
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
@@ -74,7 +74,7 @@ fn add_default_vertex(map: &mut TwoMap<1>) -> VertexIdentifier {
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
 fn add_vertex(map: &mut TwoMap<1>) -> VertexIdentifier {
-    black_box(map.add_vertex(Some([12.0, 6.0])))
+    black_box(map.add_vertex(Some(Vertex2::from((12.0, 6.0)))))
 }
 
 #[library_benchmark]

@@ -31,7 +31,7 @@ cfg_if::cfg_if! {
 ///
 /// ```
 ///
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Coords2 {
     /// First coordinate
     pub x: FloatType,

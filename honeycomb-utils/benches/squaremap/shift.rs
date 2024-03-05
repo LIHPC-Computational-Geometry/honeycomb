@@ -50,13 +50,7 @@ fn offset_if_inner<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Ve
     });
     inner.iter().for_each(|vertex_id| {
         let current_value = map.vertex(*vertex_id);
-        let _ = map.set_vertex(
-            *vertex_id,
-            [
-                current_value[0] + offsets[*vertex_id as usize][0],
-                current_value[1] + offsets[*vertex_id as usize][1],
-            ],
-        );
+        let _ = map.set_vertex(*vertex_id, *current_value + offsets[*vertex_id as usize]);
     });
     black_box(&mut map);
 }
@@ -71,7 +65,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
 
-    let offsets: Vec<Vertex2> = xs.zip(ys).map(|(x, y)| [x, y]).collect();
+    let offsets: Vec<Vertex2> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
 
     let mut group = c.benchmark_group("squaremap-shift");
 

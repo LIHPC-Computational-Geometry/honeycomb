@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier};
+use honeycomb_core::{DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, Vertex2, VertexIdentifier};
 
 // ------ CONTENT
 
@@ -82,8 +82,11 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
         (0..n_square + 1).for_each(|x_idx| {
             // first position the vertex
             let vertex_id = (y_idx * (n_square + 1) + x_idx) as VertexIdentifier;
-            map.set_vertex(vertex_id, [x_idx as f64 * 1.0, y_idx as f64 * 1.0])
-                .unwrap();
+            map.set_vertex(
+                vertex_id,
+                Vertex2::from((x_idx as f64 * 1.0, y_idx as f64 * 1.0)),
+            )
+            .unwrap();
             // update the associated 0-cell
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
