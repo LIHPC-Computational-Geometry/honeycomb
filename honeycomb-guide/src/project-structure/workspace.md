@@ -9,6 +9,7 @@ introduced to the project.
 These entries are members of the Cargo workspace.
 
 - [honeycomb-core](honeycomb-core.html) *Core definitions and tools for combinatorial map implementation*
+- [honeycomb-utils](honeycomb-utils.html) *Utility routines used in benchmarking and testing*
 
 ## Others
 

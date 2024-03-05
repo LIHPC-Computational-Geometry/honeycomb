@@ -37,10 +37,10 @@ structures:
 
 ## Future additions
 
+- [x] Write structure benchmarks (2D) - done as of **0.1.1**
 - [ ] Add a custom vector type for spatial representation (2D & 3D)
 - [ ] Replace returned `Vec` by an alternative structure or type
   to prevent too many runtime allocations.
-- [ ] Write structure benchmarks (2D)
 - [ ] Add I/O support for mesh formats (2D)
 - [ ] Add orientation checks (2D)
 - [ ] Implement 3D maps
