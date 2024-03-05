@@ -1328,7 +1328,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     }
 }
 
-#[cfg(feature = "benchmarking_utils")]
+#[cfg(any(doc, feature = "benchmarking_utils"))]
 impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// Computes the total allocated space dedicated to the map.
     ///
@@ -1360,9 +1360,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
@@ -1402,10 +1407,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.capacity();
         let others_freevertices = self.free_vertices.capacity();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
@@ -1439,9 +1445,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
@@ -1478,10 +1489,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.len();
         let others_freevertices = self.free_vertices.len();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 
@@ -1518,9 +1530,14 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// # Example
     ///
-    /// ```text
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// crate. You can run it using the following command:
     ///
+    /// ```shell
+    /// cargo run --example memory_usage
     /// ```
+    ///
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
@@ -1560,10 +1577,11 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         // others
         let others_freedarts = self.free_darts.len();
         let others_freevertices = self.free_vertices.len();
-        let others_total =
-            others_freedarts + others_freevertices + 2 * std::mem::size_of::<usize>();
+        let others_counters = 2 * std::mem::size_of::<usize>();
+        let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
         writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
+        writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
 }
