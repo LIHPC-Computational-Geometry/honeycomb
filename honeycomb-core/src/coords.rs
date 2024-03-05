@@ -39,6 +39,28 @@ pub struct Coords2 {
     pub y: FloatType,
 }
 
+impl Coords2 {
+    pub fn norm(&self) -> FloatType {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    pub fn unit_dir(&self) -> Coords2 {
+        *self / self.norm()
+    }
+
+    pub fn dot(&self, other: &Coords2) -> FloatType {
+        self.x * other.x + self.y * other.y
+    }
+
+    // should this consume self & other?
+    pub fn cross(&self, other: &Coords2) -> Coords2 {
+        Self {
+            x: self.x * other.y - self.y * other.x,
+            y: other.x * self.y - other.y * self.x,
+        }
+    }
+}
+
 // Building traits
 
 impl From<(FloatType, FloatType)> for Coords2 {
