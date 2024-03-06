@@ -27,8 +27,20 @@ cfg_if::cfg_if! {
 ///
 /// # Example
 ///
-/// ```text
+/// ```rust
+/// use honeycomb_core::{Coords2, FloatType};
 ///
+/// let unit_x = Coords2 { x: 1.0, y: 0.0 };
+/// let unit_y = Coords2 { x: 0.0, y: 1.0 };
+///
+/// assert_eq!(unit_x.dot(&unit_y), 0.0);
+///
+/// let two: FloatType = 2.0;
+/// let x_plus_y: Coords2 = unit_x + unit_y;
+///
+/// assert_eq!(x_plus_y.norm(), two.sqrt());
+///
+/// // let unit = x_plus_y.unit_dir(); // currently failing
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -48,9 +60,7 @@ impl Coords2 {
     ///
     /// # Example
     ///
-    /// ```text
-    ///
-    /// ```
+    /// See [Coords2] example.
     ///
     pub fn norm(&self) -> FloatType {
         (self.x * self.x + self.y * self.y).sqrt()
@@ -65,12 +75,11 @@ impl Coords2 {
     ///
     /// # Example
     ///
-    /// ```text
-    ///
-    /// ```
+    /// See [Coords2] example.
     ///
     pub fn unit_dir(&self) -> Coords2 {
-        *self / self.norm()
+        let norm = self.norm();
+        *self / norm
     }
 
     /// Computes the dot product between two vectors
@@ -85,9 +94,7 @@ impl Coords2 {
     ///
     /// # Example
     ///
-    /// ```text
-    ///
-    /// ```
+    /// See [Coords2] example.
     ///
     pub fn dot(&self, other: &Coords2) -> FloatType {
         self.x * other.x + self.y * other.y
