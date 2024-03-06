@@ -103,15 +103,21 @@ impl Coords2 {
 
 // Building traits
 
-impl From<(FloatType, FloatType)> for Coords2 {
-    fn from((x, y): (FloatType, FloatType)) -> Self {
-        Self { x, y }
+impl<T: Into<FloatType>> From<(T, T)> for Coords2 {
+    fn from((x, y): (T, T)) -> Self {
+        Self {
+            x: x.into(),
+            y: y.into(),
+        }
     }
 }
 
-impl From<[FloatType; 2]> for Coords2 {
-    fn from([x, y]: [FloatType; 2]) -> Self {
-        Self { x, y }
+impl<T: Into<FloatType>> From<[T; 2]> for Coords2 {
+    fn from([x, y]: [T; 2]) -> Self {
+        Self {
+            x: x.into(),
+            y: y.into(),
+        }
     }
 }
 
