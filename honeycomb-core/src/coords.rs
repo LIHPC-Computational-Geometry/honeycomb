@@ -40,24 +40,57 @@ pub struct Coords2 {
 }
 
 impl Coords2 {
+    /// Computes the norm of `self`.
+    ///
+    /// # Return
+    ///
+    /// Return the norm as a [FloatType].
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn norm(&self) -> FloatType {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
+    /// Computes the direction of `self` as a unit vector.
+    ///
+    /// # Return
+    ///
+    /// Return a [Coords2] indicating the direction of `self`. The norm of the returned
+    /// struct is equal to one.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn unit_dir(&self) -> Coords2 {
         *self / self.norm()
     }
 
+    /// Computes the dot product between two vectors
+    ///
+    /// # Arguments
+    ///
+    /// - `other: &Coords2` -- reference to the second vector.
+    ///
+    /// # Return
+    ///
+    /// Return the dot product between `self` and `other`.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn dot(&self, other: &Coords2) -> FloatType {
         self.x * other.x + self.y * other.y
-    }
-
-    // should this consume self & other?
-    pub fn cross(&self, other: &Coords2) -> Coords2 {
-        Self {
-            x: self.x * other.y - self.y * other.x,
-            y: other.x * self.y - other.y * self.x,
-        }
     }
 }
 
