@@ -66,7 +66,9 @@ impl Coords2 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    /// Computes the direction of `self` as a unit vector.
+    /// FAILING Computes the direction of `self` as a unit vector.
+    ///
+    /// This method currently causes a stack overflow.
     ///
     /// # Return
     ///
