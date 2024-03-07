@@ -206,6 +206,11 @@ impl DivAssign<FloatType> for Coords2 {
 mod tests {
     use super::*;
 
+    fn almost_equal(lhs: &Coords2, rhs: &Coords2) -> bool {
+        const EPS: FloatType = 10.0e-12;
+        ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
+    }
+
     #[test]
     fn dot_product() {
         let along_x = Coords2::unit_x() * 15.0;
@@ -222,9 +227,9 @@ mod tests {
         assert_eq!(along_x.unit_dir(), Coords2::unit_x());
         assert_eq!(Coords2::unit_x().unit_dir(), Coords2::unit_x());
         assert_eq!(along_y.unit_dir(), Coords2::unit_y());
-        assert_eq!(
-            (along_x + along_y).unit_dir(),
-            Coords2::from((4.0 / 5.0, 3.0 / 5.0))
-        );
+        assert!(almost_equal(
+            &(along_x + along_y).unit_dir(),
+            &Coords2::from((4.0 / 5.0, 3.0 / 5.0))
+        ));
     }
 }
