@@ -207,10 +207,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn unit_dir_behavior() {
-        let unit_y = Coords2::from((0.0, 1.0));
-        let unit_x = Coords2::from((1.0, 0.0));
-        let tmp = (unit_x + unit_y);
-        let tmp = tmp.unit_dir();
+    fn dot_product() {
+        let along_x = Coords2::unit_x() * 15.0;
+        let along_y = Coords2::unit_y() * 10.0;
+        assert_eq!(along_x.dot(&along_y), 0.0);
+        assert_eq!(along_x.dot(&Coords2::unit_x()), 15.0);
+        assert_eq!(along_y.dot(&Coords2::unit_y()), 10.0);
+    }
+
+    #[test]
+    fn unit_dir() {
+        let along_x = Coords2::unit_x() * 4.0;
+        let along_y = Coords2::unit_y() * 3.0;
+        assert_eq!(along_x.unit_dir(), Coords2::unit_x());
+        assert_eq!(Coords2::unit_x().unit_dir(), Coords2::unit_x());
+        assert_eq!(along_y.unit_dir(), Coords2::unit_y());
+        assert_eq!(
+            (along_x + along_y).unit_dir(),
+            Coords2::from((4.0 / 5.0, 3.0 / 5.0))
+        );
     }
 }
