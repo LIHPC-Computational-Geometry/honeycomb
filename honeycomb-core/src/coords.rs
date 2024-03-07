@@ -28,8 +28,8 @@ cfg_if::cfg_if! {
 /// ```rust
 /// use honeycomb_core::{Coords2, FloatType};
 ///
-/// let unit_x = Coords2 { x: 1.0, y: 0.0 };
-/// let unit_y = Coords2 { x: 0.0, y: 1.0 };
+/// let unit_x = Coords2::unit_x();
+/// let unit_y = Coords2::unit_y();
 ///
 /// assert_eq!(unit_x.dot(&unit_y), 0.0);
 ///
@@ -37,7 +37,7 @@ cfg_if::cfg_if! {
 /// let x_plus_y: Coords2 = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir(), Coords2::from((1.0/two.sqrt(), 1.0/two.sqrt())));
+/// assert_eq!(x_plus_y.unit_dir(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -49,6 +49,26 @@ pub struct Coords2 {
 }
 
 impl Coords2 {
+    /// Base vector
+    ///
+    /// # Return
+    ///
+    /// Return a unit vector along the `x` axis.
+    ///
+    pub fn unit_x() -> Coords2 {
+        Self { x: 1., y: 0. } // make it a const?
+    }
+
+    /// Base vector
+    ///
+    /// # Return
+    ///
+    /// Return a unit vector along the `y` axis.
+    ///
+    pub fn unit_y() -> Coords2 {
+        Self { x: 0., y: 1. } // make it a const?
+    }
+
     /// Computes the norm of `self`.
     ///
     /// # Return
@@ -63,9 +83,7 @@ impl Coords2 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
-    /// FAILING Computes the direction of `self` as a unit vector.
-    ///
-    /// This method currently causes a stack overflow.
+    /// Computes the direction of `self` as a unit vector.
     ///
     /// # Return
     ///
