@@ -11,7 +11,7 @@
 //!
 //! Optional features can be enabled when compiling this crate:
 //!
-//! - `benchmark_utils` -- provides additionnal methods for benchmarking and debugging
+//! - `benchmarking_utils` -- provides additionnal methods for benchmarking and debugging
 //! - `single_precision` -- uses `f32` instead of `f64` for coordinates representation
 
 // ------ MODULE DECLARATIONS
