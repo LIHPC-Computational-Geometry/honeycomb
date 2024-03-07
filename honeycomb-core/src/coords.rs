@@ -37,8 +37,7 @@ cfg_if::cfg_if! {
 /// let x_plus_y: Coords2 = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-///
-/// // let unit = x_plus_y.unit_dir(); // currently failing
+/// assert_eq!(x_plus_y.unit_dir(), Coords2::from((1.0/two.sqrt(), 1.0/two.sqrt())));
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -78,8 +77,7 @@ impl Coords2 {
     /// See [Coords2] example.
     ///
     pub fn unit_dir(&self) -> Coords2 {
-        let norm = self.norm();
-        *self / norm
+        *self / self.norm()
     }
 
     /// Computes the dot product between two vectors
@@ -173,7 +171,7 @@ impl Div<FloatType> for Coords2 {
 
     fn div(self, rhs: FloatType) -> Self::Output {
         assert_ne!(rhs, 0.0);
-        self * 1.0 / rhs
+        self * (1.0 / rhs)
     }
 }
 
@@ -188,10 +186,13 @@ impl DivAssign<FloatType> for Coords2 {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
 
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    fn unit_dir_behavior() {
+        let unit_y = Coords2::from((0.0, 1.0));
+        let unit_x = Coords2::from((1.0, 0.0));
+        let tmp = (unit_x + unit_y);
+        let tmp = tmp.unit_dir();
     }
 }
