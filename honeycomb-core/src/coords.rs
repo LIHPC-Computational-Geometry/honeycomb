@@ -32,6 +32,7 @@ cfg_if::cfg_if! {
 /// let unit_y = Coords2::unit_y();
 ///
 /// assert_eq!(unit_x.dot(&unit_y), 0.0);
+/// assert_eq!(unit_x.normal_dir(), unit_y);
 ///
 /// let two: FloatType = 2.0;
 /// let x_plus_y: Coords2 = unit_x + unit_y;
@@ -96,6 +97,24 @@ impl Coords2 {
     ///
     pub fn unit_dir(&self) -> Coords2 {
         *self / self.norm()
+    }
+
+    /// Computes the direction of the normal vector to `self`.
+    ///
+    /// # Return
+    ///
+    /// Return a [Coords2] indicating the direction of the normal to `self`. The norm of the
+    /// returned struct is equal to one.
+    ///
+    /// # Example
+    ///
+    /// See [Coords2] example.
+    ///
+    pub fn normal_dir(&self) -> Coords2 {
+        Coords2 {
+            x: -self.y,
+            y: self.x,
+        }
     }
 
     /// Computes the dot product between two vectors
