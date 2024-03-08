@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 // ------ CONTENT
 
@@ -58,7 +58,7 @@ impl<T: CoordsFloat> Coords2<T> {
         Self {
             x: T::one(),
             y: T::zero(),
-        } // make it a const?
+        }
     }
 
     /// Base vector
@@ -71,7 +71,7 @@ impl<T: CoordsFloat> Coords2<T> {
         Self {
             x: T::zero(),
             y: T::one(),
-        } // make it a const?
+        }
     }
 
     /// Computes the norm of `self`.
@@ -86,7 +86,7 @@ impl<T: CoordsFloat> Coords2<T> {
     /// See [Coords2] example.
     ///
     pub fn norm(&self) -> T {
-        (self.x * self.x + self.y * self.y).sqrt()
+        self.x.hypot(self.y)
     }
 
     /// Computes the direction of `self` as a unit vector.
@@ -219,6 +219,16 @@ impl<T: CoordsFloat> DivAssign<T> for Coords2<T> {
         assert!(!rhs.is_zero());
         self.x /= rhs;
         self.y /= rhs;
+    }
+}
+
+impl<T: CoordsFloat> Neg for Coords2<T> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+        }
     }
 }
 
