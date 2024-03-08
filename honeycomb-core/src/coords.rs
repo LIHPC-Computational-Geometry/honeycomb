@@ -6,7 +6,9 @@
 
 // ------ IMPORTS
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
 // ------ CONTENT
 
@@ -231,6 +233,27 @@ impl<T: CoordsFloat> Neg for Coords2<T> {
         Self {
             x: -self.x,
             y: -self.y,
+        }
+    }
+}
+
+impl<T: CoordsFloat> Index<usize> for Coords2<T> {
+    type Output = T;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            i => panic!("cannot index a 2D vector with value {i}"),
+        }
+    }
+}
+
+impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            i => panic!("cannot index a 2D vector with value {i}"),
         }
     }
 }
