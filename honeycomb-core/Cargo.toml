@@ -9,3 +9,4 @@ single_precision = []
 
 [dependencies]
 cfg-if = "1"
+num = "0.4"
