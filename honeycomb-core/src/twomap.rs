@@ -54,11 +54,11 @@ const TWO_MAP_BETA: usize = 3;
 /// contains the following data:
 ///
 /// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
-/// - `free_vertices: Vec<VertexIdentifier>` -- List of free vertex identifiers,
+/// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
 ///   i.e. empty spots in the current vertex list
 /// - `faces: Vec<Face>` -- List of faces making up the represented mesh
 /// - `dart_data: DartData<N_MARKS>` -- List of embedded data associated with darts
-/// - `free_darts: Vec<DartIdentifier>` -- List of free darts identifiers, i.e. empty
+/// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 /// - `n_darts: usize` -- Current number of darts (including the null dart)
