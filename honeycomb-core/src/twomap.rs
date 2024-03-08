@@ -12,6 +12,7 @@
 
 // ------ IMPORTS
 
+use std::collections::BTreeSet;
 use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
 use crate::{
@@ -249,14 +250,14 @@ pub struct TwoMap<const N_MARKS: usize> {
     vertices: Vec<Vertex2>,
     /// List of free vertex identifiers, i.e. empty spots
     /// in the current vertex list
-    unused_vertices: Vec<VertexIdentifier>,
+    unused_vertices: BTreeSet<VertexIdentifier>,
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
     dart_data: DartData<N_MARKS>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    unused_darts: Vec<DartIdentifier>,
+    unused_darts: BTreeSet<DartIdentifier>,
     /// Array representation of the beta functions
     betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
     /// Current number of darts
@@ -299,10 +300,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 
         Self {
             vertices,
-            unused_vertices: Vec::with_capacity(n_vertices),
+            unused_vertices: BTreeSet::new(),
             faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
-            unused_darts: Vec::with_capacity(n_darts + 1),
+            unused_darts: BTreeSet::new(),
             betas,
             n_darts: n_darts + 1,
             n_vertices,
@@ -659,7 +660,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
-        if let Some(new_id) = self.unused_darts.pop() {
+        if let Some(new_id) = self.unused_darts.pop_first() {
             self.dart_data.reset_entry(new_id);
             self.betas[new_id as usize] = [0; TWO_MAP_BETA];
             new_id
@@ -688,7 +689,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
-        self.unused_darts.push(dart_id);
+        assert!(self.unused_darts.insert(dart_id));
         let b0d = self.beta::<0>(dart_id);
         let b1d = self.beta::<1>(dart_id);
         let b2d = self.beta::<2>(dart_id);
@@ -767,7 +768,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn insert_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
-        if let Some(new_id) = self.unused_vertices.pop() {
+        if let Some(new_id) = self.unused_vertices.pop_first() {
             self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
             new_id
         } else {
@@ -794,7 +795,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
-        self.unused_vertices.push(vertex_id);
+        assert!(self.unused_vertices.insert(vertex_id));
         // the following line is more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
         // it also panics on OOB
@@ -1388,8 +1389,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
-        let others_freedarts = self.unused_darts.capacity();
-        let others_freevertices = self.unused_vertices.capacity();
+        let others_freedarts = self.unused_darts.len();
+        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
         let others_total = others_freedarts + others_freevertices + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
