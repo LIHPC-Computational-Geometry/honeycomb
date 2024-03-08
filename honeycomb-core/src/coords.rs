@@ -10,7 +10,10 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 
 // ------ CONTENT
 
-pub trait CoordsFloat: num::Float + AddAssign + SubAssign + MulAssign + DivAssign {}
+pub trait CoordsFloat:
+    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
+{
+}
 
 impl CoordsFloat for f32 {}
 impl CoordsFloat for f64 {}
@@ -237,9 +240,10 @@ impl<T: CoordsFloat> Neg for Coords2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::FloatType;
 
-    fn almost_equal(lhs: &Coords2<f64>, rhs: &Coords2<f64>) -> bool {
-        const EPS: f64 = 10.0e-12;
+    fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
+        const EPS: FloatType = 10.0e-12;
         ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
     }
 
@@ -257,7 +261,7 @@ mod tests {
         let along_x = Coords2::unit_x() * 4.0;
         let along_y = Coords2::unit_y() * 3.0;
         assert_eq!(along_x.unit_dir(), Coords2::unit_x());
-        assert_eq!(Coords2::<f64>::unit_x().unit_dir(), Coords2::unit_x());
+        assert_eq!(Coords2::<FloatType>::unit_x().unit_dir(), Coords2::unit_x());
         assert_eq!(along_y.unit_dir(), Coords2::unit_y());
         assert!(almost_equal(
             &(along_x + along_y).unit_dir(),

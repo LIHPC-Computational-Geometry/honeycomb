@@ -23,7 +23,7 @@ pub mod twomap;
 
 // ------ RE-EXPORTS
 
-pub use coords::Coords2;
+pub use coords::{Coords2, CoordsFloat};
 pub use dart::{DartIdentifier, NULL_DART_ID};
 pub use embed::{
     FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
