@@ -73,6 +73,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
 ///   This corresponds to the number of search that can be done concurrently.
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
 ///
 /// # Example
 ///
