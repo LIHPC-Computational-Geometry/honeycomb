@@ -6,6 +6,7 @@
 
 // ------ IMPORTS
 
+use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
@@ -237,6 +238,18 @@ impl<T: CoordsFloat> Neg for Coords2<T> {
     }
 }
 
+impl<T: CoordsFloat> Sum<Coords2<T>> for Coords2<T> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Coords2<T> {
+        iter.fold(Self::default(), |c1, c2| c1 + c2)
+    }
+}
+
+impl<'a, T: CoordsFloat> Sum<&'a Coords2<T>> for Coords2<T> {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Coords2<T> {
+        iter.fold(Self::default(), |c1, c2| c1 + *c2)
+    }
+}
+
 impl<T: CoordsFloat> Index<usize> for Coords2<T> {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
@@ -290,5 +303,23 @@ mod tests {
             &(along_x + along_y).unit_dir(),
             &Coords2::from((4.0 / 5.0, 3.0 / 5.0))
         ));
+    }
+
+    #[test]
+    fn sum() {
+        let collection = [
+            Coords2::unit_x(),
+            Coords2::unit_x(),
+            Coords2::unit_x(),
+            Coords2::unit_y(),
+            Coords2::unit_y(),
+            Coords2::unit_y(),
+        ];
+
+        let owned_sum: Coords2<FloatType> = collection.into_iter().sum();
+        let borrowed_sum: Coords2<FloatType> = collection.iter().sum();
+        let ref_value: Coords2<FloatType> = Coords2::from((3.0, 3.0));
+        assert!(almost_equal(&owned_sum, &ref_value));
+        assert!(almost_equal(&borrowed_sum, &ref_value));
     }
 }
