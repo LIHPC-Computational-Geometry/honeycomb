@@ -2,18 +2,18 @@
 
 ## Honeycomb
 
-Honeycomb aims to provide a safe, efficient and scalable implementation of 
+Honeycomb aims to provide a safe, efficient and scalable implementation of
 combinatorial maps for meshing applications. More specifically, the goal is
-to converge towards a (or multiple) structure(s) adapted to algorithms 
+to converge towards a (or multiple) structure(s) adapted to algorithms
 exploiting GPUs and many-core architectures.
 
-The current objective is to write a first implementation in Rust, to then 
-improve the structure without having to deal with data races and similar 
+The current objective is to write a first implementation in Rust, to then
+improve the structure without having to deal with data races and similar
 issues, thanks to the language's guarantees.
 
 ### Core Requirements
 
-- **Rust stable release** - *Development started on 1.75, but we might use 
+- **Rust stable release** - *Development started on 1.75, but we might use
   newer features as the project progresses*
 
 ### Quickstart
@@ -21,36 +21,19 @@ issues, thanks to the language's guarantees.
 #### Rust
 
 The crate is not currently being published on crates.io, meaning you will have
-to clone this repository and add the dependency using the path to the project.
-
-```shell
-# Example: Setting up a new project using honeycomb-core
-
-# Create your project using cargo
-cargo new --bin my_project
-
-# Clone the honeycomb repository
-git clone https://github.com/LIHPC-Computational-Geometry/honeycomb.git
-
-# Add the dependency to your project
-# Version is set to whatever the current version is in the repository
-cd my_project
-cargo add honeycomb-core --path=../honeycomb/honeycomb-core/
-```
-
-The following lines should have appeared in the manifest of your project:
+to add the dependency manually to your project. This can be done by adding the
+following line to the manifest of the project:
 
 ```toml
 # Cargo.toml
 # ...
 
 [dependencies]
-honeycomb-core = { path = "../honeycomb/honeycomb-core/" }
+# Other dependencies...
+honeycomb-core = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
 ```
 
-You can also copy-paste the above directly to your manifest. From there, you can
-manually add whichever features your application requires. 
-
+Optionally, you can add other member(s) of the workspace and specify which version to use.
 
 #### Documentation
 

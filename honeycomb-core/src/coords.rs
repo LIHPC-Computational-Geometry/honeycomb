@@ -13,6 +13,17 @@ use std::ops::{
 
 // ------ CONTENT
 
+cfg_if::cfg_if! {
+    if #[cfg(feature = "single_precision")] {
+        pub type FloatType = f32;
+    } else {
+        pub type FloatType = f64;
+    }
+}
+
+// ------ CONTENT
+
+/// Common trait implemented by types used for coordinate representation.
 pub trait CoordsFloat:
     num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
 {
@@ -21,12 +32,20 @@ pub trait CoordsFloat:
 impl CoordsFloat for f32 {}
 impl CoordsFloat for f64 {}
 
+/// Coordinates-related error enum
 #[derive(Debug)]
 pub enum CoordsError {
+    /// Error during the computation of the unit directional vector.
+    ///
+    /// This is returned when trying to compute the unit vector of a null [Coords2] structure.
     InvalidUnitDir,
 }
 
 /// 2-dimensional coordinates structure
+///
+/// The floating type used for coordinate representation is determined
+/// by the user. For tests, it can be set using features and the [FloatType]
+/// alias.
 ///
 /// # Generics
 ///
@@ -34,7 +53,7 @@ pub enum CoordsError {
 ///
 /// # Example
 ///
-/// ```text
+/// ```rust
 /// use honeycomb_core::{Coords2, FloatType};
 ///
 /// let unit_x = Coords2::unit_x();
@@ -44,10 +63,10 @@ pub enum CoordsError {
 /// assert_eq!(unit_x.normal_dir(), unit_y);
 ///
 /// let two: FloatType = 2.0;
-/// let x_plus_y: Coords2 = unit_x + unit_y;
+/// let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+/// assert_eq!(x_plus_y.unit_dir().unwrap(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -85,7 +104,7 @@ impl<T: CoordsFloat> Coords2<T> {
         }
     }
 
-    /// Computes the mid-point between two points.
+    /// Compute the mid-point between two points.
     ///
     /// # Return
     ///
@@ -93,12 +112,19 @@ impl<T: CoordsFloat> Coords2<T> {
     ///
     /// # Example
     ///
-    /// See [Coords2] example.
+    /// ```rust
+    /// use honeycomb_core::Coords2;
+    ///
+    /// let far_far_away: Coords2<f64> = Coords2::from((2.0, 2.0));
+    /// let origin: Coords2<f64> = Coords2::default();
+    ///
+    /// assert_eq!(Coords2::average(&origin, &far_far_away), Coords2::from((1.0, 1.0)));
+    /// ```
     pub fn average(lhs: &Coords2<T>, rhs: &Coords2<T>) -> Coords2<T> {
         (*lhs + *rhs) / T::from(2.0).unwrap()
     }
 
-    /// Computes the norm of `self`.
+    /// Compute the norm of `self`.
     ///
     /// # Return
     ///
@@ -113,7 +139,7 @@ impl<T: CoordsFloat> Coords2<T> {
         self.x.hypot(self.y)
     }
 
-    /// Computes the direction of `self` as a unit vector.
+    /// Compute the direction of `self` as a unit vector.
     ///
     /// # Return
     ///
@@ -133,7 +159,7 @@ impl<T: CoordsFloat> Coords2<T> {
         }
     }
 
-    /// Computes the direction of the normal vector to `self`.
+    /// Compute the direction of the normal vector to `self`.
     ///
     /// # Return
     ///
@@ -149,9 +175,11 @@ impl<T: CoordsFloat> Coords2<T> {
             x: -self.y,
             y: self.x,
         }
+        .unit_dir()
+        .unwrap()
     }
 
-    /// Computes the dot product between two vectors
+    /// Compute the dot product between two vectors
     ///
     /// # Arguments
     ///
