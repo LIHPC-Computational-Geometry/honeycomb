@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 use honeycomb_core::{
-    DartIdentifier, FloatType, SewPolicy, TwoMap, UnsewPolicy, Vertex2, VertexIdentifier,
+    CoordsFloat, DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, Vertex2, VertexIdentifier,
 };
 
 // ------ CONTENT
@@ -37,7 +37,7 @@ use honeycomb_core::{
 /// use honeycomb_core::TwoMap;
 /// use honeycomb_utils::generation::square_two_map;
 ///
-/// let cmap: TwoMap<1> = square_two_map(2);
+/// let cmap: TwoMap<1, f64> = square_two_map(2);
 /// ```
 ///
 /// The above code generates the following map:
@@ -54,8 +54,8 @@ use honeycomb_core::{
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> {
-    let mut map: TwoMap<N_MARKS> = TwoMap::new(4 * n_square.pow(2), (n_square + 1).pow(2));
+pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> TwoMap<N_MARKS, T> {
+    let mut map: TwoMap<N_MARKS, T> = TwoMap::new(4 * n_square.pow(2), (n_square + 1).pow(2));
 
     // first, topology
     (0..n_square).for_each(|y_idx| {
@@ -86,7 +86,7 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
             let vertex_id = (y_idx * (n_square + 1) + x_idx) as VertexIdentifier;
             map.set_vertex(
                 vertex_id,
-                Vertex2::from((x_idx as FloatType * 1.0, y_idx as FloatType * 1.0)),
+                Vertex2::from((T::from(x_idx).unwrap(), T::from(y_idx).unwrap())),
             )
             .unwrap();
             // update the associated 0-cell
@@ -151,7 +151,7 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
 /// use honeycomb_core::TwoMap;
 /// use honeycomb_utils::generation::splitsquare_two_map;
 ///
-/// let cmap: TwoMap<1> = splitsquare_two_map(2);
+/// let cmap: TwoMap<1, f64> = splitsquare_two_map(2);
 /// ```
 ///
 /// The above code generates the following map:
@@ -168,8 +168,10 @@ pub fn square_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> 
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn splitsquare_two_map<const N_MARKS: usize>(n_square: usize) -> TwoMap<N_MARKS> {
-    let mut map: TwoMap<N_MARKS> = square_two_map(n_square);
+pub fn splitsquare_two_map<const N_MARKS: usize, T: CoordsFloat>(
+    n_square: usize,
+) -> TwoMap<N_MARKS, T> {
+    let mut map: TwoMap<N_MARKS, T> = square_two_map(n_square);
 
     (0..n_square.pow(2)).for_each(|square| {
         let d1 = (1 + square * 4) as DartIdentifier;
@@ -200,7 +202,7 @@ mod tests {
 
     #[test]
     fn square_two_map_correctness() {
-        let cmap: TwoMap<1> = square_two_map(2);
+        let cmap: TwoMap<1, f64> = square_two_map(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
@@ -296,7 +298,7 @@ mod tests {
 
     #[test]
     fn splitsquare_two_map_correctness() {
-        let cmap: TwoMap<1> = splitsquare_two_map(2);
+        let cmap: TwoMap<1, f64> = splitsquare_two_map(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction

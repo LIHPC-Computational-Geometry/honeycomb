@@ -23,7 +23,7 @@ pub mod twomap;
 
 // ------ RE-EXPORTS
 
-pub use coords::{Coords2, FloatType};
+pub use coords::{Coords2, CoordsFloat};
 pub use dart::{DartIdentifier, NULL_DART_ID};
 pub use embed::{
     FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
@@ -33,6 +33,14 @@ pub use twomap::TwoMap;
 // ------ IMPORTS
 
 // ------ CONTENT
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "single_precision")] {
+        pub type FloatType = f32;
+    } else {
+        pub type FloatType = f64;
+    }
+}
 
 // ------ TESTS
 

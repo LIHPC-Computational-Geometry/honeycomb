@@ -6,6 +6,7 @@
 
 // ------ IMPORTS
 
+
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 // ------ CONTENT
@@ -16,12 +17,34 @@ cfg_if::cfg_if! {
     } else {
         pub type FloatType = f64;
     }
+use std::iter::Sum;
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
+
+// ------ CONTENT
+
+pub trait CoordsFloat:
+    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
+{
+}
+
+impl CoordsFloat for f32 {}
+impl CoordsFloat for f64 {}
+
+#[derive(Debug)]
+pub enum CoordsError {
+    InvalidUnitDir,
 }
 
 /// 2-dimensional coordinates structure
 ///
 /// The floating type used for coordinate representation is determined
 /// using feature and the [FloatType] alias.
+///
+/// # Generics
+///
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
 ///
 /// # Example
 ///
@@ -42,22 +65,26 @@ cfg_if::cfg_if! {
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct Coords2 {
+
+pub struct Coords2<T: CoordsFloat> {
     /// First coordinate
-    pub x: FloatType,
+    pub x: T,
     /// Second coordinate
-    pub y: FloatType,
+    pub y: T,
 }
 
-impl Coords2 {
+impl<T: CoordsFloat> Coords2<T> {
     /// Base vector
     ///
     /// # Return
     ///
     /// Return a unit vector along the `x` axis.
     ///
-    pub fn unit_x() -> Coords2 {
-        Self { x: 1., y: 0. } // make it a const?
+    pub fn unit_x() -> Coords2<T> {
+        Self {
+            x: T::one(),
+            y: T::zero(),
+        }
     }
 
     /// Base vector
@@ -66,22 +93,39 @@ impl Coords2 {
     ///
     /// Return a unit vector along the `y` axis.
     ///
-    pub fn unit_y() -> Coords2 {
-        Self { x: 0., y: 1. } // make it a const?
+    pub fn unit_y() -> Coords2<T> {
+        Self {
+            x: T::zero(),
+            y: T::one(),
+        }
+    }
+
+    /// Computes the mid-point between two points.
+    ///
+    /// # Return
+    ///
+    /// Return the mid-point as a new [Coords2] object.
+    ///
+    /// # Example
+    ///
+    /// See [Coords2] example.
+    pub fn average(lhs: &Coords2<T>, rhs: &Coords2<T>) -> Coords2<T> {
+        (*lhs + *rhs) / T::from(2.0).unwrap()
     }
 
     /// Computes the norm of `self`.
     ///
     /// # Return
     ///
-    /// Return the norm as a [FloatType].
+    /// Return the norm. Its type is the same as the one used for internal
+    /// representation.
     ///
     /// # Example
     ///
     /// See [Coords2] example.
     ///
-    pub fn norm(&self) -> FloatType {
-        (self.x * self.x + self.y * self.y).sqrt()
+    pub fn norm(&self) -> T {
+        self.x.hypot(self.y)
     }
 
     /// Computes the direction of `self` as a unit vector.
@@ -95,8 +139,13 @@ impl Coords2 {
     ///
     /// See [Coords2] example.
     ///
-    pub fn unit_dir(&self) -> Coords2 {
-        *self / self.norm()
+    pub fn unit_dir(&self) -> Result<Coords2<T>, CoordsError> {
+        let norm = self.norm();
+        if !norm.is_zero() {
+            Ok(*self / norm)
+        } else {
+            Err(CoordsError::InvalidUnitDir)
+        }
     }
 
     /// Computes the direction of the normal vector to `self`.
@@ -110,7 +159,7 @@ impl Coords2 {
     ///
     /// See [Coords2] example.
     ///
-    pub fn normal_dir(&self) -> Coords2 {
+    pub fn normal_dir(&self) -> Coords2<T> {
         Coords2 {
             x: -self.y,
             y: self.x,
@@ -131,91 +180,133 @@ impl Coords2 {
     ///
     /// See [Coords2] example.
     ///
-    pub fn dot(&self, other: &Coords2) -> FloatType {
+    pub fn dot(&self, other: &Coords2<T>) -> T {
         self.x * other.x + self.y * other.y
     }
 }
 
 // Building traits
 
-impl<T: Into<FloatType>> From<(T, T)> for Coords2 {
+impl<T: CoordsFloat> From<(T, T)> for Coords2<T> {
     fn from((x, y): (T, T)) -> Self {
-        Self {
-            x: x.into(),
-            y: y.into(),
-        }
+        Self { x, y }
     }
 }
 
-impl<T: Into<FloatType>> From<[T; 2]> for Coords2 {
+impl<T: CoordsFloat> From<[T; 2]> for Coords2<T> {
     fn from([x, y]: [T; 2]) -> Self {
-        Self {
-            x: x.into(),
-            y: y.into(),
-        }
+        Self { x, y }
     }
 }
 
 // Basic operations
 
-impl Add<Coords2> for Coords2 {
+impl<T: CoordsFloat> Add<Coords2<T>> for Coords2<T> {
     type Output = Self;
 
-    fn add(self, rhs: Coords2) -> Self::Output {
+    fn add(self, rhs: Coords2<T>) -> Self::Output {
         Self::from((self.x + rhs.x, self.y + rhs.y))
     }
 }
 
-impl AddAssign<Coords2> for Coords2 {
-    fn add_assign(&mut self, rhs: Coords2) {
+impl<T: CoordsFloat> AddAssign<Coords2<T>> for Coords2<T> {
+    fn add_assign(&mut self, rhs: Coords2<T>) {
         self.x += rhs.x;
         self.y += rhs.y;
     }
 }
 
-impl Sub<Coords2> for Coords2 {
+
+impl<T: CoordsFloat> Sub<Coords2<T>> for Coords2<T> {
     type Output = Self;
 
-    fn sub(self, rhs: Coords2) -> Self::Output {
+    fn sub(self, rhs: Coords2<T>) -> Self::Output {
         Self::from((self.x - rhs.x, self.y - rhs.y))
     }
 }
 
-impl SubAssign<Coords2> for Coords2 {
-    fn sub_assign(&mut self, rhs: Coords2) {
+impl<T: CoordsFloat> SubAssign<Coords2<T>> for Coords2<T> {
+    fn sub_assign(&mut self, rhs: Coords2<T>) {
         self.x -= rhs.x;
         self.y -= rhs.y;
     }
 }
 
-impl Mul<FloatType> for Coords2 {
+impl<T: CoordsFloat> Mul<T> for Coords2<T> {
     type Output = Self;
 
-    fn mul(self, rhs: FloatType) -> Self::Output {
+    fn mul(self, rhs: T) -> Self::Output {
         Self::from((self.x * rhs, self.y * rhs))
     }
 }
 
-impl MulAssign<FloatType> for Coords2 {
-    fn mul_assign(&mut self, rhs: FloatType) {
+impl<T: CoordsFloat> MulAssign<T> for Coords2<T> {
+    fn mul_assign(&mut self, rhs: T) {
         self.x *= rhs;
         self.y *= rhs;
     }
 }
 
-impl Div<FloatType> for Coords2 {
+impl<T: CoordsFloat> Div<T> for Coords2<T> {
     type Output = Self;
 
-    fn div(self, rhs: FloatType) -> Self::Output {
-        assert_ne!(rhs, 0.0);
-        self * (1.0 / rhs)
+    fn div(self, rhs: T) -> Self::Output {
+        assert!(!rhs.is_zero());
+        Coords2 {
+            x: self.x / rhs,
+            y: self.y / rhs,
+        }
     }
 }
 
-impl DivAssign<FloatType> for Coords2 {
-    fn div_assign(&mut self, rhs: FloatType) {
-        assert_ne!(rhs, 0.0);
-        *self *= 1.0 / rhs;
+impl<T: CoordsFloat> DivAssign<T> for Coords2<T> {
+    fn div_assign(&mut self, rhs: T) {
+        assert!(!rhs.is_zero());
+        self.x /= rhs;
+        self.y /= rhs;
+    }
+}
+
+impl<T: CoordsFloat> Neg for Coords2<T> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
+}
+
+impl<T: CoordsFloat> Sum<Coords2<T>> for Coords2<T> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Coords2<T> {
+        iter.fold(Self::default(), |c1, c2| c1 + c2)
+    }
+}
+
+impl<'a, T: CoordsFloat> Sum<&'a Coords2<T>> for Coords2<T> {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Coords2<T> {
+        iter.fold(Self::default(), |c1, c2| c1 + *c2)
+    }
+}
+
+impl<T: CoordsFloat> Index<usize> for Coords2<T> {
+    type Output = T;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            i => panic!("cannot index a 2D vector with value {i}"),
+        }
+    }
+}
+
+impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            i => panic!("cannot index a 2D vector with value {i}"),
+        }
     }
 }
 
@@ -224,8 +315,9 @@ impl DivAssign<FloatType> for Coords2 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::FloatType;
 
-    fn almost_equal(lhs: &Coords2, rhs: &Coords2) -> bool {
+    fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
         const EPS: FloatType = 10.0e-12;
         ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
     }
@@ -243,12 +335,35 @@ mod tests {
     fn unit_dir() {
         let along_x = Coords2::unit_x() * 4.0;
         let along_y = Coords2::unit_y() * 3.0;
-        assert_eq!(along_x.unit_dir(), Coords2::unit_x());
-        assert_eq!(Coords2::unit_x().unit_dir(), Coords2::unit_x());
-        assert_eq!(along_y.unit_dir(), Coords2::unit_y());
+        assert_eq!(along_x.unit_dir().unwrap(), Coords2::unit_x());
+        assert_eq!(
+            Coords2::<FloatType>::unit_x().unit_dir().unwrap(),
+            Coords2::unit_x()
+        );
+        assert_eq!(along_y.unit_dir().unwrap(), Coords2::unit_y());
         assert!(almost_equal(
-            &(along_x + along_y).unit_dir(),
+            &(along_x + along_y).unit_dir().unwrap(),
             &Coords2::from((4.0 / 5.0, 3.0 / 5.0))
         ));
+        let origin: Coords2<FloatType> = Coords2::default();
+        assert!(origin.unit_dir().is_err());
+    }
+
+    #[test]
+    fn sum() {
+        let collection = [
+            Coords2::unit_x(),
+            Coords2::unit_x(),
+            Coords2::unit_x(),
+            Coords2::unit_y(),
+            Coords2::unit_y(),
+            Coords2::unit_y(),
+        ];
+
+        let owned_sum: Coords2<FloatType> = collection.into_iter().sum();
+        let borrowed_sum: Coords2<FloatType> = collection.iter().sum();
+        let ref_value: Coords2<FloatType> = Coords2::from((3.0, 3.0));
+        assert!(almost_equal(&owned_sum, &ref_value));
+        assert!(almost_equal(&borrowed_sum, &ref_value));
     }
 }
