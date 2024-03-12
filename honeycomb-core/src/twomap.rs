@@ -685,6 +685,14 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
     ///
+    /// # Panic
+    ///
+    /// This method may panic if:
+    ///
+    /// - The dart is not *i*-free for all *i*.
+    /// - The dart is already marked as unused (Refer to [remove_vertex] documentation for
+    ///   a detailed breakdown of this choice).
+    ///
     /// # Example
     ///
     /// See [TwoMap] example.
@@ -792,11 +800,23 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
+    /// # Panic
+    ///
+    /// This method may panic if the user tries to remove a vertex that is already
+    /// unused. This is a strongly motivated choice as:
+    /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
+    /// - Duplicated unused slots will only lead to errors when reusing the slots (implicit
+    ///   overwrites).
+    ///
     /// # Example
     ///
     /// See [TwoMap] example.
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
+        // the insert method returns true if the value was inserted into the set,
+        // i.e. it wasn't already in before. This assertions guarantees that a
+        // single vertex won't be removed twice, leading to it being re-used
+        // multiple times.
         assert!(self.unused_vertices.insert(vertex_id));
         // the following line is more safety than anything else
         // this prevents having to deal w/ artifacts in case of re-insertion
@@ -1577,10 +1597,28 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use crate::{FloatType, TwoMap};
 
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    #[should_panic]
+    fn remove_vertex_twice() {
+        // in its default state, all darts/vertices of a map are considered to be used
+        let mut map: TwoMap<1, FloatType> = TwoMap::new(4, 4);
+        // set vertex 1 as unused
+        map.remove_vertex(1);
+        // set vertex 1 as unused, again
+        map.remove_vertex(1); // this should panic
+    }
+
+    #[test]
+    #[should_panic]
+    fn remove_dart_twice() {
+        // in its default state, all darts/vertices of a map are considered to be used
+        // darts are also free
+        let mut map: TwoMap<1, FloatType> = TwoMap::new(4, 4);
+        // set dart 1 as unused
+        map.remove_free_dart(1);
+        // set dart 1 as unused, again
+        map.remove_free_dart(1); // this should panic
     }
 }
