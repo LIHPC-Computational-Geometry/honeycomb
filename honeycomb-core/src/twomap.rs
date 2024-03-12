@@ -690,7 +690,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     /// This method may panic if:
     ///
     /// - The dart is not *i*-free for all *i*.
-    /// - The dart is already marked as unused (Refer to [remove_vertex] documentation for
+    /// - The dart is already marked as unused (Refer to [Self::remove_vertex] documentation for
     ///   a detailed breakdown of this choice).
     ///
     /// # Example
@@ -805,7 +805,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     /// This method may panic if the user tries to remove a vertex that is already
     /// unused. This is a strongly motivated choice as:
     /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
-    /// - Duplicated unused slots will only lead to errors when reusing the slots (implicit
+    /// - Duplicated unused slots will only lead to errors when reusing the slots (e.g. implicit
     ///   overwrites).
     ///
     /// # Example
