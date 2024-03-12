@@ -67,7 +67,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
-    let range: Uniform<f64> = rand::distributions::Uniform::new(-0.5, 0.5);
+    let range: Uniform<FloatType> = rand::distributions::Uniform::new(-0.5, 0.5);
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
 
