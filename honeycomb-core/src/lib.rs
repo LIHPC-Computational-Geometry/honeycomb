@@ -6,15 +6,24 @@
 //! This documentation focus on the implementation side of things
 //! and API usage, for more formal information about combinatorial
 //! maps, refer to the **Definitions** section of the user guide.
+//!
+//! ## Features
+//!
+//! Optional features can be enabled when compiling this crate:
+//!
+//! - `benchmarking_utils` -- provides additionnal methods for benchmarking and debugging
+//! - `single_precision` -- uses `f32` instead of `f64` for coordinates representation
 
 // ------ MODULE DECLARATIONS
 
+mod coords;
 pub mod dart;
 pub mod embed;
 pub mod twomap;
 
 // ------ RE-EXPORTS
 
+pub use coords::{Coords2, CoordsFloat};
 pub use dart::{DartIdentifier, NULL_DART_ID};
 pub use embed::{
     FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
@@ -24,6 +33,14 @@ pub use twomap::TwoMap;
 // ------ IMPORTS
 
 // ------ CONTENT
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "single_precision")] {
+        pub type FloatType = f32;
+    } else {
+        pub type FloatType = f64;
+    }
+}
 
 // ------ TESTS
 

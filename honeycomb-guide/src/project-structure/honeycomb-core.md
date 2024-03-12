@@ -4,14 +4,14 @@
 
 --- 
 
-**honeycomb-core** is a Rust crate that provides basic structures and 
-operations for combinatorial map manipulation. This includes map structures, 
+**honeycomb-core** is a Rust crate that provides basic structures and
+operations for combinatorial map manipulation. This includes map structures,
 methods implementation, type aliases and geometric modeling for mesh
 representation.
 
 ## Usage
 
-A quickstart example encompassing most features is provided for the following 
+A quickstart example encompassing most features is provided for the following
 structures:
 
 - [TwoMap](../honeycomb_core/twomap/struct.TwoMap.html#example)
@@ -21,10 +21,11 @@ structures:
 ### Structures
 
 - **TwoMap**: 2D combinatorial map implementation
+- **Coords2**: 2D coordinates implementation
 
 ### Aliases
 
-- **Vertex2**: 2-elements array
+- **Vertex2**: Coords2 alias
 - **DartIdentifier**: Integer identifier for darts
 - **VertexIdentifier**: Integer identifier for 0D cells
 - **FaceIdentifier**: Integer identifier for 2D cells
@@ -38,9 +39,9 @@ structures:
 ## Future additions
 
 - [x] Write structure benchmarks (2D) - done as of **0.1.1**
-- [ ] Add a custom vector type for spatial representation (2D & 3D)
+- [x] Add a custom vector type for spatial representation (2D)
+- [x] Add orientation ~checks~ assertions (2D)
 - [ ] Replace returned `Vec` by an alternative structure or type
   to prevent too many runtime allocations.
 - [ ] Add I/O support for mesh formats (2D)
-- [ ] Add orientation checks (2D)
 - [ ] Implement 3D maps

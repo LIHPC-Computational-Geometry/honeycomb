@@ -14,8 +14,9 @@
 
 use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
+use crate::coords::CoordsFloat;
 use crate::{
-    DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
+    Coords2, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
 };
 
 use super::{
@@ -72,6 +73,7 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
 ///   This corresponds to the number of search that can be done concurrently.
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
 ///
 /// # Example
 ///
@@ -92,7 +94,7 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: TwoMap<1> = TwoMap::new(3, 3);
+/// let mut map: TwoMap<1, f64> = TwoMap::new(3, 3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -154,7 +156,7 @@ const TWO_MAP_BETA: usize = 3;
 /// assert!(map.is_free(d6));
 ///
 /// // create the corresponding three vertices
-/// let v4 = map.add_vertex(Some([15.0, 0.0])); // v4
+/// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
 /// let v5 = map.add_vertices(2); // v5, v6
 /// let v6 = v5 + 1;
 /// map.set_vertex(v5, [5.0, 10.0]); // v5
@@ -228,10 +230,10 @@ const TWO_MAP_BETA: usize = 3;
 /// assert_eq!(map.faceid(d3), new_face_id);
 ///
 /// // check dart positions
-/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0]);
-/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0]);
+/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0].into());
+/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0].into());
 ///
 /// // check topology of the new face
 /// let new_two_cell = map.i_cell::<2>(d3);
@@ -244,9 +246,9 @@ const TWO_MAP_BETA: usize = 3;
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
-pub struct TwoMap<const N_MARKS: usize> {
+pub struct TwoMap<const N_MARKS: usize, T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2>,
+    vertices: Vec<Vertex2<T>>,
     /// List of free vertex identifiers, i.e. empty spots
     /// in the current vertex list
     free_vertices: Vec<VertexIdentifier>,
@@ -272,7 +274,7 @@ macro_rules! stretch {
     };
 }
 
-impl<const N_MARKS: usize> TwoMap<N_MARKS> {
+impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     /// Creates a new 2D combinatorial map.
     ///
     /// # Arguments
@@ -294,7 +296,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     /// See [TwoMap] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![[0.0, 0.0]; n_vertices];
+        let vertices = vec![Vertex2::default(); n_vertices];
         let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
 
         Self {
@@ -409,7 +411,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2 {
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
         &self.vertices[vertex_id as usize]
     }
 
@@ -718,7 +720,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn add_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
+    pub fn add_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
         let new_id = self.n_vertices as VertexIdentifier;
         self.n_vertices += 1;
         self.vertices.push(vertex.unwrap_or_default());
@@ -766,7 +768,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn insert_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
+    pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
         if let Some(new_id) = self.free_vertices.pop() {
             self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
             new_id
@@ -820,10 +822,10 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
     pub fn set_vertex(
         &mut self,
         vertex_id: VertexIdentifier,
-        vertex: Vertex2,
+        vertex: impl Into<Vertex2<T>>,
     ) -> Result<(), MapError> {
         if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
-            *val = vertex;
+            *val = vertex.into();
             return Ok(());
         }
         Err(MapError::VertexOOB)
@@ -964,10 +966,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                     // associated to rhs_dart
                     let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
                     let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-                    self.vertices.push([
-                        (lid_vertex[0] + rhs_vertex[0]) / 2.0,
-                        (lid_vertex[1] + rhs_vertex[1]) / 2.0,
-                    ]);
+                    self.vertices
+                        .push(Coords2::average(&lid_vertex, &rhs_vertex));
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                     stretch!(self, lid, new_id);
                     stretch!(self, rhs_dart_id, new_id);
@@ -1046,10 +1046,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push([
-                            (vertex1[0] + vertex2[0]) / 2.0,
-                            (vertex1[1] + vertex2[1]) / 2.0,
-                        ]);
+                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1rid, new_id);
@@ -1070,10 +1067,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push([
-                            (vertex1[0] + vertex2[0]) / 2.0,
-                            (vertex1[1] + vertex2[1]) / 2.0,
-                        ]);
+                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1lid, new_id);
@@ -1092,20 +1086,18 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                 let b1_rvertex = self.vertices[self.cells(b1rid).vertex_id as usize];
                 let rvertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                let lhs_vec = [b1_lvertex[0] - lvertex[0], b1_lvertex[1] - lvertex[1]];
-                let rhs_vec = [b1_rvertex[0] - rvertex[0], b1_rvertex[1] - rvertex[1]];
+                let lhs_vec = b1_lvertex - lvertex;
+                let rhs_vec = b1_rvertex - rvertex;
 
                 // dot product should be negative if the two darts have opposite direction
-                let current = lhs_vec[0] * rhs_vec[0] + lhs_vec[1] * rhs_vec[1] < 0.0;
-
-                if !current {
-                    // we need reverse the orientation of the 2-cell
-                    // i.e. swap values of beta 1 & beta 0
-                    // for all elements connected to rhs & offset the
-                    // associated vertices to keep consistency between
-                    // placement & numbering
-                    todo!("figure out how to reverse orientation of closed & open 2-cell")
-                }
+                // we could also put restriction on the angle made by the two darts to prevent
+                // drastic deformation
+                assert!(
+                    lhs_vec.dot(&rhs_vec) < T::zero(),
+                    "Dart {} and {} do not have consistent orientation for 2-sewing",
+                    lhs_dart_id,
+                    rhs_dart_id
+                );
 
                 match policy {
                     SewPolicy::StretchLeft => {
@@ -1117,14 +1109,8 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
                         stretch!(self, lhs_dart_id, b1rid);
                     }
                     SewPolicy::StretchAverage => {
-                        let new_lvertex = [
-                            (lvertex[0] + b1_rvertex[0]) / 2.0,
-                            (lvertex[1] + b1_rvertex[1]) / 2.0,
-                        ];
-                        let new_rvertex = [
-                            (rvertex[0] + b1_lvertex[0]) / 2.0,
-                            (rvertex[1] + b1_lvertex[1]) / 2.0,
-                        ];
+                        let new_lvertex = Coords2::average(&lvertex, &b1_rvertex);
+                        let new_rvertex = Coords2::average(&rvertex, &b1_lvertex);
                         self.vertices.push(new_lvertex);
                         self.vertices.push(new_rvertex);
                         let new_lid = self.vertices.len() - 2;
@@ -1329,7 +1315,7 @@ impl<const N_MARKS: usize> TwoMap<N_MARKS> {
 }
 
 #[cfg(any(doc, feature = "benchmarking_utils"))]
-impl<const N_MARKS: usize> TwoMap<N_MARKS> {
+impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     /// Computes the total allocated space dedicated to the map.
     ///
     /// # Arguments

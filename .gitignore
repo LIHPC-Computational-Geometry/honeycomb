@@ -1,6 +1,8 @@
 Cargo.lock
 /target
-
+# local IDE configs
+/.idea
+/.vscode
 # ignore csv & svg files in root directory
 /*.csv
 /*.svg

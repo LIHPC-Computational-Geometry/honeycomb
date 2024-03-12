@@ -14,6 +14,7 @@
 
 // ------ IMPORTS
 
+use crate::coords::Coords2;
 #[cfg(doc)]
 use crate::TwoMap;
 
@@ -95,7 +96,7 @@ pub enum UnsewPolicy {
 }
 
 /// Type definition for 2D vertex representation.
-pub type Vertex2 = [f64; 2];
+pub type Vertex2<T> = Coords2<T>;
 
 /// Type definition for 3D vertex representation.
 pub type Vertex3 = [f64; 3];
@@ -126,7 +127,7 @@ pub type Vertex3 = [f64; 3];
 ///     [1.0, 1.0],
 ///     [0.0, 1.0],
 ///     [2.0, 0.0],
-/// ];
+/// ].map(Vertex2::from);
 ///
 /// let square_face = Face { corners: vec![0, 1, 2, 3], closed: true };
 /// let triangle_face = Face { corners: vec![1, 4, 2], closed: true };
