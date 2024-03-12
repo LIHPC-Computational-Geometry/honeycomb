@@ -23,19 +23,25 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{DartIdentifier, TwoMap, Vertex2, VertexIdentifier, NULL_DART_ID};
+use honeycomb_core::{DartIdentifier, FloatType, TwoMap, Vertex2, VertexIdentifier, NULL_DART_ID};
 use honeycomb_utils::generation::splitsquare_two_map;
 
 // ------ CONTENT
 
-fn offset<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
+fn offset<const N_MARKS: usize>(
+    mut map: TwoMap<N_MARKS, FloatType>,
+    offsets: &[Vertex2<FloatType>],
+) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
         let _ = map.set_vertex(vertex_id as VertexIdentifier, offsets[vertex_id]);
     });
     black_box(&mut map);
 }
 
-fn offset_if_inner<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Vertex2]) {
+fn offset_if_inner<const N_MARKS: usize>(
+    mut map: TwoMap<N_MARKS, FloatType>,
+    offsets: &[Vertex2<FloatType>],
+) {
     let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
     // collect inner vertex IDs
     (0..map.n_darts().0 as DartIdentifier).for_each(|dart_id| {
@@ -57,7 +63,7 @@ fn offset_if_inner<const N_MARKS: usize>(mut map: TwoMap<N_MARKS>, offsets: &[Ve
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let map: TwoMap<1> = splitsquare_two_map(N_SQUARE);
+    let map: TwoMap<1, FloatType> = splitsquare_two_map(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
@@ -65,7 +71,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
 
-    let offsets: Vec<Vertex2> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
+    let offsets: Vec<Vertex2<FloatType>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
 
     let mut group = c.benchmark_group("splitsquaremap-shift");
 

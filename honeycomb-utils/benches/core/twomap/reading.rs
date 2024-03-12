@@ -14,7 +14,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{DartIdentifier, TwoMap};
+use honeycomb_core::{DartIdentifier, FloatType, TwoMap};
 use honeycomb_utils::generation::square_two_map;
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
@@ -23,15 +23,15 @@ use std::hint::black_box;
 
 // ------ CONTENT
 
-fn get_map(n_square: usize) -> TwoMap<1> {
-    square_two_map::<1>(n_square)
+fn get_map(n_square: usize) -> TwoMap<1, FloatType> {
+    square_two_map::<1, FloatType>(n_square)
 }
 
 #[library_benchmark]
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn single_beta_single_dart(map: &TwoMap<1>) -> DartIdentifier {
+fn single_beta_single_dart(map: &TwoMap<1, FloatType>) -> DartIdentifier {
     black_box(map.beta::<1>(5))
 }
 
@@ -39,7 +39,9 @@ fn single_beta_single_dart(map: &TwoMap<1>) -> DartIdentifier {
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn all_betas_single_dart(map: &TwoMap<1>) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
+fn all_betas_single_dart(
+    map: &TwoMap<1, FloatType>,
+) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
     (
         black_box(map.beta::<0>(5)),
         black_box(map.beta::<1>(5)),
@@ -52,7 +54,7 @@ fn all_betas_single_dart(map: &TwoMap<1>) -> (DartIdentifier, DartIdentifier, Da
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
 fn single_beta_contiguous_darts(
-    map: &TwoMap<1>,
+    map: &TwoMap<1, FloatType>,
 ) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
     (
         black_box(map.beta::<1>(5)),
@@ -65,7 +67,9 @@ fn single_beta_contiguous_darts(
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn single_beta_random_darts(map: &TwoMap<1>) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
+fn single_beta_random_darts(
+    map: &TwoMap<1, FloatType>,
+) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
     (
         black_box(map.beta::<0>(3)),
         black_box(map.beta::<1>(10)),
@@ -86,7 +90,7 @@ library_benchmark_group!(
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn i_free(map: &TwoMap<1>) -> bool {
+fn i_free(map: &TwoMap<1, FloatType>) -> bool {
     black_box(map.is_i_free::<1>(3))
 }
 
@@ -94,7 +98,7 @@ fn i_free(map: &TwoMap<1>) -> bool {
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn free(map: &TwoMap<1>) -> bool {
+fn free(map: &TwoMap<1, FloatType>) -> bool {
     black_box(map.is_free(3))
 }
 
@@ -109,7 +113,7 @@ library_benchmark_group!(
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn zero_cell(map: &TwoMap<1>) -> Vec<DartIdentifier> {
+fn zero_cell(map: &TwoMap<1, FloatType>) -> Vec<DartIdentifier> {
     black_box(map.i_cell::<0>(5))
 }
 
@@ -117,7 +121,7 @@ fn zero_cell(map: &TwoMap<1>) -> Vec<DartIdentifier> {
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn one_cell(map: &TwoMap<1>) -> Vec<DartIdentifier> {
+fn one_cell(map: &TwoMap<1, FloatType>) -> Vec<DartIdentifier> {
     black_box(map.i_cell::<0>(5))
 }
 
@@ -125,7 +129,7 @@ fn one_cell(map: &TwoMap<1>) -> Vec<DartIdentifier> {
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn two_cell(map: &TwoMap<1>) -> Vec<DartIdentifier> {
+fn two_cell(map: &TwoMap<1, FloatType>) -> Vec<DartIdentifier> {
     black_box(map.i_cell::<2>(5))
 }
 

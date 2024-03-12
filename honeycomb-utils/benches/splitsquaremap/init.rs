@@ -9,7 +9,7 @@ use criterion::{
     black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
     PlotConfiguration, Throughput,
 };
-use honeycomb_core::TwoMap;
+use honeycomb_core::{FloatType, TwoMap};
 use honeycomb_utils::generation::splitsquare_two_map;
 
 // ------ CONTENT
@@ -24,7 +24,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
-                let mut map: TwoMap<1> = splitsquare_two_map(*n_square);
+                let mut map: TwoMap<1, FloatType> = splitsquare_two_map(*n_square);
                 black_box(&mut map);
             })
         });
