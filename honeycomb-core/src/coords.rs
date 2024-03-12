@@ -21,6 +21,11 @@ pub trait CoordsFloat:
 impl CoordsFloat for f32 {}
 impl CoordsFloat for f64 {}
 
+#[derive(Debug)]
+pub enum CoordsError {
+    InvalidUnitDir,
+}
+
 /// 2-dimensional coordinates structure
 ///
 /// # Generics
@@ -119,8 +124,13 @@ impl<T: CoordsFloat> Coords2<T> {
     ///
     /// See [Coords2] example.
     ///
-    pub fn unit_dir(&self) -> Coords2<T> {
-        *self / self.norm()
+    pub fn unit_dir(&self) -> Result<Coords2<T>, CoordsError> {
+        let norm = self.norm();
+        if !norm.is_zero() {
+            Ok(*self / norm)
+        } else {
+            Err(CoordsError::InvalidUnitDir)
+        }
     }
 
     /// Computes the direction of the normal vector to `self`.
@@ -309,13 +319,18 @@ mod tests {
     fn unit_dir() {
         let along_x = Coords2::unit_x() * 4.0;
         let along_y = Coords2::unit_y() * 3.0;
-        assert_eq!(along_x.unit_dir(), Coords2::unit_x());
-        assert_eq!(Coords2::<FloatType>::unit_x().unit_dir(), Coords2::unit_x());
-        assert_eq!(along_y.unit_dir(), Coords2::unit_y());
+        assert_eq!(along_x.unit_dir().unwrap(), Coords2::unit_x());
+        assert_eq!(
+            Coords2::<FloatType>::unit_x().unit_dir().unwrap(),
+            Coords2::unit_x()
+        );
+        assert_eq!(along_y.unit_dir().unwrap(), Coords2::unit_y());
         assert!(almost_equal(
-            &(along_x + along_y).unit_dir(),
+            &(along_x + along_y).unit_dir().unwrap(),
             &Coords2::from((4.0 / 5.0, 3.0 / 5.0))
         ));
+        let origin: Coords2<FloatType> = Coords2::default();
+        assert!(origin.unit_dir().is_err());
     }
 
     #[test]
