@@ -13,7 +13,3 @@ mod shader_data;
 mod state;
 
 // ------ RE-EXPORTS
-
-// ------ CONTENT
-
-// ------ TESTS
