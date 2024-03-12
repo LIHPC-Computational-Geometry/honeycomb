@@ -6,14 +6,18 @@
 
 // ------ MODULE DECLARATIONS
 
-mod camera;
-mod handle;
-mod runner;
-mod shader_data;
-mod state;
-
-// ------ RE-EXPORTS
+// ------ IMPORTS
 
 // ------ CONTENT
 
 // ------ TESTS
+
+#[cfg(test)]
+mod tests {
+    //use super::*;
+
+    #[test]
+    fn some_test() {
+        assert_eq!(1, 1);
+    }
+}
