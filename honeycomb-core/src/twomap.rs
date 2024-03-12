@@ -769,7 +769,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn insert_vertex(&mut self, vertex: Option<Vertex2>) -> VertexIdentifier {
+    pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
         if let Some(new_id) = self.unused_vertices.pop_first() {
             self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
             new_id

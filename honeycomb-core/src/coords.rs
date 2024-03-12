@@ -6,22 +6,20 @@
 
 // ------ IMPORTS
 
-
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
-
-// ------ CONTENT
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "single_precision")] {
-        pub type FloatType = f32;
-    } else {
-        pub type FloatType = f64;
-    }
 use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
+// ------ CONTENT
+
+cfg_if::cfg_if! {
+if #[cfg(feature = "single_precision")] {
+    pub type FloatType = f32;
+} else {
+    pub type FloatType = f64;
+}
+}
 // ------ CONTENT
 
 pub trait CoordsFloat:
@@ -58,10 +56,10 @@ pub enum CoordsError {
 /// assert_eq!(unit_x.normal_dir(), unit_y);
 ///
 /// let two: FloatType = 2.0;
-/// let x_plus_y: Coords2 = unit_x + unit_y;
+/// let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+/// assert_eq!(x_plus_y.unit_dir().unwrap(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -215,7 +213,6 @@ impl<T: CoordsFloat> AddAssign<Coords2<T>> for Coords2<T> {
         self.y += rhs.y;
     }
 }
-
 
 impl<T: CoordsFloat> Sub<Coords2<T>> for Coords2<T> {
     type Output = Self;
