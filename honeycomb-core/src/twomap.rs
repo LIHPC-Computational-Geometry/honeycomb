@@ -16,7 +16,7 @@ use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
 use crate::coords::CoordsFloat;
 use crate::{
-    DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
+    Coords2, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
 };
 
 use super::{
@@ -967,7 +967,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
                     let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
                     let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
                     self.vertices
-                        .push((lid_vertex + rhs_vertex) / T::from(2.0).unwrap());
+                        .push(Coords2::average(&lid_vertex, &rhs_vertex));
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                     stretch!(self, lid, new_id);
                     stretch!(self, rhs_dart_id, new_id);
@@ -1046,8 +1046,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
-                        self.vertices
-                            .push((vertex1 + vertex2) / T::from(2.0).unwrap());
+                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1rid, new_id);
@@ -1068,8 +1067,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                        self.vertices
-                            .push((vertex1 + vertex2) / T::from(2.0).unwrap());
+                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1lid, new_id);
@@ -1111,8 +1109,8 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
                         stretch!(self, lhs_dart_id, b1rid);
                     }
                     SewPolicy::StretchAverage => {
-                        let new_lvertex = (lvertex + b1_rvertex) / T::from(2.0).unwrap();
-                        let new_rvertex = (rvertex + b1_lvertex) / T::from(2.0).unwrap();
+                        let new_lvertex = Coords2::average(&lvertex, &b1_rvertex);
+                        let new_rvertex = Coords2::average(&rvertex, &b1_lvertex);
                         self.vertices.push(new_lvertex);
                         self.vertices.push(new_rvertex);
                         let new_lid = self.vertices.len() - 2;

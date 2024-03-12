@@ -80,6 +80,19 @@ impl<T: CoordsFloat> Coords2<T> {
         }
     }
 
+    /// Computes the mid-point between two points.
+    ///
+    /// # Return
+    ///
+    /// Return the mid-point as a new [Coords2] object.
+    ///
+    /// # Example
+    ///
+    /// See [Coords2] example.
+    pub fn average(lhs: &Coords2<T>, rhs: &Coords2<T>) -> Coords2<T> {
+        (*lhs + *rhs) / T::from(2.0).unwrap()
+    }
+
     /// Computes the norm of `self`.
     ///
     /// # Return
