@@ -10,7 +10,7 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 
-use crate::state::{SmaaMode, State};
+use crate::state::State;
 use crate::RenderParameters;
 use honeycomb_core::{CoordsFloat, TwoMap};
 

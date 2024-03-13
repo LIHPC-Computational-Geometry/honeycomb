@@ -6,18 +6,17 @@
 
 // ------ IMPORTS
 
+// intern
 use crate::camera::{Camera, CameraController, CameraUniform};
 use crate::handle::TwoMapRenderHandle;
 use crate::shader_data::{Coords2Shader, TEST_VERTICES};
 use crate::RenderParameters;
 use honeycomb_core::{CoordsFloat, TwoMap};
-use smaa::{SmaaMode as ExtSmaaMode, SmaaTarget};
+
+// extern
 use std::borrow::Cow;
 use wgpu::util::DeviceExt;
-use wgpu::{
-    Device, PipelineLayout, PrimitiveTopology, Queue, RenderPipeline, ShaderModule, Surface,
-    SurfaceConfiguration, TextureFormat,
-};
+use wgpu::PrimitiveTopology;
 use winit::dpi::PhysicalSize;
 use winit::{event::WindowEvent, window::Window};
 
@@ -33,8 +32,8 @@ pub enum SmaaMode {
 impl From<SmaaMode> for smaa::SmaaMode {
     fn from(value: SmaaMode) -> Self {
         match value {
-            SmaaMode::Smaa1X => ExtSmaaMode::Smaa1X,
-            SmaaMode::Disabled => ExtSmaaMode::Disabled,
+            SmaaMode::Smaa1X => smaa::SmaaMode::Smaa1X,
+            SmaaMode::Disabled => smaa::SmaaMode::Disabled,
         }
     }
 }
@@ -53,26 +52,26 @@ pub struct State<'a, const N_MARKS: usize, T: CoordsFloat> {
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
     camera_controller: CameraController,
-    smaa_target: SmaaTarget,
+    smaa_target: smaa::SmaaTarget,
     map_handle: Option<TwoMapRenderHandle<'a, N_MARKS, T>>,
     window: &'a Window,
 }
 
-async fn inner<'a>(
-    window: &'a Window,
+async fn inner(
+    window: &Window,
     size: PhysicalSize<u32>,
 ) -> (
-    Surface<'a>,
-    Device,
-    Queue,
-    SurfaceConfiguration,
+    wgpu::Surface<'_>,
+    wgpu::Device,
+    wgpu::Queue,
+    wgpu::SurfaceConfiguration,
     Camera,
     CameraUniform,
     wgpu::Buffer,
     wgpu::BindGroup,
     CameraController,
-    TextureFormat,
-    RenderPipeline,
+    wgpu::TextureFormat,
+    wgpu::RenderPipeline,
 ) {
     let instance = wgpu::Instance::default();
 
@@ -235,13 +234,13 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
             render_pipeline,
         ) = inner(window, size).await;
 
-        let smaa_target = SmaaTarget::new(
+        let smaa_target = smaa::SmaaTarget::new(
             &device,
             &queue,
             window.inner_size().width,
             window.inner_size().height,
             swapchain_format,
-            ExtSmaaMode::from(render_params.smaa_mode),
+            smaa::SmaaMode::from(render_params.smaa_mode),
         );
 
         let mut map_handle = TwoMapRenderHandle::new(map, Some(render_params));
@@ -298,13 +297,13 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
             render_pipeline,
         ) = inner(window, size).await;
 
-        let smaa_target = SmaaTarget::new(
+        let smaa_target = smaa::SmaaTarget::new(
             &device,
             &queue,
             window.inner_size().width,
             window.inner_size().height,
             swapchain_format,
-            ExtSmaaMode::from(render_params.smaa_mode),
+            smaa::SmaaMode::from(render_params.smaa_mode),
         );
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
