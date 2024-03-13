@@ -23,9 +23,9 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 
 cfg_if::cfg_if! {
     if #[cfg(target_os = "linux")] {
-        const SPEED_FACTOR: f32 = 0.005;
+        pub const SPEED_FACTOR: f32 = 0.005;
     } else {
-        const SPEED_FACTOR: f32 = 0.05;
+        pub const SPEED_FACTOR: f32 = 0.05;
     }
 }
 

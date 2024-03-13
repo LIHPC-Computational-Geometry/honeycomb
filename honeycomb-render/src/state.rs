@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 // intern
-use crate::camera::{Camera, CameraController, CameraUniform};
+use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
 use crate::handle::TwoMapRenderHandle;
 use crate::shader_data::{Coords2Shader, TEST_VERTICES};
 use crate::RenderParameters;
@@ -157,7 +157,7 @@ async fn inner(
         label: Some("camera_bind_group"),
     });
 
-    let camera_controller = CameraController::new(0.05 * 3.0);
+    let camera_controller = CameraController::new(SPEED_FACTOR * 3.0);
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: None,
