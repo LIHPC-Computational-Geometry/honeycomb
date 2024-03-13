@@ -7,11 +7,13 @@
 // ------ IMPORTS
 
 use crate::shader_data::Coords2Shader;
+use crate::SmaaMode;
 use honeycomb_core::{Coords2, CoordsFloat, FaceIdentifier, TwoMap};
 
 // ------ CONTENT
 
 pub struct RenderParameters {
+    pub smaa_mode: SmaaMode,
     pub shrink_factor: f32,
     pub arrow_headsize: f32,
     pub arrow_thickness: f32,
@@ -20,6 +22,7 @@ pub struct RenderParameters {
 impl Default for RenderParameters {
     fn default() -> Self {
         Self {
+            smaa_mode: SmaaMode::Disabled,
             shrink_factor: 0.1,   // need to adjust
             arrow_headsize: 0.1,  // need to adjust
             arrow_thickness: 0.1, // need to adjust

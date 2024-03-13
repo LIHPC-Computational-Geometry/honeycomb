@@ -11,6 +11,7 @@ use winit::event_loop::EventLoop;
 use winit::window::Window;
 
 use crate::state::{SmaaMode, State};
+use crate::RenderParameters;
 use honeycomb_core::{CoordsFloat, TwoMap};
 
 // ------ CONTENT
@@ -18,13 +19,13 @@ use honeycomb_core::{CoordsFloat, TwoMap};
 async fn inner<const N_MARKS: usize, T: CoordsFloat>(
     event_loop: EventLoop<()>,
     window: Window,
-    smaa_mode: SmaaMode,
+    render_params: RenderParameters,
     map: Option<&TwoMap<N_MARKS, T>>,
 ) {
     let mut state = if let Some(val) = map {
-        State::new(&window, smaa_mode, val).await
+        State::new(&window, render_params, val).await
     } else {
-        State::new_test(&window, smaa_mode).await
+        State::new_test(&window, render_params).await
     };
 
     event_loop
@@ -68,7 +69,7 @@ pub struct Runner {
 impl Runner {
     pub fn run<const N_MARKS: usize, T: CoordsFloat>(
         self,
-        smaa_mode: SmaaMode,
+        render_params: RenderParameters,
         map: Option<&TwoMap<N_MARKS, T>>,
     ) {
         cfg_if::cfg_if! {
@@ -78,7 +79,7 @@ impl Runner {
                 wasm_bindgen_futures::spawn_local(run(event_loop, window));
             } else {
                 env_logger::init();
-                pollster::block_on(inner(self.event_loop, self.window, smaa_mode, map));
+                pollster::block_on(inner(self.event_loop, self.window, render_params, map));
             }
         }
     }

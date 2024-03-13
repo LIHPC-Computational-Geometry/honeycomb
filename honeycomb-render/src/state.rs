@@ -9,6 +9,7 @@
 use crate::camera::{Camera, CameraController, CameraUniform};
 use crate::handle::TwoMapRenderHandle;
 use crate::shader_data::{Coords2Shader, TEST_VERTICES};
+use crate::RenderParameters;
 use honeycomb_core::{CoordsFloat, TwoMap};
 use smaa::{SmaaMode as ExtSmaaMode, SmaaTarget};
 use std::borrow::Cow;
@@ -18,8 +19,10 @@ use winit::{event::WindowEvent, window::Window};
 
 // ------ CONTENT
 
+#[derive(Debug, Default, Clone, Copy)]
 pub enum SmaaMode {
     Smaa1X,
+    #[default]
     Disabled,
 }
 
@@ -52,7 +55,11 @@ pub struct State<'a, const N_MARKS: usize, T: CoordsFloat> {
 }
 
 impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
-    pub async fn new(window: &'a Window, smaa_mode: SmaaMode, map: &'a TwoMap<N_MARKS, T>) -> Self {
+    pub async fn new(
+        window: &'a Window,
+        render_params: RenderParameters,
+        map: &'a TwoMap<N_MARKS, T>,
+    ) -> Self {
         let mut size = window.inner_size();
         size.width = size.width.max(1);
         size.height = size.height.max(1);
@@ -152,7 +159,16 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
         let swapchain_capabilities = surface.get_capabilities(&adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
 
-        let mut map_handle = TwoMapRenderHandle::new(map, None);
+        let smaa_target = SmaaTarget::new(
+            &device,
+            &queue,
+            window.inner_size().width,
+            window.inner_size().height,
+            swapchain_format,
+            ExtSmaaMode::from(render_params.smaa_mode),
+        );
+
+        let mut map_handle = TwoMapRenderHandle::new(map, Some(render_params));
         map_handle.build_darts();
         // map_handle.build_betas();
         map_handle.save_buffered();
@@ -194,15 +210,6 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
 
         let num_vertices = render_slice.len() as u32;
 
-        let smaa_target = SmaaTarget::new(
-            &device,
-            &queue,
-            window.inner_size().width,
-            window.inner_size().height,
-            swapchain_format,
-            ExtSmaaMode::from(smaa_mode),
-        );
-
         Self {
             surface,
             device,
@@ -223,7 +230,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
         }
     }
 
-    pub async fn new_test(window: &'a Window, smaa_mode: SmaaMode) -> Self {
+    pub async fn new_test(window: &'a Window, render_params: RenderParameters) -> Self {
         let mut size = window.inner_size();
         size.width = size.width.max(1);
         size.height = size.height.max(1);
@@ -364,7 +371,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
             window.inner_size().width,
             window.inner_size().height,
             swapchain_format,
-            ExtSmaaMode::from(smaa_mode),
+            ExtSmaaMode::from(render_params.smaa_mode),
         );
 
         Self {
