@@ -37,3 +37,7 @@ path = "examples/render_default_smaa1x.rs"
 name = "render_squaremap"
 path = "examples/render_squaremap.rs"
 
+[[example]]
+name = "render_splitsquaremap"
+path = "examples/render_splitsquaremap.rs"
+
