@@ -51,35 +51,55 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
 
     pub fn build_darts(&mut self) {
         let n_face = self.handle.n_faces() as FaceIdentifier;
+        let face_iter = (0..n_face).map(|face_id| {
+            let cell = self.handle.face(face_id);
+            // compute face center for shrink operation
+            let center: Coords2<T> = cell
+                .corners
+                .iter()
+                .map(|vid| self.handle.vertex(*vid))
+                .sum::<Coords2<T>>()
+                / T::from(cell.corners.len()).unwrap();
+            (cell, center, face_id)
+        });
         self.dart_construction_buffer.extend(
-            (0..n_face)
-                .flat_map(|face_id| {
-                    let cell = self.handle.face(face_id);
-                    // compute face center for shrink operation
-                    let center: Coords2<T> = cell
-                        .corners
-                        .iter()
-                        .map(|vid| self.handle.vertex(*vid))
-                        .sum::<Coords2<T>>()
-                        / T::from(cell.corners.len()).unwrap();
+            face_iter
+                .flat_map(|(cell, center, face_id)| {
                     let n_vertices = cell.corners.len();
                     let fids = (0..n_vertices - 1).map(move |_| face_id);
+                    let centers = (0..n_vertices - 1).map(move |_| center);
                     (0..n_vertices - 1)
-                        .map(|vertex_id| {
+                        .zip(centers)
+                        .map(|(vertex_id, center)| {
                             // fetch dart vetices
-                            let (mut v1, mut v2) = (
+                            let (v1, v2) = (
                                 self.handle.vertex(cell.corners[vertex_id]),
                                 self.handle.vertex(cell.corners[vertex_id + 1]),
                             );
-                            // shrink
+
+                            // shrink towards center
+                            let v1_shrink_dir = (center - *v1).unit_dir().unwrap();
+                            let v2_shrink_dir = (center - *v2).unit_dir().unwrap();
+
+                            let mut v1_intermediate =
+                                *v1 + v1_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+                            let mut v2_intermediate =
+                                *v2 + v2_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+
+                            // truncate length
+                            let seg_dir = (v2_intermediate - v1_intermediate).unit_dir().unwrap();
+                            v1_intermediate +=
+                                seg_dir * T::from(self.params.shrink_factor).unwrap();
+                            v2_intermediate -=
+                                seg_dir * T::from(self.params.shrink_factor).unwrap();
 
                             // return a coordinate pair
-                            (v1, v2)
+                            (v1_intermediate, v2_intermediate)
                         })
                         .zip(fids)
                 })
                 .flat_map(|((v1, v2), face_id)| {
-                    // transform the coordinates into triangles for the shader to render
+                    // transform the dart coordinates into triangles for the shader to render
 
                     [
                         Coords2Shader::new((0.0, 0.0), 0),
