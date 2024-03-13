@@ -40,7 +40,7 @@ pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
     handle: &'a TwoMap<N_MARKS, T>,
     params: RenderParameters,
     dart_construction_buffer: Vec<Coords2Shader>,
-    beta_construction_buffer: Vec<Coords2Shader>,
+    _beta_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
 
@@ -50,7 +50,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
             handle: map,
             params: params.unwrap_or_default(),
             dart_construction_buffer: Vec::new(),
-            beta_construction_buffer: Vec::new(),
+            _beta_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
     }
@@ -138,6 +138,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
         );
     }
 
+    #[allow(dead_code)]
     pub fn build_betas(&mut self) {
         todo!()
     }
