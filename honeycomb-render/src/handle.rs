@@ -30,7 +30,8 @@ impl Default for RenderParameters {
 pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
     handle: &'a TwoMap<N_MARKS, T>,
     params: RenderParameters,
-    construction_buffer: Vec<Coords2Shader>,
+    dart_construction_buffer: Vec<Coords2Shader>,
+    beta_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
 
@@ -39,14 +40,15 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
         Self {
             handle: map,
             params: params.unwrap_or_default(),
-            construction_buffer: Vec::new(),
+            dart_construction_buffer: Vec::new(),
+            beta_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
     }
 
     pub fn build_darts(&mut self) {
         let n_face = self.handle.n_faces() as FaceIdentifier;
-        self.construction_buffer.extend(
+        self.dart_construction_buffer.extend(
             (0..n_face)
                 .flat_map(|face_id| {
                     let cell = self.handle.face(face_id);
@@ -91,7 +93,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
 
     pub fn save_buffered(&mut self) {
         self.vertices.clear();
-        self.vertices.append(&mut self.construction_buffer);
+        self.vertices.append(&mut self.dart_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {

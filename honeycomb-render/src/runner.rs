@@ -15,8 +15,17 @@ use honeycomb_core::{CoordsFloat, TwoMap};
 
 // ------ CONTENT
 
-async fn inner(event_loop: EventLoop<()>, window: Window, smaa_mode: SmaaMode) {
-    let mut state = State::new(&window, smaa_mode).await;
+async fn inner<const N_MARKS: usize, T: CoordsFloat>(
+    event_loop: EventLoop<()>,
+    window: Window,
+    smaa_mode: SmaaMode,
+    map: Option<&TwoMap<N_MARKS, T>>,
+) {
+    let mut state = if let Some(val) = map {
+        State::new(&window, smaa_mode, val).await
+    } else {
+        State::new_test(&window, smaa_mode).await
+    };
 
     event_loop
         .run(move |event, target| {
@@ -69,7 +78,7 @@ impl Runner {
                 wasm_bindgen_futures::spawn_local(run(event_loop, window));
             } else {
                 env_logger::init();
-                pollster::block_on(inner(self.event_loop, self.window, smaa_mode));
+                pollster::block_on(inner(self.event_loop, self.window, smaa_mode, map));
             }
         }
     }
