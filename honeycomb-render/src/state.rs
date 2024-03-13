@@ -75,6 +75,14 @@ async fn inner(
 ) {
     let instance = wgpu::Instance::default();
 
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        eprintln!("I: Available adapters:");
+        for a in instance.enumerate_adapters(wgpu::Backends::all()) {
+            eprintln!("    {:#?}", a.get_info())
+        }
+    }
+
     let surface = instance.create_surface(window).unwrap();
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
@@ -84,6 +92,8 @@ async fn inner(
         })
         .await
         .expect("E: Failed to fetch appropriate adaptater");
+
+    eprintln!("I: Selected adapter: {:#?}", adapter.get_info());
 
     let (device, queue) = adapter
         .request_device(
@@ -96,7 +106,7 @@ async fn inner(
             None,
         )
         .await
-        .expect("E: Failed to crete device");
+        .expect("E: Failed to create device");
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
