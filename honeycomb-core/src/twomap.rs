@@ -1322,7 +1322,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
             part_one
         };
 
-        let face = Face {
+        let mut face = Face {
             corners: res
                 .iter()
                 .map(|d_id| self.dart_data.associated_cells[*d_id as usize].vertex_id)
@@ -1330,6 +1330,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
             closed,
         };
 
+        if face.closed {
+            face.corners.push(face.corners[0]);
+        }
         self.faces.push(face);
         new_faceid
     }
