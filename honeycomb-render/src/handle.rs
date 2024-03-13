@@ -23,11 +23,17 @@ impl Default for RenderParameters {
     fn default() -> Self {
         Self {
             smaa_mode: SmaaMode::Disabled,
-            shrink_factor: 0.1,   // need to adjust
-            arrow_headsize: 0.1,  // need to adjust
-            arrow_thickness: 0.1, // need to adjust
+            shrink_factor: 0.1,    // need to adjust
+            arrow_headsize: 0.1,   // need to adjust
+            arrow_thickness: 0.01, // need to adjust
         }
     }
+}
+
+macro_rules! as_f32_tuple {
+    ($coords: ident) => {
+        ($coords.x.to_f32().unwrap(), $coords.y.to_f32().unwrap())
+    };
 }
 
 pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
@@ -98,12 +104,28 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
                         })
                         .zip(fids)
                 })
-                .flat_map(|((v1, v2), face_id)| {
+                .flat_map(|((v1, v6), face_id)| {
                     // transform the dart coordinates into triangles for the shader to render
+                    let seg = v6 - v1;
+                    let seg_length = seg.norm();
+                    let seg_dir = seg.unit_dir().unwrap();
+                    let seg_normal = seg.normal_dir();
+                    let ahs = T::from(self.params.arrow_headsize).unwrap();
+                    let at = T::from(self.params.arrow_thickness).unwrap();
+
+                    let vcenter = v6 - seg_dir * ahs;
+                    let v2 = vcenter - seg_normal * at;
+                    let v3 = vcenter + seg_normal * at;
+                    let v4 = vcenter + seg_normal * (ahs * seg_length);
+                    let v5 = vcenter - seg_normal * (ahs * seg_length);
 
                     [
-                        Coords2Shader::new((0.0, 0.0), 0),
-                        Coords2Shader::new((0.0, 0.0), 0),
+                        Coords2Shader::new(as_f32_tuple!(v1), face_id),
+                        Coords2Shader::new(as_f32_tuple!(v2), face_id),
+                        Coords2Shader::new(as_f32_tuple!(v3), face_id),
+                        Coords2Shader::new(as_f32_tuple!(v4), face_id),
+                        Coords2Shader::new(as_f32_tuple!(v5), face_id),
+                        Coords2Shader::new(as_f32_tuple!(v6), face_id),
                     ]
                     .into_iter()
                 }),
