@@ -16,11 +16,19 @@ use honeycomb_core::{CoordsFloat, TwoMap};
 
 // ------ CONTENT
 
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "wasm32")] {
+        pub type MapRef<'a, const N_MARKS: usize, T> = &'static TwoMap<N_MARKS, T>;
+    } else {
+        pub type MapRef<'a, const N_MARKS: usize, T> = &'a TwoMap<N_MARKS, T>;
+    }
+}
+
 async fn inner<const N_MARKS: usize, T: CoordsFloat>(
     event_loop: EventLoop<()>,
     window: Window,
     render_params: RenderParameters,
-    map: Option<&TwoMap<N_MARKS, T>>,
+    map: Option<MapRef<'_, N_MARKS, T>>,
 ) {
     let mut state = if let Some(val) = map {
         State::new(&window, render_params, val).await
@@ -70,13 +78,13 @@ impl Runner {
     pub fn run<const N_MARKS: usize, T: CoordsFloat>(
         self,
         render_params: RenderParameters,
-        map: Option<&TwoMap<N_MARKS, T>>,
+        map: Option<MapRef<'_, N_MARKS, T>>,
     ) {
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 std::panic::set_hook(Box::new(console_error_panic_hook::hook));
                 console_log::init().expect("could not initialize logger");
-                wasm_bindgen_futures::spawn_local(run(event_loop, window));
+                wasm_bindgen_futures::spawn_local(inner(self.event_loop, self.window, render_params, map));
             } else {
                 env_logger::init();
                 pollster::block_on(inner(self.event_loop, self.window, render_params, map));
@@ -101,7 +109,7 @@ impl Default for Runner {
                 .unwrap()
                 .document()
                 .unwrap()
-                .get_element_by_id("canvas")
+                .get_element_by_id("wasm-example")
                 .unwrap()
                 .dyn_into::<web_sys::HtmlCanvasElement>()
                 .unwrap();
