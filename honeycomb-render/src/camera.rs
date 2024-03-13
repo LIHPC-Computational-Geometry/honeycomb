@@ -21,6 +21,14 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.0, 1.0,
 );
 
+cfg_if::cfg_if! {
+    if #[cfg(target_os = "linux")] {
+        const SPEED_FACTOR: f32 = 0.005;
+    } else {
+        const SPEED_FACTOR: f32 = 0.05;
+    }
+}
+
 pub struct Camera {
     pub eye: cgmath::Point3<f32>,
     pub target: cgmath::Point3<f32>,
@@ -138,15 +146,15 @@ impl CameraController {
         // Prevents glitching when the camera gets too close to the
         // center of the scene.
         if self.is_forward_pressed
-            && camera.eye.z + forward_dir.z * 0.05 * camera.eye.z > 2.0 * camera.znear
+            && camera.eye.z + forward_dir.z * SPEED_FACTOR * camera.eye.z > 2.0 * camera.znear
         {
-            self.speed = 0.05 * camera.eye.z;
+            self.speed = SPEED_FACTOR * camera.eye.z;
             camera.eye += forward_dir * self.speed;
         }
         if self.is_backward_pressed
-            && camera.eye.z - forward_dir.z * 0.05 * camera.eye.z < 2.0 * camera.zfar
+            && camera.eye.z - forward_dir.z * SPEED_FACTOR * camera.eye.z < 2.0 * camera.zfar
         {
-            self.speed = 0.05 * camera.eye.z;
+            self.speed = SPEED_FACTOR * camera.eye.z;
             camera.eye -= forward_dir * self.speed;
         }
 
