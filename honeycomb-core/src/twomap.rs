@@ -379,6 +379,32 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
         self.betas[dart_id as usize][I as usize]
     }
 
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// - `i: u8` -- Index of the beta function. *i* should
+    /// be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
+    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
+    /// means that *dart* is i-free .
+    ///
+    /// The method will panic if *i* is not 0, 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn beta_bis(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
+        assert!(i < 3);
+        self.betas[dart_id as usize][i as usize]
+    }
+
     /// Fetch cells associated to a given dart.
     ///
     /// # Arguments
