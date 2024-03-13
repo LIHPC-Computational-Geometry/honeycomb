@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{CoordsFloat, DartIdentifier, TwoMap};
+use crate::{CoordsFloat, DartIdentifier, TwoMap, NULL_DART_ID};
 use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
@@ -16,6 +16,22 @@ pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     pub beta_slice: &'a [u8],
     marked: BTreeSet<DartIdentifier>,
     pending: VecDeque<DartIdentifier>,
+}
+
+impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
+    pub fn new(map_handle: &'a TwoMap<N_MARKS, T>, betas: &'a [u8], dart: DartIdentifier) -> Self {
+        let mut marked = BTreeSet::<DartIdentifier>::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart); // we're starting here, so we mark it beforehand
+        let pending = VecDeque::from([dart]);
+
+        Self {
+            map_handle,
+            beta_slice: betas,
+            marked,
+            pending,
+        }
+    }
 }
 
 impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T> {
