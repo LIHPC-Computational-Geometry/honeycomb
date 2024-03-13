@@ -6,6 +6,12 @@
 //! It currently only supports 2D maps as the core library only
 //! implements these (as [TwoMap])
 //!
+//! ## Key bindings
+//!
+//! - Directional arrows -- Move up, down, left and right
+//! - `F` -- Move forward (i.e. zoom in)
+//! - `B` -- Move backward (i.e. zoom out)
+//!
 //! ## Quickstart
 //!
 //! The crate provides the following example:
