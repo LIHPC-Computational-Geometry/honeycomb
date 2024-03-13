@@ -50,9 +50,6 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 
             Some(d)
         } else {
-            // this makes the structure reusable
-            self.marked.clear();
-            self.pending.clear();
             None
         }
     }
@@ -62,7 +59,30 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 
 #[cfg(test)]
 mod tests {
+    use crate::{FloatType, TwoMap};
+
     //use super::*;
+
+    fn simple_map() -> TwoMap<1, FloatType> {
+        let mut map: TwoMap<1, FloatType> = TwoMap::new(6, 4);
+        map.set_betas(1, [3, 2, 0]);
+        map.set_betas(2, [1, 3, 4]);
+        map.set_betas(3, [2, 1, 0]);
+        map.set_betas(4, [6, 5, 2]);
+        map.set_betas(5, [4, 6, 0]);
+        map.set_betas(6, [5, 4, 0]);
+        map.set_vertex(0, (0.0, 0.0)).unwrap();
+        map.set_vertex(1, (1.0, 0.0)).unwrap();
+        map.set_vertex(2, (1.0, 1.0)).unwrap();
+        map.set_vertex(3, (0.0, 1.0)).unwrap();
+        map.set_vertexid(1, 0);
+        map.set_vertexid(2, 1);
+        map.set_vertexid(3, 3);
+        map.set_vertexid(4, 3);
+        map.set_vertexid(5, 1);
+        map.set_vertexid(6, 2);
+        map
+    }
 
     #[test]
     fn some_test() {
