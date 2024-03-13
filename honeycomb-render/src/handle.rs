@@ -72,15 +72,21 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T
             face_iter
                 .flat_map(|(cell, center, face_id)| {
                     let n_vertices = cell.corners.len();
-                    let fids = (0..n_vertices - 1).map(move |_| face_id);
-                    let centers = (0..n_vertices - 1).map(move |_| center);
-                    (0..n_vertices - 1)
+                    let fids = (0..n_vertices).map(move |_| face_id);
+                    let centers = (0..n_vertices).map(move |_| center);
+                    (0..n_vertices)
                         .zip(centers)
                         .map(|(vertex_id, center)| {
+                            let v1id = vertex_id;
+                            let v2id = if vertex_id == cell.corners.len() - 1 {
+                                0
+                            } else {
+                                vertex_id + 1
+                            };
                             // fetch dart vetices
                             let (v1, v2) = (
-                                self.handle.vertex(cell.corners[vertex_id]),
-                                self.handle.vertex(cell.corners[vertex_id + 1]),
+                                self.handle.vertex(cell.corners[v1id]),
+                                self.handle.vertex(cell.corners[v2id]),
                             );
 
                             // shrink towards center
