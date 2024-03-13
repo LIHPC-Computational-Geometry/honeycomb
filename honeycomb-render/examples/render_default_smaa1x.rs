@@ -1,4 +1,4 @@
-use honeycomb_render::{RenderParameters, Runner, SmaaMode};
+use honeycomb_render::*;
 
 fn main() {
     let render_params = RenderParameters {
