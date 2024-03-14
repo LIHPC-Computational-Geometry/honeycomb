@@ -138,7 +138,7 @@ mod tests {
     fn full_map_from_orbit() {
         let map = simple_map();
         let orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1, 2]), 3);
-        let darts: Vec<DartIdentifier> = orbit.into_iter().collect();
+        let darts: Vec<DartIdentifier> = orbit.collect();
         assert_eq!(darts.len(), 6);
         // because the algorithm is consistent, we can predict the exact layout
         assert_eq!(&darts, &[3, 1, 2, 4, 5, 6]);
@@ -148,11 +148,11 @@ mod tests {
     fn face_from_orbit() {
         let map = simple_map();
         let face_orbit = Orbit::new(&map, OrbitPolicy::Face, 1);
-        let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
+        let darts: Vec<DartIdentifier> = face_orbit.collect();
         assert_eq!(darts.len(), 3);
         assert_eq!(&darts, &[1, 2, 3]);
         let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1]), 5);
-        let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
+        let other_darts: Vec<DartIdentifier> = other_face_orbit.collect();
         assert_eq!(other_darts.len(), 3);
         assert_eq!(&other_darts, &[5, 6, 4]);
     }
@@ -161,11 +161,11 @@ mod tests {
     fn edge_from_orbit() {
         let map = simple_map();
         let face_orbit = Orbit::new(&map, OrbitPolicy::Edge, 1);
-        let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
+        let darts: Vec<DartIdentifier> = face_orbit.collect();
         assert_eq!(darts.len(), 1);
         assert_eq!(&darts, &[1]); // dart 1 is on the boundary
         let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[2]), 4);
-        let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
+        let other_darts: Vec<DartIdentifier> = other_face_orbit.collect();
         assert_eq!(other_darts.len(), 2);
         assert_eq!(&other_darts, &[4, 2]);
     }
@@ -174,7 +174,7 @@ mod tests {
     fn vertex_from_orbit() {
         let map = simple_map();
         let orbit = Orbit::new(&map, OrbitPolicy::Vertex, 4);
-        let darts: Vec<DartIdentifier> = orbit.into_iter().collect();
+        let darts: Vec<DartIdentifier> = orbit.collect();
         // note that this one fails if we start at 3, because the vertex is not complete
         assert_eq!(darts.len(), 2);
         assert_eq!(&darts, &[4, 3]);
