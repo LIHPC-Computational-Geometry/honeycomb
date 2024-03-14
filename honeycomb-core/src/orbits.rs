@@ -52,13 +52,36 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
         if let Some(d) = self.pending.pop_front() {
             match self.orbit_policy {
                 OrbitPolicy::Vertex => {
-                    todo!()
+                    // THIS CODE IS ONLY VALID IN 2D
+                    // WE ASSUME THAT THE EDGE IS COMPLETE
+                    let image = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image);
+                    }
+                    Some(d)
                 }
                 OrbitPolicy::Edge => {
-                    todo!()
+                    // THIS CODE IS ONLY VALID IN 2D
+                    let image = self.map_handle.beta::<2>(d);
+                    if self.marked.insert(image) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image);
+                    }
+                    Some(d)
                 }
                 OrbitPolicy::Face => {
-                    todo!()
+                    // THIS CODE IS ONLY VALID IN 2D
+                    // WE ASSUME THAT THE FACE IS COMPLETE
+                    let image = self.map_handle.beta::<1>(d);
+                    if self.marked.insert(image) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image);
+                    }
+                    Some(d)
                 }
                 OrbitPolicy::Custom(beta_slice) => {
                     beta_slice.iter().for_each(|beta_id| {
