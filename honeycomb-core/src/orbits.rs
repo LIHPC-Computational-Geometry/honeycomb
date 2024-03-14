@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn face_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1]), 1);
+        let face_orbit = Orbit::new(&map, OrbitPolicy::Face, 1);
         let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
         assert_eq!(darts.len(), 3);
         assert_eq!(&darts, &[1, 2, 3]);
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn edge_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[2]), 1);
+        let face_orbit = Orbit::new(&map, OrbitPolicy::Edge, 1);
         let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
         assert_eq!(darts.len(), 1);
         assert_eq!(&darts, &[1]); // dart 1 is on the boundary
