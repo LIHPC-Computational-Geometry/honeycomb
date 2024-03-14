@@ -1,12 +1,12 @@
-//! Module short description
+//! Orbit implementation
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code used to model orbits, a notion defined
+//! along the structure of combinatorial maps.
 
 // ------ IMPORTS
 
 use crate::{CoordsFloat, DartIdentifier, TwoMap, NULL_DART_ID};
+use num::Zero;
 use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
@@ -35,6 +35,10 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
         marked.insert(dart); // we're starting here, so we mark it beforehand
         let pending = VecDeque::from([dart]);
+
+        if let OrbitPolicy::Custom(slice) = orbit_policy {
+            assert!(!slice.len().is_zero());
+        }
 
         Self {
             map_handle,
@@ -174,5 +178,20 @@ mod tests {
         // note that this one fails if we start at 3, because the vertex is not complete
         assert_eq!(darts.len(), 2);
         assert_eq!(&darts, &[4, 3]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn empty_orbit_policy() {
+        let map = simple_map();
+        let _ = Orbit::new(&map, OrbitPolicy::Custom(&[]), 3);
+    }
+
+    #[test]
+    #[should_panic]
+    fn invalid_orbit_policy() {
+        let map = simple_map();
+        let orbit = Orbit::new(&map, OrbitPolicy::Custom(&[6]), 3);
+        let _: Vec<DartIdentifier> = orbit.collect();
     }
 }
