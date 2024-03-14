@@ -11,21 +11,95 @@ use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
 
+/// Enum used to model beta functions defining the search.
+///
+/// This is used to define special cases of orbits that are often used in
+/// algorithms. These special cases correspond to *i-cells*.
 pub enum OrbitPolicy<'a> {
+    /// 0-cell orbit.
     Vertex,
+    /// 1-cell orbit.
     Edge,
+    /// 2-cell orbit.
     Face,
+    /// User-defined orbit. The integers correspond to the indices of the
+    /// beta functions that should be used for the computation.
     Custom(&'a [u8]),
 }
 
+/// Generic 2D orbit implementation
+///
+/// This structure only contains meta-data about the orbit in its initial
+/// state. All the darts making up the orbit are computed when using the
+/// methods that come with the [Iterator] implementation.
+///
+/// It is not currently possible to iterate over references, the orbit has
+/// to be consumed for its result to be used. This is most likely the best
+/// behavior
+///
+/// # Generics
+///
+/// - `'a` -- Lifetime of the reference to the map
+/// - `const N_MARKS: usize` -- Generic parameter of the referenced map.
+/// - `T: CoordsFloat` -- Generic parameter of the referenced map.
+///
+/// # The search algorithm
+///
+/// The search algorithm used to establish the list of dart included in the
+/// orbit is a [Breadth-first search algorithm][WIKIBFS]. This means that:
+///
+/// - we look at the images of the current dart through all beta functions,
+/// adding those to a queue, before moving on to the next dart.
+/// - we apply the beta functions in their specified order (in the case of a
+/// custom [OrbitPolicy]); This guarantees a consistent and predictable result.
+///
+/// Both of these points allow the structure to be used for sewing operations
+/// at the cost of some performance (non-trivial parallelization & sequential
+/// consistency requirements).
+///
+/// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
 pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
+    /// Reference to the map containing the beta functions used in the BFS.
     map_handle: &'a TwoMap<N_MARKS, T>,
+    /// Policy used by the orbit for the BFS. It can be predetermined or custom.
     orbit_policy: OrbitPolicy<'a>,
+    /// Set used to identify which dart is marked during the BFS.
     marked: BTreeSet<DartIdentifier>,
+    /// Queue used to store which dart must be visited next during the BFS.
     pending: VecDeque<DartIdentifier>,
 }
 
 impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
+    /// Constructor
+    ///
+    /// # Arguments
+    ///
+    /// - `map_handle: &'a TwoMap<N_MARKS, T>` -- Reference to the map containing the beta
+    /// functions used in the BFS.
+    /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
+    /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return an [Orbit] structure that can be iterated upon to retrieve the orbit's darts.
+    ///
+    /// The method may panic if no beta index is passed along the custom policy. Additionally,
+    /// if an invalid beta index is passed through the custom policy (e.g. `3` for a 2D map),
+    /// a panic will occur on iteration
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///
+    /// ```
+    ///
     pub fn new(
         map_handle: &'a TwoMap<N_MARKS, T>,
         orbit_policy: OrbitPolicy<'a>,
