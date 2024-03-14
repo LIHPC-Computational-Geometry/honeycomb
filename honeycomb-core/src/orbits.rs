@@ -165,4 +165,14 @@ mod tests {
         assert_eq!(other_darts.len(), 2);
         assert_eq!(&other_darts, &[4, 2]);
     }
+
+    #[test]
+    fn vertex_from_orbit() {
+        let map = simple_map();
+        let orbit = Orbit::new(&map, OrbitPolicy::Vertex, 4);
+        let darts: Vec<DartIdentifier> = orbit.into_iter().collect();
+        // note that this one fails if we start at 3, because the vertex is not complete
+        assert_eq!(darts.len(), 2);
+        assert_eq!(&darts, &[4, 3]);
+    }
 }
