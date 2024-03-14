@@ -59,9 +59,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 
 #[cfg(test)]
 mod tests {
-    use crate::{FloatType, TwoMap};
-
-    //use super::*;
+    use crate::{DartIdentifier, FloatType, Orbit, TwoMap};
 
     fn simple_map() -> TwoMap<1, FloatType> {
         let mut map: TwoMap<1, FloatType> = TwoMap::new(6, 4);
@@ -85,7 +83,28 @@ mod tests {
     }
 
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    fn face_from_orbit() {
+        let map = simple_map();
+        let face_orbit = Orbit::new(&map, &[1], 1);
+        let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
+        assert_eq!(darts.len(), 3);
+        assert_eq!(&darts, &[1, 2, 3]);
+        let other_face_orbit = Orbit::new(&map, &[1], 5);
+        let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
+        assert_eq!(other_darts.len(), 3);
+        assert_eq!(&other_darts, &[5, 6, 4]);
+    }
+
+    #[test]
+    fn edge_from_orbit() {
+        let map = simple_map();
+        let face_orbit = Orbit::new(&map, &[2], 1);
+        let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
+        assert_eq!(darts.len(), 1);
+        assert_eq!(&darts, &[1]); // dart 1 is on the boundary
+        let other_face_orbit = Orbit::new(&map, &[2], 4);
+        let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
+        assert_eq!(other_darts.len(), 2);
+        assert_eq!(&other_darts, &[4, 2]);
     }
 }
