@@ -1,5 +1,24 @@
 # Change Log
 
+## To be released
+
+### Repository Changes
+
+...
+
+### New Features
+
+#### honeycomb-core
+
+- `Orbit<'a, const N_MARKS: usize, T: CoordsFloat>` - Generic implementation for
+  2D orbit computations. The structure itself only contains meta-data, the orbit
+  computation is done through the `Iterator` trait implementation.
+- `OrbitPolicy<'a>` - Enum used to specify the beta functions used by an orbit.
+  It currently does not not support compositions.
+- New (temporary?) method for `TwoMap`: `beta_bis`. It works exactly like the
+  regular `beta` method except the beta index is passed as an argument instead
+  of a `const` generic.
+
 ## 0.1.2
 
 ### Repository Changes
