@@ -131,6 +131,16 @@ mod tests {
     }
 
     #[test]
+    fn full_map_from_orbit() {
+        let map = simple_map();
+        let orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1, 2]), 3);
+        let darts: Vec<DartIdentifier> = orbit.into_iter().collect();
+        assert_eq!(darts.len(), 6);
+        // because the algorithm is consistent, we can predict the exact layout
+        assert_eq!(&darts, &[3, 1, 2, 4, 5, 6]);
+    }
+
+    #[test]
     fn face_from_orbit() {
         let map = simple_map();
         let face_orbit = Orbit::new(&map, OrbitPolicy::Face, 1);
