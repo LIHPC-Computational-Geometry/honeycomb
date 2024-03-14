@@ -61,9 +61,7 @@ pub enum OrbitPolicy<'a> {
 ///
 /// # Example
 ///
-/// ```text
-///
-/// ```
+/// See [TwoMap] example.
 ///
 pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
@@ -96,9 +94,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// ```text
-    ///
-    /// ```
+    /// See [TwoMap] example.
     ///
     pub fn new(
         map_handle: &'a TwoMap<N_MARKS, T>,
