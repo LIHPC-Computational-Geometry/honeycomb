@@ -1,8 +1,14 @@
+# Rust
 Cargo.lock
 /target
+
+# wasm
+*/pkg
+
 # local IDE configs
 /.idea
 /.vscode
+
 # ignore csv & svg files in root directory
 /*.csv
 /*.svg

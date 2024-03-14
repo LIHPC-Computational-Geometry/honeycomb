@@ -1,0 +1,46 @@
+[package]
+name = "honeycomb-render"
+version = "0.1.2"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cfg-if = "1"
+wgpu = "0.19"
+winit = "0.29"
+env_logger = "0.11"
+pollster = "0.3"
+cgmath = "0.18"
+bytemuck = { version = "1.14", features = ["derive"] }
+honeycomb-core = { path = "../honeycomb-core" }
+smaa = "0.13"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
+wgpu = { version = "0.19", features = ["webgl"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
+
+[dev-dependencies]
+honeycomb-utils = { path = "../honeycomb-utils" }
+
+[[example]]
+name = "render_default_no_aa"
+path = "examples/render_default_no_aa.rs"
+
+[[example]]
+name = "render_default_smaa1x"
+path = "examples/render_default_smaa1x.rs"
+
+[[example]]
+name = "render_squaremap"
+path = "examples/render_squaremap.rs"
+
+[[example]]
+name = "render_splitsquaremap"
+path = "examples/render_splitsquaremap.rs"
+
