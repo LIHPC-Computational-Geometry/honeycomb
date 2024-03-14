@@ -20,13 +20,17 @@ pub enum OrbitPolicy<'a> {
 
 pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     map_handle: &'a TwoMap<N_MARKS, T>,
-    beta_slice: &'a [u8],
+    orbit_policy: OrbitPolicy<'a>,
     marked: BTreeSet<DartIdentifier>,
     pending: VecDeque<DartIdentifier>,
 }
 
 impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
-    pub fn new(map_handle: &'a TwoMap<N_MARKS, T>, betas: &'a [u8], dart: DartIdentifier) -> Self {
+    pub fn new(
+        map_handle: &'a TwoMap<N_MARKS, T>,
+        orbit_policy: OrbitPolicy<'a>,
+        dart: DartIdentifier,
+    ) -> Self {
         let mut marked = BTreeSet::<DartIdentifier>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
         marked.insert(dart); // we're starting here, so we mark it beforehand
@@ -34,7 +38,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
 
         Self {
             map_handle,
-            beta_slice: betas,
+            orbit_policy,
             marked,
             pending,
         }
@@ -46,16 +50,29 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(d) = self.pending.pop_front() {
-            self.beta_slice.iter().for_each(|beta_id| {
-                let image = self.map_handle.beta_bis(*beta_id, d);
-                if self.marked.insert(image) {
-                    // if true, we did not see this dart yet
-                    // i.e. we need to visit it later
-                    self.pending.push_back(image);
+            match self.orbit_policy {
+                OrbitPolicy::Vertex => {
+                    todo!()
                 }
-            });
+                OrbitPolicy::Edge => {
+                    todo!()
+                }
+                OrbitPolicy::Face => {
+                    todo!()
+                }
+                OrbitPolicy::Custom(beta_slice) => {
+                    beta_slice.iter().for_each(|beta_id| {
+                        let image = self.map_handle.beta_bis(*beta_id, d);
+                        if self.marked.insert(image) {
+                            // if true, we did not see this dart yet
+                            // i.e. we need to visit it later
+                            self.pending.push_back(image);
+                        }
+                    });
 
-            Some(d)
+                    Some(d)
+                }
+            }
         } else {
             None
         }
@@ -66,6 +83,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 
 #[cfg(test)]
 mod tests {
+    use crate::orbits::OrbitPolicy;
     use crate::{DartIdentifier, FloatType, Orbit, TwoMap};
 
     fn simple_map() -> TwoMap<1, FloatType> {
@@ -92,11 +110,11 @@ mod tests {
     #[test]
     fn face_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, &[1], 1);
+        let face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1]), 1);
         let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
         assert_eq!(darts.len(), 3);
         assert_eq!(&darts, &[1, 2, 3]);
-        let other_face_orbit = Orbit::new(&map, &[1], 5);
+        let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1]), 5);
         let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
         assert_eq!(other_darts.len(), 3);
         assert_eq!(&other_darts, &[5, 6, 4]);
@@ -105,11 +123,11 @@ mod tests {
     #[test]
     fn edge_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, &[2], 1);
+        let face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[2]), 1);
         let darts: Vec<DartIdentifier> = face_orbit.into_iter().collect();
         assert_eq!(darts.len(), 1);
         assert_eq!(&darts, &[1]); // dart 1 is on the boundary
-        let other_face_orbit = Orbit::new(&map, &[2], 4);
+        let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[2]), 4);
         let other_darts: Vec<DartIdentifier> = other_face_orbit.into_iter().collect();
         assert_eq!(other_darts.len(), 2);
         assert_eq!(&other_darts, &[4, 2]);
