@@ -19,6 +19,8 @@
   regular `beta` method except the beta index is passed as an argument instead
   of a `const` generic.
 
+---
+
 ## 0.1.2
 
 ### Repository Changes
@@ -43,6 +45,8 @@
 #### honeycomb-utils
 
 - update content according to features introduced in #15, #16
+
+---
 
 ## 0.1.1
 
@@ -72,6 +76,8 @@
 ### Fixes
 
 - typos by @cedricchevalier19 (#9)
+
+---
 
 ## 0.1.0
 
