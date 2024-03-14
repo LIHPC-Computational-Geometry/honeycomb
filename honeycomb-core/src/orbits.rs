@@ -11,9 +11,16 @@ use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
 
+pub enum OrbitPolicy<'a> {
+    Vertex,
+    Edge,
+    Face,
+    Custom(&'a [u8]),
+}
+
 pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     map_handle: &'a TwoMap<N_MARKS, T>,
-    pub beta_slice: &'a [u8],
+    beta_slice: &'a [u8],
     marked: BTreeSet<DartIdentifier>,
     pending: VecDeque<DartIdentifier>,
 }
