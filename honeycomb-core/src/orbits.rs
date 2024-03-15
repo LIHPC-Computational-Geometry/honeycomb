@@ -22,8 +22,7 @@ pub enum OrbitPolicy<'a> {
     Edge,
     /// 2-cell orbit.
     Face,
-    /// User-defined orbit. The integers correspond to the indices of the
-    /// Ordered array of beta functions that define the orbit
+    /// Ordered array of beta functions that define the orbit.
     Custom(&'a [u8]),
 }
 
@@ -159,7 +158,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
                 }
                 OrbitPolicy::Custom(beta_slice) => {
                     beta_slice.iter().for_each(|beta_id| {
-                        let image = self.map_handle.beta_bis(*beta_id, d);
+                        let image = self.map_handle.beta_runtime(*beta_id, d);
                         if self.marked.insert(image) {
                             // if true, we did not see this dart yet
                             // i.e. we need to visit it later

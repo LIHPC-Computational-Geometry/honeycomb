@@ -404,9 +404,14 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// See [TwoMap] example.
     ///
-    pub fn beta_bis(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
+    pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
-        self.betas[dart_id as usize][i as usize]
+        match i {
+            0 => self.beta::<0>(dart_id),
+            1 => self.beta::<1>(dart_id),
+            2 => self.beta::<2>(dart_id),
+            _ => unreachable!(),
+        }
     }
 
     /// Fetch cells associated to a given dart.
