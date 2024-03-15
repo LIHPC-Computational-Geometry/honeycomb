@@ -50,6 +50,7 @@ cargo doc --all --no-deps
 ### Documentation
 
 - [honeycomb-core](honeycomb_core/) *Core definitions and tools*
+- [honeycomb-render](honeycomb_render/) *Visualization tool*
 - [honeycomb-utils](honeycomb_utils/) *Utility routines*
 
 ### References
