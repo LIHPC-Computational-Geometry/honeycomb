@@ -23,7 +23,7 @@ pub enum OrbitPolicy<'a> {
     /// 2-cell orbit.
     Face,
     /// User-defined orbit. The integers correspond to the indices of the
-    /// beta functions that should be used for the computation.
+    /// Ordered array of beta functions that define the orbit
     Custom(&'a [u8]),
 }
 
