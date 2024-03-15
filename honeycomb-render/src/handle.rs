@@ -12,10 +12,18 @@ use honeycomb_core::{Coords2, CoordsFloat, FaceIdentifier, TwoMap};
 
 // ------ CONTENT
 
+/// Rendering parameters encapsulation
+///
+/// The user can easily adjust parameters in this structure to obtain
+/// the preferred output style.
 pub struct RenderParameters {
+    /// Anti-aliasing configuration.
     pub smaa_mode: SmaaMode,
+    /// Shrink factor used to compute dart position from edge position.
     pub shrink_factor: f32,
+    /// Size of the dart head (related to its length).
     pub arrow_headsize: f32,
+    /// Thickness of the darts.
     pub arrow_thickness: f32,
 }
 
