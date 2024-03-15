@@ -22,10 +22,18 @@ use winit::{event::WindowEvent, window::Window};
 
 // ------ CONTENT
 
+/// Anti-aliasing configuration enum
+///
+/// This enum is a bridge to the eponymous enum of the smaa [crate][SMAA]. This prevents
+/// the user from adding another external crate to its project.
+///
+/// [SMAA]: https://github.com/fintelia/smaa-rs
 #[derive(Debug, Default, Clone, Copy)]
 pub enum SmaaMode {
+    /// SMAA1x anti-aliasing.
     Smaa1X,
     #[default]
+    /// Disabled anti-aliasing. This is the default value.
     Disabled,
 }
 
