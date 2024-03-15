@@ -19,6 +19,7 @@
 mod coords;
 pub mod dart;
 pub mod embed;
+mod orbits;
 pub mod twomap;
 
 // ------ RE-EXPORTS
@@ -28,6 +29,7 @@ pub use dart::{DartIdentifier, NULL_DART_ID};
 pub use embed::{
     FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
 };
+pub use orbits::{Orbit, OrbitPolicy};
 pub use twomap::TwoMap;
 
 // ------ IMPORTS

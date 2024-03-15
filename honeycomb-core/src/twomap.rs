@@ -88,9 +88,7 @@ const TWO_MAP_BETA: usize = 3;
 /// progressive changes applied to the structure.
 ///
 /// ```
-/// use honeycomb_core::{
-///     DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
-/// };
+/// use honeycomb_core::{ DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
 ///
 /// // --- Map creation
 ///
@@ -102,9 +100,9 @@ const TWO_MAP_BETA: usize = 3;
 /// let (v1, v2, v3): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (0, 1, 2);
 ///
 /// // place the vertices in space
-/// map.set_vertex(v1, [0.0, 0.0]);
-/// map.set_vertex(v2, [0.0, 10.0]);
-/// map.set_vertex(v3, [10.0, 0.0]);
+/// map.set_vertex(v1, [0.0, 0.0]).unwrap();
+/// map.set_vertex(v2, [0.0, 10.0]).unwrap();
+/// map.set_vertex(v3, [10.0, 0.0]).unwrap();
 /// // associate dart to vertices
 /// map.set_vertexid(d1, v1);
 /// map.set_vertexid(d2, v2);
@@ -136,7 +134,9 @@ const TWO_MAP_BETA: usize = 3;
 ///
 /// // fetch all darts of the two-cell d2 belongs to
 /// // i.e. the face
-/// let two_cell = map.i_cell::<2>(d2);
+/// let two_cell = map.i_cell::<2>(d2); // directly
+/// let orbit = Orbit::new(&map, OrbitPolicy::Face, d2); // using an orbit
+/// let two_cell_from_orbit: Vec<DartIdentifier> = orbit.collect();
 ///
 /// // check topology of the face
 /// // we make no assumption on the ordering of the result when using the i_cell method
@@ -144,6 +144,10 @@ const TWO_MAP_BETA: usize = 3;
 /// assert!(two_cell.contains(&d2));
 /// assert!(two_cell.contains(&d3));
 /// assert_eq!(two_cell.len(), 3);
+/// assert!(two_cell_from_orbit.contains(&d1));
+/// assert!(two_cell_from_orbit.contains(&d2));
+/// assert!(two_cell_from_orbit.contains(&d3));
+/// assert_eq!(two_cell_from_orbit.len(), 3);
 ///
 /// // --- (a)
 ///
@@ -160,8 +164,8 @@ const TWO_MAP_BETA: usize = 3;
 /// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
 /// let v5 = map.add_vertices(2); // v5, v6
 /// let v6 = v5 + 1;
-/// map.set_vertex(v5, [5.0, 10.0]); // v5
-/// map.set_vertex(v6, [15.0, 10.0]); // v6
+/// map.set_vertex(v5, [5.0, 10.0]).unwrap(); // v5
+/// map.set_vertex(v6, [15.0, 10.0]).unwrap(); // v6
 /// // associate dart to vertices
 /// map.set_vertexid(d4, v4);
 /// map.set_vertexid(d5, v5);
@@ -198,7 +202,7 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- (c)
 ///
 /// // shift the position of d6 to build a square using the two faces
-/// map.set_vertex(map.vertexid(d6), [10.0, 10.0]);
+/// map.set_vertex(map.vertexid(d6), [10.0, 10.0]).unwrap();
 ///
 /// // --- (d)
 ///
@@ -377,6 +381,37 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
         self.betas[dart_id as usize][I as usize]
+    }
+
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// - `i: u8` -- Index of the beta function. *i* should
+    /// be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
+    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
+    /// means that *dart* is i-free .
+    ///
+    /// The method will panic if *i* is not 0, 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [TwoMap] example.
+    ///
+    pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
+        assert!(i < 3);
+        match i {
+            0 => self.beta::<0>(dart_id),
+            1 => self.beta::<1>(dart_id),
+            2 => self.beta::<2>(dart_id),
+            _ => unreachable!(),
+        }
     }
 
     /// Fetch cells associated to a given dart.
