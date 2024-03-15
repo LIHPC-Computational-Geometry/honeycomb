@@ -13,7 +13,9 @@ a binary that would read serialized data).
 
 ### Quickstart
 
-TODO
+Because this crate is meant to be used in tandem with other members of the workspace,
+no quickstart example is provided in the documentation. Instead, standalone examples
+provided in the crate cover basic usage and parameterization.
 
 ### Examples
 
