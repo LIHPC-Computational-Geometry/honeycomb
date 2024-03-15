@@ -1,8 +1,6 @@
-//! Module short description
+//! camera framework code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code used to model the camera system of the renderer.
 
 // ------ IMPORTS
 

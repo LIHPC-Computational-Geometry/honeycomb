@@ -1,8 +1,6 @@
-//! Module short description
+//! Rendering system code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code used to setup and continuously render available data.
 
 // ------ IMPORTS
 

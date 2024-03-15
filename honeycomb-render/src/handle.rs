@@ -1,8 +1,7 @@
-//! Module short description
+//! map - rendering data interface code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all the code used to convert data read from the map reference to
+//! data that can be interpreted and rendered by the shader system.
 
 // ------ IMPORTS
 
