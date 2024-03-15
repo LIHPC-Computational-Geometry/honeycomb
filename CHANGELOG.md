@@ -2,9 +2,14 @@
 
 ## To be released
 
+...
+
+## 0.1.3
+
 ### Repository Changes
 
-...
+- add new project member: `honeycomb-render` (#17)
+- update README
 
 ### New Features
 
@@ -12,12 +17,21 @@
 
 - `Orbit<'a, const N_MARKS: usize, T: CoordsFloat>` - Generic implementation for
   2D orbit computations. The structure itself only contains meta-data, the orbit
-  computation is done through the `Iterator` trait implementation.
+  computation is done through the `Iterator` trait implementation (#18)
 - `OrbitPolicy<'a>` - Enum used to specify the beta functions used by an orbit.
-  It currently does not not support compositions.
+  It currently does not support compositions (#18)
 - New (temporary?) method for `TwoMap`: `beta_runtime`. It works by redirecting
   to the original `beta` method, using match block and a beta identifier provided
-  at runtime.
+  at runtime (#18)
+
+#### honeycomb-guide
+
+- update content (#19)
+
+#### honeycomb-render (new)
+
+- visualization tool for `TwoMap` structures
+- examples illustrating basic usage
 
 ---
 
@@ -67,7 +81,7 @@
 
 - update content (#5, #12)
 
-#### honeycomb-utils
+#### honeycomb-utils (new)
 
 - benchmarks for the `TwoMap` structure and methods (#10, #11)
 - utility functions for benchmarking and testing.
@@ -90,12 +104,12 @@
 
 ### New Features
 
-#### honeycomb-core
+#### honeycomb-core (new)
 
 - `TwoMap` - basic 2D combinatorial map implementation
 - full documentation support & deployment
 
-#### honeycomb-guide
+#### honeycomb-guide (new)
 
 - **mdbook**-based user guide with information regarding usage &
   non-code-related aspects of the project.
