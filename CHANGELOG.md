@@ -15,9 +15,9 @@
   computation is done through the `Iterator` trait implementation.
 - `OrbitPolicy<'a>` - Enum used to specify the beta functions used by an orbit.
   It currently does not not support compositions.
-- New (temporary?) method for `TwoMap`: `beta_bis`. It works exactly like the
-  regular `beta` method except the beta index is passed as an argument instead
-  of a `const` generic.
+- New (temporary?) method for `TwoMap`: `beta_runtime`. It works by redirecting
+  to the original `beta` method, using match block and a beta identifier provided
+  at runtime.
 
 ---
 
