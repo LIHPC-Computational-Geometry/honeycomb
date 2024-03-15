@@ -54,6 +54,8 @@ pub enum CoordsError {
 /// # Example
 ///
 /// ```rust
+/// # use honeycomb_core::CoordsError;
+/// # fn main() -> Result<(), CoordsError> {
 /// use honeycomb_core::{Coords2, FloatType};
 ///
 /// let unit_x = Coords2::unit_x();
@@ -66,7 +68,10 @@ pub enum CoordsError {
 /// let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir().unwrap(), Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+/// assert_eq!(x_plus_y.unit_dir()?, Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+///
+/// # Ok(())
+/// # }
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
