@@ -16,17 +16,17 @@ use honeycomb_core::{CMap2, CoordsFloat};
 
 cfg_if::cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
-        pub type MapRef<'a, const N_MARKS: usize, T> = &'static CMap2<N_MARKS, T>;
+        pub type MapRef<'a, T> = &'static CMap2<T>;
     } else {
-        pub type MapRef<'a, const N_MARKS: usize, T> = &'a CMap2<N_MARKS, T>;
+        pub type MapRef<'a, T> = &'a CMap2<T>;
     }
 }
 
-async fn inner<const N_MARKS: usize, T: CoordsFloat>(
+async fn inner<T: CoordsFloat>(
     event_loop: EventLoop<()>,
     window: Window,
     render_params: RenderParameters,
-    map: Option<MapRef<'_, N_MARKS, T>>,
+    map: Option<MapRef<'_, T>>,
 ) {
     let mut state = if let Some(val) = map {
         State::new(&window, render_params, val).await
@@ -92,11 +92,7 @@ impl Runner {
     /// cargo run --example <EXAMPLE>
     /// ```
     ///
-    pub fn run<const N_MARKS: usize, T: CoordsFloat>(
-        self,
-        render_params: RenderParameters,
-        map: Option<MapRef<'_, N_MARKS, T>>,
-    ) {
+    pub fn run<T: CoordsFloat>(self, render_params: RenderParameters, map: Option<MapRef<'_, T>>) {
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 std::panic::set_hook(Box::new(console_error_panic_hook::hook));
