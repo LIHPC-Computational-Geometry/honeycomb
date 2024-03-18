@@ -1,4 +1,4 @@
-//! This benchmarks handle measurements for a given operation on TwoMap
+//! This benchmarks handle measurements for a given operation on CMap2
 //! of a given topology (see `generation::splitsquare_two_map` doc).
 //!
 //! The operations applied here affect only geometry, topology is left unchanged

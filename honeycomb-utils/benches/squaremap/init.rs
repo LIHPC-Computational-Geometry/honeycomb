@@ -1,5 +1,5 @@
 //! This benchmarks handle measurements of the initialization speed
-//! of the TwoMap structure in the context of an orthogonal 2D mesh
+//! of the CMap2 structure in the context of an orthogonal 2D mesh
 //! representation. The exact structure is described in the doc of
 //! the `generation::square_two_map method`.
 

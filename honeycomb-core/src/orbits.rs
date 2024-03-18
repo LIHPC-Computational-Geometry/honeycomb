@@ -78,7 +78,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
     ///
     /// # Arguments
     ///
-    /// - `map_handle: &'a TwoMap<N_MARKS, T>` -- Reference to the map containing the beta
+    /// - `map_handle: &'a CMap2<N_MARKS, T>` -- Reference to the map containing the beta
     /// functions used in the BFS.
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.

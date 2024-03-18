@@ -42,7 +42,7 @@ use honeycomb_core::{
 ///
 /// The above code generates the following map:
 ///
-/// ![SQUARETWOMAP](../../images/SquareTwoMap.svg)
+/// ![SQUARECMAP2](../../images/SquareCMap2.svg)
 ///
 /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
 /// Everywhere following the same pattern. Dart indexing is also consistent
@@ -156,7 +156,7 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
 ///
 /// The above code generates the following map:
 ///
-/// ![SPLITSQUARETWOMAP](../../images/SplitSquareTwoMap.svg)
+/// ![SPLITSQUARECMAP2](../../images/SplitSquareCMap2.svg)
 ///
 /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
 /// Everywhere following the same pattern. Dart indexing is also consistent

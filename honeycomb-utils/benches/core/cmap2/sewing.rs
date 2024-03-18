@@ -10,7 +10,7 @@
 //! - `bench_one_unsewing`: benches the `one_unsew` method over all unsewing policies.
 //! - `bench_two_unsewing`: benches the `two_unsew` method over all unsewing policies.
 //!
-//! Each benchmark is repeated on TwoMap of different sizes.
+//! Each benchmark is repeated on CMap2 of different sizes.
 //!
 
 // ------ IMPORTS

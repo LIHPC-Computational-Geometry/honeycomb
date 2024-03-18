@@ -9,7 +9,7 @@
 //! - `bench_is_free`: benches `is_free` & `is_i_free` methods.
 //! - `bench_cell_computation`: benches the `i_cell` method.
 //!
-//! Each benchmark is repeated on TwoMap of different sizes.
+//! Each benchmark is repeated on CMap2 of different sizes.
 //!
 
 // ------ IMPORTS

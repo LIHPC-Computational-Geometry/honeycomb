@@ -9,7 +9,7 @@
 //! - `bench_insert`: benches insertion methods (both behaviors).
 //! - `bench_face_building`: benches the face building methods.
 //!
-//! Each benchmark is repeated on TwoMap of different sizes.
+//! Each benchmark is repeated on CMap2 of different sizes.
 //!
 
 // ------ IMPORTS
