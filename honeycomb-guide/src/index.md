@@ -31,9 +31,9 @@ following line to the manifest of the project:
 [dependencies]
 # Other dependencies...
 honeycomb-core = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
+honeycomb-utils = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
+honeycomb-render = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
 ```
-
-Optionally, you can add other member(s) of the workspace and specify which version to use.
 
 #### Documentation
 
@@ -50,6 +50,7 @@ cargo doc --all --no-deps
 ### Documentation
 
 - [honeycomb-core](honeycomb_core/) *Core definitions and tools*
+- [honeycomb-render](honeycomb_render/) *Visualization tool*
 - [honeycomb-utils](honeycomb_utils/) *Utility routines*
 
 ### References

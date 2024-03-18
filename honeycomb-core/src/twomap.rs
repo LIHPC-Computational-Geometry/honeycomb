@@ -88,6 +88,8 @@ const TWO_MAP_BETA: usize = 3;
 /// progressive changes applied to the structure.
 ///
 /// ```
+/// # use honeycomb_core::twomap::MapError;
+/// # fn main() -> Result<(), MapError> {
 /// use honeycomb_core::{ DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
 ///
 /// // --- Map creation
@@ -100,9 +102,9 @@ const TWO_MAP_BETA: usize = 3;
 /// let (v1, v2, v3): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (0, 1, 2);
 ///
 /// // place the vertices in space
-/// map.set_vertex(v1, [0.0, 0.0]).unwrap();
-/// map.set_vertex(v2, [0.0, 10.0]).unwrap();
-/// map.set_vertex(v3, [10.0, 0.0]).unwrap();
+/// map.set_vertex(v1, [0.0, 0.0])?;
+/// map.set_vertex(v2, [0.0, 10.0])?;
+/// map.set_vertex(v3, [10.0, 0.0])?;
 /// // associate dart to vertices
 /// map.set_vertexid(d1, v1);
 /// map.set_vertexid(d2, v2);
@@ -164,8 +166,8 @@ const TWO_MAP_BETA: usize = 3;
 /// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
 /// let v5 = map.add_vertices(2); // v5, v6
 /// let v6 = v5 + 1;
-/// map.set_vertex(v5, [5.0, 10.0]).unwrap(); // v5
-/// map.set_vertex(v6, [15.0, 10.0]).unwrap(); // v6
+/// map.set_vertex(v5, [5.0, 10.0])?; // v5
+/// map.set_vertex(v6, [15.0, 10.0])?; // v6
 /// // associate dart to vertices
 /// map.set_vertexid(d4, v4);
 /// map.set_vertexid(d5, v5);
@@ -202,7 +204,7 @@ const TWO_MAP_BETA: usize = 3;
 /// // --- (c)
 ///
 /// // shift the position of d6 to build a square using the two faces
-/// map.set_vertex(map.vertexid(d6), [10.0, 10.0]).unwrap();
+/// map.set_vertex(map.vertexid(d6), [10.0, 10.0])?;
 ///
 /// // --- (d)
 ///
@@ -248,6 +250,8 @@ const TWO_MAP_BETA: usize = 3;
 /// assert!(new_two_cell.contains(&d3));
 /// assert_eq!(new_two_cell.len(), 4);
 ///
+/// # Ok(())
+/// # }
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]

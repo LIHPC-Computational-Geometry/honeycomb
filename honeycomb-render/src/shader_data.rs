@@ -1,8 +1,7 @@
-//! Module short description
+//! shader-compatible data structure code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code used to implement and describe data structures
+//! that can be interpreted by the shader system.
 
 // ------ IMPORTS
 

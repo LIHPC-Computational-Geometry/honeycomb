@@ -14,6 +14,7 @@ representation.
 A quickstart example encompassing most features is provided for the following
 structures:
 
+- [Coords2](../honeycomb_core/struct.Coords2.html#example)
 - [TwoMap](../honeycomb_core/twomap/struct.TwoMap.html#example)
 
 ## Content
@@ -22,6 +23,7 @@ structures:
 
 - **TwoMap**: 2D combinatorial map implementation
 - **Coords2**: 2D coordinates implementation
+- **Orbit**: Generic 2D implementation for orbit computation
 
 ### Aliases
 
@@ -33,15 +35,10 @@ structures:
 
 ### Enums
 
+- **OrbitPolicy**: Orbit parameterization.
 - **SewPolicy**: Logic to follow for the geometrical part of the sewing operation.
 - **UnsewPolicy**: Logic to follow for the geometrical part of the unsewing operation.
 
-## Future additions
+### Traits
 
-- [x] Write structure benchmarks (2D) - done as of **0.1.1**
-- [x] Add a custom vector type for spatial representation (2D)
-- [x] Add orientation ~checks~ assertions (2D)
-- [ ] Replace returned `Vec` by an alternative structure or type
-  to prevent too many runtime allocations.
-- [ ] Add I/O support for mesh formats (2D)
-- [ ] Implement 3D maps
+- **CoordsFloat**: Common trait implemented by types used for coordinate representation.

@@ -1,8 +1,6 @@
-//! Module short description
+//! main execution code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code related to the main loop and execution setup.
 
 // ------ IMPORTS
 
@@ -69,12 +67,31 @@ async fn inner<const N_MARKS: usize, T: CoordsFloat>(
         .unwrap();
 }
 
+/// Main rendering structure
 pub struct Runner {
     event_loop: EventLoop<()>,
     window: Window,
 }
 
 impl Runner {
+    /// Main rendering method.
+    ///
+    /// # Arguments
+    ///
+    /// - `render_params: RenderParameters` -- Render parameterization.
+    /// - `map: Option<&TwoMap>` -- Optionnal reference to the map that should be rendered
+    ///
+    /// If no reference is passed to the method, a hardcoded example will be rendered instead.
+    ///
+    /// # Example
+    ///
+    /// Because the renderer uses the core and utils crates, examples are provided as standalone
+    /// files rather than in the doc. You can run them using the following command:
+    ///
+    /// ```shell
+    /// cargo run --example <EXAMPLE>
+    /// ```
+    ///
     pub fn run<const N_MARKS: usize, T: CoordsFloat>(
         self,
         render_params: RenderParameters,
@@ -91,6 +108,8 @@ impl Runner {
             }
         }
     }
+
+    /// UNIMPLEMENTED
     pub async fn run_async(&self) {
         unimplemented!()
     }
