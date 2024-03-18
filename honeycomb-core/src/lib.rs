@@ -29,7 +29,7 @@ pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
 pub use embed::{
     Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
 };
-pub use orbits::{Orbit, OrbitPolicy};
+pub use orbits::{Orbit2, OrbitPolicy};
 pub use twomap::{CMap2, CMapError};
 
 // ------ IMPORTS

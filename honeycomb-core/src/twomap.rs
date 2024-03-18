@@ -90,7 +90,7 @@ const CMAP2_BETA: usize = 3;
 /// ```
 /// # use honeycomb_core::CMapError;
 /// # fn main() -> Result<(), CMapError> {
-/// use honeycomb_core::{ DartIdentifier, SewPolicy, CMap2, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
+/// use honeycomb_core::{ DartIdentifier, SewPolicy, CMap2, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit2, OrbitPolicy};
 ///
 /// // --- Map creation
 ///
@@ -137,7 +137,7 @@ const CMAP2_BETA: usize = 3;
 /// // fetch all darts of the two-cell d2 belongs to
 /// // i.e. the face
 /// let two_cell = map.i_cell::<2>(d2); // directly
-/// let orbit = Orbit::new(&map, OrbitPolicy::Face, d2); // using an orbit
+/// let orbit = Orbit2::new(&map, OrbitPolicy::Face, d2); // using an orbit
 /// let two_cell_from_orbit: Vec<DartIdentifier> = orbit.collect();
 ///
 /// // check topology of the face

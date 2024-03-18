@@ -23,7 +23,7 @@ structures:
 
 - **CMap2**: 2D combinatorial map implementation
 - **Coords2**: 2D coordinates implementation
-- **Orbit**: Generic 2D implementation for orbit computation
+- **Orbit2**: Generic 2D implementation for orbit computation
 
 ### Aliases
 
