@@ -4,16 +4,15 @@
 
 ...
 
+---
+
 ## 0.1.3
-
-### Repository Changes
-
-- add new project member: `honeycomb-render` (#17)
-- update README
 
 ### New Features
 
 #### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
 
 - `Orbit<'a, const N_MARKS: usize, T: CoordsFloat>` - Generic implementation for
   2D orbit computations. The structure itself only contains meta-data, the orbit
@@ -26,12 +25,18 @@
 
 #### honeycomb-guide
 
-- update content (#19)
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
 
-#### honeycomb-render (new)
+- update content of the workspace section to include new member (#19)
+- update **honeycomb-core**'s page content (#19)
 
-- visualization tool for `TwoMap` structures
-- examples illustrating basic usage
+#### honeycomb-render (new member)
+
+<sup>visualization tool for combinatorial maps</sup>
+
+- implement `TwoMap` rendering code
+- add examples illustrating basic usage
 
 ---
 
@@ -46,6 +51,8 @@
 
 #### honeycomb-core
 
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
 - `Coords2<T: CoordsFloat>` - Custom 2D coordinates representation using a
   generic type for inner value.
 - refactor two attributes of `TwoMap`:
@@ -54,9 +61,14 @@
 
 #### honeycomb-guide
 
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
 - update usage instructions
 
 #### honeycomb-utils
+
+<sup>utility routines used in benchmarking and testing</sup>
 
 - update content according to features introduced in #15, #16
 
@@ -66,7 +78,6 @@
 
 ### Repository Changes
 
-- new project members: `honeycomb-utils` (#10)
 - new CI workflow:
     - `bench`: run hardware-counter based benchmarks on new version release
 
@@ -74,14 +85,24 @@
 
 #### honeycomb-core
 
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
 - introduce `benchmarking_utils` feature, used to compile additional methods &
   trait implementation useful for benchmarking
 
 #### honeycomb-guide
 
-- update content (#5, #12)
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project.</sup>
 
-#### honeycomb-utils (new)
+- complete (partially) definition sections (#5)
+- add documentation for the core implementatiosn (#5)
+- add usage instructions (#12)
+- add `honeycomb-utils` section (#12)
+
+#### honeycomb-utils (new member)
+
+<sup>utility routines used in benchmarking and testing</sup>
 
 - benchmarks for the `TwoMap` structure and methods (#10, #11)
 - utility functions for benchmarking and testing.
@@ -97,19 +118,20 @@
 
 ### Repository Changes
 
-- new project members: `honeycomb-core`, `honeycomb-guide`
 - new CI workflows:
     - `doc`: build & deploy user guide and code documentation
     - `rust-test`: run Rust tests, format checker & linter (`clippy`)
 
 ### New Features
 
-#### honeycomb-core (new)
+#### honeycomb-core (new member)
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
 
 - `TwoMap` - basic 2D combinatorial map implementation
 - full documentation support & deployment
 
-#### honeycomb-guide (new)
+#### honeycomb-guide (new member)
 
-- **mdbook**-based user guide with information regarding usage &
-  non-code-related aspects of the project.
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
