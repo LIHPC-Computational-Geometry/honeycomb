@@ -96,7 +96,7 @@ const CMAP2_BETA: usize = 3;
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: CMap2<1, f64> = CMap2::new(3, 3);
+/// let mut map: CMap2<f64> = CMap2::new(3, 3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -256,7 +256,7 @@ const CMAP2_BETA: usize = 3;
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
-pub struct CMap2<const N_MARKS: usize, T: CoordsFloat> {
+pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2<T>>,
     /// List of free vertex identifiers, i.e. empty spots
@@ -284,7 +284,7 @@ macro_rules! stretch {
     };
 }
 
-impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
+impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
     /// # Arguments
@@ -1379,7 +1379,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
 }
 
 #[cfg(any(doc, feature = "benchmarking_utils"))]
-impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
+impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
     /// # Arguments
@@ -1639,7 +1639,7 @@ mod tests {
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
         // set vertex 1 as unused
         map.remove_vertex(1);
         // set vertex 1 as unused, again
@@ -1651,7 +1651,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again
