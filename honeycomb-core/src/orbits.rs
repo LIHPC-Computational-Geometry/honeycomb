@@ -39,7 +39,6 @@ pub enum OrbitPolicy<'a> {
 /// # Generics
 ///
 /// - `'a` -- Lifetime of the reference to the map
-/// - `const N_MARKS: usize` -- Generic parameter of the referenced map.
 /// - `T: CoordsFloat` -- Generic parameter of the referenced map.
 ///
 /// # The search algorithm
@@ -78,7 +77,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// # Arguments
     ///
-    /// - `map_handle: &'a CMap2<N_MARKS, T>` -- Reference to the map containing the beta
+    /// - `map_handle: &'a CMap2<T>` -- Reference to the map containing the beta
     /// functions used in the BFS.
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.

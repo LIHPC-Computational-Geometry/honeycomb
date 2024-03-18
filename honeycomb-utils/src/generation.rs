@@ -23,7 +23,7 @@ use honeycomb_core::{
 ///
 /// ## Generics
 ///
-/// - `const N_MARKS: usize` -- Generic parameter of the returned [CMap2]
+/// - `const T: CoordsFloat` -- Generic parameter of the returned [CMap2].
 ///
 /// # Return / Panic
 ///
@@ -137,7 +137,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 ///
 /// ## Generics
 ///
-/// - `const N_MARKS: usize` -- Generic parameter of the returned [CMap2]
+/// - `const T: CoordsFloat` -- Generic parameter of the returned [CMap2].
 ///
 /// # Return / Panic
 ///

@@ -59,7 +59,7 @@ const CMAP2_BETA: usize = 3;
 /// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
 ///   i.e. empty spots in the current vertex list
 /// - `faces: Vec<Face>` -- List of faces making up the represented mesh
-/// - `dart_data: DartData<N_MARKS>` -- List of embedded data associated with darts
+/// - `dart_data: DartData` -- Structure holding embedded data associated with darts
 /// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
@@ -73,8 +73,6 @@ const CMAP2_BETA: usize = 3;
 ///
 /// # Generics
 ///
-/// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
-///   This corresponds to the number of search that can be done concurrently.
 /// - `T: CoordsFloat` -- Generic type for coordinates representation.
 ///
 /// # Example

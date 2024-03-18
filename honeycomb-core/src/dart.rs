@@ -52,11 +52,6 @@ pub struct CellIdentifiers {
 /// Structure used to store dart-related data. The association of data with
 /// a given dart is done implicitly through indexing.
 ///
-/// # Generics
-///
-/// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
-///   This corresponds to the number of search that can be done concurrently.
-///
 /// # Example
 ///
 /// No example is provided as the structure should not be used directly.
