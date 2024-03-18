@@ -30,7 +30,7 @@ pub use embed::{
     Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
 };
 pub use orbits::{Orbit, OrbitPolicy};
-pub use twomap::{MapError, TwoMap};
+pub use twomap::{CMap2, CMapError};
 
 // ------ IMPORTS
 

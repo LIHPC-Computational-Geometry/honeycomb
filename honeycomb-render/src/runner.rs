@@ -10,7 +10,7 @@ use winit::window::Window;
 
 use crate::state::State;
 use crate::RenderParameters;
-use honeycomb_core::{CoordsFloat, TwoMap};
+use honeycomb_core::{CMap2, CoordsFloat};
 
 // ------ CONTENT
 
@@ -18,7 +18,7 @@ cfg_if::cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
         pub type MapRef<'a, const N_MARKS: usize, T> = &'static TwoMap<N_MARKS, T>;
     } else {
-        pub type MapRef<'a, const N_MARKS: usize, T> = &'a TwoMap<N_MARKS, T>;
+        pub type MapRef<'a, const N_MARKS: usize, T> = &'a CMap2<N_MARKS, T>;
     }
 }
 

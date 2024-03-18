@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{CoordsFloat, DartIdentifier, TwoMap, NULL_DART_ID};
+use crate::{CMap2, CoordsFloat, DartIdentifier, NULL_DART_ID};
 use num::Zero;
 use std::collections::{BTreeSet, VecDeque};
 
@@ -60,11 +60,11 @@ pub enum OrbitPolicy<'a> {
 ///
 /// # Example
 ///
-/// See [TwoMap] example.
+/// See [CMap2] example.
 ///
 pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
-    map_handle: &'a TwoMap<N_MARKS, T>,
+    map_handle: &'a CMap2<N_MARKS, T>,
     /// Policy used by the orbit for the BFS. It can be predetermined or custom.
     orbit_policy: OrbitPolicy<'a>,
     /// Set used to identify which dart is marked during the BFS.
@@ -93,10 +93,10 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn new(
-        map_handle: &'a TwoMap<N_MARKS, T>,
+        map_handle: &'a CMap2<N_MARKS, T>,
         orbit_policy: OrbitPolicy<'a>,
         dart: DartIdentifier,
     ) -> Self {
@@ -180,10 +180,10 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 #[cfg(test)]
 mod tests {
     use crate::orbits::OrbitPolicy;
-    use crate::{DartIdentifier, FloatType, Orbit, TwoMap};
+    use crate::{CMap2, DartIdentifier, FloatType, Orbit};
 
-    fn simple_map() -> TwoMap<1, FloatType> {
-        let mut map: TwoMap<1, FloatType> = TwoMap::new(6, 4);
+    fn simple_map() -> CMap2<1, FloatType> {
+        let mut map: CMap2<1, FloatType> = CMap2::new(6, 4);
         map.set_betas(1, [3, 2, 0]);
         map.set_betas(2, [1, 3, 4]);
         map.set_betas(3, [2, 1, 0]);

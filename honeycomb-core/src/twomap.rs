@@ -2,7 +2,7 @@
 //!
 //! This module contains code for the two main structures provided
 //! by the crate:
-//! - [TwoMap], a 2D combinatorial map implementation
+//! - [CMap2], a 2D combinatorial map implementation
 //! -
 //!
 //! The definitions are re-exported, direct interaction with this module
@@ -28,13 +28,13 @@ use super::{
 // ------ CONTENT
 
 #[derive(Debug)]
-pub enum MapError {
+pub enum CMapError {
     VertexOOB,
 }
 
 // --- 2-MAP
 
-const TWO_MAP_BETA: usize = 3;
+const CMAP2_BETA: usize = 3;
 
 /// Main map object.
 ///
@@ -88,14 +88,14 @@ const TWO_MAP_BETA: usize = 3;
 /// progressive changes applied to the structure.
 ///
 /// ```
-/// # use honeycomb_core::MapError;
-/// # fn main() -> Result<(), MapError> {
-/// use honeycomb_core::{ DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
+/// # use honeycomb_core::CMapError;
+/// # fn main() -> Result<(), CMapError> {
+/// use honeycomb_core::{ DartIdentifier, SewPolicy, CMap2, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
 ///
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: TwoMap<1, f64> = TwoMap::new(3, 3);
+/// let mut map: CMap2<1, f64> = CMap2::new(3, 3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -255,7 +255,7 @@ const TWO_MAP_BETA: usize = 3;
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
-pub struct TwoMap<const N_MARKS: usize, T: CoordsFloat> {
+pub struct CMap2<const N_MARKS: usize, T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2<T>>,
     /// List of free vertex identifiers, i.e. empty spots
@@ -269,7 +269,7 @@ pub struct TwoMap<const N_MARKS: usize, T: CoordsFloat> {
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
     /// Array representation of the beta functions
-    betas: Vec<[DartIdentifier; TWO_MAP_BETA]>,
+    betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
     n_darts: usize,
     /// Current number of vertices
@@ -283,7 +283,7 @@ macro_rules! stretch {
     };
 }
 
-impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
+impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
     /// Creates a new 2D combinatorial map.
     ///
     /// # Arguments
@@ -302,11 +302,11 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
         let vertices = vec![Vertex2::default(); n_vertices];
-        let betas = vec![[0; TWO_MAP_BETA]; n_darts + 1];
+        let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
 
         Self {
             vertices,
@@ -380,7 +380,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
@@ -406,7 +406,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
@@ -431,7 +431,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn cells(&self, dart_id: DartIdentifier) -> &CellIdentifiers {
         &self.dart_data.associated_cells[dart_id as usize]
@@ -449,7 +449,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
         &self.vertices[vertex_id as usize]
@@ -467,7 +467,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn face(&self, face_id: FaceIdentifier) -> &Face {
         &self.faces[face_id as usize]
@@ -485,7 +485,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn vertexid(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         self.dart_data.associated_cells[dart_id as usize].vertex_id
@@ -503,7 +503,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn faceid(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         self.dart_data.associated_cells[dart_id as usize].face_id
@@ -529,7 +529,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
@@ -547,7 +547,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
@@ -581,7 +581,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
         let mut cell: Vec<DartIdentifier> = vec![dart_id];
@@ -650,13 +650,13 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
         self.dart_data.add_entry();
-        self.betas.push([0; TWO_MAP_BETA]);
+        self.betas.push([0; CMAP2_BETA]);
         new_id
     }
 
@@ -676,13 +676,13 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
         self.dart_data.add_entries(n_darts);
-        self.betas.extend((0..n_darts).map(|_| [0; TWO_MAP_BETA]));
+        self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
         new_id
     }
 
@@ -698,12 +698,12 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
         if let Some(new_id) = self.unused_darts.pop_first() {
             self.dart_data.reset_entry(new_id);
-            self.betas[new_id as usize] = [0; TWO_MAP_BETA];
+            self.betas[new_id as usize] = [0; CMAP2_BETA];
             new_id
         } else {
             self.add_free_dart()
@@ -734,7 +734,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
@@ -742,7 +742,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
         let b0d = self.beta::<0>(dart_id);
         let b1d = self.beta::<1>(dart_id);
         let b2d = self.beta::<2>(dart_id);
-        self.betas[dart_id as usize] = [0; TWO_MAP_BETA];
+        self.betas[dart_id as usize] = [0; CMAP2_BETA];
         self.betas[b0d as usize][1] = 0 as DartIdentifier;
         self.betas[b1d as usize][0] = 0 as DartIdentifier;
         self.betas[b2d as usize][2] = 0 as DartIdentifier;
@@ -766,7 +766,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn add_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
         let new_id = self.n_vertices as VertexIdentifier;
@@ -788,7 +788,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
         let new_id = self.n_vertices as VertexIdentifier;
@@ -814,7 +814,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
         if let Some(new_id) = self.unused_vertices.pop_first() {
@@ -849,7 +849,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
         // the insert method returns true if the value was inserted into the set,
@@ -877,18 +877,18 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn set_vertex(
         &mut self,
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
-    ) -> Result<(), MapError> {
+    ) -> Result<(), CMapError> {
         if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
             *val = vertex.into();
             return Ok(());
         }
-        Err(MapError::VertexOOB)
+        Err(CMapError::VertexOOB)
     }
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
@@ -909,7 +909,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
         assert!(I < 3);
@@ -926,9 +926,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
-    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; TWO_MAP_BETA]) {
+    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
 
@@ -941,7 +941,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
@@ -956,7 +956,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
         self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
@@ -986,7 +986,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn one_sew(
         &mut self,
@@ -1061,7 +1061,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn two_sew(
         &mut self,
@@ -1206,7 +1206,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
@@ -1248,7 +1248,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
@@ -1318,7 +1318,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
         let new_faceid = self.faces.len() as FaceIdentifier;
@@ -1375,7 +1375,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
 }
 
 #[cfg(any(doc, feature = "benchmarking_utils"))]
-impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
+impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
     /// Computes the total allocated space dedicated to the map.
     ///
     /// # Arguments
@@ -1636,13 +1636,13 @@ impl<const N_MARKS: usize, T: CoordsFloat> TwoMap<N_MARKS, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{FloatType, TwoMap};
+    use crate::{CMap2, FloatType};
 
     #[test]
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: TwoMap<1, FloatType> = TwoMap::new(4, 4);
+        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
         // set vertex 1 as unused
         map.remove_vertex(1);
         // set vertex 1 as unused, again
@@ -1654,7 +1654,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: TwoMap<1, FloatType> = TwoMap::new(4, 4);
+        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again

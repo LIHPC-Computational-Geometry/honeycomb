@@ -7,7 +7,7 @@
 
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{Coords2, CoordsFloat, FaceIdentifier, TwoMap};
+use honeycomb_core::{CMap2, Coords2, CoordsFloat, FaceIdentifier};
 
 // ------ CONTENT
 
@@ -44,7 +44,7 @@ macro_rules! as_f32_tuple {
 }
 
 pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
-    handle: &'a TwoMap<N_MARKS, T>,
+    handle: &'a CMap2<N_MARKS, T>,
     params: RenderParameters,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
@@ -52,7 +52,7 @@ pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
 }
 
 impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T> {
-    pub fn new(map: &'a TwoMap<N_MARKS, T>, params: Option<RenderParameters>) -> Self {
+    pub fn new(map: &'a CMap2<N_MARKS, T>, params: Option<RenderParameters>) -> Self {
         Self {
             handle: map,
             params: params.unwrap_or_default(),

@@ -9,7 +9,7 @@ use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
 use crate::handle::TwoMapRenderHandle;
 use crate::shader_data::{Coords2Shader, TEST_VERTICES};
 use crate::RenderParameters;
-use honeycomb_core::{CoordsFloat, TwoMap};
+use honeycomb_core::{CMap2, CoordsFloat};
 
 // extern
 use std::borrow::Cow;
@@ -230,7 +230,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
     pub async fn new(
         window: &'a Window,
         render_params: RenderParameters,
-        map: &'a TwoMap<N_MARKS, T>,
+        map: &'a CMap2<N_MARKS, T>,
     ) -> Self {
         let mut size = window.inner_size();
         size.width = size.width.max(1);

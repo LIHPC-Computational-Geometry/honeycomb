@@ -1,9 +1,9 @@
-use honeycomb_core::{DartIdentifier, FloatType, TwoMap, UnsewPolicy};
+use honeycomb_core::{CMap2, DartIdentifier, FloatType, UnsewPolicy};
 use honeycomb_utils::generation::square_two_map;
 
 pub fn main() {
     // create a 3x3 grid & remove the central square
-    let mut cmap: TwoMap<1, FloatType> = square_two_map(3);
+    let mut cmap: CMap2<1, FloatType> = square_two_map(3);
     // darts making up the central square
     let (d1, d2, d3, d4): (
         DartIdentifier,

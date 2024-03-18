@@ -14,9 +14,9 @@
 
 // ------ IMPORTS
 
-use crate::Coords2;
 #[cfg(doc)]
-use crate::TwoMap;
+use crate::CMap2;
+use crate::Coords2;
 
 // ------ CONTENT
 
@@ -47,7 +47,7 @@ pub type VolumeIdentifier = u32;
 ///
 /// # Example
 ///
-/// Refer to the user guide and [TwoMap] examples.
+/// Refer to the user guide and [CMap2] examples.
 ///
 #[derive(Debug, Default)]
 pub enum SewPolicy {
@@ -82,7 +82,7 @@ pub enum SewPolicy {
 ///
 /// # Example
 ///
-/// Refer to the user guide and [TwoMap] examples.
+/// Refer to the user guide and [CMap2] examples.
 ///
 #[derive(Debug, Default)]
 pub enum UnsewPolicy {
