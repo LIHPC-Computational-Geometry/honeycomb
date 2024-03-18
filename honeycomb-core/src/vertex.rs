@@ -15,6 +15,25 @@ pub struct Vertex2<T: CoordsFloat> {
     inner: Coords2<T>,
 }
 
+impl<T: CoordsFloat> Vertex2<T> {
+    pub fn into_inner(self) -> Coords2<T> {
+        self.inner
+    }
+
+    pub fn x(&self) -> T {
+        self.inner.x
+    }
+
+    pub fn y(&self) -> T {
+        self.inner.y
+    }
+
+    pub fn average(lhs: &Vertex2<T>, rhs: &Vertex2<T>) -> Vertex2<T> {
+        let two = T::from(2.0).unwrap();
+        Vertex2::from(((lhs.x() + rhs.x()) / two, (lhs.y() + rhs.y()) / two))
+    }
+}
+
 // Building traits
 
 impl<T: CoordsFloat> From<(T, T)> for Vertex2<T> {
