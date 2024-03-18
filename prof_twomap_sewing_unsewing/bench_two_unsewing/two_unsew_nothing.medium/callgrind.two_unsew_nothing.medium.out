@@ -1,0 +1,121 @@
+# callgrind format
+version: 1
+creator: callgrind-3.18.1
+pid: 5483
+cmd:  /home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_sewing_unsewing-32f140932db19a81 --iai-run bench_two_unsewing 0 1 prof_twomap_sewing_unsewing::bench_two_unsewing::two_unsew_nothing
+part: 1
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 1528846
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 16 6 4 2 1 0 2
+
+
+ob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_sewing_unsewing-32f140932db19a81
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/sewing.rs
+fn=iai_callgrind::bench::two_unsew_nothing
+139 1 0 1 1 0 0 1
+fi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+1256 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/slice/index.rs
+255 2
+fi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+0 1 1
+387 1 1 0 1 1 0 1
+1257 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/slice/index.rs
+261 2
+fi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+1258 2 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/hint.rs
+286 3 1 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/sewing.rs
+142 2 2
+
+fn=prof_twomap_sewing_unsewing::two_unsew_nothing::medium
+cfn=iai_callgrind::bench::two_unsew_nothing
+calls=1 139 
+135 16 6 4 2 1 0 2
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+fn=std::sys_common::backtrace::__rust_begin_short_backtrace
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfi=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+cfn=prof_twomap_sewing_unsewing::main
+calls=1 346 
+250 16 6 4 2 1 0 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+fn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h8a2dda0a89f66993E.llvm.10269273760056633474
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+cfn=std::sys_common::backtrace::__rust_begin_short_backtrace
+calls=1 151 
+166 16 6 4 2 1 0 2
+
+fn=std::rt::lang_start_internal
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h8a2dda0a89f66993E.llvm.10269273760056633474
+calls=1 166 
+284 16 6 4 2 1 0 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+
+fl=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+fn=prof_twomap_sewing_unsewing::bench_two_unsewing::run
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/sewing.rs
+cfn=prof_twomap_sewing_unsewing::two_unsew_nothing::medium
+calls=1 135 
+795 16 6 4 2 1 0 2
+
+fn=prof_twomap_sewing_unsewing::main
+cfn=prof_twomap_sewing_unsewing::bench_two_unsewing::run
+calls=1 794 
+370 16 6 4 2 1 0 2
+
+fl=???
+fn=main
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+cfn=std::rt::lang_start_internal
+calls=1 125 
+0 16 6 4 2 1 0 2
+
+fn=(below main)
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./csu/../csu/libc-start.c
+cfn=__libc_start_main@@GLIBC_2.34
+calls=1 242 
+0 16 6 4 2 1 0 2
+
+ob=/usr/lib/x86_64-linux-gnu/libc.so.6
+fl=./csu/../csu/libc-start.c
+fn=__libc_start_main@@GLIBC_2.34
+cfi=./csu/../sysdeps/nptl/libc_start_call_main.h
+cfn=(below main)
+calls=1 29 
+392 16 6 4 2 1 0 2
+
+fl=./csu/../sysdeps/nptl/libc_start_call_main.h
+fn=(below main)
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_sewing_unsewing-32f140932db19a81
+cfi=???
+cfn=main
+calls=1 0 
+58 16 6 4 2 1 0 2
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=???
+fn=0x0000000000020290
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_sewing_unsewing-32f140932db19a81
+cfi=???
+cfn=(below main)
+calls=1 0 
+0 16 6 4 2 1 0 2
+
+totals: 16 6 4 2 1 0 2

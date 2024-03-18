@@ -1,0 +1,665 @@
+# callgrind format
+version: 1
+creator: callgrind-3.18.1
+pid: 5374
+cmd:  /home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca --iai-run bench_insert 1 1 prof_twomap_editing::bench_insert::insert_dart_full
+part: 1
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 1770255
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 211978 210369 210250 45 3339 3303 45 0 3284
+
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=???
+fn=0x0000000000020290
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+cfi=???
+cfn=(below main)
+calls=1 0 
+0 211978 210369 210250 45 3339 3303 45 0 3284
+
+ob=/usr/lib/x86_64-linux-gnu/libc.so.6
+fl=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+fn=__memcpy_avx_unaligned_erms
+307 3
+308 3
+314 3
+315 3
+317 3 3 0 0 2
+318 3
+319 3
+438 3 3
+439 3
+615 3 3 0 1 1 0 1
+622 3
+623 3
+629 1
+632 1
+634 1
+637 1
+638 1
+640 1
+642 120009 120008 120008 0 1875 1875 0 0 1875
+644 1 0 1 0 0 1
+646 1 0 1 0 0 1
+648 2 1 0 0 1
+653 3 0 0 1 0 0 1
+654 3
+658 3
+660 3
+663 3
+667 3 3 0 0 2
+668 3
+671 3 3
+672 3
+696 2
+698 2
+700 2
+702 2 0 0 1 0 0 1
+705 2
+706 2
+708 89922 89920 89920 0 1400 1406 0 0 1406
+711 2 0 2 0 0 1
+713 2 0 2 0 0 1
+715 4 2 0 0 1
+
+fl=./csu/../csu/libc-start.c
+fn=__libc_start_main@@GLIBC_2.34
+cfi=./csu/../sysdeps/nptl/libc_start_call_main.h
+cfn=(below main)
+calls=1 29 
+392 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=./csu/../sysdeps/nptl/libc_start_call_main.h
+fn=(below main)
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+cfi=???
+cfn=main
+calls=1 0 
+58 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=./malloc/./malloc/malloc.c
+fn=unlink_chunk.constprop.0
+1626 1 0 0 1 0 0 1
+1628 5 2
+1631 2 2 0 0 1
+1632 1 1
+1631 3 0 0 1 0 0 1
+1634 4 2 0 0 1
+1637 1 0 1
+1638 1 0 1
+1639 5 1
+1641 2 1
+1642 6 2 0 1 0 0 1
+1645 2 1
+1659 1 0 1
+1660 2 1 1
+1663 2 1
+
+fn=_int_free
+4421 24 0 18 0 0 2
+4431 3 3 0 0 2
+4421 9 3 3 0 2
+4431 6
+4437 15
+4438 6
+4442 12
+4450 15 6 0 0 4
+4449 6
+4450 6 3 0 0 2
+4493 6 3 0 0 2
+4702 33 27
+4569 6 3
+4572 3 3
+4575 9 0 3
+4582 3 3 0 0 2
+4578 3 0 0 1 0 0 1
+4582 6
+4585 6 3 0 0 2
+4590 9 3
+4593 6
+4594 6
+4595 6 3 0 1 2 0 1
+2012 9 3 0 0 2
+4601 6 3
+4602 1 1
+4604 1
+4603 1
+4605 4 1 0 0 1
+4607 2 0 1 0 0 1
+cfn=unlink_chunk.constprop.0
+calls=3 1626 
+4607 38 14 4 3 2 0 3
+4610 6 3 0 1 0 0 1
+4615 6 3 0 0 2
+4619 3 0 3
+4628 3 3
+4627 3
+4628 9
+4629 6 3
+4631 3 0 3
+4633 6 0 0 1 0 0 1
+4638 3 0 3
+4639 3 0 3
+4641 9 0 3
+4642 3 0 3
+4672 6
+4692 9 3
+4635 9 0 3 1 0 1 1
+4673 6 2 0 1 0 0 1
+4676 4
+4678 2 2
+4676 2 0 0 1 0 0 1
+4587 9 3 0 1 2 0 1
+4585 6
+4678 8 4 0 1 2 0 1
+
+fn=realloc
+3400 30 0 18
+3406 6 3
+3410 6
+3417 6
+3428 3 3 0 0 2
+3426 3
+3431 3
+3428 6
+3430 6
+3434 9 6
+fi=./malloc/./malloc/arena.c
+162 9
+fe=./malloc/./malloc/malloc.c
+3442 12
+3443 6
+1343 6
+1362 18
+3452 6
+3483 9 3
+3485 15 0 3
+cfn=_int_realloc
+calls=7605 4818 
+3485 211455 210250 210153 29 3329 3297 29 0 3284
+3485 3
+3486 15 3
+fi=./malloc/./malloc/arena.c
+162 3
+fe=./malloc/./malloc/malloc.c
+3486 2
+3515 27 21 0 0 4
+
+fn=_int_realloc
+4818 21 0 18 0 0 1
+4829 12 3
+4830 15 3
+4836 6
+4838 6
+4839 9 3 0 0 1
+4841 12
+4844 6
+4933 27 21 0 0 2
+4854 6 3
+4866 6 3 0 0 1
+4878 9 0 3
+cfn=_int_malloc
+calls=4 1343 
+4878 834 148 142 14 12 7 14 0 3
+4878 3
+4879 6
+4882 3
+4883 3 3
+4888 6
+4896 3 3
+4895 3
+4899 3
+4896 18
+4899 3 0 3
+cob=???
+cfi=???
+cfn=0x000000000489b620
+calls=4 0 
+4899 210030 209949 209934 3 3284 3285 3 0 3281
+4900 12 0 3
+cfn=_int_free
+calls=4 4421 
+4900 390 111 50 12 29 4 12
+4902 3
+
+fn=sysmalloc_mmap.constprop.0
+2420 6 0 6 1 0 0 1
+2433 6
+2438 4 0 0 1 0 0 1
+2441 18 0 2
+cfi=./misc/../sysdeps/unix/sysv/linux/mmap64.c
+cfn=mmap
+calls=2 47 
+2441 18 2
+2441 2
+2444 4 0 0 1 0 0 1
+2448 4
+2028 8 2
+2466 6
+2485 2
+2484 2 0 2 0 0 2 0 0 2
+2489 2
+2485 4 0 2
+2489 4 2 2 1 0 0 1
+2490 10 2 2
+2493 6 2 2
+2494 10 2 2 1 0 0 1
+2499 10 8
+
+fn=sysmalloc
+2548 18 0 12 0 0 1
+2568 8 6 2 0 4
+2579 4
+2580 4 2 0 0 1
+2581 6 4 0 0 2
+2585 6 2
+2594 8 0 2 0 0 1
+cfn=sysmalloc_mmap.constprop.0
+calls=2 2420 
+2594 126 20 20 5 0 2 5 0 2
+2595 4
+2964 22 18
+
+fn=_int_malloc
+1343 6
+3771 3 0 3
+1362 3
+3771 24 0 15
+1362 12
+3811 6
+4397 6
+3838 6 3
+3901 6
+3963 115 0 36
+3964 9 3
+3983 3
+3984 3 3
+3983 6
+3982 6 0 3 0 0 1
+3984 6 3
+3982 9 3 3
+3994 3
+3988 3 0 3
+4061 12 0 6
+3994 9 3
+4158 2 2
+4067 2 2
+4158 4 0 2
+4067 2 2
+3993 2
+3181 2
+4067 2 0 2 1 0 0 1
+3181 4 2 2
+4025 4 0 2
+3183 4 0 2
+3997 8 2
+3998 2
+4000 4 0 0 1 0 0 1
+4001 6 2
+4003 2 2
+4004 8
+4006 8 2
+3996 2 2
+4008 4 2 0 1 0 0 1
+4009 4 2
+4011 4
+4022 4
+4053 2 0 2
+4054 2 0 2
+4058 4
+4087 4 0 0 1 0 0 1
+4147 2
+4149 4
+4147 4
+4149 2
+4156 2 0 2
+4147 6 0 2 1 0 1 1
+4156 2 2
+4149 2 0 2
+4150 2 0 2
+4151 2 0 2
+4157 4
+4413 27 21
+4095 30 0 0 2 0 0 2
+4096 6 0 0 1 0 0 1
+4097 2 2 0 0 2
+4096 2
+4100 4
+4166 6
+3994 6 2
+4183 6
+4185 9 3
+4188 3 3 0 0 3
+4185 3
+4188 6
+4256 6 3
+4257 3
+4258 3
+4257 3
+4258 3
+4259 6 3
+4260 9
+4265 6
+3963 8 0 2
+4144 6 0 2 1 0 0 1
+4269 9
+4369 3 3
+4370 6 3
+4372 6 3
+4375 13 0 4
+4392 6 2
+4380 1
+4378 2 1
+4380 1
+4379 1 0 1
+4385 1
+4380 1
+4377 1
+4380 1
+4382 1
+4380 4 0 1
+2005 1 1
+4382 1 0 1 0 0 1 0 0 1
+2005 2
+4407 8 2 2
+cfn=sysmalloc
+calls=5 2548 
+4407 206 52 36 5 7 4 5 0 2
+4407 2
+4408 4
+2005 6 2
+
+fl=./misc/../sysdeps/unix/sysv/linux/mmap64.c
+fn=mmap
+47 4
+50 4
+58 8
+60 2 2
+
+ob=???
+fl=???
+fn=0x000000000489b620
+0 6 3 0 0 2
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=58 307 
+0 210024 209946 209934 3 3282 3285 3 0 3281
+
+ob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+fl=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+fn=prof_twomap_editing::main
+cfn=prof_twomap_editing::bench_insert::run
+calls=1 794 
+370 211978 210369 210250 45 3339 3303 45 0 3284
+
+fn=prof_twomap_editing::bench_insert::run
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+cfn=prof_twomap_editing::insert_dart_full::medium
+calls=1 109 
+795 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+fn=std::rt::lang_start_internal
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h0533bf03d7c52522E.llvm.12836776482103543101
+calls=1 166 
+284 211978 210369 210250 45 3339 3303 45 0 3284
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+
+fn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h0533bf03d7c52522E.llvm.12836776482103543101
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+cfn=std::sys_common::backtrace::__rust_begin_short_backtrace
+calls=1 151 
+166 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+fn=__rdl_realloc
+406 24 0 15
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+47 12
+48 24 15 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=realloc
+calls=7604 3400 
+48 211664 210289 210174 29 3335 3297 29 0 3284
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+
+fl=???
+fn=(below main)
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./csu/../csu/libc-start.c
+cfn=__libc_start_main@@GLIBC_2.34
+calls=1 242 
+0 211978 210369 210250 45 3339 3303 45 0 3284
+
+fn=__rust_realloc
+0 3
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+cfn=__rdl_realloc
+calls=7604 406 
+0 211724 210304 210189 29 3336 3297 29 0 3284
+
+fn=main
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+cfn=std::rt::lang_start_internal
+calls=1 125 
+0 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+fn=iai_callgrind::bench::insert_dart
+105 1 0 1 1 0 0 1
+106 1 0 1
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+cfn=honeycomb_core::twomap::TwoMap<_,T>::insert_free_dart
+calls=1 703 
+106 211971 210366 210247 44 3339 3302 44 0 3284
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/hint.rs
+286 3 1 1 0 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+107 2 2
+
+fn=prof_twomap_editing::insert_dart_full::medium
+cfn=iai_callgrind::bench::insert_dart
+calls=1 105 
+109 211978 210369 210250 45 3339 3303 45 0 3284
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+fn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+317 3 0 2 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+423 1
+0 1
+427 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+0 5
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 3
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+256 2
+433 1 1 0 1 0 0 1
+268 4 0 3
+0 2
+433 2 0 1
+cfn=_ZN5alloc7raw_vec11finish_grow17he61827c1cb102f53E.llvm.14678809913886732673
+calls=1 500 
+433 10436 10058 10031 9 156 158 9 0 157
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+1946 2 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+433 1
+401 1 0 1 1 0 0 1
+402 1 0 1
+319 4 3
+317 3 0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+423 1
+0 1 0 0 1 0 0 1
+427 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+0 9
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 3 0 0 1 0 0 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+256 2
+433 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+268 4 0 3
+0 2
+433 1 0 1
+cfn=_ZN5alloc7raw_vec11finish_grow17he61827c1cb102f53E.llvm.14678809913886732673
+calls=1 500 
+433 120693 120151 120111 0 1904 1885 0 0 1876
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+1946 2 2 0 1 0 0 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+433 1
+401 1 0 1 0 0 1
+402 1 0 1 0 0 1
+319 4 3
+317 3 0 2 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+423 1
+0 1 0 0 1 0 0 1
+427 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+0 9
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+256 2
+433 1 1 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+268 4 0 3
+0 2
+433 1 0 1
+cfn=_ZN5alloc7raw_vec11finish_grow17he61827c1cb102f53E.llvm.14678809913886732673
+calls=1 500 
+433 80682 80119 80068 20 1277 1256 20 0 1251
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+1946 2 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+433 1
+401 1 0 1 1 0 1 1
+402 1 0 1
+319 4 3
+
+fn=_ZN5alloc7raw_vec11finish_grow17he61827c1cb102f53E.llvm.14678809913886732673
+500 15 0 9
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+827 6
+0 3
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+513 9 6
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+202 6
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+0 3 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+136 9 3 3 0 1
+cfi=???
+cfn=__rust_realloc
+calls=7604 0 
+136 211727 210304 210189 29 3336 3297 29 0 3284
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+827 6
+828 6 0 3 0 0 2
+0 9 0 6
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+525 12 12
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+fn=honeycomb_core::twomap::TwoMap<_,T>::insert_free_dart
+703 6 1 2 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/collections/btree/map.rs
+782 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1918 1 1 0 1 0 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+656 1 1
+657 2 0 1 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1918 2 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+658 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1919 1 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+calls=1 317 
+1919 10472 10065 10039 12 156 158 12 0 157
+1922 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+239 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1924 1 0 1
+1918 3 2
+fi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+192 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1919 1 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+calls=1 317 
+1919 80721 80126 80076 24 1277 1257 24 0 1251
+1922 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+239 1 1 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1924 1 0 1
+1918 3 2 0 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+659 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1919 1 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+calls=1 317 
+1919 120734 120158 120119 3 1904 1887 3 0 1876
+1922 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+239 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mut_ptr.rs
+1045 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 2 0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1924 1 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+711 5 3 0 1 1 0 1
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+fn=std::sys_common::backtrace::__rust_begin_short_backtrace
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfi=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+cfn=prof_twomap_editing::main
+calls=1 346 
+250 211978 210369 210250 45 3339 3303 45 0 3284
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+
+totals: 211978 210369 210250 45 3339 3303 45 0 3284

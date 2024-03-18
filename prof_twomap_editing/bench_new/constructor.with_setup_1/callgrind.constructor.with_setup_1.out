@@ -1,0 +1,744 @@
+# callgrind format
+version: 1
+creator: callgrind-3.18.1
+pid: 5331
+cmd:  /home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca --iai-run bench_new 0 1 prof_twomap_editing::bench_new::constructor
+part: 1
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 173422
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 105147 335 103739 33 36 1641 23 0 1619
+
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=???
+fn=0x0000000000020290
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+cfi=???
+cfn=(below main)
+calls=1 0 
+0 105147 335 103739 33 36 1641 23 0 1619
+
+ob=/usr/lib/x86_64-linux-gnu/libc.so.6
+fl=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+fn=__memcpy_avx_unaligned_erms
+307 1
+308 1
+314 1
+315 1
+317 1 1
+318 1
+319 1
+438 1 1 0 0 1
+439 1
+444 1
+445 1
+447 1 1
+448 1
+449 1
+451 1 1
+452 1 1
+453 1 1
+454 1 1
+455 1 1
+456 1 1
+457 1 0 1 0 0 1
+458 1 0 1 0 0 1
+459 1 0 1
+460 1 0 1 0 0 1
+461 1 0 1 0 0 1
+462 1 0 1
+463 1 0 1
+464 1 0 1
+465 2 1
+
+fl=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+fn=__memset_avx2_unaligned_erms
+181 4
+182 12
+187 4
+188 4
+189 4
+190 4
+259 4 4
+260 4
+348 4
+349 4
+350 4
+351 103453 0 103449 0 0 1616 0 0 1614
+352 4
+353 8 4 0 0 2
+
+fl=./misc/./misc/sbrk.c
+fn=sbrk
+37 2 0 1 1
+43 1 1 0 0 1
+37 1 0 1 0 0 1
+40 1 1 0 0 1
+37 2 0 1
+40 1 1 0 0 1
+43 1
+78 5 4
+58 2
+62 2
+66 4
+74 1 0 1
+cfi=./misc/../sysdeps/unix/sysv/linux/brk.c
+cfn=brk
+calls=2 35 
+74 9 2 1 1
+74 2
+
+fl=./csu/../csu/libc-start.c
+fn=__libc_start_main@@GLIBC_2.34
+cfi=./csu/../sysdeps/nptl/libc_start_call_main.h
+cfn=(below main)
+calls=1 29 
+392 105147 335 103739 33 36 1641 23 0 1619
+
+fl=./csu/../sysdeps/nptl/libc_start_call_main.h
+fn=(below main)
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+cfi=???
+cfn=main
+calls=1 0 
+58 105147 335 103739 33 36 1641 23 0 1619
+
+fl=./misc/../sysdeps/unix/sysv/linux/brk.c
+fn=brk
+35 1 0 0 1
+36 4 1 1
+37 2
+43 1
+44 1 1
+
+fl=./malloc/./malloc/malloc.c
+fn=_int_malloc
+1343 10
+3771 5 0 5
+1362 5
+3771 40 0 25 0 0 2
+1362 20
+3811 10
+4397 10
+3838 10 5 0 0 1
+3901 10
+3963 190 0 59 0 0 3
+3964 15 5 0 0 1
+3983 5
+3984 5 5
+3983 10
+3982 10 0 5 0 0 1
+3984 10 5
+3982 15 5 5
+3994 5
+3988 5 0 5
+4061 20 0 10
+3994 15 5 0 0 1
+4413 45 35
+4183 10
+4185 15 5
+4188 5 5 0 0 3
+4185 5
+4188 10
+4256 10 5
+4257 5
+4258 5
+4257 5
+4258 5
+4259 10 5 0 0 1
+4260 15
+4265 10
+3963 4 0 1 1 0 0 1
+4269 15
+4369 5 5
+4370 10 5
+4372 10 5 0 0 1
+4375 17 0 2
+4392 3 1
+4380 4
+4378 8 4
+4380 4
+4379 4 0 4
+4385 4
+4380 4
+4377 4
+4380 4
+4382 4
+4380 16 0 4
+2005 4 4
+4382 4 0 4 0 0 4 0 0 4
+2005 8
+4407 4 1 1
+cfn=sysmalloc
+calls=2 2548 
+4407 162 38 23 10 7 2 0 0 1
+4407 1
+4408 2
+2005 3 1
+
+fn=free
+3352 1
+3356 2
+3352 1 0 1
+3366 1
+3352 2 0 1
+3364 1 1 0 0 1
+3368 1 1
+3364 1 1 0 0 1
+3368 2
+3385 3 2
+fi=./malloc/./malloc/arena.c
+162 3
+fe=./malloc/./malloc/malloc.c
+3391 2 0 1
+cfn=_int_free
+calls=22 4421 
+3391 64 20 11
+3394 1 0 1
+3395 4 3
+
+fn=_int_free
+4421 8 0 6
+4431 1 1
+4421 3 1 1
+4431 2
+4437 5
+4438 2
+4442 4
+4450 5 2
+4449 2
+4450 2 1
+4479 1 1
+4459 1 1
+4453 1
+4459 2 1
+4479 4 1
+4702 11 9
+3181 1 1
+3185 1
+3181 1 0 1
+3183 4 1 1
+3184 1 0 1
+3185 1 0 1
+4482 1
+
+fn=calloc
+3624 2 0 1
+3634 1
+3624 4 0 3
+3634 8
+3642 2 1
+3645 3 2
+3647 3 1
+3679 3 0 1
+cfn=_int_malloc
+calls=3 1343 
+3679 149 22 27 1 1 1 1 0 1
+3681 5 1
+fi=./malloc/./malloc/arena.c
+162 3
+fe=./malloc/./malloc/malloc.c
+3681 2
+3684 3 1
+3698 2
+3709 1 1
+3714 1 1
+3712 2
+3709 1
+3721 4
+3701 4
+3732 1
+3734 2
+3736 2
+3657 1 1
+3658 3 1
+3665 1
+3762 1
+3737 2
+3762 4 4
+3737 1
+cob=???
+cfi=???
+cfn=0x000000000489b670
+calls=2 0 
+3737 49195 3 49176 0 1 769 0 0 768
+
+fn=sysmalloc
+2548 9 0 6 1
+2568 4 3 1 0 2
+2579 2 0 0 1
+2580 3 1 1 0 1
+2606 1 1
+2607 3 1
+2608 1
+2617 8
+2623 3
+2626 3
+2941 2 1 0 1
+2942 1 0 1
+2947 2 1
+2950 2
+2955 2
+2953 1
+2955 1
+2954 1 0 1
+2955 1
+2952 1
+2955 1
+2956 1
+2955 3 0 1 1
+2956 1 0 1 0 0 1 0 0 1
+2958 2
+2964 11 9 0 1
+2687 2 1 0 1
+2696 4 1
+2709 3 1 0 0 1
+2717 5 0 1
+2725 2 0 0 1
+2764 2 1
+2766 3 1 1
+2772 4
+2773 1
+2946 1 1
+2773 3 0 1
+fi=./malloc/./malloc/arena.c
+565 1 0 1
+fe=./malloc/./malloc/malloc.c
+2727 1 0 1
+cfi=./malloc/./malloc/morecore.c
+cfn=__glibc_morecore
+calls=2 25 
+2727 43 11 6 2 3 1
+2728 2 1
+2727 1
+2728 1
+2028 1 1
+2729 1 1
+2028 1
+2729 1
+2028 2
+2730 1
+2733 2
+2766 2 1
+2610 2 0 0 1
+
+fn=malloc
+3287 30 0 15 0 0 1
+3294 10 5 0 0 1
+1343 10
+1362 20
+3306 20 10 0 0 2
+3309 10 5 0 0 1
+3319 12 4 0 0 1
+3347 20 16
+1362 5
+3304 15
+3311 3 1 0 0 1
+3193 2 1 0 0 1
+3194 2
+3196 1
+3197 1
+3196 3 1 1 0 1
+3197 1 0 1
+3198 1 0 1
+3347 5 4
+3321 16 0 4 0 0 1
+cfn=_int_malloc
+calls=17 1343 
+3321 739 127 126 10 14 11 0 0 4
+3322 20 4
+fi=./malloc/./malloc/arena.c
+162 8
+fe=./malloc/./malloc/malloc.c
+
+fl=./malloc/./malloc/morecore.c
+fn=__glibc_morecore
+25 1
+26 2 1
+25 1
+29 1 0 1
+cfi=./misc/./misc/sbrk.c
+cfn=sbrk
+calls=9 37 
+29 34 9 5 2 3 1
+30 2
+34 2 1
+
+ob=???
+fl=???
+fn=0x000000000489b670
+0 2 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=3 181 
+0 49193 2 49176 0 1 769 0 0 768
+
+ob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_editing-244c6d5a756356ca
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+fn=honeycomb_core::twomap::TwoMap<_,T>::new
+307 10 0 6 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+190 1
+0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 1 1 0 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+98 197 33 30 0 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_elem.rs
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+1581 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+729 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 3 1 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=1 181 
+1415 17425 2 17408 0 0 271 0 0 271
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+729 2
+0 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 2 0 1 1 0 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+309 2
+0 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 1
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+190 1
+0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+170 3 1 1
+cfi=???
+cfn=__rust_alloc_zeroed
+calls=1 0 
+170 49431 42 49211 3 2 770 3 0 769
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2 0 0 1 0 0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/collections/btree/set.rs
+342 2 0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 2
+0 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+314 4 0 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 1 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+98 197 33 30 0 12 5 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+672 4 0 3 1 0 1 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+315 2 0 1
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+cfn=honeycomb_core::dart::DartData<_>::new
+calls=1 113 
+315 37741 189 37012 20 18 586 10 0 577
+317 4 1 3 0 0 1
+311 22 8 14 2 0 2 2
+321 9 7
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+fn=std::sys_common::backtrace::__rust_begin_short_backtrace
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfi=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+cfn=prof_twomap_editing::main
+calls=1 346 
+250 105147 335 103739 33 36 1641 23 0 1619
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+fn=__rdl_dealloc
+42 1 1 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=free
+calls=15 3352 
+42 89 28 15 0 2
+
+fl=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+fn=prof_twomap_editing::bench_new::run
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+cfn=prof_twomap_editing::constructor::with_setup_1
+calls=1 44 
+795 105147 335 103739 33 36 1641 23 0 1619
+
+fn=prof_twomap_editing::main
+cfn=prof_twomap_editing::bench_new::run
+calls=1 794 
+370 105147 335 103739 33 36 1641 23 0 1619
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+fn=prof_twomap_editing::constructor::with_setup_1
+cfn=iai_callgrind::bench::constructor
+calls=1 46 
+44 105147 335 103739 33 36 1641 23 0 1619
+
+fn=iai_callgrind::bench::constructor
+46 5 0 2 1 0 0 1
+47 2 0 1
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+cfn=honeycomb_core::twomap::TwoMap<_,T>::new
+calls=1 307 
+47 105101 321 103727 31 34 1637 21 0 1619
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/hint.rs
+286 4 1 1 1 1 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=1 307 
+286 30 10 8 0 1 4
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/editing.rs
+48 5 3
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+fn=honeycomb_core::dart::DartData<_>::new
+113 8 0 6 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+2626 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/adapters/map.rs
+70 6 0 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+2791 1 0 1 1 0 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter.rs
+cfn=<alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+calls=1 32 
+2791 4435 66 4153 5 5 70 5 0 65
+2142 1 1
+3366 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+530 1 1
+239 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1215 5 3 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+256 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+117 2 1 1 1 0 0 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+117 91 29 15 0 3
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+131 3 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+190 1
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 1 1 0 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+98 356 72 53 10 7 2 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_elem.rs
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+1581 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+729 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 3 1 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=1 181 
+1415 32785 2 32768 0 1 512 0 0 511
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+729 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 1 0 1
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_elem.rs
+17 4 1 3 1 0 2 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+123 4 1 3
+134 9 7 0 0 2
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter.rs
+fn=<alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+32 8 0 6 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter_nested.rs
+53 3 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+825 5
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 1
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+190 1 0 0 1 0 0 1
+0 6 0 4
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 2
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+98 51 12 6 0 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2 0 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter_nested.rs
+62 1 1
+0 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter_nested.rs
+0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 4 1 1 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=1 181 
+1415 4114 2 4097 0 0 64 0 0 64
+1415 3 0 3 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/set_len_on_drop.rs
+19 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+1517 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/iter/range.rs
+729 1
+fi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/dart.rs
+116 3 1 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+185 1
+190 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+98 193 33 29 0 1 5 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+202 2
+0 3 3 0 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter_nested.rs
+63 3 0 3
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/spec_from_iter.rs
+34 9 7
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+fn=std::rt::lang_start_internal
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h0533bf03d7c52522E.llvm.12836776482103543101
+calls=1 166 
+284 105147 335 103739 33 36 1641 23 0 1619
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+
+fn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h0533bf03d7c52522E.llvm.12836776482103543101
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+cfn=std::sys_common::backtrace::__rust_begin_short_backtrace
+calls=1 151 
+166 105147 335 103739 33 36 1641 23 0 1619
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+fn=__rdl_alloc
+389 5
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+13 20
+14 10 5 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=malloc
+calls=14 3287 
+14 954 178 148 10 22 13 0 0 4
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+
+fn=__rdl_alloc_zeroed
+421 4 0 3 1 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+29 4
+30 6 3
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=calloc
+calls=1 3624 
+30 49416 39 49208 1 2 770 1 0 769
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+
+fl=???
+fn=__rust_alloc
+0 5
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+cfn=__rdl_alloc
+calls=14 389 
+0 989 183 148 10 23 13 0 0 4
+
+fn=main
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+cfn=std::rt::lang_start_internal
+calls=1 125 
+0 105147 335 103739 33 36 1641 23 0 1619
+
+fn=__rust_alloc_zeroed
+0 1 0 0 1 0 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+cfn=__rdl_alloc_zeroed
+calls=1 421 
+0 49430 42 49211 2 2 770 2 0 769
+
+fn=__rust_dealloc
+0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+cfn=__rdl_dealloc
+calls=15 42 
+0 90 29 15 0 3
+
+fn=(below main)
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./csu/../csu/libc-start.c
+cfn=__libc_start_main@@GLIBC_2.34
+calls=1 242 
+0 105147 335 103739 33 36 1641 23 0 1619
+
+totals: 105147 335 103739 33 36 1641 23 0 1619

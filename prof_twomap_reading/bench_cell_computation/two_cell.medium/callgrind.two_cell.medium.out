@@ -1,0 +1,323 @@
+# callgrind format
+version: 1
+creator: callgrind-3.18.1
+pid: 5447
+cmd:  /home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_reading-b22b63c500c1a73f --iai-run bench_cell_computation 2 1 prof_twomap_reading::bench_cell_computation::two_cell
+part: 1
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 1534916
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 374 86 65 1 2 1 1
+
+
+ob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_reading-b22b63c500c1a73f
+fl=???
+fn=__rust_alloc
+0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+cfn=__rdl_alloc
+calls=10116 389 
+0 46 12 6
+
+fn=main
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+cfn=std::rt::lang_start_internal
+calls=1 125 
+0 374 86 65 1 2 1 1
+
+fn=(below main)
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./csu/../csu/libc-start.c
+cfn=__libc_start_main@@GLIBC_2.34
+calls=1 242 
+0 374 86 65 1 2 1 1
+
+fn=__rust_realloc
+0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+cfn=__rdl_realloc
+calls=7602 406 
+0 146 28 20 0 0 1
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+fn=std::sys_common::backtrace::__rust_begin_short_backtrace
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfi=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+cfn=prof_twomap_reading::main
+calls=1 346 
+250 374 86 65 1 2 1 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+fn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+317 3 0 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+423 1
+0 1
+427 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/cmp.rs
+0 9
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/alloc/layout.rs
+449 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+256 2
+433 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/num/mod.rs
+1269 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+268 4 0 3
+0 2
+433 1 0 1
+cfn=_ZN5alloc7raw_vec11finish_grow17hf2986613a2ca8e2cE.llvm.17264701415073307703
+calls=7602 500 
+433 175 36 27 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+1946 2 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+433 1
+401 1 0 1
+402 1 0 1
+319 4 3
+
+fn=_ZN5alloc7raw_vec11finish_grow17hf2986613a2ca8e2cE.llvm.17264701415073307703
+500 5 0 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+827 2
+0 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+513 3 2
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+202 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+0 1 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+136 3 1 1
+cfi=???
+cfn=__rust_realloc
+calls=7602 0 
+136 147 28 20 0 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/result.rs
+827 2
+828 2 0 1
+0 3 0 2
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+525 4 4
+
+fl=/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.10.2/src/macros.rs
+fn=prof_twomap_reading::main
+cfn=prof_twomap_reading::bench_cell_computation::run
+calls=1 794 
+370 374 86 65 1 2 1 1
+
+fn=prof_twomap_reading::bench_cell_computation::run
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/reading.rs
+cfn=prof_twomap_reading::two_cell::medium
+calls=1 128 
+795 374 86 65 1 2 1 1
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/reading.rs
+fn=prof_twomap_reading::two_cell::medium
+cfn=iai_callgrind::bench::two_cell
+calls=1 132 
+128 374 86 65 1 2 1 1
+
+fn=iai_callgrind::bench::two_cell
+132 4 0 1 1 0 0 1
+133 2 0 1
+cfi=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+cfn=honeycomb_core::twomap::TwoMap<_,T>::i_cell
+calls=1 586 
+133 360 82 61 0 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/hint.rs
+286 4 2 2
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-utils/benches/core/twomap/reading.rs
+134 4 2
+
+fl=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+fn=honeycomb_core::twomap::TwoMap<_,T>::i_cell
+586 10 0 6
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1583 2 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/alloc.rs
+98 3 1 1
+cfi=???
+cfn=__rust_alloc
+calls=2501 0 
+98 47 12 6
+330 2
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+587 1 0 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+786 5 2 3
+0 4
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+239 3 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ptr/mod.rs
+1415 3 0 3
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1924 9 3 3
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+621 6
+387 4
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/slice/index.rs
+255 8
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+387 8 4 0 0 2
+618 8
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/vec/mod.rs
+1918 6 3
+1919 2 0 1
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::reserve_for_push
+calls=2501 317 
+1919 214 43 35 0 0 1
+1922 2 1
+fe=/home/runner/work/honeycomb/honeycomb/honeycomb-core/src/twomap.rs
+636 4 2 2
+637 9 7
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+fn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17hba31265759a3709dE.llvm.17507658275596055094
+cfi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys_common/backtrace.rs
+cfn=std::sys_common::backtrace::__rust_begin_short_backtrace
+calls=1 151 
+166 374 86 65 1 2 1 1
+
+fn=std::rt::lang_start_internal
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/core/src/ops/function.rs
+cfn=_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17hba31265759a3709dE.llvm.17507658275596055094
+calls=1 166 
+284 374 86 65 1 2 1 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/rt.rs
+
+fl=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+fn=__rdl_realloc
+406 8 0 5
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+47 4
+48 8 5
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=realloc
+calls=7602 3400 
+48 126 23 15 0 0 1
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+
+fn=__rdl_alloc
+389 1
+fi=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/sys/unix/alloc.rs
+13 4
+14 2 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=malloc
+calls=10116 3287 
+14 39 11 6
+fe=/rustc/07dca489ac2d933c78d3c5158e3f43beefeb02ce/library/std/src/alloc.rs
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=???
+fn=0x0000000000020290
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_reading-b22b63c500c1a73f
+cfi=???
+cfn=(below main)
+calls=1 0 
+0 374 86 65 1 2 1 1
+
+ob=/usr/lib/x86_64-linux-gnu/libc.so.6
+fl=./csu/../csu/libc-start.c
+fn=__libc_start_main@@GLIBC_2.34
+cfi=./csu/../sysdeps/nptl/libc_start_call_main.h
+cfn=(below main)
+calls=1 29 
+392 374 86 65 1 2 1 1
+
+fl=./csu/../sysdeps/nptl/libc_start_call_main.h
+fn=(below main)
+cob=/home/runner/work/honeycomb/honeycomb/target/release/deps/prof_twomap_reading-b22b63c500c1a73f
+cfi=???
+cfn=main
+calls=1 0 
+58 374 86 65 1 2 1 1
+
+fl=./malloc/./malloc/malloc.c
+fn=realloc
+3400 10 0 6
+3406 2 1
+3410 2
+3417 2
+3428 1 1
+3426 1
+3431 1
+3428 2
+3430 2
+3434 3 2
+fi=./malloc/./malloc/arena.c
+162 3
+fe=./malloc/./malloc/malloc.c
+3442 4
+3443 2
+1343 2
+1362 6
+3452 2
+3483 3 1
+3485 5 0 1 0 0 1
+cfn=_int_realloc
+calls=7603 4818 
+3485 53 10 8
+3485 1
+3486 5 1
+fi=./malloc/./malloc/arena.c
+162 3
+fe=./malloc/./malloc/malloc.c
+3486 2
+3515 9 7
+
+fn=_int_realloc
+4818 7 0 6
+4829 4 1
+4830 5 1
+4836 2
+4838 2
+4839 3 1
+4841 4
+4844 2
+4858 1
+4911 2
+4858 2
+4915 1
+4858 3
+4913 2
+4915 2 0 1
+4916 1 0 1
+4932 1
+4933 9 7
+
+fn=malloc
+3287 6 0 3
+3294 2 1
+1343 2
+1362 4
+3306 4 2
+3309 2 1
+3311 3 1
+3193 2 1
+3194 2
+3196 1
+3197 1
+3196 3 1 1
+3197 1 0 1
+3198 1 0 1
+3347 5 4
+
+totals: 374 86 65 1 2 1 1
