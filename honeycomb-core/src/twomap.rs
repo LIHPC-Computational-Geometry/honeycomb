@@ -88,7 +88,7 @@ const TWO_MAP_BETA: usize = 3;
 /// progressive changes applied to the structure.
 ///
 /// ```
-/// # use honeycomb_core::twomap::MapError;
+/// # use honeycomb_core::MapError;
 /// # fn main() -> Result<(), MapError> {
 /// use honeycomb_core::{ DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit, OrbitPolicy};
 ///

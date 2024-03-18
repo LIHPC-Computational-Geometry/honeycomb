@@ -14,7 +14,7 @@
 
 // ------ IMPORTS
 
-use crate::coords::Coords2;
+use crate::Coords2;
 #[cfg(doc)]
 use crate::TwoMap;
 
@@ -119,7 +119,7 @@ pub type Vertex3 = [f64; 3];
 /// 2 faces: a square and a triangle.
 ///
 /// ```
-/// use honeycomb_core::{Vertex2, embed::Face};
+/// use honeycomb_core::{Vertex2, Face};
 ///
 /// let vertices = [
 ///     [0.0, 0.0],
