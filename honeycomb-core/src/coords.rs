@@ -69,7 +69,6 @@ pub enum CoordsError {
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
 /// assert_eq!(x_plus_y.unit_dir()?, Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
-///
 /// # Ok(())
 /// # }
 /// ```
