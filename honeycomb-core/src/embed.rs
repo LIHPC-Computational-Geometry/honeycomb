@@ -98,9 +98,6 @@ pub enum UnsewPolicy {
 /// Type definition for 2D vertex representation.
 pub type Vertex2<T> = Coords2<T>;
 
-/// Type definition for 3D vertex representation.
-pub type Vertex3 = [f64; 3];
-
 #[derive(Clone, Debug, Default)]
 /// Face object
 ///
