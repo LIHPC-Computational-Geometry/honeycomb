@@ -62,9 +62,9 @@ pub enum OrbitPolicy<'a> {
 ///
 /// See [CMap2] example.
 ///
-pub struct Orbit2<'a, const N_MARKS: usize, T: CoordsFloat> {
+pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
-    map_handle: &'a CMap2<N_MARKS, T>,
+    map_handle: &'a CMap2<T>,
     /// Policy used by the orbit for the BFS. It can be predetermined or custom.
     orbit_policy: OrbitPolicy<'a>,
     /// Set used to identify which dart is marked during the BFS.
@@ -73,7 +73,7 @@ pub struct Orbit2<'a, const N_MARKS: usize, T: CoordsFloat> {
     pending: VecDeque<DartIdentifier>,
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit2<'a, N_MARKS, T> {
+impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// Constructor
     ///
     /// # Arguments
@@ -96,7 +96,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit2<'a, N_MARKS, T> {
     /// See [CMap2] example.
     ///
     pub fn new(
-        map_handle: &'a CMap2<N_MARKS, T>,
+        map_handle: &'a CMap2<T>,
         orbit_policy: OrbitPolicy<'a>,
         dart: DartIdentifier,
     ) -> Self {
@@ -118,7 +118,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit2<'a, N_MARKS, T> {
     }
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit2<'a, N_MARKS, T> {
+impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
     type Item = DartIdentifier;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -182,8 +182,8 @@ mod tests {
     use crate::orbits::OrbitPolicy;
     use crate::{CMap2, DartIdentifier, FloatType, Orbit2};
 
-    fn simple_map() -> CMap2<1, FloatType> {
-        let mut map: CMap2<1, FloatType> = CMap2::new(6, 4);
+    fn simple_map() -> CMap2<FloatType> {
+        let mut map: CMap2<FloatType> = CMap2::new(6, 4);
         map.set_betas(1, [3, 2, 0]);
         map.set_betas(2, [1, 3, 4]);
         map.set_betas(3, [2, 1, 0]);
