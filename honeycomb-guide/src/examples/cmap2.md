@@ -1,13 +1,13 @@
-# TwoMap
+# CMap2
 
 ## Usage
 
-A general example is [provided](../honeycomb_core/twomap/struct.TwoMap.html#example) in
-the Rust doc of the TwoMap structure. From a meshing perspective, it corresponds to the
+A general example is [provided](../honeycomb_core/struct.CMap2.html#example) in
+the Rust doc of the CMap2 structure. From a meshing perspective, it corresponds to the
 following operations:
 
 <figure style="text-align:center">
-    <img src="../images/CMap2Example.svg" alt="TwoMapExample" />
+    <img src="../images/CMap2Example.svg" alt="CMap2Example" />
     <figcaption><i>Sample operations transforming two triangles into a square</i></figcaption>
 </figure>
 
