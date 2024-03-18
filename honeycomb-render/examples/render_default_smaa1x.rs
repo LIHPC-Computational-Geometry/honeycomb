@@ -5,5 +5,5 @@ fn main() {
         smaa_mode: SmaaMode::Smaa1X,
         ..Default::default()
     };
-    Runner::default().run::<1, f32>(render_params, None);
+    Runner::default().run::<f32>(render_params, None);
 }
