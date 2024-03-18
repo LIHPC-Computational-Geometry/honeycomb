@@ -6,6 +6,8 @@
 
 // ------ IMPORTS
 
+use crate::vector::Vector2;
+use crate::vertex::Vertex2;
 use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -213,6 +215,18 @@ impl<T: CoordsFloat> From<(T, T)> for Coords2<T> {
 impl<T: CoordsFloat> From<[T; 2]> for Coords2<T> {
     fn from([x, y]: [T; 2]) -> Self {
         Self { x, y }
+    }
+}
+
+impl<T: CoordsFloat> From<Vertex2<T>> for Coords2<T> {
+    fn from(vector2: Vertex2<T>) -> Self {
+        vector2.into_inner()
+    }
+}
+
+impl<T: CoordsFloat> From<Vector2<T>> for Coords2<T> {
+    fn from(vector2: Vector2<T>) -> Self {
+        vector2.into_inner()
     }
 }
 
