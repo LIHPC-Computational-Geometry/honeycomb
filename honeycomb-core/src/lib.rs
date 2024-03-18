@@ -21,6 +21,8 @@ mod dart;
 mod embed;
 mod orbits;
 mod twomap;
+mod vector;
+mod vertex;
 
 // ------ RE-EXPORTS
 
