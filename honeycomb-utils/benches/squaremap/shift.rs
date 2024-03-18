@@ -24,7 +24,7 @@ use rand::{
 };
 
 use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vertex2, VertexIdentifier, NULL_DART_ID};
-use honeycomb_utils::generation::square_two_map;
+use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
@@ -63,7 +63,7 @@ fn offset_if_inner<const N_MARKS: usize>(
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let map: CMap2<1, FloatType> = square_two_map(N_SQUARE);
+    let map: CMap2<1, FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);

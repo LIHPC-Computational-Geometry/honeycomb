@@ -26,7 +26,7 @@ use rand::{
 };
 
 use honeycomb_core::{CMap2, DartIdentifier, FloatType, SewPolicy, UnsewPolicy};
-use honeycomb_utils::generation::square_two_map;
+use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
@@ -125,7 +125,7 @@ fn split_diff<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>, split: &
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let map: CMap2<1, FloatType> = square_two_map(N_SQUARE);
+    let map: CMap2<1, FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let rng = SmallRng::seed_from_u64(seed);
     let dist = Bernoulli::new(P_BERNOULLI).unwrap();

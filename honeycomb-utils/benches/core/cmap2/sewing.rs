@@ -16,7 +16,7 @@
 // ------ IMPORTS
 
 use honeycomb_core::{CMap2, FloatType, SewPolicy, UnsewPolicy};
-use honeycomb_utils::generation::square_two_map;
+use honeycomb_utils::generation::square_cmap2;
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -29,7 +29,7 @@ fn compute_dims(n_square: usize) -> (usize, usize) {
 }
 
 fn get_map(n_square: usize) -> CMap2<1, FloatType> {
-    square_two_map::<1, FloatType>(n_square)
+    square_cmap2::<1, FloatType>(n_square)
 }
 
 fn get_unstructured_map(n_square: usize) -> CMap2<1, FloatType> {

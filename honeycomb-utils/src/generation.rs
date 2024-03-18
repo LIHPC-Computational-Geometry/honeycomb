@@ -35,9 +35,9 @@ use honeycomb_core::{
 ///
 /// ```
 /// use honeycomb_core::CMap2;
-/// use honeycomb_utils::generation::square_two_map;
+/// use honeycomb_utils::generation::square_cmap2;
 ///
-/// let cmap: CMap2<1, f64> = square_two_map(2);
+/// let cmap: CMap2<1, f64> = square_cmap2(2);
 /// ```
 ///
 /// The above code generates the following map:
@@ -54,7 +54,7 @@ use honeycomb_core::{
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> CMap2<N_MARKS, T> {
+pub fn square_cmap2<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> CMap2<N_MARKS, T> {
     let mut map: CMap2<N_MARKS, T> = CMap2::new(4 * n_square.pow(2), (n_square + 1).pow(2));
 
     // first, topology
@@ -149,9 +149,9 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
 ///
 /// ```
 /// use honeycomb_core::CMap2;
-/// use honeycomb_utils::generation::splitsquare_two_map;
+/// use honeycomb_utils::generation::splitsquare_cmap2;
 ///
-/// let cmap: CMap2<1, f64> = splitsquare_two_map(2);
+/// let cmap: CMap2<1, f64> = splitsquare_cmap2(2);
 /// ```
 ///
 /// The above code generates the following map:
@@ -168,10 +168,10 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn splitsquare_two_map<const N_MARKS: usize, T: CoordsFloat>(
+pub fn splitsquare_cmap2<const N_MARKS: usize, T: CoordsFloat>(
     n_square: usize,
 ) -> CMap2<N_MARKS, T> {
-    let mut map: CMap2<N_MARKS, T> = square_two_map(n_square);
+    let mut map: CMap2<N_MARKS, T> = square_cmap2(n_square);
 
     (0..n_square.pow(2)).for_each(|square| {
         let d1 = (1 + square * 4) as DartIdentifier;
@@ -201,8 +201,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn square_two_map_correctness() {
-        let cmap: CMap2<1, f64> = square_two_map(2);
+    fn square_cmap2_correctness() {
+        let cmap: CMap2<1, f64> = square_cmap2(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
@@ -297,8 +297,8 @@ mod tests {
     }
 
     #[test]
-    fn splitsquare_two_map_correctness() {
-        let cmap: CMap2<1, f64> = splitsquare_two_map(2);
+    fn splitsquare_cmap2_correctness() {
+        let cmap: CMap2<1, f64> = splitsquare_cmap2(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
