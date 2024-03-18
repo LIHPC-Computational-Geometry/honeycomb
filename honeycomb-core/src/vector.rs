@@ -14,6 +14,24 @@ pub struct Vector2<T: CoordsFloat> {
     inner: Coords2<T>,
 }
 
+// Building traits
+
+impl<T: CoordsFloat> From<(T, T)> for Vector2<T> {
+    fn from((x, y): (T, T)) -> Self {
+        Self {
+            inner: Coords2::from((x, y)),
+        }
+    }
+}
+
+impl<T: CoordsFloat> From<[T; 2]> for Vector2<T> {
+    fn from([x, y]: [T; 2]) -> Self {
+        Self {
+            inner: Coords2::from((x, y)),
+        }
+    }
+}
+
 // ------ TESTS
 
 #[cfg(test)]
