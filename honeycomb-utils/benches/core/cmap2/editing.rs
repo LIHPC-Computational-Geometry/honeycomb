@@ -9,15 +9,13 @@
 //! - `bench_insert`: benches insertion methods (both behaviors).
 //! - `bench_face_building`: benches the face building methods.
 //!
-//! Each benchmark is repeated on TwoMap of different sizes.
+//! Each benchmark is repeated on CMap2 of different sizes.
 //!
 
 // ------ IMPORTS
 
-use honeycomb_core::{
-    DartIdentifier, FaceIdentifier, FloatType, TwoMap, Vertex2, VertexIdentifier,
-};
-use honeycomb_utils::generation::square_two_map;
+use honeycomb_core::{CMap2, DartIdentifier, FaceIdentifier, FloatType, Vertex2, VertexIdentifier};
+use honeycomb_utils::generation::square_cmap2;
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -25,12 +23,12 @@ use std::hint::black_box;
 
 // ------ CONTENT
 
-fn get_map(n_square: usize) -> TwoMap<1, FloatType> {
-    square_two_map::<1, FloatType>(n_square)
+fn get_map(n_square: usize) -> CMap2<1, FloatType> {
+    square_cmap2::<1, FloatType>(n_square)
 }
 
-fn get_sparse_map(n_square: usize) -> TwoMap<1, FloatType> {
-    let mut map = square_two_map::<1, FloatType>(n_square);
+fn get_sparse_map(n_square: usize) -> CMap2<1, FloatType> {
+    let mut map = square_cmap2::<1, FloatType>(n_square);
     map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
     map.remove_vertex(1);
@@ -43,15 +41,15 @@ fn compute_dims(n_square: usize) -> (usize, usize) {
 
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512], setup = compute_dims)]
-fn constructor((n_darts, n_vertices): (usize, usize)) -> TwoMap<1, FloatType> {
-    black_box(TwoMap::new(n_darts, n_vertices))
+fn constructor((n_darts, n_vertices): (usize, usize)) -> CMap2<1, FloatType> {
+    black_box(CMap2::new(n_darts, n_vertices))
 }
 
 #[library_benchmark]
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn add_single_dart(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
+fn add_single_dart(map: &mut CMap2<1, FloatType>) -> DartIdentifier {
     black_box(map.add_free_dart())
 }
 
@@ -59,7 +57,7 @@ fn add_single_dart(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn add_ten_darts(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
+fn add_ten_darts(map: &mut CMap2<1, FloatType>) -> DartIdentifier {
     black_box(map.add_free_darts(10))
 }
 
@@ -67,7 +65,7 @@ fn add_ten_darts(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn add_default_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
+fn add_default_vertex(map: &mut CMap2<1, FloatType>) -> VertexIdentifier {
     black_box(map.add_vertex(None))
 }
 
@@ -75,7 +73,7 @@ fn add_default_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn add_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
+fn add_vertex(map: &mut CMap2<1, FloatType>) -> VertexIdentifier {
     black_box(map.add_vertex(Some(Vertex2::from((12.0, 6.0)))))
 }
 
@@ -83,7 +81,7 @@ fn add_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn add_10_vertices(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
+fn add_10_vertices(map: &mut CMap2<1, FloatType>) -> VertexIdentifier {
     black_box(map.add_vertices(10))
 }
 
@@ -102,7 +100,7 @@ library_benchmark_group!(
 #[bench::small(&mut get_sparse_map(5))]
 #[bench::medium(&mut get_sparse_map(50))]
 #[bench::large(&mut get_sparse_map(500))]
-fn insert_dart(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
+fn insert_dart(map: &mut CMap2<1, FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
@@ -110,7 +108,7 @@ fn insert_dart(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn insert_dart_full(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
+fn insert_dart_full(map: &mut CMap2<1, FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
@@ -118,7 +116,7 @@ fn insert_dart_full(map: &mut TwoMap<1, FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_sparse_map(5))]
 #[bench::medium(&mut get_sparse_map(50))]
 #[bench::large(&mut get_sparse_map(500))]
-fn insert_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
+fn insert_vertex(map: &mut CMap2<1, FloatType>) -> VertexIdentifier {
     black_box(map.insert_vertex(None))
 }
 
@@ -126,7 +124,7 @@ fn insert_vertex(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn insert_vertex_full(map: &mut TwoMap<1, FloatType>) -> VertexIdentifier {
+fn insert_vertex_full(map: &mut CMap2<1, FloatType>) -> VertexIdentifier {
     black_box(map.insert_vertex(None))
 }
 
@@ -143,7 +141,7 @@ library_benchmark_group!(
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn build_face(map: &mut TwoMap<1, FloatType>) -> FaceIdentifier {
+fn build_face(map: &mut CMap2<1, FloatType>) -> FaceIdentifier {
     black_box(map.build_face(5))
 }
 
@@ -151,7 +149,7 @@ fn build_face(map: &mut TwoMap<1, FloatType>) -> FaceIdentifier {
 #[bench::small(&mut get_map(5))]
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
-fn build_faces(map: &mut TwoMap<1, FloatType>) -> usize {
+fn build_faces(map: &mut CMap2<1, FloatType>) -> usize {
     black_box(map.build_all_faces())
 }
 

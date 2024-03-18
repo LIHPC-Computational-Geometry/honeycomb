@@ -15,15 +15,15 @@ A quickstart example encompassing most features is provided for the following
 structures:
 
 - [Coords2](../honeycomb_core/struct.Coords2.html#example)
-- [TwoMap](../honeycomb_core/twomap/struct.TwoMap.html#example)
+- [CMap2](../honeycomb_core/struct.CMap2.html#example)
 
 ## Content
 
 ### Structures
 
-- **TwoMap**: 2D combinatorial map implementation
+- **CMap2**: 2D combinatorial map implementation
 - **Coords2**: 2D coordinates implementation
-- **Orbit**: Generic 2D implementation for orbit computation
+- **Orbit2**: Generic 2D implementation for orbit computation
 
 ### Aliases
 

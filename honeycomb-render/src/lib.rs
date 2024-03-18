@@ -4,7 +4,7 @@
 //! combinatorial maps.
 //!
 //! It currently only supports 2D maps as the core library only
-//! implements these (as [TwoMap])
+//! implements these (as [CMap2])
 //!
 //! ## Key bindings
 //!
@@ -24,7 +24,7 @@
 //!   **honeycomb-utils** crate.
 
 #[cfg(doc)]
-use honeycomb_core::TwoMap;
+use honeycomb_core::CMap2;
 
 // ------ MODULE DECLARATIONS
 

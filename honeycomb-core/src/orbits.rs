@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{CoordsFloat, DartIdentifier, TwoMap, NULL_DART_ID};
+use crate::{CMap2, CoordsFloat, DartIdentifier, NULL_DART_ID};
 use num::Zero;
 use std::collections::{BTreeSet, VecDeque};
 
@@ -60,11 +60,11 @@ pub enum OrbitPolicy<'a> {
 ///
 /// # Example
 ///
-/// See [TwoMap] example.
+/// See [CMap2] example.
 ///
-pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
+pub struct Orbit2<'a, const N_MARKS: usize, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
-    map_handle: &'a TwoMap<N_MARKS, T>,
+    map_handle: &'a CMap2<N_MARKS, T>,
     /// Policy used by the orbit for the BFS. It can be predetermined or custom.
     orbit_policy: OrbitPolicy<'a>,
     /// Set used to identify which dart is marked during the BFS.
@@ -73,19 +73,19 @@ pub struct Orbit<'a, const N_MARKS: usize, T: CoordsFloat> {
     pending: VecDeque<DartIdentifier>,
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
+impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit2<'a, N_MARKS, T> {
     /// Constructor
     ///
     /// # Arguments
     ///
-    /// - `map_handle: &'a TwoMap<N_MARKS, T>` -- Reference to the map containing the beta
+    /// - `map_handle: &'a CMap2<N_MARKS, T>` -- Reference to the map containing the beta
     /// functions used in the BFS.
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
     ///
     /// # Return / Panic
     ///
-    /// Return an [Orbit] structure that can be iterated upon to retrieve the orbit's darts.
+    /// Return an [Orbit2] structure that can be iterated upon to retrieve the orbit's darts.
     ///
     /// The method may panic if no beta index is passed along the custom policy. Additionally,
     /// if an invalid beta index is passed through the custom policy (e.g. `3` for a 2D map),
@@ -93,10 +93,10 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
     ///
     /// # Example
     ///
-    /// See [TwoMap] example.
+    /// See [CMap2] example.
     ///
     pub fn new(
-        map_handle: &'a TwoMap<N_MARKS, T>,
+        map_handle: &'a CMap2<N_MARKS, T>,
         orbit_policy: OrbitPolicy<'a>,
         dart: DartIdentifier,
     ) -> Self {
@@ -118,7 +118,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Orbit<'a, N_MARKS, T> {
     }
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T> {
+impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit2<'a, N_MARKS, T> {
     type Item = DartIdentifier;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -180,10 +180,10 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> Iterator for Orbit<'a, N_MARKS, T
 #[cfg(test)]
 mod tests {
     use crate::orbits::OrbitPolicy;
-    use crate::{DartIdentifier, FloatType, Orbit, TwoMap};
+    use crate::{CMap2, DartIdentifier, FloatType, Orbit2};
 
-    fn simple_map() -> TwoMap<1, FloatType> {
-        let mut map: TwoMap<1, FloatType> = TwoMap::new(6, 4);
+    fn simple_map() -> CMap2<1, FloatType> {
+        let mut map: CMap2<1, FloatType> = CMap2::new(6, 4);
         map.set_betas(1, [3, 2, 0]);
         map.set_betas(2, [1, 3, 4]);
         map.set_betas(3, [2, 1, 0]);
@@ -206,7 +206,7 @@ mod tests {
     #[test]
     fn full_map_from_orbit() {
         let map = simple_map();
-        let orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1, 2]), 3);
+        let orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[1, 2]), 3);
         let darts: Vec<DartIdentifier> = orbit.collect();
         assert_eq!(darts.len(), 6);
         // because the algorithm is consistent, we can predict the exact layout
@@ -216,11 +216,11 @@ mod tests {
     #[test]
     fn face_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, OrbitPolicy::Face, 1);
+        let face_orbit = Orbit2::new(&map, OrbitPolicy::Face, 1);
         let darts: Vec<DartIdentifier> = face_orbit.collect();
         assert_eq!(darts.len(), 3);
         assert_eq!(&darts, &[1, 2, 3]);
-        let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[1]), 5);
+        let other_face_orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[1]), 5);
         let other_darts: Vec<DartIdentifier> = other_face_orbit.collect();
         assert_eq!(other_darts.len(), 3);
         assert_eq!(&other_darts, &[5, 6, 4]);
@@ -229,11 +229,11 @@ mod tests {
     #[test]
     fn edge_from_orbit() {
         let map = simple_map();
-        let face_orbit = Orbit::new(&map, OrbitPolicy::Edge, 1);
+        let face_orbit = Orbit2::new(&map, OrbitPolicy::Edge, 1);
         let darts: Vec<DartIdentifier> = face_orbit.collect();
         assert_eq!(darts.len(), 1);
         assert_eq!(&darts, &[1]); // dart 1 is on the boundary
-        let other_face_orbit = Orbit::new(&map, OrbitPolicy::Custom(&[2]), 4);
+        let other_face_orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[2]), 4);
         let other_darts: Vec<DartIdentifier> = other_face_orbit.collect();
         assert_eq!(other_darts.len(), 2);
         assert_eq!(&other_darts, &[4, 2]);
@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn vertex_from_orbit() {
         let map = simple_map();
-        let orbit = Orbit::new(&map, OrbitPolicy::Vertex, 4);
+        let orbit = Orbit2::new(&map, OrbitPolicy::Vertex, 4);
         let darts: Vec<DartIdentifier> = orbit.collect();
         // note that this one fails if we start at 3, because the vertex is not complete
         assert_eq!(darts.len(), 2);
@@ -253,14 +253,14 @@ mod tests {
     #[should_panic]
     fn empty_orbit_policy() {
         let map = simple_map();
-        let _ = Orbit::new(&map, OrbitPolicy::Custom(&[]), 3);
+        let _ = Orbit2::new(&map, OrbitPolicy::Custom(&[]), 3);
     }
 
     #[test]
     #[should_panic]
     fn invalid_orbit_policy() {
         let map = simple_map();
-        let orbit = Orbit::new(&map, OrbitPolicy::Custom(&[6]), 3);
+        let orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[6]), 3);
         let _: Vec<DartIdentifier> = orbit.collect();
     }
 }

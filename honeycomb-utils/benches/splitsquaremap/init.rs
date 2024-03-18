@@ -1,5 +1,5 @@
 //! This benchmarks handle measurements of the initialization speed
-//! of the TwoMap structure in the context of an orthogonal 2D mesh
+//! of the CMap2 structure in the context of an orthogonal 2D mesh
 //! representation, each cell being split diagonally. The exact
 //! structure is described in the doc of the `generation::square_two_map method`.
 
@@ -9,8 +9,8 @@ use criterion::{
     black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
     PlotConfiguration, Throughput,
 };
-use honeycomb_core::{FloatType, TwoMap};
-use honeycomb_utils::generation::splitsquare_two_map;
+use honeycomb_core::{CMap2, FloatType};
+use honeycomb_utils::generation::splitsquare_cmap2;
 
 // ------ CONTENT
 
@@ -24,7 +24,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
-                let mut map: TwoMap<1, FloatType> = splitsquare_two_map(*n_square);
+                let mut map: CMap2<1, FloatType> = splitsquare_cmap2(*n_square);
                 black_box(&mut map);
             })
         });

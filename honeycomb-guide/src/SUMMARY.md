@@ -30,5 +30,5 @@
 
 # Examples
 
-- [TwoMap](./examples/twomap.md)
+- [CMap2](./examples/cmap2.md)
 

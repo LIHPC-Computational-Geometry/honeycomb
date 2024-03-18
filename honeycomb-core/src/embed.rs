@@ -14,9 +14,9 @@
 
 // ------ IMPORTS
 
-use crate::coords::Coords2;
 #[cfg(doc)]
-use crate::TwoMap;
+use crate::CMap2;
+use crate::Coords2;
 
 // ------ CONTENT
 
@@ -47,7 +47,7 @@ pub type VolumeIdentifier = u32;
 ///
 /// # Example
 ///
-/// Refer to the user guide and [TwoMap] examples.
+/// Refer to the user guide and [CMap2] examples.
 ///
 #[derive(Debug, Default)]
 pub enum SewPolicy {
@@ -82,7 +82,7 @@ pub enum SewPolicy {
 ///
 /// # Example
 ///
-/// Refer to the user guide and [TwoMap] examples.
+/// Refer to the user guide and [CMap2] examples.
 ///
 #[derive(Debug, Default)]
 pub enum UnsewPolicy {
@@ -97,9 +97,6 @@ pub enum UnsewPolicy {
 
 /// Type definition for 2D vertex representation.
 pub type Vertex2<T> = Coords2<T>;
-
-/// Type definition for 3D vertex representation.
-pub type Vertex3 = [f64; 3];
 
 #[derive(Clone, Debug, Default)]
 /// Face object
@@ -119,7 +116,7 @@ pub type Vertex3 = [f64; 3];
 /// 2 faces: a square and a triangle.
 ///
 /// ```
-/// use honeycomb_core::{Vertex2, embed::Face};
+/// use honeycomb_core::{Vertex2, Face};
 ///
 /// let vertices = [
 ///     [0.0, 0.0],

@@ -1,4 +1,4 @@
-//! This benchmarks handle measurements for a given operation on TwoMap
+//! This benchmarks handle measurements for a given operation on CMap2
 //! of a given topology (see `generation::square_two_map` doc).
 //!
 //! The operations applied here affect only geometry, topology is left unchanged
@@ -23,13 +23,13 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{DartIdentifier, FloatType, TwoMap, Vertex2, VertexIdentifier, NULL_DART_ID};
-use honeycomb_utils::generation::square_two_map;
+use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vertex2, VertexIdentifier, NULL_DART_ID};
+use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
 fn offset<const N_MARKS: usize>(
-    mut map: TwoMap<N_MARKS, FloatType>,
+    mut map: CMap2<N_MARKS, FloatType>,
     offsets: &[Vertex2<FloatType>],
 ) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
@@ -39,7 +39,7 @@ fn offset<const N_MARKS: usize>(
 }
 
 fn offset_if_inner<const N_MARKS: usize>(
-    mut map: TwoMap<N_MARKS, FloatType>,
+    mut map: CMap2<N_MARKS, FloatType>,
     offsets: &[Vertex2<FloatType>],
 ) {
     let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
@@ -63,7 +63,7 @@ fn offset_if_inner<const N_MARKS: usize>(
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let map: TwoMap<1, FloatType> = square_two_map(N_SQUARE);
+    let map: CMap2<1, FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);

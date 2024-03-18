@@ -17,20 +17,20 @@
 // ------ MODULE DECLARATIONS
 
 mod coords;
-pub mod dart;
-pub mod embed;
+mod dart;
+mod embed;
 mod orbits;
-pub mod twomap;
+mod twomap;
 
 // ------ RE-EXPORTS
 
 pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
-pub use dart::{DartIdentifier, NULL_DART_ID};
+pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
 pub use embed::{
-    FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
+    Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
 };
-pub use orbits::{Orbit, OrbitPolicy};
-pub use twomap::TwoMap;
+pub use orbits::{Orbit2, OrbitPolicy};
+pub use twomap::{CMap2, CMapError};
 
 // ------ IMPORTS
 

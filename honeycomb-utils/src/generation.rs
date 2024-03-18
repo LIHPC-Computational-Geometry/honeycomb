@@ -7,12 +7,12 @@
 // ------ IMPORTS
 
 use honeycomb_core::{
-    CoordsFloat, DartIdentifier, SewPolicy, TwoMap, UnsewPolicy, Vertex2, VertexIdentifier,
+    CMap2, CoordsFloat, DartIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
 };
 
 // ------ CONTENT
 
-/// Generate a [TwoMap] representing a mesh made up of squares.
+/// Generate a [CMap2] representing a mesh made up of squares.
 ///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square` square cells.
@@ -23,26 +23,26 @@ use honeycomb_core::{
 ///
 /// ## Generics
 ///
-/// - `const N_MARKS: usize` -- Generic parameter of the returned [TwoMap]
+/// - `const N_MARKS: usize` -- Generic parameter of the returned [CMap2]
 ///
 /// # Return / Panic
 ///
-/// Returns a boundary-less [TwoMap] of the specified size. The map contains
+/// Returns a boundary-less [CMap2] of the specified size. The map contains
 /// `4 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
 ///
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::TwoMap;
-/// use honeycomb_utils::generation::square_two_map;
+/// use honeycomb_core::CMap2;
+/// use honeycomb_utils::generation::square_cmap2;
 ///
-/// let cmap: TwoMap<1, f64> = square_two_map(2);
+/// let cmap: CMap2<1, f64> = square_cmap2(2);
 /// ```
 ///
 /// The above code generates the following map:
 ///
-/// ![SQUARETWOMAP](../../images/SquareTwoMap.svg)
+/// ![SQUARECMAP2](../../images/CMap2Square.svg)
 ///
 /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
 /// Everywhere following the same pattern. Dart indexing is also consistent
@@ -54,8 +54,8 @@ use honeycomb_core::{
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> TwoMap<N_MARKS, T> {
-    let mut map: TwoMap<N_MARKS, T> = TwoMap::new(4 * n_square.pow(2), (n_square + 1).pow(2));
+pub fn square_cmap2<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> CMap2<N_MARKS, T> {
+    let mut map: CMap2<N_MARKS, T> = CMap2::new(4 * n_square.pow(2), (n_square + 1).pow(2));
 
     // first, topology
     (0..n_square).for_each(|y_idx| {
@@ -126,7 +126,7 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
     map
 }
 
-/// Generate a [TwoMap] representing a mesh made up of squares split diagonally.
+/// Generate a [CMap2] representing a mesh made up of squares split diagonally.
 ///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square * 2` triangle cells.
@@ -137,26 +137,26 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
 ///
 /// ## Generics
 ///
-/// - `const N_MARKS: usize` -- Generic parameter of the returned [TwoMap]
+/// - `const N_MARKS: usize` -- Generic parameter of the returned [CMap2]
 ///
 /// # Return / Panic
 ///
-/// Returns a boundary-less [TwoMap] of the specified size. The map contains
+/// Returns a boundary-less [CMap2] of the specified size. The map contains
 /// `6 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
 ///
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::TwoMap;
-/// use honeycomb_utils::generation::splitsquare_two_map;
+/// use honeycomb_core::CMap2;
+/// use honeycomb_utils::generation::splitsquare_cmap2;
 ///
-/// let cmap: TwoMap<1, f64> = splitsquare_two_map(2);
+/// let cmap: CMap2<1, f64> = splitsquare_cmap2(2);
 /// ```
 ///
 /// The above code generates the following map:
 ///
-/// ![SPLITSQUARETWOMAP](../../images/SplitSquareTwoMap.svg)
+/// ![SPLITSQUARECMAP2](../../images/CMap2SplitSquare.svg)
 ///
 /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
 /// Everywhere following the same pattern. Dart indexing is also consistent
@@ -168,10 +168,10 @@ pub fn square_two_map<const N_MARKS: usize, T: CoordsFloat>(n_square: usize) -> 
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-pub fn splitsquare_two_map<const N_MARKS: usize, T: CoordsFloat>(
+pub fn splitsquare_cmap2<const N_MARKS: usize, T: CoordsFloat>(
     n_square: usize,
-) -> TwoMap<N_MARKS, T> {
-    let mut map: TwoMap<N_MARKS, T> = square_two_map(n_square);
+) -> CMap2<N_MARKS, T> {
+    let mut map: CMap2<N_MARKS, T> = square_cmap2(n_square);
 
     (0..n_square.pow(2)).for_each(|square| {
         let d1 = (1 + square * 4) as DartIdentifier;
@@ -201,8 +201,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn square_two_map_correctness() {
-        let cmap: TwoMap<1, f64> = square_two_map(2);
+    fn square_cmap2_correctness() {
+        let cmap: CMap2<1, f64> = square_cmap2(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
@@ -297,8 +297,8 @@ mod tests {
     }
 
     #[test]
-    fn splitsquare_two_map_correctness() {
-        let cmap: TwoMap<1, f64> = splitsquare_two_map(2);
+    fn splitsquare_cmap2_correctness() {
+        let cmap: CMap2<1, f64> = splitsquare_cmap2(2);
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
