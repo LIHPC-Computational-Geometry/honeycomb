@@ -71,6 +71,25 @@ impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vertex2<T> {
     }
 }
 
+impl<T: CoordsFloat> std::ops::Add<&Vector2<T>> for Vertex2<T> {
+    // Vertex + Vector = Vertex
+    type Output = Self;
+
+    fn add(self, rhs: &Vector2<T>) -> Self::Output {
+        let mut tmp = self.inner;
+        tmp.x += rhs.x();
+        tmp.y += rhs.y();
+        Self { inner: tmp }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::AddAssign<&Vector2<T>> for Vertex2<T> {
+    fn add_assign(&mut self, rhs: &Vector2<T>) {
+        self.inner.x += rhs.x();
+        self.inner.y += rhs.y();
+    }
+}
+
 impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vertex2<T> {
     // Vertex - Vector = Vertex
     type Output = Self;
@@ -84,7 +103,26 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vertex2<T> {
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vertex2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        self.inner -= rhs.into_inner()
+        self.inner -= rhs.into_inner();
+    }
+}
+
+impl<T: CoordsFloat> std::ops::Sub<&Vector2<T>> for Vertex2<T> {
+    // Vertex - Vector = Vertex
+    type Output = Self;
+
+    fn sub(self, rhs: &Vector2<T>) -> Self::Output {
+        let mut tmp = self.inner;
+        tmp.x -= rhs.x();
+        tmp.y -= rhs.y();
+        Self { inner: tmp }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::SubAssign<&Vector2<T>> for Vertex2<T> {
+    fn sub_assign(&mut self, rhs: &Vector2<T>) {
+        self.inner.x -= rhs.x();
+        self.inner.y -= rhs.y();
     }
 }
 
