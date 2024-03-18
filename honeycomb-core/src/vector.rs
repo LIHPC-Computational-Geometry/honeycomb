@@ -137,6 +137,86 @@ impl<T: CoordsFloat> From<[T; 2]> for Vector2<T> {
     }
 }
 
+// Basic operations
+
+impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vector2<T> {
+    type Output = Self;
+
+    fn add(self, rhs: Vector2<T>) -> Self::Output {
+        Self {
+            inner: self.inner + rhs.into_inner(),
+        }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vector2<T> {
+    fn add_assign(&mut self, rhs: Vector2<T>) {
+        self.inner += rhs.into_inner();
+    }
+}
+
+impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vector2<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Vector2<T>) -> Self::Output {
+        Self {
+            inner: self.inner - rhs.into_inner(),
+        }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vector2<T> {
+    fn sub_assign(&mut self, rhs: Vector2<T>) {
+        self.inner -= rhs.into_inner()
+    }
+}
+
+impl<T: CoordsFloat> std::ops::Mul<T> for Vector2<T> {
+    type Output = Self;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        Self {
+            inner: self.inner * rhs,
+        }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::MulAssign<T> for Vector2<T> {
+    fn mul_assign(&mut self, rhs: T) {
+        self.inner *= rhs;
+    }
+}
+
+impl<T: CoordsFloat> std::ops::Div<T> for Vector2<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        // there is an assert in the Coords2 impl but
+        // putting one here will shorten the stack trace
+        assert!(!rhs.is_zero());
+        Self {
+            inner: self.inner / rhs,
+        }
+    }
+}
+
+impl<T: CoordsFloat> std::ops::DivAssign<T> for Vector2<T> {
+    fn div_assign(&mut self, rhs: T) {
+        // there is an assert in the Coords2 impl but
+        // putting one here will shorten the stack trace
+        assert!(!rhs.is_zero());
+        self.inner /= rhs;
+    }
+}
+
+impl<T: CoordsFloat> std::ops::Neg for Vector2<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self { inner: -self.inner }
+    }
+}
+
 // ------ TESTS
 
 #[cfg(test)]
