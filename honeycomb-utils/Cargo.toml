@@ -18,18 +18,18 @@ iai-callgrind = "*"
 # Iai-callgrind benchmarks
 
 [[bench]]
-name = "prof-twomap-editing"
-path = "benches/core/twomap/editing.rs"
+name = "prof-cmap2-editing"
+path = "benches/core/cmap2/editing.rs"
 harness = false
 
 [[bench]]
-name = "prof-twomap-reading"
-path = "benches/core/twomap/reading.rs"
+name = "prof-cmap2-reading"
+path = "benches/core/cmap2/reading.rs"
 harness = false
 
 [[bench]]
-name = "prof-twomap-sewing-unsewing"
-path = "benches/core/twomap/sewing.rs"
+name = "prof-cmap2-sewing-unsewing"
+path = "benches/core/cmap2/sewing.rs"
 harness = false
 
 
