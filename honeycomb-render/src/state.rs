@@ -44,7 +44,7 @@ impl From<SmaaMode> for smaa::SmaaMode {
     }
 }
 
-pub struct State<'a, const N_MARKS: usize, T: CoordsFloat> {
+pub struct State<'a, T: CoordsFloat> {
     surface: wgpu::Surface<'a>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -59,7 +59,7 @@ pub struct State<'a, const N_MARKS: usize, T: CoordsFloat> {
     camera_bind_group: wgpu::BindGroup,
     camera_controller: CameraController,
     smaa_target: smaa::SmaaTarget,
-    map_handle: Option<CMap2RenderHandle<'a, N_MARKS, T>>,
+    map_handle: Option<CMap2RenderHandle<'a, T>>,
     window: &'a Window,
 }
 
@@ -226,11 +226,11 @@ async fn inner(
     )
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
+impl<'a, T: CoordsFloat> State<'a, T> {
     pub async fn new(
         window: &'a Window,
         render_params: RenderParameters,
-        map: &'a CMap2<N_MARKS, T>,
+        map: &'a CMap2<T>,
     ) -> Self {
         let mut size = window.inner_size();
         size.width = size.width.max(1);

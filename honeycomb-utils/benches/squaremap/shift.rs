@@ -28,20 +28,14 @@ use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
-fn offset<const N_MARKS: usize>(
-    mut map: CMap2<N_MARKS, FloatType>,
-    offsets: &[Vertex2<FloatType>],
-) {
+fn offset(mut map: CMap2<FloatType>, offsets: &[Vertex2<FloatType>]) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
         let _ = map.set_vertex(vertex_id as VertexIdentifier, offsets[vertex_id]);
     });
     black_box(&mut map);
 }
 
-fn offset_if_inner<const N_MARKS: usize>(
-    mut map: CMap2<N_MARKS, FloatType>,
-    offsets: &[Vertex2<FloatType>],
-) {
+fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vertex2<FloatType>]) {
     let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
     // collect inner vertex IDs
     (0..map.n_darts().0 as DartIdentifier).for_each(|dart_id| {
@@ -63,11 +57,11 @@ fn offset_if_inner<const N_MARKS: usize>(
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let map: CMap2<1, FloatType> = square_cmap2(N_SQUARE);
+    let map: CMap2<FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
-    let range: Uniform<FloatType> = rand::distributions::Uniform::new(-0.5, 0.5);
+    let range: Uniform<FloatType> = Uniform::new(-0.5, 0.5);
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
 
