@@ -13,7 +13,8 @@
 // ------ IMPORTS
 
 use std::collections::BTreeSet;
-use std::{fs::File, io::Write, sync::atomic::AtomicBool};
+#[cfg(feature = "benchmarking_utils")]
+use std::{fs::File, io::Write};
 
 use crate::coords::CoordsFloat;
 use crate::{
@@ -264,7 +265,7 @@ pub struct CMap2<const N_MARKS: usize, T: CoordsFloat> {
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
-    dart_data: DartData<N_MARKS>,
+    dart_data: DartData,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
@@ -1288,6 +1289,8 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
     /// ```
     ///
     pub fn build_all_faces(&mut self) -> usize {
+        todo!();
+        /*
         self.faces.clear();
         let mut n_faces = 0;
         // go through all darts ? update
@@ -1304,6 +1307,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
             }
         });
         n_faces
+        */
     }
 
     /// Build the geometrical face associated with a given dart
@@ -1433,12 +1437,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
             self.dart_data.associated_cells.capacity() * std::mem::size_of::<VertexIdentifier>();
         let embed_face =
             self.dart_data.associated_cells.capacity() * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks =
-            self.dart_data.marks[0].capacity() * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
@@ -1516,11 +1517,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
         // embed
         let embed_vertex = self.n_darts * std::mem::size_of::<VertexIdentifier>();
         let embed_face = self.n_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks = self.n_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
@@ -1604,11 +1603,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
         // embed
         let embed_vertex = n_used_darts * std::mem::size_of::<VertexIdentifier>();
         let embed_face = n_used_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks = n_used_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
