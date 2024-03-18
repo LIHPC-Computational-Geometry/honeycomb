@@ -14,6 +14,7 @@ representation.
 A quickstart example encompassing most features is provided for the following
 structures:
 
+- [Coords2](../honeycomb_core/struct.Coords2.html#example)
 - [TwoMap](../honeycomb_core/twomap/struct.TwoMap.html#example)
 
 ## Content
