@@ -59,13 +59,15 @@ impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn add(self, rhs: Vector2<T>) -> Self::Output {
-        todo!()
+        Self {
+            inner: self.inner + rhs.into_inner(),
+        }
     }
 }
 
 impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vertex2<T> {
     fn add_assign(&mut self, rhs: Vector2<T>) {
-        todo!()
+        self.inner += rhs.into_inner()
     }
 }
 
@@ -74,13 +76,15 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn sub(self, rhs: Vector2<T>) -> Self::Output {
-        todo!()
+        Self {
+            inner: self.inner - rhs.into_inner(),
+        }
     }
 }
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vertex2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        todo!()
+        self.inner -= rhs.into_inner()
     }
 }
 
