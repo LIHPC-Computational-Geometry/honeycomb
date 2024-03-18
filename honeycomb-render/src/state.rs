@@ -6,7 +6,7 @@
 
 // intern
 use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
-use crate::handle::TwoMapRenderHandle;
+use crate::handle::CMap2RenderHandle;
 use crate::shader_data::{Coords2Shader, TEST_VERTICES};
 use crate::RenderParameters;
 use honeycomb_core::{CMap2, CoordsFloat};
@@ -59,7 +59,7 @@ pub struct State<'a, const N_MARKS: usize, T: CoordsFloat> {
     camera_bind_group: wgpu::BindGroup,
     camera_controller: CameraController,
     smaa_target: smaa::SmaaTarget,
-    map_handle: Option<TwoMapRenderHandle<'a, N_MARKS, T>>,
+    map_handle: Option<CMap2RenderHandle<'a, N_MARKS, T>>,
     window: &'a Window,
 }
 
@@ -259,7 +259,7 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> State<'a, N_MARKS, T> {
             smaa::SmaaMode::from(render_params.smaa_mode),
         );
 
-        let mut map_handle = TwoMapRenderHandle::new(map, Some(render_params));
+        let mut map_handle = CMap2RenderHandle::new(map, Some(render_params));
         map_handle.build_darts();
         // map_handle.build_betas();
         map_handle.save_buffered();

@@ -43,7 +43,7 @@ macro_rules! as_f32_tuple {
     };
 }
 
-pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
+pub struct CMap2RenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
     handle: &'a CMap2<N_MARKS, T>,
     params: RenderParameters,
     dart_construction_buffer: Vec<Coords2Shader>,
@@ -51,7 +51,7 @@ pub struct TwoMapRenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
     vertices: Vec<Coords2Shader>,
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> TwoMapRenderHandle<'a, N_MARKS, T> {
+impl<'a, const N_MARKS: usize, T: CoordsFloat> CMap2RenderHandle<'a, N_MARKS, T> {
     pub fn new(map: &'a CMap2<N_MARKS, T>, params: Option<RenderParameters>) -> Self {
         Self {
             handle: map,
