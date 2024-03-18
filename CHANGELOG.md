@@ -2,7 +2,19 @@
 
 ## To be released
 
-...
+**This update contains breaking changes**
+
+### Refactor
+
+#### honeycomb-core
+
+- change visibility of all `honeycomb-core` modules to private & re-export types
+  accordingly (#23)
+- rename `TwoMap`/`Orbit` to `CMap2`/`Orbit2` for consistency (#23)
+
+#### honeycomb-guide
+
+- update all references to renamed types (#23)
 
 ---
 
