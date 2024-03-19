@@ -33,6 +33,7 @@ pub use embed::{
 };
 pub use orbits::{Orbit2, OrbitPolicy};
 pub use twomap::{CMap2, CMapError};
+pub use vector::Vector2;
 
 // ------ IMPORTS
 

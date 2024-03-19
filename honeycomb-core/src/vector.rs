@@ -21,8 +21,24 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 ///
 /// # Example
 ///
-/// ```text
+/// ```
+/// # use honeycomb_core::CoordsError;
+/// # fn main() -> Result<(), CoordsError> {
+/// use honeycomb_core::{Vector2, FloatType};
 ///
+/// let unit_x = Vector2::unit_x();
+/// let unit_y = Vector2::unit_y();
+///
+/// assert_eq!(unit_x.dot(&unit_y), 0.0);
+/// assert_eq!(unit_x.normal_dir(), unit_y);
+///
+/// let two: FloatType = 2.0;
+/// let x_plus_y: Vector2<FloatType> = unit_x + unit_y;
+///
+/// assert_eq!(x_plus_y.norm(), two.sqrt());
+/// assert_eq!(x_plus_y.unit_dir()?, Vector2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+/// # Ok(())
+/// # }
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]

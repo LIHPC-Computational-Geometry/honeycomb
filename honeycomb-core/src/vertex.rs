@@ -24,6 +24,7 @@ use crate::{Coords2, CoordsFloat};
 ///
 /// ```text
 ///
+///
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
