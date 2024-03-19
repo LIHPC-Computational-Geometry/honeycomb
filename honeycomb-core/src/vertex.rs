@@ -1,8 +1,8 @@
-//! Module short description
+//! Custom spatial representation
 //!
-//! Should you interact with this module directly?
+//! This module contains all code used to model vertices as wrappers of a common
+//! type ([Coords2]).
 //!
-//! Content description if needed
 
 // ------ IMPORTS
 
