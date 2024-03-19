@@ -16,7 +16,6 @@
 
 #[cfg(doc)]
 use crate::CMap2;
-use crate::Coords2;
 
 // ------ CONTENT
 
@@ -94,9 +93,6 @@ pub enum UnsewPolicy {
     Duplicate,
     DoNothing,
 }
-
-/// Type definition for 2D vertex representation.
-pub type Vertex2<T> = Coords2<T>;
 
 #[derive(Clone, Debug, Default)]
 /// Face object

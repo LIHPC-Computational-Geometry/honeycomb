@@ -17,12 +17,13 @@ use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
 use crate::coords::CoordsFloat;
 use crate::{
-    Coords2, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, NULL_DART_ID,
+    Coords2, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
+    NULL_DART_ID,
 };
 
 use super::{
     dart::{CellIdentifiers, DartData},
-    embed::{Face, Vertex2},
+    embed::Face,
 };
 
 // ------ CONTENT
@@ -1027,7 +1028,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
                     let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
                     let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
                     self.vertices
-                        .push(Coords2::average(&lid_vertex, &rhs_vertex));
+                        .push(Vertex2::average(&lid_vertex, &rhs_vertex));
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                     stretch!(self, lid, new_id);
                     stretch!(self, rhs_dart_id, new_id);
@@ -1080,17 +1081,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
 
         // --- geometrical update
 
-        // in the case of a 2-sew, we need to ensure consistent orientation before completing
-        // the operation
-        // we can do this check while working on the embedded data we use those to verify
-        // orientation
-
-        // I swear this works
-        // also, there is an urgent need for a custom vertex/vector type
+        // depending on existing connections, different things are required
         let l_is1free = self.is_i_free::<1>(lhs_dart_id);
         let r_is1free = self.is_i_free::<1>(rhs_dart_id);
-
-        // depending on existing connections, different things are required
         match (l_is1free, r_is1free) {
             (true, true) => {} // do nothing
             (true, false) => {
@@ -1106,7 +1099,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
+                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1rid, new_id);
@@ -1127,7 +1120,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
-                        self.vertices.push(Coords2::average(&vertex1, &vertex2));
+                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
                         let new_id = (self.vertices.len() - 1) as VertexIdentifier;
 
                         stretch!(self, b1lid, new_id);
@@ -1169,8 +1162,8 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
                         stretch!(self, lhs_dart_id, b1rid);
                     }
                     SewPolicy::StretchAverage => {
-                        let new_lvertex = Coords2::average(&lvertex, &b1_rvertex);
-                        let new_rvertex = Coords2::average(&rvertex, &b1_lvertex);
+                        let new_lvertex = Vertex2::average(&lvertex, &b1_rvertex);
+                        let new_rvertex = Vertex2::average(&rvertex, &b1_lvertex);
                         self.vertices.push(new_lvertex);
                         self.vertices.push(new_rvertex);
                         let new_lid = self.vertices.len() - 2;
