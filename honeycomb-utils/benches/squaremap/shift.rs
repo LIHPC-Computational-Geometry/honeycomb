@@ -23,24 +23,28 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vertex2, VertexIdentifier, NULL_DART_ID};
+use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID};
 use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
 fn offset<const N_MARKS: usize>(
     mut map: CMap2<N_MARKS, FloatType>,
-    offsets: &[Vertex2<FloatType>],
+    offsets: &[Vector2<FloatType>],
 ) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
-        let _ = map.set_vertex(vertex_id as VertexIdentifier, offsets[vertex_id]);
+        let current_value = map.vertex(vertex_id as DartIdentifier);
+        let _ = map.set_vertex(
+            vertex_id as VertexIdentifier,
+            *current_value + offsets[vertex_id],
+        );
     });
     black_box(&mut map);
 }
 
 fn offset_if_inner<const N_MARKS: usize>(
     mut map: CMap2<N_MARKS, FloatType>,
-    offsets: &[Vertex2<FloatType>],
+    offsets: &[Vector2<FloatType>],
 ) {
     let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
     // collect inner vertex IDs
@@ -71,7 +75,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
 
-    let offsets: Vec<Vertex2<FloatType>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
+    let offsets: Vec<Vector2<FloatType>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
 
     let mut group = c.benchmark_group("squaremap-shift");
 
