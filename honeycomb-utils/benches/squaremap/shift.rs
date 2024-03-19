@@ -28,7 +28,6 @@ use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
-
 fn offset(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
         let current_value = map.vertex(vertex_id as DartIdentifier);
