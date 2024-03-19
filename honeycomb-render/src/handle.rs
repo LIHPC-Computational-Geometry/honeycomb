@@ -7,7 +7,7 @@
 
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, Coords2, CoordsFloat, FaceIdentifier};
+use honeycomb_core::{CMap2, Coords2, CoordsFloat, FaceIdentifier, Vertex2};
 
 // ------ CONTENT
 
@@ -67,12 +67,13 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> CMap2RenderHandle<'a, N_MARKS, T>
         let face_iter = (0..n_face).map(|face_id| {
             let cell = self.handle.face(face_id);
             // compute face center for shrink operation
-            let center: Coords2<T> = cell
+            let tmp = cell
                 .corners
                 .iter()
-                .map(|vid| self.handle.vertex(*vid))
+                .map(|vid| self.handle.vertex(*vid).into_inner())
                 .sum::<Coords2<T>>()
                 / T::from(cell.corners.len()).unwrap();
+            let center = Vertex2::from(tmp);
             (cell, center, face_id)
         });
         self.dart_construction_buffer.extend(
@@ -127,10 +128,12 @@ impl<'a, const N_MARKS: usize, T: CoordsFloat> CMap2RenderHandle<'a, N_MARKS, T>
                     let at = T::from(self.params.arrow_thickness).unwrap();
 
                     let vcenter = v6 - seg_dir * ahs;
-                    let v2 = vcenter - seg_normal * at;
-                    let v3 = vcenter + seg_normal * at;
-                    let v4 = vcenter + seg_normal * (ahs * seg_length);
-                    let v5 = vcenter - seg_normal * (ahs * seg_length);
+                    let v1 = v1.into_inner();
+                    let v2 = (vcenter - seg_normal * at).into_inner();
+                    let v3 = (vcenter + seg_normal * at).into_inner();
+                    let v4 = (vcenter + seg_normal * (ahs * seg_length)).into_inner();
+                    let v5 = (vcenter - seg_normal * (ahs * seg_length)).into_inner();
+                    let v6 = v6.into_inner();
 
                     [
                         Coords2Shader::new(as_f32_tuple!(v1), face_id),
