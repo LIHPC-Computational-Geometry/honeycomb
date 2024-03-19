@@ -36,27 +36,21 @@ impl<T: CoordsFloat> Vertex2<T> {
 
 // Building traits
 
-impl<T: CoordsFloat> From<(T, T)> for Vertex2<T> {
-    fn from((x, y): (T, T)) -> Self {
-        Self {
-            inner: Coords2::from((x, y)),
+macro_rules! impl_from_for_vertex {
+    ($src_type: ty) => {
+        impl<T: CoordsFloat> From<$src_type> for Vertex2<T> {
+            fn from(value: $src_type) -> Self {
+                Self {
+                    inner: Coords2::from(value),
+                }
+            }
         }
-    }
+    };
 }
 
-impl<T: CoordsFloat> From<[T; 2]> for Vertex2<T> {
-    fn from([x, y]: [T; 2]) -> Self {
-        Self {
-            inner: Coords2::from((x, y)),
-        }
-    }
-}
-
-impl<T: CoordsFloat> From<Coords2<T>> for Vertex2<T> {
-    fn from(value: Coords2<T>) -> Self {
-        Self { inner: value }
-    }
-}
+impl_from_for_vertex!((T, T));
+impl_from_for_vertex!([T; 2]);
+impl_from_for_vertex!(Coords2<T>);
 
 // Basic operations
 
