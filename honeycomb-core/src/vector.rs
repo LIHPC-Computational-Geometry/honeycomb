@@ -170,6 +170,12 @@ impl<T: CoordsFloat> From<[T; 2]> for Vector2<T> {
     }
 }
 
+impl<T: CoordsFloat> From<Coords2<T>> for Vector2<T> {
+    fn from(value: Coords2<T>) -> Self {
+        Self { inner: value }
+    }
+}
+
 // Basic operations
 
 impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vector2<T> {

@@ -52,7 +52,15 @@ impl<T: CoordsFloat> From<[T; 2]> for Vertex2<T> {
     }
 }
 
+impl<T: CoordsFloat> From<Coords2<T>> for Vertex2<T> {
+    fn from(value: Coords2<T>) -> Self {
+        Self { inner: value }
+    }
+}
+
 // Basic operations
+
+// -- add flavors
 
 impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vertex2<T> {
     // Vertex + Vector = Vertex
@@ -89,6 +97,8 @@ impl<T: CoordsFloat> std::ops::AddAssign<&Vector2<T>> for Vertex2<T> {
         self.inner.y += rhs.y();
     }
 }
+
+// -- sub flavors
 
 impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vertex2<T> {
     // Vertex - Vector = Vertex
