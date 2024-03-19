@@ -24,6 +24,7 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 ///
 /// ```
 ///
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vector2<T: CoordsFloat> {
     /// Coordinates value.
     inner: Coords2<T>,
@@ -254,10 +255,39 @@ impl<T: CoordsFloat> std::ops::Neg for Vector2<T> {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
+
+    use crate::FloatType;
+
+    fn almost_equal(lhs: &Vector2<FloatType>, rhs: &Vector2<FloatType>) -> bool {
+        const EPS: FloatType = 10.0e-12;
+        ((lhs.x() - rhs.x()).abs() < EPS) & ((lhs.y() - rhs.y()).abs() < EPS)
+    }
 
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    fn dot_product() {
+        let along_x = Vector2::unit_x() * 15.0;
+        let along_y = Vector2::unit_y() * 10.0;
+        assert_eq!(along_x.dot(&along_y), 0.0);
+        assert_eq!(along_x.dot(&Vector2::unit_x()), 15.0);
+        assert_eq!(along_y.dot(&Vector2::unit_y()), 10.0);
+    }
+
+    #[test]
+    fn unit_dir() {
+        let along_x = Vector2::unit_x() * 4.0;
+        let along_y = Vector2::unit_y() * 3.0;
+        assert_eq!(along_x.unit_dir().unwrap(), Vector2::unit_x());
+        assert_eq!(
+            Vector2::<FloatType>::unit_x().unit_dir().unwrap(),
+            Vector2::unit_x()
+        );
+        assert_eq!(along_y.unit_dir().unwrap(), Vector2::unit_y());
+        assert!(almost_equal(
+            &(along_x + along_y).unit_dir().unwrap(),
+            &Vector2::from((4.0 / 5.0, 3.0 / 5.0))
+        ));
+        let origin: Vector2<FloatType> = Vector2::default();
+        assert!(origin.unit_dir().is_err());
     }
 }
