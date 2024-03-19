@@ -4,6 +4,16 @@
 
 **This update contains breaking changes**
 
+### New features
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+- add two new structures for 2D spatial representation: `Vertex2` & `Vector2`,
+  which act as wrappers around a `Coords2` value (#25)
+- remove the `Vertex2` type alias in favor of the new structure (#25)
+
 ### Refactor
 
 #### honeycomb-core
@@ -13,6 +23,7 @@
 - rename `TwoMap`/`Orbit` to `CMap2`/`Orbit2` for consistency (#23)
 - remove marks table from `DartData` (#24), resulting in a signature change for many
   functions and structures (anything with `const N_MARKS: usize`) '
+- update code to make use of the new 2D representation structures (#25)
 
 #### honeycomb-guide
 
@@ -21,10 +32,12 @@
 #### honeycomb-render
 
 - update examples, function & structure signatures to reflect mark removal (#24)
+- update code to make use of the new 2D representation structures (#25)
 
 #### honeycomb-utils
 
 - update benchmarks, examples, function & structure signatures to reflect mark removal (#24)
+- update code to make use of the new 2D representation structures (#25)
 
 ---
 
