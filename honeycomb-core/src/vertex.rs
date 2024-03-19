@@ -37,7 +37,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     ///
     /// # Return
     ///
-    /// Return a [Coorsd2] object.
+    /// Return a [Coords2] object.
     ///
     pub fn into_inner(self) -> Coords2<T> {
         self.inner

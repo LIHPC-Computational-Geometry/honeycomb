@@ -17,8 +17,7 @@ use std::{fs::File, io::Write, sync::atomic::AtomicBool};
 
 use crate::coords::CoordsFloat;
 use crate::{
-    Coords2, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
-    NULL_DART_ID,
+    DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 use super::{
@@ -427,8 +426,8 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
     ///
     /// # Return / Panic
     ///
-    /// Return a reference to a [CellIdentifiers] structure that contain
-    /// identifiers to the different **geometrical** i-cells *dart* models.
+    /// Return a reference to a structure that contain identifiers to the different
+    /// **geometrical** i-cells *dart* models.
     ///
     /// # Example
     ///
