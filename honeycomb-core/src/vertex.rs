@@ -136,6 +136,14 @@ impl<T: CoordsFloat> std::ops::SubAssign<&Vector2<T>> for Vertex2<T> {
     }
 }
 
+impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
+    type Output = Vector2<T>;
+
+    fn sub(self, rhs: Vertex2<T>) -> Self::Output {
+        Vector2::from(self.into_inner() - rhs.into_inner())
+    }
+}
+
 // ------ TESTS
 
 #[cfg(test)]
