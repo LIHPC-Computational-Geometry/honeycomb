@@ -10,9 +10,10 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 
 // ------ CONTENT
 
-/// Short description.
+/// 2D vector representation
 ///
-/// Detailed description.
+/// This structure is a wrapper around a [Coords2] value. Defining this as a wrapper
+/// instead of a simple type alias allow us to introduce the notion of homogeneity.
 ///
 /// # Generics
 ///
@@ -94,7 +95,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Example
     ///
-    /// See [Coords2] example.
+    /// See [Vector2] example.
     ///
     pub fn norm(&self) -> T {
         self.inner.norm()
@@ -109,7 +110,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Example
     ///
-    /// See [Coords2] example.
+    /// See [Vector2] example.
     ///
     pub fn unit_dir(&self) -> Result<Vector2<T>, CoordsError> {
         self.inner
@@ -126,7 +127,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Example
     ///
-    /// See [Coords2] example.
+    /// See [Vector2] example.
     ///
     pub fn normal_dir(&self) -> Vector2<T> {
         Self {
@@ -146,7 +147,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Example
     ///
-    /// See [Coords2] example.
+    /// See [Vector2] example.
     ///
     pub fn dot(&self, other: &Vector2<T>) -> T {
         self.inner.dot(&other.inner)

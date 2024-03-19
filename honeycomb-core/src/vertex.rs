@@ -11,24 +11,73 @@ use crate::{Coords2, CoordsFloat};
 
 // ------ CONTENT
 
+/// 2D vertex representation
+///
+/// This structure is a wrapper around a [Coords2] value. Defining this as a wrapper
+/// instead of a simple type alias allow us to introduce the notion of homogeneity.
+///
+/// # Generics
+///
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vertex2<T: CoordsFloat> {
     inner: Coords2<T>,
 }
 
 impl<T: CoordsFloat> Vertex2<T> {
+    /// Consume `self` to return inner value
+    ///
+    /// # Return
+    ///
+    /// Return a [Coorsd2] object.
+    ///
     pub fn into_inner(self) -> Coords2<T> {
         self.inner
     }
 
+    /// Getter
+    ///
+    /// # Return
+    ///
+    /// Return the value of the `x` coordinate of the vertex.
+    ///
     pub fn x(&self) -> T {
         self.inner.x
     }
 
+    /// Getter
+    ///
+    /// # Return
+    ///
+    /// Return the value of the `y` coordinate of the vertex.
+    ///
     pub fn y(&self) -> T {
         self.inner.y
     }
 
+    /// Compute the mid-point between two vertices.
+    ///
+    /// # Return
+    ///
+    /// Return the mid-point as a new [Vertex2] object.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use honeycomb_core::Vertex2;
+    ///
+    /// let far_far_away: Vertex2<f64> = Vertex2::from((2.0, 2.0));
+    /// let origin: Vertex2<f64> = Vertex2::default();
+    ///
+    /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2::from((1.0, 1.0)));
+    /// ```
     pub fn average(lhs: &Vertex2<T>, rhs: &Vertex2<T>) -> Vertex2<T> {
         let two = T::from(2.0).unwrap();
         Vertex2::from(((lhs.x() + rhs.x()) / two, (lhs.y() + rhs.y()) / two))
