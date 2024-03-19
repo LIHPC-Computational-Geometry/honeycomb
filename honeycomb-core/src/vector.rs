@@ -10,7 +10,22 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 
 // ------ CONTENT
 
+/// Short description.
+///
+/// Detailed description.
+///
+/// # Generics
+///
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
 pub struct Vector2<T: CoordsFloat> {
+    /// Coordinates value.
     inner: Coords2<T>,
 }
 
@@ -39,14 +54,32 @@ impl<T: CoordsFloat> Vector2<T> {
         }
     }
 
+    /// Consume `self` to return inner value
+    ///
+    /// # Return
+    ///
+    /// Return a [Coorsd2] object.
+    ///
     pub fn into_inner(self) -> Coords2<T> {
         self.inner
     }
 
+    /// Getter
+    ///
+    /// # Return
+    ///
+    /// Return the value of the `x` coordinate of the vector.
+    ///
     pub fn x(&self) -> T {
         self.inner.x
     }
 
+    /// Getter
+    ///
+    /// # Return
+    ///
+    /// Return the value of the `y` coordinate of the vector.
+    ///
     pub fn y(&self) -> T {
         self.inner.y
     }
