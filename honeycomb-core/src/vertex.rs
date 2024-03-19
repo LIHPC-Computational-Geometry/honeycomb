@@ -11,6 +11,7 @@ use crate::{Coords2, CoordsFloat};
 
 // ------ CONTENT
 
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vertex2<T: CoordsFloat> {
     inner: Coords2<T>,
 }
@@ -142,10 +143,38 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
+    use crate::FloatType;
 
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    fn add_vertex_vector() {
+        let mut a: Vertex2<FloatType> = Vertex2::from((1.0, 1.0));
+        let b: Vector2<FloatType> = Vector2::from((1.0, 0.0));
+        let a_moved = a + b;
+        assert_eq!(a_moved, Vertex2::from((2.0, 1.0)));
+        a += &b;
+        assert_eq!(a, a_moved);
+        a += b;
+        assert_eq!(a, Vertex2::from((3.0, 1.0)));
+    }
+
+    #[test]
+    fn sub_vertex_vector() {
+        let mut a: Vertex2<FloatType> = Vertex2::from((1.0, 1.0));
+        let b: Vector2<FloatType> = Vector2::from((1.0, 0.0));
+        let a_moved = a - b;
+        assert_eq!(a_moved, Vertex2::from((0.0, 1.0)));
+        a -= &b;
+        assert_eq!(a, a_moved);
+        a -= b;
+        assert_eq!(a, Vertex2::from((-1.0, 1.0)));
+    }
+
+    #[test]
+    fn sub_vertex_vertex() {
+        let a: Vertex2<FloatType> = Vertex2::from((1.0, 1.0));
+        let b: Vertex2<FloatType> = Vertex2::from((1.0, 0.0));
+        let ab = b - a;
+        assert_eq!(ab, Vector2::from((0.0, -1.0)))
     }
 }
