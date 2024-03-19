@@ -33,7 +33,7 @@ use honeycomb_utils::generation::square_cmap2;
 const N_SQUARE: usize = 2_usize.pow(10);
 const P_BERNOULLI: f64 = 0.6;
 
-fn split<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>) {
+fn split(mut map: CMap2<FloatType>) {
     (0..N_SQUARE.pow(2)).for_each(|square| {
         let d1 = (1 + square * 4) as DartIdentifier;
         let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
@@ -55,7 +55,7 @@ fn split<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>) {
     black_box(&mut map);
 }
 
-fn split_some<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>, split: &[bool]) {
+fn split_some(mut map: CMap2<FloatType>, split: &[bool]) {
     (0..N_SQUARE.pow(2))
         .filter(|square| split[*square]) // split only if true
         .for_each(|square| {
@@ -79,7 +79,7 @@ fn split_some<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>, split: &
     black_box(&mut map);
 }
 
-fn split_diff<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>, split: &[bool]) {
+fn split_diff(mut map: CMap2<FloatType>, split: &[bool]) {
     (0..N_SQUARE.pow(2)).for_each(|square| {
         let ddown = (1 + square * 4) as DartIdentifier;
         let (dright, dup, dleft) = (ddown + 1, ddown + 2, ddown + 3);
@@ -125,7 +125,7 @@ fn split_diff<const N_MARKS: usize>(mut map: CMap2<N_MARKS, FloatType>, split: &
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let map: CMap2<1, FloatType> = square_cmap2(N_SQUARE);
+    let map: CMap2<FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let rng = SmallRng::seed_from_u64(seed);
     let dist = Bernoulli::new(P_BERNOULLI).unwrap();

@@ -43,16 +43,16 @@ macro_rules! as_f32_tuple {
     };
 }
 
-pub struct CMap2RenderHandle<'a, const N_MARKS: usize, T: CoordsFloat> {
-    handle: &'a CMap2<N_MARKS, T>,
+pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
+    handle: &'a CMap2<T>,
     params: RenderParameters,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
 
-impl<'a, const N_MARKS: usize, T: CoordsFloat> CMap2RenderHandle<'a, N_MARKS, T> {
-    pub fn new(map: &'a CMap2<N_MARKS, T>, params: Option<RenderParameters>) -> Self {
+impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
+    pub fn new(map: &'a CMap2<T>, params: Option<RenderParameters>) -> Self {
         Self {
             handle: map,
             params: params.unwrap_or_default(),

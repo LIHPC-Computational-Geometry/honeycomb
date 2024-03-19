@@ -5,5 +5,5 @@ fn main() {
         smaa_mode: SmaaMode::Disabled,
         ..Default::default()
     };
-    Runner::default().run::<1, f32>(render_params, None);
+    Runner::default().run::<f32>(render_params, None);
 }

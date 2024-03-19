@@ -13,7 +13,8 @@
 // ------ IMPORTS
 
 use std::collections::BTreeSet;
-use std::{fs::File, io::Write, sync::atomic::AtomicBool};
+#[cfg(feature = "benchmarking_utils")]
+use std::{fs::File, io::Write};
 
 use crate::coords::CoordsFloat;
 use crate::{
@@ -58,7 +59,7 @@ const CMAP2_BETA: usize = 3;
 /// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
 ///   i.e. empty spots in the current vertex list
 /// - `faces: Vec<Face>` -- List of faces making up the represented mesh
-/// - `dart_data: DartData<N_MARKS>` -- List of embedded data associated with darts
+/// - `dart_data: DartData` -- Structure holding embedded data associated with darts
 /// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
@@ -72,8 +73,6 @@ const CMAP2_BETA: usize = 3;
 ///
 /// # Generics
 ///
-/// - `const N_MARKS: usize` -- Number of marks used for search algorithms.
-///   This corresponds to the number of search that can be done concurrently.
 /// - `T: CoordsFloat` -- Generic type for coordinates representation.
 ///
 /// # Example
@@ -95,7 +94,7 @@ const CMAP2_BETA: usize = 3;
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: CMap2<1, f64> = CMap2::new(3, 3);
+/// let mut map: CMap2<f64> = CMap2::new(3, 3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -255,7 +254,7 @@ const CMAP2_BETA: usize = 3;
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
-pub struct CMap2<const N_MARKS: usize, T: CoordsFloat> {
+pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2<T>>,
     /// List of free vertex identifiers, i.e. empty spots
@@ -264,7 +263,7 @@ pub struct CMap2<const N_MARKS: usize, T: CoordsFloat> {
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
-    dart_data: DartData<N_MARKS>,
+    dart_data: DartData,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
@@ -283,7 +282,7 @@ macro_rules! stretch {
     };
 }
 
-impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
+impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
     /// # Arguments
@@ -1281,14 +1280,15 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
     ///
     pub fn build_all_faces(&mut self) -> usize {
         self.faces.clear();
+        let mut marked = BTreeSet::<DartIdentifier>::new();
         let mut n_faces = 0;
         // go through all darts ? update
         (1..self.n_darts as DartIdentifier).for_each(|id| {
-            if !self.dart_data.was_marked(0, id) {
+            if marked.insert(id) {
                 let tmp = self.i_cell::<2>(id);
                 if tmp.len() > 1 {
                     tmp.iter().for_each(|member| {
-                        let _ = self.dart_data.was_marked(0, *member);
+                        let _ = marked.insert(*member);
                     });
                     self.build_face(id);
                     n_faces += 1
@@ -1367,7 +1367,7 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
 }
 
 #[cfg(any(doc, feature = "benchmarking_utils"))]
-impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
+impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
     /// # Arguments
@@ -1425,12 +1425,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
             self.dart_data.associated_cells.capacity() * std::mem::size_of::<VertexIdentifier>();
         let embed_face =
             self.dart_data.associated_cells.capacity() * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks =
-            self.dart_data.marks[0].capacity() * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
@@ -1508,11 +1505,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
         // embed
         let embed_vertex = self.n_darts * std::mem::size_of::<VertexIdentifier>();
         let embed_face = self.n_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks = self.n_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
@@ -1596,11 +1591,9 @@ impl<const N_MARKS: usize, T: CoordsFloat> CMap2<N_MARKS, T> {
         // embed
         let embed_vertex = n_used_darts * std::mem::size_of::<VertexIdentifier>();
         let embed_face = n_used_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_marks = n_used_darts * N_MARKS * std::mem::size_of::<AtomicBool>();
-        let embed_total = embed_vertex + embed_face + embed_marks;
+        let embed_total = embed_vertex + embed_face;
         writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
         writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_marks, {embed_marks}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // geometry
@@ -1634,7 +1627,7 @@ mod tests {
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
         // set vertex 1 as unused
         map.remove_vertex(1);
         // set vertex 1 as unused, again
@@ -1646,7 +1639,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: CMap2<1, FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again

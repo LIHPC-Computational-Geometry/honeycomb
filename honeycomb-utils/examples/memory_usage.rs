@@ -3,7 +3,7 @@ use honeycomb_utils::generation::square_cmap2;
 
 pub fn main() {
     // create a 3x3 grid & remove the central square
-    let mut cmap: CMap2<1, FloatType> = square_cmap2(3);
+    let mut cmap: CMap2<FloatType> = square_cmap2(3);
     // darts making up the central square
     let (d1, d2, d3, d4): (
         DartIdentifier,

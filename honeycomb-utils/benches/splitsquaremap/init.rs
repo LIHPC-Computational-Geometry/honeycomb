@@ -24,7 +24,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
-                let mut map: CMap2<1, FloatType> = splitsquare_cmap2(*n_square);
+                let mut map: CMap2<FloatType> = splitsquare_cmap2(*n_square);
                 black_box(&mut map);
             })
         });

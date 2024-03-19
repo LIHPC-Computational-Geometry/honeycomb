@@ -11,10 +11,20 @@
 - change visibility of all `honeycomb-core` modules to private & re-export types
   accordingly (#23)
 - rename `TwoMap`/`Orbit` to `CMap2`/`Orbit2` for consistency (#23)
+- remove marks table from `DartData` (#24), resulting in a signature change for many
+  functions and structures (anything with `const N_MARKS: usize`) '
 
 #### honeycomb-guide
 
 - update all references to renamed types (#23)
+
+#### honeycomb-render
+
+- update examples, function & structure signatures to reflect mark removal (#24)
+
+#### honeycomb-utils
+
+- update benchmarks, examples, function & structure signatures to reflect mark removal (#24)
 
 ---
 
