@@ -114,7 +114,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn norm(&self) -> T {
-        self.inner.norm()
+        self.inner.x.hypot(self.inner.y)
     }
 
     /// Compute the direction of `self` as a unit vector.
@@ -129,9 +129,12 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn unit_dir(&self) -> Result<Vector2<T>, CoordsError> {
-        self.inner
-            .unit_dir()
-            .map(|coords2: Coords2<T>| Self { inner: coords2 })
+        let norm = self.norm();
+        if !norm.is_zero() {
+            Ok(*self / norm)
+        } else {
+            Err(CoordsError::InvalidUnitDir)
+        }
     }
 
     /// Compute the direction of the normal vector to `self`.
@@ -147,8 +150,13 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     pub fn normal_dir(&self) -> Vector2<T> {
         Self {
-            inner: self.inner.normal_dir(),
+            inner: Coords2 {
+                x: -self.inner.y,
+                y: self.inner.x,
+            },
         }
+        .unit_dir()
+        .unwrap()
     }
 
     /// Compute the dot product between two vectors
@@ -166,7 +174,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn dot(&self, other: &Vector2<T>) -> T {
-        self.inner.dot(&other.inner)
+        self.inner.x * other.inner.x + self.inner.y * other.inner.y
     }
 }
 
