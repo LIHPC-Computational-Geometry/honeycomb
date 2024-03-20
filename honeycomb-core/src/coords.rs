@@ -55,25 +55,9 @@ pub enum CoordsError {
 ///
 /// # Example
 ///
-/// ```rust
-/// # use honeycomb_core::CoordsError;
-/// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::{Coords2, FloatType};
-///
-/// let unit_x = Coords2::unit_x();
-/// let unit_y = Coords2::unit_y();
-///
-/// assert_eq!(unit_x.dot(&unit_y), 0.0);
-/// assert_eq!(unit_x.normal_dir(), unit_y);
-///
-/// let two: FloatType = 2.0;
-/// let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
-///
-/// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir()?, Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
-/// # Ok(())
-/// # }
-/// ```
+/// This type is not meant to be used directly when operating on combinatorial
+/// maps (see [Vector2], [Vertex2] for that), but it is kept public because it
+/// is easier to use for rendering purposes. As such, no example is provided.
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Coords2<T: CoordsFloat> {
@@ -137,11 +121,8 @@ impl<T: CoordsFloat> Coords2<T> {
     /// Return the norm. Its type is the same as the one used for internal
     /// representation.
     ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn norm(&self) -> T {
+    #[cfg(test)]
+    fn norm(&self) -> T {
         self.x.hypot(self.y)
     }
 
@@ -152,11 +133,8 @@ impl<T: CoordsFloat> Coords2<T> {
     /// Return a [Coords2] indicating the direction of `self`. The norm of the returned
     /// struct is equal to one.
     ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn unit_dir(&self) -> Result<Coords2<T>, CoordsError> {
+    #[cfg(test)]
+    fn unit_dir(&self) -> Result<Coords2<T>, CoordsError> {
         let norm = self.norm();
         if !norm.is_zero() {
             Ok(*self / norm)
@@ -172,11 +150,8 @@ impl<T: CoordsFloat> Coords2<T> {
     /// Return a [Coords2] indicating the direction of the normal to `self`. The norm of the
     /// returned struct is equal to one.
     ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn normal_dir(&self) -> Coords2<T> {
+    #[cfg(test)]
+    fn normal_dir(&self) -> Coords2<T> {
         Coords2 {
             x: -self.y,
             y: self.x,
@@ -195,11 +170,8 @@ impl<T: CoordsFloat> Coords2<T> {
     ///
     /// Return the dot product between `self` and `other`.
     ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn dot(&self, other: &Coords2<T>) -> T {
+    #[cfg(test)]
+    fn dot(&self, other: &Coords2<T>) -> T {
         self.x * other.x + self.y * other.y
     }
 }
@@ -350,6 +322,25 @@ mod tests {
     fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
         const EPS: FloatType = 10.0e-12;
         ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
+    }
+
+    #[test]
+    fn basic_xy_checks() -> Result<(), CoordsError> {
+        let unit_x: Coords2<FloatType> = Coords2::unit_x();
+        let unit_y: Coords2<FloatType> = Coords2::unit_y();
+
+        assert_eq!(unit_x.dot(&unit_y), 0.0);
+        assert_eq!(unit_x.normal_dir(), unit_y);
+
+        let two: FloatType = 2.0;
+        let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
+
+        assert_eq!(x_plus_y.norm(), two.sqrt());
+        assert_eq!(
+            x_plus_y.unit_dir()?,
+            Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt()))
+        );
+        Ok(())
     }
 
     #[test]
