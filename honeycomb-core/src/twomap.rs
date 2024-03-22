@@ -32,7 +32,7 @@ use super::{
 
 #[derive(Debug)]
 pub enum CMapError {
-    VertexOOB,
+    UnknownVertexID,
 }
 
 // --- 2-MAP
@@ -302,7 +302,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
-        let mut vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
+        let vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
 
         Self {
             vertices,
@@ -740,8 +740,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        todo!()
+    pub fn insert_vertex(
+        &mut self,
+        vertex_id: VertexIdentifier,
+        vertex: impl Into<Vertex2<T>>,
+    ) -> Option<Vertex2<T>> {
+        self.vertices.insert(vertex_id, vertex.into())
     }
 
     /// Remove a vertex from the combinatorial map.
@@ -770,8 +774,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
-        todo!()
+    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.remove(&vertex_id) {
+            return Ok(val);
+        }
+        Err(CMapError::UnknownVertexID)
     }
 
     /// Try to overwrite the given vertex with a new value.
@@ -794,8 +801,11 @@ impl<T: CoordsFloat> CMap2<T> {
         &mut self,
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
-    ) -> Result<(), CMapError> {
-        todo!()
+    ) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.insert(vertex_id, vertex.into()) {
+            return Ok(val);
+        }
+        Err(CMapError::UnknownVertexID)
     }
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
