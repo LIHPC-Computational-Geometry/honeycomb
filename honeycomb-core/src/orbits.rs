@@ -115,6 +115,40 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
             pending,
         }
     }
+
+    pub fn is_isolated(&self) -> bool {
+        // this is boolean tells us if the orbit is either:
+        // a) unaltered (pending.len() == 1)
+        // b) iterated upon, but the dart is
+        let marked_unaltered = self.marked.len() == 2;
+        let pending_unaltered = self.pending.len() == 1;
+        match (marked_unaltered, pending_unaltered) {
+            // marked is altered, i.e. we found a dart that isn't null or the starting one
+            (false, _) => false,
+            // marked is unaltered but pending is altered
+            // we checked for neighbors but no new mark appeared
+            // => the dart is isolated or self-indident
+            (true, false) => true,
+            // both are unaltered, we need to check if neighbors exist
+            // we check manually to not invalidate an iterator call later
+            (true, true) => {
+                let dart = self.pending[0];
+                let image = match self.orbit_policy {
+                    OrbitPolicy::Vertex => {
+                        self.map_handle.beta::<1>(self.map_handle.beta::<2>(dart))
+                    }
+                    OrbitPolicy::Edge => self.map_handle.beta::<2>(dart),
+                    OrbitPolicy::Face => self.map_handle.beta::<1>(dart),
+                    OrbitPolicy::Custom(beta_slice) => beta_slice
+                        .iter()
+                        .map(|beta_id| self.map_handle.beta_runtime(*beta_id, dart))
+                        .find(|d| *d != NULL_DART_ID)
+                        .unwrap_or(NULL_DART_ID),
+                };
+                image == NULL_DART_ID
+            }
+        }
+    }
 }
 
 impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
