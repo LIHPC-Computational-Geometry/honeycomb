@@ -1,0 +1,3 @@
+(function() {var type_impls = {
+"honeycomb_core":[["<section id=\"impl-CoordsFloat-for-f64\" class=\"impl\"><a class=\"src rightside\" href=\"src/honeycomb_core/coords.rs.html#35\">source</a><a href=\"#impl-CoordsFloat-for-f64\" class=\"anchor\">§</a><h3 class=\"code-header\">impl <a class=\"trait\" href=\"honeycomb_core/trait.CoordsFloat.html\" title=\"trait honeycomb_core::CoordsFloat\">CoordsFloat</a> for <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.77.0/std/primitive.f64.html\">f64</a></h3></section>","CoordsFloat","honeycomb_core::coords::FloatType"]]
+};if (window.register_type_impls) {window.register_type_impls(type_impls);} else {window.pending_type_impls = type_impls;}})()

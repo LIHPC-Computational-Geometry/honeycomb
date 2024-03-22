@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["splitsquare_cmap2","square_cmap2"]};

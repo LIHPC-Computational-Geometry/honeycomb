@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NULL_DART_ID"],"enum":["CMapError","CoordsError","OrbitPolicy","SewPolicy","UnsewPolicy"],"struct":["CMap2","Coords2","DartData","Face","Orbit2","Vector2","Vertex2"],"trait":["CoordsFloat"],"type":["DartIdentifier","FaceIdentifier","FloatType","VertexIdentifier","VolumeIdentifier"]};
