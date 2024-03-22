@@ -18,7 +18,8 @@ use std::{fs::File, io::Write};
 
 use crate::coords::CoordsFloat;
 use crate::{
-    DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
+    DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2,
+    VertexIdentifier, NULL_DART_ID,
 };
 
 use super::{
@@ -582,57 +583,14 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
-        let mut cell: Vec<DartIdentifier> = vec![dart_id];
-        let mut curr_dart = dart_id;
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
+        assert!(I < 3);
         match I {
-            0 => {
-                let mut completeness = true;
-                // rotate around the vertex until we get back to the first dart
-                while self.beta::<1>(self.beta::<2>(curr_dart)) != dart_id {
-                    curr_dart = self.beta::<1>(self.beta::<2>(curr_dart));
-                    cell.push(curr_dart);
-                    if curr_dart == NULL_DART_ID {
-                        completeness = false;
-                        break; // stop if we land on the null dart
-                    }
-                }
-                // if not complete, we need to rotate in the other direction to make sure
-                // no dart is missing
-                if !completeness {
-                    curr_dart = self.beta::<2>(self.beta::<0>(dart_id));
-                    while curr_dart != NULL_DART_ID {
-                        cell.push(curr_dart);
-                        curr_dart = self.beta::<2>(self.beta::<0>(curr_dart));
-                    }
-                }
-            }
-            1 => {
-                // in the case of a 2-map, the 1-cell corresponds to [dart, beta_2(dart)]
-                cell.push(self.beta::<2>(dart_id))
-            }
-            2 => {
-                let mut completeness = true;
-                // travel along the edges of the face until we get back to the first dart
-                while self.beta::<1>(curr_dart) != dart_id {
-                    curr_dart = self.beta::<1>(curr_dart);
-                    cell.push(curr_dart);
-                    if curr_dart == NULL_DART_ID {
-                        completeness = false;
-                        break; // stop if we land on the null dart
-                    }
-                }
-                if !completeness {
-                    curr_dart = self.beta::<0>(dart_id);
-                    while curr_dart != NULL_DART_ID {
-                        cell.push(curr_dart);
-                        curr_dart = self.beta::<0>(curr_dart);
-                    }
-                }
-            }
-            _ => panic!(),
+            0 => Orbit2::new(&self, OrbitPolicy::Vertex, dart_id),
+            1 => Orbit2::new(&self, OrbitPolicy::Edge, dart_id),
+            2 => Orbit2::new(&self, OrbitPolicy::Face, dart_id),
+            _ => unreachable!(),
         }
-        cell
     }
 
     // --- editing interfaces
