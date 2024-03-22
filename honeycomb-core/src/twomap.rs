@@ -270,8 +270,6 @@ pub struct CMap2<T: CoordsFloat> {
     betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
     n_darts: usize,
-    /// Current number of vertices
-    n_vertices: usize,
 }
 
 macro_rules! stretch {
@@ -313,7 +311,6 @@ impl<T: CoordsFloat> CMap2<T> {
             unused_darts: BTreeSet::new(),
             betas,
             n_darts: n_darts + 1,
-            n_vertices,
         }
     }
 
@@ -725,53 +722,6 @@ impl<T: CoordsFloat> CMap2<T> {
         self.dart_data.reset_entry(dart_id);
     }
 
-    /// Add a vertex to the combinatorial map.
-    ///
-    /// The user can provide a [Vertex2] to use as the initial value of the
-    /// added vertex.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created vertex to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        let new_id = self.n_vertices as VertexIdentifier;
-        self.n_vertices += 1;
-        self.vertices.push(vertex.unwrap_or_default());
-        new_id
-    }
-
-    /// Add multiple vertices to the combinatorial map.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_vertices: usize` -- Number of vertices to create.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the first created vertex to allow for direct operations.
-    /// Vertices are positioned on range `ID..ID+n_darts`.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
-        let new_id = self.n_vertices as VertexIdentifier;
-        self.n_vertices += n_vertices;
-        self.vertices
-            .extend((0..n_vertices).map(|_| Vertex2::default()));
-        new_id
-    }
-
     /// Insert a vertex in the combinatorial map.
     ///
     /// The vertex may be inserted into a free spot in the existing list. If no free
@@ -791,12 +741,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        if let Some(new_id) = self.unused_vertices.pop_first() {
-            self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
-            new_id
-        } else {
-            self.add_vertex(vertex)
-        }
+        todo!()
     }
 
     /// Remove a vertex from the combinatorial map.
@@ -826,15 +771,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
-        // the insert method returns true if the value was inserted into the set,
-        // i.e. it wasn't already in before. This assertions guarantees that a
-        // single vertex won't be removed twice, leading to it being re-used
-        // multiple times.
-        assert!(self.unused_vertices.insert(vertex_id));
-        // the following line is more safety than anything else
-        // this prevents having to deal w/ artifacts in case of re-insertion
-        // it also panics on OOB
-        self.set_vertex(vertex_id, Vertex2::default()).unwrap();
+        todo!()
     }
 
     /// Try to overwrite the given vertex with a new value.
@@ -858,11 +795,7 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<(), CMapError> {
-        if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
-            *val = vertex.into();
-            return Ok(());
-        }
-        Err(CMapError::VertexOOB)
+        todo!()
     }
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
