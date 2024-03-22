@@ -6,6 +6,8 @@
 
 // ------ IMPORTS
 
+use crate::vector::Vector2;
+use crate::vertex::Vertex2;
 use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -53,25 +55,9 @@ pub enum CoordsError {
 ///
 /// # Example
 ///
-/// ```rust
-/// # use honeycomb_core::CoordsError;
-/// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::{Coords2, FloatType};
-///
-/// let unit_x = Coords2::unit_x();
-/// let unit_y = Coords2::unit_y();
-///
-/// assert_eq!(unit_x.dot(&unit_y), 0.0);
-/// assert_eq!(unit_x.normal_dir(), unit_y);
-///
-/// let two: FloatType = 2.0;
-/// let x_plus_y: Coords2<FloatType> = unit_x + unit_y;
-///
-/// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir()?, Coords2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
-/// # Ok(())
-/// # }
-/// ```
+/// This type is not meant to be used directly when operating on combinatorial
+/// maps (see [Vector2], [Vertex2] for that), but it is kept public because it
+/// is easier to use for rendering purposes. As such, no example is provided.
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Coords2<T: CoordsFloat> {
@@ -107,99 +93,6 @@ impl<T: CoordsFloat> Coords2<T> {
             y: T::one(),
         }
     }
-
-    /// Compute the mid-point between two points.
-    ///
-    /// # Return
-    ///
-    /// Return the mid-point as a new [Coords2] object.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use honeycomb_core::Coords2;
-    ///
-    /// let far_far_away: Coords2<f64> = Coords2::from((2.0, 2.0));
-    /// let origin: Coords2<f64> = Coords2::default();
-    ///
-    /// assert_eq!(Coords2::average(&origin, &far_far_away), Coords2::from((1.0, 1.0)));
-    /// ```
-    pub fn average(lhs: &Coords2<T>, rhs: &Coords2<T>) -> Coords2<T> {
-        (*lhs + *rhs) / T::from(2.0).unwrap()
-    }
-
-    /// Compute the norm of `self`.
-    ///
-    /// # Return
-    ///
-    /// Return the norm. Its type is the same as the one used for internal
-    /// representation.
-    ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn norm(&self) -> T {
-        self.x.hypot(self.y)
-    }
-
-    /// Compute the direction of `self` as a unit vector.
-    ///
-    /// # Return
-    ///
-    /// Return a [Coords2] indicating the direction of `self`. The norm of the returned
-    /// struct is equal to one.
-    ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn unit_dir(&self) -> Result<Coords2<T>, CoordsError> {
-        let norm = self.norm();
-        if !norm.is_zero() {
-            Ok(*self / norm)
-        } else {
-            Err(CoordsError::InvalidUnitDir)
-        }
-    }
-
-    /// Compute the direction of the normal vector to `self`.
-    ///
-    /// # Return
-    ///
-    /// Return a [Coords2] indicating the direction of the normal to `self`. The norm of the
-    /// returned struct is equal to one.
-    ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn normal_dir(&self) -> Coords2<T> {
-        Coords2 {
-            x: -self.y,
-            y: self.x,
-        }
-        .unit_dir()
-        .unwrap()
-    }
-
-    /// Compute the dot product between two vectors
-    ///
-    /// # Arguments
-    ///
-    /// - `other: &Coords2` -- reference to the second vector.
-    ///
-    /// # Return
-    ///
-    /// Return the dot product between `self` and `other`.
-    ///
-    /// # Example
-    ///
-    /// See [Coords2] example.
-    ///
-    pub fn dot(&self, other: &Coords2<T>) -> T {
-        self.x * other.x + self.y * other.y
-    }
 }
 
 // Building traits
@@ -213,6 +106,18 @@ impl<T: CoordsFloat> From<(T, T)> for Coords2<T> {
 impl<T: CoordsFloat> From<[T; 2]> for Coords2<T> {
     fn from([x, y]: [T; 2]) -> Self {
         Self { x, y }
+    }
+}
+
+impl<T: CoordsFloat> From<Vertex2<T>> for Coords2<T> {
+    fn from(vector2: Vertex2<T>) -> Self {
+        vector2.into_inner()
+    }
+}
+
+impl<T: CoordsFloat> From<Vector2<T>> for Coords2<T> {
+    fn from(vector2: Vector2<T>) -> Self {
+        vector2.into_inner()
     }
 }
 
@@ -336,33 +241,6 @@ mod tests {
     fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
         const EPS: FloatType = 10.0e-12;
         ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
-    }
-
-    #[test]
-    fn dot_product() {
-        let along_x = Coords2::unit_x() * 15.0;
-        let along_y = Coords2::unit_y() * 10.0;
-        assert_eq!(along_x.dot(&along_y), 0.0);
-        assert_eq!(along_x.dot(&Coords2::unit_x()), 15.0);
-        assert_eq!(along_y.dot(&Coords2::unit_y()), 10.0);
-    }
-
-    #[test]
-    fn unit_dir() {
-        let along_x = Coords2::unit_x() * 4.0;
-        let along_y = Coords2::unit_y() * 3.0;
-        assert_eq!(along_x.unit_dir().unwrap(), Coords2::unit_x());
-        assert_eq!(
-            Coords2::<FloatType>::unit_x().unit_dir().unwrap(),
-            Coords2::unit_x()
-        );
-        assert_eq!(along_y.unit_dir().unwrap(), Coords2::unit_y());
-        assert!(almost_equal(
-            &(along_x + along_y).unit_dir().unwrap(),
-            &Coords2::from((4.0 / 5.0, 3.0 / 5.0))
-        ));
-        let origin: Coords2<FloatType> = Coords2::default();
-        assert!(origin.unit_dir().is_err());
     }
 
     #[test]

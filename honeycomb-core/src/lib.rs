@@ -21,16 +21,18 @@ mod dart;
 mod embed;
 mod orbits;
 mod twomap;
+mod vector;
+mod vertex;
 
 // ------ RE-EXPORTS
 
 pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
 pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
-pub use embed::{
-    Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, VolumeIdentifier,
-};
+pub use embed::{Face, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
 pub use orbits::{Orbit2, OrbitPolicy};
 pub use twomap::{CMap2, CMapError};
+pub use vector::Vector2;
+pub use vertex::Vertex2;
 
 // ------ IMPORTS
 
