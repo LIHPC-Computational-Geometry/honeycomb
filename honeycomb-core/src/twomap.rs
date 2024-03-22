@@ -488,11 +488,10 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn vertex_id(&self, dart_id: DartIdentifier) -> &VertexIdentifier {
-        &(Orbit2::new(&self, OrbitPolicy::Vertex, dart_id)
-            .into_iter()
+    pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+        Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
             .min()
-            .unwrap() as VertexIdentifier)
+            .unwrap() as VertexIdentifier
     }
 
     /// Fetch edge associated to a given dart.
@@ -509,11 +508,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn edge_id(&self, dart_id: DartIdentifier) -> &EdgeIdentifier {
-        &(Orbit2::new(&self, OrbitPolicy::Edge, dart_id)
-            .into_iter()
-            .min()
-            .unwrap() as EdgeIdentifier)
+    pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
+        Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
     }
 
     /// Fetch face associated to a given dart.
@@ -530,11 +526,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn face_id(&self, dart_id: DartIdentifier) -> &FaceIdentifier {
-        &(Orbit2::new(&self, OrbitPolicy::Face, dart_id)
-            .into_iter()
-            .min()
-            .unwrap() as FaceIdentifier)
+    pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+        Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
     }
 
     /// Check if a given dart is i-free.
@@ -1198,7 +1191,7 @@ impl<T: CoordsFloat> CMap2<T> {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
                 if self.i_cell::<0>(rhs_dart_id).is_isolated() {
-                    let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
+                    let old_vertex = self.vertices[self.vertex_id(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
@@ -1241,11 +1234,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 // repeat on both ends of the edge
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 if b1lid != NULL_DART_ID {
-                    self.set_vertexid(rhs_dart_id, self.vertexid(b1lid));
+                    self.set_vertexid(rhs_dart_id, self.vertex_id(b1lid));
                 }
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 if b1rid != NULL_DART_ID {
-                    self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
+                    self.set_vertexid(lhs_dart_id, self.vertex_id(b1rid));
                 }
             }
             UnsewPolicy::DoNothing => {}
