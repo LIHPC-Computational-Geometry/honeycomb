@@ -1169,7 +1169,7 @@ impl<T: CoordsFloat> CMap2<T> {
         match policy {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
-                if self.i_cell::<0>(rhs_dart_id).len() > 1 {
+                if self.i_cell::<0>(rhs_dart_id).is_isolated() {
                     let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
@@ -1244,9 +1244,9 @@ impl<T: CoordsFloat> CMap2<T> {
         (1..self.n_darts as DartIdentifier).for_each(|id| {
             if marked.insert(id) {
                 let tmp = self.i_cell::<2>(id);
-                if tmp.len() > 1 {
-                    tmp.iter().for_each(|member| {
-                        let _ = marked.insert(*member);
+                if tmp.is_isolated() {
+                    tmp.into_iter().for_each(|member| {
+                        let _ = marked.insert(member);
                     });
                     self.build_face(id);
                     n_faces += 1
