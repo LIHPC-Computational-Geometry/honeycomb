@@ -12,7 +12,7 @@
 
 // ------ IMPORTS
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 #[cfg(feature = "benchmarking_utils")]
 use std::{fs::File, io::Write};
 
@@ -258,10 +258,7 @@ const CMAP2_BETA: usize = 3;
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2<T>>,
-    /// List of free vertex identifiers, i.e. empty spots
-    /// in the current vertex list
-    unused_vertices: BTreeSet<VertexIdentifier>,
+    vertices: BTreeMap<VertexIdentifier, Vertex2<T>>,
     /// List of faces making up the represented mesh
     faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
@@ -306,12 +303,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![Vertex2::default(); n_vertices];
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
+        let mut vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
 
         Self {
             vertices,
-            unused_vertices: BTreeSet::new(),
             faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
             unused_darts: BTreeSet::new(),
@@ -335,8 +331,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The boolean essentially indicates if it is safe to access all
     /// vertex IDs in the `0..n_vertices` range.
     ///
-    pub fn n_vertices(&self) -> (usize, bool) {
-        (self.n_vertices, !self.unused_vertices.is_empty())
+    pub fn n_vertices(&self) -> usize {
+        self.vertices.len()
     }
 
     /// Return the current number of faces.
@@ -453,7 +449,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
-        &self.vertices[vertex_id as usize]
+        &self.vertices[&vertex_id]
     }
 
     /// Fetch face structure associated to a given identifier.
