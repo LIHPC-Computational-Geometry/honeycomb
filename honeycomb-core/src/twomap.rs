@@ -600,9 +600,9 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
         match I {
-            0 => Orbit2::new(&self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit2::new(&self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit2::new(&self, OrbitPolicy::Face, dart_id),
+            0 => Orbit2::new(self, OrbitPolicy::Vertex, dart_id),
+            1 => Orbit2::new(self, OrbitPolicy::Edge, dart_id),
+            2 => Orbit2::new(self, OrbitPolicy::Face, dart_id),
             _ => unreachable!(),
         }
     }
@@ -923,14 +923,18 @@ impl<T: CoordsFloat> CMap2<T> {
         if lid != NULL_DART_ID {
             match policy {
                 SewPolicy::StretchLeft => {
-                    stretch!(self, rhs_dart_id, lid);
+                    todo!()
+                    // stretch!(self, rhs_dart_id, lid);
                 }
                 SewPolicy::StretchRight => {
-                    stretch!(self, lid, rhs_dart_id);
+                    todo!()
+                    // stretch!(self, lid, rhs_dart_id);
                 }
                 SewPolicy::StretchAverage => {
                     // this works under the assumption that a valid vertex is
                     // associated to rhs_dart
+                    todo!()
+                    /*
                     let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
                     let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
                     self.vertices
@@ -938,6 +942,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     let new_id = (self.vertices.len() - 1) as VertexIdentifier;
                     stretch!(self, lid, new_id);
                     stretch!(self, rhs_dart_id, new_id);
+                     */
                 }
             }
         }
@@ -996,12 +1001,16 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1rid = self.beta::<1>(rhs_dart_id);
                 match policy {
                     SewPolicy::StretchLeft => {
-                        stretch!(self, lhs_dart_id, b1rid)
+                        todo!()
+                        // stretch!(self, lhs_dart_id, b1rid)
                     }
                     SewPolicy::StretchRight => {
-                        stretch!(self, b1rid, lhs_dart_id)
+                        todo!()
+                        // stretch!(self, b1rid, lhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
+                        todo!()
+                        /*
                         let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
 
@@ -1010,6 +1019,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
                         stretch!(self, b1rid, new_id);
                         stretch!(self, lhs_dart_id, new_id);
+                         */
                     }
                 }
             }
@@ -1017,12 +1027,16 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 match policy {
                     SewPolicy::StretchLeft => {
-                        stretch!(self, rhs_dart_id, b1lid)
+                        todo!()
+                        // stretch!(self, rhs_dart_id, b1lid)
                     }
                     SewPolicy::StretchRight => {
-                        stretch!(self, b1lid, rhs_dart_id)
+                        todo!()
+                        // stretch!(self, b1lid, rhs_dart_id)
                     }
                     SewPolicy::StretchAverage => {
+                        todo!()
+                        /*
                         let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
                         let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
 
@@ -1031,11 +1045,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
                         stretch!(self, b1lid, new_id);
                         stretch!(self, rhs_dart_id, new_id);
+
+                         */
                     }
                 }
             }
             (false, false) => {
                 // ensure orientation consistency
+                todo!()
+                /*
 
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 let b1rid = self.beta::<1>(rhs_dart_id);
@@ -1082,6 +1100,8 @@ impl<T: CoordsFloat> CMap2<T> {
                         stretch!(self, b1lid, new_rid);
                     }
                 }
+
+                 */
             }
         }
     }
@@ -1119,11 +1139,14 @@ impl<T: CoordsFloat> CMap2<T> {
         match policy {
             UnsewPolicy::Duplicate => {
                 // if the vertex was shared, duplicate it
+                todo!()
+                /*
                 if self.i_cell::<0>(rhs_dart_id).is_isolated() {
                     let old_vertex = self.vertices[self.vertex_id(rhs_dart_id) as usize];
                     self.vertices.push(old_vertex);
                     self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
                 }
+                 */
             }
             UnsewPolicy::DoNothing => {}
         }
