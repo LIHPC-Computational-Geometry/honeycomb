@@ -17,6 +17,7 @@ use std::collections::BTreeSet;
 use std::{fs::File, io::Write};
 
 use crate::coords::CoordsFloat;
+use crate::embed::EdgeIdentifier;
 use crate::{
     DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2,
     VertexIdentifier, NULL_DART_ID,
@@ -487,8 +488,32 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn vertexid(&self, dart_id: DartIdentifier) -> VertexIdentifier {
-        self.dart_data.associated_cells[dart_id as usize].vertex_id
+    pub fn vertex_id(&self, dart_id: DartIdentifier) -> &VertexIdentifier {
+        &(Orbit2::new(&self, OrbitPolicy::Vertex, dart_id)
+            .into_iter()
+            .min()
+            .unwrap() as VertexIdentifier)
+    }
+
+    /// Fetch edge associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated edge.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn edge_id(&self, dart_id: DartIdentifier) -> &EdgeIdentifier {
+        &(Orbit2::new(&self, OrbitPolicy::Edge, dart_id)
+            .into_iter()
+            .min()
+            .unwrap() as EdgeIdentifier)
     }
 
     /// Fetch face associated to a given dart.
@@ -505,8 +530,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn faceid(&self, dart_id: DartIdentifier) -> FaceIdentifier {
-        self.dart_data.associated_cells[dart_id as usize].face_id
+    pub fn face_id(&self, dart_id: DartIdentifier) -> &FaceIdentifier {
+        &(Orbit2::new(&self, OrbitPolicy::Face, dart_id)
+            .into_iter()
+            .min()
+            .unwrap() as FaceIdentifier)
     }
 
     /// Check if a given dart is i-free.

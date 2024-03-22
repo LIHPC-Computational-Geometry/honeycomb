@@ -24,6 +24,11 @@ use crate::CMap2;
 /// This is used for better control over memory usage and ID encoding.
 pub type VertexIdentifier = u32;
 
+/// Type definition for vertex identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type EdgeIdentifier = u32;
+
 /// Type definition for face identifiers
 ///
 /// This is used for better control over memory usage and ID encoding.
