@@ -272,13 +272,6 @@ pub struct CMap2<T: CoordsFloat> {
     n_darts: usize,
 }
 
-macro_rules! stretch {
-    ($slf: ident, $replaced: expr, $replacer: expr) => {
-        $slf.dart_data.associated_cells[$replaced as usize].vertex_id =
-            $slf.dart_data.associated_cells[$replacer as usize].vertex_id
-    };
-}
-
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -410,25 +403,6 @@ impl<T: CoordsFloat> CMap2<T> {
             2 => self.beta::<2>(dart_id),
             _ => unreachable!(),
         }
-    }
-
-    /// Fetch cells associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to a structure that contain identifiers to the different
-    /// **geometrical** i-cells *dart* models.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn cells(&self, dart_id: DartIdentifier) -> &CellIdentifiers {
-        &self.dart_data.associated_cells[dart_id as usize]
     }
 
     /// Fetch vertex value associated to a given identifier.
@@ -849,36 +823,6 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[dart_id as usize] = betas;
     }
 
-    /// Set the vertex ID associated to a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `vertex_id: VertexIdentifier` -- Unique vertex identifier.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
-    }
-
-    /// Set the face ID associated to a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `face_id: FaceIdentifier` -- Unique face identifier.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
-    }
-
     /// 1-sewing operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
@@ -1192,8 +1136,10 @@ impl<T: CoordsFloat> CMap2<T> {
         // --- geometrical update
         match policy {
             UnsewPolicy::Duplicate => {
+                todo!()
                 // if the vertex was shared, duplicate it
                 // repeat on both ends of the edge
+                /*
                 let b1lid = self.beta::<1>(lhs_dart_id);
                 if b1lid != NULL_DART_ID {
                     self.set_vertexid(rhs_dart_id, self.vertex_id(b1lid));
@@ -1202,6 +1148,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 if b1rid != NULL_DART_ID {
                     self.set_vertexid(lhs_dart_id, self.vertex_id(b1rid));
                 }
+                */
             }
             UnsewPolicy::DoNothing => {}
         }
@@ -1220,90 +1167,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ```
     ///
     pub fn build_all_faces(&mut self) -> usize {
-        self.faces.clear();
-        let mut marked = BTreeSet::<DartIdentifier>::new();
-        let mut n_faces = 0;
-        // go through all darts ? update
-        (1..self.n_darts as DartIdentifier).for_each(|id| {
-            if marked.insert(id) {
-                let tmp = self.i_cell::<2>(id);
-                if tmp.is_isolated() {
-                    tmp.into_iter().for_each(|member| {
-                        let _ = marked.insert(member);
-                    });
-                    self.build_face(id);
-                    n_faces += 1
-                }
-            }
-        });
-        n_faces
-    }
-
-    /// Build the geometrical face associated with a given dart
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created face to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
-        let new_faceid = self.faces.len() as FaceIdentifier;
-        self.set_faceid(dart_id, new_faceid);
-        let mut part_one = vec![dart_id];
-        let mut closed = true;
-        let mut curr_dart = self.beta::<1>(dart_id);
-        // search the face using beta1
-        while curr_dart != dart_id {
-            // if we encounter the null dart, it means the face is open
-            if curr_dart == NULL_DART_ID {
-                closed = false;
-                break;
-            }
-            part_one.push(curr_dart);
-            self.set_faceid(curr_dart, new_faceid);
-            curr_dart = self.beta::<1>(curr_dart);
-        }
-
-        let res = if !closed {
-            // if the face is open, we might have missed some darts
-            // that were before the starting dart.
-            curr_dart = self.beta::<0>(dart_id);
-            let mut part_two = Vec::new();
-            // search the face in the other direction using beta0
-            while curr_dart != NULL_DART_ID {
-                part_two.push(curr_dart);
-                self.set_faceid(curr_dart, new_faceid);
-                curr_dart = self.beta::<0>(curr_dart);
-            }
-            // to have the ordered face, we need to reverse the beta 0 part and
-            // add the beta 1 part to its end
-            part_two.reverse();
-            part_two.extend(part_one);
-            part_two
-        } else {
-            // if the face was closed
-            // => we looped around its edges
-            // => the list is already complete & ordered
-            part_one
-        };
-
-        let face = Face {
-            corners: res
-                .iter()
-                .map(|d_id| self.dart_data.associated_cells[*d_id as usize].vertex_id)
-                .collect(),
-            closed,
-        };
-
-        self.faces.push(face);
-        new_faceid
+        todo!()
     }
 }
 
