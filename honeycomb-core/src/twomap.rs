@@ -428,6 +428,13 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    /// Return a collection of all the map's vertices.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a [VertexCollection] object containing a list of vertex identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -450,6 +457,13 @@ impl<T: CoordsFloat> CMap2<T> {
         VertexCollection::new(self, vertex_ids)
     }
 
+    /// Return a collection of all the map's edges.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return an [EdgeCollection] object containing a list of edge identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         marked.insert(NULL_DART_ID);
@@ -473,6 +487,13 @@ impl<T: CoordsFloat> CMap2<T> {
         EdgeCollection::new(self, edge_ids)
     }
 
+    /// Return a collection of all the map's faces.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a [FaceCollection] object containing a list of face identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -498,7 +519,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 // --- (un)sew operations
 impl<T: CoordsFloat> CMap2<T> {
-    /// 1-sewing operation.
+    /// 1-sew operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
     /// the *β<sub>1</sub>* function. For a thorough explanation of this operation
@@ -519,10 +540,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Return / Panic
     ///
     /// The method may panic if the two darts are not 1-sewable.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn one_sew(
         &mut self,
@@ -559,7 +576,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// 2-sewing operation.
+    /// 2-sew operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
     /// the *β<sub>2</sub>* function. For a thorough explanation of this operation
@@ -581,10 +598,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn two_sew(
         &mut self,
@@ -631,7 +644,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// 1-unsewing operation.
+    /// 1-unsew operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
     /// via the *β<sub>1</sub>* function. For a thorough explanation of this operation
@@ -648,10 +661,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>1</sub>* function. The
     /// *β<sub>0</sub>* function is also updated.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
 
@@ -666,7 +675,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// 2-unsewing operation.
+    /// 2-unsew operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
     /// via the *β<sub>2</sub>* function. For a thorough explanation of this operation
@@ -681,10 +690,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>2</sub>* function.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
@@ -703,6 +708,17 @@ impl<T: CoordsFloat> CMap2<T> {
 
 // --- (un)link operations
 impl<T: CoordsFloat> CMap2<T> {
+    /// 1-link operation.
+    ///
+    /// This operation corresponds to linking two darts via the *β<sub>1</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s). The *β<sub>0</sub>* function is also updated.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
     pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
@@ -712,6 +728,17 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
     }
 
+    /// 2-link operation.
+    ///
+    /// This operation corresponds to linking two darts via the *β<sub>2</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
     pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
@@ -721,12 +748,33 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
     }
 
+    /// 1-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>1</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s). The *β<sub>0</sub>* function is
+    /// also updated.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
     pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
         self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
         self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
     }
 
+    /// 2-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>2</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
     pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
         self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
