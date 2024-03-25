@@ -202,13 +202,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Remove a free dart from the combinatorial map.
     ///
-    /// The removed dart identifier is added to the list of free dart.
-    /// This way of proceeding is necessary as the structure relies on
-    /// darts indexing for encoding data, making reordering of any sort
-    /// extremely costly.
+    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
+    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
+    /// any sort extremely costly.
     ///
-    /// By keeping track of free spots in the dart arrays, we can prevent too
-    /// much memory waste, although at the cost of locality of reference.
+    /// By keeping track of free spots in the dart arrays, we can prevent too much memory waste,
+    /// although at the cost of locality of reference.
     ///
     /// # Arguments
     ///
@@ -221,10 +220,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - The dart is not *i*-free for all *i*.
     /// - The dart is already marked as unused (Refer to [Self::remove_vertex] documentation for
     ///   a detailed breakdown of this choice).
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
@@ -256,15 +251,10 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
@@ -276,21 +266,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// - `i: u8` -- Index of the beta function. *i* should
-    /// be 0, 1 or 2 for a 2D map.
+    /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
     ///
     /// The method will panic if *i* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
@@ -310,19 +293,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be 0, 1 or 2 for a 2D map.
+    /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is i-free, i.e.
-    /// *β<sub>i</sub>(dart) = NullDart*.
+    /// Return a boolean indicating if *dart* is i-free, i.e. *β<sub>i</sub>(dart) = NullDart*.
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
@@ -337,10 +314,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Return / Panic
     ///
     /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
@@ -359,16 +332,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
+    /// 2 (face) for a 2D map.
     ///
     /// # Return / Panic
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
         assert!(I < 3);
@@ -382,10 +351,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
@@ -404,10 +369,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated vertex.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
             .min()
@@ -424,10 +385,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated edge.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
         Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
     }
@@ -442,10 +399,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated face.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
     }
@@ -458,23 +411,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
+    /// 2 (face) for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Returns a vector of IDs of the darts of the i-cell of *dart* (including
-    /// *dart* at index 0).
-    ///
-    /// KNOWN ISSUE:
-    ///
-    /// - returning a vector is highly inefficient; a few alternatives to consider:
-    /// ArrayVec or heap-less Vec (requires a hard cap on the number of elements),
-    /// an iterator...
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell.
     ///
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
