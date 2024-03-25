@@ -50,7 +50,7 @@ fn split(mut map: CMap2<FloatType>) {
     });
 
     // rebuild faces
-    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.fetch_faces().identifiers.len(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }
@@ -73,9 +73,7 @@ fn split_some(mut map: CMap2<FloatType>, split: &[bool]) {
             map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
         });
 
-    // rebuild faces
-    map.build_all_faces();
-
+    black_box(map.fetch_faces());
     black_box(&mut map);
 }
 
@@ -100,26 +98,10 @@ fn split_diff(mut map: CMap2<FloatType>, split: &[bool]) {
         map.one_sew(dbefore2, dsplit2, SewPolicy::StretchLeft);
         map.one_sew(dsplit1, dafter1, SewPolicy::StretchRight);
         map.one_sew(dsplit2, dafter2, SewPolicy::StretchRight);
-        /*
-        if split[square] {
-            map.one_unsew(ddown, UnsewPolicy::DoNothing);
-            map.one_unsew(dup, UnsewPolicy::DoNothing);
-            map.one_sew(ddown, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(dup, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, dleft, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, dright, SewPolicy::StretchRight);
-        } else {
-            map.one_unsew(dright, UnsewPolicy::DoNothing);
-            map.one_unsew(dleft, UnsewPolicy::DoNothing);
-            map.one_sew(dright, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(dleft, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, ddown, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, dup, SewPolicy::StretchRight);
-        }*/
     });
 
     // rebuild faces
-    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.fetch_faces().identifiers.len(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }
