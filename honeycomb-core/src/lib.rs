@@ -18,7 +18,6 @@
 
 mod cells;
 mod embed;
-mod orbits;
 mod spatial_repr;
 mod twomap;
 
@@ -27,9 +26,9 @@ mod twomap;
 pub use cells::{
     collections::{EdgeCollection, FaceCollection, VertexCollection},
     identifiers::*,
+    orbits::{Orbit2, OrbitPolicy},
 };
 pub use embed::{SewPolicy, UnsewPolicy};
-pub use orbits::{Orbit2, OrbitPolicy};
 pub use spatial_repr::{
     coords::{Coords2, CoordsError},
     vector::Vector2,
