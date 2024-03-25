@@ -223,16 +223,10 @@ mod tests {
         map.set_betas(4, [6, 5, 2]);
         map.set_betas(5, [4, 6, 0]);
         map.set_betas(6, [5, 4, 0]);
-        map.set_vertex(0, (0.0, 0.0)).unwrap();
-        map.set_vertex(1, (1.0, 0.0)).unwrap();
-        map.set_vertex(2, (1.0, 1.0)).unwrap();
+        map.set_vertex(1, (0.0, 0.0)).unwrap();
+        map.set_vertex(2, (1.0, 0.0)).unwrap();
+        map.set_vertex(6, (1.0, 1.0)).unwrap();
         map.set_vertex(3, (0.0, 1.0)).unwrap();
-        map.set_vertexid(1, 0);
-        map.set_vertexid(2, 1);
-        map.set_vertexid(3, 3);
-        map.set_vertexid(4, 3);
-        map.set_vertexid(5, 1);
-        map.set_vertexid(6, 2);
         map
     }
 
