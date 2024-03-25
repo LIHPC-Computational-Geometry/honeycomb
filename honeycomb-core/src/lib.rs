@@ -17,22 +17,23 @@
 // ------ MODULE DECLARATIONS
 
 mod cells;
-mod coords;
 mod embed;
 mod orbits;
+mod spatial_repr;
 mod twomap;
-mod vector;
-mod vertex;
 
 // ------ RE-EXPORTS
 
 pub use cells::identifiers::*;
-pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
 pub use embed::{SewPolicy, UnsewPolicy};
 pub use orbits::{Orbit2, OrbitPolicy};
+pub use spatial_repr::{
+    coords::{Coords2, CoordsError},
+    vector::Vector2,
+    vertex::Vertex2,
+    CoordsFloat, FloatType,
+};
 pub use twomap::{CMap2, CMapError};
-pub use vector::Vector2;
-pub use vertex::Vertex2;
 
 // ------ IMPORTS
 

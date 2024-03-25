@@ -16,10 +16,9 @@ use std::collections::{BTreeMap, BTreeSet};
 #[cfg(feature = "benchmarking_utils")]
 use std::{fs::File, io::Write};
 
-use crate::coords::CoordsFloat;
 use crate::{
-    DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy,
-    Vertex2, VertexIdentifier, NULL_DART_ID,
+    CoordsFloat, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy,
+    UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 // ------ CONTENT
