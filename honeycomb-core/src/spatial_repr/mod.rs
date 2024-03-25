@@ -32,15 +32,3 @@ pub trait CoordsFloat:
 
 impl CoordsFloat for f32 {}
 impl CoordsFloat for f64 {}
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}
