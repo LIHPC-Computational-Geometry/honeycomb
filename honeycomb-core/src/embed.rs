@@ -99,59 +99,6 @@ pub enum UnsewPolicy {
     DoNothing,
 }
 
-#[derive(Clone, Debug, Default)]
-/// Face object
-///
-/// A face is made up of a varying number of corners (e.g. 3 for a triangle).
-/// The corners are stored in specific order to model the connections forming
-/// the face; Additionally, a boolean indicates whether there is a connection
-/// between the last corner and the first, effectively closing the face.
-///
-/// NOTE: It may be possible to replace the Vec with an upper-bound structure
-/// to limit heap allocation during execution. We could also add references to
-/// the vertices and edge list inside the structure?
-///
-/// # Example
-///
-/// This code corresponds to the initialization of 4 vertices used to build
-/// 2 faces: a square and a triangle.
-///
-/// ```
-/// use honeycomb_core::{Vertex2, Face};
-///
-/// let vertices = [
-///     [0.0, 0.0],
-///     [1.0, 0.0],
-///     [1.0, 1.0],
-///     [0.0, 1.0],
-///     [2.0, 0.0],
-/// ].map(Vertex2::from);
-///
-/// let square_face = Face { corners: vec![0, 1, 2, 3], closed: true };
-/// let triangle_face = Face { corners: vec![1, 4, 2], closed: true };
-///
-/// ```
-///
-/// This corresponds to the following figure:
-///
-/// ```text
-///
-/// 1.0  +------+\_
-///      |      |  \_
-///      |      |    \_
-///      |      |      \
-/// 0.0  +------+------+
-///      0.0    1.0    2.0
-///
-/// ```
-pub struct Face {
-    /// Ordered list of all corners composing the face.
-    pub corners: Vec<VertexIdentifier>,
-    /// Boolean indicating whether there is a connection between
-    /// `self.corners.last()` and `self.corners.first`.
-    pub closed: bool,
-}
-
 // ------ TESTS
 
 #[cfg(test)]

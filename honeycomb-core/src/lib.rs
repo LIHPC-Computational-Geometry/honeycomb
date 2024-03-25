@@ -28,7 +28,7 @@ mod vertex;
 
 pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
 pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
-pub use embed::{Face, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
+pub use embed::{FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
 pub use orbits::{Orbit2, OrbitPolicy};
 pub use twomap::{CMap2, CMapError};
 pub use vector::Vector2;
