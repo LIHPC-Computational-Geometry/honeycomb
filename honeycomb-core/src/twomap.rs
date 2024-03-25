@@ -23,8 +23,6 @@ use crate::{
     VertexIdentifier, NULL_DART_ID,
 };
 
-use super::dart::DartData;
-
 // ------ CONTENT
 
 #[derive(Debug)]
@@ -256,15 +254,13 @@ const CMAP2_BETA: usize = 3;
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: BTreeMap<VertexIdentifier, Vertex2<T>>,
-    /// Structure holding data related to darts (marks, associated cells)
-    dart_data: DartData,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
-    /// Array representation of the beta functions
-    betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
     n_darts: usize,
+    /// Array representation of the beta functions
+    betas: Vec<[DartIdentifier; CMAP2_BETA]>,
 }
 
 // --- constructor
@@ -298,7 +294,6 @@ impl<T: CoordsFloat> CMap2<T> {
 
         Self {
             vertices,
-            dart_data: DartData::new(n_darts),
             unused_darts: BTreeSet::new(),
             betas,
             n_darts: n_darts + 1,
@@ -345,7 +340,6 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
-        self.dart_data.add_entry();
         self.betas.push([0; CMAP2_BETA]);
         new_id
     }
@@ -371,7 +365,6 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
-        self.dart_data.add_entries(n_darts);
         self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
         new_id
     }
@@ -392,7 +385,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
         if let Some(new_id) = self.unused_darts.pop_first() {
-            self.dart_data.reset_entry(new_id);
             self.betas[new_id as usize] = [0; CMAP2_BETA];
             new_id
         } else {
@@ -436,9 +428,6 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[b0d as usize][1] = 0 as DartIdentifier;
         self.betas[b1d as usize][0] = 0 as DartIdentifier;
         self.betas[b2d as usize][2] = 0 as DartIdentifier;
-        // the following two lines are more safety than anything else
-        // this prevents having to deal w/ artifacts in case of re-insertion
-        self.dart_data.reset_entry(dart_id);
     }
 }
 
