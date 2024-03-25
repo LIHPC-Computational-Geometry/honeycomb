@@ -1032,32 +1032,18 @@ impl<T: CoordsFloat> CMap2<T> {
         });
         writeln!(file, "beta_total, {beta_total}").unwrap();
 
-        // embed
-        let embed_vertex =
-            self.dart_data.associated_cells.capacity() * std::mem::size_of::<VertexIdentifier>();
-        let embed_face =
-            self.dart_data.associated_cells.capacity() * std::mem::size_of::<FaceIdentifier>();
-        let embed_total = embed_vertex + embed_face;
-        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
-        writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_total, {embed_total}").unwrap();
-
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.capacity() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
@@ -1124,20 +1110,16 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
@@ -1189,7 +1171,6 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "key, memory (bytes)").unwrap();
 
         let n_used_darts = self.n_darts - self.unused_darts.len();
-        let n_used_vertices = self.n_vertices - self.unused_vertices.len();
 
         // beta
         let mut beta_total = 0;
@@ -1210,20 +1191,16 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = n_used_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
