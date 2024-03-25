@@ -1410,11 +1410,11 @@ mod tests {
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set vertex 1 as unused
-        map.remove_vertex(1);
+        map.remove_vertex(1).unwrap();
         // set vertex 1 as unused, again
-        map.remove_vertex(1); // this should panic
+        map.remove_vertex(1).unwrap(); // this should panic
     }
 
     #[test]
@@ -1422,7 +1422,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again
