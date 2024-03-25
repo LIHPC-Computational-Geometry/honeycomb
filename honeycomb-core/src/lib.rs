@@ -24,7 +24,10 @@ mod twomap;
 
 // ------ RE-EXPORTS
 
-pub use cells::identifiers::*;
+pub use cells::{
+    collections::{EdgeCollection, FaceCollection, VertexCollection},
+    identifiers::*,
+};
 pub use embed::{SewPolicy, UnsewPolicy};
 pub use orbits::{Orbit2, OrbitPolicy};
 pub use spatial_repr::{

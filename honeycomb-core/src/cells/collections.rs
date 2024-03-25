@@ -25,6 +25,23 @@ pub struct FaceCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<FaceIdentifier>,
 }
 
+macro_rules! collection_constructor {
+    ($coll: ident, $idty: ty) => {
+        impl<'a, T: CoordsFloat> $coll<'a, T> {
+            pub fn new(map_handle: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
+                Self {
+                    map: map_handle,
+                    identifiers: ids.into_iter().collect(),
+                }
+            }
+        }
+    };
+}
+
+collection_constructor!(VertexCollection, VertexIdentifier);
+collection_constructor!(EdgeCollection, EdgeIdentifier);
+collection_constructor!(FaceCollection, FaceIdentifier);
+
 // ------ TESTS
 
 #[cfg(test)]

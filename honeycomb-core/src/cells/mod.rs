@@ -6,9 +6,7 @@
 
 // ------ MODULE DECLARATIONS
 
-use crate::{CMap2, CoordsFloat, FaceIdentifier};
-
-mod collections;
+pub mod collections;
 pub mod identifiers;
 
 // ------ IMPORTS
