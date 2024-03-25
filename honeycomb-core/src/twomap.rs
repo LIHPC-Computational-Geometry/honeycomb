@@ -259,8 +259,6 @@ const CMAP2_BETA: usize = 3;
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: BTreeMap<VertexIdentifier, Vertex2<T>>,
-    /// List of faces making up the represented mesh
-    faces: Vec<Face>,
     /// Structure holding data related to darts (marks, associated cells)
     dart_data: DartData,
     /// List of free darts identifiers, i.e. empty spots
@@ -299,7 +297,6 @@ impl<T: CoordsFloat> CMap2<T> {
 
         Self {
             vertices,
-            faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
             unused_darts: BTreeSet::new(),
             betas,
@@ -323,11 +320,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn n_vertices(&self) -> usize {
         self.vertices.len()
-    }
-
-    /// Return the current number of faces.
-    pub fn n_faces(&self) -> usize {
-        self.faces.len()
     }
 
     /// Return information about the current number of darts.
@@ -421,24 +413,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
         &self.vertices[&vertex_id]
-    }
-
-    /// Fetch face structure associated to a given identifier.
-    ///
-    /// # Arguments
-    ///
-    /// - `face_id: FaceIdentifier` -- Identifier of the given face.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to the [Face] associated to the ID.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn face(&self, face_id: FaceIdentifier) -> &Face {
-        &self.faces[face_id as usize]
     }
 
     /// Fetch vertex identifier associated to a given dart.
