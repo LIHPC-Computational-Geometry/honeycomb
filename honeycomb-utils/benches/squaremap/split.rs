@@ -1,7 +1,7 @@
 //! This benchmarks handle measurements for a given operation on CMap2
 //! of a given topology (see `generation::splitsquare_two_map` doc).
 //!
-//! The operations applied here affect only topology, geometry is left unchanged
+//! The operations applied here affect only topology, cells is left unchanged
 //! aside from the new faces divisiosns.
 //!
 //! All splitting operations consist in splitting diagonally a square face to create

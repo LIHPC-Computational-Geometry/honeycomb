@@ -17,10 +17,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::{fs::File, io::Write};
 
 use crate::coords::CoordsFloat;
-use crate::embed::EdgeIdentifier;
 use crate::{
-    DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2,
-    VertexIdentifier, NULL_DART_ID,
+    DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy,
+    Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -724,7 +723,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // --- geometrical update
 
-        // in case of a 1-sew, we need to update the 0-cell geometry
+        // in case of a 1-sew, we need to update the 0-cell cells
         // of rhs_dart to ensure no vertex is duplicated
 
         // this operation only makes sense if lhs_dart is associated
@@ -1202,7 +1201,7 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "embed_face, {embed_face}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
         let geometry_face = self.faces.capacity() * std::mem::size_of::<Face>();
@@ -1282,7 +1281,7 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "embed_face, {embed_face}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
         let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
@@ -1368,7 +1367,7 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "embed_face, {embed_face}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = n_used_vertices * 2 * std::mem::size_of::<f64>();
         let geometry_face = self.faces.len() * std::mem::size_of::<Face>();

@@ -19,26 +19,6 @@ use crate::CMap2;
 
 // ------ CONTENT
 
-/// Type definition for vertex identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VertexIdentifier = u32;
-
-/// Type definition for vertex identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type EdgeIdentifier = u32;
-
-/// Type definition for face identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type FaceIdentifier = u32;
-
-/// Type definition for volume identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VolumeIdentifier = u32;
-
 /// Geometrical policy of the sewing operation.
 ///
 /// All sewing operation include two darts, which we refer to as

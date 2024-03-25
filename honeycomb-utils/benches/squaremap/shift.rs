@@ -1,7 +1,7 @@
 //! This benchmarks handle measurements for a given operation on CMap2
 //! of a given topology (see `generation::square_two_map` doc).
 //!
-//! The operations applied here affect only geometry, topology is left unchanged
+//! The operations applied here affect only cells, topology is left unchanged
 //!
 //! The offset operation consists in shifting the position of all vertices
 //! of the map randomly; Each vertex is moved in the range (-0.5, 0.5) from

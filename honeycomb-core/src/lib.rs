@@ -16,8 +16,8 @@
 
 // ------ MODULE DECLARATIONS
 
+mod cells;
 mod coords;
-mod dart;
 mod embed;
 mod orbits;
 mod twomap;
@@ -26,9 +26,9 @@ mod vertex;
 
 // ------ RE-EXPORTS
 
+pub use cells::identifiers::*;
 pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
-pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
-pub use embed::{FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
+pub use embed::{SewPolicy, UnsewPolicy};
 pub use orbits::{Orbit2, OrbitPolicy};
 pub use twomap::{CMap2, CMapError};
 pub use vector::Vector2;

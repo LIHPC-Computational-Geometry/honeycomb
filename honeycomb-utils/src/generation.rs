@@ -79,7 +79,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
         })
     });
 
-    // then geometry
+    // then cells
     (0..n_square + 1).for_each(|y_idx| {
         (0..n_square + 1).for_each(|x_idx| {
             // first position the vertex
