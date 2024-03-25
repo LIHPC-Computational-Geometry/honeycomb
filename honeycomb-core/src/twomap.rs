@@ -23,10 +23,7 @@ use crate::{
     VertexIdentifier, NULL_DART_ID,
 };
 
-use super::{
-    dart::{CellIdentifiers, DartData},
-    embed::Face,
-};
+use super::dart::DartData;
 
 // ------ CONTENT
 
@@ -96,7 +93,7 @@ const CMAP2_BETA: usize = 3;
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: CMap2<f64> = CMap2::new(3, 3);
+/// let mut map: CMap2<f64> = CMap2::new(3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -292,9 +289,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn new(n_darts: usize, n_vertices: usize) -> Self {
+    pub fn new(n_darts: usize) -> Self {
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
-        let vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
+        let mut vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
+        (0..n_darts as VertexIdentifier).for_each(|vid| {
+            let _ = vertices.insert(vid, Vertex2::default());
+        });
 
         Self {
             vertices,
