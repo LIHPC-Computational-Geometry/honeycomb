@@ -1,18 +1,14 @@
 //! Map objects
 //!
-//! This module contains code for the two main structures provided
-//! by the crate:
-//! - [CMap2], a 2D combinatorial map implementation
-//! -
+//! This module contains code for the main 2D combinatorial map structure, [CMap2]
 //!
-//! The definitions are re-exported, direct interaction with this module
-//! should be minimal, if existing at all.
-
-// ------ MODULE DECLARATIONS
+//! The definitions are re-exported, direct interaction with this module should be minimal, if
+//! existing at all.
 
 // ------ IMPORTS
 
 use std::collections::{BTreeMap, BTreeSet};
+
 #[cfg(feature = "benchmarking_utils")]
 use std::{fs::File, io::Write};
 
@@ -35,37 +31,31 @@ const CMAP2_BETA: usize = 3;
 
 /// Main map object.
 ///
-/// Structure used to model 2D combinatorial map. The structure implements
-/// basic operations:
+/// Structure used to model 2D combinatorial map. The structure implements basic operations:
 ///
 /// - free dart addition/insertion/removal
 /// - i-sewing/unsewing
 ///
-/// Definition of the structure and its logic can be found in the [user guide][UG].
-/// This documentation focuses on the implementation and its API.
+/// Definition of the structure and its logic can be found in the [user guide][UG]. This
+/// documentation focuses on the implementation and its API.
 ///
 /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/definitions/cmaps
 ///
 /// # Fields
 ///
-/// Fields are kept private in order to better define interfaces. The structure
-/// contains the following data:
+/// Fields are kept private in order to better define interfaces. The structure contains the
+/// following data:
 ///
-/// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
-/// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
-///   i.e. empty spots in the current vertex list
-/// - `faces: Vec<Face>` -- List of faces making up the represented mesh
-/// - `dart_data: DartData` -- Structure holding embedded data associated with darts
-/// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
+/// - `vertices: BTreeSet<Vertex>` -- List of vertices making up the represented mesh
+/// - `unused_darts: BTreeSet<DartIdentifier>` -- Set of unused darts identifiers, i.e. empty
 ///   spots in the current dart list
-/// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 /// - `n_darts: usize` -- Current number of darts (including the null dart)
-/// - `n_vertices: usize` -- Current number of vertices
+/// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 ///
-/// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
-/// This is extremely useful (read *required*) to implement correct and efficient
-/// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
-/// the [Self::beta] method, we do not define 0-sew or 0-unsew operations.
+/// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*. This is
+/// extremely useful (read *required*) to implement correct and efficient i-cell computation.
+/// Additionally, while *β<sub>0</sub>* can be accessed using the [Self::beta] method, we do not
+/// define 0-sew or 0-unsew operations.
 ///
 /// # Generics
 ///
@@ -73,14 +63,14 @@ const CMAP2_BETA: usize = 3;
 ///
 /// # Example
 ///
-/// The following example goes over multiple operations on the mesh in order
-/// to demonstrate general usage of the structure and its methods.
+/// The following example goes over multiple operations on the mesh in order to demonstrate general
+/// usage of the structure and its methods.
 ///
 /// ![CMAP2_EXAMPLE](../../images/CMap2Example.svg)
 ///
-/// Note that the map we operate on has no boundaries. In addition to the different
-/// operations realized at each step, we insert a few assertions to demonstrate the
-/// progressive changes applied to the structure.
+/// Note that the map we operate on has no boundaries. In addition to the different operations
+/// realized at each step, we insert a few assertions to demonstrate the progressive changes
+/// applied to the structure.
 ///
 /// ```
 /// # use honeycomb_core::CMapError;
@@ -94,8 +84,7 @@ const CMAP2_BETA: usize = 3;
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: BTreeMap<VertexIdentifier, Vertex2<T>>,
-    /// List of free darts identifiers, i.e. empty spots
-    /// in the current dart list
+    /// List of free darts identifiers, i.e. empty spots in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
     /// Current number of darts
     n_darts: usize,
@@ -110,25 +99,19 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
-    /// - `n_vertices: usize` -- Number of vertices in the represented mesh.
     ///
     /// # Return / Panic
     ///
     /// Returns a combinatorial map containing:
     /// - `n_darts + 1` darts, the amount of darts wanted plus the null dart (at index 0).
     /// - 3 beta functions, *β<sub>0</sub>* being defined as the inverse of *β<sub>1</sub>*.
-    /// - Default embed data associated to each dart.
-    /// - `n_vertices` that the user will have to manually define a link to darts.
-    /// - An empty list of currently free darts. This may be used for dart creation.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// - `n_darts` vertices that the user will have to manually define a link to darts.
+    /// - An empty set of currently free darts. This may be used for dart creation.
     ///
     pub fn new(n_darts: usize) -> Self {
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
         let mut vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
-        (0..n_darts as VertexIdentifier).for_each(|vid| {
+        (1..(n_darts + 1) as VertexIdentifier).for_each(|vid| {
             let _ = vertices.insert(vid, Vertex2::default());
         });
 
@@ -152,10 +135,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a tuple of two elements:
     ///
     /// - the number of darts
-    /// - a boolean indicating whether there are free darts or not
+    /// - a boolean indicating whether there are unused darts or not
     ///
-    /// The boolean essentially indicates if it is safe to access all
-    /// dart IDs in the `0..n_darts` range.
+    /// The boolean essentially indicates if it is safe to access & use all dart IDs in the
+    /// `1..n_darts+1` range.
     ///
     pub fn n_darts(&self) -> (usize, bool) {
         (self.n_darts, !self.unused_darts.is_empty())
@@ -165,17 +148,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Add a new free dart to the combinatorial map.
     ///
-    /// The dart is i-free for all i and is pushed to the list of existing
-    /// darts, effectively making its identifier equal to the total number
-    /// of darts (post-push).
+    /// The dart is i-free for all i and is pushed to the list of existing darts, effectively
+    /// making its identifier equal to the total number of darts (post-push).
     ///
     /// # Return / Panic
     ///
     /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
@@ -186,8 +164,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Add multiple new free darts to the combinatorial map.
     ///
-    /// All darts are i-free for all i and are pushed to the end of the list
-    /// of existing darts.
+    /// All darts are i-free for all i and are pushed to the end of the list of existing darts.
     ///
     /// # Arguments
     ///
@@ -195,12 +172,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return the ID of the first created dart to allow for direct operations.
-    /// Darts are positioned on range `ID..ID+n_darts`.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// Return the ID of the first created dart to allow for direct operations. Darts are
+    /// positioned on range `ID..ID+n_darts`.
     ///
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
@@ -211,17 +184,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Insert a new free dart to the combinatorial map.
     ///
-    /// The dart is i-free for all i and may be inserted into a free spot in
-    /// the existing dart list. If no free spots exist, it will be pushed to
-    /// the end of the list.
+    /// The dart is i-free for all i and may be inserted into an unused spot in the existing dart
+    /// list. If no free spots exist, it will be pushed to the end of the list.
     ///
     /// # Return / Panic
     ///
     /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
         if let Some(new_id) = self.unused_darts.pop_first() {
