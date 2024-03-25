@@ -41,15 +41,3 @@ macro_rules! collection_constructor {
 collection_constructor!(VertexCollection, VertexIdentifier);
 collection_constructor!(EdgeCollection, EdgeIdentifier);
 collection_constructor!(FaceCollection, FaceIdentifier);
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}

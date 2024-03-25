@@ -36,15 +36,3 @@ pub type FaceIdentifier = u32;
 ///
 /// This is used for better control over memory usage and ID encoding.
 pub type VolumeIdentifier = u32;
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}

@@ -78,15 +78,3 @@ pub enum UnsewPolicy {
     Duplicate,
     DoNothing,
 }
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}

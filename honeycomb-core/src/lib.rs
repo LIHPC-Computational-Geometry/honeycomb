@@ -40,15 +40,3 @@ pub use twomap::{CMap2, CMapError};
 // ------ IMPORTS
 
 // ------ CONTENT
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}
