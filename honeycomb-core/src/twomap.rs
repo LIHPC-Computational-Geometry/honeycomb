@@ -786,18 +786,7 @@ impl<T: CoordsFloat> CMap2<T> {
 // this should eventually be replaced by a generalized structure to handle
 // different kind of attributes for all the i-cells.
 impl<T: CoordsFloat> CMap2<T> {
-    /// Return information about the current number of vertices.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a tuple of two elements:
-    ///
-    /// - the number of vertices
-    /// - a boolean indicating whether there are free vertices or not
-    ///
-    /// The boolean essentially indicates if it is safe to access all
-    /// vertex IDs in the `0..n_vertices` range.
-    ///
+    /// Return the current number of vertices.
     pub fn n_vertices(&self) -> usize {
         self.vertices.len()
     }
@@ -812,31 +801,24 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return a reference to the [Vertex2] associated to the ID.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
         &self.vertices[&vertex_id]
     }
 
     /// Insert a vertex in the combinatorial map.
     ///
-    /// The vertex may be inserted into a free spot in the existing list. If no free
-    /// spots exist, it will be pushed to the end of the list. The user can provide a
-    /// [Vertex2] to use as the initial value of the added vertex.
+    /// This method can be interpreted as giving a value to teh vertex of a specific ID. Vertices
+    /// implicitly exist through topology, but their spatial representation is not automatically
+    /// created at first.
     ///
     /// # Arguments
     ///
-    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
+    /// - `vertex_id: VertexIdentifier` -- Vertex identifier to attribute a value to.
+    /// - `vertex: impl Into<Vertex2>` -- Value used to create a [Vertex2] value.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
-    /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// Return an option which may contain the previous value associated to the specified vertex ID.
     ///
     pub fn insert_vertex(
         &mut self,
@@ -848,29 +830,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Remove a vertex from the combinatorial map.
     ///
-    /// The removed vertex identifier is added to the list of free vertex.
-    /// This way of proceeding is necessary as the structure relies on
-    /// vertices indexing for encoding data, making reordering of any sort
-    /// extremely costly.
-    ///
-    /// By keeping track of free spots in the vertices array, we can prevent too
-    /// much memory waste, although at the cost of locality of reference.
-    ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
-    /// # Panic
+    /// # Return
     ///
-    /// This method may panic if the user tries to remove a vertex that is already
-    /// unused. This is a strongly motivated choice as:
-    /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
-    /// - Duplicated unused slots will only lead to errors when reusing the slots (e.g. implicit
-    ///   overwrites).
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(v: Vertex2)` -- The vertex was successfully removed & its value was returned
+    /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
         if let Some(val) = self.vertices.remove(&vertex_id) {
@@ -884,16 +852,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
-    /// - `vertex: Vertex2` -- New value for the vertex.
+    /// - `vertex: impl<Into<Vertex2>>` -- New value for the vertex.
     ///
     /// # Return / Panic
     ///
-    /// Return a result indicating if the vertex could be overwritten. The main reason
-    /// of failure would be an out-of-bounds access.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
+    /// returned
+    /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn set_vertex(
         &mut self,
