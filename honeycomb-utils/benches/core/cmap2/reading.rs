@@ -113,24 +113,24 @@ library_benchmark_group!(
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn zero_cell(map: &CMap2<FloatType>) -> Vec<DartIdentifier> {
-    black_box(map.i_cell::<0>(5))
+fn zero_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<0>(5));
 }
 
 #[library_benchmark]
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn one_cell(map: &CMap2<FloatType>) -> Vec<DartIdentifier> {
-    black_box(map.i_cell::<0>(5))
+fn one_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<1>(5));
 }
 
 #[library_benchmark]
 #[bench::small(&get_map(5))]
 #[bench::medium(&get_map(50))]
 #[bench::large(&get_map(500))]
-fn two_cell(map: &CMap2<FloatType>) -> Vec<DartIdentifier> {
-    black_box(map.i_cell::<2>(5))
+fn two_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<2>(5));
 }
 
 library_benchmark_group!(
