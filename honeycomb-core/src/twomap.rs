@@ -586,7 +586,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- (un)sew-related code
+// --- (un)sew operations
 impl<T: CoordsFloat> CMap2<T> {
     /// 1-sewing operation.
     ///
@@ -622,12 +622,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ) {
         // --- topological update
 
-        // we could technically overwrite the value, but these assertions
-        // makes it easier to assert algorithm correctness
-        assert!(self.is_i_free::<1>(lhs_dart_id));
-        assert!(self.is_i_free::<0>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
+        self.one_link(lhs_dart_id, rhs_dart_id);
 
         // --- geometrical update
 
@@ -689,12 +684,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ) {
         // --- topological update
 
-        // we could technically overwrite the value, but these assertions
-        // make it easier to assert algorithm correctness
-        assert!(self.is_i_free::<2>(lhs_dart_id));
-        assert!(self.is_i_free::<2>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
+        self.two_link(lhs_dart_id, rhs_dart_id);
 
         // --- geometrical update
 
@@ -755,10 +745,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
 
-        // fetch id of beta_1(lhs_dart)
-        let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
-        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+        self.one_unlink(lhs_dart_id);
 
         // --- geometrical update
         match policy {
@@ -792,9 +779,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
         // --- topological update
 
-        let rhs_dart_id = self.beta::<2>(lhs_dart_id);
-        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
-        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
+        self.two_unlink(lhs_dart_id);
 
         // --- geometrical update
         match policy {
@@ -803,6 +788,39 @@ impl<T: CoordsFloat> CMap2<T> {
             }
             UnsewPolicy::DoNothing => {}
         }
+    }
+}
+
+// --- (un)link operations
+impl<T: CoordsFloat> CMap2<T> {
+    pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        // we could technically overwrite the value, but these assertions
+        // makes it easier to assert algorithm correctness
+        assert!(self.is_i_free::<1>(lhs_dart_id));
+        assert!(self.is_i_free::<0>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
+    }
+
+    pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        // we could technically overwrite the value, but these assertions
+        // make it easier to assert algorithm correctness
+        assert!(self.is_i_free::<2>(lhs_dart_id));
+        assert!(self.is_i_free::<2>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
+    }
+
+    pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
+        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
+        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+    }
+
+    pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
+        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
+        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
     }
 }
 
