@@ -270,6 +270,7 @@ pub struct CMap2<T: CoordsFloat> {
     n_darts: usize,
 }
 
+// --- constructor
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -303,24 +304,11 @@ impl<T: CoordsFloat> CMap2<T> {
             n_darts: n_darts + 1,
         }
     }
+}
 
-    // --- reading interfaces
-
-    /// Return information about the current number of vertices.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a tuple of two elements:
-    ///
-    /// - the number of vertices
-    /// - a boolean indicating whether there are free vertices or not
-    ///
-    /// The boolean essentially indicates if it is safe to access all
-    /// vertex IDs in the `0..n_vertices` range.
-    ///
-    pub fn n_vertices(&self) -> usize {
-        self.vertices.len()
-    }
+// --- dart-related code
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
 
     /// Return information about the current number of darts.
     ///
@@ -338,224 +326,7 @@ impl<T: CoordsFloat> CMap2<T> {
         (self.n_darts, !self.unused_darts.is_empty())
     }
 
-    /// Compute the value of the i-th beta function of a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be 0, 1 or 2 for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
-        assert!(I < 3);
-        self.betas[dart_id as usize][I as usize]
-    }
-
-    /// Compute the value of the i-th beta function of a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// - `i: u8` -- Index of the beta function. *i* should
-    /// be 0, 1 or 2 for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
-    ///
-    /// The method will panic if *i* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
-        assert!(i < 3);
-        match i {
-            0 => self.beta::<0>(dart_id),
-            1 => self.beta::<1>(dart_id),
-            2 => self.beta::<2>(dart_id),
-            _ => unreachable!(),
-        }
-    }
-
-    /// Fetch vertex value associated to a given identifier.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to the [Vertex2] associated to the ID.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
-        &self.vertices[&vertex_id]
-    }
-
-    /// Fetch vertex identifier associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the associated vertex.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
-        Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
-            .min()
-            .unwrap() as VertexIdentifier
-    }
-
-    /// Fetch edge associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the associated edge.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
-        Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
-    }
-
-    /// Fetch face associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the associated face.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
-        Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
-    }
-
-    /// Check if a given dart is i-free.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be 0, 1 or 2 for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a boolean indicating if *dart* is i-free, i.e.
-    /// *β<sub>i</sub>(dart) = NullDart*.
-    ///
-    /// The function will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
-        self.beta::<I>(dart_id) == NULL_DART_ID
-    }
-
-    /// Check if a given dart is i-free, for all i.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
-        self.beta::<0>(dart_id) == NULL_DART_ID
-            && self.beta::<1>(dart_id) == NULL_DART_ID
-            && self.beta::<2>(dart_id) == NULL_DART_ID
-    }
-
-    // orbits / i-cells
-
-    /// Return the identifiers of all dart composing an i-cell.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// Returns a vector of IDs of the darts of the i-cell of *dart* (including
-    /// *dart* at index 0).
-    ///
-    /// KNOWN ISSUE:
-    ///
-    /// - returning a vector is highly inefficient; a few alternatives to consider:
-    /// ArrayVec or heap-less Vec (requires a hard cap on the number of elements),
-    /// an iterator...
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
-        assert!(I < 3);
-        match I {
-            0 => Orbit2::new(self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit2::new(self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit2::new(self, OrbitPolicy::Face, dart_id),
-            _ => unreachable!(),
-        }
-    }
-
-    // --- editing interfaces
+    // --- edit
 
     /// Add a new free dart to the combinatorial map.
     ///
@@ -669,92 +440,118 @@ impl<T: CoordsFloat> CMap2<T> {
         // this prevents having to deal w/ artifacts in case of re-insertion
         self.dart_data.reset_entry(dart_id);
     }
+}
 
-    /// Insert a vertex in the combinatorial map.
-    ///
-    /// The vertex may be inserted into a free spot in the existing list. If no free
-    /// spots exist, it will be pushed to the end of the list. The user can provide a
-    /// [Vertex2] to use as the initial value of the added vertex.
+// --- beta-related code
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
+
+    /// Compute the value of the i-th beta function of a given dart.
     ///
     /// # Arguments
     ///
-    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return the ID of the created dart to allow for direct operations.
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
+    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
+    /// means that *dart* is i-free .
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
     ///
     /// # Example
     ///
     /// See [CMap2] example.
     ///
-    pub fn insert_vertex(
-        &mut self,
-        vertex_id: VertexIdentifier,
-        vertex: impl Into<Vertex2<T>>,
-    ) -> Option<Vertex2<T>> {
-        self.vertices.insert(vertex_id, vertex.into())
+    pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
+        assert!(I < 3);
+        self.betas[dart_id as usize][I as usize]
     }
 
-    /// Remove a vertex from the combinatorial map.
-    ///
-    /// The removed vertex identifier is added to the list of free vertex.
-    /// This way of proceeding is necessary as the structure relies on
-    /// vertices indexing for encoding data, making reordering of any sort
-    /// extremely costly.
-    ///
-    /// By keeping track of free spots in the vertices array, we can prevent too
-    /// much memory waste, although at the cost of locality of reference.
+    /// Compute the value of the i-th beta function of a given dart.
     ///
     /// # Arguments
     ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
-    /// # Panic
-    ///
-    /// This method may panic if the user tries to remove a vertex that is already
-    /// unused. This is a strongly motivated choice as:
-    /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
-    /// - Duplicated unused slots will only lead to errors when reusing the slots (e.g. implicit
-    ///   overwrites).
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(&vertex_id) {
-            return Ok(val);
-        }
-        Err(CMapError::UnknownVertexID)
-    }
-
-    /// Try to overwrite the given vertex with a new value.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
-    /// - `vertex: Vertex2` -- New value for the vertex.
+    /// - `i: u8` -- Index of the beta function. *i* should
+    /// be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return a result indicating if the vertex could be overwritten. The main reason
-    /// of failure would be an out-of-bounds access.
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
+    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
+    /// means that *dart* is i-free .
+    ///
+    /// The method will panic if *i* is not 0, 1 or 2.
     ///
     /// # Example
     ///
     /// See [CMap2] example.
     ///
-    pub fn set_vertex(
-        &mut self,
-        vertex_id: VertexIdentifier,
-        vertex: impl Into<Vertex2<T>>,
-    ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.insert(vertex_id, vertex.into()) {
-            return Ok(val);
+    pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
+        assert!(i < 3);
+        match i {
+            0 => self.beta::<0>(dart_id),
+            1 => self.beta::<1>(dart_id),
+            2 => self.beta::<2>(dart_id),
+            _ => unreachable!(),
         }
-        Err(CMapError::UnknownVertexID)
     }
+
+    /// Check if a given dart is i-free.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Index of the beta function. *I* should
+    /// be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a boolean indicating if *dart* is i-free, i.e.
+    /// *β<sub>i</sub>(dart) = NullDart*.
+    ///
+    /// The function will panic if *I* is not 0, 1 or 2.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
+        self.beta::<I>(dart_id) == NULL_DART_ID
+    }
+
+    /// Check if a given dart is i-free, for all i.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
+        self.beta::<0>(dart_id) == NULL_DART_ID
+            && self.beta::<1>(dart_id) == NULL_DART_ID
+            && self.beta::<2>(dart_id) == NULL_DART_ID
+    }
+
+    // --- edit
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
     ///
@@ -796,7 +593,105 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
+}
 
+// --- icell-related code
+impl<T: CoordsFloat> CMap2<T> {
+    /// Fetch vertex identifier associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated vertex.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+        Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
+            .min()
+            .unwrap() as VertexIdentifier
+    }
+
+    /// Fetch edge associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated edge.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
+        Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
+    }
+
+    /// Fetch face associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated face.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+        Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
+    }
+
+    /// Return the identifiers of all dart composing an i-cell.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
+    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns a vector of IDs of the darts of the i-cell of *dart* (including
+    /// *dart* at index 0).
+    ///
+    /// KNOWN ISSUE:
+    ///
+    /// - returning a vector is highly inefficient; a few alternatives to consider:
+    /// ArrayVec or heap-less Vec (requires a hard cap on the number of elements),
+    /// an iterator...
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
+        assert!(I < 3);
+        match I {
+            0 => Orbit2::new(self, OrbitPolicy::Vertex, dart_id),
+            1 => Orbit2::new(self, OrbitPolicy::Edge, dart_id),
+            2 => Orbit2::new(self, OrbitPolicy::Face, dart_id),
+            _ => unreachable!(),
+        }
+    }
+}
+
+// --- (un)sew-related code
+impl<T: CoordsFloat> CMap2<T> {
     /// 1-sewing operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
@@ -1127,21 +1022,130 @@ impl<T: CoordsFloat> CMap2<T> {
             UnsewPolicy::DoNothing => {}
         }
     }
+}
 
-    /// Clear and rebuild the face list defined by the map.
+// --- vertex attributes
+// this should eventually be replaced by a generalized structure to handle
+// different kind of attributes for all the i-cells.
+impl<T: CoordsFloat> CMap2<T> {
+    /// Return information about the current number of vertices.
     ///
     /// # Return / Panic
     ///
-    /// Returns the number of faces built by the operation.
+    /// Return a tuple of two elements:
+    ///
+    /// - the number of vertices
+    /// - a boolean indicating whether there are free vertices or not
+    ///
+    /// The boolean essentially indicates if it is safe to access all
+    /// vertex IDs in the `0..n_vertices` range.
+    ///
+    pub fn n_vertices(&self) -> usize {
+        self.vertices.len()
+    }
+
+    /// Fetch vertex value associated to a given identifier.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a reference to the [Vertex2] associated to the ID.
     ///
     /// # Example
     ///
-    /// ```text
+    /// See [CMap2] example.
     ///
-    /// ```
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
+        &self.vertices[&vertex_id]
+    }
+
+    /// Insert a vertex in the combinatorial map.
     ///
-    pub fn build_all_faces(&mut self) -> usize {
-        todo!()
+    /// The vertex may be inserted into a free spot in the existing list. If no free
+    /// spots exist, it will be pushed to the end of the list. The user can provide a
+    /// [Vertex2] to use as the initial value of the added vertex.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created dart to allow for direct operations.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn insert_vertex(
+        &mut self,
+        vertex_id: VertexIdentifier,
+        vertex: impl Into<Vertex2<T>>,
+    ) -> Option<Vertex2<T>> {
+        self.vertices.insert(vertex_id, vertex.into())
+    }
+
+    /// Remove a vertex from the combinatorial map.
+    ///
+    /// The removed vertex identifier is added to the list of free vertex.
+    /// This way of proceeding is necessary as the structure relies on
+    /// vertices indexing for encoding data, making reordering of any sort
+    /// extremely costly.
+    ///
+    /// By keeping track of free spots in the vertices array, we can prevent too
+    /// much memory waste, although at the cost of locality of reference.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
+    ///
+    /// # Panic
+    ///
+    /// This method may panic if the user tries to remove a vertex that is already
+    /// unused. This is a strongly motivated choice as:
+    /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
+    /// - Duplicated unused slots will only lead to errors when reusing the slots (e.g. implicit
+    ///   overwrites).
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.remove(&vertex_id) {
+            return Ok(val);
+        }
+        Err(CMapError::UnknownVertexID)
+    }
+
+    /// Try to overwrite the given vertex with a new value.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
+    /// - `vertex: Vertex2` -- New value for the vertex.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a result indicating if the vertex could be overwritten. The main reason
+    /// of failure would be an out-of-bounds access.
+    ///
+    /// # Example
+    ///
+    /// See [CMap2] example.
+    ///
+    pub fn set_vertex(
+        &mut self,
+        vertex_id: VertexIdentifier,
+        vertex: impl Into<Vertex2<T>>,
+    ) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.insert(vertex_id, vertex.into()) {
+            return Ok(val);
+        }
+        Err(CMapError::UnknownVertexID)
     }
 }
 
