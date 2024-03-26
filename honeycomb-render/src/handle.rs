@@ -7,7 +7,7 @@
 
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, Coords2, CoordsFloat, DartIdentifier, FaceIdentifier, Vertex2};
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Vertex2};
 
 // ------ CONTENT
 
@@ -87,6 +87,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         });
         self.dart_construction_buffer.extend(
             face_indices
+                .copied()
                 .zip(face_vertices)
                 .zip(centers)
                 .flat_map(|((face_id, (n_vertices, vertices)), center)| {
@@ -117,7 +118,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                                 seg_dir * T::from(self.params.shrink_factor).unwrap();
 
                             // return a coordinate pair
-                            (v1_intermediate, v2_intermediate, *fid)
+                            (v1_intermediate, v2_intermediate, fid)
                         })
                 })
                 .flat_map(|(v1, v6, face_id)| {
