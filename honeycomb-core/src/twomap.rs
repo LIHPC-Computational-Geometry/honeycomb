@@ -9,7 +9,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use std::fmt::format;
 #[cfg(feature = "benchmarking_utils")]
 use std::{fs::File, io::Write};
 
@@ -698,6 +697,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 if b2lhs_dart_id != NULL_DART_ID {
                     // read current values / remove old ones
                     let rhs_dart_id = self.beta::<1>(lhs_dart_id);
+                    // we only need to remove a single vertex since we're unlinking
                     let vid_old = self.vertex_id(rhs_dart_id);
                     let tmp = self.remove_vertex(vid_old).expect(
                         "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
