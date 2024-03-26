@@ -60,10 +60,10 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
         (0..n_square).for_each(|x_idx| {
             let d1 = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
             let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
-            map.one_sew(d1, d2, SewPolicy::StretchLeft);
-            map.one_sew(d2, d3, SewPolicy::StretchLeft);
-            map.one_sew(d3, d4, SewPolicy::StretchLeft);
-            map.one_sew(d4, d1, SewPolicy::StretchLeft);
+            map.one_link(d1, d2);
+            map.one_link(d2, d3);
+            map.one_link(d3, d4);
+            map.one_link(d4, d1);
             // if there is a right neighbor, sew sew
             if x_idx != n_square - 1 {
                 let right_neighbor = d2 + 6;
@@ -84,11 +84,10 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
                 let vertex_id = map.vertex_id(base_dart);
-                map.set_vertex(
+                map.insert_vertex(
                     vertex_id,
                     (T::from(x_idx).unwrap(), T::from(y_idx).unwrap()),
-                )
-                .unwrap();
+                );
                 let last_column = x_idx == n_square - 1;
                 let last_row = y_idx == n_square - 1;
                 if last_column {
@@ -104,20 +103,18 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                 if last_row {
                     // same as the case on x
                     let vertex_id = map.vertex_id(base_dart + 3);
-                    map.set_vertex(
+                    map.insert_vertex(
                         vertex_id,
                         (T::from(x_idx).unwrap(), T::from(y_idx + 1).unwrap()),
-                    )
-                    .unwrap();
+                    );
                 }
                 if last_row & last_column {
                     // need to do the upper right corner
                     let vertex_id = map.vertex_id(base_dart + 2);
-                    map.set_vertex(
+                    map.insert_vertex(
                         vertex_id,
                         (T::from(x_idx + 1).unwrap(), T::from(y_idx + 1).unwrap()),
-                    )
-                    .unwrap();
+                    );
                 }
             }
         })
