@@ -159,13 +159,20 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
             match self.orbit_policy {
                 OrbitPolicy::Vertex => {
                     // THIS CODE IS ONLY VALID IN 2D
-                    // WE ASSUME THAT THE EDGE IS COMPLETE
-                    let image = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
-                    if self.marked.insert(image) {
+
+                    let image1 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image1) {
                         // if true, we did not see this dart yet
                         // i.e. we need to visit it later
-                        self.pending.push_back(image);
+                        self.pending.push_back(image1);
                     }
+                    let image2 = self.map_handle.beta::<2>(self.map_handle.beta::<0>(d));
+                    if self.marked.insert(image2) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image2);
+                    }
+
                     Some(d)
                 }
                 OrbitPolicy::Edge => {
