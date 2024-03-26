@@ -548,17 +548,10 @@ impl<T: CoordsFloat> CMap2<T> {
         rhs_dart_id: DartIdentifier,
         policy: SewPolicy,
     ) {
-        // --- topological update
-
-        // --- geometrical update
-
-        // in case of a 1-sew, we need to update the 0-cell cells
-        // of rhs_dart to ensure no vertex is duplicated
-
-        // this operation only makes sense if lhs_dart is associated
-        // to a fully defined edge, i.e. its image through beta2 is defined
-        // & has a valid associated vertex (we assume the second condition
-        // is valid if the first one is).
+        // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
+        // its image through beta2 is defined & has a valid associated vertex (we assume the second
+        // condition is valid if the first one is)
+        // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id != NULL_DART_ID {
             match policy {
@@ -608,6 +601,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.insert_vertex(self.vertex_id(rhs_dart_id), Vertex2::average(&tmp1, &tmp2));
                 }
             }
+        } else {
+            self.one_link(lhs_dart_id, rhs_dart_id);
         }
     }
 
