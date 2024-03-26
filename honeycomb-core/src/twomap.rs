@@ -691,13 +691,49 @@ impl<T: CoordsFloat> CMap2<T> {
             // update vertex associated to b1lhs/rhs
             (false, true) => match policy {
                 SewPolicy::StretchLeft => {
-                    todo!()
+                    // read current values / remove old ones
+                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    let tmp = self.remove_vertex(b1lhs_vid_old).expect(
+                        "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                    );
+                    self.remove_vertex(rhs_vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.two_link(lhs_dart_id, rhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
                 }
                 SewPolicy::StretchRight => {
-                    todo!()
+                    // read current values / remove old ones
+                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    self.remove_vertex(b1lhs_vid_old).expect(
+                        "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                    );
+                    let tmp = self.remove_vertex(rhs_vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.two_link(lhs_dart_id, rhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
                 }
                 SewPolicy::StretchAverage => {
-                    todo!()
+                    // read current values / remove old ones
+                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    let tmp1 = self.remove_vertex(b1lhs_vid_old).expect(
+                        "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                    );
+                    let tmp2 = self.remove_vertex(rhs_vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.two_link(lhs_dart_id, rhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(lhs_dart_id), Vertex2::average(&tmp1, &tmp2));
                 }
             },
             // update both vertices making up the edge
@@ -705,7 +741,98 @@ impl<T: CoordsFloat> CMap2<T> {
                 // currently, the sewing policy applies to both vertices, i.e. applies to the edge.
                 // It would technically be possible to specify a policy for each element, but we're not
                 // reworking attributes atm.
-                todo!()
+                match policy {
+                    SewPolicy::StretchLeft => {
+                        // read current values / remove old ones
+                        // (lhs/b1rhs) vertex
+                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                        let tmpa = self.remove_vertex(lhs_vid_old).expect(
+                            "E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} was not found",
+                        );
+                        self.remove_vertex(b1rhs_vid_old).expect(
+                            "E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} was not found",
+                        );
+                        // (b1lhs/rhs) vertex
+                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                        let tmpb = self.remove_vertex(b1lhs_vid_old).expect(
+                            "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                        );
+                        self.remove_vertex(rhs_vid_old).expect(
+                            "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                        );
+
+                        // update the topology (this is why we need the above lines)
+                        self.two_link(lhs_dart_id, rhs_dart_id);
+
+                        // reinsert correct value
+                        self.insert_vertex(self.vertex_id(lhs_dart_id), tmpa);
+                        self.insert_vertex(self.vertex_id(rhs_dart_id), tmpb);
+                    }
+                    SewPolicy::StretchRight => {
+                        // read current values / remove old ones
+                        // (lhs/b1rhs) vertex
+                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                        self.remove_vertex(lhs_vid_old).expect(
+                            "E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} was not found",
+                        );
+                        let tmpa = self.remove_vertex(b1rhs_vid_old).expect(
+                            "E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} was not found",
+                        );
+                        // (b1lhs/rhs) vertex
+                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                        self.remove_vertex(b1lhs_vid_old).expect(
+                            "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                        );
+                        let tmpb = self.remove_vertex(rhs_vid_old).expect(
+                            "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                        );
+
+                        // update the topology (this is why we need the above lines)
+                        self.two_link(lhs_dart_id, rhs_dart_id);
+
+                        // reinsert correct value
+                        self.insert_vertex(self.vertex_id(lhs_dart_id), tmpa);
+                        self.insert_vertex(self.vertex_id(rhs_dart_id), tmpb);
+                    }
+                    SewPolicy::StretchAverage => {
+                        // read current values / remove old ones
+                        // (lhs/b1rhs) vertex
+                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                        let tmpa1 = self.remove_vertex(lhs_vid_old).expect(
+                            "E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} was not found",
+                        );
+                        let tmpa2 = self.remove_vertex(b1rhs_vid_old).expect(
+                            "E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} was not found",
+                        );
+                        // (b1lhs/rhs) vertex
+                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                        let tmpb1 = self.remove_vertex(b1lhs_vid_old).expect(
+                            "E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} was not found",
+                        );
+                        let tmpb2 = self.remove_vertex(rhs_vid_old).expect(
+                            "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                        );
+
+                        // update the topology (this is why we need the above lines)
+                        self.two_link(lhs_dart_id, rhs_dart_id);
+
+                        // reinsert correct value
+                        self.insert_vertex(
+                            self.vertex_id(lhs_dart_id),
+                            Vertex2::average(&tmpa1, &tmpa2),
+                        );
+                        self.insert_vertex(
+                            self.vertex_id(rhs_dart_id),
+                            Vertex2::average(&tmpb1, &tmpb2),
+                        );
+                    }
+                }
             }
         }
     }
