@@ -215,7 +215,7 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                 if last_column {
                     // that last column of 0-cell needs special treatment
                     // bc there are no "horizontal" associated dart
-                    let vertex_id = map.vertex_id(base_dart + 1);
+                    let vertex_id = map.vertex_id(base_dart + 4);
                     map.insert_vertex(
                         vertex_id,
                         (T::from(x_idx + 1).unwrap(), T::from(y_idx).unwrap()),
@@ -223,7 +223,7 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                 }
                 if last_row {
                     // same as the case on x
-                    let vertex_id = map.vertex_id(base_dart + 3);
+                    let vertex_id = map.vertex_id(base_dart + 2);
                     map.insert_vertex(
                         vertex_id,
                         (T::from(x_idx).unwrap(), T::from(y_idx + 1).unwrap()),
@@ -231,7 +231,7 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                 }
                 if last_row & last_column {
                     // need to do the upper right corner
-                    let vertex_id = map.vertex_id(base_dart + 2);
+                    let vertex_id = map.vertex_id(base_dart + 5);
                     map.insert_vertex(
                         vertex_id,
                         (T::from(x_idx + 1).unwrap(), T::from(y_idx + 1).unwrap()),
