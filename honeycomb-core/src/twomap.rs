@@ -692,16 +692,26 @@ impl<T: CoordsFloat> CMap2<T> {
     /// *β<sub>0</sub>* function is also updated.
     ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        // --- topological update
-
-        self.one_unlink(lhs_dart_id);
-
-        // --- geometrical update
         match policy {
             UnsewPolicy::Duplicate => {
-                todo!()
+                let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
+                if b2lhs_dart_id != NULL_DART_ID {
+                    // read current values / remove old ones
+                    let rhs_dart_id = self.beta::<1>(lhs_dart_id);
+                    let vid_old = self.vertex_id(rhs_dart_id);
+                    let tmp = self.remove_vertex(vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.one_unlink(lhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(b2lhs_dart_id), tmp);
+                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
+                } else {
+                    self.one_unlink(lhs_dart_id)
+                }
             }
-            UnsewPolicy::DoNothing => {}
+            UnsewPolicy::DoNothing => self.one_unlink(lhs_dart_id),
         }
     }
 
