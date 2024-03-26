@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, SewPolicy, UnsewPolicy};
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, SewPolicy};
 
 // ------ CONTENT
 

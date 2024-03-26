@@ -11,26 +11,26 @@ use crate::{CMap2, CoordsFloat, EdgeIdentifier, FaceIdentifier, VertexIdentifier
 // ------ CONTENT
 
 pub struct VertexCollection<'a, T: CoordsFloat> {
-    map: &'a CMap2<T>,
+    map: std::marker::PhantomData<&'a CMap2<T>>,
     pub identifiers: Vec<VertexIdentifier>,
 }
 
 pub struct EdgeCollection<'a, T: CoordsFloat> {
-    map: &'a CMap2<T>,
+    map: std::marker::PhantomData<&'a CMap2<T>>,
     pub identifiers: Vec<EdgeIdentifier>,
 }
 
 pub struct FaceCollection<'a, T: CoordsFloat> {
-    map: &'a CMap2<T>,
+    map: std::marker::PhantomData<&'a CMap2<T>>,
     pub identifiers: Vec<FaceIdentifier>,
 }
 
 macro_rules! collection_constructor {
     ($coll: ident, $idty: ty) => {
         impl<'a, T: CoordsFloat> $coll<'a, T> {
-            pub fn new(map_handle: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
+            pub fn new(_: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
                 Self {
-                    map: map_handle,
+                    map: std::marker::PhantomData::default(),
                     identifiers: ids.into_iter().collect(),
                 }
             }
