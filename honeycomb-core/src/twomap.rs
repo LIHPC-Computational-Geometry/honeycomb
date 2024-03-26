@@ -566,9 +566,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     // read current values / remove old ones
                     let rhs_vid_old = self.vertex_id(rhs_dart_id);
                     let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    let tmp = self
-                        .remove_vertex(b2lhs_vid_old)
-                        .expect("E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found");
+                    let tmp = self.remove_vertex(b2lhs_vid_old).expect(
+                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
+                    );
                     self.remove_vertex(rhs_vid_old).expect(
                         "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
                     );
@@ -578,10 +578,34 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
                 }
                 SewPolicy::StretchRight => {
-                    todo!()
+                    // read current values / remove old ones
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
+                    self.remove_vertex(b2lhs_vid_old).expect(
+                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
+                    );
+                    let tmp = self.remove_vertex(rhs_vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.one_link(lhs_dart_id, rhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
                 }
                 SewPolicy::StretchAverage => {
-                    todo!()
+                    // read current values / remove old ones
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
+                    let tmp1 = self.remove_vertex(b2lhs_vid_old).expect(
+                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
+                    );
+                    let tmp2 = self.remove_vertex(rhs_vid_old).expect(
+                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
+                    );
+                    // update the topology (this is why we need the above lines)
+                    self.one_link(lhs_dart_id, rhs_dart_id);
+                    // reinsert correct value
+                    self.insert_vertex(self.vertex_id(rhs_dart_id), Vertex2::average(&tmp1, &tmp2));
                 }
             }
         }
