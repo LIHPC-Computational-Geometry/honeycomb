@@ -558,12 +558,16 @@ impl<T: CoordsFloat> CMap2<T> {
                     // read current values / remove old ones
                     let rhs_vid_old = self.vertex_id(rhs_dart_id);
                     let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    let tmp = self.remove_vertex(b2lhs_vid_old).expect(
-                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
-                    );
-                    self.remove_vertex(rhs_vid_old).expect(
-                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
-                    );
+                    let tmp = self.remove_vertex(b2lhs_vid_old).unwrap_or_else(|_| {
+                        println!("E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found");
+                        panic!("E: Cannot 1-sew to lhs element, terminating...");
+                    });
+                    if self.remove_vertex(rhs_vid_old).is_err() {
+                        println!(
+                            "W: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found"
+                        );
+                        println!("W: Continue 1-sew to lhs element...");
+                    }
                     // update the topology (this is why we need the above lines)
                     self.one_link(lhs_dart_id, rhs_dart_id);
                     // reinsert correct value
@@ -573,12 +577,16 @@ impl<T: CoordsFloat> CMap2<T> {
                     // read current values / remove old ones
                     let rhs_vid_old = self.vertex_id(rhs_dart_id);
                     let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    self.remove_vertex(b2lhs_vid_old).expect(
-                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
-                    );
-                    let tmp = self.remove_vertex(rhs_vid_old).expect(
-                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
-                    );
+                    if self.remove_vertex(b2lhs_vid_old).is_err() {
+                        println!(
+                            "W: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found"
+                        );
+                        println!("W: Continue 1-sew to rhs elemnt...");
+                    };
+                    let tmp = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
+                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
+                        panic!("E: Cannot 1-sew to rhs element, terminating...");
+                    });
                     // update the topology (this is why we need the above lines)
                     self.one_link(lhs_dart_id, rhs_dart_id);
                     // reinsert correct value
@@ -588,12 +596,14 @@ impl<T: CoordsFloat> CMap2<T> {
                     // read current values / remove old ones
                     let rhs_vid_old = self.vertex_id(rhs_dart_id);
                     let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    let tmp1 = self.remove_vertex(b2lhs_vid_old).expect(
-                        "E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} was not found"
-                    );
-                    let tmp2 = self.remove_vertex(rhs_vid_old).expect(
-                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
-                    );
+                    let tmp1 = self.remove_vertex(b2lhs_vid_old).unwrap_or_else(|_| {
+                        println!("E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found");
+                        panic!("E: Cannot 1-sew to an average, terminating...");
+                    });
+                    let tmp2 = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
+                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
+                        panic!("E: Cannot 1-sew to an average, terminating...");
+                    });
                     // update the topology (this is why we need the above lines)
                     self.one_link(lhs_dart_id, rhs_dart_id);
                     // reinsert correct value
