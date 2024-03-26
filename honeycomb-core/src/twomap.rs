@@ -549,8 +549,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ) {
         // --- topological update
 
-        self.one_link(lhs_dart_id, rhs_dart_id);
-
         // --- geometrical update
 
         // in case of a 1-sew, we need to update the 0-cell cells
@@ -560,11 +558,17 @@ impl<T: CoordsFloat> CMap2<T> {
         // to a fully defined edge, i.e. its image through beta2 is defined
         // & has a valid associated vertex (we assume the second condition
         // is valid if the first one is).
-        let lid = self.beta::<2>(lhs_dart_id);
-        if lid != NULL_DART_ID {
+        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
+        if b2lhs_dart_id != NULL_DART_ID {
             match policy {
                 SewPolicy::StretchLeft => {
-                    todo!()
+                    let tmp = *self.vertex(self.vertex_id(b2lhs_dart_id));
+                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
+                    self.one_link(lhs_dart_id, rhs_dart_id);
+                    self.remove_vertex(rhs_vid_old);
+                    self.remove_vertex(b2lhs_vid_old);
+                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
                 }
                 SewPolicy::StretchRight => {
                     todo!()
