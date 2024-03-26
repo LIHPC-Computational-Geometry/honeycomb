@@ -634,17 +634,13 @@ impl<T: CoordsFloat> CMap2<T> {
         rhs_dart_id: DartIdentifier,
         policy: SewPolicy,
     ) {
-        // --- topological update
-
-        self.two_link(lhs_dart_id, rhs_dart_id);
-
-        // --- geometrical update
-
-        // depending on existing connections, different things are required
-        let l_is1free = self.is_i_free::<1>(lhs_dart_id);
-        let r_is1free = self.is_i_free::<1>(rhs_dart_id);
-        match (l_is1free, r_is1free) {
-            (true, true) => {} // do nothing
+        let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
+        let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
+        // match (is lhs 1-free, is rhs 1-free)
+        match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+            // trivial case, no update needed
+            (true, true) => self.two_link(lhs_dart_id, rhs_dart_id),
+            // update vertex associated to b1rhs/lhs
             (true, false) => match policy {
                 SewPolicy::StretchLeft => {
                     todo!()
@@ -656,6 +652,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     todo!()
                 }
             },
+            // update vertex associated to b1lhs/rhs
             (false, true) => match policy {
                 SewPolicy::StretchLeft => {
                     todo!()
@@ -667,7 +664,11 @@ impl<T: CoordsFloat> CMap2<T> {
                     todo!()
                 }
             },
+            // update both vertices making up the edge
             (false, false) => {
+                // currently, the sewing policy applies to both vertices, i.e. applies to the edge.
+                // It would technically be possible to specify a policy for each element, but we're not
+                // reworking attributes atm.
                 todo!()
             }
         }
