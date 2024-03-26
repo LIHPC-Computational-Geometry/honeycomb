@@ -946,16 +946,42 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>2</sub>* function.
     ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        // --- topological update
-
-        self.two_unlink(lhs_dart_id);
-
-        // --- geometrical update
         match policy {
             UnsewPolicy::Duplicate => {
-                todo!()
+                let rhs_dart_id = self.beta::<2>(lhs_dart_id);
+                let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
+                let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
+                // match (is lhs 1-free, is rhs 1-free)
+                match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+                    (true, true) => self.two_unlink(lhs_dart_id),
+                    (true, false) => {
+                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                        let rhs_tmp = self.remove_vertex(rhs_vid_old).unwrap();
+                        self.two_unlink(lhs_dart_id);
+                        self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_tmp);
+                        self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_tmp);
+                    }
+                    (false, true) => {
+                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                        let lhs_tmp = self.remove_vertex(lhs_vid_old).unwrap();
+                        self.two_unlink(lhs_dart_id);
+                        self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_tmp);
+                        self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_tmp);
+                    }
+                    (false, false) => {
+                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                        let lhs_tmp = self.remove_vertex(lhs_vid_old).unwrap();
+                        let rhs_tmp = self.remove_vertex(rhs_vid_old).unwrap();
+                        self.two_unlink(lhs_dart_id);
+                        self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_tmp);
+                        self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_tmp);
+                        self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_tmp);
+                        self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_tmp);
+                    }
+                }
             }
-            UnsewPolicy::DoNothing => {}
+            UnsewPolicy::DoNothing => self.two_unlink(lhs_dart_id),
         }
     }
 }
