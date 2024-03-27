@@ -45,7 +45,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
     // collect inner vertex IDs
     vertices.identifiers.iter().for_each(|vertex_id| {
         let n_darts_in_orbit = map.i_cell::<0>(*vertex_id as DartIdentifier).count();
-        if n_darts_in_orbit < 6 {
+        if n_darts_in_orbit == 6 {
             let current_value = map.vertex(*vertex_id);
             let _ = map.set_vertex(
                 *vertex_id,
