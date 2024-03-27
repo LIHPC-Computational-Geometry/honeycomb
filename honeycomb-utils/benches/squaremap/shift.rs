@@ -14,8 +14,6 @@
 
 // ------ IMPORTS
 
-use std::collections::BTreeSet;
-
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use rand::{
     distributions::{Distribution, Uniform},
@@ -23,37 +21,37 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID};
+use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vector2};
 use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
 fn offset(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
-    (0..map.n_vertices()).for_each(|vertex_id| {
-        let current_value = map.vertex(vertex_id as DartIdentifier);
+    let n_offset = offsets.len();
+    let vertices = map.fetch_vertices();
+    vertices.identifiers.iter().for_each(|vertex_id| {
+        let current_value = map.vertex(*vertex_id as DartIdentifier);
         let _ = map.set_vertex(
-            vertex_id as VertexIdentifier,
-            *current_value + offsets[vertex_id],
+            *vertex_id,
+            *current_value + offsets[*vertex_id as usize % n_offset],
         );
     });
     black_box(&mut map);
 }
 
 fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
-    let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
+    let n_offset = offsets.len();
+    let vertices = map.fetch_vertices();
     // collect inner vertex IDs
-    (0..map.n_darts().0 as DartIdentifier).for_each(|dart_id| {
-        let neighbors_vertex_cell: Vec<DartIdentifier> = map
-            .i_cell::<0>(dart_id)
-            .map(|d_id| map.beta::<2>(d_id))
-            .collect();
-        if !neighbors_vertex_cell.contains(&NULL_DART_ID) {
-            inner.insert(map.vertex_id(dart_id));
+    vertices.identifiers.iter().for_each(|vertex_id| {
+        let n_darts_in_orbit = map.i_cell::<0>(*vertex_id as DartIdentifier).count();
+        if n_darts_in_orbit < 4 {
+            let current_value = map.vertex(*vertex_id);
+            let _ = map.set_vertex(
+                *vertex_id,
+                *current_value + offsets[*vertex_id as usize % n_offset],
+            );
         }
-    });
-    inner.iter().for_each(|vertex_id| {
-        let current_value = map.vertex(*vertex_id);
-        let _ = map.set_vertex(*vertex_id, *current_value + offsets[*vertex_id as usize]);
     });
     black_box(&mut map);
 }
