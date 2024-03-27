@@ -81,6 +81,7 @@ const CMAP2_BETA: usize = 3;
 /// ```
 ///
 #[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
+#[derive(Debug)]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: BTreeMap<VertexIdentifier, Vertex2<T>>,
@@ -110,10 +111,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn new(n_darts: usize) -> Self {
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
-        let mut vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
-        (1..(n_darts + 1) as VertexIdentifier).for_each(|vid| {
-            let _ = vertices.insert(vid, Vertex2::default());
-        });
+        let vertices: BTreeMap<VertexIdentifier, Vertex2<T>> = BTreeMap::new();
 
         Self {
             vertices,
@@ -179,6 +177,9 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
         self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
+        (new_id..new_id + n_darts as DartIdentifier).for_each(|did| {
+            self.insert_vertex(did as VertexIdentifier, (T::zero(), T::zero()));
+        });
         new_id
     }
 

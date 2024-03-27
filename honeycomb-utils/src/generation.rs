@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, SewPolicy};
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
@@ -67,12 +67,12 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             // if there is a right neighbor, sew sew
             if x_idx != n_square - 1 {
                 let right_neighbor = d2 + 6;
-                map.two_sew(d2, right_neighbor, SewPolicy::StretchLeft);
+                map.two_link(d2, right_neighbor);
             }
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
                 let up_neighbor = d1 + (4 * n_square) as DartIdentifier;
-                map.two_sew(d3, up_neighbor, SewPolicy::StretchLeft)
+                map.two_link(d3, up_neighbor)
             }
         })
     });
