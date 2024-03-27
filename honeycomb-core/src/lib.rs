@@ -16,6 +16,7 @@
 
 // ------ MODULE DECLARATIONS
 
+mod cells;
 mod coords;
 mod dart;
 mod embed;
