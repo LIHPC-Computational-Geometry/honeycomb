@@ -30,7 +30,7 @@ use honeycomb_utils::generation::square_cmap2;
 
 // ------ CONTENT
 
-const N_SQUARE: usize = 2_usize.pow(2);
+const N_SQUARE: usize = 2_usize.pow(10);
 const P_BERNOULLI: f64 = 0.6;
 
 fn split(mut map: CMap2<FloatType>) {
