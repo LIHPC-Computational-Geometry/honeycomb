@@ -24,6 +24,10 @@
 - remove marks table from `DartData` (#24), resulting in a signature change for many
   functions and structures (anything with `const N_MARKS: usize`) '
 - update code to make use of the new 2D representation structures (#25)
+- reorganize internal module structure (#27)
+    - create modules `cells`, `cells::identifiers`, `spatial_repr`
+    - move `orbits`, `coords`, `vector`, `vertex`, inside new modules
+    - clean-up source files
 
 #### honeycomb-guide
 
