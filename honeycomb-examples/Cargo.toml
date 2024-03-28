@@ -6,9 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dev-dependencies]
-honeycomb-core = { path = "../honeycomb-core" }
+honeycomb-core = { path = "../honeycomb-core", features = ["benchmarking_utils"] }
 honeycomb-render = { path = "../honeycomb-render" }
 honeycomb-utils = { path = "../honeycomb-utils" }
+
+[[example]]
+name = "memory_usage"
+path = "examples/memory_usage/compute.rs"
 
 [[example]]
 name = "render_default_no_aa"
