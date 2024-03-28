@@ -8,23 +8,17 @@
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
 
-// ------ MODULE DECLARATIONS
-
 // ------ IMPORTS
+
+use super::dart::CellIdentifiers;
+use crate::{
+    CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2,
+    VertexIdentifier, NULL_DART_ID,
+};
 
 use std::collections::BTreeSet;
 #[cfg(feature = "benchmarking_utils")]
 use std::{fs::File, io::Write};
-
-use crate::{
-    CoordsFloat, DartIdentifier, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
-    NULL_DART_ID,
-};
-
-use super::{
-    dart::{CellIdentifiers, DartData},
-    embed::Face,
-};
 
 // ------ CONTENT
 

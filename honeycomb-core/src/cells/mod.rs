@@ -6,6 +6,5 @@
 
 // ------ MODULE DECLARATIONS
 
-// ------ CONTENT
 pub mod identifiers;
 pub mod orbits;

@@ -10,8 +10,6 @@
 //! embedding. This includes ID types, spatial representation,
 //! (un)sewing policies.
 
-// ------ MODULE DECLARATIONS
-
 // ------ IMPORTS
 
 #[cfg(doc)]
