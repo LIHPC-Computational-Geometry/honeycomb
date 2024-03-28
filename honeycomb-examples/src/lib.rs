@@ -7,7 +7,7 @@
 //! ### Utilities
 //!
 //! - `memory_usage` -- Save the memory usage of a given map as three *csv* files. These files
-//!   can be used to generate charts using the `memory_usage.py` script.
+//!   can be used to generate charts using the `plot.py` script.
 //!
 //! ### Rendering
 //!
