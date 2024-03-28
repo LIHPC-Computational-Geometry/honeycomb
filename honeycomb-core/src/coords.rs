@@ -6,33 +6,13 @@
 
 // ------ IMPORTS
 
-use crate::vector::Vector2;
-use crate::vertex::Vertex2;
+use crate::{CoordsFloat, Vector2, Vertex2};
 use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
 // ------ CONTENT
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "single_precision")] {
-        pub type FloatType = f32;
-    } else {
-        pub type FloatType = f64;
-    }
-}
-
-// ------ CONTENT
-
-/// Common trait implemented by types used for coordinate representation.
-pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
-{
-}
-
-impl CoordsFloat for f32 {}
-impl CoordsFloat for f64 {}
 
 /// Coordinates-related error enum
 #[derive(Debug)]

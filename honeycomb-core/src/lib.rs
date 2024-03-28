@@ -20,6 +20,7 @@ mod cells;
 mod coords;
 mod dart;
 mod embed;
+mod spatial_repr;
 mod twomap;
 mod vector;
 mod vertex;
@@ -30,9 +31,10 @@ pub use cells::{
     identifiers::*,
     orbits::{Orbit2, OrbitPolicy},
 };
-pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
+pub use coords::{Coords2, CoordsError};
 pub use dart::DartData;
 pub use embed::{Face, SewPolicy, UnsewPolicy};
+pub use spatial_repr::{CoordsFloat, FloatType};
 pub use twomap::{CMap2, CMapError};
 pub use vector::Vector2;
 pub use vertex::Vertex2;
