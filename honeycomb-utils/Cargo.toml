@@ -9,11 +9,11 @@ edition = "2021"
 honeycomb-core = { path = "../honeycomb-core", features = [
     "benchmarking_utils",
 ] }
-rand = { version = "*", features = ["small_rng"] }
 
 [dev-dependencies]
 criterion = { version = "*", features = ["html_reports"] }
 iai-callgrind = "*"
+rand = { version = "*", features = ["small_rng"] }
 
 # Iai-callgrind benchmarks
 
