@@ -29,10 +29,6 @@ web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
 honeycomb-utils = { path = "../honeycomb-utils" }
 
 [[example]]
-name = "render_default_no_aa"
-path = "examples/render_default_no_aa.rs"
-
-[[example]]
 name = "render_default_smaa1x"
 path = "examples/render_default_smaa1x.rs"
 
