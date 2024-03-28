@@ -4,7 +4,4 @@
 //!
 //! Content description if needed
 
-// ------ MODULE DECLARATIONS
-
 // ------ CONTENT
-mod identifiers;
