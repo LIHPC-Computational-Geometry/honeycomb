@@ -32,19 +32,3 @@ pub use dart::DartData;
 pub use embed::{Face, SewPolicy, UnsewPolicy};
 pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
 pub use twomap::{CMap2, CMapError};
-
-// ------ IMPORTS
-
-// ------ CONTENT
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}

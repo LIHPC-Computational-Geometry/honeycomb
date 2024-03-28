@@ -111,10 +111,3 @@ impl DartData {
         self.associated_cells[dart_id as usize] = CellIdentifiers::default();
     }
 }
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-}
