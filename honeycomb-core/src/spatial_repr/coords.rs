@@ -7,6 +7,7 @@
 // ------ IMPORTS
 
 use crate::{CoordsFloat, Vector2, Vertex2};
+
 use std::iter::Sum;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,

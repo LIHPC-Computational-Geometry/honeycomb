@@ -6,8 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::vector::Vector2;
-use crate::{Coords2, CoordsFloat};
+use crate::{Coords2, CoordsFloat, Vector2};
 
 // ------ CONTENT
 

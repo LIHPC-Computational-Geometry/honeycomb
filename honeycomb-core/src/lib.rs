@@ -17,13 +17,10 @@
 // ------ MODULE DECLARATIONS
 
 mod cells;
-mod coords;
 mod dart;
 mod embed;
 mod spatial_repr;
 mod twomap;
-mod vector;
-mod vertex;
 
 // ------ RE-EXPORTS
 
@@ -31,13 +28,10 @@ pub use cells::{
     identifiers::*,
     orbits::{Orbit2, OrbitPolicy},
 };
-pub use coords::{Coords2, CoordsError};
 pub use dart::DartData;
 pub use embed::{Face, SewPolicy, UnsewPolicy};
-pub use spatial_repr::{CoordsFloat, FloatType};
+pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
 pub use twomap::{CMap2, CMapError};
-pub use vector::Vector2;
-pub use vertex::Vertex2;
 
 // ------ IMPORTS
 

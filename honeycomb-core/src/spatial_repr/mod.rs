@@ -6,11 +6,21 @@
 
 // ------ MODULE DECLARATIONS
 
+pub mod coords;
+pub mod vector;
+pub mod vertex;
+
+// ------ RE-EXPORTS
+
+pub use coords::{Coords2, CoordsError};
+pub use vector::Vector2;
+pub use vertex::Vertex2;
+
 // ------ IMPORTS
 
-// ------ CONTENT
-
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
+
+// ------ CONTENT
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "single_precision")] {
@@ -19,8 +29,6 @@ cfg_if::cfg_if! {
         pub type FloatType = f64;
     }
 }
-
-// ------ CONTENT
 
 /// Common trait implemented by types used for coordinate representation.
 pub trait CoordsFloat:
