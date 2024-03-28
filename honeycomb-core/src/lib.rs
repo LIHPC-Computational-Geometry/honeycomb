@@ -26,10 +26,13 @@ mod vertex;
 
 // ------ RE-EXPORTS
 
-pub use cells::orbits::{Orbit2, OrbitPolicy};
+pub use cells::{
+    identifiers::*,
+    orbits::{Orbit2, OrbitPolicy},
+};
 pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
-pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
-pub use embed::{Face, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
+pub use dart::DartData;
+pub use embed::{Face, SewPolicy, UnsewPolicy};
 pub use twomap::{CMap2, CMapError};
 pub use vector::Vector2;
 pub use vertex::Vertex2;
