@@ -27,16 +27,3 @@ web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
 
 [dev-dependencies]
 honeycomb-utils = { path = "../honeycomb-utils" }
-
-[[example]]
-name = "render_default_smaa1x"
-path = "examples/render_default_smaa1x.rs"
-
-[[example]]
-name = "render_squaremap"
-path = "examples/render_squaremap.rs"
-
-[[example]]
-name = "render_splitsquaremap"
-path = "examples/render_splitsquaremap.rs"
-

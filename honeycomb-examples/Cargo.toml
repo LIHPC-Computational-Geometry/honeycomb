@@ -17,3 +17,15 @@ path = "examples/memory_usage/compute.rs"
 [[example]]
 name = "render_default_no_aa"
 path = "examples/render/default_no_aa.rs"
+
+[[example]]
+name = "render_default_smaa1x"
+path = "examples/render/default_smaa1x.rs"
+
+[[example]]
+name = "render_splitsquaremap"
+path = "examples/render/splitsquaremap.rs"
+
+[[example]]
+name = "render_squaremap"
+path = "examples/render/squaremap.rs"
