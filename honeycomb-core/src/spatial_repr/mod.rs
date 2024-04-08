@@ -1,8 +1,7 @@
-//! Module short description
+//! Spatial representation types & operators
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code related to custom spatial reprentation type implementations.
+//! This include custom vector / vertex types as well as generic traits for value encoding.
 
 // ------ MODULE DECLARATIONS
 

@@ -6,6 +6,8 @@
 
 // ------ IMPORTS
 
+#[cfg(doc)]
+use crate::FloatType;
 use crate::{CoordsFloat, Vector2, Vertex2};
 
 use std::iter::Sum;
@@ -26,9 +28,8 @@ pub enum CoordsError {
 
 /// 2-dimensional coordinates structure
 ///
-/// The floating type used for coordinate representation is determined
-/// by the user. For tests, it can be set using features and the [FloatType]
-/// alias.
+/// The floating type used for coordinate representation is determined by the user. For tests, it
+/// can be controled using features and the [FloatType] alias.
 ///
 /// # Generics
 ///
@@ -36,9 +37,9 @@ pub enum CoordsError {
 ///
 /// # Example
 ///
-/// This type is not meant to be used directly when operating on combinatorial
-/// maps (see [Vector2], [Vertex2] for that), but it is kept public because it
-/// is easier to use for rendering purposes. As such, no example is provided.
+/// This type is not meant to be used directly when operating on combinatorial maps (see [Vector2],
+/// [Vertex2] for that), but it is kept public because it is easier to use for rendering purposes.
+/// As such, no example is provided.
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Coords2<T: CoordsFloat> {
