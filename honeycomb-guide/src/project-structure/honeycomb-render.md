@@ -19,19 +19,4 @@ provided in the crate cover basic usage and parameterization.
 
 ### Examples
 
-You can run examples using the following command:
-
-```shell
-# Run a specific example
-cargo run --example <EXAMPLE>
-```
-
-The following examples are available:
-
-| Name                    | Description                                                                      |
-|-------------------------|----------------------------------------------------------------------------------|
-| `render_default_no_aa`  | Render a hardcoded arrow without anti-aliasing                                   |
-| `render_default_smaa1x` | Render a hardcoded arrow with anti-aliasing                                      |
-| `render_splitsquaremap` | Render a map generated using functions provided by the **honeycomb-utils** crate |
-| `render_squaremap`      | Render a map generated using functions provided by the **honeycomb-utils** crate |
-
+Examples are provided in the [dedicated crate](./honeycomb-examples.md), under the `examples/render/` directory.
