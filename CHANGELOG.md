@@ -22,6 +22,7 @@
   which act as wrappers around a `Coords2` value (#25)
 - remove the `Vertex2` type alias in favor of the new structure (#25)
 - add a new public module, `utils`, compiled when the `utils` feature is enabled (#31)
+    - the module contains functions previously defined in the `honeycomb-utils` crate
 
 #### honeycomb-examples (new)
 
@@ -33,6 +34,9 @@
     - to fix import path of utility functions (#31)
 
 #### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
 
 - TBD
 
@@ -53,9 +57,6 @@
 - rename the `benchmarking_utils` feature to `utils` (#31)
 
 #### honeycomb-guide
-
-<sup>**mdbook**-based user guide with information regarding usage & non-code-related
-aspects of the project</sup>
 
 - update all references to renamed types (#23)
 
