@@ -1,6 +1,5 @@
-use honeycomb_core::CMap2;
+use honeycomb_core::{utils::square_cmap2, CMap2};
 use honeycomb_render::*;
-use honeycomb_utils::generation::square_cmap2;
 
 fn main() {
     let render_params = RenderParameters {
