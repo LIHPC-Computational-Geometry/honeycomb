@@ -1,5 +1,8 @@
 # Honeycomb
 
+[[Rust Tests]!(https://github.com/LIHPC-Computational-Geometry/honeycomb/blob/master/.github/workflows/rust-test.yml/badge.svg)]
+[[User Guide]!(https://github.com/LIHPC-Computational-Geometry/honeycomb/blob/master/.github/workflows/doc.yml/badge.svg)]
+
 Honeycomb aims to provide a safe, efficient and scalable implementation of
 combinatorial maps for meshing applications. More specifically, the goal is
 to converge towards a (or multiple) structure(s) adapted to algorithms
