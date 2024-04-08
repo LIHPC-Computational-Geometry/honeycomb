@@ -1,6 +1,5 @@
-use honeycomb_core::CMap2;
+use honeycomb_core::{utils::splitsquare_cmap2, CMap2};
 use honeycomb_render::*;
-use honeycomb_utils::generation::splitsquare_cmap2;
 
 fn main() {
     let render_params = RenderParameters {

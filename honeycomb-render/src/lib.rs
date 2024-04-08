@@ -19,9 +19,9 @@
 //! - `render_default_no_aa` -- Render a hardcoded arrow without anti-aliasing.
 //! - `render_default_smaa1x` -- Render a hardcoded arrow with anti-aliasing.
 //! - `render_splitsquaremap` -- Render a map generated using functions provided by
-//!   the **honeycomb-utils** crate.
+//!   the **honeycomb-benches** crate.
 //! - `render_squaremap` -- Render a map generated using functions provided by the
-//!   **honeycomb-utils** crate.
+//!   **honeycomb-benches** crate.
 
 #[cfg(doc)]
 use honeycomb_core::CMap2;

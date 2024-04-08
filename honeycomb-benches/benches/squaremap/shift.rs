@@ -1,5 +1,5 @@
 //! This benchmarks handle measurements for a given operation on CMap2
-//! of a given topology (see `generation::splitsquare_two_map` doc).
+//! of a given topology (see `generation::square_two_map` doc).
 //!
 //! The operations applied here affect only geometry, topology is left unchanged
 //!
@@ -23,8 +23,9 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID};
-use honeycomb_utils::generation::splitsquare_cmap2;
+use honeycomb_core::{
+    utils::square_cmap2, CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID,
+};
 
 // ------ CONTENT
 
@@ -61,7 +62,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(11);
-    let map: CMap2<FloatType> = splitsquare_cmap2(N_SQUARE);
+    let map: CMap2<FloatType> = square_cmap2(N_SQUARE);
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
@@ -71,7 +72,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     let offsets: Vec<Vector2<FloatType>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
 
-    let mut group = c.benchmark_group("splitsquaremap-shift");
+    let mut group = c.benchmark_group("squaremap-shift");
 
     group.bench_with_input(
         BenchmarkId::new("precomputed-offsets", ""),

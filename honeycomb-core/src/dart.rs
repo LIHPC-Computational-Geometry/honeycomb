@@ -50,7 +50,7 @@ pub struct CellIdentifiers {
 /// No example is provided as the structure should not be used directly.
 /// The documentation is generated mostly for developing purposes.
 ///
-#[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
+#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct DartData {
     /// List of associated cell identifiers.
     pub associated_cells: Vec<CellIdentifiers>,

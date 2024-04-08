@@ -14,8 +14,10 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{CMap2, DartIdentifier, FaceIdentifier, FloatType, Vertex2, VertexIdentifier};
-use honeycomb_utils::generation::square_cmap2;
+use honeycomb_core::{
+    utils::square_cmap2, CMap2, DartIdentifier, FaceIdentifier, FloatType, Vertex2,
+    VertexIdentifier,
+};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };

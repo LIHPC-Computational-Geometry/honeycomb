@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{
+use crate::{
     CMap2, CoordsFloat, DartIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
 };
 
@@ -34,8 +34,7 @@ use honeycomb_core::{
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::CMap2;
-/// use honeycomb_utils::generation::square_cmap2;
+/// use honeycomb_core::{CMap2, utils::square_cmap2};
 ///
 /// let cmap: CMap2<f64> = square_cmap2(2);
 /// ```
@@ -148,8 +147,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 /// # Example
 ///
 /// ```
-/// use honeycomb_core::CMap2;
-/// use honeycomb_utils::generation::splitsquare_cmap2;
+/// use honeycomb_core::{CMap2, utils::splitsquare_cmap2};
 ///
 /// let cmap: CMap2<f64> = splitsquare_cmap2(2);
 /// ```

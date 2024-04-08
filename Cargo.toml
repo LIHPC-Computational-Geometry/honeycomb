@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["honeycomb-utils", "honeycomb-core", "honeycomb-render", "honeycomb-examples"]
+members = ["honeycomb-benches", "honeycomb-core", "honeycomb-render", "honeycomb-examples"]
 
 resolver = "2"
 

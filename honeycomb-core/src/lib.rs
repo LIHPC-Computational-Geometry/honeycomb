@@ -22,6 +22,8 @@ mod embed;
 mod spatial_repr;
 mod twomap;
 
+pub mod utils;
+
 // ------ RE-EXPORTS
 
 pub use cells::{

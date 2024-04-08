@@ -1,5 +1,4 @@
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, UnsewPolicy};
-use honeycomb_utils::generation::square_cmap2;
+use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType, UnsewPolicy};
 
 pub fn main() {
     // create a 3x3 grid & remove the central square

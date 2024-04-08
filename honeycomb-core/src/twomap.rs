@@ -17,7 +17,7 @@ use crate::{
 };
 
 use std::collections::BTreeSet;
-#[cfg(feature = "benchmarking_utils")]
+#[cfg(feature = "utils")]
 use std::{fs::File, io::Write};
 
 // ------ CONTENT
@@ -247,7 +247,7 @@ const CMAP2_BETA: usize = 3;
 /// # }
 /// ```
 ///
-#[cfg_attr(feature = "benchmarking_utils", derive(Clone))]
+#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     vertices: Vec<Vertex2<T>>,
@@ -1360,7 +1360,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-#[cfg(any(doc, feature = "benchmarking_utils"))]
+#[cfg(any(doc, feature = "utils"))]
 impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
@@ -1392,7 +1392,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
@@ -1474,7 +1474,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
@@ -1557,7 +1557,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
