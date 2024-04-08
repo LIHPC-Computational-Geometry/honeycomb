@@ -10,7 +10,6 @@
     - [honeycomb-examples](./project-structure/honeycomb-examples.md)
     - [honeycomb-guide](./project-structure/honeycomb-guide.md)
     - [honeycomb-render](./project-structure/honeycomb-render.md)
-    - [honeycomb-utils](./project-structure/honeycomb-utils.md)
 
 # Definitions
 
