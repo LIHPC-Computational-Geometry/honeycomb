@@ -6,7 +6,6 @@ edition = "2021"
 [dev-dependencies]
 honeycomb-core = { path = "../honeycomb-core", features = ["utils"] }
 honeycomb-render = { path = "../honeycomb-render" }
-honeycomb-utils = { path = "../honeycomb-utils" }
 
 [[example]]
 name = "memory_usage"

@@ -2,7 +2,7 @@ name: Benchmarking
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,18 +29,18 @@ jobs:
         run: cargo install --version 0.10.2 iai-callgrind-runner
       
       # Run all benchmarks
-      - name: Run 
+      - name: Run
         run: cargo bench --bench prof-twomap-editing --bench prof-twomap-reading --bench prof-twomap-sewing-unsewing -- --save-summary=json > bench.out
 
       # Move the bench.out file to target directory
       # sudo because GitHub actions are insconsistent
-      - name: Chore 
-        run: mv bench.out target/iai/honeycomb-utils/
-        
+      - name: Chore
+        run: mv bench.out target/iai/honeycomb-benches/
+
       - name: Deploy Results
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: benches/${{ github.ref }}
-          publish_dir: ./target/iai/honeycomb-utils
+          publish_dir: ./target/iai/honeycomb-benches
           force_orphan: true

@@ -1392,7 +1392,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
@@ -1474,7 +1474,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
@@ -1557,7 +1557,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
+    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
