@@ -9,8 +9,7 @@ use criterion::{
     black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
     PlotConfiguration, Throughput,
 };
-use honeycomb_core::{CMap2, FloatType};
-use honeycomb_utils::generation::splitsquare_cmap2;
+use honeycomb_core::{utils::splitsquare_cmap2, CMap2, FloatType};
 
 // ------ CONTENT
 

@@ -23,8 +23,10 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID};
-use honeycomb_utils::generation::splitsquare_cmap2;
+use honeycomb_core::{
+    utils::splitsquare_cmap2, CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier,
+    NULL_DART_ID,
+};
 
 // ------ CONTENT
 

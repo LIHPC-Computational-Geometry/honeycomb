@@ -25,8 +25,9 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{CMap2, DartIdentifier, FloatType, SewPolicy, UnsewPolicy};
-use honeycomb_utils::generation::square_cmap2;
+use honeycomb_core::{
+    utils::square_cmap2, CMap2, DartIdentifier, FloatType, SewPolicy, UnsewPolicy,
+};
 
 // ------ CONTENT
 

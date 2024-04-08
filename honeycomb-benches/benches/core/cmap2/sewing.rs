@@ -15,8 +15,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{CMap2, FloatType, SewPolicy, UnsewPolicy};
-use honeycomb_utils::generation::square_cmap2;
+use honeycomb_core::{utils::square_cmap2, CMap2, FloatType, SewPolicy, UnsewPolicy};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
