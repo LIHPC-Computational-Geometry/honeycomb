@@ -4,7 +4,7 @@ version = "0.1.3"
 edition = "2021"
 
 [features]
-benchmarking_utils = []
+utils = []
 single_precision = []
 
 [dependencies]
