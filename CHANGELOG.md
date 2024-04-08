@@ -1,10 +1,18 @@
 # Change Log
 
+---
+
 ## To be released
 
 **This update contains breaking changes**
 
 ### New features
+
+#### honeycomb-benches (new)
+
+<sup>core structures & methods benchmarks</sup>
+
+- move all benchmarks previously defined in `honeycomb-utils` to this crate (#31)
 
 #### honeycomb-core
 
@@ -13,6 +21,20 @@
 - add two new structures for 2D spatial representation: `Vertex2` & `Vector2`,
   which act as wrappers around a `Coords2` value (#25)
 - remove the `Vertex2` type alias in favor of the new structure (#25)
+- add a new public module, `utils`, compiled when the `utils` feature is enabled (#31)
+
+#### honeycomb-examples (new)
+
+<sup>project examples</sup>
+
+- move all examples previously defined in `honeycomb-utils` & `honeycomb-render` to this crate (#29)
+- update examples
+    - to reflect mark removal (#24)
+    - to fix import path of utility functions (#31)
+
+#### honeycomb-guide
+
+- TBD
 
 ### Refactor
 
@@ -28,20 +50,30 @@
     - create modules `cells`, `cells::identifiers`, `spatial_repr`
     - move `orbits`, `coords`, `vector`, `vertex`, inside new modules
     - clean-up source files
+- rename the `benchmarking_utils` feature to `utils` (#31)
 
 #### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
 
 - update all references to renamed types (#23)
 
 #### honeycomb-render
 
+<sup>visualization tool for combinatorial maps</sup>
+
 - update examples, function & structure signatures to reflect mark removal (#24)
 - update code to make use of the new 2D representation structures (#25)
 
-#### honeycomb-utils
+#### honeycomb-utils (removed)
 
-- update benchmarks, examples, function & structure signatures to reflect mark removal (#24)
-- update code to make use of the new 2D representation structures (#25)
+<sup>utility routines used in benchmarking and testing</sup>
+
+- remove this crate in favor of:
+    - a new member dedicated to benchmarks (#31)
+    - a new member dedicated to examples (#29)
+    - a new `utils` module in the core crate (#31)
 
 ---
 
