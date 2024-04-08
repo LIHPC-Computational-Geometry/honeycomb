@@ -10,16 +10,9 @@
 
 // ------ IMPORTS
 
-use crate::{FaceIdentifier, VertexIdentifier};
+use crate::{DartIdentifier, FaceIdentifier, VertexIdentifier};
 
 // ------ CONTENT
-
-/// Type definition for dart identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type DartIdentifier = u32;
-
-pub const NULL_DART_ID: DartIdentifier = 0;
 
 #[derive(Clone, Copy, Debug, Default)]
 /// Dart-cell associative structure
@@ -117,11 +110,4 @@ impl DartData {
     pub fn reset_entry(&mut self, dart_id: DartIdentifier) {
         self.associated_cells[dart_id as usize] = CellIdentifiers::default();
     }
-}
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
 }

@@ -281,7 +281,6 @@ impl<T: CoordsFloat> std::ops::Neg for Vector2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use crate::FloatType;
 
     fn almost_equal(lhs: &Vector2<FloatType>, rhs: &Vector2<FloatType>) -> bool {

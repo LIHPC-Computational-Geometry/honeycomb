@@ -10,29 +10,13 @@
 //! embedding. This includes ID types, spatial representation,
 //! (un)sewing policies.
 
-// ------ MODULE DECLARATIONS
-
 // ------ IMPORTS
 
 #[cfg(doc)]
 use crate::CMap2;
+use crate::VertexIdentifier;
 
 // ------ CONTENT
-
-/// Type definition for vertex identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VertexIdentifier = u32;
-
-/// Type definition for face identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type FaceIdentifier = u32;
-
-/// Type definition for volume identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VolumeIdentifier = u32;
 
 /// Geometrical policy of the sewing operation.
 ///
@@ -145,16 +129,4 @@ pub struct Face {
     /// Boolean indicating whether there is a connection between
     /// `self.corners.last()` and `self.corners.first`.
     pub closed: bool,
-}
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
 }

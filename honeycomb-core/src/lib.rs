@@ -16,36 +16,19 @@
 
 // ------ MODULE DECLARATIONS
 
-mod coords;
+mod cells;
 mod dart;
 mod embed;
-mod orbits;
+mod spatial_repr;
 mod twomap;
-mod vector;
-mod vertex;
 
 // ------ RE-EXPORTS
 
-pub use coords::{Coords2, CoordsError, CoordsFloat, FloatType};
-pub use dart::{DartData, DartIdentifier, NULL_DART_ID};
-pub use embed::{Face, FaceIdentifier, SewPolicy, UnsewPolicy, VertexIdentifier, VolumeIdentifier};
-pub use orbits::{Orbit2, OrbitPolicy};
+pub use cells::{
+    identifiers::*,
+    orbits::{Orbit2, OrbitPolicy},
+};
+pub use dart::DartData;
+pub use embed::{Face, SewPolicy, UnsewPolicy};
+pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
 pub use twomap::{CMap2, CMapError};
-pub use vector::Vector2;
-pub use vertex::Vertex2;
-
-// ------ IMPORTS
-
-// ------ CONTENT
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
-}
