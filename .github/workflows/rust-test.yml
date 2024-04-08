@@ -24,7 +24,7 @@ jobs:
       matrix:
         features:
           - single_precision
-          - benchmarking_utils
+          - utils
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
       matrix:
         features:
           - single_precision
-          - benchmarking_utils
+          - utils
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
