@@ -1399,7 +1399,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `memory_usage.py` script.
+    /// The output data can be visualized using the `plot.py` script.
     ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
@@ -1481,7 +1481,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `memory_usage.py` script.
+    /// The output data can be visualized using the `plot.py` script.
     ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
@@ -1564,7 +1564,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `memory_usage.py` script.
+    /// The output data can be visualized using the `plot.py` script.
     ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
