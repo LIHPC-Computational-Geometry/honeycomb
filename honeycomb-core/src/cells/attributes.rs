@@ -4,7 +4,7 @@
 
 // ------ IMPORTS
 
-use crate::OrbitPolicy;
+use crate::{CoordsFloat, OrbitPolicy, Vertex2};
 
 // ------ CONTENT
 
@@ -24,7 +24,7 @@ use crate::OrbitPolicy;
 /// #[derive(Copy, Clone)]
 /// pub struct Temperature {
 ///     pub val: f32
-/// };
+/// }
 ///
 /// impl AttributeLogic for Temperature {
 ///     fn merge(lhs: Self, rhs: Self) -> Self {
@@ -72,7 +72,7 @@ pub trait AttributeLogic: Sized {
 /// #[derive(Copy, Clone)]
 /// pub struct Temperature {
 ///     pub val: f32
-/// };
+/// }
 ///
 /// impl AttributeSupport for Temperature {
 ///     fn binds_to(&self) -> OrbitPolicy {
