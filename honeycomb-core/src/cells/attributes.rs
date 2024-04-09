@@ -41,10 +41,16 @@ use crate::OrbitPolicy;
 /// }
 /// ```
 pub trait AttributeLogic: Sized {
+    /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
     fn merge(lhs: Self, rhs: Self) -> Self;
 
+    /// Splitting routine, i.e. how to obtain the two attributes from a single one.
     fn split(lhs: Self) -> (Self, Self);
 
+    /// Fallback merging routine, i.e. how to obtain the new attribute value from potentially
+    /// undefined instances.
+    ///
+    /// The default implementation may panic if ...
     fn merge_undefined(lhs: Option<Self>) -> Self {
         lhs.unwrap() // todo: choose a policy for default behavior
     }
@@ -75,6 +81,10 @@ pub trait AttributeLogic: Sized {
 /// }
 /// ```
 pub trait AttributeSupport: Sized {
+    /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
+    /// which the attribute is associated.
+    ///
+    /// todo: decide if this should be turned into a const instead
     fn binds_to(&self) -> OrbitPolicy;
 }
 
