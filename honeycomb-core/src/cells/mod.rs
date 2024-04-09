@@ -1,8 +1,6 @@
-//! Module short description
+//! Cell modeling code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code related to cell & orbit modeling.
 
 // ------ MODULE DECLARATIONS
 

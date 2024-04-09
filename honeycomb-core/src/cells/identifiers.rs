@@ -1,8 +1,7 @@
-//! Module short description
+//! Custom identifier type aliases
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module is most likely temporary as ID types will be moved to where cell-specific
+//! attributes are defined.
 
 // ------ CONTENT
 

@@ -1,18 +1,22 @@
 # Honeycomb
 
+![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)
+![User Guide](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/doc.yml/badge.svg)
+
 Honeycomb aims to provide a safe, efficient and scalable implementation of
 combinatorial maps for meshing applications. More specifically, the goal is
 to converge towards a (or multiple) structure(s) adapted to algorithms
-exploiting GPUs and many-core architectures.
+exploiting GPU and many-core architectures.
 
-The current objective is to write a first implementation in Rust, to then
+The current objective is to ~write a first implementation in Rust, to then~
 improve the structure without having to deal with data races and similar
-issues, thanks to the language's guarantees.
+issues, thanks to the Rust's guarantees.
 
-## Usage
+# Usage
 
 The [user guide][UG] provides an overview of everything available in the
-project. It can be generated offline using **mdbook**:
+project as well as usage instructions. It can be generated offline using
+**mdbook**:
 
 ```shell
 # Serve the doc on a local server
@@ -32,15 +36,18 @@ kill $(ps -e | awk '/mdbook/ {print $1}')
 
 ### Rust
 
-The content of each member as well as instructions for usage are available in the [user guide][UGW].
+The content of each member is described in their respective Rust Doc as well as in the [user guide][UGW].
 
 - Basic structures are provided in the **honeycomb-core** crate ([Rust Doc][DOCHC]).
-- Utilities for tests and benchmarks are provided in the **honeycomb-utils** crate ([Rust Doc][DOCHU])
+- Benchmarks are grouped in the **honeycomb-benches** crate ([Rust Doc][DOCHB])
+- Examples are grouped in the **honeycomb-examples** crate ([Rust Doc][DOCHU])
 - A visualing tool is provided in the **honeycomb-render** crate ([Rust Doc][DOCHR]).
 
 [UGW]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/workspace.html
 
 [DOCHC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_core/
+
+[DOCHB]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_benches/
 
 [DOCHU]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_utils/
 

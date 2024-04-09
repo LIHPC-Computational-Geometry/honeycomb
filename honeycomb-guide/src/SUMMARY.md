@@ -6,9 +6,10 @@
 
 - [Workspace](./project-structure/workspace.md)
     - [honeycomb-core](./project-structure/honeycomb-core.md)
+    - [honeycomb-benches](./project-structure/honeycomb-benches.md)
+    - [honeycomb-examples](./project-structure/honeycomb-examples.md)
     - [honeycomb-guide](./project-structure/honeycomb-guide.md)
     - [honeycomb-render](./project-structure/honeycomb-render.md)
-    - [honeycomb-utils](./project-structure/honeycomb-utils.md)
 
 # Definitions
 

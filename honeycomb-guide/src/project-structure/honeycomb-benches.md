@@ -1,23 +1,18 @@
-# honeycomb-utils
+# honeycomb-benches
 
-[Documentation](../honeycomb_utils/)
+[Documentation](../honeycomb_benches/)
 
 --- 
 
-**honeycomb-utils** is a Rust crate that provides utility functions to
-the user (and developer) in order to write benchmarks and tests more
-easily. A number of benchmarks are already defined in this crate using the
-[criterion][CRITERION] and [iai-callgrind][IAI] crates. Additionally,
-one example is provided to illustrate the result of the different *size*
-methods on a given map, as well as a plotting script for the methods' output.
+**honeycomb-benches** is a Rust crate used to group benchmarking routines of
+the Rust code. Benchmarks are defined in this crate using the [criterion][CRITERION]
+and [iai-callgrind][IAI] crates.
 
 Note that the **iai-callgrind** benchmarks require their runner to be
 installed as well as Valgrind. Refer to the crate's [README][IAIRM] for
 detailed instructions.
 
 ## Usage
-
-### Benchmarks
 
 You can run benchmarks using the following commands:
 
@@ -46,25 +41,6 @@ A detailed explanation about the purpose of each benchmark is provided at the be
 of their respective source files. As a rule of thumb, the **iai-callgrind** benchmarks
 cover individual methods of the structure while **criterion** benchmarks cover higher
 level computations.
-
-### Examples
-
-You can run examples using the following command:
-
-```shell
-# Run a specific example
-cargo run --example <EXAMPLE>
-```
-
-The following examples are available:
-
-| Name           | Description                                                                                                                                 |
-|----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| `memory_usage` | Outputs the memory usage of a given map as three *csv* files. These files can be used to generate charts using the `memory_usage.py` script |
-
-### Scripts
-
-- `memory_usage.py` - **requires matplotlib** - Plots pie charts using a *csv* file produced by a size method of CMap2.
 
 [CRITERION]: https://github.com/bheisler/criterion.rs
 

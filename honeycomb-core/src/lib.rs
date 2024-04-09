@@ -11,8 +11,8 @@
 //!
 //! Optional features can be enabled when compiling this crate:
 //!
-//! - `benchmarking_utils` -- provides additionnal methods for benchmarking and debugging
-//! - `single_precision` -- uses `f32` instead of `f64` for coordinates representation
+//! - `utils` -- provides additionnal methods for benchmarking and debugging
+//! - `single_precision` -- uses `f32` instead of `f64` for coordinates representation in tests
 
 // ------ MODULE DECLARATIONS
 
@@ -22,6 +22,7 @@ mod embed;
 mod spatial_repr;
 mod twomap;
 
+#[cfg(feature = "utils")]
 pub mod utils;
 
 // ------ RE-EXPORTS

@@ -2,8 +2,8 @@
 //!
 //! This module contains code for the two main structures provided
 //! by the crate:
+//!
 //! - [CMap2], a 2D combinatorial map implementation
-//! -
 //!
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
@@ -43,6 +43,12 @@ const CMAP2_BETA: usize = 3;
 /// This documentation focuses on the implementation and its API.
 ///
 /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/definitions/cmaps
+///
+/// <div class="warning">
+///
+/// **This structure only implements `Clone` if the `utils` feature is enabled.**
+///
+/// </div>
 ///
 /// # Fields
 ///
@@ -246,7 +252,6 @@ const CMAP2_BETA: usize = 3;
 /// # Ok(())
 /// # }
 /// ```
-///
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh

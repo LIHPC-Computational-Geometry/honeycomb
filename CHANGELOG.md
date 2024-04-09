@@ -38,7 +38,7 @@
 <sup>**mdbook**-based user guide with information regarding usage & non-code-related
 aspects of the project</sup>
 
-- TBD
+- add pages for the new project members (#32)
 
 ### Refactor
 
@@ -59,6 +59,8 @@ aspects of the project</sup>
 #### honeycomb-guide
 
 - update all references to renamed types (#23)
+- remove `honeycomb-utils` page (#32)
+- update index, summary, core & render pages (#32)
 
 #### honeycomb-render
 
