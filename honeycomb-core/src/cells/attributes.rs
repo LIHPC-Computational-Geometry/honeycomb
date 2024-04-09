@@ -1,6 +1,7 @@
 //! Generic attributes implementation
 //!
-//! This module contains all code used to handle attribute genericity in the context
+//! This module contains all code used to handle attribute genericity in the context of mesh
+//! representation through combinatorial maps embedded data.
 
 // ------ IMPORTS
 
