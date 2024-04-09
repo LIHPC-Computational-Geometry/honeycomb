@@ -28,6 +28,7 @@ pub mod utils;
 // ------ RE-EXPORTS
 
 pub use cells::{
+    attributes::{AttributeLogic, AttributeSupport},
     identifiers::*,
     orbits::{Orbit2, OrbitPolicy},
 };
