@@ -1,10 +1,10 @@
 //! Generic attributes implementation
 //!
-//!
+//! This module contains all code used to handle attribute genericity in the context
 
 // ------ IMPORTS
 
-use crate::{CoordsFloat, OrbitPolicy, Vertex2};
+use crate::OrbitPolicy;
 
 // ------ CONTENT
 
@@ -52,7 +52,7 @@ pub trait AttributeLogic: Sized {
     ///
     /// The default implementation may panic if ...
     fn merge_undefined(lhs: Option<Self>) -> Self {
-        lhs.unwrap() // todo: choose a policy for default behavior
+        lhs.unwrap()
     }
 }
 
