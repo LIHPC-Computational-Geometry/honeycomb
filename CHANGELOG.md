@@ -23,6 +23,7 @@
 - remove the `Vertex2` type alias in favor of the new structure (#25)
 - add a new public module, `utils`, compiled when the `utils` feature is enabled (#31)
     - the module contains functions previously defined in the `honeycomb-utils` crate
+- add two new traits, `AttributeLogic` and `AttributeSupport`, for basic attribute genericity (#33)
 
 #### honeycomb-examples (new)
 
