@@ -4,6 +4,8 @@
 
 // ------ IMPORTS
 
+use crate::OrbitPolicy;
+
 // ------ CONTENT
 
 pub trait AttributeLogic: Sized {
@@ -14,6 +16,10 @@ pub trait AttributeLogic: Sized {
     fn merge_undefined(lhs: Option<Self>) -> Self {
         lhs.unwrap() // todo: choose a policy for default behavior
     }
+}
+
+pub trait AttributeSupport: Sized {
+    fn binds_to(&self) -> OrbitPolicy;
 }
 
 // ------ TESTS
