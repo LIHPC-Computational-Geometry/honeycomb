@@ -51,7 +51,14 @@ pub trait AttributeLogic: Sized {
     /// Fallback merging routine, i.e. how to obtain the new attribute value from potentially
     /// undefined instances.
     ///
-    /// The default implementation may panic if ...
+    /// The default implementation may panic if no attribute can be used to create a value. The
+    /// reason for that is as follows:
+    ///
+    /// This trait and its methods were designed with the (un)sewing operation in mind. Their
+    /// purpose is to simplify the code needed to propagate updates of attributes affected by the
+    /// (un)sewing operation. Considering this context, as well as the definition of (un)linking
+    /// operations, this panic seems reasonable: If the darts you are sewing have totally undefined
+    /// attributes, you should most likely be linking them instead of sewing.
     fn merge_undefined(lhs: Option<Self>) -> Self {
         lhs.unwrap()
     }
@@ -84,8 +91,6 @@ pub trait AttributeLogic: Sized {
 pub trait AttributeSupport: Sized {
     /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
-    ///
-    /// todo: decide if this should be turned into a const instead
     fn binds_to(&self) -> OrbitPolicy;
 }
 
