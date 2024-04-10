@@ -75,20 +75,20 @@ pub trait AttributeLogic: Sized {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::{AttributeSupport, OrbitPolicy};
+/// use honeycomb_core::{AttributeBind, OrbitPolicy};
 ///
 /// #[derive(Copy, Clone)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
 ///
-/// impl AttributeSupport for Temperature {
+/// impl AttributeBind for Temperature {
 ///     fn binds_to(&self) -> OrbitPolicy {
 ///         OrbitPolicy::Face
 ///     }
 /// }
 /// ```
-pub trait AttributeSupport: Sized {
+pub trait AttributeBind: Sized {
     /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to(&self) -> OrbitPolicy;
