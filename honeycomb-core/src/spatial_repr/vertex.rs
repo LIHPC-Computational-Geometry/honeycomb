@@ -236,7 +236,7 @@ impl<T: CoordsFloat> AttributeLogic for Vertex2<T> {
 ///
 /// - **BINDS TO 0-CELLS**
 impl<T: CoordsFloat> AttributeBind for Vertex2<T> {
-    fn binds_to(&self) -> OrbitPolicy {
+    fn binds_to<'a>() -> OrbitPolicy<'a> {
         OrbitPolicy::Vertex
     }
 }

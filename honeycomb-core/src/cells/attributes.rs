@@ -83,7 +83,7 @@ pub trait AttributeLogic: Sized {
 /// }
 ///
 /// impl AttributeBind for Temperature {
-///     fn binds_to(&self) -> OrbitPolicy {
+///     fn binds_to<'a>() -> OrbitPolicy<'a> {
 ///         OrbitPolicy::Face
 ///     }
 /// }
@@ -91,7 +91,7 @@ pub trait AttributeLogic: Sized {
 pub trait AttributeBind: Sized {
     /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
-    fn binds_to(&self) -> OrbitPolicy;
+    fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
 // ------ TESTS
