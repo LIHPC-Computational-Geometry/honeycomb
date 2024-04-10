@@ -22,7 +22,7 @@ use crate::OrbitPolicy;
 /// ```rust
 /// use honeycomb_core::AttributeUpdate;
 ///
-/// #[derive(Copy, Clone, Debug, PartialEq)]
+/// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
@@ -44,10 +44,10 @@ use crate::OrbitPolicy;
 /// let t1 = Temperature { val: 273.0 };
 /// let t2 = Temperature { val: 298.0 };
 ///
-/// let t_new = AttributeUpdate::merge(t1, t2);
+/// let t_new = AttributeUpdate::merge(t1, t2); // use AttributeUpdate::_
 /// let t_ref = Temperature { val: 285.5 };
 ///
-/// assert_eq!(Temperature::split(t_new), (t_ref, t_ref));
+/// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
 /// ```
 pub trait AttributeUpdate: Sized {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
@@ -85,7 +85,7 @@ pub trait AttributeUpdate: Sized {
 /// ```rust
 /// use honeycomb_core::{AttributeBind, FaceIdentifier, OrbitPolicy};
 ///
-/// #[derive(Copy, Clone)]
+/// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
@@ -105,16 +105,4 @@ pub trait AttributeBind: Sized {
     /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
-}
-
-// ------ TESTS
-
-#[cfg(test)]
-mod tests {
-    //use super::*;
-
-    #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
-    }
 }
