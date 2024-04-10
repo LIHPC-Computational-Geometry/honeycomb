@@ -22,7 +22,7 @@ use crate::OrbitPolicy;
 /// ```rust
 /// use honeycomb_core::AttributeUpdate;
 ///
-/// #[derive(Copy, Clone)]
+/// #[derive(Copy, Clone, Debug, PartialEq)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
@@ -47,7 +47,7 @@ use crate::OrbitPolicy;
 /// let t_new = AttributeUpdate::merge(t1, t2);
 /// let t_ref = Temperature { val: 285.5 };
 ///
-/// assert_eq!(AttributeUpdate::split(t_new), (t_ref, t_ref));
+/// assert_eq!(Temperature::split(t_new), (t_ref, t_ref));
 /// ```
 pub trait AttributeUpdate: Sized {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
