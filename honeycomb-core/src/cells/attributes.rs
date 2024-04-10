@@ -20,14 +20,14 @@ use crate::OrbitPolicy;
 /// like this:
 ///
 /// ```rust
-/// use honeycomb_core::AttributeLogic;
+/// use honeycomb_core::AttributeUpdate;
 ///
 /// #[derive(Copy, Clone)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
 ///
-/// impl AttributeLogic for Temperature {
+/// impl AttributeUpdate for Temperature {
 ///     fn merge(attr1: Self, attr2: Self) -> Self {
 ///         Temperature { val: (attr1.val + attr2.val) / 2.0 }
 ///     }
@@ -44,12 +44,12 @@ use crate::OrbitPolicy;
 /// let t1 = Temperature { val: 273.0 };
 /// let t2 = Temperature { val: 298.0 };
 ///
-/// let t_new = AttributeLogic::merge(t1, t2);
+/// let t_new = AttributeUpdate::merge(t1, t2);
 /// let t_ref = Temperature { val: 285.5 };
 ///
-/// assert_eq!(AttributeLogic::split(t_new), (t_ref, t_ref));
+/// assert_eq!(AttributeUpdate::split(t_new), (t_ref, t_ref));
 /// ```
-pub trait AttributeLogic: Sized {
+pub trait AttributeUpdate: Sized {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
     fn merge(attr1: Self, attr2: Self) -> Self;
 
@@ -79,7 +79,7 @@ pub trait AttributeLogic: Sized {
 ///
 /// # Example
 ///
-/// Using the same context as the for the [AttributeLogic] example, we can associate temperature
+/// Using the same context as the for the [AttributeUpdate] example, we can associate temperature
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust

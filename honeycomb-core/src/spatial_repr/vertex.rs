@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 use crate::{
-    AttributeBind, AttributeLogic, Coords2, CoordsFloat, OrbitPolicy, Vector2, VertexIdentifier,
+    AttributeBind, AttributeUpdate, Coords2, CoordsFloat, OrbitPolicy, Vector2, VertexIdentifier,
 };
 
 // ------ CONTENT
@@ -220,7 +220,7 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 /// - **SPLITTING POLICY** - The current vertex is duplicated.
 /// - **UNDEFINED ATTRIBUTES MERGING** - The new vertex takes the value of the one provided if it
 /// exists, otherwise the function panics.
-impl<T: CoordsFloat> AttributeLogic for Vertex2<T> {
+impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
     fn merge(attr1: Self, attr2: Self) -> Self {
         Self::average(&attr1, &attr2)
     }
