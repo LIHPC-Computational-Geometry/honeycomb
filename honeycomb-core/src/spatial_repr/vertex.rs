@@ -219,16 +219,16 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 /// - **UNDEFINED ATTRIBUTES MERGING** - The new vertex takes the value of the one provided if it
 /// exists, otherwise the function panics.
 impl<T: CoordsFloat> AttributeLogic for Vertex2<T> {
-    fn merge(lhs: Self, rhs: Self) -> Self {
-        Self::average(&lhs, &rhs)
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self::average(&attr1, &attr2)
     }
 
-    fn split(lhs: Self) -> (Self, Self) {
-        (lhs, lhs)
+    fn split(attr: Self) -> (Self, Self) {
+        (attr, attr)
     }
 
-    fn merge_undefined(lhs: Option<Self>) -> Self {
-        lhs.unwrap()
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap()
     }
 }
 

@@ -28,25 +28,25 @@ use crate::OrbitPolicy;
 /// }
 ///
 /// impl AttributeLogic for Temperature {
-///     fn merge(lhs: Self, rhs: Self) -> Self {
-///         Temperature { val: (lhs.val + rhs.val) / 2.0 }
+///     fn merge(attr1: Self, attr2: Self) -> Self {
+///         Temperature { val: (attr1.val + attr2.val) / 2.0 }
 ///     }
 ///
-///     fn split(lhs: Self) -> (Self, Self) {
-///         (lhs, lhs)
+///     fn split(attr: Self) -> (Self, Self) {
+///         (attr, attr)
 ///     }
 ///
-///     fn merge_undefined(lhs: Option<Self>) -> Self {
-///         lhs.unwrap_or(Temperature { val: 0.0 })
+///     fn merge_undefined(attr: Option<Self>) -> Self {
+///         attr.unwrap_or(Temperature { val: 0.0 })
 ///     }
 /// }
 /// ```
 pub trait AttributeLogic: Sized {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
-    fn merge(lhs: Self, rhs: Self) -> Self;
+    fn merge(attr1: Self, attr2: Self) -> Self;
 
     /// Splitting routine, i.e. how to obtain the two attributes from a single one.
-    fn split(lhs: Self) -> (Self, Self);
+    fn split(attr: Self) -> (Self, Self);
 
     /// Fallback merging routine, i.e. how to obtain the new attribute value from potentially
     /// undefined instances.
@@ -59,8 +59,8 @@ pub trait AttributeLogic: Sized {
     /// (un)sewing operation. Considering this context, as well as the definition of (un)linking
     /// operations, this panic seems reasonable: If the darts you are sewing have totally undefined
     /// attributes, you should most likely be linking them instead of sewing.
-    fn merge_undefined(lhs: Option<Self>) -> Self {
-        lhs.unwrap()
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap()
     }
 }
 
