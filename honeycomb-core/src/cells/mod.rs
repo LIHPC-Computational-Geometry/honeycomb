@@ -4,5 +4,6 @@
 
 // ------ MODULE DECLARATIONS
 
+pub mod attributes;
 pub mod identifiers;
 pub mod orbits;

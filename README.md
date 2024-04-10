@@ -1,7 +1,7 @@
 # Honeycomb
 
-![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)
-![User Guide](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/doc.yml/badge.svg)
+[![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
+[![User Guide Deployment](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/doc.yml/badge.svg)][UG]
 
 Honeycomb aims to provide a safe, efficient and scalable implementation of
 combinatorial maps for meshing applications. More specifically, the goal is

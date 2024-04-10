@@ -6,7 +6,9 @@
 
 // ------ IMPORTS
 
-use crate::{Coords2, CoordsFloat, Vector2};
+use crate::{
+    AttributeBind, AttributeUpdate, Coords2, CoordsFloat, OrbitPolicy, Vector2, VertexIdentifier,
+};
 
 // ------ CONTENT
 
@@ -209,6 +211,37 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 
     fn sub(self, rhs: Vertex2<T>) -> Self::Output {
         Vector2::from(self.into_inner() - rhs.into_inner())
+    }
+}
+
+/// Attribute logic definitions
+///
+/// - **MERGING POLICY** - The new vertex is placed at the midpoint between the two existing ones.
+/// - **SPLITTING POLICY** - The current vertex is duplicated.
+/// - **UNDEFINED ATTRIBUTES MERGING** - The new vertex takes the value of the one provided if it
+/// exists, otherwise the function panics.
+impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self::average(&attr1, &attr2)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        (attr, attr)
+    }
+
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap()
+    }
+}
+
+/// Attribute support definitions
+///
+/// - **BINDS TO 0-CELLS**
+impl<T: CoordsFloat> AttributeBind for Vertex2<T> {
+    type IdentifierType = VertexIdentifier;
+
+    fn binds_to<'a>() -> OrbitPolicy<'a> {
+        OrbitPolicy::Vertex
     }
 }
 
