@@ -6,6 +6,7 @@
 // ------ IMPORTS
 
 use crate::OrbitPolicy;
+use std::fmt::Debug;
 
 // ------ CONTENT
 
@@ -100,7 +101,7 @@ pub trait AttributeUpdate: Sized {
 /// ```
 pub trait AttributeBind: Sized {
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType;
+    type IdentifierType: Into<usize>;
 
     /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
