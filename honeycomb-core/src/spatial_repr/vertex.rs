@@ -6,7 +6,9 @@
 
 // ------ IMPORTS
 
-use crate::{AttributeBind, AttributeLogic, Coords2, CoordsFloat, OrbitPolicy, Vector2};
+use crate::{
+    AttributeBind, AttributeLogic, Coords2, CoordsFloat, OrbitPolicy, Vector2, VertexIdentifier,
+};
 
 // ------ CONTENT
 
@@ -236,6 +238,8 @@ impl<T: CoordsFloat> AttributeLogic for Vertex2<T> {
 ///
 /// - **BINDS TO 0-CELLS**
 impl<T: CoordsFloat> AttributeBind for Vertex2<T> {
+    type IdentifierType = VertexIdentifier;
+
     fn binds_to<'a>() -> OrbitPolicy<'a> {
         OrbitPolicy::Vertex
     }
