@@ -40,6 +40,14 @@ use crate::OrbitPolicy;
 ///         attr.unwrap_or(Temperature { val: 0.0 })
 ///     }
 /// }
+///
+/// let t1 = Temperature { val: 273.0 };
+/// let t2 = Temperature { val: 298.0 };
+///
+/// let t_new = AttributeLogic::merge(t1, t2);
+/// let t_ref = Temperature { val: 285.5 };
+///
+/// assert_eq!(AttributeLogic::split(t_new), (t_ref, t_ref));
 /// ```
 pub trait AttributeLogic: Sized {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
@@ -75,7 +83,7 @@ pub trait AttributeLogic: Sized {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::{AttributeBind, OrbitPolicy, VertexIdentifier};
+/// use honeycomb_core::{AttributeBind, FaceIdentifier, OrbitPolicy};
 ///
 /// #[derive(Copy, Clone)]
 /// pub struct Temperature {
@@ -83,7 +91,7 @@ pub trait AttributeLogic: Sized {
 /// }
 ///
 /// impl AttributeBind for Temperature {
-///     type IdentifierType = VertexIdentifier;
+///     type IdentifierType = FaceIdentifier;
 ///
 ///     fn binds_to<'a>() -> OrbitPolicy<'a> {
 ///         OrbitPolicy::Face
