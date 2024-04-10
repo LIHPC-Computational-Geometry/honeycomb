@@ -6,7 +6,6 @@
 // ------ IMPORTS
 
 use crate::OrbitPolicy;
-use std::fmt::Debug;
 
 // ------ CONTENT
 
