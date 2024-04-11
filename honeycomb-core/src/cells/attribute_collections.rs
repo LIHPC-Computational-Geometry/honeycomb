@@ -179,4 +179,64 @@ mod tests {
         storage.set(3, Temperature::from(280.0));
         assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
     }
+
+    #[test]
+    fn sparse_vec_get_replace_get() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
+        storage.replace(3, Temperature::from(280.0));
+        assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn sparse_vec_get_insert_get() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
+        storage.insert(3, Temperature::from(280.0)); // panic
+    }
+
+    #[test]
+    fn sparse_vec_remove() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    }
+
+    #[test]
+    fn sparse_vec_remove_remove() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert!(storage.remove(3).is_none());
+    }
+
+    #[test]
+    fn sparse_vec_remove_get() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert!(storage.get(3).is_none());
+    }
+
+    #[test]
+    fn sparse_vec_remove_set() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.set(3, Temperature::from(280.0));
+        assert!(storage.get(3).is_some());
+    }
+
+    #[test]
+    fn sparse_vec_remove_insert() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.insert(3, Temperature::from(280.0));
+        assert!(storage.get(3).is_some());
+    }
+
+    #[test]
+    #[should_panic]
+    fn sparse_vec_remove_replace() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.replace(3, Temperature::from(280.0)); // panic
+    }
 }
