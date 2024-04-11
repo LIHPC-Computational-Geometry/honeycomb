@@ -241,7 +241,7 @@ mod tests {
     }
 
     macro_rules! generate_compact {
-        ($name: ident, $stype: ident) => {
+        ($name: ident) => {
             let mut $name = AttrCompactVec::<Temperature>::new(10, 10);
             $name.insert(0, Temperature::from(273.0));
             $name.insert(1, Temperature::from(275.0));
@@ -254,5 +254,73 @@ mod tests {
             $name.insert(8, Temperature::from(289.0));
             $name.insert(9, Temperature::from(291.0));
         };
+    }
+
+    #[test]
+    fn compact_vec_get_set_get() {
+        generate_compact!(storage);
+        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
+        storage.set(3, Temperature::from(280.0));
+        assert_eq!(storage.get(3), Some(&Temperature::from(280.0)));
+    }
+
+    #[test]
+    fn compact_vec_get_replace_get() {
+        generate_compact!(storage);
+        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
+        storage.replace(3, Temperature::from(280.0));
+        assert_eq!(storage.get(3), Some(&Temperature::from(280.0)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn compact_vec_get_insert_get() {
+        generate_compact!(storage);
+        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
+        storage.insert(3, Temperature::from(280.0)); // panic
+    }
+
+    #[test]
+    fn compact_vec_remove() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    }
+
+    #[test]
+    fn compact_vec_remove_remove() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert!(storage.remove(3).is_none());
+    }
+
+    #[test]
+    fn compact_vec_remove_get() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert!(storage.get(3).is_none());
+    }
+
+    #[test]
+    fn compact_vec_remove_set() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.set(3, Temperature::from(280.0));
+        assert!(storage.get(3).is_some());
+    }
+
+    #[test]
+    fn compact_vec_remove_insert() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.insert(3, Temperature::from(280.0));
+        assert!(storage.get(3).is_some());
+    }
+
+    #[test]
+    #[should_panic]
+    fn compact_vec_remove_replace() {
+        generate_compact!(storage);
+        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        storage.replace(3, Temperature::from(280.0)); // panic
     }
 }
