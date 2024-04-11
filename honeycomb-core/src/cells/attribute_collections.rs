@@ -16,9 +16,9 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 }
 
 impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
-    pub fn new(n_attributes: usize) -> Self {
+    pub fn new(n_ids: usize) -> Self {
         Self {
-            data: (0..n_attributes).map(|_| None).collect(),
+            data: (0..n_ids).map(|_| None).collect(),
         }
     }
 
@@ -122,7 +122,7 @@ mod tests {
     use super::*;
     use crate::{FaceIdentifier, OrbitPolicy};
 
-    #[derive(Clone, Copy, Debug, PartialEq)]
+    #[derive(Clone, Copy, Debug, Default, PartialEq)]
     pub struct Temperature {
         pub val: f32,
     }
@@ -156,9 +156,9 @@ mod tests {
         }
     }
 
-    macro_rules! generate_storage {
+    macro_rules! generate_sparse {
         ($name: ident, $stype: ident) => {
-            let mut $name = $stype::<Temperature>::new(10);
+            let mut $name = AttrSparseVec::<Temperature>::new(10);
             $name.insert(0, Temperature::from(273.0));
             $name.insert(1, Temperature::from(275.0));
             $name.insert(2, Temperature::from(277.0));
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_get_set_get() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.set(3, Temperature::from(280.0));
         assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_get_replace_get() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0));
         assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
@@ -191,34 +191,34 @@ mod tests {
     #[test]
     #[should_panic]
     fn sparse_vec_get_insert_get() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
     }
 
     #[test]
     fn sparse_vec_remove() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
     }
 
     #[test]
     fn sparse_vec_remove_remove() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         assert!(storage.remove(3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_get() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         assert!(storage.get(3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_set() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.set(3, Temperature::from(280.0));
         assert!(storage.get(3).is_some());
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_remove_insert() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0));
         assert!(storage.get(3).is_some());
@@ -235,7 +235,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn sparse_vec_remove_replace() {
-        generate_storage!(storage, AttrSparseVec);
+        generate_sparse!(storage, AttrSparseVec);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)); // panic
     }
