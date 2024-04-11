@@ -150,8 +150,33 @@ mod tests {
         }
     }
 
+    impl From<f32> for Temperature {
+        fn from(val: f32) -> Self {
+            Self { val }
+        }
+    }
+
+    macro_rules! generate_storage {
+        ($name: ident, $stype: ident) => {
+            let mut $name = $stype::<Temperature>::new(10);
+            $name.insert(0, Temperature::from(273.0));
+            $name.insert(1, Temperature::from(275.0));
+            $name.insert(2, Temperature::from(277.0));
+            $name.insert(3, Temperature::from(279.0));
+            $name.insert(4, Temperature::from(281.0));
+            $name.insert(5, Temperature::from(283.0));
+            $name.insert(6, Temperature::from(285.0));
+            $name.insert(7, Temperature::from(287.0));
+            $name.insert(8, Temperature::from(289.0));
+            $name.insert(9, Temperature::from(291.0));
+        };
+    }
+
     #[test]
-    fn some_test() {
-        assert_eq!(1, 1);
+    fn sparse_vec_get_set_get() {
+        generate_storage!(storage, AttrSparseVec);
+        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
+        storage.set(3, Temperature::from(280.0));
+        assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
     }
 }
