@@ -1,8 +1,7 @@
-//! Module short description
+//! Attribute storage structures
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code used to describe custom collections used to store attributes
+//! (see [AttributeBind], [AttributeUpdate]).
 
 // ------ IMPORTS
 
@@ -11,7 +10,7 @@ use num::ToPrimitive;
 
 // ------ CONTENT
 
-/// Custom storage structure for [attributes]
+/// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using a vector of `Option<T>` items.
 /// This means that valid attributes value may be separated by an arbitrary number of `None`.
@@ -169,7 +168,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 }
 
-/// Custom storage structure for [attributes]
+/// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using two internal collections:
 /// - a vector of `Option<usize>`, effectively acting as a map from identifiers to internal indices
