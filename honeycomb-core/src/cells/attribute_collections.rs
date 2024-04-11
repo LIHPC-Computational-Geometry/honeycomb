@@ -11,6 +11,22 @@ use num::ToPrimitive;
 
 // ------ CONTENT
 
+/// Custom storage structure for [attributes]
+///
+/// This structured is used to store user-defined attributes using a vector of `Option<T>` items.
+/// This means that valid attributes value may be separated by an arbitrary number of `None`.
+///
+/// This implementation should favor access logic over locality of reference.
+///
+/// # Generics
+///
+/// - `T: AttributeBind + AttributeUpdate` -- Type of the stored attributes.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
@@ -52,7 +68,25 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 }
 
-pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate> {
+/// Custom storage structure for [attributes]
+///
+/// This structured is used to store user-defined attributes using two internal collections:
+/// - a vector of `Option<usize>`, effectively acting as a map from identifiers to internal indices
+/// - a vector of `T` items, indexed by values of the first vector
+///
+/// This implementation should favor locality of reference over access logic.
+///
+/// # Generics
+///
+/// - `T: AttributeBind + AttributeUpdate + Default` -- Type of the stored attributes. The
+/// `Default` implementation is required in order to create dummy values for unused slots.
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
     unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
     data: Vec<T>,
