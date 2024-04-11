@@ -23,9 +23,8 @@ use num::ToPrimitive;
 ///
 /// # Example
 ///
-/// ```text
+/// todo
 ///
-/// ```
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
@@ -183,9 +182,8 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 ///
 /// # Example
 ///
-/// ```text
+/// todo
 ///
-/// ```
 pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
     unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
@@ -195,9 +193,9 @@ pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
 impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
     pub fn new(n_ids: usize, n_attributes: usize) -> Self {
         Self {
-            unused_data_slots: (0..n_attributes).collect(),
+            unused_data_slots: Vec::new(),
             index_map: vec![None; n_ids],
-            data: (0..n_attributes).map(|_| T::default()).collect(),
+            data: Vec::new(),
         }
     }
 
