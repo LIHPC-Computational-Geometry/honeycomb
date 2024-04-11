@@ -74,8 +74,13 @@ impl<T: AttributeBind + AttributeUpdate> AttributeCompactVec<T> {
     pub fn insert(&mut self, index: T::IdentifierType, val: T) {
         let idx = &mut self.index_map[index.to_usize().unwrap()];
         assert!(idx.is_none());
-        self.data.push(val);
-        *idx = Some(self.data.len());
+        *idx = if let Some(unused_idx) = self.unused_data_slots.pop() {
+            self.data[unused_idx] = val;
+            Some(unused_idx)
+        } else {
+            self.data.push(val);
+            Some(self.data.len())
+        };
     }
 
     pub fn replace(&mut self, index: T::IdentifierType, val: T) {
