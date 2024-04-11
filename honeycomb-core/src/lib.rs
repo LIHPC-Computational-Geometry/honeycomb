@@ -28,6 +28,7 @@ pub mod utils;
 // ------ RE-EXPORTS
 
 pub use cells::{
+    attribute_collections::{AttributeCompactVec, AttributeSparseVec},
     attributes::{AttributeBind, AttributeUpdate},
     identifiers::*,
     orbits::{Orbit2, OrbitPolicy},
