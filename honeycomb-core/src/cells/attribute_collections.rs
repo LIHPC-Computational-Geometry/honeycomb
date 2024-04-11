@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 use crate::{AttributeBind, AttributeUpdate};
-use std::ops::{Index, IndexMut};
+use num::ToPrimitive;
 
 // ------ CONTENT
 
@@ -20,6 +20,23 @@ impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
         Self {
             data: (0..n_attributes).map(|_| None).collect(),
         }
+    }
+
+    pub fn get(&self, index: T::IdentifierType) -> &Option<T> {
+        &self.data[index.to_usize().unwrap()]
+    }
+
+    pub fn get_mut(&mut self, index: T::IdentifierType) -> &mut Option<T> {
+        &mut self.data[index.to_usize().unwrap()]
+    }
+
+    pub fn set(&mut self, index: T::IdentifierType, val: T) {
+        self.data[index.to_usize().unwrap()] = Some(val);
+    }
+
+    pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
+        self.data.push(None);
+        self.data.swap_remove(index.to_usize().unwrap())
     }
 }
 
