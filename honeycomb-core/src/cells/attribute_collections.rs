@@ -63,7 +63,7 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
         Self {
             unused_data_slots: (0..n_attributes).collect(),
             index_map: vec![None; n_ids],
-            data: Vec::with_capacity(n_attributes),
+            data: (0..n_attributes).map(|_| T::default()).collect(),
         }
     }
 
