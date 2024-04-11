@@ -157,7 +157,7 @@ mod tests {
     }
 
     macro_rules! generate_sparse {
-        ($name: ident, $stype: ident) => {
+        ($name: ident) => {
             let mut $name = AttrSparseVec::<Temperature>::new(10);
             $name.insert(0, Temperature::from(273.0));
             $name.insert(1, Temperature::from(275.0));
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_get_set_get() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.set(3, Temperature::from(280.0));
         assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_get_replace_get() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0));
         assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
@@ -191,34 +191,34 @@ mod tests {
     #[test]
     #[should_panic]
     fn sparse_vec_get_insert_get() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
     }
 
     #[test]
     fn sparse_vec_remove() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
     }
 
     #[test]
     fn sparse_vec_remove_remove() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         assert!(storage.remove(3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_get() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         assert!(storage.get(3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_set() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.set(3, Temperature::from(280.0));
         assert!(storage.get(3).is_some());
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn sparse_vec_remove_insert() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0));
         assert!(storage.get(3).is_some());
@@ -235,8 +235,24 @@ mod tests {
     #[test]
     #[should_panic]
     fn sparse_vec_remove_replace() {
-        generate_sparse!(storage, AttrSparseVec);
+        generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)); // panic
+    }
+
+    macro_rules! generate_compact {
+        ($name: ident, $stype: ident) => {
+            let mut $name = AttrCompactVec::<Temperature>::new(10, 10);
+            $name.insert(0, Temperature::from(273.0));
+            $name.insert(1, Temperature::from(275.0));
+            $name.insert(2, Temperature::from(277.0));
+            $name.insert(3, Temperature::from(279.0));
+            $name.insert(4, Temperature::from(281.0));
+            $name.insert(5, Temperature::from(283.0));
+            $name.insert(6, Temperature::from(285.0));
+            $name.insert(7, Temperature::from(287.0));
+            $name.insert(8, Temperature::from(289.0));
+            $name.insert(9, Temperature::from(291.0));
+        };
     }
 }
