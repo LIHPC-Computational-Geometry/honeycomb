@@ -60,6 +60,31 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttributeCompactVec<T> {
             data: (0..n_attributes).map(|_| T::default()).collect(),
         }
     }
+
+    pub fn get(&self, index: T::IdentifierType) -> Option<&T> {
+        self.index_map[index.to_usize().unwrap()].map(|idx| &self.data[idx])
+    }
+
+    pub fn get_mut(&mut self, index: T::IdentifierType) -> Option<&mut T> {
+        self.index_map[index.to_usize().unwrap()].map(|idx| &mut self.data[idx])
+    }
+
+    pub fn insert(&mut self, index: T::IdentifierType, val: T) {
+        let idx = &mut self.index_map[index.to_usize().unwrap()];
+        assert!(idx.is_none());
+        self.data.push(val);
+        *idx = Some(self.data.len());
+    }
+
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
+        let idx = &self.index_map[index.to_usize().unwrap()];
+        assert!(idx.is_some());
+        self.data[idx.unwrap()] = val;
+    }
+
+    pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
+        todo!()
+    }
 }
 
 // ------ TESTS
