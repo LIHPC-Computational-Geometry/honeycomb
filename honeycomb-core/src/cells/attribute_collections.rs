@@ -209,13 +209,16 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
 
     pub fn set(&mut self, index: T::IdentifierType, val: T) {
         if let Some(idx) = self.index_map[index.to_usize().unwrap()] {
+            // internal index is defined => there should be associated data
             self.data[idx] = val;
         } else if let Some(unused_idx) = self.unused_data_slots.pop() {
+            // internal index is undefined => a) there is an unused internal slot
             self.data[unused_idx] = val;
             self.index_map[index.to_usize().unwrap()] = Some(unused_idx);
         } else {
+            // internal index is undefined => b) there is no unused internal slot
             self.data.push(val);
-            self.index_map[index.to_usize().unwrap()] = Some(self.data.len());
+            self.index_map[index.to_usize().unwrap()] = Some(self.data.len() - 1);
         }
     }
 
@@ -227,7 +230,7 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
             Some(unused_idx)
         } else {
             self.data.push(val);
-            Some(self.data.len())
+            Some(self.data.len() - 1)
         };
     }
 
