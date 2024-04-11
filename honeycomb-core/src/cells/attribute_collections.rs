@@ -32,36 +32,137 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 }
 
 impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
+    /// Constructor
+    ///
+    /// # Arguments
+    ///
+    /// - `n_ids: usize` -- Upper bound of IDs used to index the attribute's values (in practice,
+    /// the number of darts).
+    ///
+    /// # Return
+    ///
+    /// Return a [AttrSparseVec] object full of `None`.
+    ///
     pub fn new(n_ids: usize) -> Self {
         Self {
             data: (0..n_ids).map(|_| None).collect(),
         }
     }
 
+    /// Getter
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a reference to the value indexed by `index`.
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn get(&self, index: T::IdentifierType) -> &Option<T> {
         &self.data[index.to_usize().unwrap()]
     }
 
+    /// Getter
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a mutable reference to the value indexed by `index`.
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn get_mut(&mut self, index: T::IdentifierType) -> &mut Option<T> {
         &mut self.data[index.to_usize().unwrap()]
     }
 
+    /// Setter
+    ///
+    /// Set the value of an element at a given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    /// - `val: T` -- Attribute value.
+    ///
+    /// # Panic
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn set(&mut self, index: T::IdentifierType, val: T) {
         self.data[index.to_usize().unwrap()] = Some(val);
     }
 
+    /// Setter
+    ///
+    /// Insert a value at a given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    /// - `val: T` -- Attribute value.
+    ///
+    /// # Panic
+    ///
+    /// The method may panic if:
+    /// - **there is already a value associated to the specified index**
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn insert(&mut self, index: T::IdentifierType, val: T) {
         let tmp = &mut self.data[index.to_usize().unwrap()];
         assert!(tmp.is_none());
         *tmp = Some(val);
     }
 
+    /// Setter
+    ///
+    /// Replace the value of an element at a given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    /// - `val: T` -- Attribute value.
+    ///
+    /// # Panic
+    ///
+    /// The method may panic if:
+    /// - **there is no value associated to the specified index**
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn replace(&mut self, index: T::IdentifierType, val: T) {
         let tmp = &mut self.data[index.to_usize().unwrap()];
         assert!(tmp.is_some());
         *tmp = Some(val);
     }
 
+    /// Remove an item from the storage and return it
+    ///
+    /// # Arguments
+    ///
+    /// - `index: T::IdentifierType` -- Cell index.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the item associated to the specified index. Note that the method will not panic if
+    /// there was not one, it will simply return `None`.
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    ///
     pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
         self.data.push(None);
         self.data.swap_remove(index.to_usize().unwrap())
