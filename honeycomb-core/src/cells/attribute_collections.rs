@@ -54,7 +54,7 @@ pub struct AttributeCompactVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate> AttributeCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Default> AttributeCompactVec<T> {
     pub fn new(n_ids: usize, n_attributes: usize) -> Self {
         Self {
             unused_data_slots: (0..n_attributes).collect(),
@@ -90,7 +90,13 @@ impl<T: AttributeBind + AttributeUpdate> AttributeCompactVec<T> {
     }
 
     pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
-        todo!()
+        self.index_map.push(None);
+        if let Some(tmp) = self.index_map.swap_remove(index.to_usize().unwrap()) {
+            self.unused_data_slots.push(tmp);
+            self.data.push(T::default());
+            return Some(self.data.swap_remove(tmp));
+        };
+        None
     }
 }
 
