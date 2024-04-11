@@ -11,11 +11,11 @@ use num::ToPrimitive;
 
 // ------ CONTENT
 
-pub struct AttributeSparseVec<T: AttributeBind + AttributeUpdate> {
+pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
 
-impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
+impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     pub fn new(n_attributes: usize) -> Self {
         Self {
             data: (0..n_attributes).map(|_| None).collect(),
@@ -48,13 +48,13 @@ impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
     }
 }
 
-pub struct AttributeCompactVec<T: AttributeBind + AttributeUpdate> {
+pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate> {
     unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate + Default> AttributeCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
     pub fn new(n_ids: usize, n_attributes: usize) -> Self {
         Self {
             unused_data_slots: (0..n_attributes).collect(),
