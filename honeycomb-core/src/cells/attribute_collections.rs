@@ -49,15 +49,17 @@ impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
 }
 
 pub struct AttributeCompactVec<T: AttributeBind + AttributeUpdate> {
+    unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate + Default> AttributeCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate> AttributeCompactVec<T> {
     pub fn new(n_ids: usize, n_attributes: usize) -> Self {
         Self {
+            unused_data_slots: (0..n_attributes).collect(),
             index_map: vec![None; n_ids],
-            data: (0..n_attributes).map(|_| T::default()).collect(),
+            data: Vec::with_capacity(n_attributes),
         }
     }
 
