@@ -30,8 +30,16 @@ impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
         &mut self.data[index.to_usize().unwrap()]
     }
 
-    pub fn set(&mut self, index: T::IdentifierType, val: T) {
-        self.data[index.to_usize().unwrap()] = Some(val);
+    pub fn insert(&mut self, index: T::IdentifierType, val: T) {
+        let tmp = &mut self.data[index.to_usize().unwrap()];
+        assert!(tmp.is_none());
+        *tmp = Some(val);
+    }
+
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
+        let tmp = &mut self.data[index.to_usize().unwrap()];
+        assert!(tmp.is_some());
+        *tmp = Some(val);
     }
 
     pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
