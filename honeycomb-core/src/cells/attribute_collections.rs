@@ -16,9 +16,9 @@ pub struct AttributeSparseVec<T: AttributeBind + AttributeUpdate> {
 }
 
 impl<T: AttributeBind + AttributeUpdate> AttributeSparseVec<T> {
-    pub fn new(length: usize) -> Self {
+    pub fn new(n_attributes: usize) -> Self {
         Self {
-            data: (0..length).map(|_| None).collect(),
+            data: (0..n_attributes).map(|_| None).collect(),
         }
     }
 }
@@ -28,11 +28,11 @@ pub struct AttributeCompactVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate> AttributeCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Default> AttributeCompactVec<T> {
     pub fn new(n_ids: usize, n_attributes: usize) -> Self {
         Self {
             index_map: vec![None; n_ids],
-            data: Vec::with_capacity(n_attributes),
+            data: (0..n_attributes).map(|_| T::default()).collect(),
         }
     }
 }
