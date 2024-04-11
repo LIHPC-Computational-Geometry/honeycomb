@@ -119,7 +119,36 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
+    use crate::{FaceIdentifier, OrbitPolicy};
+
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct Temperature {
+        pub val: f32,
+    }
+
+    impl AttributeUpdate for Temperature {
+        fn merge(attr1: Self, attr2: Self) -> Self {
+            Temperature {
+                val: (attr1.val + attr2.val) / 2.0,
+            }
+        }
+
+        fn split(attr: Self) -> (Self, Self) {
+            (attr, attr)
+        }
+
+        fn merge_undefined(attr: Option<Self>) -> Self {
+            attr.unwrap_or(Temperature { val: 0.0 })
+        }
+    }
+
+    impl AttributeBind for Temperature {
+        type IdentifierType = FaceIdentifier;
+        fn binds_to<'a>() -> OrbitPolicy<'a> {
+            OrbitPolicy::Face
+        }
+    }
 
     #[test]
     fn some_test() {
