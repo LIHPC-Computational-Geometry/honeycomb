@@ -229,10 +229,10 @@ mod tests {
         map.set_betas(4, [6, 5, 2]);
         map.set_betas(5, [4, 6, 0]);
         map.set_betas(6, [5, 4, 0]);
-        map.set_vertex(1, (0.0, 0.0)).unwrap();
-        map.set_vertex(2, (1.0, 0.0)).unwrap();
-        map.set_vertex(6, (1.0, 1.0)).unwrap();
-        map.set_vertex(3, (0.0, 1.0)).unwrap();
+        assert!(map.replace_vertex(1, (0.0, 0.0)).is_err());
+        assert!(map.replace_vertex(2, (1.0, 0.0)).is_err());
+        assert!(map.replace_vertex(6, (1.0, 1.0)).is_err());
+        assert!(map.replace_vertex(3, (0.0, 1.0)).is_err());
         map
     }
 

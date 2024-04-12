@@ -32,7 +32,7 @@ use honeycomb_core::{
 fn offset(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
     (0..map.n_vertices().0).for_each(|vertex_id| {
         let current_value = map.vertex(vertex_id as DartIdentifier);
-        let _ = map.set_vertex(
+        let _ = map.replace_vertex(
             vertex_id as VertexIdentifier,
             *current_value + offsets[vertex_id],
         );
@@ -55,7 +55,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
     });
     inner.iter().for_each(|vertex_id| {
         let current_value = map.vertex(*vertex_id);
-        let _ = map.set_vertex(*vertex_id, *current_value + offsets[*vertex_id as usize]);
+        let _ = map.replace_vertex(*vertex_id, *current_value + offsets[*vertex_id as usize]);
     });
     black_box(&mut map);
 }
