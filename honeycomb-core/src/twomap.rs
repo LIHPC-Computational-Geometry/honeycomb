@@ -1026,10 +1026,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                 (None, None) => Vertex2::merge_undefined(None),
             };
-
+            // use b2lhs_vid as the index for the new vertex
             self.vertices.insert(b2lhs_vid, new_vertex);
             self.set_vertexid(rhs_dart_id, b2lhs_vid);
-            }
         }
     }
 
@@ -1078,100 +1077,102 @@ impl<T: CoordsFloat> CMap2<T> {
         // --- geometrical update
 
         // depending on existing connections, different things are required
-        let l_is1free = self.is_i_free::<1>(lhs_dart_id);
-        let r_is1free = self.is_i_free::<1>(rhs_dart_id);
-        match (l_is1free, r_is1free) {
+        let b1lid = self.beta::<1>(lhs_dart_id);
+        let b1rid = self.beta::<1>(rhs_dart_id);
+        match (b1lid == NULL_DART_ID, b1rid == NULL_DART_ID) {
             (true, true) => {} // do nothing
             (true, false) => {
-                let b1rid = self.beta::<1>(rhs_dart_id);
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, lhs_dart_id, b1rid)
-                    }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1rid, lhs_dart_id)
-                    }
-                    SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
-
-                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
-                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                        stretch!(self, b1rid, new_id);
-                        stretch!(self, lhs_dart_id, new_id);
-                    }
-                }
+                let lhs_vid = self.cells(lhs_dart_id).vertex_id;
+                let b1rhs_vid = self.cells(b1rid).vertex_id;
+                let tmp = (
+                    self.vertices.remove(lhs_vid),
+                    self.vertices.remove(b1rhs_vid),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // use lhs_vid as the index for the new vertex
+                self.vertices.insert(lhs_vid, new_vertex);
+                self.set_vertexid(rhs_dart_id, lhs_vid);
             }
             (false, true) => {
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, rhs_dart_id, b1lid)
-                    }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1lid, rhs_dart_id)
-                    }
-                    SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-
-                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
-                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                        stretch!(self, b1lid, new_id);
-                        stretch!(self, rhs_dart_id, new_id);
-                    }
-                }
+                let b1lhs_vid = self.cells(b1lid).vertex_id;
+                let rhs_vid = self.cells(rhs_dart_id).vertex_id;
+                let tmp = (
+                    self.vertices.remove(b1lhs_vid),
+                    self.vertices.remove(rhs_vid),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // use b1lhs_vid as the index for the new vertex
+                self.vertices.insert(b1lhs_vid, new_vertex);
+                self.set_vertexid(rhs_dart_id, b1lhs_vid);
             }
             (false, false) => {
                 // ensure orientation consistency
 
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                let b1rid = self.beta::<1>(rhs_dart_id);
-
-                let b1_lvertex = self.vertices[self.cells(b1lid).vertex_id as usize];
-                let lvertex = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
-                let b1_rvertex = self.vertices[self.cells(b1rid).vertex_id as usize];
-                let rvertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-
-                let lhs_vec = b1_lvertex - lvertex;
-                let rhs_vec = b1_rvertex - rvertex;
-
-                // dot product should be negative if the two darts have opposite direction
-                // we could also put restriction on the angle made by the two darts to prevent
-                // drastic deformation
-                assert!(
-                    lhs_vec.dot(&rhs_vec) < T::zero(),
-                    "Dart {} and {} do not have consistent orientation for 2-sewing",
-                    lhs_dart_id,
-                    rhs_dart_id
+                let b1lhs_vid = self.cells(b1lid).vertex_id;
+                let lhs_vid = self.cells(lhs_dart_id).vertex_id;
+                let b1rhs_vid = self.cells(b1rid).vertex_id;
+                let rhs_vid = self.cells(rhs_dart_id).vertex_id;
+                let tmp = (
+                    self.vertices.remove(b1lhs_vid),
+                    self.vertices.remove(lhs_vid),
+                    self.vertices.remove(b1rhs_vid),
+                    self.vertices.remove(rhs_vid),
                 );
 
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, rhs_dart_id, b1lid);
-                        stretch!(self, b1rid, lhs_dart_id);
+                match tmp {
+                    #[rustfmt::skip]
+                    (
+                        Some(b1l_vertex),
+                        Some(l_vertex),
+                        Some(b1r_vertex),
+                        Some(r_vertex)
+                    ) => {
+                        let lhs_vector = b1l_vertex - l_vertex;
+                        let rhs_vector = b1r_vertex - r_vertex;
+                        // dot product should be negative if the two darts have opposite direction
+                        // we could also put restriction on the angle made by the two darts to prevent
+                        // drastic deformation
+                        assert!(
+                            lhs_vector.dot(&rhs_vector) < T::zero(),
+                            "Dart {} and {} do not have consistent orientation for 2-sewing",
+                            lhs_dart_id,
+                            rhs_dart_id
+                        );
                     }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1lid, rhs_dart_id);
-                        stretch!(self, lhs_dart_id, b1rid);
-                    }
-                    SewPolicy::StretchAverage => {
-                        let new_lvertex = Vertex2::average(&lvertex, &b1_rvertex);
-                        let new_rvertex = Vertex2::average(&rvertex, &b1_lvertex);
-                        self.vertices.push(new_lvertex);
-                        self.vertices.push(new_rvertex);
-                        let new_lid = self.vertices.len() - 2;
-                        let new_rid = self.vertices.len() - 1;
-
-                        stretch!(self, lhs_dart_id, new_lid);
-                        stretch!(self, b1rid, new_lid);
-
-                        stretch!(self, rhs_dart_id, new_rid);
-                        stretch!(self, b1lid, new_rid);
-                    }
+                    (_, _, _, _) => {}
                 }
+
+                let new_vertex = match tmp {
+                    (Some(b1l_vertex), _, _, Some(r_vertex)) => {
+                        Vertex2::merge(b1l_vertex, r_vertex)
+                    }
+                    (Some(b1l_vertex), _, _, None) => Vertex2::merge_undefined(Some(b1l_vertex)),
+                    (None, _, _, Some(r_vertex)) => Vertex2::merge_undefined(Some(r_vertex)),
+                    (None, _, _, None) => Vertex2::merge_undefined(None), // panic
+                };
+                self.vertices.insert(b1lhs_vid, new_vertex);
+                self.set_vertexid(rhs_dart_id, b1lhs_vid);
+
+                let new_vertex = match tmp {
+                    (_, Some(l_vertex), Some(b1r_vertex), _) => {
+                        Vertex2::merge(l_vertex, b1r_vertex)
+                    }
+                    (_, Some(l_vertex), None, _) => Vertex2::merge_undefined(Some(l_vertex)),
+                    (_, None, Some(b1r_vertex), _) => Vertex2::merge_undefined(Some(b1r_vertex)),
+                    (_, None, None, _) => Vertex2::merge_undefined(None), // panic
+                };
+                self.vertices.insert(lhs_vid, new_vertex);
+                self.set_vertexid(b1rid, lhs_vid);
             }
         }
     }
