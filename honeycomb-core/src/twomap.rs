@@ -162,6 +162,7 @@ const CMAP2_BETA: usize = 3;
 /// assert!(map.is_free(d6));
 ///
 /// // create the corresponding three vertices
+/// map.add_vertices(3);
 /// let v4 = 3;
 /// let v5 = 4;
 /// let v6 = 5;
@@ -275,13 +276,6 @@ pub struct CMap2<T: CoordsFloat> {
     n_vertices: usize,
 }
 
-macro_rules! stretch {
-    ($slf: ident, $replaced: expr, $replacer: expr) => {
-        $slf.dart_data.associated_cells[$replaced as usize].vertex_id =
-            $slf.dart_data.associated_cells[$replacer as usize].vertex_id
-    };
-}
-
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -307,7 +301,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
 
         Self {
-            vertices: AttrCompactVec::new(n_darts),
+            vertices: AttrCompactVec::new(n_darts + 1),
             unused_vertices: BTreeSet::new(),
             faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
@@ -791,15 +785,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
-        unimplemented!()
-        /*
-        let new_id = self.n_vertices as VertexIdentifier;
-        self.n_vertices += n_vertices;
-        self.vertices
-            .extend((0..n_vertices).map(|_| Vertex2::default()));
-        new_id
-         */
+    pub fn add_vertices(&mut self, n_vertices: usize) {
+        self.vertices.extend(n_vertices);
     }
 
     /// Insert a vertex in the combinatorial map.
@@ -821,12 +808,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        if let Some(new_id) = self.unused_vertices.pop_first() {
-            self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
-            new_id
-        } else {
-            self.add_vertex(vertex)
-        }
+        unimplemented!()
     }
 
     /// Remove a vertex from the combinatorial map.
