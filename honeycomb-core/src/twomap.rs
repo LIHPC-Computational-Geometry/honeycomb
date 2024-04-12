@@ -1311,7 +1311,10 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<Vertex2<T>, CMapError> {
-        todo!()
+        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
+            return Ok(val);
+        };
+        Err(CMapError::UndefinedVertex)
     }
 }
 

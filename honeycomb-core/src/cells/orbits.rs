@@ -222,7 +222,7 @@ mod tests {
     use crate::{CMap2, DartIdentifier, FloatType, Orbit2, OrbitPolicy};
 
     fn simple_map() -> CMap2<FloatType> {
-        let mut map: CMap2<FloatType> = CMap2::new(6, 1);
+        let mut map: CMap2<FloatType> = CMap2::new(6);
         map.set_betas(1, [3, 2, 0]);
         map.set_betas(2, [1, 3, 4]);
         map.set_betas(3, [2, 1, 0]);

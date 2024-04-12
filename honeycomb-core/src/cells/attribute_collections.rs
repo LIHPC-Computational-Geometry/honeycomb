@@ -142,17 +142,17 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Return / Panic
+    ///
+    /// Return an option containing the old value if it existed.
     ///
     /// The method may panic if:
-    /// - **there is no value associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
-        let tmp = &mut self.data[index.to_usize().unwrap()];
-        assert!(tmp.is_some());
-        *tmp = Some(val);
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
+        self.data.push(Some(val));
+        self.data.swap_remove(index.to_usize().unwrap())
     }
 
     /// Remove an item from the storage and return it
@@ -267,10 +267,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
         };
     }
 
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
         let idx = &self.index_map[index.to_usize().unwrap()];
         assert!(idx.is_some());
-        self.data[idx.unwrap()] = val;
+        self.data.push(val);
+        Some(self.data.swap_remove(idx.unwrap()))
     }
 
     pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
@@ -420,7 +421,7 @@ mod tests {
     fn sparse_vec_remove_replace() {
         generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0)); // panic
+        storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
     }
 
     macro_rules! generate_compact {

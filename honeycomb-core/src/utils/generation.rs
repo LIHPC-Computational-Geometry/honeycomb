@@ -12,9 +12,7 @@
 
 // ------ IMPORTS
 
-use crate::{
-    CMap2, CoordsFloat, DartIdentifier, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier,
-};
+use crate::{CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
