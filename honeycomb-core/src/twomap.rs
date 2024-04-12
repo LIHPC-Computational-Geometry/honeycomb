@@ -1152,10 +1152,10 @@ impl<T: CoordsFloat> CMap2<T> {
                     (_, _, _, _) => {}
                 }
 
+                // create b1_lhs/rhs darts vertex
+                #[rustfmt::skip]
                 let new_vertex = match tmp {
-                    (Some(b1l_vertex), _, _, Some(r_vertex)) => {
-                        Vertex2::merge(b1l_vertex, r_vertex)
-                    }
+                    (Some(b1l_vertex), _, _, Some(r_vertex)) => Vertex2::merge(b1l_vertex, r_vertex),
                     (Some(b1l_vertex), _, _, None) => Vertex2::merge_undefined(Some(b1l_vertex)),
                     (None, _, _, Some(r_vertex)) => Vertex2::merge_undefined(Some(r_vertex)),
                     (None, _, _, None) => Vertex2::merge_undefined(None), // panic
@@ -1163,10 +1163,10 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.vertices.insert(b1lhs_vid, new_vertex);
                 self.set_vertexid(rhs_dart_id, b1lhs_vid);
 
+                // create lhs/b1_rhs darts vertex
+                #[rustfmt::skip]
                 let new_vertex = match tmp {
-                    (_, Some(l_vertex), Some(b1r_vertex), _) => {
-                        Vertex2::merge(l_vertex, b1r_vertex)
-                    }
+                    (_, Some(l_vertex), Some(b1r_vertex), _) => Vertex2::merge(l_vertex, b1r_vertex),
                     (_, Some(l_vertex), None, _) => Vertex2::merge_undefined(Some(l_vertex)),
                     (_, None, Some(b1r_vertex), _) => Vertex2::merge_undefined(Some(b1r_vertex)),
                     (_, None, None, _) => Vertex2::merge_undefined(None), // panic
@@ -1207,17 +1207,11 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
 
         // --- geometrical update
-        match policy {
-            UnsewPolicy::Duplicate => {
-                // if the vertex was shared, duplicate it
-                if self.i_cell::<0>(rhs_dart_id).len() > 1 {
-                    let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
-                    self.vertices.push(old_vertex);
-                    self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
-                }
-            }
-            UnsewPolicy::DoNothing => {}
-        }
+        let vertex = self.vertices.remove(self.vertexid(lhs_dart_id)).unwrap();
+        assert!(self.vertices.remove(self.vertexid(rhs_dart_id)).is_none()); // currently necessary
+        let (v1, v2) = Vertex2::split(vertex);
+        self.vertices.insert(self.vertexid(lhs_dart_id), v1);
+        self.vertices.insert(self.vertexid(rhs_dart_id), v2);
     }
 
     /// 2-unsewing operation.
