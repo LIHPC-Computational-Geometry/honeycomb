@@ -1245,20 +1245,37 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
 
         // --- geometrical update
-        match policy {
-            UnsewPolicy::Duplicate => {
-                // if the vertex was shared, duplicate it
-                // repeat on both ends of the edge
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                if b1lid != NULL_DART_ID {
-                    self.set_vertexid(rhs_dart_id, self.vertexid(b1lid));
-                }
-                let b1rid = self.beta::<1>(rhs_dart_id);
-                if b1rid != NULL_DART_ID {
-                    self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
-                }
+        let b1lid = self.beta::<1>(lhs_dart_id);
+        let b1rid = self.beta::<1>(rhs_dart_id);
+        match (b1lid == NULL_DART_ID, b1rid == NULL_DART_ID) {
+            (true, true) => {}
+            (true, false) => {
+                let vertex = self.vertices.remove(self.vertexid(lhs_dart_id)).unwrap();
+                assert!(self.vertices.remove(self.vertexid(b1rid)).is_none()); // currently necessary
+                let (v1, v2) = Vertex2::split(vertex);
+                self.vertices.insert(self.vertexid(lhs_dart_id), v1);
+                self.vertices.insert(self.vertexid(b1rid), v2);
             }
-            UnsewPolicy::DoNothing => {}
+            (false, true) => {
+                let vertex = self.vertices.remove(self.vertexid(b1lid)).unwrap();
+                assert!(self.vertices.remove(self.vertexid(rhs_dart_id)).is_none()); // currently necessary
+                let (v1, v2) = Vertex2::split(vertex);
+                self.vertices.insert(self.vertexid(b1lid), v1);
+                self.vertices.insert(self.vertexid(rhs_dart_id), v2);
+            }
+            (false, false) => {
+                let vertex = self.vertices.remove(self.vertexid(lhs_dart_id)).unwrap();
+                assert!(self.vertices.remove(self.vertexid(b1rid)).is_none()); // currently necessary
+                let (v1, v2) = Vertex2::split(vertex);
+                self.vertices.insert(self.vertexid(lhs_dart_id), v1);
+                self.vertices.insert(self.vertexid(b1rid), v2);
+
+                let vertex = self.vertices.remove(self.vertexid(b1lid)).unwrap();
+                assert!(self.vertices.remove(self.vertexid(rhs_dart_id)).is_none()); // currently necessary
+                let (v1, v2) = Vertex2::split(vertex);
+                self.vertices.insert(self.vertexid(b1lid), v1);
+                self.vertices.insert(self.vertexid(rhs_dart_id), v2);
+            }
         }
     }
 
