@@ -191,7 +191,7 @@ pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
 }
 
 impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
-    pub fn new(n_ids: usize, n_attributes: usize) -> Self {
+    pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
             index_map: vec![None; n_ids],
@@ -378,7 +378,7 @@ mod tests {
 
     macro_rules! generate_compact {
         ($name: ident) => {
-            let mut $name = AttrCompactVec::<Temperature>::new(10, 10);
+            let mut $name = AttrCompactVec::<Temperature>::new(10);
             $name.insert(0, Temperature::from(273.0));
             $name.insert(1, Temperature::from(275.0));
             $name.insert(2, Temperature::from(277.0));
