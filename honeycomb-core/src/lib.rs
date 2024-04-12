@@ -30,6 +30,7 @@ pub mod utils;
 pub use cells::{
     attribute_collections::{AttrCompactVec, AttrSparseVec},
     attributes::{AttributeBind, AttributeUpdate},
+    collections::{EdgeCollection, FaceCollection, VertexCollection},
     identifiers::*,
     orbits::{Orbit2, OrbitPolicy},
 };

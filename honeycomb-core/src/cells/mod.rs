@@ -6,5 +6,6 @@
 
 pub mod attribute_collections;
 pub mod attributes;
+pub mod collections;
 pub mod identifiers;
 pub mod orbits;
