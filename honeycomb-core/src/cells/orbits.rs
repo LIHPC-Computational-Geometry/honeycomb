@@ -6,7 +6,6 @@
 // ------ IMPORTS
 
 use crate::{CMap2, CoordsFloat, DartIdentifier, NULL_DART_ID};
-
 use num::Zero;
 use std::collections::{BTreeSet, VecDeque};
 
@@ -116,6 +115,40 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
             pending,
         }
     }
+
+    pub fn is_isolated(&self) -> bool {
+        // this is boolean tells us if the orbit is either:
+        // a) unaltered (pending.len() == 1)
+        // b) iterated upon, but the dart is
+        let marked_unaltered = self.marked.len() == 2;
+        let pending_unaltered = self.pending.len() == 1;
+        match (marked_unaltered, pending_unaltered) {
+            // marked is altered, i.e. we found a dart that isn't null or the starting one
+            (false, _) => false,
+            // marked is unaltered but pending is altered
+            // we checked for neighbors but no new mark appeared
+            // => the dart is isolated or self-indident
+            (true, false) => true,
+            // both are unaltered, we need to check if neighbors exist
+            // we check manually to not invalidate an iterator call later
+            (true, true) => {
+                let dart = self.pending[0];
+                let image = match self.orbit_policy {
+                    OrbitPolicy::Vertex => {
+                        self.map_handle.beta::<1>(self.map_handle.beta::<2>(dart))
+                    }
+                    OrbitPolicy::Edge => self.map_handle.beta::<2>(dart),
+                    OrbitPolicy::Face => self.map_handle.beta::<1>(dart),
+                    OrbitPolicy::Custom(beta_slice) => beta_slice
+                        .iter()
+                        .map(|beta_id| self.map_handle.beta_runtime(*beta_id, dart))
+                        .find(|d| *d != NULL_DART_ID)
+                        .unwrap_or(NULL_DART_ID),
+                };
+                image == NULL_DART_ID
+            }
+        }
+    }
 }
 
 impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
@@ -126,13 +159,20 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
             match self.orbit_policy {
                 OrbitPolicy::Vertex => {
                     // THIS CODE IS ONLY VALID IN 2D
-                    // WE ASSUME THAT THE EDGE IS COMPLETE
-                    let image = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
-                    if self.marked.insert(image) {
+
+                    let image1 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image1) {
                         // if true, we did not see this dart yet
                         // i.e. we need to visit it later
-                        self.pending.push_back(image);
+                        self.pending.push_back(image1);
                     }
+                    let image2 = self.map_handle.beta::<2>(self.map_handle.beta::<0>(d));
+                    if self.marked.insert(image2) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image2);
+                    }
+
                     Some(d)
                 }
                 OrbitPolicy::Edge => {
@@ -182,23 +222,17 @@ mod tests {
     use crate::{CMap2, DartIdentifier, FloatType, Orbit2, OrbitPolicy};
 
     fn simple_map() -> CMap2<FloatType> {
-        let mut map: CMap2<FloatType> = CMap2::new(6, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(6, 1);
         map.set_betas(1, [3, 2, 0]);
         map.set_betas(2, [1, 3, 4]);
         map.set_betas(3, [2, 1, 0]);
         map.set_betas(4, [6, 5, 2]);
         map.set_betas(5, [4, 6, 0]);
         map.set_betas(6, [5, 4, 0]);
-        map.set_vertex(0, (0.0, 0.0)).unwrap();
-        map.set_vertex(1, (1.0, 0.0)).unwrap();
-        map.set_vertex(2, (1.0, 1.0)).unwrap();
+        map.set_vertex(1, (0.0, 0.0)).unwrap();
+        map.set_vertex(2, (1.0, 0.0)).unwrap();
+        map.set_vertex(6, (1.0, 1.0)).unwrap();
         map.set_vertex(3, (0.0, 1.0)).unwrap();
-        map.set_vertexid(1, 0);
-        map.set_vertexid(2, 1);
-        map.set_vertexid(3, 3);
-        map.set_vertexid(4, 3);
-        map.set_vertexid(5, 1);
-        map.set_vertexid(6, 2);
         map
     }
 
