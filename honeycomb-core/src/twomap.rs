@@ -1129,28 +1129,23 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertices.remove(rhs_vid),
                 );
 
-                match tmp {
-                    #[rustfmt::skip]
-                    (
-                        Some(b1l_vertex),
-                        Some(l_vertex),
-                        Some(b1r_vertex),
-                        Some(r_vertex)
-                    ) => {
-                        let lhs_vector = b1l_vertex - l_vertex;
-                        let rhs_vector = b1r_vertex - r_vertex;
-                        // dot product should be negative if the two darts have opposite direction
-                        // we could also put restriction on the angle made by the two darts to prevent
-                        // drastic deformation
-                        assert!(
-                            lhs_vector.dot(&rhs_vector) < T::zero(),
-                            "Dart {} and {} do not have consistent orientation for 2-sewing",
-                            lhs_dart_id,
-                            rhs_dart_id
-                        );
-                    }
-                    (_, _, _, _) => {}
-                }
+                #[rustfmt::skip]
+                if let (
+                    Some(b1l_vertex), Some(l_vertex),
+                    Some(b1r_vertex), Some(r_vertex)
+                ) = tmp {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    assert!(
+                        lhs_vector.dot(&rhs_vector) < T::zero(),
+                        "Dart {} and {} do not have consistent orientation for 2-sewing",
+                        lhs_dart_id,
+                        rhs_dart_id
+                    );
+                };
 
                 // create b1_lhs/rhs darts vertex
                 #[rustfmt::skip]
