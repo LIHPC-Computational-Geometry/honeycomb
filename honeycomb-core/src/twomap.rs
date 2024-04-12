@@ -12,8 +12,8 @@
 
 use super::dart::CellIdentifiers;
 use crate::{
-    CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2,
-    VertexIdentifier, NULL_DART_ID,
+    AttrSparseVec, CoordsFloat, DartIdentifier, Face, FaceIdentifier, SewPolicy, UnsewPolicy,
+    Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -56,15 +56,10 @@ const CMAP2_BETA: usize = 3;
 /// contains the following data:
 ///
 /// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
-/// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
-///   i.e. empty spots in the current vertex list
-/// - `faces: Vec<Face>` -- List of faces making up the represented mesh
-/// - `dart_data: DartData` -- Structure holding embedded data associated with darts
 /// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 /// - `n_darts: usize` -- Current number of darts (including the null dart)
-/// - `n_vertices: usize` -- Current number of vertices
 ///
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
@@ -255,14 +250,7 @@ const CMAP2_BETA: usize = 3;
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2<T>>,
-    /// List of free vertex identifiers, i.e. empty spots
-    /// in the current vertex list
-    unused_vertices: BTreeSet<VertexIdentifier>,
-    /// List of faces making up the represented mesh
-    faces: Vec<Face>,
-    /// Structure holding data related to darts (marks, associated cells)
-    dart_data: DartData,
+    vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
@@ -270,8 +258,6 @@ pub struct CMap2<T: CoordsFloat> {
     betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
     n_darts: usize,
-    /// Current number of vertices
-    n_vertices: usize,
 }
 
 macro_rules! stretch {
