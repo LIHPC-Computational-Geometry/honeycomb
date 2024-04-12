@@ -1207,11 +1207,14 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
 
         // --- geometrical update
-        let vertex = self.vertices.remove(self.vertexid(lhs_dart_id)).unwrap();
-        assert!(self.vertices.remove(self.vertexid(rhs_dart_id)).is_none()); // currently necessary
-        let (v1, v2) = Vertex2::split(vertex);
-        self.vertices.insert(self.vertexid(lhs_dart_id), v1);
-        self.vertices.insert(self.vertexid(rhs_dart_id), v2);
+        let b2lid = self.beta::<2>(lhs_dart_id);
+        if b2lid != NULL_DART_ID {
+            let vertex = self.vertices.remove(self.vertexid(b2lid)).unwrap();
+            assert!(self.vertices.remove(self.vertexid(rhs_dart_id)).is_none()); // currently necessary
+            let (v1, v2) = Vertex2::split(vertex);
+            self.vertices.insert(self.vertexid(b2lid), v1);
+            self.vertices.insert(self.vertexid(rhs_dart_id), v2);
+        }
     }
 
     /// 2-unsewing operation.
