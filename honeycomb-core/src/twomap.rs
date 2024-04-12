@@ -90,7 +90,7 @@ const CMAP2_BETA: usize = 3;
 /// // --- Map creation
 ///
 /// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: CMap2<f64> = CMap2::new(3, 3);
+/// let mut map: CMap2<f64> = CMap2::new(3);
 ///
 /// // the two following lines are not strictly necessary, you may use integers directly
 /// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
@@ -283,7 +283,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn new(n_darts: usize, n_vertices: usize) -> Self {
+    pub fn new(n_darts: usize) -> Self {
         Self {
             vertices: AttrSparseVec::new(n_darts),
             unused_darts: BTreeSet::new(),
@@ -1553,7 +1553,7 @@ mod tests {
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: CMap2<FloatType> = CMap2::new(4, 0);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set vertex 1 as unused
         map.remove_vertex(1).unwrap();
         // set vertex 1 as unused, again
@@ -1565,7 +1565,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: CMap2<FloatType> = CMap2::new(4, 0);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again
