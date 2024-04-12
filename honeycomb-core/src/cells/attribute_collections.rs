@@ -48,6 +48,14 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
         }
     }
 
+    pub fn extend(&mut self, length: usize) {
+        self.data.extend((0..length).map(|_| None));
+    }
+
+    pub fn n_vertices(&self) -> usize {
+        self.data.iter().filter(|val| val.is_some()).count()
+    }
+
     /// Getter
     ///
     /// # Arguments
@@ -168,6 +176,21 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 }
 
+#[cfg(feature = "utils")]
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
+    pub fn allocated_size(&self) -> usize {
+        todo!()
+    }
+
+    pub fn effective_size(&self) -> usize {
+        todo!()
+    }
+
+    pub fn used_size(&self) -> usize {
+        todo!()
+    }
+}
+
 /// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using two internal collections:
@@ -186,19 +209,27 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 /// todo
 ///
 #[cfg_attr(feature = "utils", derive(Clone))]
-pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
+pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Clone> {
     unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
             index_map: vec![None; n_ids + 1],
             data: Vec::new(),
         }
+    }
+
+    pub fn extend(&mut self, length: usize) {
+        self.index_map.extend((0..length).map(|_| None));
+    }
+
+    pub fn n_vertices(&self) -> usize {
+        self.data.len()
     }
 
     pub fn get(&self, index: T::IdentifierType) -> Option<&T> {
@@ -246,10 +277,24 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
         self.index_map.push(None);
         if let Some(tmp) = self.index_map.swap_remove(index.to_usize().unwrap()) {
             self.unused_data_slots.push(tmp);
-            self.data.push(T::default());
-            return Some(self.data.swap_remove(tmp));
+            return Some(self.data[tmp].clone());
         };
         None
+    }
+}
+
+#[cfg(feature = "utils")]
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
+    fn allocated_size(&self) -> usize {
+        todo!()
+    }
+
+    fn effective_size(&self) -> usize {
+        todo!()
+    }
+
+    fn used_size(&self) -> usize {
+        todo!()
     }
 }
 

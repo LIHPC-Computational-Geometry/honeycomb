@@ -1371,7 +1371,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_vertex = self.vertices.allocated_size();
         let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
@@ -1447,7 +1447,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_vertex = self.vertices.effective_size();
         let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
@@ -1528,7 +1528,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.len() * 2 * std::mem::size_of::<T>();
+        let geometry_vertex = self.vertices.used_size();
         let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
