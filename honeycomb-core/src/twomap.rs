@@ -12,8 +12,8 @@
 
 use super::dart::CellIdentifiers;
 use crate::{
-    CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2,
-    VertexIdentifier, NULL_DART_ID,
+    AttrCompactVec, CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy,
+    UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -255,7 +255,7 @@ const CMAP2_BETA: usize = 3;
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2<T>>,
+    vertices: AttrCompactVec<Vertex2<T>>,
     /// List of free vertex identifiers, i.e. empty spots
     /// in the current vertex list
     unused_vertices: BTreeSet<VertexIdentifier>,
@@ -303,11 +303,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![Vertex2::default(); n_vertices];
         let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
 
         Self {
-            vertices,
+            vertices: AttrCompactVec::new(n_darts),
             unused_vertices: BTreeSet::new(),
             faces: Vec::with_capacity(n_darts / 3),
             dart_data: DartData::new(n_darts),
@@ -450,7 +449,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
-        &self.vertices[vertex_id as usize]
+        &self.vertices.get(vertex_id).unwrap()
     }
 
     /// Fetch face structure associated to a given identifier.
@@ -767,10 +766,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn add_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
+        unimplemented!()
+        /*
         let new_id = self.n_vertices as VertexIdentifier;
         self.n_vertices += 1;
         self.vertices.push(vertex.unwrap_or_default());
         new_id
+         */
     }
 
     /// Add multiple vertices to the combinatorial map.
@@ -789,11 +791,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
+        unimplemented!()
+        /*
         let new_id = self.n_vertices as VertexIdentifier;
         self.n_vertices += n_vertices;
         self.vertices
             .extend((0..n_vertices).map(|_| Vertex2::default()));
         new_id
+         */
     }
 
     /// Insert a vertex in the combinatorial map.
@@ -882,11 +887,8 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<(), CMapError> {
-        if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
-            *val = vertex.into();
-            return Ok(());
-        }
-        Err(CMapError::VertexOOB)
+        self.vertices.set(vertex_id, vertex.into());
+        Ok(())
     }
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
