@@ -267,6 +267,7 @@ macro_rules! stretch {
     };
 }
 
+// --- constructor
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -289,21 +290,16 @@ impl<T: CoordsFloat> CMap2<T> {
     /// See [CMap2] example.
     ///
     pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![Vertex2::default(); n_vertices];
-        let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
-
         Self {
-            vertices,
-            unused_vertices: BTreeSet::new(),
-            faces: Vec::with_capacity(n_darts / 3),
-            dart_data: DartData::new(n_darts),
+            vertices: AttrSparseVec::new(n_darts),
             unused_darts: BTreeSet::new(),
-            betas,
+            betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,
-            n_vertices,
         }
     }
+}
 
+impl<T: CoordsFloat> CMap2<T> {
     // --- reading interfaces
 
     /// Return information about the current number of vertices.
