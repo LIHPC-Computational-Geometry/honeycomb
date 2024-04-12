@@ -12,8 +12,8 @@
 
 use super::dart::CellIdentifiers;
 use crate::{
-    AttrCompactVec, CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy,
-    UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
+    AttrCompactVec, AttributeUpdate, CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier,
+    SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -1012,26 +1012,23 @@ impl<T: CoordsFloat> CMap2<T> {
         // to a fully defined edge, i.e. its image through beta2 is defined
         // & has a valid associated vertex (we assume the second condition
         // is valid if the first one is).
-        let lid = self.beta::<2>(lhs_dart_id);
-        if lid != NULL_DART_ID {
-            match policy {
-                SewPolicy::StretchLeft => {
-                    stretch!(self, rhs_dart_id, lid);
-                }
-                SewPolicy::StretchRight => {
-                    stretch!(self, lid, rhs_dart_id);
-                }
-                SewPolicy::StretchAverage => {
-                    // this works under the assumption that a valid vertex is
-                    // associated to rhs_dart
-                    let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
-                    let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-                    self.vertices
-                        .push(Vertex2::average(&lid_vertex, &rhs_vertex));
-                    let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-                    stretch!(self, lid, new_id);
-                    stretch!(self, rhs_dart_id, new_id);
-                }
+        let b2lhs = self.beta::<2>(lhs_dart_id);
+        if b2lhs != NULL_DART_ID {
+            let b2lhs_vid = self.cells(b2lhs).vertex_id;
+            let rhs_vid = self.cells(rhs_dart_id).vertex_id;
+            let tmp = (
+                self.vertices.remove(b2lhs_vid),
+                self.vertices.remove(rhs_vid),
+            );
+            let new_vertex = match tmp {
+                (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                (None, None) => Vertex2::merge_undefined(None),
+            };
+
+            self.vertices.insert(b2lhs_vid, new_vertex);
+            self.set_vertexid(rhs_dart_id, b2lhs_vid);
             }
         }
     }
