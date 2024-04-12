@@ -48,6 +48,10 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
         }
     }
 
+    pub fn extend(&mut self, length: usize) {
+        self.data.extend((0..length).map(|_| None));
+    }
+
     /// Getter
     ///
     /// # Arguments
@@ -199,6 +203,12 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
             index_map: vec![None; n_ids],
             data: Vec::new(),
         }
+    }
+
+    pub fn extend(&mut self, length: usize) {
+        let tmp = self.index_map.len();
+        self.index_map.extend((0..length).map(|_| None));
+        self.unused_data_slots.extend((tmp..tmp + length).rev());
     }
 
     pub fn get(&self, index: T::IdentifierType) -> Option<&T> {

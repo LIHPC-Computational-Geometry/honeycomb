@@ -162,11 +162,12 @@ const CMAP2_BETA: usize = 3;
 /// assert!(map.is_free(d6));
 ///
 /// // create the corresponding three vertices
-/// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
-/// let v5 = map.add_vertices(2); // v5, v6
-/// let v6 = v5 + 1;
-/// map.set_vertex(v5, [5.0, 10.0])?; // v5
-/// map.set_vertex(v6, [15.0, 10.0])?; // v6
+/// let v4 = 3;
+/// let v5 = 4;
+/// let v6 = 5;
+/// map.set_vertex(v4, [15.0, 0.0])?;
+/// map.set_vertex(v5, [5.0, 10.0])?;
+/// map.set_vertex(v6, [15.0, 10.0])?;
 /// // associate dart to vertices
 /// map.set_vertexid(d4, v4);
 /// map.set_vertexid(d5, v5);
