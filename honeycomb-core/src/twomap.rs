@@ -11,8 +11,9 @@
 // ------ IMPORTS
 
 use crate::{
-    AttrSparseVec, CoordsFloat, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2,
-    OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2, VertexIdentifier, NULL_DART_ID,
+    AttrSparseVec, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier, FaceCollection,
+    FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2, VertexCollection,
+    VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -23,7 +24,8 @@ use std::{fs::File, io::Write};
 
 #[derive(Debug)]
 pub enum CMapError {
-    VertexOOB,
+    OOB,
+    UndefinedVertex,
 }
 
 // --- 2-MAP
@@ -1235,7 +1237,7 @@ impl<T: CoordsFloat> CMap2<T> {
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
     pub fn n_vertices(&self) -> usize {
-        self.vertices.len()
+        todo!()
     }
 
     /// Fetch vertex value associated to a given identifier.
@@ -1248,13 +1250,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return a reference to the [Vertex2] associated to the ID.
     ///
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
-        &self.vertices[&vertex_id]
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
+        self.vertices.get(vertex_id).unwrap()
     }
 
     /// Insert a vertex in the combinatorial map.
     ///
-    /// This method can be interpreted as giving a value to teh vertex of a specific ID. Vertices
+    /// This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
     /// implicitly exist through topology, but their spatial representation is not automatically
     /// created at first.
     ///
@@ -1267,11 +1269,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return an option which may contain the previous value associated to the specified vertex ID.
     ///
-    pub fn insert_vertex(
-        &mut self,
-        vertex_id: VertexIdentifier,
-        vertex: impl Into<Vertex2<T>>,
-    ) -> Option<Vertex2<T>> {
+    pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
         self.vertices.insert(vertex_id, vertex.into())
     }
 
@@ -1285,13 +1283,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(v: Vertex2)` -- The vertex was successfully removed & its value was returned
-    /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
+    /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(&vertex_id) {
+        if let Some(val) = self.vertices.remove(vertex_id) {
             return Ok(val);
         }
-        Err(CMapError::UnknownVertexID)
+        Err(CMapError::UndefinedVertex)
     }
 
     /// Try to overwrite the given vertex with a new value.
@@ -1313,10 +1311,7 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.insert(vertex_id, vertex.into()) {
-            return Ok(val);
-        }
-        Err(CMapError::UnknownVertexID)
+        todo!()
     }
 }
 
