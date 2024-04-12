@@ -286,15 +286,15 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
-    fn allocated_size(&self) -> usize {
+    pub fn allocated_size(&self) -> usize {
         todo!()
     }
 
-    fn effective_size(&self) -> usize {
+    pub fn effective_size(&self) -> usize {
         todo!()
     }
 
-    fn used_size(&self) -> usize {
+    pub fn used_size(&self) -> usize {
         todo!()
     }
 }
