@@ -12,3 +12,7 @@ Cargo.lock
 # ignore csv & svg files in root directory
 /*.csv
 /*.svg
+
+# ignore coverage-related files
+*.profraw
+*.lcov

@@ -1,0 +1,61 @@
+name: codecov
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUSTUP_MAX_RETRIES: 10
+  RUST_BACKTRACE: 1
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      # checkout
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      # install requirements
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install llvm-tools-preview
+        run: rustup component add llvm-tools-preview
+      - name: Install grcov
+        run: cargo install grcov
+      - uses: Swatinem/rust-cache@v2
+      # generate raw coverage data
+      # excluding the benchmark / example crates to remove some bias
+      - name: Build code
+        run: cargo build --features utils --workspace --exclude honeycomb-benches --exclude honeycomb-examples
+        env:
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      - name: Run tests
+        run: cargo test --features utils --workspace --exclude honeycomb-benches --exclude honeycomb-examples
+        env:
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      # generate lcov file using grcov
+      - name: Run grcov
+        run: |
+          grcov . \
+            --binary-path ./target/debug/ \
+            -s . \
+            -t lcov \
+            --branch \
+            --ignore-not-existing \
+            --ignore '../*' \
+            --ignore "/*" \
+            -o target/tests.lcov
+      # upload results
+      - name: Upload reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/tests.lcov
+          slug: LIHPC-Computational-Geometry/honeycomb
