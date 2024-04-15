@@ -23,8 +23,8 @@ use std::hint::black_box;
 
 // ------ CONTENT
 
-fn compute_dims(n_square: usize) -> (usize, usize) {
-    (n_square.pow(2) * 4, (n_square + 1).pow(2))
+fn compute_dims(n_square: usize) -> usize {
+    n_square.pow(2) * 4
 }
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
@@ -32,8 +32,8 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_unstructured_map(n_square: usize) -> CMap2<FloatType> {
-    let (n_darts, n_vertices) = compute_dims(n_square);
-    CMap2::new(n_darts, n_vertices)
+    let n_darts = compute_dims(n_square);
+    CMap2::new(n_darts)
 }
 
 #[library_benchmark]
