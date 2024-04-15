@@ -179,15 +179,15 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     pub fn allocated_size(&self) -> usize {
-        todo!()
+        self.data.capacity() * std::mem::size_of::<Option<T>>()
     }
 
     pub fn effective_size(&self) -> usize {
-        todo!()
+        self.data.len() * std::mem::size_of::<Option<T>>()
     }
 
     pub fn used_size(&self) -> usize {
-        todo!()
+        self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
     }
 }
 
@@ -287,15 +287,22 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     pub fn allocated_size(&self) -> usize {
-        todo!()
+        self.unused_data_slots.capacity() * std::mem::size_of::<usize>()
+            + self.index_map.capacity() * std::mem::size_of::<Option<usize>>()
+            + self.data.capacity() * std::mem::size_of::<T>()
     }
 
     pub fn effective_size(&self) -> usize {
-        todo!()
+        self.unused_data_slots.len() * std::mem::size_of::<usize>()
+            + self.index_map.len() * std::mem::size_of::<Option<usize>>()
+            + self.data.len() * std::mem::size_of::<T>()
     }
 
     pub fn used_size(&self) -> usize {
-        todo!()
+        self.unused_data_slots.len() * std::mem::size_of::<usize>()
+            + self.index_map.iter().filter(|val| val.is_some()).count()
+                * std::mem::size_of::<Option<usize>>()
+            + self.data.len() * std::mem::size_of::<T>()
     }
 }
 
