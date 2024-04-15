@@ -41,15 +41,16 @@ jobs:
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       # generate lcov file using grcov
       - name: Run grcov
-        run: grcov . \
-          --binary-path ./target/debug/ \
-          -s . \
-          -t lcov \
-          --branch \
-          --ignore-not-existing \
-          --ignore '../*' \
-          --ignore "/*" \
-          -o target/coverage/tests.lcov
+        run: |
+          grcov . \
+            --binary-path ./target/debug/ \
+            -s . \
+            -t lcov \
+            --branch \
+            --ignore-not-existing \
+            --ignore '../*' \
+            --ignore "/*" \
+            -o target/coverage/tests.lcov
       # upload results
       - name: Upload reports to Codecov
         uses: codecov/codecov-action@v4.0.1
