@@ -662,13 +662,6 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertices.remove(lhs_vid_old),
                     self.vertices.remove(b1rhs_vid_old),
                 );
-                let new_vertexa = match tmpa {
-                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                    (None, None) => Vertex2::merge_undefined(None),
-                };
-
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
@@ -676,17 +669,42 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertices.remove(b1lhs_vid_old),
                     self.vertices.remove(rhs_vid_old),
                 );
+
+                // check orientation
+                #[rustfmt::skip]
+                if let (
+                    (Some(l_vertex), Some(b1r_vertex)),
+                    (Some(b1l_vertex), Some(r_vertex)),
+                ) = (tmpa, tmpb) {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    assert!(
+                        lhs_vector.dot(&rhs_vector) < T::zero(),
+                        "Dart {} and {} do not have consistent orientation for 2-sewing",
+                        lhs_dart_id,
+                        rhs_dart_id
+                    );
+                };
+
+                // proceed with new vertices creation & insertion
+                let new_vertexa = match tmpa {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+
                 let new_vertexb = match tmpb {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
                     (Some(val), None) => Vertex2::merge_undefined(Some(val)),
                     (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
-                // update the topology (this is why we need the above lines)
+                // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // reinsert correct value
-
-                // update the topology (this is why we need the above lines)
                 self.two_link(lhs_dart_id, rhs_dart_id);
 
                 // reinsert correct values
