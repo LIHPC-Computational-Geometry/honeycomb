@@ -12,8 +12,8 @@
 
 use crate::{
     AttrSparseVec, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier,
-    FaceCollection, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2,
-    VertexCollection, VertexIdentifier, NULL_DART_ID,
+    FaceCollection, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, VertexCollection,
+    VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -553,12 +553,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method may panic if the two darts are not 1-sewable.
     ///
-    pub fn one_sew(
-        &mut self,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
-        policy: SewPolicy,
-    ) {
+    pub fn one_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
         // its image through beta2 is defined & has a valid associated vertex (we assume the second
         // condition is valid if the first one is)
@@ -608,12 +603,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
     ///
-    pub fn two_sew(
-        &mut self,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
-        policy: SewPolicy,
-    ) {
+    pub fn two_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
         // match (is lhs 1-free, is rhs 1-free)
@@ -721,7 +711,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>1</sub>* function. The
     /// *β<sub>0</sub>* function is also updated.
     ///
-    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
+    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id != NULL_DART_ID {
             // read current values / remove old ones
@@ -756,7 +746,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>2</sub>* function.
     ///
-    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
+    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
