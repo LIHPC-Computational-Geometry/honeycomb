@@ -27,6 +27,7 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Install grcov
         run: cargo install grcov
+      - uses: Swatinem/rust-cache@v2
       # generate raw coverage data
       # excluding the benchmark / example crates to remove some bias
       - name: Build code
