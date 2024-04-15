@@ -171,6 +171,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
         self.betas.push([0; CMAP2_BETA]);
+        self.vertices.extend(1);
         new_id
     }
 
@@ -191,6 +192,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
         self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
+        self.vertices.extend(n_darts);
         new_id
     }
 
@@ -717,14 +719,13 @@ impl<T: CoordsFloat> CMap2<T> {
             // read current values / remove old ones
             let rhs_dart_id = self.beta::<1>(lhs_dart_id);
             // we only need to remove a single vertex since we're unlinking
-            let vertex = self
-                .remove_vertex(self.vertex_id(rhs_dart_id))
-                .expect("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found");
+            let vertex = self.remove_vertex(self.vertex_id(rhs_dart_id)).unwrap();
+            let (v1, v2) = Vertex2::split(vertex);
             // update the topology
             self.one_unlink(lhs_dart_id);
             // reinsert correct values
-            self.insert_vertex(self.vertex_id(b2lhs_dart_id), vertex);
-            self.insert_vertex(self.vertex_id(rhs_dart_id), vertex);
+            let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
+            let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
         } else {
             self.one_unlink(lhs_dart_id)
         }

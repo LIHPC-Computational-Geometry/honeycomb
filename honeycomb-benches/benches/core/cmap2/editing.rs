@@ -92,21 +92,12 @@ fn insert_vertex(map: &mut CMap2<FloatType>) {
     black_box(map.insert_vertex(1, (0.0, 0.0)));
 }
 
-#[library_benchmark]
-#[bench::small(&mut get_map(5))]
-#[bench::medium(&mut get_map(50))]
-#[bench::large(&mut get_map(500))]
-fn insert_vertex_full(map: &mut CMap2<FloatType>) {
-    black_box(map.insert_vertex(1, (0.0, 0.0)));
-}
-
 library_benchmark_group!(
     name = bench_insert;
     benchmarks =
         insert_dart,
         insert_dart_full,
         insert_vertex,
-        insert_vertex_full,
 );
 
 #[library_benchmark]
