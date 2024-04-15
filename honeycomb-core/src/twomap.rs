@@ -722,27 +722,21 @@ impl<T: CoordsFloat> CMap2<T> {
     /// *β<sub>0</sub>* function is also updated.
     ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        match policy {
-            UnsewPolicy::Duplicate => {
-                let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-                if b2lhs_dart_id != NULL_DART_ID {
-                    // read current values / remove old ones
-                    let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-                    // we only need to remove a single vertex since we're unlinking
-                    let vid_old = self.vertex_id(rhs_dart_id);
-                    let tmp = self.remove_vertex(vid_old).expect(
-                        "E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found",
-                    );
-                    // update the topology (this is why we need the above lines)
-                    self.one_unlink(lhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(b2lhs_dart_id), tmp);
-                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
-                } else {
-                    self.one_unlink(lhs_dart_id)
-                }
-            }
-            UnsewPolicy::DoNothing => self.one_unlink(lhs_dart_id),
+        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
+        if b2lhs_dart_id != NULL_DART_ID {
+            // read current values / remove old ones
+            let rhs_dart_id = self.beta::<1>(lhs_dart_id);
+            // we only need to remove a single vertex since we're unlinking
+            let vertex = self
+                .remove_vertex(self.vertex_id(rhs_dart_id))
+                .expect("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} was not found");
+            // update the topology
+            self.one_unlink(lhs_dart_id);
+            // reinsert correct values
+            self.insert_vertex(self.vertex_id(b2lhs_dart_id), vertex);
+            self.insert_vertex(self.vertex_id(rhs_dart_id), vertex);
+        } else {
+            self.one_unlink(lhs_dart_id)
         }
     }
 
@@ -763,42 +757,42 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>2</sub>* function.
     ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        match policy {
-            UnsewPolicy::Duplicate => {
-                let rhs_dart_id = self.beta::<2>(lhs_dart_id);
-                let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
-                let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
-                // match (is lhs 1-free, is rhs 1-free)
-                match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
-                    (true, true) => self.two_unlink(lhs_dart_id),
-                    (true, false) => {
-                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                        let rhs_tmp = self.remove_vertex(rhs_vid_old).unwrap();
-                        self.two_unlink(lhs_dart_id);
-                        self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_tmp);
-                        self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_tmp);
-                    }
-                    (false, true) => {
-                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                        let lhs_tmp = self.remove_vertex(lhs_vid_old).unwrap();
-                        self.two_unlink(lhs_dart_id);
-                        self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_tmp);
-                        self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_tmp);
-                    }
-                    (false, false) => {
-                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                        let lhs_tmp = self.remove_vertex(lhs_vid_old).unwrap();
-                        let rhs_tmp = self.remove_vertex(rhs_vid_old).unwrap();
-                        self.two_unlink(lhs_dart_id);
-                        self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_tmp);
-                        self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_tmp);
-                        self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_tmp);
-                        self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_tmp);
-                    }
-                }
+        let rhs_dart_id = self.beta::<2>(lhs_dart_id);
+        let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
+        let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
+        // match (is lhs 1-free, is rhs 1-free)
+        match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+            (true, true) => self.two_unlink(lhs_dart_id),
+            (true, false) => {
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
+                let (v1, v2) = Vertex2::split(rhs_vertex);
+                self.two_unlink(lhs_dart_id);
+                self.insert_vertex(self.vertex_id(b1lhs_dart_id), v1);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), v2);
             }
-            UnsewPolicy::DoNothing => self.two_unlink(lhs_dart_id),
+            (false, true) => {
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
+                let (v1, v2) = Vertex2::split(lhs_vertex);
+                self.two_unlink(lhs_dart_id);
+                self.insert_vertex(self.vertex_id(lhs_dart_id), v1);
+                self.insert_vertex(self.vertex_id(b1rhs_dart_id), v2);
+            }
+            (false, false) => {
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
+                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
+                self.two_unlink(lhs_dart_id);
+                let (rhs_v1, rhs_v2) = Vertex2::split(rhs_vertex);
+                let (lhs_v1, lhs_v2) = Vertex2::split(lhs_vertex);
+
+                self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_v1);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_v2);
+                self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_v1);
+                self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_v2);
+            }
         }
     }
 }
