@@ -1080,7 +1080,7 @@ impl<T: CoordsFloat> CMap2<T> {
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
     pub fn n_vertices(&self) -> usize {
-        todo!()
+        self.vertices.n_vertices()
     }
 
     /// Fetch vertex value associated to a given identifier.
