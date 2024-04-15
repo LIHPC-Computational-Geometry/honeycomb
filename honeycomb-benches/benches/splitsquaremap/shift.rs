@@ -54,7 +54,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
             .map(|d_id| map.beta::<2>(d_id))
             .collect();
         if !neighbors_vertex_cell.contains(&NULL_DART_ID) {
-            inner.insert(map.vertex_id(*vertex_id));
+            inner.insert(*vertex_id);
         }
     });
     inner.iter().for_each(|vertex_id| {
