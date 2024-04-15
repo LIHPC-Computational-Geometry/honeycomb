@@ -25,9 +25,7 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{
-    utils::square_cmap2, CMap2, DartIdentifier, FloatType, SewPolicy, UnsewPolicy,
-};
+use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType};
 
 // ------ CONTENT
 
@@ -48,17 +46,17 @@ fn split(mut map: CMap2<FloatType>) {
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops
-            map.one_unsew(d1, UnsewPolicy::Duplicate);
-            map.one_unsew(d3, UnsewPolicy::Duplicate);
+            map.one_unsew(d1);
+            map.one_unsew(d3);
             // link the two new dart in order to
             map.two_link(dsplit1, dsplit2);
             // define beta1 of the new darts, i.e. tell them where they point to
-            map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
+            map.one_sew(dsplit1, d4);
+            map.one_sew(dsplit2, d2);
 
             // sew the original darts to the new darts
-            map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
+            map.one_sew(d1, dsplit1);
+            map.one_sew(d3, dsplit2);
             // fuse the edges; this is where duplicated vertices are merged back together
         });
 
@@ -84,17 +82,17 @@ fn split_some(mut map: CMap2<FloatType>, split: &[bool]) {
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops
-            map.one_unsew(d1, UnsewPolicy::Duplicate);
-            map.one_unsew(d3, UnsewPolicy::Duplicate);
+            map.one_unsew(d1);
+            map.one_unsew(d3);
             // link the two new dart in order to
             map.two_link(dsplit1, dsplit2);
             // define beta1 of the new darts, i.e. tell them where they point to
-            map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
+            map.one_sew(dsplit1, d4);
+            map.one_sew(dsplit2, d2);
 
             // sew the original darts to the new darts
-            map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
+            map.one_sew(d1, dsplit1);
+            map.one_sew(d3, dsplit2);
             // fuse the edges; this is where duplicated vertices are merged back together
         });
 
@@ -124,17 +122,17 @@ fn split_diff(mut map: CMap2<FloatType>, split: &[bool]) {
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops
-            map.one_unsew(dbefore1, UnsewPolicy::Duplicate);
-            map.one_unsew(dbefore2, UnsewPolicy::Duplicate);
+            map.one_unsew(dbefore1);
+            map.one_unsew(dbefore2);
             // link the two new dart in order to
             map.two_link(dsplit1, dsplit2);
             // define beta1 of the new darts, i.e. tell them where they point to
-            map.one_sew(dsplit1, dafter1, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, dafter2, SewPolicy::StretchRight);
+            map.one_sew(dsplit1, dafter1);
+            map.one_sew(dsplit2, dafter2);
 
             // sew the original darts to the new darts
-            map.one_sew(dbefore1, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(dbefore2, dsplit2, SewPolicy::StretchLeft);
+            map.one_sew(dbefore1, dsplit1);
+            map.one_sew(dbefore2, dsplit2);
             // fuse the edges; this is where duplicated vertices are merged back together
         });
 
