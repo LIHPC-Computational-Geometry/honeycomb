@@ -11,9 +11,9 @@
 // ------ IMPORTS
 
 use crate::{
-    AttrSparseVec, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier, FaceCollection,
-    FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2, VertexCollection,
-    VertexIdentifier, NULL_DART_ID,
+    AttrSparseVec, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier,
+    FaceCollection, FaceIdentifier, Orbit2, OrbitPolicy, SewPolicy, UnsewPolicy, Vertex2,
+    VertexCollection, VertexIdentifier, NULL_DART_ID,
 };
 
 use std::collections::BTreeSet;
@@ -565,63 +565,21 @@ impl<T: CoordsFloat> CMap2<T> {
         // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id != NULL_DART_ID {
-            match policy {
-                SewPolicy::StretchLeft => {
-                    // read current values / remove old ones
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    let tmp = self.remove_vertex(b2lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found");
-                        panic!("E: Cannot 1-sew to lhs element, terminating...");
-                    });
-                    if self.remove_vertex(rhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found"
-                        );
-                        println!("W: Continue 1-sew to lhs element...");
-                    }
-                    // update the topology (this is why we need the above lines)
-                    self.one_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
-                }
-                SewPolicy::StretchRight => {
-                    // read current values / remove old ones
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    if self.remove_vertex(b2lhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found"
-                        );
-                        println!("W: Continue 1-sew to rhs element...");
-                    };
-                    let tmp = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                        panic!("E: Cannot 1-sew to rhs element, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.one_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(rhs_dart_id), tmp);
-                }
-                SewPolicy::StretchAverage => {
-                    // read current values / remove old ones
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-                    let tmp1 = self.remove_vertex(b2lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b2lhs_vid_old} associated to dart {b2lhs_dart_id} (b2lhs) was not found");
-                        panic!("E: Cannot 1-sew to an average, terminating...");
-                    });
-                    let tmp2 = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                        panic!("E: Cannot 1-sew to an average, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.one_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(rhs_dart_id), Vertex2::average(&tmp1, &tmp2));
-                }
-            }
+            let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
+            let rhs_vid_old = self.vertex_id(rhs_dart_id);
+            let tmp = (
+                self.vertices.remove(b2lhs_vid_old),
+                self.vertices.remove(rhs_vid_old),
+            );
+            let new_vertex = match tmp {
+                (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                (None, None) => Vertex2::merge_undefined(None),
+            };
+            // use b2lhs_vid as the index for the new vertex
+            self.one_link(lhs_dart_id, rhs_dart_id);
+            self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
         } else {
             self.one_link(lhs_dart_id, rhs_dart_id);
         }
@@ -663,238 +621,85 @@ impl<T: CoordsFloat> CMap2<T> {
             // trivial case, no update needed
             (true, true) => self.two_link(lhs_dart_id, rhs_dart_id),
             // update vertex associated to b1rhs/lhs
-            (true, false) => match policy {
-                SewPolicy::StretchLeft => {
-                    // read current values / remove old ones
-                    let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                    let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                    let tmp = self.remove_vertex(lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found");
-                        panic!("E: Cannot 2-sew to lhs element, terminating...");
-                    });
-                    if self.remove_vertex(b1rhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found",
-                        );
-                        println!("W: Continue 2-sew to lhs element...");
-                    };
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
-                }
-                SewPolicy::StretchRight => {
-                    // read current values / remove old ones
-                    let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                    let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                    if self.remove_vertex(lhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found",
-                        );
-                        println!("W: Continue 2-sew to b1rhs element...");
-                    };
-                    let tmp = self.remove_vertex(b1rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found");
-                        panic!("E: Cannot 2-sew to b1rhs element, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
-                }
-                SewPolicy::StretchAverage => {
-                    // read current values / remove old ones
-                    let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                    let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                    let tmp1 = self.remove_vertex(lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found");
-                        panic!("E: Cannot 2-sew to an average, terminating...");
-                    });
-                    let tmp2 = self.remove_vertex(b1rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found");
-                        panic!("E: Cannot 2-sew to an average, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), Vertex2::average(&tmp1, &tmp2));
-                }
-            },
+            (true, false) => {
+                // read current values / remove old ones
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                let tmp = (
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                // reinsert correct value
+                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertex);
+            }
             // update vertex associated to b1lhs/rhs
-            (false, true) => match policy {
-                SewPolicy::StretchLeft => {
-                    // read current values / remove old ones
-                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    let tmp = self.remove_vertex(b1lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found");
-                        panic!("E: Cannot 2-sew to b1lhs element, terminating...");
-                    });
-                    if self.remove_vertex(rhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found",
-                        );
-                        println!("W: Continue 2-sew to b1lhs element...");
-                    };
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
-                }
-                SewPolicy::StretchRight => {
-                    // read current values / remove old ones
-                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    if self.remove_vertex(b1lhs_vid_old).is_err() {
-                        println!(
-                            "W: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found",
-                        );
-                        println!("W: Continue 2-sew to rhs element...");
-                    };
-                    let tmp = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                        panic!("E: Cannot 2-sew to rhs element, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), tmp);
-                }
-                SewPolicy::StretchAverage => {
-                    // read current values / remove old ones
-                    let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                    let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                    let tmp1 = self.remove_vertex(b1lhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found");
-                        panic!("E: Cannot 2-sew to an average, terminating...");
-                    });
-                    let tmp2 = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                        println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                        panic!("E: Cannot 2-sew to an average, terminating...");
-                    });
-                    // update the topology (this is why we need the above lines)
-                    self.two_link(lhs_dart_id, rhs_dart_id);
-                    // reinsert correct value
-                    self.insert_vertex(self.vertex_id(lhs_dart_id), Vertex2::average(&tmp1, &tmp2));
-                }
-            },
+            (false, true) => {
+                // read current values / remove old ones
+                let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let tmp = (
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                // reinsert correct value
+                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
+            }
             // update both vertices making up the edge
             (false, false) => {
-                // currently, the sewing policy applies to both vertices, i.e. applies to the edge.
-                // It would technically be possible to specify a policy for each element, but we're not
-                // reworking attributes atm.
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        // read current values / remove old ones
-                        // (lhs/b1rhs) vertex
-                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                        let tmpa = self.remove_vertex(lhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found");
-                            panic!("E: Cannot 2-sew to lhs element, terminating...");
-                        });
-                        if self.remove_vertex(b1rhs_vid_old).is_err() {
-                            println!(
-                                "W: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found",
-                            );
-                            println!("W: Continue 2-sew to lhs element...");
-                        };
-                        // (b1lhs/rhs) vertex
-                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                        let tmpb = self.remove_vertex(b1lhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found");
-                            panic!("E: Cannot 2-sew to b1lhs element, terminating...");
-                        });
-                        if self.remove_vertex(rhs_vid_old).is_err() {
-                            println!(
-                                "W: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found",
-                            );
-                            println!("W: Continue 2-sew to b1lhs element...");
-                        };
+                // read current values / remove old ones
+                // (lhs/b1rhs) vertex
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                let tmpa = (
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
+                );
+                let new_vertexa = match tmpa {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
 
-                        // update the topology (this is why we need the above lines)
-                        self.two_link(lhs_dart_id, rhs_dart_id);
+                // (b1lhs/rhs) vertex
+                let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let tmpb = (
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
+                );
+                let new_vertexb = match tmpb {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                // reinsert correct value
 
-                        // reinsert correct value
-                        self.insert_vertex(self.vertex_id(lhs_dart_id), tmpa);
-                        self.insert_vertex(self.vertex_id(rhs_dart_id), tmpb);
-                    }
-                    SewPolicy::StretchRight => {
-                        // read current values / remove old ones
-                        // (lhs/b1rhs) vertex
-                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                        if self.remove_vertex(lhs_vid_old).is_err() {
-                            println!(
-                                "W: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found",
-                            );
-                            println!("W: Continue 2-sew to b1rhs element...");
-                        };
-                        let tmpa = self.remove_vertex(b1rhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found");
-                            panic!("E: Cannot 2-sew to b1rhs element, terminating...");
-                        });
-                        // (b1lhs/rhs) vertex
-                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                        if self.remove_vertex(b1lhs_vid_old).is_err() {
-                            println!(
-                                "W: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found",
-                            );
-                            println!("W: Continue 2-sew to rhs element...");
-                        };
-                        let tmpb = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                            panic!("E: Cannot 2-sew to rhs element, terminating...");
-                        });
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
 
-                        // update the topology (this is why we need the above lines)
-                        self.two_link(lhs_dart_id, rhs_dart_id);
-
-                        // reinsert correct value
-                        self.insert_vertex(self.vertex_id(lhs_dart_id), tmpa);
-                        self.insert_vertex(self.vertex_id(rhs_dart_id), tmpb);
-                    }
-                    SewPolicy::StretchAverage => {
-                        // read current values / remove old ones
-                        // (lhs/b1rhs) vertex
-                        let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                        let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                        let tmpa1 = self.remove_vertex(lhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {lhs_vid_old} associated to dart {lhs_dart_id} (lhs) was not found");
-                            panic!("E: Cannot 2-sew to an average, terminating...");
-                        });
-                        let tmpa2 = self.remove_vertex(b1rhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {b1rhs_vid_old} associated to dart {b1rhs_dart_id} (b1rhs) was not found");
-                            panic!("E: Cannot 2-sew to an average, terminating...");
-                        });
-                        // (b1lhs/rhs) vertex
-                        let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
-                        let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                        let tmpb1 = self.remove_vertex(b1lhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {b1lhs_vid_old} associated to dart {b1lhs_dart_id} (b1lhs) was not found");
-                            panic!("E: Cannot 2-sew to an average, terminating...");
-                        });
-                        let tmpb2 = self.remove_vertex(rhs_vid_old).unwrap_or_else(|_| {
-                            println!("E: Vertex {rhs_vid_old} associated to dart {rhs_dart_id} (rhs) was not found");
-                            panic!("E: Cannot 2-sew to rhs element, terminating...");
-                        });
-
-                        // update the topology (this is why we need the above lines)
-                        self.two_link(lhs_dart_id, rhs_dart_id);
-
-                        // reinsert correct value
-                        self.insert_vertex(
-                            self.vertex_id(lhs_dart_id),
-                            Vertex2::average(&tmpa1, &tmpa2),
-                        );
-                        self.insert_vertex(
-                            self.vertex_id(rhs_dart_id),
-                            Vertex2::average(&tmpb1, &tmpb2),
-                        );
-                    }
-                }
+                // reinsert correct values
+                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertexa);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertexb);
             }
         }
     }
