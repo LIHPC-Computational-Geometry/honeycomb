@@ -1,0 +1,30 @@
+name: Build project
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_crates:
+    name: Build project for ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        features: [ single_precision, utils ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build crates
+        run: cargo build --features ${{ matrix.features }} --all -- -D warnings
+      - name: Build examples
+        run: cargo build --features ${{ matrix.features }} --examples -- -D warnings
+      - name: Build benchmarks
+        run: cargo build --features ${{ matrix.features }} --benches -D warnings
