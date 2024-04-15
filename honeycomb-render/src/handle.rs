@@ -91,7 +91,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                 .zip(face_vertices)
                 .zip(centers)
                 .flat_map(|((face_id, (n_vertices, vertices)), center)| {
-                    let vertices: Vec<Vertex2<T>> = vertices.copied().collect();
+                    let vertices: Vec<Vertex2<T>> = vertices.collect();
                     let vertices_pair = (0..n_vertices).map(move |vid| {
                         let v1id = vid;
                         let v2id = if vid == n_vertices - 1 { 0 } else { vid + 1 };
