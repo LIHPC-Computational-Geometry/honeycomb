@@ -42,7 +42,7 @@ jobs:
       # generate lcov file using grcov
       - name: Run grcov
         run: grcov . \
-          --binary-path ./target/debug/deps/ \
+          --binary-path ./target/debug/ \
           -s . \
           -t lcov \
           --branch \
