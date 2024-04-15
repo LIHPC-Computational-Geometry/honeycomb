@@ -23,8 +23,8 @@ jobs:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
       - name: Build crates
-        run: cargo build --features ${{ matrix.features }} --all -- -D warnings
+        run: cargo build --features ${{ matrix.features }} --all
       - name: Build examples
-        run: cargo build --features ${{ matrix.features }} --examples -- -D warnings
+        run: cargo build --features ${{ matrix.features }} --examples
       - name: Build benchmarks
-        run: cargo build --features ${{ matrix.features }} --benches -D warnings
+        run: cargo build --features ${{ matrix.features }} --benches
