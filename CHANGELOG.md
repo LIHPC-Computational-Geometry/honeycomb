@@ -24,6 +24,8 @@
 - add a new public module, `utils`, compiled when the `utils` feature is enabled (#31)
     - the module contains functions previously defined in the `honeycomb-utils` crate
 - add two new traits, `AttributeLogic` and `AttributeSupport`, for basic attribute genericity (#33)
+- implement new attribute traits for the `Vertex2` struct (#33)
+- add two storage structures for generic attributes `AttributeSparseVec` and `AttributeSparseVec` (#34)
 
 #### honeycomb-examples (new)
 
