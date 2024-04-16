@@ -1249,7 +1249,29 @@ impl<T: CoordsFloat> CMap2<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CMap2, FloatType};
+    use crate::{CMap2, FloatType, Orbit2, OrbitPolicy};
+
+    #[test]
+    fn example_test() {
+        // build a triangle
+        let mut map: CMap2<FloatType> = CMap2::new(3);
+        map.one_link(1, 2);
+        map.one_link(2, 3);
+        map.one_link(3, 1);
+        map.insert_vertex(1, (0.0, 0.0));
+        map.insert_vertex(2, (1.0, 0.0));
+        map.insert_vertex(3, (0.0, 1.0));
+
+        // checks
+        let faces = map.fetch_faces();
+        assert_eq!(faces.identifiers.len(), 1);
+        assert_eq!(faces.identifiers[0], 1);
+        let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(1));
+        assert_eq!(face.next(), Some(2));
+        assert_eq!(face.next(), Some(3));
+        assert_eq!(face.next(), None);
+    }
 
     #[test]
     #[should_panic]
