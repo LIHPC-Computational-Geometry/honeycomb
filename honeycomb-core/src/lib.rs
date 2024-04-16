@@ -17,7 +17,6 @@
 // ------ MODULE DECLARATIONS
 
 mod cells;
-mod embed;
 mod spatial_repr;
 mod twomap;
 
