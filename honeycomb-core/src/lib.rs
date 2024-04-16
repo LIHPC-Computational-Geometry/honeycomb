@@ -31,12 +31,13 @@ pub use attributes::{
     traits::{AttributeBind, AttributeUpdate},
 };
 pub use cells::{
-    collections::{EdgeCollection, FaceCollection, VertexCollection},
-    identifiers::{
-        DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
-        NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
+    collections::{
+        EdgeCollection, EdgeIdentifier, FaceCollection, FaceIdentifier, VertexCollection,
+        VertexIdentifier, VolumeIdentifier, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID,
+        NULL_VOLUME_ID,
     },
     orbits::{Orbit2, OrbitPolicy},
+    DartIdentifier, NULL_DART_ID,
 };
 pub use spatial_repr::{
     coords::{Coords2, CoordsError},
