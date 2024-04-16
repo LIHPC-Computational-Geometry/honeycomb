@@ -25,6 +25,7 @@ use num::ToPrimitive;
 ///
 /// todo
 ///
+#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
@@ -45,6 +46,14 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
         Self {
             data: (0..n_ids).map(|_| None).collect(),
         }
+    }
+
+    pub fn extend(&mut self, length: usize) {
+        self.data.extend((0..length).map(|_| None));
+    }
+
+    pub fn n_vertices(&self) -> usize {
+        self.data.iter().filter(|val| val.is_some()).count()
     }
 
     /// Getter
@@ -133,17 +142,17 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Return / Panic
+    ///
+    /// Return an option containing the old value if it existed.
     ///
     /// The method may panic if:
-    /// - **there is no value associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
-        let tmp = &mut self.data[index.to_usize().unwrap()];
-        assert!(tmp.is_some());
-        *tmp = Some(val);
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
+        self.data.push(Some(val));
+        self.data.swap_remove(index.to_usize().unwrap())
     }
 
     /// Remove an item from the storage and return it
@@ -167,6 +176,21 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 }
 
+#[cfg(feature = "utils")]
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
+    pub fn allocated_size(&self) -> usize {
+        self.data.capacity() * std::mem::size_of::<Option<T>>()
+    }
+
+    pub fn effective_size(&self) -> usize {
+        self.data.len() * std::mem::size_of::<Option<T>>()
+    }
+
+    pub fn used_size(&self) -> usize {
+        self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
+    }
+}
+
 /// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using two internal collections:
@@ -184,19 +208,28 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 ///
 /// todo
 ///
-pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Default> {
+#[cfg_attr(feature = "utils", derive(Clone))]
+pub struct AttrCompactVec<T: AttributeBind + AttributeUpdate + Clone> {
     unused_data_slots: Vec<usize>,
     index_map: Vec<Option<usize>>,
     data: Vec<T>,
 }
 
-impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
             index_map: vec![None; n_ids],
             data: Vec::new(),
         }
+    }
+
+    pub fn extend(&mut self, length: usize) {
+        self.index_map.extend((0..length).map(|_| None));
+    }
+
+    pub fn n_vertices(&self) -> usize {
+        self.data.len()
     }
 
     pub fn get(&self, index: T::IdentifierType) -> Option<&T> {
@@ -234,20 +267,42 @@ impl<T: AttributeBind + AttributeUpdate + Default> AttrCompactVec<T> {
         };
     }
 
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) {
+    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
         let idx = &self.index_map[index.to_usize().unwrap()];
         assert!(idx.is_some());
-        self.data[idx.unwrap()] = val;
+        self.data.push(val);
+        Some(self.data.swap_remove(idx.unwrap()))
     }
 
     pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
         self.index_map.push(None);
         if let Some(tmp) = self.index_map.swap_remove(index.to_usize().unwrap()) {
             self.unused_data_slots.push(tmp);
-            self.data.push(T::default());
-            return Some(self.data.swap_remove(tmp));
+            return Some(self.data[tmp].clone());
         };
         None
+    }
+}
+
+#[cfg(feature = "utils")]
+impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
+    pub fn allocated_size(&self) -> usize {
+        self.unused_data_slots.capacity() * std::mem::size_of::<usize>()
+            + self.index_map.capacity() * std::mem::size_of::<Option<usize>>()
+            + self.data.capacity() * std::mem::size_of::<T>()
+    }
+
+    pub fn effective_size(&self) -> usize {
+        self.unused_data_slots.len() * std::mem::size_of::<usize>()
+            + self.index_map.len() * std::mem::size_of::<Option<usize>>()
+            + self.data.len() * std::mem::size_of::<T>()
+    }
+
+    pub fn used_size(&self) -> usize {
+        self.unused_data_slots.len() * std::mem::size_of::<usize>()
+            + self.index_map.iter().filter(|val| val.is_some()).count()
+                * std::mem::size_of::<Option<usize>>()
+            + self.data.len() * std::mem::size_of::<T>()
     }
 }
 
@@ -373,7 +428,7 @@ mod tests {
     fn sparse_vec_remove_replace() {
         generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0)); // panic
+        storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
     }
 
     macro_rules! generate_compact {

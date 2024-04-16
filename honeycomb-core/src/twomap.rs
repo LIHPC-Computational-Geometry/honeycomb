@@ -10,9 +10,9 @@
 
 // ------ IMPORTS
 
-use super::dart::CellIdentifiers;
 use crate::{
-    CoordsFloat, DartData, DartIdentifier, Face, FaceIdentifier, SewPolicy, UnsewPolicy, Vertex2,
+    AttrSparseVec, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier,
+    FaceCollection, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, VertexCollection,
     VertexIdentifier, NULL_DART_ID,
 };
 
@@ -22,9 +22,14 @@ use std::{fs::File, io::Write};
 
 // ------ CONTENT
 
+/// Error-modeling enum
+///
+/// This enum is used to describe all non-panic errors that can occur when operating on a map.
 #[derive(Debug)]
 pub enum CMapError {
-    VertexOOB,
+    /// Variant used when requesting a vertex using an ID that has no associated vertex
+    /// in storage.
+    UndefinedVertex,
 }
 
 // --- 2-MAP
@@ -56,15 +61,10 @@ const CMAP2_BETA: usize = 3;
 /// contains the following data:
 ///
 /// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
-/// - `free_vertices: BTreeSet<VertexIdentifier>` -- Set of free vertex identifiers,
-///   i.e. empty spots in the current vertex list
-/// - `faces: Vec<Face>` -- List of faces making up the represented mesh
-/// - `dart_data: DartData` -- Structure holding embedded data associated with darts
 /// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
 /// - `n_darts: usize` -- Current number of darts (including the null dart)
-/// - `n_vertices: usize` -- Current number of vertices
 ///
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
@@ -89,165 +89,8 @@ const CMAP2_BETA: usize = 3;
 /// ```
 /// # use honeycomb_core::CMapError;
 /// # fn main() -> Result<(), CMapError> {
-/// use honeycomb_core::{ DartIdentifier, SewPolicy, CMap2, UnsewPolicy, VertexIdentifier, NULL_DART_ID, Orbit2, OrbitPolicy};
 ///
-/// // --- Map creation
-///
-/// // create a map with 3 non-null darts & 3 vertices
-/// let mut map: CMap2<f64> = CMap2::new(3, 3);
-///
-/// // the two following lines are not strictly necessary, you may use integers directly
-/// let (d1, d2, d3): (DartIdentifier, DartIdentifier, DartIdentifier) = (1, 2, 3);
-/// let (v1, v2, v3): (VertexIdentifier, VertexIdentifier, VertexIdentifier) = (0, 1, 2);
-///
-/// // place the vertices in space
-/// map.set_vertex(v1, [0.0, 0.0])?;
-/// map.set_vertex(v2, [0.0, 10.0])?;
-/// map.set_vertex(v3, [10.0, 0.0])?;
-/// // associate dart to vertices
-/// map.set_vertexid(d1, v1);
-/// map.set_vertexid(d2, v2);
-/// map.set_vertexid(d3, v3);
-/// // define beta values to form a face
-/// map.set_betas(d1, [d3, d2, NULL_DART_ID]); // beta 0 / 1 / 2 (d1) = d3 / d2 / null
-/// map.set_betas(d2, [d1, d3, NULL_DART_ID]); // beta 0 / 1 / 2 (d2) = d1 / d3 / null
-/// map.set_betas(d3, [d2, d1, NULL_DART_ID]); // beta 0 / 1 / 2 (d3) = d2 / d1 / null
-///
-/// // build the face we just linked & fetch the id for checks
-/// let fface_id = map.build_face(d1);
-///
-/// // --- checks
-///
-/// // fetch cells associated to each dart
-/// let d1_cells = map.cells(d1);
-/// let d2_cells = map.cells(d2);
-/// let d3_cells = map.cells(d3);
-///
-/// // check dart-vertex association
-/// assert_eq!(d1_cells.vertex_id, v1);
-/// assert_eq!(d2_cells.vertex_id, v2);
-/// assert_eq!(d3_cells.vertex_id, v3);
-///
-/// // check dart-face association
-/// assert_eq!(d1_cells.face_id, fface_id);
-/// assert_eq!(d2_cells.face_id, fface_id);
-/// assert_eq!(d3_cells.face_id, fface_id);
-///
-/// // fetch all darts of the two-cell d2 belongs to
-/// // i.e. the face
-/// let two_cell = map.i_cell::<2>(d2); // directly
-/// let orbit = Orbit2::new(&map, OrbitPolicy::Face, d2); // using an orbit
-/// let two_cell_from_orbit: Vec<DartIdentifier> = orbit.collect();
-///
-/// // check topology of the face
-/// // we make no assumption on the ordering of the result when using the i_cell method
-/// assert!(two_cell.contains(&d1));
-/// assert!(two_cell.contains(&d2));
-/// assert!(two_cell.contains(&d3));
-/// assert_eq!(two_cell.len(), 3);
-/// assert!(two_cell_from_orbit.contains(&d1));
-/// assert!(two_cell_from_orbit.contains(&d2));
-/// assert!(two_cell_from_orbit.contains(&d3));
-/// assert_eq!(two_cell_from_orbit.len(), 3);
-///
-/// // --- (a)
-///
-/// // add three new darts
-/// let d4 = map.add_free_dart(); // 4
-/// let d5 = map.add_free_dart(); // 5
-/// let d6 = map.add_free_dart(); // 6
-///
-/// assert!(map.is_free(d4));
-/// assert!(map.is_free(d5));
-/// assert!(map.is_free(d6));
-///
-/// // create the corresponding three vertices
-/// let v4 = map.add_vertex(Some([15.0, 0.0].into())); // v4
-/// let v5 = map.add_vertices(2); // v5, v6
-/// let v6 = v5 + 1;
-/// map.set_vertex(v5, [5.0, 10.0])?; // v5
-/// map.set_vertex(v6, [15.0, 10.0])?; // v6
-/// // associate dart to vertices
-/// map.set_vertexid(d4, v4);
-/// map.set_vertexid(d5, v5);
-/// map.set_vertexid(d6, v6);
-/// // define beta values to form a second face
-/// map.set_betas(d4, [d6, d5, NULL_DART_ID]); // beta 0 / 1 / 2 (d4) = d6 / d5 / null
-/// map.set_betas(d5, [d4, d6, NULL_DART_ID]); // beta 0 / 1 / 2 (d5) = d4 / d6 / null
-/// map.set_betas(d6, [d5, d4, NULL_DART_ID]); // beta 0 / 1 / 2 (d6) = d5 / d4 / null
-///
-/// let sface_id =  map.build_face(d6); // build the second face
-///
-/// // --- checks
-///
-/// // d4 & d2 are 2-free, hence can be 2-sewn together
-/// assert!(map.is_i_free::<2>(d4));
-/// assert!(map.is_i_free::<2>(d2));
-///
-/// // --- (b)
-///
-/// // 2-sew d2 & d4, stretching d4 to d2's spatial position
-/// // this invalidates the face built before since vertex are overwritten
-/// // if we used a StretchRight policy, the invalidated face would have been the first one
-/// map.two_sew(d2, d4, SewPolicy::StretchLeft);
-///
-/// // --- checks
-///
-/// // check topological result
-/// assert_eq!(map.beta::<2>(d2), d4);
-/// assert_eq!(map.beta::<2>(d4), d2);
-/// // check geometrical result
-/// assert_eq!(map.vertexid(d2), map.vertexid(d5));
-/// assert_eq!(map.vertexid(d3), map.vertexid(d4));
-///
-/// // --- (c)
-///
-/// // shift the position of d6 to build a square using the two faces
-/// map.set_vertex(map.vertexid(d6), [10.0, 10.0])?;
-///
-/// // --- (d)
-///
-/// // disconnect d2 & d4 for removal
-/// map.one_unsew(d2, UnsewPolicy::Duplicate); // using unsew here allow proper vertices
-/// map.one_unsew(d4, UnsewPolicy::Duplicate); // modifications
-/// map.set_beta::<0>(d2, NULL_DART_ID);
-/// map.set_beta::<0>(d4, NULL_DART_ID);
-/// map.set_beta::<2>(d2, NULL_DART_ID);
-/// map.set_beta::<2>(d4, NULL_DART_ID);
-/// map.remove_free_dart(d2); // this checks if d2 is free for all i
-/// map.remove_free_dart(d4); // this checks if d4 is free for all i
-///
-/// // reconnect d1/d5 & d6/d3 to form the new face
-/// map.set_beta::<1>(d1, d5);
-/// map.set_beta::<0>(d5, d1);
-/// map.set_beta::<1>(d6, d3);
-/// map.set_beta::<0>(d3, d6);
-///
-/// // rebuild the face
-///
-/// let new_face_id = map.build_face(d6);
-///
-/// // --- checks
-///
-/// // check associated face
-/// assert_eq!(map.faceid(d1), new_face_id);
-/// assert_eq!(map.faceid(d5), new_face_id);
-/// assert_eq!(map.faceid(d6), new_face_id);
-/// assert_eq!(map.faceid(d3), new_face_id);
-///
-/// // check dart positions
-/// assert_eq!(*map.vertex(map.vertexid(d1)), [0.0, 0.0].into());
-/// assert_eq!(*map.vertex(map.vertexid(d5)), [0.0, 10.0].into());
-/// assert_eq!(*map.vertex(map.vertexid(d6)), [10.0, 10.0].into());
-/// assert_eq!(*map.vertex(map.vertexid(d3)), [10.0, 0.0].into());
-///
-/// // check topology of the new face
-/// let new_two_cell = map.i_cell::<2>(d3);
-/// assert!(new_two_cell.contains(&d1));
-/// assert!(new_two_cell.contains(&d5));
-/// assert!(new_two_cell.contains(&d6));
-/// assert!(new_two_cell.contains(&d3));
-/// assert_eq!(new_two_cell.len(), 4);
+/// // todo: write a new example
 ///
 /// # Ok(())
 /// # }
@@ -255,14 +98,7 @@ const CMAP2_BETA: usize = 3;
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    vertices: Vec<Vertex2<T>>,
-    /// List of free vertex identifiers, i.e. empty spots
-    /// in the current vertex list
-    unused_vertices: BTreeSet<VertexIdentifier>,
-    /// List of faces making up the represented mesh
-    faces: Vec<Face>,
-    /// Structure holding data related to darts (marks, associated cells)
-    dart_data: DartData,
+    vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     unused_darts: BTreeSet<DartIdentifier>,
@@ -270,17 +106,9 @@ pub struct CMap2<T: CoordsFloat> {
     betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
     n_darts: usize,
-    /// Current number of vertices
-    n_vertices: usize,
 }
 
-macro_rules! stretch {
-    ($slf: ident, $replaced: expr, $replacer: expr) => {
-        $slf.dart_data.associated_cells[$replaced as usize].vertex_id =
-            $slf.dart_data.associated_cells[$replacer as usize].vertex_id
-    };
-}
-
+// --- constructor
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -302,44 +130,19 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [CMap2] example.
     ///
-    pub fn new(n_darts: usize, n_vertices: usize) -> Self {
-        let vertices = vec![Vertex2::default(); n_vertices];
-        let betas = vec![[0; CMAP2_BETA]; n_darts + 1];
-
+    pub fn new(n_darts: usize) -> Self {
         Self {
-            vertices,
-            unused_vertices: BTreeSet::new(),
-            faces: Vec::with_capacity(n_darts / 3),
-            dart_data: DartData::new(n_darts),
+            vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: BTreeSet::new(),
-            betas,
+            betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,
-            n_vertices,
         }
     }
+}
 
-    // --- reading interfaces
-
-    /// Return information about the current number of vertices.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a tuple of two elements:
-    ///
-    /// - the number of vertices
-    /// - a boolean indicating whether there are free vertices or not
-    ///
-    /// The boolean essentially indicates if it is safe to access all
-    /// vertex IDs in the `0..n_vertices` range.
-    ///
-    pub fn n_vertices(&self) -> (usize, bool) {
-        (self.n_vertices, !self.unused_vertices.is_empty())
-    }
-
-    /// Return the current number of faces.
-    pub fn n_faces(&self) -> usize {
-        self.faces.len()
-    }
+// --- dart-related code
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
 
     /// Return information about the current number of darts.
     ///
@@ -348,14 +151,110 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a tuple of two elements:
     ///
     /// - the number of darts
-    /// - a boolean indicating whether there are free darts or not
+    /// - a boolean indicating whether there are unused darts or not
     ///
-    /// The boolean essentially indicates if it is safe to access all
-    /// dart IDs in the `0..n_darts` range.
+    /// The boolean essentially indicates if it is safe to access & use all dart IDs in the
+    /// `1..n_darts+1` range.
     ///
     pub fn n_darts(&self) -> (usize, bool) {
         (self.n_darts, !self.unused_darts.is_empty())
     }
+
+    // --- edit
+
+    /// Add a new free dart to the combinatorial map.
+    ///
+    /// The dart is i-free for all i and is pushed to the list of existing darts, effectively
+    /// making its identifier equal to the total number of darts (post-push).
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created dart to allow for direct operations.
+    ///
+    pub fn add_free_dart(&mut self) -> DartIdentifier {
+        let new_id = self.n_darts as DartIdentifier;
+        self.n_darts += 1;
+        self.betas.push([0; CMAP2_BETA]);
+        self.vertices.extend(1);
+        new_id
+    }
+
+    /// Add multiple new free darts to the combinatorial map.
+    ///
+    /// All darts are i-free for all i and are pushed to the end of the list of existing darts.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_darts: usize` -- Number of darts to have.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the first created dart to allow for direct operations. Darts are
+    /// positioned on range `ID..ID+n_darts`.
+    ///
+    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
+        let new_id = self.n_darts as DartIdentifier;
+        self.n_darts += n_darts;
+        self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
+        self.vertices.extend(n_darts);
+        new_id
+    }
+
+    /// Insert a new free dart to the combinatorial map.
+    ///
+    /// The dart is i-free for all i and may be inserted into an unused spot in the existing dart
+    /// list. If no free spots exist, it will be pushed to the end of the list.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the ID of the created dart to allow for direct operations.
+    ///
+    pub fn insert_free_dart(&mut self) -> DartIdentifier {
+        if let Some(new_id) = self.unused_darts.pop_first() {
+            self.betas[new_id as usize] = [0; CMAP2_BETA];
+            new_id
+        } else {
+            self.add_free_dart()
+        }
+    }
+
+    /// Remove a free dart from the combinatorial map.
+    ///
+    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
+    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
+    /// any sort extremely costly.
+    ///
+    /// By keeping track of free spots in the dart arrays, we can prevent too much memory waste,
+    /// although at the cost of locality of reference.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    ///
+    /// # Panic
+    ///
+    /// This method may panic if:
+    ///
+    /// - The dart is not *i*-free for all *i*.
+    /// - The dart is already marked as unused (Refer to [Self::remove_vertex] documentation for
+    ///   a detailed breakdown of this choice).
+    ///
+    pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
+        assert!(self.is_free(dart_id));
+        assert!(self.unused_darts.insert(dart_id));
+        let b0d = self.beta::<0>(dart_id);
+        let b1d = self.beta::<1>(dart_id);
+        let b2d = self.beta::<2>(dart_id);
+        self.betas[dart_id as usize] = [0; CMAP2_BETA];
+        self.betas[b0d as usize][1] = 0 as DartIdentifier;
+        self.betas[b1d as usize][0] = 0 as DartIdentifier;
+        self.betas[b2d as usize][2] = 0 as DartIdentifier;
+    }
+}
+
+// --- beta-related code
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
 
     /// Compute the value of the i-th beta function of a given dart.
     ///
@@ -370,15 +269,10 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
@@ -390,21 +284,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// - `i: u8` -- Index of the beta function. *i* should
-    /// be 0, 1 or 2 for a 2D map.
+    /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If
-    /// the returned value is the null dart (i.e. a dart identifier equal to 0), this
-    /// means that *dart* is i-free .
+    /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
     ///
     /// The method will panic if *i* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
@@ -416,97 +303,6 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// Fetch cells associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to a structure that contain identifiers to the different
-    /// **geometrical** i-cells *dart* models.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn cells(&self, dart_id: DartIdentifier) -> &CellIdentifiers {
-        &self.dart_data.associated_cells[dart_id as usize]
-    }
-
-    /// Fetch vertex value associated to a given identifier.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to the [Vertex2] associated to the ID.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Vertex2<T> {
-        &self.vertices[vertex_id as usize]
-    }
-
-    /// Fetch face structure associated to a given identifier.
-    ///
-    /// # Arguments
-    ///
-    /// - `face_id: FaceIdentifier` -- Identifier of the given face.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a reference to the [Face] associated to the ID.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn face(&self, face_id: FaceIdentifier) -> &Face {
-        &self.faces[face_id as usize]
-    }
-
-    /// Fetch vertex identifier associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the associated vertex.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn vertexid(&self, dart_id: DartIdentifier) -> VertexIdentifier {
-        self.dart_data.associated_cells[dart_id as usize].vertex_id
-    }
-
-    /// Fetch face associated to a given dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the identifier of the associated face.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn faceid(&self, dart_id: DartIdentifier) -> FaceIdentifier {
-        self.dart_data.associated_cells[dart_id as usize].face_id
-    }
-
     /// Check if a given dart is i-free.
     ///
     /// # Arguments
@@ -515,19 +311,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be 0, 1 or 2 for a 2D map.
+    /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is i-free, i.e.
-    /// *β<sub>i</sub>(dart) = NullDart*.
+    /// Return a boolean indicating if *dart* is i-free, i.e. *β<sub>i</sub>(dart) = NullDart*.
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
@@ -543,351 +333,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
             && self.beta::<1>(dart_id) == NULL_DART_ID
             && self.beta::<2>(dart_id) == NULL_DART_ID
     }
 
-    // orbits / i-cells
-
-    /// Return the identifiers of all dart composing an i-cell.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// Returns a vector of IDs of the darts of the i-cell of *dart* (including
-    /// *dart* at index 0).
-    ///
-    /// KNOWN ISSUE:
-    ///
-    /// - returning a vector is highly inefficient; a few alternatives to consider:
-    /// ArrayVec or heap-less Vec (requires a hard cap on the number of elements),
-    /// an iterator...
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Vec<DartIdentifier> {
-        let mut cell: Vec<DartIdentifier> = vec![dart_id];
-        let mut curr_dart = dart_id;
-        match I {
-            0 => {
-                let mut completeness = true;
-                // rotate around the vertex until we get back to the first dart
-                while self.beta::<1>(self.beta::<2>(curr_dart)) != dart_id {
-                    curr_dart = self.beta::<1>(self.beta::<2>(curr_dart));
-                    cell.push(curr_dart);
-                    if curr_dart == NULL_DART_ID {
-                        completeness = false;
-                        break; // stop if we land on the null dart
-                    }
-                }
-                // if not complete, we need to rotate in the other direction to make sure
-                // no dart is missing
-                if !completeness {
-                    curr_dart = self.beta::<2>(self.beta::<0>(dart_id));
-                    while curr_dart != NULL_DART_ID {
-                        cell.push(curr_dart);
-                        curr_dart = self.beta::<2>(self.beta::<0>(curr_dart));
-                    }
-                }
-            }
-            1 => {
-                // in the case of a 2-map, the 1-cell corresponds to [dart, beta_2(dart)]
-                cell.push(self.beta::<2>(dart_id))
-            }
-            2 => {
-                let mut completeness = true;
-                // travel along the edges of the face until we get back to the first dart
-                while self.beta::<1>(curr_dart) != dart_id {
-                    curr_dart = self.beta::<1>(curr_dart);
-                    cell.push(curr_dart);
-                    if curr_dart == NULL_DART_ID {
-                        completeness = false;
-                        break; // stop if we land on the null dart
-                    }
-                }
-                if !completeness {
-                    curr_dart = self.beta::<0>(dart_id);
-                    while curr_dart != NULL_DART_ID {
-                        cell.push(curr_dart);
-                        curr_dart = self.beta::<0>(curr_dart);
-                    }
-                }
-            }
-            _ => panic!(),
-        }
-        cell
-    }
-
-    // --- editing interfaces
-
-    /// Add a new free dart to the combinatorial map.
-    ///
-    /// The dart is i-free for all i and is pushed to the list of existing
-    /// darts, effectively making its identifier equal to the total number
-    /// of darts (post-push).
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_free_dart(&mut self) -> DartIdentifier {
-        let new_id = self.n_darts as DartIdentifier;
-        self.n_darts += 1;
-        self.dart_data.add_entry();
-        self.betas.push([0; CMAP2_BETA]);
-        new_id
-    }
-
-    /// Add multiple new free darts to the combinatorial map.
-    ///
-    /// All darts are i-free for all i and are pushed to the end of the list
-    /// of existing darts.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_darts: usize` -- Number of darts to have.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the first created dart to allow for direct operations.
-    /// Darts are positioned on range `ID..ID+n_darts`.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
-        let new_id = self.n_darts as DartIdentifier;
-        self.n_darts += n_darts;
-        self.dart_data.add_entries(n_darts);
-        self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
-        new_id
-    }
-
-    /// Insert a new free dart to the combinatorial map.
-    ///
-    /// The dart is i-free for all i and may be inserted into a free spot in
-    /// the existing dart list. If no free spots exist, it will be pushed to
-    /// the end of the list.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn insert_free_dart(&mut self) -> DartIdentifier {
-        if let Some(new_id) = self.unused_darts.pop_first() {
-            self.dart_data.reset_entry(new_id);
-            self.betas[new_id as usize] = [0; CMAP2_BETA];
-            new_id
-        } else {
-            self.add_free_dart()
-        }
-    }
-
-    /// Remove a free dart from the combinatorial map.
-    ///
-    /// The removed dart identifier is added to the list of free dart.
-    /// This way of proceeding is necessary as the structure relies on
-    /// darts indexing for encoding data, making reordering of any sort
-    /// extremely costly.
-    ///
-    /// By keeping track of free spots in the dart arrays, we can prevent too
-    /// much memory waste, although at the cost of locality of reference.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
-    ///
-    /// # Panic
-    ///
-    /// This method may panic if:
-    ///
-    /// - The dart is not *i*-free for all *i*.
-    /// - The dart is already marked as unused (Refer to [Self::remove_vertex] documentation for
-    ///   a detailed breakdown of this choice).
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
-        assert!(self.is_free(dart_id));
-        assert!(self.unused_darts.insert(dart_id));
-        let b0d = self.beta::<0>(dart_id);
-        let b1d = self.beta::<1>(dart_id);
-        let b2d = self.beta::<2>(dart_id);
-        self.betas[dart_id as usize] = [0; CMAP2_BETA];
-        self.betas[b0d as usize][1] = 0 as DartIdentifier;
-        self.betas[b1d as usize][0] = 0 as DartIdentifier;
-        self.betas[b2d as usize][2] = 0 as DartIdentifier;
-        // the following two lines are more safety than anything else
-        // this prevents having to deal w/ artifacts in case of re-insertion
-        self.dart_data.reset_entry(dart_id);
-    }
-
-    /// Add a vertex to the combinatorial map.
-    ///
-    /// The user can provide a [Vertex2] to use as the initial value of the
-    /// added vertex.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created vertex to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        let new_id = self.n_vertices as VertexIdentifier;
-        self.n_vertices += 1;
-        self.vertices.push(vertex.unwrap_or_default());
-        new_id
-    }
-
-    /// Add multiple vertices to the combinatorial map.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_vertices: usize` -- Number of vertices to create.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the first created vertex to allow for direct operations.
-    /// Vertices are positioned on range `ID..ID+n_darts`.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn add_vertices(&mut self, n_vertices: usize) -> VertexIdentifier {
-        let new_id = self.n_vertices as VertexIdentifier;
-        self.n_vertices += n_vertices;
-        self.vertices
-            .extend((0..n_vertices).map(|_| Vertex2::default()));
-        new_id
-    }
-
-    /// Insert a vertex in the combinatorial map.
-    ///
-    /// The vertex may be inserted into a free spot in the existing list. If no free
-    /// spots exist, it will be pushed to the end of the list. The user can provide a
-    /// [Vertex2] to use as the initial value of the added vertex.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex: Option<Vertex2>` -- Optional vertex value.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return the ID of the created dart to allow for direct operations.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn insert_vertex(&mut self, vertex: Option<Vertex2<T>>) -> VertexIdentifier {
-        if let Some(new_id) = self.unused_vertices.pop_first() {
-            self.set_vertex(new_id, vertex.unwrap_or_default()).unwrap();
-            new_id
-        } else {
-            self.add_vertex(vertex)
-        }
-    }
-
-    /// Remove a vertex from the combinatorial map.
-    ///
-    /// The removed vertex identifier is added to the list of free vertex.
-    /// This way of proceeding is necessary as the structure relies on
-    /// vertices indexing for encoding data, making reordering of any sort
-    /// extremely costly.
-    ///
-    /// By keeping track of free spots in the vertices array, we can prevent too
-    /// much memory waste, although at the cost of locality of reference.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
-    ///
-    /// # Panic
-    ///
-    /// This method may panic if the user tries to remove a vertex that is already
-    /// unused. This is a strongly motivated choice as:
-    /// - By definition, vertices are unique (through their IDs) and so are unused vertices/slots
-    /// - Duplicated unused slots will only lead to errors when reusing the slots (e.g. implicit
-    ///   overwrites).
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) {
-        // the insert method returns true if the value was inserted into the set,
-        // i.e. it wasn't already in before. This assertions guarantees that a
-        // single vertex won't be removed twice, leading to it being re-used
-        // multiple times.
-        assert!(self.unused_vertices.insert(vertex_id));
-        // the following line is more safety than anything else
-        // this prevents having to deal w/ artifacts in case of re-insertion
-        // it also panics on OOB
-        self.set_vertex(vertex_id, Vertex2::default()).unwrap();
-    }
-
-    /// Try to overwrite the given vertex with a new value.
-    ///
-    /// # Arguments
-    ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
-    /// - `vertex: Vertex2` -- New value for the vertex.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a result indicating if the vertex could be overwritten. The main reason
-    /// of failure would be an out-of-bounds access.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn set_vertex(
-        &mut self,
-        vertex_id: VertexIdentifier,
-        vertex: impl Into<Vertex2<T>>,
-    ) -> Result<(), CMapError> {
-        if let Some(val) = self.vertices.get_mut(vertex_id as usize) {
-            *val = vertex.into();
-            return Ok(());
-        }
-        Err(CMapError::VertexOOB)
-    }
+    // --- edit
 
     /// Set the values of the *β<sub>i</sub>* function of a dart.
     ///
@@ -898,16 +350,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should
-    /// be 0 (vertex), 1 (edge) or 2 (face) for a 2D map.
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
+    /// 2 (face) for a 2D map.
     ///
     /// # Return / Panic
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
     ///
     pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
         assert!(I < 3);
@@ -922,45 +370,218 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
+}
 
-    /// Set the vertex ID associated to a dart.
+// --- icell-related code
+impl<T: CoordsFloat> CMap2<T> {
+    /// Fetch vertex identifier associated to a given dart.
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `vertex_id: VertexIdentifier` -- Unique vertex identifier.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
-    /// # Example
+    /// # Return / Panic
     ///
-    /// See [CMap2] example.
+    /// Return the identifier of the associated vertex.
     ///
-    pub fn set_vertexid(&mut self, dart_id: DartIdentifier, vertex_id: VertexIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].vertex_id = vertex_id;
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
+    pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
+        Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
+            .min()
+            .unwrap() as VertexIdentifier
     }
 
-    /// Set the face ID associated to a dart.
+    /// Fetch edge associated to a given dart.
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `face_id: FaceIdentifier` -- Unique face identifier.
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
     ///
-    /// # Example
+    /// # Return / Panic
     ///
-    /// See [CMap2] example.
+    /// Return the identifier of the associated edge.
     ///
-    pub fn set_faceid(&mut self, dart_id: DartIdentifier, face_id: FaceIdentifier) {
-        self.dart_data.associated_cells[dart_id as usize].face_id = face_id;
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
+    pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
+        Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
     }
 
-    /// 1-sewing operation.
+    /// Fetch face associated to a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return the identifier of the associated face.
+    ///
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
+    pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
+        Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
+    }
+
+    /// Return an [Orbit2] object that can be used to iterate over darts of an i-cell.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    ///
+    /// ## Generics
+    ///
+    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
+    /// 2 (face) for a 2D map.
+    ///
+    /// # Return / Panic
+    ///
+    /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell. Note
+    /// that **the dart passed as an argument is included as the first element of the returned
+    /// orbit**.
+    ///
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
+        assert!(I < 3);
+        match I {
+            0 => Orbit2::new(self, OrbitPolicy::Vertex, dart_id),
+            1 => Orbit2::new(self, OrbitPolicy::Edge, dart_id),
+            2 => Orbit2::new(self, OrbitPolicy::Face, dart_id),
+            _ => unreachable!(),
+        }
+    }
+
+    /// Return a collection of all the map's vertices.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a [VertexCollection] object containing a list of vertex identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
+    pub fn fetch_vertices(&self) -> VertexCollection<T> {
+        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
+        // using a set for cells & converting it later to avoid duplicated values
+        // from incomplete cells until they are correctly supported by Orbit2
+        let mut vertex_ids: BTreeSet<DartIdentifier> = BTreeSet::new();
+        (1..self.n_darts as DartIdentifier)
+            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .for_each(|dart_id| {
+                // if we haven't seen this dart yet
+                if marked.insert(dart_id) {
+                    // because we iterate from dart 1 to n_darts,
+                    // the first dart we encounter is the min of its orbit
+                    vertex_ids.insert(dart_id as VertexIdentifier);
+                    // mark its orbit
+                    Orbit2::new(self, OrbitPolicy::Vertex, dart_id).for_each(|did| {
+                        marked.insert(did);
+                    });
+                }
+            });
+        VertexCollection::new(self, vertex_ids)
+    }
+
+    /// Return a collection of all the map's edges.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return an [EdgeCollection] object containing a list of edge identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
+    pub fn fetch_edges(&self) -> EdgeCollection<T> {
+        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
+        marked.insert(NULL_DART_ID);
+        // using a set for cells & converting it later to avoid duplicated values
+        // from incomplete cells until they are correctly supported by Orbit2
+        let mut edge_ids: BTreeSet<EdgeIdentifier> = BTreeSet::new();
+        (1..self.n_darts as DartIdentifier)
+            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .for_each(|dart_id| {
+                // if we haven't seen this dart yet
+                if marked.insert(dart_id) {
+                    // because we iterate from dart 1 to n_darts,
+                    // the first dart we encounter is the min of its orbit
+                    edge_ids.insert(dart_id as EdgeIdentifier);
+                    // mark its orbit
+                    Orbit2::new(self, OrbitPolicy::Edge, dart_id).for_each(|did| {
+                        marked.insert(did);
+                    });
+                }
+            });
+        EdgeCollection::new(self, edge_ids)
+    }
+
+    /// Return a collection of all the map's faces.
+    ///
+    /// # Return / Panic
+    ///
+    /// Return a [FaceCollection] object containing a list of face identifiers, whose validity
+    /// is ensured through an implicit lifetime condition on the structure and original map.
+    ///
+    pub fn fetch_faces(&self) -> FaceCollection<T> {
+        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
+        // using a set for cells & converting it later to avoid duplicated values
+        // from incomplete cells until they are correctly supported by Orbit2
+        let mut face_ids: BTreeSet<FaceIdentifier> = BTreeSet::new();
+        (1..self.n_darts as DartIdentifier)
+            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .for_each(|dart_id| {
+                // if we haven't seen this dart yet
+                if marked.insert(dart_id) {
+                    // because we iterate from dart 1 to n_darts,
+                    // the first dart we encounter is the min of its orbit
+                    face_ids.insert(dart_id as FaceIdentifier);
+                    // mark its orbit
+                    Orbit2::new(self, OrbitPolicy::Face, dart_id).for_each(|did| {
+                        marked.insert(did);
+                    });
+                }
+            });
+        FaceCollection::new(self, face_ids)
+    }
+}
+
+// --- (un)sew operations
+impl<T: CoordsFloat> CMap2<T> {
+    /// 1-sew operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
     /// the *β<sub>1</sub>* function. For a thorough explanation of this operation
@@ -982,59 +603,34 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method may panic if the two darts are not 1-sewable.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn one_sew(
-        &mut self,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
-        policy: SewPolicy,
-    ) {
-        // --- topological update
-
-        // we could technically overwrite the value, but these assertions
-        // makes it easier to assert algorithm correctness
-        assert!(self.is_i_free::<1>(lhs_dart_id));
-        assert!(self.is_i_free::<0>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
-
-        // --- geometrical update
-
-        // in case of a 1-sew, we need to update the 0-cell geometry
-        // of rhs_dart to ensure no vertex is duplicated
-
-        // this operation only makes sense if lhs_dart is associated
-        // to a fully defined edge, i.e. its image through beta2 is defined
-        // & has a valid associated vertex (we assume the second condition
-        // is valid if the first one is).
-        let lid = self.beta::<2>(lhs_dart_id);
-        if lid != NULL_DART_ID {
-            match policy {
-                SewPolicy::StretchLeft => {
-                    stretch!(self, rhs_dart_id, lid);
-                }
-                SewPolicy::StretchRight => {
-                    stretch!(self, lid, rhs_dart_id);
-                }
-                SewPolicy::StretchAverage => {
-                    // this works under the assumption that a valid vertex is
-                    // associated to rhs_dart
-                    let lid_vertex = self.vertices[self.cells(lid).vertex_id as usize];
-                    let rhs_vertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-                    self.vertices
-                        .push(Vertex2::average(&lid_vertex, &rhs_vertex));
-                    let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-                    stretch!(self, lid, new_id);
-                    stretch!(self, rhs_dart_id, new_id);
-                }
-            }
+    pub fn one_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
+        // its image through beta2 is defined & has a valid associated vertex (we assume the second
+        // condition is valid if the first one is)
+        // if that is not the case, the sewing operation becomes a linking operation
+        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
+        if b2lhs_dart_id != NULL_DART_ID {
+            let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
+            let rhs_vid_old = self.vertex_id(rhs_dart_id);
+            let tmp = (
+                self.vertices.remove(b2lhs_vid_old),
+                self.vertices.remove(rhs_vid_old),
+            );
+            let new_vertex = match tmp {
+                (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                (None, None) => Vertex2::merge_undefined(None),
+            };
+            // use b2lhs_vid as the index for the new vertex
+            self.one_link(lhs_dart_id, rhs_dart_id);
+            self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
+        } else {
+            self.one_link(lhs_dart_id, rhs_dart_id);
         }
     }
 
-    /// 2-sewing operation.
+    /// 2-sew operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via
     /// the *β<sub>2</sub>* function. For a thorough explanation of this operation
@@ -1057,127 +653,116 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn two_sew(
-        &mut self,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
-        policy: SewPolicy,
-    ) {
-        // --- topological update
-
-        // we could technically overwrite the value, but these assertions
-        // make it easier to assert algorithm correctness
-        assert!(self.is_i_free::<2>(lhs_dart_id));
-        assert!(self.is_i_free::<2>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
-
-        // --- geometrical update
-
-        // depending on existing connections, different things are required
-        let l_is1free = self.is_i_free::<1>(lhs_dart_id);
-        let r_is1free = self.is_i_free::<1>(rhs_dart_id);
-        match (l_is1free, r_is1free) {
-            (true, true) => {} // do nothing
+    pub fn two_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
+        let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
+        // match (is lhs 1-free, is rhs 1-free)
+        match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+            // trivial case, no update needed
+            (true, true) => self.two_link(lhs_dart_id, rhs_dart_id),
+            // update vertex associated to b1rhs/lhs
             (true, false) => {
-                let b1rid = self.beta::<1>(rhs_dart_id);
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, lhs_dart_id, b1rid)
-                    }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1rid, lhs_dart_id)
-                    }
-                    SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells(b1rid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
-
-                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
-                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                        stretch!(self, b1rid, new_id);
-                        stretch!(self, lhs_dart_id, new_id);
-                    }
-                }
+                // read current values / remove old ones
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                let tmp = (
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                // reinsert correct value
+                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertex);
             }
+            // update vertex associated to b1lhs/rhs
             (false, true) => {
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, rhs_dart_id, b1lid)
-                    }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1lid, rhs_dart_id)
-                    }
-                    SewPolicy::StretchAverage => {
-                        let vertex1 = self.vertices[self.cells(b1lid).vertex_id as usize];
-                        let vertex2 = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-
-                        self.vertices.push(Vertex2::average(&vertex1, &vertex2));
-                        let new_id = (self.vertices.len() - 1) as VertexIdentifier;
-
-                        stretch!(self, b1lid, new_id);
-                        stretch!(self, rhs_dart_id, new_id);
-                    }
-                }
+                // read current values / remove old ones
+                let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let tmp = (
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
+                );
+                let new_vertex = match tmp {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology (this is why we need the above lines)
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                // reinsert correct value
+                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
             }
+            // update both vertices making up the edge
             (false, false) => {
-                // ensure orientation consistency
-
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                let b1rid = self.beta::<1>(rhs_dart_id);
-
-                let b1_lvertex = self.vertices[self.cells(b1lid).vertex_id as usize];
-                let lvertex = self.vertices[self.cells(lhs_dart_id).vertex_id as usize];
-                let b1_rvertex = self.vertices[self.cells(b1rid).vertex_id as usize];
-                let rvertex = self.vertices[self.cells(rhs_dart_id).vertex_id as usize];
-
-                let lhs_vec = b1_lvertex - lvertex;
-                let rhs_vec = b1_rvertex - rvertex;
-
-                // dot product should be negative if the two darts have opposite direction
-                // we could also put restriction on the angle made by the two darts to prevent
-                // drastic deformation
-                assert!(
-                    lhs_vec.dot(&rhs_vec) < T::zero(),
-                    "Dart {} and {} do not have consistent orientation for 2-sewing",
-                    lhs_dart_id,
-                    rhs_dart_id
+                // read current values / remove old ones
+                // (lhs/b1rhs) vertex
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
+                let tmpa = (
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
+                );
+                // (b1lhs/rhs) vertex
+                let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let tmpb = (
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
                 );
 
-                match policy {
-                    SewPolicy::StretchLeft => {
-                        stretch!(self, rhs_dart_id, b1lid);
-                        stretch!(self, b1rid, lhs_dart_id);
-                    }
-                    SewPolicy::StretchRight => {
-                        stretch!(self, b1lid, rhs_dart_id);
-                        stretch!(self, lhs_dart_id, b1rid);
-                    }
-                    SewPolicy::StretchAverage => {
-                        let new_lvertex = Vertex2::average(&lvertex, &b1_rvertex);
-                        let new_rvertex = Vertex2::average(&rvertex, &b1_lvertex);
-                        self.vertices.push(new_lvertex);
-                        self.vertices.push(new_rvertex);
-                        let new_lid = self.vertices.len() - 2;
-                        let new_rid = self.vertices.len() - 1;
+                // check orientation
+                #[rustfmt::skip]
+                if let (
+                    (Some(l_vertex), Some(b1r_vertex)),
+                    (Some(b1l_vertex), Some(r_vertex)),
+                ) = (tmpa, tmpb) {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    assert!(
+                        lhs_vector.dot(&rhs_vector) < T::zero(),
+                        "Dart {} and {} do not have consistent orientation for 2-sewing",
+                        lhs_dart_id,
+                        rhs_dart_id
+                    );
+                };
 
-                        stretch!(self, lhs_dart_id, new_lid);
-                        stretch!(self, b1rid, new_lid);
+                // proceed with new vertices creation & insertion
+                let new_vertexa = match tmpa {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
 
-                        stretch!(self, rhs_dart_id, new_rid);
-                        stretch!(self, b1lid, new_rid);
-                    }
-                }
+                let new_vertexb = match tmpb {
+                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
+                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
+                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (None, None) => Vertex2::merge_undefined(None),
+                };
+                // update the topology
+                self.two_link(lhs_dart_id, rhs_dart_id);
+                self.two_link(lhs_dart_id, rhs_dart_id);
+
+                // reinsert correct values
+                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertexa);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertexb);
             }
         }
     }
 
-    /// 1-unsewing operation.
+    /// 1-unsew operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
     /// via the *β<sub>1</sub>* function. For a thorough explanation of this operation
@@ -1194,33 +779,25 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>1</sub>* function. The
     /// *β<sub>0</sub>* function is also updated.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        // --- topological update
-
-        // fetch id of beta_1(lhs_dart)
-        let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
-        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
-
-        // --- geometrical update
-        match policy {
-            UnsewPolicy::Duplicate => {
-                // if the vertex was shared, duplicate it
-                if self.i_cell::<0>(rhs_dart_id).len() > 1 {
-                    let old_vertex = self.vertices[self.vertexid(rhs_dart_id) as usize];
-                    self.vertices.push(old_vertex);
-                    self.set_vertexid(rhs_dart_id, (self.vertices.len() - 1) as VertexIdentifier);
-                }
-            }
-            UnsewPolicy::DoNothing => {}
+    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
+        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
+        if b2lhs_dart_id != NULL_DART_ID {
+            // read current values / remove old ones
+            let rhs_dart_id = self.beta::<1>(lhs_dart_id);
+            // we only need to remove a single vertex since we're unlinking
+            let vertex = self.remove_vertex(self.vertex_id(rhs_dart_id)).unwrap();
+            let (v1, v2) = Vertex2::split(vertex);
+            // update the topology
+            self.one_unlink(lhs_dart_id);
+            // reinsert correct values
+            let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
+            let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
+        } else {
+            self.one_unlink(lhs_dart_id)
         }
     }
 
-    /// 2-unsewing operation.
+    /// 2-unsew operation.
     ///
     /// This operation corresponds to *coherently separating* two darts linked
     /// via the *β<sub>2</sub>* function. For a thorough explanation of this operation
@@ -1236,132 +813,207 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>2</sub>* function.
     ///
-    /// # Example
-    ///
-    /// See [CMap2] example.
-    ///
-    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier, policy: UnsewPolicy) {
-        // --- topological update
-
+    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
-        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
-        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
-
-        // --- geometrical update
-        match policy {
-            UnsewPolicy::Duplicate => {
-                // if the vertex was shared, duplicate it
-                // repeat on both ends of the edge
-                let b1lid = self.beta::<1>(lhs_dart_id);
-                if b1lid != NULL_DART_ID {
-                    self.set_vertexid(rhs_dart_id, self.vertexid(b1lid));
-                }
-                let b1rid = self.beta::<1>(rhs_dart_id);
-                if b1rid != NULL_DART_ID {
-                    self.set_vertexid(lhs_dart_id, self.vertexid(b1rid));
-                }
+        let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
+        let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
+        // match (is lhs 1-free, is rhs 1-free)
+        match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+            (true, true) => self.two_unlink(lhs_dart_id),
+            (true, false) => {
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
+                let (v1, v2) = Vertex2::split(rhs_vertex);
+                self.two_unlink(lhs_dart_id);
+                self.insert_vertex(self.vertex_id(b1lhs_dart_id), v1);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), v2);
             }
-            UnsewPolicy::DoNothing => {}
+            (false, true) => {
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
+                let (v1, v2) = Vertex2::split(lhs_vertex);
+                self.two_unlink(lhs_dart_id);
+                self.insert_vertex(self.vertex_id(lhs_dart_id), v1);
+                self.insert_vertex(self.vertex_id(b1rhs_dart_id), v2);
+            }
+            (false, false) => {
+                let lhs_vid_old = self.vertex_id(lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
+                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
+                self.two_unlink(lhs_dart_id);
+                let (rhs_v1, rhs_v2) = Vertex2::split(rhs_vertex);
+                let (lhs_v1, lhs_v2) = Vertex2::split(lhs_vertex);
+
+                self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_v1);
+                self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_v2);
+                self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_v1);
+                self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_v2);
+            }
         }
     }
+}
 
-    /// Clear and rebuild the face list defined by the map.
+// --- (un)link operations
+impl<T: CoordsFloat> CMap2<T> {
+    /// 1-link operation.
     ///
-    /// # Return / Panic
-    ///
-    /// Returns the number of faces built by the operation.
-    ///
-    /// # Example
-    ///
-    /// ```text
-    ///
-    /// ```
-    ///
-    pub fn build_all_faces(&mut self) -> usize {
-        self.faces.clear();
-        let mut marked = BTreeSet::<DartIdentifier>::new();
-        let mut n_faces = 0;
-        // go through all darts ? update
-        (1..self.n_darts as DartIdentifier).for_each(|id| {
-            if marked.insert(id) {
-                let tmp = self.i_cell::<2>(id);
-                if tmp.len() > 1 {
-                    tmp.iter().for_each(|member| {
-                        let _ = marked.insert(*member);
-                    });
-                    self.build_face(id);
-                    n_faces += 1
-                }
-            }
-        });
-        n_faces
-    }
-
-    /// Build the geometrical face associated with a given dart
+    /// This operation corresponds to linking two darts via the *β<sub>1</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s). The *β<sub>0</sub>* function is also updated.
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
+    pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        // we could technically overwrite the value, but these assertions
+        // makes it easier to assert algorithm correctness
+        assert!(self.is_i_free::<1>(lhs_dart_id));
+        assert!(self.is_i_free::<0>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
+    }
+
+    /// 2-link operation.
+    ///
+    /// This operation corresponds to linking two darts via the *β<sub>2</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
+    pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        // we could technically overwrite the value, but these assertions
+        // make it easier to assert algorithm correctness
+        assert!(self.is_i_free::<2>(lhs_dart_id));
+        assert!(self.is_i_free::<2>(rhs_dart_id));
+        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
+        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
+    }
+
+    /// 1-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>1</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s). The *β<sub>0</sub>* function is
+    /// also updated.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
+    pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
+        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
+        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+    }
+
+    /// 2-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>2</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
+    pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
+        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
+        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
+    }
+}
+
+// --- vertex attributes
+// this should eventually be replaced by a generalized structure to handle
+// different kind of attributes for all the i-cells.
+impl<T: CoordsFloat> CMap2<T> {
+    /// Return the current number of vertices.
+    pub fn n_vertices(&self) -> usize {
+        self.vertices.n_vertices()
+    }
+
+    /// Fetch vertex value associated to a given identifier.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
     /// # Return / Panic
     ///
-    /// Return the ID of the created face to allow for direct operations.
+    /// Return a reference to the [Vertex2] associated to the ID.
     ///
-    /// # Example
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
+        self.vertices.get(vertex_id).unwrap()
+    }
+
+    /// Insert a vertex in the combinatorial map.
     ///
-    /// See [CMap2] example.
+    /// This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
+    /// implicitly exist through topology, but their spatial representation is not automatically
+    /// created at first.
     ///
-    pub fn build_face(&mut self, dart_id: DartIdentifier) -> FaceIdentifier {
-        let new_faceid = self.faces.len() as FaceIdentifier;
-        self.set_faceid(dart_id, new_faceid);
-        let mut part_one = vec![dart_id];
-        let mut closed = true;
-        let mut curr_dart = self.beta::<1>(dart_id);
-        // search the face using beta1
-        while curr_dart != dart_id {
-            // if we encounter the null dart, it means the face is open
-            if curr_dart == NULL_DART_ID {
-                closed = false;
-                break;
-            }
-            part_one.push(curr_dart);
-            self.set_faceid(curr_dart, new_faceid);
-            curr_dart = self.beta::<1>(curr_dart);
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Vertex identifier to attribute a value to.
+    /// - `vertex: impl Into<Vertex2>` -- Value used to create a [Vertex2] value.
+    ///
+    /// # Return
+    ///
+    /// Return an option which may contain the previous value associated to the specified vertex ID.
+    ///
+    pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
+        self.vertices.insert(vertex_id, vertex.into())
+    }
+
+    /// Remove a vertex from the combinatorial map.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
+    ///
+    /// # Return
+    ///
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(v: Vertex2)` -- The vertex was successfully removed & its value was returned
+    /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
+    ///
+    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.remove(vertex_id) {
+            return Ok(val);
         }
+        Err(CMapError::UndefinedVertex)
+    }
 
-        let res = if !closed {
-            // if the face is open, we might have missed some darts
-            // that were before the starting dart.
-            curr_dart = self.beta::<0>(dart_id);
-            let mut part_two = Vec::new();
-            // search the face in the other direction using beta0
-            while curr_dart != NULL_DART_ID {
-                part_two.push(curr_dart);
-                self.set_faceid(curr_dart, new_faceid);
-                curr_dart = self.beta::<0>(curr_dart);
-            }
-            // to have the ordered face, we need to reverse the beta 0 part and
-            // add the beta 1 part to its end
-            part_two.reverse();
-            part_two.extend(part_one);
-            part_two
-        } else {
-            // if the face was closed
-            // => we looped around its edges
-            // => the list is already complete & ordered
-            part_one
+    /// Try to overwrite the given vertex with a new value.
+    ///
+    /// # Arguments
+    ///
+    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
+    /// - `vertex: impl<Into<Vertex2>>` -- New value for the vertex.
+    ///
+    /// # Return / Panic
+    ///
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
+    /// returned
+    /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
+    ///
+    pub fn replace_vertex(
+        &mut self,
+        vertex_id: VertexIdentifier,
+        vertex: impl Into<Vertex2<T>>,
+    ) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
+            return Ok(val);
         };
-
-        let face = Face {
-            corners: res
-                .iter()
-                .map(|d_id| self.dart_data.associated_cells[*d_id as usize].vertex_id)
-                .collect(),
-            closed,
-        };
-
-        self.faces.push(face);
-        new_faceid
+        Err(CMapError::UndefinedVertex)
     }
 }
 
@@ -1397,14 +1049,14 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `plot.py` script.
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
@@ -1419,32 +1071,18 @@ impl<T: CoordsFloat> CMap2<T> {
         });
         writeln!(file, "beta_total, {beta_total}").unwrap();
 
-        // embed
-        let embed_vertex =
-            self.dart_data.associated_cells.capacity() * std::mem::size_of::<VertexIdentifier>();
-        let embed_face =
-            self.dart_data.associated_cells.capacity() * std::mem::size_of::<FaceIdentifier>();
-        let embed_total = embed_vertex + embed_face;
-        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
-        writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_total, {embed_total}").unwrap();
-
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.capacity() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.allocated_size();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
@@ -1479,14 +1117,14 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `plot.py` script.
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
@@ -1509,22 +1147,18 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "embed_face, {embed_face}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.n_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.effective_size();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
@@ -1562,21 +1196,20 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// An example going over all three `size` methods is provided in the `honeycomb-benches`
+    /// An example going over all three `size` methods is provided in the `honeycomb-utils`
     /// crate. You can run it using the following command:
     ///
     /// ```shell
     /// cargo run --example memory_usage
     /// ```
     ///
-    /// The output data can be visualized using the `plot.py` script.
+    /// The output data can be visualized using the `memory_usage.py` script.
     ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
         writeln!(file, "key, memory (bytes)").unwrap();
 
         let n_used_darts = self.n_darts - self.unused_darts.len();
-        let n_used_vertices = self.n_vertices - self.unused_vertices.len();
 
         // beta
         let mut beta_total = 0;
@@ -1595,22 +1228,18 @@ impl<T: CoordsFloat> CMap2<T> {
         writeln!(file, "embed_face, {embed_face}").unwrap();
         writeln!(file, "embed_total, {embed_total}").unwrap();
 
-        // geometry
+        // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = n_used_vertices * 2 * std::mem::size_of::<f64>();
-        let geometry_face = self.faces.len() * std::mem::size_of::<Face>();
-        let geometry_total = geometry_vertex + geometry_face;
+        let geometry_vertex = self.vertices.used_size();
+        let geometry_total = geometry_vertex;
         writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_face, {geometry_face}").unwrap();
         writeln!(file, "geometry_total, {geometry_total}").unwrap();
 
         // others
         let others_freedarts = self.unused_darts.len();
-        let others_freevertices = self.unused_vertices.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_freevertices + others_counters;
+        let others_total = others_freedarts + others_counters;
         writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_freevertices, {others_freevertices}").unwrap();
         writeln!(file, "others_counters, {others_counters}").unwrap();
         writeln!(file, "others_total, {others_total}").unwrap();
     }
@@ -1626,11 +1255,11 @@ mod tests {
     #[should_panic]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
-        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set vertex 1 as unused
-        map.remove_vertex(1);
+        map.remove_vertex(1).unwrap();
         // set vertex 1 as unused, again
-        map.remove_vertex(1); // this should panic
+        map.remove_vertex(1).unwrap(); // this should panic
     }
 
     #[test]
@@ -1638,7 +1267,7 @@ mod tests {
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free
-        let mut map: CMap2<FloatType> = CMap2::new(4, 4);
+        let mut map: CMap2<FloatType> = CMap2::new(4);
         // set dart 1 as unused
         map.remove_free_dart(1);
         // set dart 1 as unused, again

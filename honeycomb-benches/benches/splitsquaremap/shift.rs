@@ -31,32 +31,38 @@ use honeycomb_core::{
 // ------ CONTENT
 
 fn offset(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
-    (0..map.n_vertices().0).for_each(|vertex_id| {
-        let current_value = map.vertex(vertex_id as DartIdentifier);
-        let _ = map.set_vertex(
-            vertex_id as VertexIdentifier,
-            *current_value + offsets[vertex_id],
+    let n_offsets = offsets.len();
+    let vertices = map.fetch_vertices();
+    vertices.identifiers.iter().for_each(|vertex_id| {
+        let current_value = map.vertex(*vertex_id as DartIdentifier);
+        let _ = map.replace_vertex(
+            *vertex_id as VertexIdentifier,
+            current_value + offsets[*vertex_id as usize % n_offsets],
         );
     });
     black_box(&mut map);
 }
 
 fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
+    let n_offsets = offsets.len();
     let mut inner: BTreeSet<VertexIdentifier> = BTreeSet::new();
+    let vertices = map.fetch_vertices();
     // collect inner vertex IDs
-    (0..map.n_darts().0 as DartIdentifier).for_each(|dart_id| {
+    vertices.identifiers.iter().for_each(|vertex_id| {
         let neighbors_vertex_cell: Vec<DartIdentifier> = map
-            .i_cell::<0>(dart_id)
-            .iter()
-            .map(|d_id| map.beta::<2>(*d_id))
+            .i_cell::<0>(*vertex_id as DartIdentifier)
+            .map(|d_id| map.beta::<2>(d_id))
             .collect();
         if !neighbors_vertex_cell.contains(&NULL_DART_ID) {
-            inner.insert(map.vertexid(dart_id));
+            inner.insert(*vertex_id);
         }
     });
     inner.iter().for_each(|vertex_id| {
         let current_value = map.vertex(*vertex_id);
-        let _ = map.set_vertex(*vertex_id, *current_value + offsets[*vertex_id as usize]);
+        let _ = map.replace_vertex(
+            *vertex_id,
+            current_value + offsets[*vertex_id as usize % n_offsets],
+        );
     });
     black_box(&mut map);
 }

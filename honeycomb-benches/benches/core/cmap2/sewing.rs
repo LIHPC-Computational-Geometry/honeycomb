@@ -15,7 +15,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{utils::square_cmap2, CMap2, FloatType, SewPolicy, UnsewPolicy};
+use honeycomb_core::{utils::square_cmap2, CMap2, FloatType};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -23,8 +23,8 @@ use std::hint::black_box;
 
 // ------ CONTENT
 
-fn compute_dims(n_square: usize) -> (usize, usize) {
-    (n_square.pow(2) * 4, (n_square + 1).pow(2))
+fn compute_dims(n_square: usize) -> usize {
+    n_square.pow(2) * 4
 }
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
@@ -32,8 +32,8 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_unstructured_map(n_square: usize) -> CMap2<FloatType> {
-    let (n_darts, n_vertices) = compute_dims(n_square);
-    CMap2::new(n_darts, n_vertices)
+    let n_darts = compute_dims(n_square);
+    CMap2::new(n_darts)
 }
 
 #[library_benchmark]
@@ -41,7 +41,7 @@ fn get_unstructured_map(n_square: usize) -> CMap2<FloatType> {
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn one_sew_left(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_sew(4, 6, SewPolicy::StretchLeft);
+    map.one_sew(4, 6);
     black_box(map)
 }
 
@@ -50,7 +50,7 @@ fn one_sew_left(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn one_sew_right(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_sew(4, 6, SewPolicy::StretchRight);
+    map.one_sew(4, 6);
     black_box(map)
 }
 
@@ -59,7 +59,7 @@ fn one_sew_right(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn one_sew_avg(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_sew(4, 6, SewPolicy::StretchAverage);
+    map.one_sew(4, 6);
     black_box(map)
 }
 
@@ -76,7 +76,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn two_sew_left(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_sew(4, 6, SewPolicy::StretchLeft);
+    map.two_sew(4, 6);
     black_box(map)
 }
 
@@ -85,7 +85,7 @@ fn two_sew_left(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn two_sew_right(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_sew(4, 6, SewPolicy::StretchRight);
+    map.two_sew(4, 6);
     black_box(map)
 }
 
@@ -94,7 +94,7 @@ fn two_sew_right(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_unstructured_map(50))]
 #[bench::large(&mut get_unstructured_map(500))]
 fn two_sew_avg(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_sew(4, 6, SewPolicy::StretchAverage);
+    map.two_sew(4, 6);
     black_box(map)
 }
 
@@ -111,7 +111,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
 fn one_unsew_nothing(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_unsew(4, UnsewPolicy::DoNothing);
+    map.one_unsew(4);
     black_box(map)
 }
 
@@ -120,7 +120,7 @@ fn one_unsew_nothing(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
 fn one_unsew_duplicate(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_unsew(4, UnsewPolicy::Duplicate);
+    map.one_unsew(4);
     black_box(map)
 }
 
@@ -136,7 +136,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
 fn two_unsew_nothing(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_unsew(4, UnsewPolicy::DoNothing);
+    map.two_unsew(4);
     black_box(map)
 }
 
@@ -145,7 +145,7 @@ fn two_unsew_nothing(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(50))]
 #[bench::large(&mut get_map(500))]
 fn two_unsew_duplicate(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_unsew(4, UnsewPolicy::Duplicate);
+    map.two_unsew(4);
     black_box(map)
 }
 

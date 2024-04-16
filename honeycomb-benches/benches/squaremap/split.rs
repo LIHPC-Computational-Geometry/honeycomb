@@ -1,7 +1,7 @@
 //! This benchmarks handle measurements for a given operation on CMap2
 //! of a given topology (see `generation::splitsquare_two_map` doc).
 //!
-//! The operations applied here affect only topology, geometry is left unchanged
+//! The operations applied here affect only topology, cells is left unchanged
 //! aside from the new faces divisiosns.
 //!
 //! All splitting operations consist in splitting diagonally a square face to create
@@ -25,9 +25,7 @@ use rand::{
     SeedableRng,
 };
 
-use honeycomb_core::{
-    utils::square_cmap2, CMap2, DartIdentifier, FloatType, SewPolicy, UnsewPolicy,
-};
+use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType};
 
 // ------ CONTENT
 
@@ -35,92 +33,111 @@ const N_SQUARE: usize = 2_usize.pow(10);
 const P_BERNOULLI: f64 = 0.6;
 
 fn split(mut map: CMap2<FloatType>) {
-    (0..N_SQUARE.pow(2)).for_each(|square| {
-        let d1 = (1 + square * 4) as DartIdentifier;
-        let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
-        // in a parallel impl, we would create all new darts before-hand
-        let dsplit1 = map.add_free_darts(2);
-        let dsplit2 = dsplit1 + 1;
-        map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
-        map.one_unsew(d1, UnsewPolicy::DoNothing);
-        map.one_unsew(d3, UnsewPolicy::DoNothing);
-        map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
-        map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
-        map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
-        map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
-    });
+    map.fetch_faces()
+        .identifiers
+        .iter()
+        .copied()
+        .for_each(|square| {
+            let square = square as DartIdentifier;
+            let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
+            // in a parallel impl, we would create all new darts before-hand
+            let dsplit1 = map.add_free_darts(2);
+            let dsplit2 = dsplit1 + 1;
+            // unsew the square & duplicate vertices to avoid data loss
+            // this duplication effectively means that there are two existing vertices
+            // for a short time, before being merged back by the sewing ops
+            map.one_unsew(d1);
+            map.one_unsew(d3);
+            // link the two new dart in order to
+            map.two_link(dsplit1, dsplit2);
+            // define beta1 of the new darts, i.e. tell them where they point to
+            map.one_sew(dsplit1, d4);
+            map.one_sew(dsplit2, d2);
+
+            // sew the original darts to the new darts
+            map.one_sew(d1, dsplit1);
+            map.one_sew(d3, dsplit2);
+            // fuse the edges; this is where duplicated vertices are merged back together
+        });
 
     // rebuild faces
-    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.fetch_faces().identifiers.len(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }
 
 fn split_some(mut map: CMap2<FloatType>, split: &[bool]) {
-    (0..N_SQUARE.pow(2))
-        .filter(|square| split[*square]) // split only if true
+    let n_split = split.len();
+    map.fetch_faces()
+        .identifiers
+        .iter()
+        .copied()
+        .filter(|square| split[*square as usize % n_split])
         .for_each(|square| {
-            let d1 = (1 + square * 4) as DartIdentifier;
-            let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+            let square = square as DartIdentifier;
+            let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
             // in a parallel impl, we would create all new darts before-hand
             let dsplit1 = map.add_free_darts(2);
             let dsplit2 = dsplit1 + 1;
-            map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
-            map.one_unsew(d1, UnsewPolicy::DoNothing);
-            map.one_unsew(d3, UnsewPolicy::DoNothing);
-            map.one_sew(d1, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(d3, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, d4, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, d2, SewPolicy::StretchRight);
+            // unsew the square & duplicate vertices to avoid data loss
+            // this duplication effectively means that there are two existing vertices
+            // for a short time, before being merged back by the sewing ops
+            map.one_unsew(d1);
+            map.one_unsew(d3);
+            // link the two new dart in order to
+            map.two_link(dsplit1, dsplit2);
+            // define beta1 of the new darts, i.e. tell them where they point to
+            map.one_sew(dsplit1, d4);
+            map.one_sew(dsplit2, d2);
+
+            // sew the original darts to the new darts
+            map.one_sew(d1, dsplit1);
+            map.one_sew(d3, dsplit2);
+            // fuse the edges; this is where duplicated vertices are merged back together
         });
 
-    // rebuild faces
-    map.build_all_faces();
-
+    black_box(map.fetch_faces());
     black_box(&mut map);
 }
 
 fn split_diff(mut map: CMap2<FloatType>, split: &[bool]) {
-    (0..N_SQUARE.pow(2)).for_each(|square| {
-        let ddown = (1 + square * 4) as DartIdentifier;
-        let (dright, dup, dleft) = (ddown + 1, ddown + 2, ddown + 3);
-        // in a parallel impl, we would create all new darts before-hand
-        let dsplit1 = map.add_free_darts(2);
-        let dsplit2 = dsplit1 + 1;
-        // this leads to the same result as the commented code below; there doesn't seem
-        // to be any change in performances
-        let (dbefore1, dbefore2, dafter1, dafter2) = if split[square] {
-            (ddown, dup, dleft, dright)
-        } else {
-            (dright, dleft, ddown, dup)
-        };
-        map.two_sew(dsplit1, dsplit2, SewPolicy::StretchLeft);
-        map.one_unsew(dbefore1, UnsewPolicy::DoNothing);
-        map.one_unsew(dbefore2, UnsewPolicy::DoNothing);
-        map.one_sew(dbefore1, dsplit1, SewPolicy::StretchLeft);
-        map.one_sew(dbefore2, dsplit2, SewPolicy::StretchLeft);
-        map.one_sew(dsplit1, dafter1, SewPolicy::StretchRight);
-        map.one_sew(dsplit2, dafter2, SewPolicy::StretchRight);
-        /*
-        if split[square] {
-            map.one_unsew(ddown, UnsewPolicy::DoNothing);
-            map.one_unsew(dup, UnsewPolicy::DoNothing);
-            map.one_sew(ddown, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(dup, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, dleft, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, dright, SewPolicy::StretchRight);
-        } else {
-            map.one_unsew(dright, UnsewPolicy::DoNothing);
-            map.one_unsew(dleft, UnsewPolicy::DoNothing);
-            map.one_sew(dright, dsplit1, SewPolicy::StretchLeft);
-            map.one_sew(dleft, dsplit2, SewPolicy::StretchLeft);
-            map.one_sew(dsplit1, ddown, SewPolicy::StretchRight);
-            map.one_sew(dsplit2, dup, SewPolicy::StretchRight);
-        }*/
-    });
+    let n_split = split.len();
+    map.fetch_faces()
+        .identifiers
+        .iter()
+        .copied()
+        .for_each(|square| {
+            let square = square as DartIdentifier;
+            let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
+            // in a parallel impl, we would create all new darts before-hand
+            let dsplit1 = map.add_free_darts(2);
+            let dsplit2 = dsplit1 + 1;
+
+            let (dbefore1, dbefore2, dafter1, dafter2) = if split[square as usize % n_split] {
+                (ddown, dup, dleft, dright)
+            } else {
+                (dright, dleft, ddown, dup)
+            };
+
+            // unsew the square & duplicate vertices to avoid data loss
+            // this duplication effectively means that there are two existing vertices
+            // for a short time, before being merged back by the sewing ops
+            map.one_unsew(dbefore1);
+            map.one_unsew(dbefore2);
+            // link the two new dart in order to
+            map.two_link(dsplit1, dsplit2);
+            // define beta1 of the new darts, i.e. tell them where they point to
+            map.one_sew(dsplit1, dafter1);
+            map.one_sew(dsplit2, dafter2);
+
+            // sew the original darts to the new darts
+            map.one_sew(dbefore1, dsplit1);
+            map.one_sew(dbefore2, dsplit2);
+            // fuse the edges; this is where duplicated vertices are merged back together
+        });
 
     // rebuild faces
-    assert_eq!(map.build_all_faces(), N_SQUARE.pow(2) * 2);
+    assert_eq!(map.fetch_faces().identifiers.len(), N_SQUARE.pow(2) * 2);
 
     black_box(&mut map);
 }

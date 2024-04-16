@@ -1,4 +1,4 @@
-use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType, UnsewPolicy};
+use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType};
 
 pub fn main() {
     // create a 3x3 grid & remove the central square
@@ -11,15 +11,15 @@ pub fn main() {
         DartIdentifier,
     ) = (17, 18, 19, 20);
     // separate the square from the rest
-    cmap.two_unsew(d1, UnsewPolicy::DoNothing);
-    cmap.two_unsew(d2, UnsewPolicy::DoNothing);
-    cmap.two_unsew(d3, UnsewPolicy::DoNothing);
-    cmap.two_unsew(d4, UnsewPolicy::DoNothing);
+    cmap.two_unsew(d1);
+    cmap.two_unsew(d2);
+    cmap.two_unsew(d3);
+    cmap.two_unsew(d4);
     // separate dart individually
-    cmap.one_unsew(d1, UnsewPolicy::DoNothing);
-    cmap.one_unsew(d2, UnsewPolicy::DoNothing);
-    cmap.one_unsew(d3, UnsewPolicy::DoNothing);
-    cmap.one_unsew(d4, UnsewPolicy::DoNothing);
+    cmap.one_unsew(d1);
+    cmap.one_unsew(d2);
+    cmap.one_unsew(d3);
+    cmap.one_unsew(d4);
     // remove darts
     cmap.remove_free_dart(d1);
     cmap.remove_free_dart(d2);
