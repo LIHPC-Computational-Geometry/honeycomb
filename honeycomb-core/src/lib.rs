@@ -16,6 +16,7 @@
 
 // ------ MODULE DECLARATIONS
 
+mod attributes;
 mod cells;
 mod spatial_repr;
 mod twomap;
@@ -25,9 +26,11 @@ pub mod utils;
 
 // ------ RE-EXPORTS
 
+pub use attributes::{
+    collections::{AttrCompactVec, AttrSparseVec},
+    traits::{AttributeBind, AttributeUpdate},
+};
 pub use cells::{
-    attribute_collections::{AttrCompactVec, AttrSparseVec},
-    attributes::{AttributeBind, AttributeUpdate},
     collections::{EdgeCollection, FaceCollection, VertexCollection},
     identifiers::{
         DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
