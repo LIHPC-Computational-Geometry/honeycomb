@@ -10,21 +10,6 @@ use crate::{CMap2, CoordsFloat, EdgeIdentifier, FaceIdentifier, VertexIdentifier
 
 // ------ CONTENT
 
-pub struct VertexCollection<'a, T: CoordsFloat> {
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
-    pub identifiers: Vec<VertexIdentifier>,
-}
-
-pub struct EdgeCollection<'a, T: CoordsFloat> {
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
-    pub identifiers: Vec<EdgeIdentifier>,
-}
-
-pub struct FaceCollection<'a, T: CoordsFloat> {
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
-    pub identifiers: Vec<FaceIdentifier>,
-}
-
 macro_rules! collection_constructor {
     ($coll: ident, $idty: ty) => {
         impl<'a, T: CoordsFloat> $coll<'a, T> {
@@ -38,6 +23,29 @@ macro_rules! collection_constructor {
     };
 }
 
+// --- vertices
+
+pub struct VertexCollection<'a, T: CoordsFloat> {
+    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    pub identifiers: Vec<VertexIdentifier>,
+}
+
 collection_constructor!(VertexCollection, VertexIdentifier);
+
+// --- edges
+
+pub struct EdgeCollection<'a, T: CoordsFloat> {
+    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    pub identifiers: Vec<EdgeIdentifier>,
+}
+
 collection_constructor!(EdgeCollection, EdgeIdentifier);
+
+// --- faces
+
+pub struct FaceCollection<'a, T: CoordsFloat> {
+    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    pub identifiers: Vec<FaceIdentifier>,
+}
+
 collection_constructor!(FaceCollection, FaceIdentifier);
