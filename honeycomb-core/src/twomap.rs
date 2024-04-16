@@ -463,7 +463,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
     }
 
-    /// Return the identifiers of all dart composing an i-cell.
+    /// Return an [Orbit2] object that can be used to iterate over darts of an i-cell.
     ///
     /// # Arguments
     ///
@@ -476,7 +476,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell.
+    /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell. Note
+    /// that **the dart passed as an argument is included as the first element of the returned
+    /// orbit**.
     ///
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
