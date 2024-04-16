@@ -12,7 +12,7 @@
 
 <sup>core structures & methods benchmarks</sup>
 
-- move all benchmarks previously defined in `honeycomb-utils` to this crate (#31)
+- move and update all benchmarks previously defined in `honeycomb-utils` to this crate (#31, #36)
 
 #### honeycomb-core
 
@@ -26,6 +26,7 @@
 - add two new traits, `AttributeLogic` and `AttributeSupport`, for basic attribute genericity (#33)
 - implement new attribute traits for the `Vertex2` struct (#33)
 - add two storage structures for generic attributes `AttributeSparseVec` and `AttributeSparseVec` (#34)
+- add collection structures that can be used to retrieve all cells of a given dimension of a map (#36)
 
 #### honeycomb-examples (new)
 
@@ -35,6 +36,7 @@
 - update examples
     - to reflect mark removal (#24)
     - to fix import path of utility functions (#31)
+    - to fit new `CMap2` methods signature (#36)
 
 #### honeycomb-guide
 
@@ -58,6 +60,10 @@ aspects of the project</sup>
     - move `orbits`, `coords`, `vector`, `vertex`, inside new modules
     - clean-up source files
 - rename the `benchmarking_utils` feature to `utils` (#31)
+- rework the structure and interface of `CMap2` (#36)
+    - implement the new cell id computation logic
+    - replace the vertex storage with an `AttributeSparseVec`
+- add support for incomplete vertex orbits in `Orbit2` implementation
 
 #### honeycomb-guide
 
@@ -69,8 +75,10 @@ aspects of the project</sup>
 
 <sup>visualization tool for combinatorial maps</sup>
 
-- update examples, function & structure signatures to reflect mark removal (#24)
-- update code to make use of the new 2D representation structures (#25)
+- update code:
+    - to reflect mark removal (#24)
+    - to make use of the new 2D representation structures (#25)
+    - to fit new `CMap2` methods signature (#36)
 
 #### honeycomb-utils (removed)
 
