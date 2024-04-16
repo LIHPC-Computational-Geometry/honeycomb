@@ -14,7 +14,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType};
+use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -30,7 +30,9 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
     let mut map = square_cmap2::<FloatType>(n_square);
     map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
-    map.remove_vertex(1).unwrap();
+    // because of the way we built the map in the square_cmap2 function & the ID computation
+    // policy, we can safely remove a vertex we know is defined
+    assert_eq!(map.remove_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     map
 }
 
