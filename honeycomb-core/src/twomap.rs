@@ -22,9 +22,13 @@ use std::{fs::File, io::Write};
 
 // ------ CONTENT
 
+/// Error-modeling enum
+///
+/// This enum is used to describe all non-panic errors that can occur when operating on a map.
 #[derive(Debug)]
 pub enum CMapError {
-    OOB,
+    /// Variant used when requesting a vertex using an ID that has no associated vertex
+    /// in storage.
     UndefinedVertex,
 }
 
