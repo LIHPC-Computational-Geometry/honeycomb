@@ -387,7 +387,21 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated vertex.
     ///
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
     pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
             .min()
             .unwrap() as VertexIdentifier
@@ -403,7 +417,21 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated edge.
     ///
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
     pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
     }
 
@@ -417,7 +445,21 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the associated face.
     ///
+    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
+    /// cell. This definition has three interesting properties:
+    ///
+    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+    /// associated cell ID.
+    /// - Cell IDs are not affected by the order of traversal of the map.
+    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
+    /// that the storage is consistent / up to date.
+    ///
+    /// These properties come at the literal cost of the computation routine, which is:
+    /// 1. a BFS to compute a given orbit
+    /// 2. a minimum computation on the IDs composing the orbit
+    ///
     pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
+        // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
     }
 
