@@ -128,7 +128,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn new(n_darts: usize) -> Self {
         Self {
-            vertices: AttrSparseVec::new(n_darts),
+            vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,

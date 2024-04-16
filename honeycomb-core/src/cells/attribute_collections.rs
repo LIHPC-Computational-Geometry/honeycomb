@@ -44,7 +44,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     pub fn new(n_ids: usize) -> Self {
         Self {
-            data: (0..n_ids + 1).map(|_| None).collect(),
+            data: (0..n_ids).map(|_| None).collect(),
         }
     }
 
@@ -219,7 +219,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
-            index_map: vec![None; n_ids + 1],
+            index_map: vec![None; n_ids],
             data: Vec::new(),
         }
     }
