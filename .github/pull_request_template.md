@@ -1,5 +1,3 @@
-# Description
-
 Summary of the changes if needed.
 
 ## Scope
@@ -30,7 +28,3 @@ Summary of the changes if needed.
 - [ ] Needs documentation
 - [ ] Needs testing
 - [ ] Other: ...
-
-## Mentions
-
-...
