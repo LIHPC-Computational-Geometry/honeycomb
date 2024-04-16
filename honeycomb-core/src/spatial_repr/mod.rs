@@ -9,12 +9,6 @@ pub mod coords;
 pub mod vector;
 pub mod vertex;
 
-// ------ RE-EXPORTS
-
-pub use coords::{Coords2, CoordsError};
-pub use vector::Vector2;
-pub use vertex::Vertex2;
-
 // ------ IMPORTS
 
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};

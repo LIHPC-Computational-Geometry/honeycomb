@@ -38,5 +38,10 @@ pub use cells::{
     },
     orbits::{Orbit2, OrbitPolicy},
 };
-pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
+pub use spatial_repr::{
+    coords::{Coords2, CoordsError},
+    vector::Vector2,
+    vertex::Vertex2,
+    CoordsFloat, FloatType,
+};
 pub use twomap::{CMap2, CMapError};
