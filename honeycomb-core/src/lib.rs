@@ -31,10 +31,11 @@ pub use cells::{
     attribute_collections::{AttrCompactVec, AttrSparseVec},
     attributes::{AttributeBind, AttributeUpdate},
     collections::{EdgeCollection, FaceCollection, VertexCollection},
-    identifiers::*,
+    identifiers::{
+        DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
+        NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
+    },
     orbits::{Orbit2, OrbitPolicy},
 };
-pub use dart::DartData;
-pub use embed::{Face, SewPolicy, UnsewPolicy};
 pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
 pub use twomap::{CMap2, CMapError};
