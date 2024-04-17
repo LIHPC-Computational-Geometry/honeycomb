@@ -29,7 +29,4 @@
     - [I-cells computation](./definitions/icells.md)
     - [Orientation](./definitions/orientation.md)
 
-# Examples
-
-- [CMap2](./examples/cmap2.md)
 
