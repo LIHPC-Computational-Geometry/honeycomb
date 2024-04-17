@@ -1297,7 +1297,7 @@ mod tests {
         // checks
         assert_eq!(map.beta::<2>(2), 4);
         assert_eq!(map.vertex(2), Vertex2::from((1.5, 0.0)));
-        assert_eq!(map.vertex(4), Vertex2::from((0.0, 1.0)));
+        assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
     }
 
     #[test]
