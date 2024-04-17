@@ -1,12 +1,12 @@
 ---
 name: Enhancement / Suggestion
 about: Use this template to suggest new feature or enhancement that could be integrated to the project.
-title: "Enh: Title"
-labels: enhancement/suggestion, 
+title: "enh: title"
+labels: enhancement/suggestion,
 assignees:
 ---
 
-# Description
+Short description if relevant
 
 ## Information
 

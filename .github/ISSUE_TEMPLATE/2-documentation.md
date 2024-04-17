@@ -1,12 +1,12 @@
 ---
-name: Documentation 
+name: Documentation
 about: Use this template to suggest documentation improvements or oversights.
-title: "Doc: Title"
-labels: documentation, 
+title: "doc: title"
+labels: documentation,
 assignees:
 ---
 
-# Description
+Short description if relevant
 
 ## Information
 
