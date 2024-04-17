@@ -16,9 +16,8 @@
 
 // ------ MODULE DECLARATIONS
 
+mod attributes;
 mod cells;
-mod dart;
-mod embed;
 mod spatial_repr;
 mod twomap;
 
@@ -27,14 +26,23 @@ pub mod utils;
 
 // ------ RE-EXPORTS
 
-pub use cells::{
-    attribute_collections::{AttrCompactVec, AttrSparseVec},
-    attributes::{AttributeBind, AttributeUpdate},
-    collections::{EdgeCollection, FaceCollection, VertexCollection},
-    identifiers::*,
-    orbits::{Orbit2, OrbitPolicy},
+pub use attributes::{
+    collections::{AttrCompactVec, AttrSparseVec},
+    traits::{AttributeBind, AttributeUpdate},
 };
-pub use dart::DartData;
-pub use embed::{Face, SewPolicy, UnsewPolicy};
-pub use spatial_repr::{Coords2, CoordsError, CoordsFloat, FloatType, Vector2, Vertex2};
+pub use cells::{
+    collections::{
+        EdgeCollection, EdgeIdentifier, FaceCollection, FaceIdentifier, VertexCollection,
+        VertexIdentifier, VolumeIdentifier, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID,
+        NULL_VOLUME_ID,
+    },
+    orbits::{Orbit2, OrbitPolicy},
+    DartIdentifier, NULL_DART_ID,
+};
+pub use spatial_repr::{
+    coords::{Coords2, CoordsError},
+    vector::Vector2,
+    vertex::Vertex2,
+    CoordsFloat, FloatType,
+};
 pub use twomap::{CMap2, CMapError};

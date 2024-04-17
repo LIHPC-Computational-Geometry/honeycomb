@@ -4,8 +4,14 @@
 
 // ------ MODULE DECLARATIONS
 
-pub mod attribute_collections;
-pub mod attributes;
 pub mod collections;
-pub mod identifiers;
 pub mod orbits;
+
+// ------ CONTENT
+
+/// Type definition for dart identifiers
+///
+/// This is used for better control over memory usage and ID encoding.
+pub type DartIdentifier = u32;
+
+pub const NULL_DART_ID: DartIdentifier = 0;

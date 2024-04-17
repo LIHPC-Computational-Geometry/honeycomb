@@ -55,15 +55,17 @@ aspects of the project</sup>
 - remove marks table from `DartData` (#24), resulting in a signature change for many
   functions and structures (anything with `const N_MARKS: usize`) '
 - update code to make use of the new 2D representation structures (#25)
-- reorganize internal module structure (#27)
-    - create modules `cells`, `cells::identifiers`, `spatial_repr`
+- reorganize internal module structure (#27, #42)
+    - create modules `cells`, `spatial_repr`, `attributes`
     - move `orbits`, `coords`, `vector`, `vertex`, inside new modules
     - clean-up source files
 - rename the `benchmarking_utils` feature to `utils` (#31)
 - rework the structure and interface of `CMap2` (#36)
     - implement the new cell id computation logic
     - replace the vertex storage with an `AttributeSparseVec`
-- add support for incomplete vertex orbits in `Orbit2` implementation
+- add support for incomplete vertex orbits in `Orbit2` implementation (#36)
+- remove `darts`, `embed` modules and their content (#42)
+    - move ID aliases to `cells` and `cells::collections` modules
 
 #### honeycomb-guide
 
