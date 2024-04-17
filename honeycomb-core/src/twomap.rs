@@ -753,7 +753,6 @@ impl<T: CoordsFloat> CMap2<T> {
                 };
                 // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                self.two_link(lhs_dart_id, rhs_dart_id);
 
                 // reinsert correct values
                 self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertexa);
