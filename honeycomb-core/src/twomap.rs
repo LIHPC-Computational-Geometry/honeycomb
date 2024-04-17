@@ -1249,7 +1249,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CMap2, FloatType, Orbit2, OrbitPolicy};
+    use crate::{CMap2, FloatType, Orbit2, OrbitPolicy, Vertex2};
 
     #[test]
     fn example_test() {
@@ -1271,6 +1271,34 @@ mod tests {
         assert_eq!(face.next(), Some(2));
         assert_eq!(face.next(), Some(3));
         assert_eq!(face.next(), None);
+
+        // build a second triangle
+        map.add_free_darts(3);
+        map.one_link(4, 5);
+        map.one_link(5, 6);
+        map.one_link(6, 4);
+        map.insert_vertex(4, (0.0, 1.0));
+        map.insert_vertex(5, (2.0, 0.0));
+        map.insert_vertex(6, (2.0, 1.0));
+
+        // checks
+        let faces = map.fetch_faces();
+        assert_eq!(faces.identifiers.len(), 2);
+        assert_eq!(faces.identifiers[0], 1);
+        assert_eq!(faces.identifiers[1], 4);
+        let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(4));
+        assert_eq!(face.next(), Some(5));
+        assert_eq!(face.next(), Some(6));
+        assert_eq!(face.next(), None);
+
+        // sew both triangles
+        map.two_sew(2, 4);
+
+        // checks
+        assert_eq!(map.beta::<2>(2), 4);
+        assert_eq!(map.vertex(2), Vertex2::from((1.5, 0.0)));
+        assert_eq!(map.vertex(4), Vertex2::from((0.0, 1.0)));
     }
 
     #[test]
