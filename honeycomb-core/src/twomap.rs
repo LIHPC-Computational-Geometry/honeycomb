@@ -1278,13 +1278,11 @@ mod tests {
         map.one_link(6, 4);
         map.insert_vertex(4, (0.0, 2.0));
         map.insert_vertex(5, (2.0, 0.0));
-        map.insert_vertex(6, (2.0, 1.0));
+        map.insert_vertex(6, (1.0, 1.0));
 
         // checks
         let faces = map.fetch_faces();
-        assert_eq!(faces.identifiers.len(), 2);
-        assert_eq!(faces.identifiers[0], 1);
-        assert_eq!(faces.identifiers[1], 4);
+        assert_eq!(&faces.identifiers, &[1, 4]);
         let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
         assert_eq!(face.next(), Some(4));
         assert_eq!(face.next(), Some(5));
@@ -1303,12 +1301,7 @@ mod tests {
         assert_eq!(map.vertex_id(4), 3);
         assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.5)));
         let edges = map.fetch_edges();
-        assert_eq!(edges.identifiers.len(), 5);
-        assert_eq!(edges.identifiers[0], 1);
-        assert_eq!(edges.identifiers[1], 2);
-        assert_eq!(edges.identifiers[2], 3);
-        assert_eq!(edges.identifiers[3], 5);
-        assert_eq!(edges.identifiers[4], 6);
+        assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
 
         // adjust bottom-right & top-left vertex position
         assert_eq!(
@@ -1334,6 +1327,21 @@ mod tests {
         // sew the square back up
         map.one_sew(1, 5);
         map.one_sew(6, 3);
+
+        let faces = map.fetch_faces();
+        assert_eq!(&faces.identifiers, &[1]);
+        let edges = map.fetch_edges();
+        assert_eq!(&edges.identifiers, &[1, 3, 5, 6]);
+        let vertices = map.fetch_vertices();
+        assert_eq!(&vertices.identifiers, &[1, 3, 5, 6]);
+        assert_eq!(map.vertex(1), Vertex2::from((0.0, 0.0)));
+        assert_eq!(map.vertex(5), Vertex2::from((1.0, 0.0)));
+        assert_eq!(map.vertex(6), Vertex2::from((1.0, 1.0)));
+        assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
+        assert_eq!(map.beta_runtime(1, 1), 5);
+        assert_eq!(map.beta_runtime(1, 5), 6);
+        assert_eq!(map.beta_runtime(1, 6), 3);
+        assert_eq!(map.beta_runtime(1, 3), 1);
     }
 
     #[test]
