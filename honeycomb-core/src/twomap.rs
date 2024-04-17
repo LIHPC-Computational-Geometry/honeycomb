@@ -25,7 +25,7 @@ use std::{fs::File, io::Write};
 /// Error-modeling enum
 ///
 /// This enum is used to describe all non-panic errors that can occur when operating on a map.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CMapError {
     /// Variant used when requesting a vertex using an ID that has no associated vertex
     /// in storage.
@@ -1276,7 +1276,7 @@ mod tests {
         map.one_link(4, 5);
         map.one_link(5, 6);
         map.one_link(6, 4);
-        map.insert_vertex(4, (0.0, 1.0));
+        map.insert_vertex(4, (0.0, 2.0));
         map.insert_vertex(5, (2.0, 0.0));
         map.insert_vertex(6, (2.0, 1.0));
 
@@ -1296,8 +1296,33 @@ mod tests {
 
         // checks
         assert_eq!(map.beta::<2>(2), 4);
+        assert_eq!(map.vertex_id(2), 2);
+        assert_eq!(map.vertex_id(5), 2);
         assert_eq!(map.vertex(2), Vertex2::from((1.5, 0.0)));
+        assert_eq!(map.vertex_id(3), 3);
+        assert_eq!(map.vertex_id(4), 3);
+        assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.5)));
+        let edges = map.fetch_edges();
+        assert_eq!(edges.identifiers.len(), 5);
+        assert_eq!(edges.identifiers[0], 1);
+        assert_eq!(edges.identifiers[1], 2);
+        assert_eq!(edges.identifiers[2], 3);
+        assert_eq!(edges.identifiers[3], 5);
+        assert_eq!(edges.identifiers[4], 6);
+
+        // adjust bottom-right & top-left vertex position
+        assert_eq!(
+            map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
+            Ok(Vertex2::from((1.5, 0.0)))
+        );
+        assert_eq!(map.vertex(2), Vertex2::from((1.0, 0.0)));
+        assert_eq!(
+            map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
+            Ok(Vertex2::from((0.0, 1.5)))
+        );
         assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
+
+        //
     }
 
     #[test]
