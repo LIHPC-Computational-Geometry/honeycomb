@@ -1322,7 +1322,18 @@ mod tests {
         );
         assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
 
-        //
+        // separate the diagonal from the rest
+        map.one_unsew(1);
+        map.one_unsew(2);
+        map.one_unsew(6);
+        map.one_unsew(4);
+        // break up & remove the diagonal
+        map.two_unsew(2); // this makes dart 2 and 4 free
+        map.remove_free_dart(2);
+        map.remove_free_dart(4);
+        // sew the square back up
+        map.one_sew(1, 5);
+        map.one_sew(6, 3);
     }
 
     #[test]
