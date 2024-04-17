@@ -14,7 +14,7 @@ The current objective is to ~write a first implementation in Rust, to then~
 improve the structure without having to deal with data races and similar
 issues, thanks to the Rust's guarantees.
 
-# Usage
+## Usage
 
 The [user guide][UG] provides an overview of everything available in the
 project as well as usage instructions. It can be generated offline using
