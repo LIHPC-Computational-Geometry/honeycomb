@@ -25,8 +25,4 @@
     - [Sewing operation](./definitions/sew.md)
     - [Unsewing operation](./definitions/unsew.md)
 - [Advanced Operations](./definitions/advancedops.md)
-    - [Generic orbit](./definitions/genorbit.md)
-    - [I-cells computation](./definitions/icells.md)
-    - [Orientation](./definitions/orientation.md)
-
 
