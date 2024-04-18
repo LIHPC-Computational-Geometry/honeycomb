@@ -408,6 +408,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Set the values of the beta functions of a dart.
     ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
+    ///
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
@@ -1065,6 +1071,12 @@ impl<T: CoordsFloat> CMap2<T> {
 impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
+    ///
     /// # Arguments
     ///
     /// - `rootname: &str` -- root of the filename used to save results.
@@ -1132,6 +1144,12 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Computes the total used space dedicated to the map.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
     ///
     /// # Arguments
     ///
@@ -1211,6 +1229,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// *Actual used space* refers to the total used space minus empty spots
     /// in the structure.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
     ///
     /// # Arguments
     ///
