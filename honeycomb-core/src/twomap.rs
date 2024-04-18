@@ -215,19 +215,13 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
     /// Return information about the current number of darts.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a tuple of two elements:
-    ///
-    /// - the number of darts
-    /// - a boolean indicating whether there are unused darts or not
-    ///
-    /// The boolean essentially indicates if it is safe to access & use all dart IDs in the
-    /// `1..n_darts+1` range.
-    ///
-    pub fn n_darts(&self) -> (usize, bool) {
-        (self.n_darts, !self.unused_darts.is_empty())
+    pub fn n_darts(&self) -> usize {
+        self.n_darts
+    }
+
+    /// Return information about the current number of unused darts.
+    pub fn n_unused_darts(&self) -> usize {
+        self.unused_darts.len()
     }
 
     // --- edit
@@ -312,10 +306,11 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
         assert!(self.unused_darts.insert(dart_id));
+        // this should not be required if the map is not corrupt
+        // or in the middle of a more complex operation
         let b0d = self.beta::<0>(dart_id);
         let b1d = self.beta::<1>(dart_id);
         let b2d = self.beta::<2>(dart_id);
-        self.betas[dart_id as usize] = [0; CMAP2_BETA];
         self.betas[b0d as usize][1] = 0 as DartIdentifier;
         self.betas[b1d as usize][0] = 0 as DartIdentifier;
         self.betas[b2d as usize][2] = 0 as DartIdentifier;
@@ -411,28 +406,13 @@ impl<T: CoordsFloat> CMap2<T> {
 
     // --- edit
 
-    /// Set the values of the *β<sub>i</sub>* function of a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
-    /// 2 (face) for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
-        assert!(I < 3);
-        self.betas[dart_id as usize][I as usize] = beta;
-    }
-
     /// Set the values of the beta functions of a dart.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
     ///
     /// # Arguments
     ///
@@ -440,6 +420,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
+    #[cfg(feature = "utils")]
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
@@ -1090,6 +1071,12 @@ impl<T: CoordsFloat> CMap2<T> {
 impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
+    ///
     /// # Arguments
     ///
     /// - `rootname: &str` -- root of the filename used to save results.
@@ -1157,6 +1144,12 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Computes the total used space dedicated to the map.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
     ///
     /// # Arguments
     ///
@@ -1236,6 +1229,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// *Actual used space* refers to the total used space minus empty spots
     /// in the structure.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
     ///
     /// # Arguments
     ///
@@ -1410,7 +1409,7 @@ mod tests {
         assert_eq!(map.vertex(6), Vertex2::from((1.0, 1.0)));
         assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
         // darts
-        assert!(map.n_darts().1); // there are unused darts since we removed the diagonal
+        assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
         assert_eq!(map.beta_runtime(1, 1), 5);
         assert_eq!(map.beta_runtime(1, 5), 6);
         assert_eq!(map.beta_runtime(1, 6), 3);
