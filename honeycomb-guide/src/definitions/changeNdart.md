@@ -22,4 +22,4 @@ contiguous vectors. There are two way to approach this problem:
     - creates "holes" in the storage
 
 Our implementation uses the second solution, along with a structure used to store unused slots. In turns, we can use
-these "holes" in the storage to reinsert dart or collapse the structure at a later point in code.
+these "holes" in the storage to reinsert darts or collapse the structure at a later point during execution.

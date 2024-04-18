@@ -19,7 +19,7 @@ The *β<sub>i</sub>* functions can be interpreted as navigation functions along 
 makes you navigate along the edges, *β<sub>2</sub>* along the faces, etc. This can be generalized to *N* dimensions,
 but we are only interested in 2D and 3D at the moment.
 
-## Subsequent Properties
+## Properties
 
 For a given dart *d*, we define two properties:
 
