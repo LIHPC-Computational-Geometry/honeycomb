@@ -22,7 +22,6 @@
 - [Basic Operations](./definitions/basicops.md)
     - [Add / Remove a dimension](./definitions/changeNdim.md)
     - [Add / Remove a free dart](./definitions/changeNdart.md)
-    - [Sewing operation](./definitions/sew.md)
-    - [Unsewing operation](./definitions/unsew.md)
+    - [Sewing / Unsewing operation](./definitions/sew.md)
 - [Advanced Operations](./definitions/advancedops.md)
 

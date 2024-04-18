@@ -1,4 +1,6 @@
-# Sewing operation
+# Sewing and unsewing operation
+
+## Sewing
 
 The sew operation can be divided into two parts:
 
@@ -9,7 +11,7 @@ Note that the implementation is not as simple as doing one and then the other fo
 topology affects our ability to retrieve the embedded data, therefore the result is highly sensitive to operation
 order.
 
-## Linking
+### Topology
 
 The *i-link* operation corresponds to the aforementionned topological update. Given two darts *d<sub>a</sub>* and
 *d<sub>b</sub>*, and a given beta function *β<sub>i</sub>*, a link operation corresponds to the update of the
@@ -29,7 +31,7 @@ The *i-link* operation corresponds to the aforementionned topological update. Gi
 
 Exact properties of the link operation directly depends on the property of the modified beta function.
 
-## Sewing
+### Geometry
 
 The *i-sew* operation corresponds to an *i-link* operation, coupled with an update of the affected attributes. *How*
 the attributes are updated is defined through trait implementation in the Rust crate (see
@@ -43,3 +45,8 @@ dimension *i* of the sewing operation. This is summarized in the following table
 | 2         | Fusing edges          | affected                   | affected                 | unaffected               | unaffected                 |
 | 3         | Fusing faces          | affected                   | affected                 | affected                 | unaffected                 |
 
+## Unsewing
+
+The unsew operation is the complementary to the sew operation. It behaves according to similar properties, but is used
+to remove links between darts. It does so by replacing values of the beta functions by the null dart. Geometrical
+updates are handled and defined in the same way as for the sew operation.
