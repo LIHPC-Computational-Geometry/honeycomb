@@ -306,10 +306,11 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
         assert!(self.unused_darts.insert(dart_id));
+        // this should not be required if the map is not corrupt
+        // or in the middle of a more complex operation
         let b0d = self.beta::<0>(dart_id);
         let b1d = self.beta::<1>(dart_id);
         let b2d = self.beta::<2>(dart_id);
-        self.betas[dart_id as usize] = [0; CMAP2_BETA];
         self.betas[b0d as usize][1] = 0 as DartIdentifier;
         self.betas[b1d as usize][0] = 0 as DartIdentifier;
         self.betas[b2d as usize][2] = 0 as DartIdentifier;
