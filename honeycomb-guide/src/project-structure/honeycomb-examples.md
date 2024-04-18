@@ -27,4 +27,5 @@ The following examples are available:
 
 ### Scripts
 
-- `memory_usage.py` - **requires matplotlib** - Plots pie charts using a *csv* file produced by a size method of CMap2.
+- **OUTDATED, WILL FIX** `memory_usage.py` - **requires matplotlib** - Plots pie charts using a *csv* file produced by
+  a size method of CMap2.

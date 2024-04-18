@@ -4,13 +4,11 @@
 
 --- 
 
-**honeycomb-benches** is a Rust crate used to group benchmarking routines of
-the Rust code. Benchmarks are defined in this crate using the [criterion][CRITERION]
-and [iai-callgrind][IAI] crates.
+**honeycomb-benches** is a Rust crate used to group benchmarking routines of the Rust code. Benchmarks are defined in
+this crate using the [criterion][CRITERION] and [iai-callgrind][IAI] crates.
 
-Note that the **iai-callgrind** benchmarks require their runner to be
-installed as well as Valgrind. Refer to the crate's [README][IAIRM] for
-detailed instructions.
+Note that the **iai-callgrind** benchmarks require their runner to be installed as well as Valgrind. Refer to the
+crate's [README][IAIRM] for detailed instructions.
 
 ## Usage
 
@@ -37,10 +35,9 @@ The following benchmarks are available:
 | `prof-cmap2-reading`         | Iai-callgrind | `benches/core/cmap2/reading.rs`   |
 | `prof-cmap2-sewing-unsewing` | Iai-callgrind | `benches/core/cmap2/sewing.rs`    |
 
-A detailed explanation about the purpose of each benchmark is provided at the beginning
-of their respective source files. As a rule of thumb, the **iai-callgrind** benchmarks
-cover individual methods of the structure while **criterion** benchmarks cover higher
-level computations.
+A detailed explanation about the purpose of each benchmark is provided at the beginning of their respective source
+files. As a rule of thumb, the **iai-callgrind** benchmarks cover individual methods of the structure while
+**criterion** benchmarks cover higher level computations.
 
 [CRITERION]: https://github.com/bheisler/criterion.rs
 

@@ -43,7 +43,7 @@ The content of each member is described in their respective Rust Doc as well as 
 - Basic structures are provided in the **honeycomb-core** crate ([Rust Doc][DOCHC]).
 - Benchmarks are grouped in the **honeycomb-benches** crate ([Rust Doc][DOCHB])
 - Examples are grouped in the **honeycomb-examples** crate ([Rust Doc][DOCHU])
-- A visualing tool is provided in the **honeycomb-render** crate ([Rust Doc][DOCHR]).
+- A visualizing tool is provided in the **honeycomb-render** crate ([Rust Doc][DOCHR]).
 
 [UGW]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/workspace.html
 
