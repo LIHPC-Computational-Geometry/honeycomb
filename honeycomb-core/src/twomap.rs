@@ -414,6 +414,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
+    #[cfg(feature = "utils")]
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }

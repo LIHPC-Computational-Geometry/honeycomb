@@ -223,12 +223,13 @@ mod tests {
 
     fn simple_map() -> CMap2<FloatType> {
         let mut map: CMap2<FloatType> = CMap2::new(6);
-        map.set_betas(1, [3, 2, 0]);
-        map.set_betas(2, [1, 3, 4]);
-        map.set_betas(3, [2, 1, 0]);
-        map.set_betas(4, [6, 5, 2]);
-        map.set_betas(5, [4, 6, 0]);
-        map.set_betas(6, [5, 4, 0]);
+        map.one_link(1, 2);
+        map.one_link(2, 3);
+        map.one_link(3, 1);
+        map.one_link(4, 5);
+        map.one_link(4, 6);
+        map.one_link(6, 4);
+        map.two_link(2, 4);
         assert!(map.replace_vertex(1, (0.0, 0.0)).is_err());
         assert!(map.replace_vertex(2, (1.0, 0.0)).is_err());
         assert!(map.replace_vertex(6, (1.0, 1.0)).is_err());
