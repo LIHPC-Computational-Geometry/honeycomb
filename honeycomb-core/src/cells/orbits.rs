@@ -227,7 +227,7 @@ mod tests {
         map.one_link(2, 3);
         map.one_link(3, 1);
         map.one_link(4, 5);
-        map.one_link(4, 6);
+        map.one_link(5, 6);
         map.one_link(6, 4);
         map.two_link(2, 4);
         assert!(map.replace_vertex(1, (0.0, 0.0)).is_err());
