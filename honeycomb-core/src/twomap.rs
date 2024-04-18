@@ -295,7 +295,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
     ///
-    /// # Panic
+    /// # Panics
     ///
     /// This method may panic if:
     ///
@@ -332,10 +332,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `const I: u8` -- Index of the beta function. *I* should
     /// be 0, 1 or 2 for a 2D map.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
     /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
+    ///
+    /// # Panics
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
@@ -355,6 +357,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
     /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
+    ///
+    /// # Panics
     ///
     /// The method will panic if *i* is not 0, 1 or 2.
     ///
@@ -428,6 +432,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 // --- icell-related code
 impl<T: CoordsFloat> CMap2<T> {
+    #[allow(clippy::missing_panics_doc)]
     /// Fetch vertex identifier associated to a given dart.
     ///
     /// # Arguments
@@ -458,6 +463,7 @@ impl<T: CoordsFloat> CMap2<T> {
             .unwrap() as VertexIdentifier
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// Fetch edge associated to a given dart.
     ///
     /// # Arguments
@@ -486,6 +492,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// Fetch face associated to a given dart.
     ///
     /// # Arguments
@@ -525,11 +532,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
     /// 2 (face) for a 2D map.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell. Note
     /// that **the dart passed as an argument is included as the first element of the returned
     /// orbit**.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
     ///
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
@@ -650,7 +661,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// *β<sub>1</sub>(lhs_dart) = rhs_dart*. The *β<sub>0</sub>*
     /// function is also updated.
     ///
-    /// # Return / Panic
+    /// # Panics
     ///
     /// The method may panic if the two darts are not 1-sewable.
     ///
@@ -698,7 +709,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// After the sewing operation, these darts will verify
     /// *β<sub>2</sub>(lhs_dart) = rhs_dart* and *β<sub>2</sub>(rhs_dart) = lhs_dart*.
     ///
-    /// # Return / Panic
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the two darts are not 2-sewable,
@@ -782,9 +793,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     // drastic deformation
                     assert!(
                         lhs_vector.dot(&rhs_vector) < T::zero(),
-                        "Dart {} and {} do not have consistent orientation for 2-sewing",
-                        lhs_dart_id,
-                        rhs_dart_id
+                        "{}",
+                        format!("Dart {lhs_dart_id} and {rhs_dart_id} do not have consistent orientation for 2-sewing"),
                     );
                 };
 
@@ -917,6 +927,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
     /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
     ///
+    /// # Panics
+    ///
+    /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
+    ///
     pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
@@ -936,6 +950,10 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
     /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
     ///
     pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
@@ -995,9 +1013,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return a reference to the [Vertex2] associated to the ID.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if no vertex is associated to the specified index.
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
         self.vertices.get(vertex_id).unwrap()
@@ -1022,13 +1044,14 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.insert(vertex_id, vertex.into())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Remove a vertex from the combinatorial map.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(v: Vertex2)` -- The vertex was successfully removed & its value was returned
@@ -1041,6 +1064,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Err(CMapError::UndefinedVertex)
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Try to overwrite the given vertex with a new value.
     ///
     /// # Arguments
@@ -1048,7 +1072,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
     /// - `vertex: impl<Into<Vertex2>>` -- New value for the vertex.
     ///
-    /// # Return / Panic
+    /// # Return / Errors
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
@@ -1113,6 +1137,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ```
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if, at any point, the program cannot write into the output file.
     ///
     pub fn allocated_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
@@ -1187,6 +1215,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ```
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if, at any point, the program cannot write into the output file.
     ///
     pub fn effective_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
@@ -1272,6 +1304,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ```
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if, at any point, the program cannot write into the output file.
     ///
     pub fn used_size(&self, rootname: &str) {
         let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
