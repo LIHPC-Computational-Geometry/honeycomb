@@ -406,27 +406,6 @@ impl<T: CoordsFloat> CMap2<T> {
 
     // --- edit
 
-    /// Set the values of the *β<sub>i</sub>* function of a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `beta: DartIdentifier` -- Value of *β<sub>I</sub>(dart)*
-    ///
-    /// ## Generics
-    ///
-    /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
-    /// 2 (face) for a 2D map.
-    ///
-    /// # Return / Panic
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    ///
-    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, beta: DartIdentifier) {
-        assert!(I < 3);
-        self.betas[dart_id as usize][I as usize] = beta;
-    }
-
     /// Set the values of the beta functions of a dart.
     ///
     /// # Arguments
