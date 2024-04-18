@@ -14,8 +14,18 @@
 //! - `utils` -- provides additionnal methods for benchmarking and debugging
 //! - `single_precision` -- uses `f32` instead of `f64` for coordinates representation in tests
 
-// ------ MODULE DECLARATIONS
+#![warn(clippy::pedantic)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::if_not_else)]
+#![allow(clippy::range_plus_one)]
+#![allow(clippy::semicolon_if_nothing_returned)]
+#![allow(clippy::needless_for_each)]
+#![allow(clippy::needless_pass_by_value)]
 
+// ------ MODULE DECLARATIONS
 mod attributes;
 mod cells;
 mod spatial_repr;
