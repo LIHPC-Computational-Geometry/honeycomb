@@ -215,19 +215,13 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
     /// Return information about the current number of darts.
-    ///
-    /// # Return / Panic
-    ///
-    /// Return a tuple of two elements:
-    ///
-    /// - the number of darts
-    /// - a boolean indicating whether there are unused darts or not
-    ///
-    /// The boolean essentially indicates if it is safe to access & use all dart IDs in the
-    /// `1..n_darts+1` range.
-    ///
-    pub fn n_darts(&self) -> (usize, bool) {
-        (self.n_darts, !self.unused_darts.is_empty())
+    pub fn n_darts(&self) -> usize {
+        self.n_darts
+    }
+
+    /// Return information about the current number of unused darts.
+    pub fn n_unused_darts(&self) -> usize {
+        self.unused_darts.len()
     }
 
     // --- edit
@@ -1410,7 +1404,7 @@ mod tests {
         assert_eq!(map.vertex(6), Vertex2::from((1.0, 1.0)));
         assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
         // darts
-        assert!(map.n_darts().1); // there are unused darts since we removed the diagonal
+        assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
         assert_eq!(map.beta_runtime(1, 1), 5);
         assert_eq!(map.beta_runtime(1, 5), 6);
         assert_eq!(map.beta_runtime(1, 6), 3);
