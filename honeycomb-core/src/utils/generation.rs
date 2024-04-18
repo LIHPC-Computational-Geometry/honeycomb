@@ -16,7 +16,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
-/// Generate a [CMap2] representing a mesh made up of squares.
+/// Generate a [`CMap2`] representing a mesh made up of squares.
 ///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square` square cells.
@@ -27,11 +27,11 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 ///
 /// ## Generics
 ///
-/// - `const T: CoordsFloat` -- Generic parameter of the returned [CMap2].
+/// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
 ///
 /// # Return / Panic
 ///
-/// Returns a boundary-less [CMap2] of the specified size. The map contains
+/// Returns a boundary-less [`CMap2`] of the specified size. The map contains
 /// `4 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
 ///
@@ -130,7 +130,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     map
 }
 
-/// Generate a [CMap2] representing a mesh made up of squares split diagonally.
+/// Generate a [`CMap2`] representing a mesh made up of squares split diagonally.
 ///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square * 2` triangle cells.
@@ -141,36 +141,15 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 ///
 /// ## Generics
 ///
-/// - `const T: CoordsFloat` -- Generic parameter of the returned [CMap2].
+/// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
 ///
 /// # Return / Panic
 ///
-/// Returns a boundary-less [CMap2] of the specified size. The map contains
+/// Returns a boundary-less [`CMap2`] of the specified size. The map contains
 /// `6 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
 ///
-/// # Example
-///
-/// ```
-/// use honeycomb_core::{CMap2, utils::splitsquare_cmap2};
-///
-/// let cmap: CMap2<f64> = splitsquare_cmap2(2);
-/// ```
-///
-/// The above code generates the following map:
-///
-/// ![SPLITSQUARECMAP2](../../images/CMap2SplitSquare.svg)
-///
-/// Note that *β<sub>1</sub>* is only represented in one cell but is defined
-/// Everywhere following the same pattern. Dart indexing is also consistent
-/// with the following rules:
-///
-/// - inside a cell, the first dart is the one on the bottom, pointing towards
-///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
-///   orientation.
-/// - cells are ordered from left to right, from the bottom up. The same rule
-///   applies for face IDs.
-///
+/// The indexing follows the same logic described in the documentation of [`square_cmap2`].
 pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square.pow(2));
 
