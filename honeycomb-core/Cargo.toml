@@ -14,5 +14,5 @@ utils = []
 single_precision = []
 
 [dependencies]
-cfg-if = "1"
-num = "0.4"
+cfg-if.workspace = true
+num.workspace = true

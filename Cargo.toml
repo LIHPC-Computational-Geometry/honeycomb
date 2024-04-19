@@ -27,6 +27,9 @@ honeycomb-render = { version = "0.2.0", path = "./honeycomb-render" }
 # common
 cfg-if = "1"
 
+# core
+num = "0.4.2"
+
 # benchmarks
 criterion = "0.5.1"
 iai-callgrind = "0.10.2"
