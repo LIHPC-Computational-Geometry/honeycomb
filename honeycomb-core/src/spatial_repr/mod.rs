@@ -17,8 +17,14 @@ use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "single_precision")] {
+        /// Floating-point type alias.
+        ///
+        /// This is mostly used to run tests using both `f64` and `f32`.
         pub type FloatType = f32;
     } else {
+        /// Floating-point type alias.
+        ///
+        /// This is mostly used to run tests using both `f64` and `f32`.
         pub type FloatType = f64;
     }
 }

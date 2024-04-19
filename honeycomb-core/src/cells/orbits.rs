@@ -118,6 +118,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
         }
     }
 
+    /// Return a boolean indicating whether the starting dart is isolated or not
     pub fn is_isolated(&self) -> bool {
         // this is boolean tells us if the orbit is either:
         // a) unaltered (pending.len() == 1)

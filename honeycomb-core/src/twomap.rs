@@ -80,7 +80,7 @@ const CMAP2_BETA: usize = 3;
 /// The following example goes over multiple operations on the mesh in order
 /// to demonstrate general usage of the structure and its methods.
 ///
-/// ![`CMAP2_EXAMPLE`](../../images/CMap2Example.svg)
+/// ![`CMAP2_EXAMPLE`](../images/CMap2Example.svg)
 ///
 /// Note that the map we operate on has no boundaries. In addition to the different
 /// operations realized at each step, we insert a few assertions to demonstrate the
