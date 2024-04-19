@@ -1,6 +1,7 @@
-//! i-cell collection structures
+//! i-cell collection implementation
 //!
-//!
+//! This module contains all code used to model collection structures for i-cell identifiers. The
+//! need for a specific structure stems from the need to ensure the validity of identifiers.
 
 // ------ IMPORTS
 

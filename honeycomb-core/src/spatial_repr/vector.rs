@@ -2,7 +2,6 @@
 //!
 //! This module contains all code used to model vectors as wrappers of a common
 //! type ([Coords2]).
-//!
 
 // ------ IMPORTS
 

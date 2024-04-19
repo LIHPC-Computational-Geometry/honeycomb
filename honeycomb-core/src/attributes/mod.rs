@@ -1,8 +1,6 @@
-//! Module short description
+//! Attribute modeling code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains all code related to generic attribute modelling and handling.
 
 // ------ MODULE DECLARATIONS
 
