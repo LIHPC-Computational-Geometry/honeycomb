@@ -2,7 +2,6 @@
 //!
 //! This module contains all code used to model vertices as wrappers of a common
 //! type ([Coords2]).
-//!
 
 // ------ IMPORTS
 
@@ -94,6 +93,11 @@ impl<T: CoordsFloat> Vertex2<T> {
     ///
     /// Return the mid-point as a new [Vertex2] object.
     ///
+    /// # Panics
+    ///
+    /// This function may panic if it cannot initialize an object `T: CoordsFloat` from the value
+    /// `2.0`. The chance of this happening when using `T = f64` or `T = f32` is most likely zero.
+    ///
     /// # Example
     ///
     /// ```rust
@@ -104,6 +108,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     ///
     /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2::from((1.0, 1.0)));
     /// ```
+    ///
     pub fn average(lhs: &Vertex2<T>, rhs: &Vertex2<T>) -> Vertex2<T> {
         let two = T::from(2.0).unwrap();
         Vertex2::from(((lhs.x() + rhs.x()) / two, (lhs.y() + rhs.y()) / two))

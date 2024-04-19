@@ -11,7 +11,7 @@ use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
 
-/// Enum used to model beta functions defining the search.
+/// Orbit search policy enum.
 ///
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to *i-cells*.
@@ -28,13 +28,13 @@ pub enum OrbitPolicy<'a> {
 
 /// Generic 2D orbit implementation
 ///
-/// This structure only contains meta-data about the orbit in its initial
-/// state. All the darts making up the orbit are computed when using the
-/// methods that come with the [Iterator] implementation.
+/// This structure only contains meta-data about the orbit in its initial state. All the darts
+/// making up the orbit are computed when using the methods that come with the [Iterator]
+/// implementation.
 ///
-/// It is not currently possible to iterate over references, the orbit has
-/// to be consumed for its result to be used. This is most likely the best
-/// behavior
+/// It is not currently possible to iterate over references, the orbit has to be consumed for its
+/// result to be used. This is most likely the best behavior since orbits should be consumed upon
+/// traversal to avoid inconsistencies created by a later mutable operation on the map.
 ///
 /// # Generics
 ///
@@ -43,23 +43,22 @@ pub enum OrbitPolicy<'a> {
 ///
 /// # The search algorithm
 ///
-/// The search algorithm used to establish the list of dart included in the
-/// orbit is a [Breadth-first search algorithm][WIKIBFS]. This means that:
+/// The search algorithm used to establish the list of dart included in the orbit is a
+/// [Breadth-first search algorithm][WIKIBFS]. This means that:
 ///
 /// - we look at the images of the current dart through all beta functions,
 /// adding those to a queue, before moving on to the next dart.
 /// - we apply the beta functions in their specified order (in the case of a
-/// custom [OrbitPolicy]); This guarantees a consistent and predictable result.
+/// custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
 ///
-/// Both of these points allow the structure to be used for sewing operations
-/// at the cost of some performance (non-trivial parallelization & sequential
-/// consistency requirements).
+/// Both of these points allow the structure to be used for sewing operations at the cost of some
+/// performance (non-trivial parallelization & sequential consistency requirements).
 ///
 /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
 ///
 /// # Example
 ///
-/// See [CMap2] example.
+/// See [`CMap2`] example.
 ///
 pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
@@ -82,9 +81,11 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an [Orbit2] structure that can be iterated upon to retrieve the orbit's darts.
+    ///
+    /// # Panics
     ///
     /// The method may panic if no beta index is passed along the custom policy. Additionally,
     /// if an invalid beta index is passed through the custom policy (e.g. `3` for a 2D map),
@@ -92,7 +93,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// # Example
     ///
-    /// See [CMap2] example.
+    /// See [`CMap2`] example.
     ///
     pub fn new(
         map_handle: &'a CMap2<T>,
@@ -116,6 +117,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
         }
     }
 
+    /// Return a boolean indicating whether the starting dart is isolated or not
     pub fn is_isolated(&self) -> bool {
         // this is boolean tells us if the orbit is either:
         // a) unaltered (pending.len() == 1)

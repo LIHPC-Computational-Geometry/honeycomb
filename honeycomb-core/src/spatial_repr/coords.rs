@@ -17,7 +17,7 @@ use std::ops::{
 
 // ------ CONTENT
 
-/// Coordinates-related error enum
+/// Coordinates-level error enum
 #[derive(Debug)]
 pub enum CoordsError {
     /// Error during the computation of the unit directional vector.
@@ -29,7 +29,7 @@ pub enum CoordsError {
 /// 2-dimensional coordinates structure
 ///
 /// The floating type used for coordinate representation is determined by the user. For tests, it
-/// can be controled using features and the [FloatType] alias.
+/// can be controled using features and the [`FloatType`] alias.
 ///
 /// # Generics
 ///
@@ -198,7 +198,7 @@ impl<T: CoordsFloat> Index<usize> for Coords2<T> {
         match index {
             0 => &self.x,
             1 => &self.y,
-            i => panic!("cannot index a 2D vector with value {i}"),
+            i => panic!("{}", format!("cannot index a 2D vector with value {i}")),
         }
     }
 }
@@ -208,7 +208,7 @@ impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,
-            i => panic!("cannot index a 2D vector with value {i}"),
+            i => panic!("{}", format!("cannot index a 2D vector with value {i}")),
         }
     }
 }
