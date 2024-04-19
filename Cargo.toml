@@ -1,8 +1,16 @@
 [workspace]
 
+resolver = "2"
 members = ["honeycomb-benches", "honeycomb-core", "honeycomb-render", "honeycomb-examples"]
 
-resolver = "2"
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+version = "0.2.0"
+homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
+repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
+description = "Combinatorial map implementation for meshing applications"
+authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevalier@cea.fr>"]
 
 [profile.bench]
 debug = true
