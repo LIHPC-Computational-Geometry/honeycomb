@@ -60,16 +60,16 @@ const CMAP2_BETA: usize = 3;
 /// Fields are kept private in order to better define interfaces. The structure
 /// contains the following data:
 ///
-/// - `vertices: Vec<Vertex>` -- List of vertices making up the represented mesh
+/// - `vertices: AttrSparseVec<Vertex2>` -- List of vertices making up the represented mesh
 /// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
 ///   spots in the current dart list
 /// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
-/// - `n_darts: usize` -- Current number of darts (including the null dart)
+/// - `n_darts: usize` -- Current number of darts (including the null dart and unused darts)
 ///
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
 /// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
-/// the [`Self::beta`] method, we do not define 0-sew or 0-unsew operations.
+/// the [`Self::beta`] method, we do not define the 0-sew / 0-unsew operations.
 ///
 /// # Generics
 ///
@@ -93,10 +93,10 @@ const CMAP2_BETA: usize = 3;
 /// use honeycomb_core::{CMap2, FloatType, Orbit2, OrbitPolicy, Vertex2};
 ///
 /// // build a triangle
-/// let mut map: CMap2<FloatType> = CMap2::new(3);
-/// map.one_link(1, 2);
-/// map.one_link(2, 3);
-/// map.one_link(3, 1);
+/// let mut map: CMap2<FloatType> = CMap2::new(3); // three darts
+/// map.one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
+/// map.one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
+/// map.one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
 /// map.insert_vertex(1, (0.0, 0.0));
 /// map.insert_vertex(2, (1.0, 0.0));
 /// map.insert_vertex(3, (0.0, 1.0));
@@ -109,7 +109,8 @@ const CMAP2_BETA: usize = 3;
 /// assert_eq!(face.next(), None);
 ///
 /// // build a second triangle
-/// map.add_free_darts(3);
+/// let first_added_dart_id = map.add_free_darts(3);
+/// assert_eq!(first_added_dart_id, 4);
 /// map.one_link(4, 5);
 /// map.one_link(5, 6);
 /// map.one_link(6, 4);
@@ -129,6 +130,7 @@ const CMAP2_BETA: usize = 3;
 /// assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
 ///
 /// // adjust bottom-right & top-left vertex position
+/// // the returned values were the average of the sewn vertices
 /// assert_eq!(
 ///     map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
 ///     Ok(Vertex2::from((1.5, 0.0)))
@@ -185,16 +187,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
-    /// - `n_vertices: usize` -- Number of vertices in the represented mesh.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
-    /// Returns a combinatorial map containing:
-    /// - `n_darts + 1` darts, the amount of darts wanted plus the null dart (at index 0).
-    /// - 3 beta functions, *β<sub>0</sub>* being defined as the inverse of *β<sub>1</sub>*.
-    /// - Default embed data associated to each dart.
-    /// - `n_vertices` that the user will have to manually define a link to darts.
-    /// - An empty list of currently free darts. This may be used for dart creation.
+    /// Returns a combinatorial map containing `n_darts + 1` darts, the amount of darts wanted plus
+    /// the null dart (at index [`NULL_DART_ID`] i.e. `0`).
     ///
     /// # Example
     ///
@@ -231,7 +228,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The dart is i-free for all i and is pushed to the list of existing darts, effectively
     /// making its identifier equal to the total number of darts (post-push).
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the ID of the created dart to allow for direct operations.
     ///
@@ -251,9 +248,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `n_darts: usize` -- Number of darts to have.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
-    /// Return the ID of the first created dart to allow for direct operations. Darts are
+    /// Return the `ID` of the first created dart to allow for direct operations. Darts are
     /// positioned on range `ID..ID+n_darts`.
     ///
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
@@ -269,7 +266,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The dart is i-free for all i and may be inserted into an unused spot in the existing dart
     /// list. If no free spots exist, it will be pushed to the end of the list.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the ID of the created dart to allow for direct operations.
     ///
@@ -325,17 +322,16 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
     /// ## Generics
     ///
-    /// - `const I: u8` -- Index of the beta function. *I* should
-    /// be 0, 1 or 2 for a 2D map.
+    /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
     ///
     /// # Return
     ///
     /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
-    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that the dart is i-free.
     ///
     /// # Panics
     ///
@@ -350,13 +346,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the identifier of the dart *d* such that *d = β<sub>i</sub>(dart)*. If the returned
-    /// value is the null dart (i.e. a dart ID equal to 0), this means that *dart* is i-free.
+    /// value is the null dart (i.e. a dart ID equal to 0), this means that the dart is i-free.
     ///
     /// # Panics
     ///
@@ -376,15 +372,18 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
     /// ## Generics
     ///
     /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
-    /// Return a boolean indicating if *dart* is i-free, i.e. *β<sub>i</sub>(dart) = `NullDart`*.
+    /// Return a boolean indicating if the dart is i-free, i.e.
+    /// *β<sub>i</sub>(dart) = `NULL_DART_ID`*.
+    ///
+    /// # Panics
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
     ///
@@ -396,11 +395,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
-    /// Return a boolean indicating if *dart* is 0-free, 1-free and 2-free.
+    /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     ///
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
@@ -437,11 +436,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the identifier of the associated vertex.
+    ///
+    /// ## Note on cell identifiers
     ///
     /// Cells identifiers are defined as the smallest identifier among the darts that make up the
     /// cell. This definition has three interesting properties:
@@ -468,11 +469,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the identifier of the associated edge.
+    ///
+    /// ## Note on cell identifiers
     ///
     /// Cells identifiers are defined as the smallest identifier among the darts that make up the
     /// cell. This definition has three interesting properties:
@@ -497,11 +500,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the identifier of the associated face.
+    ///
+    /// ## Note on cell identifiers
     ///
     /// Cells identifiers are defined as the smallest identifier among the darts that make up the
     /// cell. This definition has three interesting properties:
@@ -521,11 +526,11 @@ impl<T: CoordsFloat> CMap2<T> {
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
     }
 
-    /// Return an [Orbit2] object that can be used to iterate over darts of an i-cell.
+    /// Return an [`Orbit2`] object that can be used to iterate over darts of an i-cell.
     ///
     /// # Arguments
     ///
-    /// - `dart_id: DartIdentifier` -- Identifier of *dart*.
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     ///
     /// ## Generics
     ///
@@ -534,7 +539,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return
     ///
-    /// Returns an [Orbit2] that can be iterated upon to retrieve all dart member of the cell. Note
+    /// Returns an [`Orbit2`] that can be iterated upon to retrieve all dart member of the cell. Note
     /// that **the dart passed as an argument is included as the first element of the returned
     /// orbit**.
     ///
@@ -554,7 +559,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return a collection of all the map's vertices.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
@@ -583,7 +588,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return a collection of all the map's edges.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
@@ -613,7 +618,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return a collection of all the map's faces.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
@@ -645,9 +650,9 @@ impl<T: CoordsFloat> CMap2<T> {
 impl<T: CoordsFloat> CMap2<T> {
     /// 1-sew operation.
     ///
-    /// This operation corresponds to *coherently linking* two darts via
-    /// the *β<sub>1</sub>* function. For a thorough explanation of this operation
-    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    /// This operation corresponds to *coherently linking* two darts via the *β<sub>1</sub>*
+    /// function. For a thorough explanation of this operation (and implied hypothesis &
+    /// consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
     ///
@@ -658,8 +663,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// *β<sub>1</sub>(`lhs_dart`) = `rhs_dart`*. The *β<sub>0</sub>*
-    /// function is also updated.
+    /// *β<sub>1</sub>(`lhs_dart`) = `rhs_dart`*. The *β<sub>0</sub>* function is also updated.
     ///
     /// # Panics
     ///
@@ -694,9 +698,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 2-sew operation.
     ///
-    /// This operation corresponds to *coherently linking* two darts via
-    /// the *β<sub>2</sub>* function. For a thorough explanation of this operation
-    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    /// This operation corresponds to *coherently linking* two darts via the *β<sub>2</sub>*
+    /// function. For a thorough explanation of this operation (and implied hypothesis &
+    /// consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
     ///
@@ -824,9 +828,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 1-unsew operation.
     ///
-    /// This operation corresponds to *coherently separating* two darts linked
-    /// via the *β<sub>1</sub>* function. For a thorough explanation of this operation
-    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    /// This operation corresponds to *coherently separating* two darts linked via the
+    /// *β<sub>1</sub>* function. For a thorough explanation of this operation (and implied
+    /// hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
     ///
@@ -835,9 +839,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
     /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
     ///
-    /// Note that we do not need to take two darts as arguments since the
-    /// second dart can be obtained through the *β<sub>1</sub>* function. The
-    /// *β<sub>0</sub>* function is also updated.
+    /// Note that we do not need to take two darts as arguments since the second dart can be
+    /// obtained through the *β<sub>1</sub>* function. The *β<sub>0</sub>* function is also updated.
     ///
     /// # Panics
     ///
@@ -865,9 +868,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 2-unsew operation.
     ///
-    /// This operation corresponds to *coherently separating* two darts linked
-    /// via the *β<sub>2</sub>* function. For a thorough explanation of this operation
-    /// (and implied hypothesis & consequences), refer to the [user guide][UG].
+    /// This operation corresponds to *coherently separating* two darts linked via the
+    /// *β<sub>2</sub>* function. For a thorough explanation of this operation (and implied
+    /// hypothesis & consequences), refer to the [user guide][UG].
     ///
     /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
     ///
@@ -876,8 +879,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
     /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
     ///
-    /// Note that we do not need to take two darts as arguments since the
-    /// second dart can be obtained through the *β<sub>2</sub>* function.
+    /// Note that we do not need to take two darts as arguments since the second dart can be
+    /// obtained through the *β<sub>2</sub>* function.
     ///
     /// # Panics
     ///
@@ -1031,7 +1034,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Panics
     ///
-    /// The method may panic if no vertex is associated to the specified index.
+    /// The method may panic if no vertex is associated to the specified index, or the ID lands
+    /// out of bounds.
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
         self.vertices.get(vertex_id).unwrap()
