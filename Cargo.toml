@@ -13,10 +13,28 @@ description = "Combinatorial map implementation for meshing applications"
 authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevalier@cea.fr>"]
 
 [workspace.dependencies]
+# members
 honeycomb-benches = { version = "0.2.0", path = "./honeycomb-benches" }
 honeycomb-core = { version = "0.2.0", path = "./honeycomb-core" }
 honeycomb-examples = { version = "0.2.0", path = "./honeycomb-examples" }
 honeycomb-render = { version = "0.2.0", path = "./honeycomb-render" }
+
+# common
+cfg-if = "1"
+
+# benchmarks
+criterion = { version = "0.5.1", features = ["html_reports"] }
+iai-callgrind = "0.10.2"
+rand = { version = "0.8.5", features = ["small_rng"] }
+
+# render
+wgpu = "0.19.4"
+winit = "0.29.15"
+env_logger = "0.11.3"
+pollster = "0.3.0"
+cgmath = "0.18.0"
+bytemuck = { version = "1.15.0", features = ["derive"] }
+smaa = "0.13.0"
 
 [profile.bench]
 debug = true
