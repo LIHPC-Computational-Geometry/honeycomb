@@ -10,8 +10,8 @@ authors.workspace = true
 publish = false
 
 [dev-dependencies]
-honeycomb-core = { path = "../honeycomb-core", features = ["utils"] }
-honeycomb-render = { path = "../honeycomb-render" }
+honeycomb-core = { workspace = true, features = ["utils"] }
+honeycomb-render = { workspace = true }
 
 [[example]]
 name = "memory_usage"

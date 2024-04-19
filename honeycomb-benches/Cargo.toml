@@ -10,7 +10,7 @@ authors.workspace = true
 publish = false
 
 [dev-dependencies]
-honeycomb-core = { path = "../honeycomb-core", features = ["utils"] }
+honeycomb-core = { workspace = true, features = ["utils"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 iai-callgrind = "0.10"
 rand = { version = "0.8", features = ["small_rng"] }
