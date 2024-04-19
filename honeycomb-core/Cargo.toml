@@ -1,7 +1,13 @@
 [package]
 name = "honeycomb-core"
-version = "0.2.0"
-edition = "2021"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Core structure implementation"
+authors.workspace = true
+publish = true
 
 [features]
 utils = []
