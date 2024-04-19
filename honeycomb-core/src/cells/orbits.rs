@@ -82,9 +82,11 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an [Orbit2] structure that can be iterated upon to retrieve the orbit's darts.
+    ///
+    /// # Panics
     ///
     /// The method may panic if no beta index is passed along the custom policy. Additionally,
     /// if an invalid beta index is passed through the custom policy (e.g. `3` for a 2D map),

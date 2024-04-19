@@ -73,9 +73,11 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return a reference to the value indexed by `index`.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -91,9 +93,11 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return a mutable reference to the value indexed by `index`.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -112,7 +116,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -131,7 +135,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Panics
     ///
     /// The method may panic if:
     /// - **there is already a value associated to the specified index**
@@ -153,9 +157,11 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an option containing the old value if it existed.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -172,10 +178,12 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the item associated to the specified index. Note that the method will not panic if
     /// there was not one, it will simply return `None`.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -277,10 +285,12 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an `Option` that may contain a reference to the value associated to `index`, if
     /// it exists.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -296,10 +306,12 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an `Option` that may contain a mutable reference to the value associated to `index`,
     /// if it exists.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -318,7 +330,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -348,7 +360,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Panic
+    /// # Panics
     ///
     /// The method may panic if:
     /// - **there is already a value associated to the specified index**
@@ -376,9 +388,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - `index: T::IdentifierType` -- Cell index.
     /// - `val: T` -- Attribute value.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return an option containing the old value if it existed.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
@@ -397,10 +411,12 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// - `index: T::IdentifierType` -- Cell index.
     ///
-    /// # Return / Panic
+    /// # Return
     ///
     /// Return the item associated to the specified index. Note that the method will not panic if
     /// there was not one, it will simply return `None`.
+    ///
+    /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds

@@ -198,7 +198,7 @@ impl<T: CoordsFloat> Index<usize> for Coords2<T> {
         match index {
             0 => &self.x,
             1 => &self.y,
-            i => panic!("cannot index a 2D vector with value {i}"),
+            i => panic!("{}", format!("cannot index a 2D vector with value {i}")),
         }
     }
 }
@@ -208,7 +208,7 @@ impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,
-            i => panic!("cannot index a 2D vector with value {i}"),
+            i => panic!("{}", format!("cannot index a 2D vector with value {i}")),
         }
     }
 }

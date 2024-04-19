@@ -124,6 +124,11 @@ impl<T: CoordsFloat> Vector2<T> {
     /// Return a [Vector2] indicating the direction of `self`. The norm of the returned
     /// struct is equal to one.
     ///
+    /// # Errors
+    ///
+    /// This method will panic if called on a `Vector2` with a norm equal to zero, i.e. a null
+    /// `Vector2`.
+    ///
     /// # Example
     ///
     /// See [Vector2] example.
@@ -143,6 +148,11 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a [Vector2] indicating the direction of the normal to `self`. The norm of the
     /// returned struct is equal to one.
+    ///
+    /// # Panics
+    ///
+    /// Because the returned `Vector2` is normalized, this method may panic under the same
+    /// condition as [`Self::unit_dir`].
     ///
     /// # Example
     ///

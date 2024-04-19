@@ -839,6 +839,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// second dart can be obtained through the *β<sub>1</sub>* function. The
     /// *β<sub>0</sub>* function is also updated.
     ///
+    /// # Panics
+    ///
+    /// The method may panic if there's a missing attribute at the splitting step. While the
+    /// implementation could fall back to a simple unlink operation, it probably should have been
+    /// called by the user, instead of unsew, in the first place.
+    ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id != NULL_DART_ID {
@@ -872,6 +878,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Note that we do not need to take two darts as arguments since the
     /// second dart can be obtained through the *β<sub>2</sub>* function.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if there's a missing attribute at the splitting step. While the
+    /// implementation could fall back to a simple unlink operation, it probably should have been
+    /// called by the user, instead of unsew, in the first place.
     ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
