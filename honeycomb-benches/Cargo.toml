@@ -1,13 +1,19 @@
 [package]
 name = "honeycomb-benches"
-version = "0.2.0"
-edition = "2021"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Core structure benchmarks"
+authors.workspace = true
+publish = false
 
 [dev-dependencies]
 honeycomb-core = { path = "../honeycomb-core", features = ["utils"] }
-criterion = { version = "*", features = ["html_reports"] }
-iai-callgrind = "*"
-rand = { version = "*", features = ["small_rng"] }
+criterion = { version = "0.5", features = ["html_reports"] }
+iai-callgrind = "0.10"
+rand = { version = "0.8", features = ["small_rng"] }
 
 # Iai-callgrind benchmarks
 
