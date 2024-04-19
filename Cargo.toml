@@ -33,7 +33,7 @@ winit = "0.29.15"
 env_logger = "0.11.3"
 pollster = "0.3.0"
 cgmath = "0.18.0"
-bytemuck = { version = "1.15.0", features = ["derive"] }
+bytemuck = { version = "1.15.0" }
 smaa = "0.13.0"
 
 [profile.bench]
