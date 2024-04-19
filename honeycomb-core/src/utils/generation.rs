@@ -29,11 +29,16 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 ///
 /// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
 ///
-/// # Return / Panic
+/// # Return
 ///
 /// Returns a boundary-less [`CMap2`] of the specified size. The map contains
 /// `4 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
+///
+/// # Panics
+///
+/// If this function panics, this is most likely due to a mistake in implementation in the core
+/// crate.
 ///
 /// # Example
 ///
@@ -57,6 +62,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
+
 pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(4 * n_square.pow(2));
 
@@ -143,13 +149,19 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 ///
 /// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
 ///
-/// # Return / Panic
+/// # Return
 ///
 /// Returns a boundary-less [`CMap2`] of the specified size. The map contains
 /// `6 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
 /// vertices.
 ///
 /// The indexing follows the same logic described in the documentation of [`square_cmap2`].
+///
+/// # Panics
+///
+/// If this function panics, this is most likely due to a mistake in implementation in the core
+/// crate.
+///
 pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square.pow(2));
 
@@ -336,6 +348,7 @@ mod tests {
         assert_eq!(cmap.beta::<2>(16), 10);
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn splitsquare_cmap2_correctness() {
         let cmap: CMap2<f64> = splitsquare_cmap2(2);
