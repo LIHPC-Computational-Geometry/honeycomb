@@ -1,7 +1,12 @@
 [workspace]
 
 resolver = "2"
-members = ["honeycomb-benches", "honeycomb-core", "honeycomb-render", "honeycomb-examples"]
+members = [
+    "honeycomb-benches",
+    "honeycomb-core",
+    "honeycomb-render",
+    "honeycomb-examples"
+]
 
 [workspace.package]
 edition = "2021"
@@ -23,18 +28,18 @@ honeycomb-render = { version = "0.2.0", path = "./honeycomb-render" }
 cfg-if = "1"
 
 # benchmarks
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = "0.5.1"
 iai-callgrind = "0.10.2"
-rand = { version = "0.8.5", features = ["small_rng"] }
+rand = "0.8.5"
 
 # render
-wgpu = "0.19.4"
-winit = "0.29.15"
+bytemuck = "1.15.0"
+cgmath = "0.18.0"
 env_logger = "0.11.3"
 pollster = "0.3.0"
-cgmath = "0.18.0"
-bytemuck = { version = "1.15.0" }
 smaa = "0.13.0"
+wgpu = "0.19.4"
+winit = "0.29.15"
 
 [profile.bench]
 debug = true
