@@ -13,7 +13,7 @@ macro_rules! collection_constructor {
     ($coll: ident, $idty: ty) => {
         impl<'a, T: CoordsFloat> $coll<'a, T> {
             /// Constructor
-            pub fn new(_: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
+            pub(crate) fn new(_: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
                 Self {
                     lifetime_indicator: std::marker::PhantomData::default(),
                     identifiers: ids.into_iter().collect(),

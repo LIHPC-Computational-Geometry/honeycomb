@@ -9,14 +9,14 @@ use crate::OrbitPolicy;
 
 // ------ CONTENT
 
-/// Generic attribute trait for logical behavior
+/// Generic attribute trait for logical behavior description
 ///
 /// This trait can be implemented for a given attribute in order to define the behavior to
 /// follow when (un)sewing operations result in an update of the attribute.
 ///
 /// # Example
 ///
-/// For an intensive property of a system (e.g. a temperature), a dummy implementation would look
+/// For an intensive property of a system (e.g. a temperature), an implementation would look
 /// like this:
 ///
 /// ```rust

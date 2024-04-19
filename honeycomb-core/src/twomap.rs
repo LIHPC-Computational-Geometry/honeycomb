@@ -22,7 +22,7 @@ use std::{fs::File, io::Write};
 
 // ------ CONTENT
 
-/// Error-modeling enum
+/// Map-level error enum
 ///
 /// This enum is used to describe all non-panic errors that can occur when operating on a map.
 #[derive(Debug, PartialEq)]

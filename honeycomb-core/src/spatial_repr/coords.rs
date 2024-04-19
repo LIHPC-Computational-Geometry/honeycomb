@@ -17,7 +17,7 @@ use std::ops::{
 
 // ------ CONTENT
 
-/// Coordinates-related error enum
+/// Coordinates-level error enum
 #[derive(Debug)]
 pub enum CoordsError {
     /// Error during the computation of the unit directional vector.
