@@ -5,7 +5,10 @@ license.workspace = true
 version.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Core structure implementation"
+readme.workspace = true
+description = "Core structure implementation for combinatorial maps"
+categories.workspace = true
+keywords.workspace = true
 authors.workspace = true
 publish = true
 

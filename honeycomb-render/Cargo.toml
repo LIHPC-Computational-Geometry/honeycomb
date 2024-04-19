@@ -5,7 +5,10 @@ license.workspace = true
 version.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Visualization tool"
+readme.workspace = true
+description = "Visualization tool for combinatorial maps"
+categories.workspace = true
+keywords.workspace = true
 authors.workspace = true
 publish = true
 
