@@ -24,6 +24,8 @@
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::needless_for_each)]
 #![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::return_self_not_must_use)]
 
 // ------ MODULE DECLARATIONS
 mod attributes;

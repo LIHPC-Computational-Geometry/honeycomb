@@ -79,7 +79,7 @@ pub trait AttributeUpdate: Sized {
 ///
 /// # Example
 ///
-/// Using the same context as the for the [AttributeUpdate] example, we can associate temperature
+/// Using the same context as the for the [`AttributeUpdate`] example, we can associate temperature
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
@@ -102,7 +102,7 @@ pub trait AttributeBind: Sized {
     /// Identifier type of the entity the attribute is bound to.
     type IdentifierType: num::ToPrimitive;
 
-    /// Return an [OrbitPolicy] that can be used to identify the kind of topological entity to
+    /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }

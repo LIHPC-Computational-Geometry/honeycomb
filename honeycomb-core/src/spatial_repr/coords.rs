@@ -29,7 +29,7 @@ pub enum CoordsError {
 /// 2-dimensional coordinates structure
 ///
 /// The floating type used for coordinate representation is determined by the user. For tests, it
-/// can be controled using features and the [FloatType] alias.
+/// can be controled using features and the [`FloatType`] alias.
 ///
 /// # Generics
 ///

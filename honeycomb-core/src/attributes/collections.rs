@@ -1,7 +1,7 @@
 //! Attribute storage structures
 //!
 //! This module contains all code used to describe custom collections used to store attributes
-//! (see [AttributeBind], [AttributeUpdate]).
+//! (see [`AttributeBind`], [`AttributeUpdate`]).
 
 // ------ IMPORTS
 
@@ -44,7 +44,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// # Return
     ///
-    /// Return a [AttrSparseVec] object full of `None`.
+    /// Return a [`AttrSparseVec`] object full of `None`.
     ///
     pub fn new(n_ids: usize) -> Self {
         Self {
@@ -246,7 +246,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// # Return
     ///
-    /// Return a "value-empty" [AttrSparseVec] object.
+    /// Return a "value-empty" [`AttrSparseVec`] object.
     ///
     pub fn new(n_ids: usize) -> Self {
         Self {

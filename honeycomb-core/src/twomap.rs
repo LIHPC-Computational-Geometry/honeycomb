@@ -3,7 +3,7 @@
 //! This module contains code for the two main structures provided
 //! by the crate:
 //!
-//! - [CMap2], a 2D combinatorial map implementation
+//! - [`CMap2`], a 2D combinatorial map implementation
 //!
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
@@ -69,7 +69,7 @@ const CMAP2_BETA: usize = 3;
 /// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
 /// This is extremely useful (read *required*) to implement correct and efficient
 /// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
-/// the [Self::beta] method, we do not define 0-sew or 0-unsew operations.
+/// the [`Self::beta`] method, we do not define 0-sew or 0-unsew operations.
 ///
 /// # Generics
 ///
@@ -80,7 +80,7 @@ const CMAP2_BETA: usize = 3;
 /// The following example goes over multiple operations on the mesh in order
 /// to demonstrate general usage of the structure and its methods.
 ///
-/// ![CMAP2_EXAMPLE](../../images/CMap2Example.svg)
+/// ![`CMAP2_EXAMPLE`](../../images/CMap2Example.svg)
 ///
 /// Note that the map we operate on has no boundaries. In addition to the different
 /// operations realized at each step, we insert a few assertions to demonstrate the
@@ -198,7 +198,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// See [CMap2] example.
+    /// See [`CMap2`] example.
     ///
     pub fn new(n_darts: usize) -> Self {
         Self {
@@ -300,7 +300,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This method may panic if:
     ///
     /// - The dart is not *i*-free for all *i*.
-    /// - The dart is already marked as unused (Refer to [Self::remove_vertex] documentation for
+    /// - The dart is already marked as unused (Refer to [`Self::remove_vertex`] documentation for
     ///   a detailed breakdown of this choice).
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
@@ -384,7 +384,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return a boolean indicating if *dart* is i-free, i.e. *β<sub>i</sub>(dart) = NullDart*.
+    /// Return a boolean indicating if *dart* is i-free, i.e. *β<sub>i</sub>(dart) = `NullDart`*.
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
     ///
@@ -556,7 +556,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return a [VertexCollection] object containing a list of vertex identifiers, whose validity
+    /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
@@ -585,7 +585,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return an [EdgeCollection] object containing a list of edge identifiers, whose validity
+    /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
@@ -615,7 +615,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Panic
     ///
-    /// Return a [FaceCollection] object containing a list of face identifiers, whose validity
+    /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
     pub fn fetch_faces(&self) -> FaceCollection<T> {
@@ -658,7 +658,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// *β<sub>1</sub>(lhs_dart) = rhs_dart*. The *β<sub>0</sub>*
+    /// *β<sub>1</sub>(`lhs_dart`) = `rhs_dart`*. The *β<sub>0</sub>*
     /// function is also updated.
     ///
     /// # Panics
@@ -707,7 +707,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
     ///
     /// After the sewing operation, these darts will verify
-    /// *β<sub>2</sub>(lhs_dart) = rhs_dart* and *β<sub>2</sub>(rhs_dart) = lhs_dart*.
+    /// *β<sub>2</sub>(`lhs_dart`) = `rhs_dart`* and *β<sub>2</sub>(`rhs_dart`) = `lhs_dart`*.
     ///
     /// # Panics
     ///

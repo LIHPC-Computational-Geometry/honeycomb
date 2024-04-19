@@ -49,7 +49,7 @@ pub enum OrbitPolicy<'a> {
 /// - we look at the images of the current dart through all beta functions,
 /// adding those to a queue, before moving on to the next dart.
 /// - we apply the beta functions in their specified order (in the case of a
-/// custom [OrbitPolicy]); This guarantees a consistent and predictable result.
+/// custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
 ///
 /// Both of these points allow the structure to be used for sewing operations
 /// at the cost of some performance (non-trivial parallelization & sequential
@@ -59,7 +59,7 @@ pub enum OrbitPolicy<'a> {
 ///
 /// # Example
 ///
-/// See [CMap2] example.
+/// See [`CMap2`] example.
 ///
 pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
@@ -92,7 +92,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// # Example
     ///
-    /// See [CMap2] example.
+    /// See [`CMap2`] example.
     ///
     pub fn new(
         map_handle: &'a CMap2<T>,
