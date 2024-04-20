@@ -493,6 +493,10 @@ mod tests {
         assert_eq!(storage.n_attributes(), 10);
         let _ = storage.remove(3);
         assert_eq!(storage.n_attributes(), 9);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_attributes(), 9);
     }
 
     #[test]
@@ -585,6 +589,10 @@ mod tests {
         assert_eq!(storage.n_attributes(), 10);
         let _ = storage.remove(3);
         assert_eq!(storage.n_attributes(), 10);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_attributes(), 10);
     }
 
     #[test]
@@ -593,6 +601,28 @@ mod tests {
         assert_eq!(storage.n_used_attributes(), 10);
         let _ = storage.remove(3);
         assert_eq!(storage.n_used_attributes(), 9);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_used_attributes(), 9);
+    }
+
+    #[test]
+    fn compact_vec_extend_through_set() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert_eq!(storage.n_attributes(), 10);
+        storage.set(10, Temperature::from(293.0));
+        assert_eq!(storage.n_attributes(), 11);
+        storage.set(11, Temperature::from(295.0));
+        assert_eq!(storage.n_attributes(), 12);
+        storage.set(12, Temperature::from(297.0));
+        assert_eq!(storage.n_attributes(), 13);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 13);
+        assert_eq!(storage.n_used_attributes(), 12);
     }
 
     #[test]
