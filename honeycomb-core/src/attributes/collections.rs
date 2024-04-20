@@ -461,42 +461,8 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::Temperature;
     use super::*;
-    use crate::{FaceIdentifier, OrbitPolicy};
-
-    #[derive(Clone, Copy, Debug, Default, PartialEq)]
-    pub struct Temperature {
-        pub val: f32,
-    }
-
-    impl AttributeUpdate for Temperature {
-        fn merge(attr1: Self, attr2: Self) -> Self {
-            Temperature {
-                val: (attr1.val + attr2.val) / 2.0,
-            }
-        }
-
-        fn split(attr: Self) -> (Self, Self) {
-            (attr, attr)
-        }
-
-        fn merge_undefined(attr: Option<Self>) -> Self {
-            attr.unwrap_or(Temperature { val: 0.0 })
-        }
-    }
-
-    impl AttributeBind for Temperature {
-        type IdentifierType = FaceIdentifier;
-        fn binds_to<'a>() -> OrbitPolicy<'a> {
-            OrbitPolicy::Face
-        }
-    }
-
-    impl From<f32> for Temperature {
-        fn from(val: f32) -> Self {
-            Self { val }
-        }
-    }
 
     macro_rules! generate_sparse {
         ($name: ident) => {

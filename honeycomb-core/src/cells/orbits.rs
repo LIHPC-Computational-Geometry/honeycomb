@@ -15,6 +15,7 @@ use std::collections::{BTreeSet, VecDeque};
 ///
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to *i-cells*.
+#[derive(Debug, PartialEq)]
 pub enum OrbitPolicy<'a> {
     /// 0-cell orbit.
     Vertex,
