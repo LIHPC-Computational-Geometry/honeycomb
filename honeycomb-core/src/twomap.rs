@@ -1469,7 +1469,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: UndefinedVertex")]
     fn remove_vertex_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         let mut map: CMap2<FloatType> = CMap2::new(4);
@@ -1480,7 +1480,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "assertion failed: self.unused_darts.insert(dart_id)")]
     fn remove_dart_twice() {
         // in its default state, all darts/vertices of a map are considered to be used
         // darts are also free

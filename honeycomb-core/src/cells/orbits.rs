@@ -287,14 +287,14 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "assertion failed: !slice.len().is_zero()")]
     fn empty_orbit_policy() {
         let map = simple_map();
         let _ = Orbit2::new(&map, OrbitPolicy::Custom(&[]), 3);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "assertion failed: i < 3")]
     fn invalid_orbit_policy() {
         let map = simple_map();
         let orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[6]), 3);

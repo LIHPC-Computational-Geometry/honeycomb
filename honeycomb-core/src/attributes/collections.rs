@@ -512,8 +512,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn sparse_vec_get_insert_get() {
+    #[should_panic(expected = "assertion failed: tmp.is_none()")]
+    fn sparse_vec_insert_already_existing() {
         generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
@@ -556,8 +556,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn sparse_vec_remove_replace() {
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn sparse_vec_replace_already_removed() {
         generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
@@ -612,8 +612,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn compact_vec_get_insert_get() {
+    #[should_panic(expected = "assertion failed: idx.is_none()")]
+    fn compact_vec_insert_already_existing() {
         generate_compact!(storage);
         assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
@@ -656,8 +656,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn compact_vec_remove_replace() {
+    #[should_panic(expected = "assertion failed: idx.is_some()")]
+    fn compact_vec_replace_already_removed() {
         generate_compact!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)); // panic
