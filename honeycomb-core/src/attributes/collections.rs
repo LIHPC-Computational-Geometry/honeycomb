@@ -103,6 +103,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
+    #[deprecated]
     pub fn get_mut(&mut self, index: T::IdentifierType) -> &mut Option<T> {
         &mut self.data[index.to_usize().unwrap()]
     }
@@ -322,6 +323,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
+    #[deprecated]
     pub fn get_mut(&mut self, index: T::IdentifierType) -> Option<&mut T> {
         self.index_map[index.to_usize().unwrap()].map(|idx| &mut self.data[idx])
     }
