@@ -279,6 +279,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
         self.data.len()
     }
 
+    /// Return the number of stored, used attributes in the internal storage.
+    pub fn n_used_attributes(&self) -> usize {
+        self.data.len() - self.unused_data_slots.len()
+    }
+
     /// Getter
     ///
     /// # Arguments
@@ -481,6 +486,14 @@ mod tests {
     }
 
     #[test]
+    fn sparse_vec_n_attributes() {
+        generate_sparse!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 9);
+    }
+
+    #[test]
     fn sparse_vec_get_set_get() {
         generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
@@ -562,6 +575,22 @@ mod tests {
             $name.insert(8, Temperature::from(289.0));
             $name.insert(9, Temperature::from(291.0));
         };
+    }
+
+    #[test]
+    fn compact_vec_n_attributes() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 10);
+    }
+
+    #[test]
+    fn compact_vec_n_used_attributes() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_used_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_used_attributes(), 9);
     }
 
     #[test]
