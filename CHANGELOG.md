@@ -4,6 +4,12 @@
 
 ## To be released
 
+...
+
+---
+
+## 0.2.0
+
 **This update contains breaking changes**
 
 ### New features
@@ -66,6 +72,11 @@ aspects of the project</sup>
 - add support for incomplete vertex orbits in `Orbit2` implementation (#36)
 - remove `darts`, `embed` modules and their content (#42)
     - move ID aliases to `cells` and `cells::collections` modules
+- update the `CMap2` quickstart example (#43)
+- change the `CMap2::n_darts` method's return type to be more intuitive (#45)
+    - add the `CMap2::n_unused_darts` method to provide an alternative to the old method
+- remove the `CMap2::set_beta` method because of the lack of valid use case (#45)
+- gate the `CMap2::set_betas` behind the `utils` feature (#45)
 
 #### honeycomb-guide
 

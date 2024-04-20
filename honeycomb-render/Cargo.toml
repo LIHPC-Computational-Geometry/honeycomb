@@ -1,26 +1,35 @@
 [package]
 name = "honeycomb-render"
-version = "0.1.3"
-edition = "2021"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Visualization tool for combinatorial maps"
+categories.workspace = true
+keywords.workspace = true
+authors.workspace = true
+publish = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-cfg-if = "1"
-wgpu = "0.19"
-winit = "0.29"
-env_logger = "0.11"
-pollster = "0.3"
-cgmath = "0.18"
-bytemuck = { version = "1.14", features = ["derive"] }
-honeycomb-core = { path = "../honeycomb-core" }
-smaa = "0.13"
+bytemuck = { workspace = true, features = ["derive"] }
+cfg-if.workspace = true
+cgmath.workspace = true
+env_logger.workspace = true
+honeycomb-core.workspace = true
+pollster.workspace = true
+smaa.workspace = true
+wgpu.workspace = true
+winit.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "0.19", features = ["webgl"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
+wgpu = { workspace = true, features = ["webgl"] }

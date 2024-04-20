@@ -1,8 +1,51 @@
 [workspace]
 
-members = ["honeycomb-benches", "honeycomb-core", "honeycomb-render", "honeycomb-examples"]
-
 resolver = "2"
+members = [
+    "honeycomb-benches",
+    "honeycomb-core",
+    "honeycomb-render",
+    "honeycomb-examples"
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+version = "0.2.0"
+homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
+repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
+readme = "README.md"
+description = "Combinatorial map implementation for meshing applications"
+categories = ["data-structures", "mathematics", "science"]
+keywords = ["mesh", "meshing"]
+authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevalier@cea.fr>"]
+
+[workspace.dependencies]
+# members
+honeycomb-benches = { version = "0.2.0", path = "./honeycomb-benches" }
+honeycomb-core = { version = "0.2.0", path = "./honeycomb-core" }
+honeycomb-examples = { version = "0.2.0", path = "./honeycomb-examples" }
+honeycomb-render = { version = "0.2.0", path = "./honeycomb-render" }
+
+# common
+cfg-if = "1"
+
+# core
+num = "0.4.2"
+
+# benchmarks
+criterion = "0.5.1"
+iai-callgrind = "0.10.2"
+rand = "0.8.5"
+
+# render
+bytemuck = "1.15.0"
+cgmath = "0.18.0"
+env_logger = "0.11.3"
+pollster = "0.3.0"
+smaa = "0.13.0"
+wgpu = "0.19.4"
+winit = "0.29.15"
 
 [profile.bench]
 debug = true
