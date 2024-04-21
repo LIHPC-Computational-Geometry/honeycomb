@@ -260,7 +260,9 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         );
 
         let mut map_handle = CMap2RenderHandle::new(map, Some(render_params));
+        map_handle.build_intermediate();
         map_handle.build_darts();
+        map_handle.build_faces();
         // map_handle.build_betas();
         map_handle.save_buffered();
 

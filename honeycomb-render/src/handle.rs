@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::representations::intermediates::IntermediateFace;
+use crate::representations::intermediates::{Entity, IntermediateFace};
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
 use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, Vertex2};
@@ -67,7 +67,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         }
     }
 
-    fn build_intermediate(&mut self) {
+    pub(crate) fn build_intermediate(&mut self) {
         let faces = self.handle.fetch_faces();
         let faces_ir = faces.identifiers.iter().map(|face_id| {
             // build face data
@@ -77,7 +77,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             // apply a first shrink
             tmp.vertices.iter_mut().for_each(|v| {
                 let v_shrink_dir = (tmp.center - *v).unit_dir().unwrap();
-                *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+                *v += v_shrink_dir * T::from(self.params.shrink_factor * 3.0).unwrap();
             });
             tmp
         });
@@ -179,12 +179,34 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
     }
 
     pub fn build_faces(&mut self) {
-        todo!()
+        // because there's no trianglefan priitive in the webgpu standard,
+        // we have to duplicate vertices
+        let tmp = self.intermediate_buffer.iter().flat_map(|face| {
+            (1..face.n_vertices - 1).flat_map(|id| {
+                let mut tmp1 = face.vertices[0];
+                let mut tmp2 = face.vertices[id];
+                let mut tmp3 = face.vertices[id + 1];
+                let shrink_dir1 = (face.center - tmp1).unit_dir().unwrap();
+                let shrink_dir2 = (face.center - tmp2).unit_dir().unwrap();
+                let shrink_dir3 = (face.center - tmp3).unit_dir().unwrap();
+                tmp1 += shrink_dir1 * T::from(self.params.shrink_factor * 0.5).unwrap();
+                tmp2 += shrink_dir2 * T::from(self.params.shrink_factor * 0.5).unwrap();
+                tmp3 += shrink_dir3 * T::from(self.params.shrink_factor * 0.5).unwrap();
+                [
+                    Coords2Shader::from((tmp1, Entity::Face)),
+                    Coords2Shader::from((tmp2, Entity::Face)),
+                    Coords2Shader::from((tmp3, Entity::Face)),
+                ]
+                .into_iter()
+            })
+        });
+        self.face_construction_buffer.extend(tmp);
     }
 
     pub fn save_buffered(&mut self) {
         self.vertices.clear();
         self.vertices.append(&mut self.dart_construction_buffer);
+        self.vertices.append(&mut self.face_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {
