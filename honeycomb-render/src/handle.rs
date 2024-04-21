@@ -8,6 +8,7 @@
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
 use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Vertex2};
+use std::iter::zip;
 
 // ------ CONTENT
 
@@ -46,7 +47,7 @@ macro_rules! as_f32_tuple {
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     handle: &'a CMap2<T>,
     params: RenderParameters,
-    intermediate_buffer: Vec<Coords2Shader>,
+    intermediate_buffer: Vec<Vertex2<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
     face_construction_buffer: Vec<Coords2Shader>,
@@ -67,6 +68,9 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
     }
 
     fn build_intermediate(&mut self) {
+        let faces = self.handle.fetch_faces();
+        let face_indices = faces.identifiers.iter();
+
         todo!()
     }
 
