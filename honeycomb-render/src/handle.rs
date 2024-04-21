@@ -5,10 +5,10 @@
 
 // ------ IMPORTS
 
+use crate::representations::intermediates::IntermediateFace;
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Vertex2};
-use std::iter::zip;
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, Vertex2};
 
 // ------ CONTENT
 
@@ -47,7 +47,7 @@ macro_rules! as_f32_tuple {
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     handle: &'a CMap2<T>,
     params: RenderParameters,
-    intermediate_buffer: Vec<Vertex2<T>>,
+    intermediate_buffer: Vec<IntermediateFace<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
     face_construction_buffer: Vec<Coords2Shader>,
@@ -69,9 +69,20 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     fn build_intermediate(&mut self) {
         let faces = self.handle.fetch_faces();
-        let face_indices = faces.identifiers.iter();
-
-        todo!()
+        let faces_ir = faces.identifiers.iter().map(|face_id| {
+            // build face data
+            let orbit = Orbit2::new(self.handle, OrbitPolicy::Face, *face_id as DartIdentifier)
+                .map(|id| self.handle.vertex(self.handle.vertex_id(id)));
+            let mut tmp = IntermediateFace::new(orbit);
+            // apply a first shrink
+            tmp.vertices.iter_mut().for_each(|v| {
+                let v_shrink_dir = (tmp.center - *v).unit_dir().unwrap();
+                *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+            });
+            tmp
+        });
+        // save results
+        self.intermediate_buffer.extend(faces_ir);
     }
 
     pub fn build_darts(&mut self) {
