@@ -46,8 +46,10 @@ macro_rules! as_f32_tuple {
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     handle: &'a CMap2<T>,
     params: RenderParameters,
+    intermediate_buffer: Vec<Coords2Shader>,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
+    face_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
 
@@ -56,14 +58,19 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         Self {
             handle: map,
             params: params.unwrap_or_default(),
+            intermediate_buffer: Vec::new(),
             dart_construction_buffer: Vec::new(),
             _beta_construction_buffer: Vec::new(),
+            face_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
     }
 
+    fn build_intermediate(&mut self) {
+        todo!()
+    }
+
     pub fn build_darts(&mut self) {
-        // let n_face = self.handle.n_faces() as FaceIdentifier;
         // get all faces
         let faces = self.handle.fetch_faces();
         let face_indices = faces.identifiers.iter();
@@ -153,6 +160,10 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     #[allow(dead_code)]
     pub fn build_betas(&mut self) {
+        todo!()
+    }
+
+    pub fn build_faces(&mut self) {
         todo!()
     }
 
