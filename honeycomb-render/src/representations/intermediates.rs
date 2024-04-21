@@ -1,5 +1,10 @@
 use honeycomb_core::{CoordsFloat, Vertex2};
 
+pub enum Entity {
+    Dart,
+    Face,
+}
+
 pub struct IntermediateFace<T: CoordsFloat> {
     pub vertices: Vec<Vertex2<T>>,
     pub n_vertices: usize,
