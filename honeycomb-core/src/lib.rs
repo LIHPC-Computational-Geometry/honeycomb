@@ -32,7 +32,6 @@
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::needless_for_each)]
 #![allow(clippy::needless_pass_by_value)]
-#![allow(clippy::float_cmp)]
 
 // ------ MODULE DECLARATIONS
 mod attributes;
