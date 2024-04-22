@@ -89,8 +89,8 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     });
 
     // then cells
-    (0..n_square + 1).for_each(|y_idx| {
-        (0..n_square + 1).for_each(|x_idx| {
+    (0..=n_square).for_each(|y_idx| {
+        (0..=n_square).for_each(|x_idx| {
             // update the associated 0-cell
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
@@ -195,8 +195,8 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     });
 
     // then cells
-    (0..n_square + 1).for_each(|y_idx| {
-        (0..n_square + 1).for_each(|x_idx| {
+    (0..=n_square).for_each(|y_idx| {
+        (0..=n_square).for_each(|x_idx| {
             // update the associated 0-cell
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 6 * (x_idx + n_square * y_idx)) as DartIdentifier;
