@@ -9,15 +9,14 @@ def parseCommandLine():
     args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 
     if len(args) > 1:
-        print("W: Multiple arguments provided when only one is needed")
-        print("Usage:")
-        print("$ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
+        print("E: Multiple arguments provided when only one is needed")
+        print("Usage: $ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
+        exit(-1)
 
     if len(args) == 0:
         print("E: No input file specified")
-        print("Usage:")
-        print("$ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
-        exit(-1)
+        print("Usage: $ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
+        exit(-2)
 
     filename = args[0]
 
@@ -30,8 +29,7 @@ def parseCommandLine():
         print("W: Specified file may not have the correct format")
 
     if "--help" in opts or "-h" in opts:  # --help / -h -- prints a help message
-        print("Usage:")
-        print("$ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
+        print("Usage: $ python3 plot_memory_usage.py <CSVFILE> <OPTIONS>")
         print("Available options:")
         print("  --help       -h  --  prints this message")
         print("  --overview   -o  --  generates a plot exclusively using total category values")
