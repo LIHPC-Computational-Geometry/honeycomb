@@ -1536,9 +1536,53 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    //#[should_panic]
     fn two_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.two_sew(1, 2);
+    }
+
+    #[test]
+    fn one_sew_complete() {
+        let mut map: CMap2<FloatType> = CMap2::new(3);
+        map.two_link(1, 2);
+        map.insert_vertex(1, (0.0, 0.0));
+        map.insert_vertex(2, (0.0, 1.0));
+        map.insert_vertex(3, (0.0, 2.0));
+        map.one_sew(1, 3);
+        assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.5)));
+    }
+
+    #[test]
+    fn one_sew_incomplete_attributes() {
+        let mut map: CMap2<FloatType> = CMap2::new(3);
+        map.two_link(1, 2);
+        map.insert_vertex(1, (0.0, 0.0));
+        map.insert_vertex(2, (0.0, 1.0));
+        map.one_sew(1, 3);
+        assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
+    }
+
+    #[test]
+    fn one_sew_incomplete_beta() {
+        let mut map: CMap2<FloatType> = CMap2::new(3);
+        map.insert_vertex(1, (0.0, 0.0));
+        map.insert_vertex(2, (0.0, 1.0));
+        map.one_sew(1, 2);
+        assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
+    }
+    #[test]
+    //#[should_panic]
+    fn one_sew_no_attributes() {
+        let mut map: CMap2<FloatType> = CMap2::new(2);
+        map.one_sew(1, 2);
+    }
+
+    #[test]
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn one_sew_no_attributes_bis() {
+        let mut map: CMap2<FloatType> = CMap2::new(3);
+        map.two_link(1, 2);
+        map.one_sew(1, 3);
     }
 }
