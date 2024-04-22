@@ -62,7 +62,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-
+#[must_use = "constructed object is not used, consider removing this function call"]
 pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(4 * n_square.pow(2));
 
@@ -83,14 +83,14 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
                 let up_neighbor = d1 + (4 * n_square) as DartIdentifier;
-                map.two_link(d3, up_neighbor)
+                map.two_link(d3, up_neighbor);
             }
-        })
+        });
     });
 
     // then cells
-    (0..n_square + 1).for_each(|y_idx| {
-        (0..n_square + 1).for_each(|x_idx| {
+    (0..=n_square).for_each(|y_idx| {
+        (0..=n_square).for_each(|x_idx| {
             // update the associated 0-cell
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 4 * x_idx + n_square * 4 * y_idx) as DartIdentifier;
@@ -127,7 +127,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                     );
                 }
             }
-        })
+        });
     });
 
     // and then build faces
@@ -162,6 +162,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 /// If this function panics, this is most likely due to a mistake in implementation in the core
 /// crate.
 ///
+#[must_use = "constructed object is not used, consider removing this function call"]
 pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square.pow(2));
 
@@ -189,14 +190,14 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
                 let up_neighbor = d1 + (6 * n_square) as DartIdentifier;
-                map.two_link(d6, up_neighbor)
+                map.two_link(d6, up_neighbor);
             }
-        })
+        });
     });
 
     // then cells
-    (0..n_square + 1).for_each(|y_idx| {
-        (0..n_square + 1).for_each(|x_idx| {
+    (0..=n_square).for_each(|y_idx| {
+        (0..=n_square).for_each(|x_idx| {
             // update the associated 0-cell
             if (y_idx < n_square) & (x_idx < n_square) {
                 let base_dart = (1 + 6 * (x_idx + n_square * y_idx)) as DartIdentifier;
@@ -233,7 +234,7 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                     );
                 }
             }
-        })
+        });
     });
 
     // rebuild faces

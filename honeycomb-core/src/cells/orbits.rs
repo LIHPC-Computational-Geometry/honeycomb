@@ -96,6 +96,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// See [`CMap2`] example.
     ///
+    #[must_use = "orbits are lazy and do nothing unless consumed"]
     pub fn new(
         map_handle: &'a CMap2<T>,
         orbit_policy: OrbitPolicy<'a>,
@@ -119,6 +120,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     }
 
     /// Return a boolean indicating whether the starting dart is isolated or not
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_isolated(&self) -> bool {
         // this is boolean tells us if the orbit is either:
         // a) unaltered (pending.len() == 1)
@@ -175,8 +177,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image2);
                     }
-
-                    Some(d)
                 }
                 OrbitPolicy::Edge => {
                     // THIS CODE IS ONLY VALID IN 2D
@@ -186,7 +186,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image);
                     }
-                    Some(d)
                 }
                 OrbitPolicy::Face => {
                     // THIS CODE IS ONLY VALID IN 2D
@@ -197,21 +196,19 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image);
                     }
-                    Some(d)
                 }
                 OrbitPolicy::Custom(beta_slice) => {
-                    beta_slice.iter().for_each(|beta_id| {
+                    for beta_id in beta_slice {
                         let image = self.map_handle.beta_runtime(*beta_id, d);
                         if self.marked.insert(image) {
                             // if true, we did not see this dart yet
                             // i.e. we need to visit it later
                             self.pending.push_back(image);
                         }
-                    });
-
-                    Some(d)
+                    }
                 }
             }
+            Some(d)
         } else {
             None
         }

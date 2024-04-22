@@ -53,6 +53,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a unit vector along the `x` axis.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_x() -> Self {
         Self {
             inner: Coords2::unit_x(),
@@ -65,6 +66,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a unit vector along the `y` axis.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_y() -> Self {
         Self {
             inner: Coords2::unit_y(),
@@ -134,10 +136,10 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     pub fn unit_dir(&self) -> Result<Vector2<T>, CoordsError> {
         let norm = self.norm();
-        if !norm.is_zero() {
-            Ok(*self / norm)
-        } else {
+        if norm.is_zero() {
             Err(CoordsError::InvalidUnitDir)
+        } else {
+            Ok(*self / norm)
         }
     }
 
@@ -157,7 +159,8 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// See [Vector2] example.
     ///
-    pub fn normal_dir(&self) -> Vector2<T> {
+    #[must_use = "constructed object is not used, consider removing this method call"]
+    pub fn normal_dir(&self) -> Self {
         Self {
             inner: Coords2 {
                 x: -self.inner.y,
@@ -235,7 +238,7 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vector2<T> {
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vector2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        self.inner -= rhs.into_inner()
+        self.inner -= rhs.into_inner();
     }
 }
 

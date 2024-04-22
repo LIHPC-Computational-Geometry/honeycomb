@@ -150,7 +150,7 @@ impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vertex2<T> {
 
 impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vertex2<T> {
     fn add_assign(&mut self, rhs: Vector2<T>) {
-        self.inner += rhs.into_inner()
+        self.inner += rhs.into_inner();
     }
 }
 
@@ -286,6 +286,6 @@ mod tests {
         let a: Vertex2<FloatType> = Vertex2::from((1.0, 1.0));
         let b: Vertex2<FloatType> = Vertex2::from((1.0, 0.0));
         let ab = b - a;
-        assert_eq!(ab, Vector2::from((0.0, -1.0)))
+        assert_eq!(ab, Vector2::from((0.0, -1.0)));
     }
 }

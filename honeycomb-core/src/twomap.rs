@@ -197,6 +197,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [`CMap2`] example.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn new(n_darts: usize) -> Self {
         Self {
             vertices: AttrSparseVec::new(n_darts + 1),
@@ -212,11 +213,13 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
     /// Return information about the current number of darts.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_darts(&self) -> usize {
         self.n_darts
     }
 
     /// Return information about the current number of unused darts.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.len()
     }
@@ -337,6 +340,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
         self.betas[dart_id as usize][I as usize]
@@ -358,6 +362,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *i* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
         match i {
@@ -387,6 +392,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
@@ -401,6 +407,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
             && self.beta::<1>(dart_id) == NULL_DART_ID
@@ -457,6 +464,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
@@ -490,6 +498,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
@@ -521,6 +530,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
@@ -547,6 +557,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
         match I {
@@ -564,6 +575,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -593,6 +605,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         marked.insert(NULL_DART_ID);
@@ -623,6 +636,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -675,24 +689,26 @@ impl<T: CoordsFloat> CMap2<T> {
         // condition is valid if the first one is)
         // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id != NULL_DART_ID {
+        if b2lhs_dart_id == NULL_DART_ID {
+            // WARNING: UNWANTED BEHAVIOR
+            // there should be a check in order to ensure that vertex(rhs_dart) is defined
+            // otherwise, panic because the user should call link, not sew
+            self.one_link(lhs_dart_id, rhs_dart_id);
+        } else {
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
             let tmp = (
-                self.vertices.remove(b2lhs_vid_old),
-                self.vertices.remove(rhs_vid_old),
+                self.vertices.remove(&b2lhs_vid_old),
+                self.vertices.remove(&rhs_vid_old),
             );
             let new_vertex = match tmp {
                 (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                 (None, None) => Vertex2::merge_undefined(None),
             };
             // use b2lhs_vid as the index for the new vertex
             self.one_link(lhs_dart_id, rhs_dart_id);
             self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
-        } else {
-            self.one_link(lhs_dart_id, rhs_dart_id);
         }
     }
 
@@ -725,20 +741,24 @@ impl<T: CoordsFloat> CMap2<T> {
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
-            (true, true) => self.two_link(lhs_dart_id, rhs_dart_id),
+            (true, true) => {
+                // WARNING: UNWANTED BEHAVIOR
+                // there should be a check in order to ensure that each dart has associated vertices
+                // otherwise, panic because the user should call link, not sew
+                self.two_link(lhs_dart_id, rhs_dart_id);
+            }
             // update vertex associated to b1rhs/lhs
             (true, false) => {
                 // read current values / remove old ones
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
+                    self.vertices.remove(&lhs_vid_old),
+                    self.vertices.remove(&b1rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology (this is why we need the above lines)
@@ -752,13 +772,12 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
+                    self.vertices.remove(&b1lhs_vid_old),
+                    self.vertices.remove(&rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology (this is why we need the above lines)
@@ -773,15 +792,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmpa = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
+                    self.vertices.remove(&lhs_vid_old),
+                    self.vertices.remove(&b1rhs_vid_old),
                 );
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmpb = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
+                    self.vertices.remove(&b1lhs_vid_old),
+                    self.vertices.remove(&rhs_vid_old),
                 );
 
                 // check orientation
@@ -805,15 +824,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // proceed with new vertices creation & insertion
                 let new_vertexa = match tmpa {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
 
                 let new_vertexb = match tmpb {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology
@@ -850,7 +867,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id != NULL_DART_ID {
+        if b2lhs_dart_id == NULL_DART_ID {
+            self.one_unlink(lhs_dart_id);
+        } else {
             // read current values / remove old ones
             let rhs_dart_id = self.beta::<1>(lhs_dart_id);
             // we only need to remove a single vertex since we're unlinking
@@ -861,8 +880,6 @@ impl<T: CoordsFloat> CMap2<T> {
             // reinsert correct values
             let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
             let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
-        } else {
-            self.one_unlink(lhs_dart_id)
         }
     }
 
@@ -1018,6 +1035,7 @@ impl<T: CoordsFloat> CMap2<T> {
 // different kind of attributes for all the i-cells.
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_vertices(&self) -> usize {
         self.vertices.n_attributes()
     }
@@ -1037,8 +1055,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if no vertex is associated to the specified index, or the ID lands
     /// out of bounds.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
-        self.vertices.get(vertex_id).unwrap()
+        self.vertices.get(&vertex_id).unwrap()
     }
 
     /// Insert a vertex in the combinatorial map.
@@ -1057,7 +1076,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return an option which may contain the previous value associated to the specified vertex ID.
     ///
     pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
-        self.vertices.insert(vertex_id, vertex.into())
+        self.vertices.insert(&vertex_id, vertex.into());
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -1074,7 +1093,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(vertex_id) {
+        if let Some(val) = self.vertices.remove(&vertex_id) {
             return Ok(val);
         }
         Err(CMapError::UndefinedVertex)
@@ -1100,7 +1119,7 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
+        if let Some(val) = self.vertices.replace(&vertex_id, vertex.into()) {
             return Ok(val);
         };
         Err(CMapError::UndefinedVertex)

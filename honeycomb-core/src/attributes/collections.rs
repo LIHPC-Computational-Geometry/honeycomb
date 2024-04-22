@@ -46,6 +46,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// Return a [`AttrSparseVec`] object full of `None`.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn new(n_ids: usize) -> Self {
         Self {
             data: (0..n_ids).map(|_| None).collect(),
@@ -63,6 +64,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 
     /// Return the number of stored attributes (i.e. number of `Some(_)` instances)
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_attributes(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count()
     }
@@ -83,7 +85,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn get(&self, index: T::IdentifierType) -> &Option<T> {
+    pub fn get(&self, index: &T::IdentifierType) -> &Option<T> {
         &self.data[index.to_usize().unwrap()]
     }
 
@@ -104,7 +106,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index cannot be converted to `usize`
     ///
     #[deprecated]
-    pub fn get_mut(&mut self, index: T::IdentifierType) -> &mut Option<T> {
+    pub fn get_mut(&mut self, index: &T::IdentifierType) -> &mut Option<T> {
         &mut self.data[index.to_usize().unwrap()]
     }
 
@@ -123,7 +125,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn set(&mut self, index: T::IdentifierType, val: T) {
+    pub fn set(&mut self, index: &T::IdentifierType, val: T) {
         self.data[index.to_usize().unwrap()] = Some(val);
     }
 
@@ -143,7 +145,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn insert(&mut self, index: T::IdentifierType, val: T) {
+    pub fn insert(&mut self, index: &T::IdentifierType, val: T) {
         let tmp = &mut self.data[index.to_usize().unwrap()];
         assert!(tmp.is_none());
         *tmp = Some(val);
@@ -168,7 +170,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
+    pub fn replace(&mut self, index: &T::IdentifierType, val: T) -> Option<T> {
         self.data.push(Some(val));
         self.data.swap_remove(index.to_usize().unwrap())
     }
@@ -190,7 +192,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
+    pub fn remove(&mut self, index: &T::IdentifierType) -> Option<T> {
         self.data.push(None);
         self.data.swap_remove(index.to_usize().unwrap())
     }
@@ -199,16 +201,19 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {
         self.data.capacity() * std::mem::size_of::<Option<T>>()
     }
 
     /// Return the total amount of space used by the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn effective_size(&self) -> usize {
         self.data.len() * std::mem::size_of::<Option<T>>()
     }
 
     /// Return the amount of space used by valid entries of the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn used_size(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
     }
@@ -257,6 +262,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// Return a "value-empty" [`AttrSparseVec`] object.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
@@ -276,11 +282,13 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     }
 
     /// Return the number of stored attributes in the internal storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_attributes(&self) -> usize {
         self.data.len()
     }
 
     /// Return the number of stored, used attributes in the internal storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_used_attributes(&self) -> usize {
         self.data.len() - self.unused_data_slots.len()
     }
@@ -302,7 +310,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn get(&self, index: T::IdentifierType) -> Option<&T> {
+    pub fn get(&self, index: &T::IdentifierType) -> Option<&T> {
         self.index_map[index.to_usize().unwrap()].map(|idx| &self.data[idx])
     }
 
@@ -324,7 +332,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index cannot be converted to `usize`
     ///
     #[deprecated]
-    pub fn get_mut(&mut self, index: T::IdentifierType) -> Option<&mut T> {
+    pub fn get_mut(&mut self, index: &T::IdentifierType) -> Option<&mut T> {
         self.index_map[index.to_usize().unwrap()].map(|idx| &mut self.data[idx])
     }
 
@@ -343,7 +351,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn set(&mut self, index: T::IdentifierType, val: T) {
+    pub fn set(&mut self, index: &T::IdentifierType, val: T) {
         if let Some(idx) = self.index_map[index.to_usize().unwrap()] {
             // internal index is defined => there should be associated data
             self.data[idx] = val;
@@ -374,7 +382,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn insert(&mut self, index: T::IdentifierType, val: T) {
+    pub fn insert(&mut self, index: &T::IdentifierType, val: T) {
         let idx = &mut self.index_map[index.to_usize().unwrap()];
         assert!(idx.is_none());
         *idx = if let Some(unused_idx) = self.unused_data_slots.pop() {
@@ -405,7 +413,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn replace(&mut self, index: T::IdentifierType, val: T) -> Option<T> {
+    pub fn replace(&mut self, index: &T::IdentifierType, val: T) -> Option<T> {
         let idx = &self.index_map[index.to_usize().unwrap()];
         assert!(idx.is_some());
         self.data.push(val);
@@ -429,7 +437,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    pub fn remove(&mut self, index: T::IdentifierType) -> Option<T> {
+    pub fn remove(&mut self, index: &T::IdentifierType) -> Option<T> {
         self.index_map.push(None);
         if let Some(tmp) = self.index_map.swap_remove(index.to_usize().unwrap()) {
             self.unused_data_slots.push(tmp);
@@ -442,6 +450,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// Return the amount of space allocated for the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {
         self.unused_data_slots.capacity() * std::mem::size_of::<usize>()
             + self.index_map.capacity() * std::mem::size_of::<Option<usize>>()
@@ -449,6 +458,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     }
 
     /// Return the total amount of space used by the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn effective_size(&self) -> usize {
         self.unused_data_slots.len() * std::mem::size_of::<usize>()
             + self.index_map.len() * std::mem::size_of::<Option<usize>>()
@@ -456,6 +466,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     }
 
     /// Return the amount of space used by valid entries of the storage.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn used_size(&self) -> usize {
         self.unused_data_slots.len() * std::mem::size_of::<usize>()
             + self.index_map.iter().filter(|val| val.is_some()).count()
@@ -474,16 +485,16 @@ mod tests {
     macro_rules! generate_sparse {
         ($name: ident) => {
             let mut $name = AttrSparseVec::<Temperature>::new(10);
-            $name.insert(0, Temperature::from(273.0));
-            $name.insert(1, Temperature::from(275.0));
-            $name.insert(2, Temperature::from(277.0));
-            $name.insert(3, Temperature::from(279.0));
-            $name.insert(4, Temperature::from(281.0));
-            $name.insert(5, Temperature::from(283.0));
-            $name.insert(6, Temperature::from(285.0));
-            $name.insert(7, Temperature::from(287.0));
-            $name.insert(8, Temperature::from(289.0));
-            $name.insert(9, Temperature::from(291.0));
+            $name.insert(&0, Temperature::from(273.0));
+            $name.insert(&1, Temperature::from(275.0));
+            $name.insert(&2, Temperature::from(277.0));
+            $name.insert(&3, Temperature::from(279.0));
+            $name.insert(&4, Temperature::from(281.0));
+            $name.insert(&5, Temperature::from(283.0));
+            $name.insert(&6, Temperature::from(285.0));
+            $name.insert(&7, Temperature::from(287.0));
+            $name.insert(&8, Temperature::from(289.0));
+            $name.insert(&9, Temperature::from(291.0));
         };
     }
 
@@ -491,95 +502,95 @@ mod tests {
     fn sparse_vec_n_attributes() {
         generate_sparse!(storage);
         assert_eq!(storage.n_attributes(), 10);
-        let _ = storage.remove(3);
+        let _ = storage.remove(&3);
         assert_eq!(storage.n_attributes(), 9);
         // extend does not affect the number of attributes
         storage.extend(10);
-        assert!(storage.get(15).is_none());
+        assert!(storage.get(&15).is_none());
         assert_eq!(storage.n_attributes(), 9);
     }
 
     #[test]
     fn sparse_vec_get_set_get() {
         generate_sparse!(storage);
-        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
-        storage.set(3, Temperature::from(280.0));
-        assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
+        assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
+        storage.set(&3, Temperature::from(280.0));
+        assert_eq!(storage.get(&3), &Some(Temperature::from(280.0)));
     }
 
     #[test]
     fn sparse_vec_get_replace_get() {
         generate_sparse!(storage);
-        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0));
-        assert_eq!(storage.get(3), &Some(Temperature::from(280.0)));
+        assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
+        storage.replace(&3, Temperature::from(280.0));
+        assert_eq!(storage.get(&3), &Some(Temperature::from(280.0)));
     }
 
     #[test]
     #[should_panic(expected = "assertion failed: tmp.is_none()")]
     fn sparse_vec_insert_already_existing() {
         generate_sparse!(storage);
-        assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
-        storage.insert(3, Temperature::from(280.0)); // panic
+        assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
+        storage.insert(&3, Temperature::from(280.0)); // panic
     }
 
     #[test]
     fn sparse_vec_remove() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
     }
 
     #[test]
     fn sparse_vec_remove_remove() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        assert!(storage.remove(3).is_none());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        assert!(storage.remove(&3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_get() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        assert!(storage.get(3).is_none());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        assert!(storage.get(&3).is_none());
     }
 
     #[test]
     fn sparse_vec_remove_set() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.set(3, Temperature::from(280.0));
-        assert!(storage.get(3).is_some());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.set(&3, Temperature::from(280.0));
+        assert!(storage.get(&3).is_some());
     }
 
     #[test]
     fn sparse_vec_remove_insert() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.insert(3, Temperature::from(280.0));
-        assert!(storage.get(3).is_some());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.insert(&3, Temperature::from(280.0));
+        assert!(storage.get(&3).is_some());
     }
 
     #[test]
     #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
     fn sparse_vec_replace_already_removed() {
         generate_sparse!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.replace(&3, Temperature::from(280.0)).unwrap(); // panic
     }
 
     macro_rules! generate_compact {
         ($name: ident) => {
             let mut $name = AttrCompactVec::<Temperature>::new(10);
-            $name.insert(0, Temperature::from(273.0));
-            $name.insert(1, Temperature::from(275.0));
-            $name.insert(2, Temperature::from(277.0));
-            $name.insert(3, Temperature::from(279.0));
-            $name.insert(4, Temperature::from(281.0));
-            $name.insert(5, Temperature::from(283.0));
-            $name.insert(6, Temperature::from(285.0));
-            $name.insert(7, Temperature::from(287.0));
-            $name.insert(8, Temperature::from(289.0));
-            $name.insert(9, Temperature::from(291.0));
+            $name.insert(&0, Temperature::from(273.0));
+            $name.insert(&1, Temperature::from(275.0));
+            $name.insert(&2, Temperature::from(277.0));
+            $name.insert(&3, Temperature::from(279.0));
+            $name.insert(&4, Temperature::from(281.0));
+            $name.insert(&5, Temperature::from(283.0));
+            $name.insert(&6, Temperature::from(285.0));
+            $name.insert(&7, Temperature::from(287.0));
+            $name.insert(&8, Temperature::from(289.0));
+            $name.insert(&9, Temperature::from(291.0));
         };
     }
 
@@ -587,11 +598,11 @@ mod tests {
     fn compact_vec_n_attributes() {
         generate_compact!(storage);
         assert_eq!(storage.n_attributes(), 10);
-        let _ = storage.remove(3);
+        let _ = storage.remove(&3);
         assert_eq!(storage.n_attributes(), 10);
         // extend does not affect the number of attributes
         storage.extend(10);
-        assert!(storage.get(15).is_none());
+        assert!(storage.get(&15).is_none());
         assert_eq!(storage.n_attributes(), 10);
     }
 
@@ -599,11 +610,11 @@ mod tests {
     fn compact_vec_n_used_attributes() {
         generate_compact!(storage);
         assert_eq!(storage.n_used_attributes(), 10);
-        let _ = storage.remove(3);
+        let _ = storage.remove(&3);
         assert_eq!(storage.n_used_attributes(), 9);
         // extend does not affect the number of attributes
         storage.extend(10);
-        assert!(storage.get(15).is_none());
+        assert!(storage.get(&15).is_none());
         assert_eq!(storage.n_used_attributes(), 9);
     }
 
@@ -614,13 +625,13 @@ mod tests {
         // extend does not affect the number of attributes
         storage.extend(10);
         assert_eq!(storage.n_attributes(), 10);
-        storage.set(10, Temperature::from(293.0));
+        storage.set(&10, Temperature::from(293.0));
         assert_eq!(storage.n_attributes(), 11);
-        storage.set(11, Temperature::from(295.0));
+        storage.set(&11, Temperature::from(295.0));
         assert_eq!(storage.n_attributes(), 12);
-        storage.set(12, Temperature::from(297.0));
+        storage.set(&12, Temperature::from(297.0));
         assert_eq!(storage.n_attributes(), 13);
-        let _ = storage.remove(3);
+        let _ = storage.remove(&3);
         assert_eq!(storage.n_attributes(), 13);
         assert_eq!(storage.n_used_attributes(), 12);
     }
@@ -628,68 +639,68 @@ mod tests {
     #[test]
     fn compact_vec_get_set_get() {
         generate_compact!(storage);
-        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
-        storage.set(3, Temperature::from(280.0));
-        assert_eq!(storage.get(3), Some(&Temperature::from(280.0)));
+        assert_eq!(storage.get(&3), Some(&Temperature::from(279.0)));
+        storage.set(&3, Temperature::from(280.0));
+        assert_eq!(storage.get(&3), Some(&Temperature::from(280.0)));
     }
 
     #[test]
     fn compact_vec_get_replace_get() {
         generate_compact!(storage);
-        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0));
-        assert_eq!(storage.get(3), Some(&Temperature::from(280.0)));
+        assert_eq!(storage.get(&3), Some(&Temperature::from(279.0)));
+        storage.replace(&3, Temperature::from(280.0));
+        assert_eq!(storage.get(&3), Some(&Temperature::from(280.0)));
     }
 
     #[test]
     #[should_panic(expected = "assertion failed: idx.is_none()")]
     fn compact_vec_insert_already_existing() {
         generate_compact!(storage);
-        assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
-        storage.insert(3, Temperature::from(280.0)); // panic
+        assert_eq!(storage.get(&3), Some(&Temperature::from(279.0)));
+        storage.insert(&3, Temperature::from(280.0)); // panic
     }
 
     #[test]
     fn compact_vec_remove() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
     }
 
     #[test]
     fn compact_vec_remove_remove() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        assert!(storage.remove(3).is_none());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        assert!(storage.remove(&3).is_none());
     }
 
     #[test]
     fn compact_vec_remove_get() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        assert!(storage.get(3).is_none());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        assert!(storage.get(&3).is_none());
     }
 
     #[test]
     fn compact_vec_remove_set() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.set(3, Temperature::from(280.0));
-        assert!(storage.get(3).is_some());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.set(&3, Temperature::from(280.0));
+        assert!(storage.get(&3).is_some());
     }
 
     #[test]
     fn compact_vec_remove_insert() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.insert(3, Temperature::from(280.0));
-        assert!(storage.get(3).is_some());
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.insert(&3, Temperature::from(280.0));
+        assert!(storage.get(&3).is_some());
     }
 
     #[test]
     #[should_panic(expected = "assertion failed: idx.is_some()")]
     fn compact_vec_replace_already_removed() {
         generate_compact!(storage);
-        assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-        storage.replace(3, Temperature::from(280.0)); // panic
+        assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+        storage.replace(&3, Temperature::from(280.0)); // panic
     }
 }

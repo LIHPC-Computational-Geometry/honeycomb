@@ -123,7 +123,7 @@ mod tests {
 
         assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
         assert_eq!(Temperature::merge_undefined(Some(t_ref)), t_ref);
-        assert_eq!(Temperature::merge_undefined(None), Temperature::from(0.0))
+        assert_eq!(Temperature::merge_undefined(None), Temperature::from(0.0));
     }
 
     #[test]
