@@ -1,9 +1,10 @@
 # Honeycomb
 
+[![Current Version](https://img.shields.io/crates/v/honeycomb-render?label=latest%20release)][CIOHC]
 [![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
-[![Documentation](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/doc.yml/badge.svg)][UG]
 [![Build Status](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml)
 [![codecov](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb/graph/badge.svg?token=QSN0TWFXO1)](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/LIHPC-Computational-Geometry/honeycomb/latest)
 
 Honeycomb aims to provide a safe, efficient and scalable implementation of
 combinatorial maps for meshing applications. More specifically, the goal is
@@ -41,10 +42,10 @@ kill $(ps -e | awk '/mdbook/ {print $1}')
 The content of each member is described in their respective Rust Doc as well as in the [user guide][UGW]. The following
 crates are published:
 
-- [![Core Version](https://img.shields.io/crates/v/honeycomb-core?label=honeycomb-core)][CIOHC] - basic
-  structures - [![docs.rs](https://docs.rs/honeycomb-core/badge.svg)][DOCHC]
-- [![Render Version](https://img.shields.io/crates/v/honeycomb-render?label=honeycomb-render)][CIOHR] - visualizing
-  tool - [![docs.rs](https://docs.rs/honeycomb-render/badge.svg)][DOCHR]
+- [![Core Version](https://img.shields.io/crates/v/honeycomb-core?label=honeycomb-core)][CIOHC] [![docs.rs](https://docs.rs/honeycomb-core/badge.svg)][DOCHC]
+  basic structures
+- [![Render Version](https://img.shields.io/crates/v/honeycomb-render?label=honeycomb-render)][CIOHR] [![docs.rs](https://docs.rs/honeycomb-render/badge.svg)][DOCHR]
+  visualizing tool
 
 The repository also hosts these members:
 
