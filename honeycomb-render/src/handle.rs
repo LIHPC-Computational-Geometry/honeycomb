@@ -8,7 +8,7 @@
 use crate::representations::intermediates::{Entity, IntermediateFace};
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, Vertex2};
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy};
 
 // ------ CONTENT
 
@@ -36,12 +36,6 @@ impl Default for RenderParameters {
             arrow_thickness: 0.01, // need to adjust
         }
     }
-}
-
-macro_rules! as_f32_tuple {
-    ($coords: ident) => {
-        ($coords.x.to_f32().unwrap(), $coords.y.to_f32().unwrap())
-    };
 }
 
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
@@ -77,7 +71,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             // apply a first shrink
             tmp.vertices.iter_mut().for_each(|v| {
                 let v_shrink_dir = (tmp.center - *v).unit_dir().unwrap();
-                *v += v_shrink_dir * T::from(self.params.shrink_factor * 3.0).unwrap();
+                *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
             });
             tmp
         });
@@ -87,90 +81,40 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     pub fn build_darts(&mut self) {
         // get all faces
-        let faces = self.handle.fetch_faces();
-        let face_indices = faces.identifiers.iter();
-        let face_vertices = face_indices.clone().map(|face_id| {
-            (
-                self.handle.i_cell::<2>(*face_id as DartIdentifier).count(),
-                self.handle
-                    .i_cell::<2>(*face_id as DartIdentifier)
-                    .map(|dart_id| {
-                        let vertex_id = self.handle.vertex_id(dart_id);
-                        self.handle.vertex(vertex_id)
-                    }),
-            )
+        let tmp = self.intermediate_buffer.iter().flat_map(|face| {
+            (0..face.n_vertices).flat_map(|id| {
+                let mut v1 = face.vertices[id];
+                let mut v6 = face.vertices[(id + 1) % face.n_vertices];
+
+                let seg_dir = (v6 - v1).unit_dir().unwrap();
+                v1 += seg_dir * T::from(self.params.shrink_factor).unwrap();
+                v6 -= seg_dir * T::from(self.params.shrink_factor).unwrap();
+
+                let seg = v6 - v1;
+                let seg_length = seg.norm();
+                let seg_dir = seg.unit_dir().unwrap();
+                let seg_normal = seg.normal_dir();
+                let ahs = T::from(self.params.arrow_headsize).unwrap();
+                let at = T::from(self.params.arrow_thickness).unwrap();
+
+                let vcenter = v6 - seg_dir * ahs;
+                let v2 = vcenter - seg_normal * at;
+                let v3 = vcenter + seg_normal * at;
+                let v4 = vcenter + seg_normal * (ahs * seg_length);
+                let v5 = vcenter - seg_normal * (ahs * seg_length);
+
+                [
+                    Coords2Shader::from((v1, Entity::Dart)),
+                    Coords2Shader::from((v2, Entity::Dart)),
+                    Coords2Shader::from((v3, Entity::Dart)),
+                    Coords2Shader::from((v4, Entity::Dart)),
+                    Coords2Shader::from((v5, Entity::Dart)),
+                    Coords2Shader::from((v6, Entity::Dart)),
+                ]
+                .into_iter()
+            })
         });
-        let centers = face_vertices.clone().map(|(n_vertices, vertices)| {
-            vertices
-                .map(|vertex2: Vertex2<T>| vertex2.into_inner())
-                .reduce(|coords1, coords2| coords1 + coords2)
-                .unwrap()
-                / T::from(n_vertices).unwrap()
-        });
-        self.dart_construction_buffer.extend(
-            face_indices
-                .copied()
-                .zip(face_vertices)
-                .zip(centers)
-                .flat_map(|((face_id, (n_vertices, vertices)), center)| {
-                    let vertices: Vec<Vertex2<T>> = vertices.collect();
-                    let vertices_pair = (0..n_vertices).map(move |vid| {
-                        let v1id = vid;
-                        let v2id = if vid == n_vertices - 1 { 0 } else { vid + 1 };
-                        (vertices[v1id], vertices[v2id])
-                    });
-                    let metadata = (0..n_vertices).map(move |_| (face_id, Vertex2::from(center)));
-                    vertices_pair
-                        .zip(metadata)
-                        .map(|((v1, v2), (fid, centerv))| {
-                            // shrink towards center
-                            let v1_shrink_dir = (centerv - v1).unit_dir().unwrap();
-                            let v2_shrink_dir = (centerv - v2).unit_dir().unwrap();
-
-                            let mut v1_intermediate =
-                                v1 + v1_shrink_dir * T::from(self.params.shrink_factor).unwrap();
-                            let mut v2_intermediate =
-                                v2 + v2_shrink_dir * T::from(self.params.shrink_factor).unwrap();
-
-                            // truncate length
-                            let seg_dir = (v2_intermediate - v1_intermediate).unit_dir().unwrap();
-                            v1_intermediate +=
-                                seg_dir * T::from(self.params.shrink_factor).unwrap();
-                            v2_intermediate -=
-                                seg_dir * T::from(self.params.shrink_factor).unwrap();
-
-                            // return a coordinate pair
-                            (v1_intermediate, v2_intermediate, fid)
-                        })
-                })
-                .flat_map(|(v1, v6, face_id)| {
-                    // transform the dart coordinates into triangles for the shader to render
-                    let seg = v6 - v1;
-                    let seg_length = seg.norm();
-                    let seg_dir = seg.unit_dir().unwrap();
-                    let seg_normal = seg.normal_dir();
-                    let ahs = T::from(self.params.arrow_headsize).unwrap();
-                    let at = T::from(self.params.arrow_thickness).unwrap();
-
-                    let vcenter = v6 - seg_dir * ahs;
-                    let v1 = v1.into_inner();
-                    let v2 = (vcenter - seg_normal * at).into_inner();
-                    let v3 = (vcenter + seg_normal * at).into_inner();
-                    let v4 = (vcenter + seg_normal * (ahs * seg_length)).into_inner();
-                    let v5 = (vcenter - seg_normal * (ahs * seg_length)).into_inner();
-                    let v6 = v6.into_inner();
-
-                    [
-                        Coords2Shader::new(as_f32_tuple!(v1), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v2), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v3), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v4), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v5), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v6), face_id),
-                    ]
-                    .into_iter()
-                }),
-        );
+        self.dart_construction_buffer.extend(tmp);
     }
 
     #[allow(dead_code)]
@@ -189,9 +133,9 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                 let shrink_dir1 = (face.center - tmp1).unit_dir().unwrap();
                 let shrink_dir2 = (face.center - tmp2).unit_dir().unwrap();
                 let shrink_dir3 = (face.center - tmp3).unit_dir().unwrap();
-                tmp1 += shrink_dir1 * T::from(self.params.shrink_factor * 0.5).unwrap();
-                tmp2 += shrink_dir2 * T::from(self.params.shrink_factor * 0.5).unwrap();
-                tmp3 += shrink_dir3 * T::from(self.params.shrink_factor * 0.5).unwrap();
+                tmp1 += shrink_dir1 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                tmp2 += shrink_dir2 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                tmp3 += shrink_dir3 * T::from(self.params.shrink_factor * 2.0).unwrap();
                 [
                     Coords2Shader::from((tmp1, Entity::Face)),
                     Coords2Shader::from((tmp2, Entity::Face)),
