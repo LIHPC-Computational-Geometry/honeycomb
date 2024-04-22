@@ -1,6 +1,6 @@
 # The Honeycomb User Guide
 
-[![Current Version](https://img.shields.io/crates/v/honeycomb-render?label=latest%20release)][CIOHC]
+[![Current Version](https://img.shields.io/crates/v/honeycomb-render?label=latest%20release)](https://crates.io/crates/honeycomb-core)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/LIHPC-Computational-Geometry/honeycomb/latest)][GH]
 [![Build Status](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml)
 [![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
