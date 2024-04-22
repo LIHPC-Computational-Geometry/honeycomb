@@ -698,8 +698,8 @@ impl<T: CoordsFloat> CMap2<T> {
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
             let tmp = (
-                self.vertices.remove(b2lhs_vid_old),
-                self.vertices.remove(rhs_vid_old),
+                self.vertices.remove(&b2lhs_vid_old),
+                self.vertices.remove(&rhs_vid_old),
             );
             let new_vertex = match tmp {
                 (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -753,8 +753,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
+                    self.vertices.remove(&lhs_vid_old),
+                    self.vertices.remove(&b1rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -772,8 +772,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
+                    self.vertices.remove(&b1lhs_vid_old),
+                    self.vertices.remove(&rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -792,15 +792,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmpa = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
+                    self.vertices.remove(&lhs_vid_old),
+                    self.vertices.remove(&b1rhs_vid_old),
                 );
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmpb = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
+                    self.vertices.remove(&b1lhs_vid_old),
+                    self.vertices.remove(&rhs_vid_old),
                 );
 
                 // check orientation
@@ -1057,7 +1057,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
-        self.vertices.get(vertex_id).unwrap()
+        self.vertices.get(&vertex_id).unwrap()
     }
 
     /// Insert a vertex in the combinatorial map.
@@ -1076,7 +1076,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return an option which may contain the previous value associated to the specified vertex ID.
     ///
     pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
-        self.vertices.insert(vertex_id, vertex.into());
+        self.vertices.insert(&vertex_id, vertex.into());
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -1093,7 +1093,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(vertex_id) {
+        if let Some(val) = self.vertices.remove(&vertex_id) {
             return Ok(val);
         }
         Err(CMapError::UndefinedVertex)
@@ -1119,7 +1119,7 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
+        if let Some(val) = self.vertices.replace(&vertex_id, vertex.into()) {
             return Ok(val);
         };
         Err(CMapError::UndefinedVertex)

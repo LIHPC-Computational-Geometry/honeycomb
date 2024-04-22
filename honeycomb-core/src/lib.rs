@@ -23,8 +23,6 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::cast_possible_truncation)]
-// --- some to work through later
-#![allow(clippy::needless_pass_by_value)]
 
 // ------ MODULE DECLARATIONS
 mod attributes;
