@@ -37,3 +37,11 @@ path = "examples/render/squaremap.rs"
 [[example]]
 name = "render_squaremap_shift"
 path = "examples/render/squaremap_shift.rs"
+
+[[example]]
+name = "render_squaremap_split_diff"
+path = "examples/render/squaremap_split_diff.rs"
+
+[[example]]
+name = "render_squaremap_split_some"
+path = "examples/render/squaremap_split_some.rs"

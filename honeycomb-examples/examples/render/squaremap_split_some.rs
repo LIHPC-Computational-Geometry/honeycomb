@@ -1,0 +1,55 @@
+use honeycomb_core::{
+    utils::square_cmap2, CMap2, DartIdentifier, FloatType, Vector2, NULL_DART_ID,
+};
+use honeycomb_render::*;
+use rand::distributions::Bernoulli;
+use rand::{
+    distributions::{Distribution, Uniform},
+    rngs::SmallRng,
+    SeedableRng,
+};
+
+fn main() {
+    const N_SQUARE: usize = 16;
+    const P_BERNOULLI: f64 = 0.6;
+    let render_params = RenderParameters {
+        smaa_mode: SmaaMode::Smaa1X,
+        ..Default::default()
+    };
+    let mut map: CMap2<FloatType> = square_cmap2(N_SQUARE);
+
+    let seed: u64 = 9817498146784;
+    let rng = SmallRng::seed_from_u64(seed);
+    let dist = Bernoulli::new(P_BERNOULLI).unwrap();
+    let splits: Vec<bool> = dist.sample_iter(rng).take(N_SQUARE.pow(2)).collect();
+    let n_split = splits.len();
+
+    map.fetch_faces()
+        .identifiers
+        .iter()
+        .filter(|square| splits[**square as usize % n_split])
+        .for_each(|square| {
+            let square = *square as DartIdentifier;
+            let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
+            // in a parallel impl, we would create all new darts before-hand
+            let dsplit1 = map.add_free_darts(2);
+            let dsplit2 = dsplit1 + 1;
+            // unsew the square & duplicate vertices to avoid data loss
+            // this duplication effectively means that there are two existing vertices
+            // for a short time, before being merged back by the sewing ops
+            map.one_unsew(d1);
+            map.one_unsew(d3);
+            // link the two new dart in order to
+            map.two_link(dsplit1, dsplit2);
+            // define beta1 of the new darts, i.e. tell them where they point to
+            map.one_sew(dsplit1, d4);
+            map.one_sew(dsplit2, d2);
+
+            // sew the original darts to the new darts
+            map.one_sew(d1, dsplit1);
+            map.one_sew(d3, dsplit2);
+            // fuse the edges; this is where duplicated vertices are merged back together
+        });
+
+    Runner::default().run(render_params, Some(&map));
+}
