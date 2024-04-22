@@ -31,14 +31,14 @@ fn vs_main(
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    var color: array<vec3<f32>, 7> = array(
-        vec3<f32>(0.1, 0.1, 0.1),
-        vec3<f32>(1.0, 0.1, 0.1),
-        vec3<f32>(0.1, 1.0, 0.1),
-        vec3<f32>(0.1, 0.1, 1.0),
-        vec3<f32>(0.1, 1.0, 1.0),
-        vec3<f32>(1.0, 0.1, 1.0),
-        vec3<f32>(1.0, 1.0, 0.1),
+    var color: array<vec4<f32>, 7> = array(
+        vec4<f32>(0.1, 0.1, 0.1, 1.0), // 0 -> black darts
+        vec4<f32>(1.0, 0.1, 0.1, 0.1), // 1 ->
+        vec4<f32>(0.8, 0.3, 0.3, 0.1), // 2 -> face
+        vec4<f32>(0.1, 0.1, 1.0, 0.1), // 3 ->
+        vec4<f32>(0.1, 1.0, 1.0, 0.1), // 4 ->
+        vec4<f32>(1.0, 0.1, 1.0, 0.1), // 5 ->
+        vec4<f32>(1.0, 1.0, 0.1, 0.1), // 6 ->
     );
-    return vec4<f32>(color[in.color], 1.0);
+    return color[in.color];
 }
