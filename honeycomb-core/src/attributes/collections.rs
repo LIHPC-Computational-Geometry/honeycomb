@@ -103,6 +103,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
+    #[deprecated]
     pub fn get_mut(&mut self, index: T::IdentifierType) -> &mut Option<T> {
         &mut self.data[index.to_usize().unwrap()]
     }
@@ -279,6 +280,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
         self.data.len()
     }
 
+    /// Return the number of stored, used attributes in the internal storage.
+    pub fn n_used_attributes(&self) -> usize {
+        self.data.len() - self.unused_data_slots.len()
+    }
+
     /// Getter
     ///
     /// # Arguments
@@ -317,6 +323,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
+    #[deprecated]
     pub fn get_mut(&mut self, index: T::IdentifierType) -> Option<&mut T> {
         self.index_map[index.to_usize().unwrap()].map(|idx| &mut self.data[idx])
     }
@@ -461,42 +468,8 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::Temperature;
     use super::*;
-    use crate::{FaceIdentifier, OrbitPolicy};
-
-    #[derive(Clone, Copy, Debug, Default, PartialEq)]
-    pub struct Temperature {
-        pub val: f32,
-    }
-
-    impl AttributeUpdate for Temperature {
-        fn merge(attr1: Self, attr2: Self) -> Self {
-            Temperature {
-                val: (attr1.val + attr2.val) / 2.0,
-            }
-        }
-
-        fn split(attr: Self) -> (Self, Self) {
-            (attr, attr)
-        }
-
-        fn merge_undefined(attr: Option<Self>) -> Self {
-            attr.unwrap_or(Temperature { val: 0.0 })
-        }
-    }
-
-    impl AttributeBind for Temperature {
-        type IdentifierType = FaceIdentifier;
-        fn binds_to<'a>() -> OrbitPolicy<'a> {
-            OrbitPolicy::Face
-        }
-    }
-
-    impl From<f32> for Temperature {
-        fn from(val: f32) -> Self {
-            Self { val }
-        }
-    }
 
     macro_rules! generate_sparse {
         ($name: ident) => {
@@ -512,6 +485,18 @@ mod tests {
             $name.insert(8, Temperature::from(289.0));
             $name.insert(9, Temperature::from(291.0));
         };
+    }
+
+    #[test]
+    fn sparse_vec_n_attributes() {
+        generate_sparse!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 9);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_attributes(), 9);
     }
 
     #[test]
@@ -531,8 +516,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn sparse_vec_get_insert_get() {
+    #[should_panic(expected = "assertion failed: tmp.is_none()")]
+    fn sparse_vec_insert_already_existing() {
         generate_sparse!(storage);
         assert_eq!(storage.get(3), &Some(Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
@@ -575,8 +560,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn sparse_vec_remove_replace() {
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn sparse_vec_replace_already_removed() {
         generate_sparse!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
@@ -599,6 +584,48 @@ mod tests {
     }
 
     #[test]
+    fn compact_vec_n_attributes() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 10);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_attributes(), 10);
+    }
+
+    #[test]
+    fn compact_vec_n_used_attributes() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_used_attributes(), 10);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_used_attributes(), 9);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert!(storage.get(15).is_none());
+        assert_eq!(storage.n_used_attributes(), 9);
+    }
+
+    #[test]
+    fn compact_vec_extend_through_set() {
+        generate_compact!(storage);
+        assert_eq!(storage.n_attributes(), 10);
+        // extend does not affect the number of attributes
+        storage.extend(10);
+        assert_eq!(storage.n_attributes(), 10);
+        storage.set(10, Temperature::from(293.0));
+        assert_eq!(storage.n_attributes(), 11);
+        storage.set(11, Temperature::from(295.0));
+        assert_eq!(storage.n_attributes(), 12);
+        storage.set(12, Temperature::from(297.0));
+        assert_eq!(storage.n_attributes(), 13);
+        let _ = storage.remove(3);
+        assert_eq!(storage.n_attributes(), 13);
+        assert_eq!(storage.n_used_attributes(), 12);
+    }
+
+    #[test]
     fn compact_vec_get_set_get() {
         generate_compact!(storage);
         assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
@@ -615,8 +642,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn compact_vec_get_insert_get() {
+    #[should_panic(expected = "assertion failed: idx.is_none()")]
+    fn compact_vec_insert_already_existing() {
         generate_compact!(storage);
         assert_eq!(storage.get(3), Some(&Temperature::from(279.0)));
         storage.insert(3, Temperature::from(280.0)); // panic
@@ -659,8 +686,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn compact_vec_remove_replace() {
+    #[should_panic(expected = "assertion failed: idx.is_some()")]
+    fn compact_vec_replace_already_removed() {
         generate_compact!(storage);
         assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
         storage.replace(3, Temperature::from(280.0)); // panic
