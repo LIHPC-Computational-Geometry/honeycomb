@@ -937,10 +937,12 @@ impl<T: CoordsFloat> CMap2<T> {
                 let (rhs_v1, rhs_v2) = Vertex2::split(rhs_vertex);
                 let (lhs_v1, lhs_v2) = Vertex2::split(lhs_vertex);
 
+                // short version: not all i-unsews create separate i-cells
                 self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_v1);
-                self.insert_vertex(self.vertex_id(rhs_dart_id), rhs_v2);
+                let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), rhs_v2);
+                // same
                 self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_v1);
-                self.insert_vertex(self.vertex_id(b1rhs_dart_id), lhs_v2);
+                let _ = self.replace_vertex(self.vertex_id(b1rhs_dart_id), lhs_v2);
             }
         }
     }
