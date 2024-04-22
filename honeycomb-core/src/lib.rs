@@ -26,7 +26,6 @@
 // --- some to work through later
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::if_not_else)]
 #![allow(clippy::needless_for_each)]
 #![allow(clippy::needless_pass_by_value)]
 

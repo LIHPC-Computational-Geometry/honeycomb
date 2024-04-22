@@ -134,10 +134,10 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     pub fn unit_dir(&self) -> Result<Vector2<T>, CoordsError> {
         let norm = self.norm();
-        if !norm.is_zero() {
-            Ok(*self / norm)
-        } else {
+        if norm.is_zero() {
             Err(CoordsError::InvalidUnitDir)
+        } else {
+            Ok(*self / norm)
         }
     }
 

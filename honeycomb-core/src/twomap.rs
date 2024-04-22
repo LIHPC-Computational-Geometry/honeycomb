@@ -675,7 +675,12 @@ impl<T: CoordsFloat> CMap2<T> {
         // condition is valid if the first one is)
         // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id != NULL_DART_ID {
+        if b2lhs_dart_id == NULL_DART_ID {
+            // WARNING: UNWANTED BEHAVIOR
+            // there should be a check in order to ensure that vertex(rhs_dart) is defined
+            // otherwise, panic because the user should call link, not sew
+            self.one_link(lhs_dart_id, rhs_dart_id);
+        } else {
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
             let tmp = (
@@ -690,8 +695,6 @@ impl<T: CoordsFloat> CMap2<T> {
             // use b2lhs_vid as the index for the new vertex
             self.one_link(lhs_dart_id, rhs_dart_id);
             self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
-        } else {
-            self.one_link(lhs_dart_id, rhs_dart_id);
         }
     }
 
@@ -724,7 +727,12 @@ impl<T: CoordsFloat> CMap2<T> {
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
-            (true, true) => self.two_link(lhs_dart_id, rhs_dart_id),
+            (true, true) => {
+                // WARNING: UNWANTED BEHAVIOR
+                // there should be a check in order to ensure that each dart has associated vertices
+                // otherwise, panic because the user should call link, not sew
+                self.two_link(lhs_dart_id, rhs_dart_id);
+            }
             // update vertex associated to b1rhs/lhs
             (true, false) => {
                 // read current values / remove old ones
@@ -845,7 +853,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id != NULL_DART_ID {
+        if b2lhs_dart_id == NULL_DART_ID {
+            self.one_unlink(lhs_dart_id);
+        } else {
             // read current values / remove old ones
             let rhs_dart_id = self.beta::<1>(lhs_dart_id);
             // we only need to remove a single vertex since we're unlinking
@@ -856,8 +866,6 @@ impl<T: CoordsFloat> CMap2<T> {
             // reinsert correct values
             let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
             let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
-        } else {
-            self.one_unlink(lhs_dart_id);
         }
     }
 
