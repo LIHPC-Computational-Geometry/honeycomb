@@ -684,8 +684,7 @@ impl<T: CoordsFloat> CMap2<T> {
             );
             let new_vertex = match tmp {
                 (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                 (None, None) => Vertex2::merge_undefined(None),
             };
             // use b2lhs_vid as the index for the new vertex
@@ -737,8 +736,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology (this is why we need the above lines)
@@ -757,8 +755,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology (this is why we need the above lines)
@@ -805,15 +802,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // proceed with new vertices creation & insertion
                 let new_vertexa = match tmpa {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
 
                 let new_vertexb = match tmpb {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) => Vertex2::merge_undefined(Some(val)),
-                    (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
+                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
                     (None, None) => Vertex2::merge_undefined(None),
                 };
                 // update the topology
