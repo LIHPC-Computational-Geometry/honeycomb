@@ -1270,14 +1270,6 @@ impl<T: CoordsFloat> CMap2<T> {
         });
         writeln!(file, "beta_total, {beta_total}").unwrap();
 
-        // embed
-        let embed_vertex = self.n_darts * std::mem::size_of::<VertexIdentifier>();
-        let embed_face = self.n_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_total = embed_vertex + embed_face;
-        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
-        writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_total, {embed_total}").unwrap();
-
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.vertices.effective_size();
@@ -1360,14 +1352,6 @@ impl<T: CoordsFloat> CMap2<T> {
             beta_total += mem;
         });
         writeln!(file, "beta_total, {beta_total}").unwrap();
-
-        // embed
-        let embed_vertex = n_used_darts * std::mem::size_of::<VertexIdentifier>();
-        let embed_face = n_used_darts * std::mem::size_of::<FaceIdentifier>();
-        let embed_total = embed_vertex + embed_face;
-        writeln!(file, "embed_vertex, {embed_vertex}").unwrap();
-        writeln!(file, "embed_face, {embed_face}").unwrap();
-        writeln!(file, "embed_total, {embed_total}").unwrap();
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
