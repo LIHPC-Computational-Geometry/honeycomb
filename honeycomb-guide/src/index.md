@@ -1,5 +1,13 @@
 # The Honeycomb User Guide
 
+[![Current Version](https://img.shields.io/crates/v/honeycomb-render?label=latest%20release)][CIOHC]
+[![GitHub commits since latest release](https://img.shields.io/github/commits-since/LIHPC-Computational-Geometry/honeycomb/latest)][GH]
+[![Build Status](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml)
+[![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
+[![codecov](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb/graph/badge.svg?token=QSN0TWFXO1)](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb)
+
+---
+
 ## Honeycomb
 
 Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps for meshing applications.
@@ -17,8 +25,8 @@ deal with data races and similar issues, thanks to the language's guarantees.
 
 #### Rust
 
-The crate is not currently being published on crates.io, meaning you will have to add the dependency manually to your
-project. This can be done by adding the following line to the manifest of the project:
+The core and render crates are being published on crates.io. You can add those to your project by adding the following
+lines to the manifest of the project:
 
 ```toml
 # Cargo.toml
@@ -26,9 +34,12 @@ project. This can be done by adding the following line to the manifest of the pr
 
 [dependencies]
 # Other dependencies...
-honeycomb-core = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
-honeycomb-render = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb.git" }
+honeycomb-core = "0.2.0"
+honeycomb-render = "0.2.0"
 ```
+
+Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
+version, and use the GitHub Pages documentation instead of the one hosted on docs.rs.
 
 #### Documentation
 
