@@ -149,8 +149,8 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     pub fn save_buffered(&mut self) {
         self.vertices.clear();
-        self.vertices.append(&mut self.dart_construction_buffer);
         self.vertices.append(&mut self.face_construction_buffer);
+        self.vertices.append(&mut self.dart_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {

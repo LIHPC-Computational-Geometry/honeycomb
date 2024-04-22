@@ -7,7 +7,7 @@
 
 use crate::representations::intermediates::Entity;
 use bytemuck::{Pod, Zeroable};
-use honeycomb_core::{CoordsFloat, FaceIdentifier, Vertex2};
+use honeycomb_core::{CoordsFloat, Vertex2};
 
 // ------ CONTENT
 
