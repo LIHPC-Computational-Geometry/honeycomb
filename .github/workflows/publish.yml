@@ -1,0 +1,33 @@
+name: Publish Crates
+
+on:
+  release:
+    types: [ published ]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUSTFLAGS: "-D warnings"
+  RUSTUP_MAX_RETRIES: 10
+  RUST_BACKTRACE: 1
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Publish
+      - name: Publish core
+        run: cargo publish --package honeycomb-core --token ${CIO_TOKEN}
+        env:
+          CIO_TOKEN: ${{ secrets.CRATESIO_TOKEN }}
+      - name: Publish render
+        run: cargo publish --package honeycomb-render --token ${CIO_TOKEN}
+        env:
+          CIO_TOKEN: ${{ secrets.CRATESIO_TOKEN }}
