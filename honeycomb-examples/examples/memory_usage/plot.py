@@ -85,7 +85,7 @@ def run():
     filename, show, overview, detailed, all_cats = parseCommandLine()
     beta, geometry, others, totals = parseDataFromFile(filename)
 
-    category_labels = ["Beta", "Geometry", "Others"]
+    category_labels = ["Beta", "Attributes", "Others"]
     beta_labels = ["β0", "β1", "β2"]
     geometry_labels = ["vertex"]
     others_labels = ["freedarts", "counters"]
@@ -221,7 +221,7 @@ def run():
         if show:
             plt.show()
         else:
-            plt.savefig(save_file + "_geometry.svg")
+            plt.savefig(save_file + "_attributes.svg")
 
         # --- others chart ---
         others_afig, (others_aax1, others_aax2) = plt.subplots(1, 2, figsize=(9, 5))
