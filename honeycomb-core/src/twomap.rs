@@ -1539,7 +1539,29 @@ mod tests {
     //#[should_panic]
     fn two_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
-        map.two_sew(1, 2);
+        map.two_sew(1, 2); // should panic
+    }
+
+    #[test]
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn two_sew_no_attributes_bis() {
+        let mut map: CMap2<FloatType> = CMap2::new(4);
+        map.one_link(1, 2);
+        map.one_link(3, 4);
+        map.two_sew(1, 3); // panic
+    }
+
+    #[test]
+    #[should_panic(expected = "Dart 1 and 3 do not have consistent orientation for 2-sewing")]
+    fn two_sew_bad_orientation() {
+        let mut map: CMap2<FloatType> = CMap2::new(4);
+        map.one_link(1, 2);
+        map.one_link(3, 4);
+        map.insert_vertex(1, (0.0, 0.0));
+        map.insert_vertex(2, (0.0, 1.0)); // 1->2 goes up
+        map.insert_vertex(3, (1.0, 0.0));
+        map.insert_vertex(4, (1.0, 1.0)); // 3->4 also goes up
+        map.two_sew(1, 3); // panic
     }
 
     #[test]
@@ -1575,7 +1597,7 @@ mod tests {
     //#[should_panic]
     fn one_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
-        map.one_sew(1, 2);
+        map.one_sew(1, 2); // should panic
     }
 
     #[test]
@@ -1583,6 +1605,6 @@ mod tests {
     fn one_sew_no_attributes_bis() {
         let mut map: CMap2<FloatType> = CMap2::new(3);
         map.two_link(1, 2);
-        map.one_sew(1, 3);
+        map.one_sew(1, 3); // panic
     }
 }
