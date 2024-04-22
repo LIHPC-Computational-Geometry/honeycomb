@@ -235,7 +235,7 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vector2<T> {
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vector2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        self.inner -= rhs.into_inner()
+        self.inner -= rhs.into_inner();
     }
 }
 

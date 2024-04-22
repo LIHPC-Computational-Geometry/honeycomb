@@ -29,7 +29,6 @@
 #![allow(clippy::match_same_arms)]
 #![allow(clippy::if_not_else)]
 #![allow(clippy::range_plus_one)]
-#![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::needless_for_each)]
 #![allow(clippy::needless_pass_by_value)]
 

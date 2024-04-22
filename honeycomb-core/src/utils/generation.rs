@@ -83,9 +83,9 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
                 let up_neighbor = d1 + (4 * n_square) as DartIdentifier;
-                map.two_link(d3, up_neighbor)
+                map.two_link(d3, up_neighbor);
             }
-        })
+        });
     });
 
     // then cells
@@ -127,7 +127,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                     );
                 }
             }
-        })
+        });
     });
 
     // and then build faces
@@ -189,9 +189,9 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
             // if there is an up neighbor, sew sew
             if y_idx != n_square - 1 {
                 let up_neighbor = d1 + (6 * n_square) as DartIdentifier;
-                map.two_link(d6, up_neighbor)
+                map.two_link(d6, up_neighbor);
             }
-        })
+        });
     });
 
     // then cells
@@ -233,7 +233,7 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
                     );
                 }
             }
-        })
+        });
     });
 
     // rebuild faces

@@ -862,7 +862,7 @@ impl<T: CoordsFloat> CMap2<T> {
             let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
             let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
         } else {
-            self.one_unlink(lhs_dart_id)
+            self.one_unlink(lhs_dart_id);
         }
     }
 
@@ -1057,7 +1057,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return an option which may contain the previous value associated to the specified vertex ID.
     ///
     pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
-        self.vertices.insert(vertex_id, vertex.into())
+        self.vertices.insert(vertex_id, vertex.into());
     }
 
     #[allow(clippy::missing_errors_doc)]
