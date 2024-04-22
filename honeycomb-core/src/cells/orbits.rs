@@ -177,8 +177,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image2);
                     }
-
-                    Some(d)
                 }
                 OrbitPolicy::Edge => {
                     // THIS CODE IS ONLY VALID IN 2D
@@ -188,7 +186,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image);
                     }
-                    Some(d)
                 }
                 OrbitPolicy::Face => {
                     // THIS CODE IS ONLY VALID IN 2D
@@ -199,21 +196,19 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         // i.e. we need to visit it later
                         self.pending.push_back(image);
                     }
-                    Some(d)
                 }
                 OrbitPolicy::Custom(beta_slice) => {
-                    beta_slice.iter().for_each(|beta_id| {
+                    for beta_id in beta_slice {
                         let image = self.map_handle.beta_runtime(*beta_id, d);
                         if self.marked.insert(image) {
                             // if true, we did not see this dart yet
                             // i.e. we need to visit it later
                             self.pending.push_back(image);
                         }
-                    });
-
-                    Some(d)
+                    }
                 }
             }
+            Some(d)
         } else {
             None
         }
