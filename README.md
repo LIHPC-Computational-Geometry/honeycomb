@@ -38,22 +38,32 @@ kill $(ps -e | awk '/mdbook/ {print $1}')
 
 ### Rust
 
-The content of each member is described in their respective Rust Doc as well as in the [user guide][UGW].
+The content of each member is described in their respective Rust Doc as well as in the [user guide][UGW]. The following
+crates are published:
 
-- Basic structures are provided in the **honeycomb-core** crate ([Rust Doc][DOCHC]).
+- [![Core Version](https://img.shields.io/crates/v/honeycomb-core?label=honeycomb-core)][CIOHC] - basic
+  structures - [![docs.rs](https://docs.rs/honeycomb-core/badge.svg)][DOCHC]
+- [![Render Version](https://img.shields.io/crates/v/honeycomb-render?label=honeycomb-render)][CIOHR] - visualizing
+  tool - [![docs.rs](https://docs.rs/honeycomb-render/badge.svg)][DOCHR]
+
+The repository also hosts these members:
+
 - Benchmarks are grouped in the **honeycomb-benches** crate ([Rust Doc][DOCHB])
 - Examples are grouped in the **honeycomb-examples** crate ([Rust Doc][DOCHU])
-- A visualizing tool is provided in the **honeycomb-render** crate ([Rust Doc][DOCHR]).
 
 [UGW]: https://lihpc-computational-geometry.github.io/honeycomb/project-structure/workspace.html
 
-[DOCHC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_core/
+[DOCHC]: https://docs.rs/honeycomb-core/
+
+[CIOHC]:https://crates.io/crates/honeycomb-core
+
+[DOCHR]: https://docs.rs/honeycomb-render/
+
+[CIOHR]:https://crates.io/crates/honeycomb-render
 
 [DOCHB]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_benches/
 
 [DOCHU]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_utils/
-
-[DOCHR]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb_render/
 
 ## Contributing
 
