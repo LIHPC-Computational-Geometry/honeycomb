@@ -12,6 +12,7 @@ publish = false
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
 honeycomb-render = { workspace = true }
+rand = { workspace = true, features = ["small_rng"] }
 
 [[example]]
 name = "memory_usage"
@@ -32,3 +33,15 @@ path = "examples/render/splitsquaremap.rs"
 [[example]]
 name = "render_squaremap"
 path = "examples/render/squaremap.rs"
+
+[[example]]
+name = "render_squaremap_shift"
+path = "examples/render/squaremap_shift.rs"
+
+[[example]]
+name = "render_squaremap_split_diff"
+path = "examples/render/squaremap_split_diff.rs"
+
+[[example]]
+name = "render_squaremap_split_some"
+path = "examples/render/squaremap_split_some.rs"
