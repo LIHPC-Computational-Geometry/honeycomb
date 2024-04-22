@@ -62,7 +62,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 /// - cells are ordered from left to right, from the bottom up. The same rule
 ///   applies for face IDs.
 ///
-
+#[must_use = "constructed object is not used, consider removing this function call"]
 pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(4 * n_square.pow(2));
 
@@ -162,6 +162,7 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 /// If this function panics, this is most likely due to a mistake in implementation in the core
 /// crate.
 ///
+#[must_use = "constructed object is not used, consider removing this function call"]
 pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square.pow(2));
 

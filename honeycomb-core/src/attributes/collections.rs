@@ -46,7 +46,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     ///
     /// Return a [`AttrSparseVec`] object full of `None`.
     ///
-    pub fn new(n_ids: usize) -> Self {
+    #[must_use] pub fn new(n_ids: usize) -> Self {
         Self {
             data: (0..n_ids).map(|_| None).collect(),
         }
@@ -63,7 +63,7 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 
     /// Return the number of stored attributes (i.e. number of `Some(_)` instances)
-    pub fn n_attributes(&self) -> usize {
+    #[must_use] pub fn n_attributes(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count()
     }
 
@@ -199,17 +199,17 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
-    pub fn allocated_size(&self) -> usize {
+    #[must_use] pub fn allocated_size(&self) -> usize {
         self.data.capacity() * std::mem::size_of::<Option<T>>()
     }
 
     /// Return the total amount of space used by the storage.
-    pub fn effective_size(&self) -> usize {
+    #[must_use] pub fn effective_size(&self) -> usize {
         self.data.len() * std::mem::size_of::<Option<T>>()
     }
 
     /// Return the amount of space used by valid entries of the storage.
-    pub fn used_size(&self) -> usize {
+    #[must_use] pub fn used_size(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
     }
 }
@@ -257,7 +257,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     /// Return a "value-empty" [`AttrSparseVec`] object.
     ///
-    pub fn new(n_ids: usize) -> Self {
+    #[must_use] pub fn new(n_ids: usize) -> Self {
         Self {
             unused_data_slots: Vec::new(),
             index_map: vec![None; n_ids],
@@ -276,12 +276,12 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     }
 
     /// Return the number of stored attributes in the internal storage.
-    pub fn n_attributes(&self) -> usize {
+    #[must_use] pub fn n_attributes(&self) -> usize {
         self.data.len()
     }
 
     /// Return the number of stored, used attributes in the internal storage.
-    pub fn n_used_attributes(&self) -> usize {
+    #[must_use] pub fn n_used_attributes(&self) -> usize {
         self.data.len() - self.unused_data_slots.len()
     }
 
@@ -442,21 +442,21 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     /// Return the amount of space allocated for the storage.
-    pub fn allocated_size(&self) -> usize {
+    #[must_use] pub fn allocated_size(&self) -> usize {
         self.unused_data_slots.capacity() * std::mem::size_of::<usize>()
             + self.index_map.capacity() * std::mem::size_of::<Option<usize>>()
             + self.data.capacity() * std::mem::size_of::<T>()
     }
 
     /// Return the total amount of space used by the storage.
-    pub fn effective_size(&self) -> usize {
+    #[must_use] pub fn effective_size(&self) -> usize {
         self.unused_data_slots.len() * std::mem::size_of::<usize>()
             + self.index_map.len() * std::mem::size_of::<Option<usize>>()
             + self.data.len() * std::mem::size_of::<T>()
     }
 
     /// Return the amount of space used by valid entries of the storage.
-    pub fn used_size(&self) -> usize {
+    #[must_use] pub fn used_size(&self) -> usize {
         self.unused_data_slots.len() * std::mem::size_of::<usize>()
             + self.index_map.iter().filter(|val| val.is_some()).count()
                 * std::mem::size_of::<Option<usize>>()

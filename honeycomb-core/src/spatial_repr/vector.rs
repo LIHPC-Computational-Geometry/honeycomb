@@ -53,6 +53,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a unit vector along the `x` axis.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_x() -> Self {
         Self {
             inner: Coords2::unit_x(),
@@ -65,6 +66,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a unit vector along the `y` axis.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_y() -> Self {
         Self {
             inner: Coords2::unit_y(),
@@ -157,7 +159,8 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// See [Vector2] example.
     ///
-    pub fn normal_dir(&self) -> Vector2<T> {
+    #[must_use = "constructed object is not used, consider removing this method call"]
+    pub fn normal_dir(&self) -> Self {
         Self {
             inner: Coords2 {
                 x: -self.inner.y,

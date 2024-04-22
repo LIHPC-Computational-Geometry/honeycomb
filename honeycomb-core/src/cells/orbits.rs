@@ -96,6 +96,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// See [`CMap2`] example.
     ///
+    #[must_use = "orbits are lazy and do nothing unless consumed"]
     pub fn new(
         map_handle: &'a CMap2<T>,
         orbit_policy: OrbitPolicy<'a>,
@@ -119,6 +120,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     }
 
     /// Return a boolean indicating whether the starting dart is isolated or not
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_isolated(&self) -> bool {
         // this is boolean tells us if the orbit is either:
         // a) unaltered (pending.len() == 1)

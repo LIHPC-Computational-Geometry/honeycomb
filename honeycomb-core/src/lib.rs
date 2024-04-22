@@ -24,8 +24,6 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::cast_possible_truncation)]
 // --- some to work through later
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::return_self_not_must_use)]
 #![allow(clippy::needless_for_each)]
 #![allow(clippy::needless_pass_by_value)]
 

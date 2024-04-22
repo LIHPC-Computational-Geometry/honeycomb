@@ -197,6 +197,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [`CMap2`] example.
     ///
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn new(n_darts: usize) -> Self {
         Self {
             vertices: AttrSparseVec::new(n_darts + 1),
@@ -212,11 +213,13 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
     /// Return information about the current number of darts.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_darts(&self) -> usize {
         self.n_darts
     }
 
     /// Return information about the current number of unused darts.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.len()
     }
@@ -337,6 +340,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
         self.betas[dart_id as usize][I as usize]
@@ -358,6 +362,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *i* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta_runtime(&self, i: u8, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(i < 3);
         match i {
@@ -387,6 +392,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
@@ -401,6 +407,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_free(&self, dart_id: DartIdentifier) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
             && self.beta::<1>(dart_id) == NULL_DART_ID
@@ -457,6 +464,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Vertex, dart_id)
@@ -490,6 +498,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Edge, dart_id).min().unwrap() as EdgeIdentifier
@@ -521,6 +530,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1. a BFS to compute a given orbit
     /// 2. a minimum computation on the IDs composing the orbit
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::new(self, OrbitPolicy::Face, dart_id).min().unwrap() as FaceIdentifier
@@ -547,6 +557,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
         assert!(I < 3);
         match I {
@@ -564,6 +575,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -593,6 +605,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         marked.insert(NULL_DART_ID);
@@ -623,6 +636,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
     /// is ensured through an implicit lifetime condition on the structure and original map.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
         // using a set for cells & converting it later to avoid duplicated values
@@ -1021,6 +1035,7 @@ impl<T: CoordsFloat> CMap2<T> {
 // different kind of attributes for all the i-cells.
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_vertices(&self) -> usize {
         self.vertices.n_attributes()
     }
@@ -1040,6 +1055,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if no vertex is associated to the specified index, or the ID lands
     /// out of bounds.
     ///
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Vertex2<T> {
         self.vertices.get(vertex_id).unwrap()
     }
