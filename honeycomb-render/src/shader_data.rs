@@ -5,8 +5,9 @@
 
 // ------ IMPORTS
 
+use crate::representations::intermediates::Entity;
 use bytemuck::{Pod, Zeroable};
-use honeycomb_core::FaceIdentifier;
+use honeycomb_core::{CoordsFloat, Vertex2};
 
 // ------ CONTENT
 
@@ -21,19 +22,29 @@ impl Coords2Shader {
     const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
         wgpu::vertex_attr_array![0 => Float32x2, 1 => Uint32];
 
-    pub fn new((x, y): (f32, f32), face_id: FaceIdentifier) -> Self {
-        Self {
-            position: [x, y],
-            #[allow(clippy::unnecessary_cast)]
-            color: face_id as u32,
-        }
-    }
-
     pub fn desc() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Coords2Shader>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &Self::ATTRIBUTES,
+        }
+    }
+}
+
+macro_rules! as_f32_array {
+    ($coords: ident) => {
+        [$coords.x().to_f32().unwrap(), $coords.y().to_f32().unwrap()]
+    };
+}
+
+impl<T: CoordsFloat> From<(Vertex2<T>, Entity)> for Coords2Shader {
+    fn from((v, e): (Vertex2<T>, Entity)) -> Self {
+        Self {
+            position: as_f32_array!(v),
+            color: match e {
+                Entity::Dart => 0,
+                Entity::Face => 2,
+            },
         }
     }
 }

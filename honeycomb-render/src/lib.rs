@@ -25,6 +25,8 @@ mod runner;
 mod shader_data;
 mod state;
 
+mod representations;
+
 // ------ RE-EXPORTS
 
 pub use handle::RenderParameters;

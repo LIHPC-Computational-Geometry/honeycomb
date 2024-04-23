@@ -5,9 +5,10 @@
 
 // ------ IMPORTS
 
+use crate::representations::intermediates::{Entity, IntermediateFace};
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Vertex2};
+use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy};
 
 // ------ CONTENT
 
@@ -37,17 +38,13 @@ impl Default for RenderParameters {
     }
 }
 
-macro_rules! as_f32_tuple {
-    ($coords: ident) => {
-        ($coords.x.to_f32().unwrap(), $coords.y.to_f32().unwrap())
-    };
-}
-
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     handle: &'a CMap2<T>,
     params: RenderParameters,
+    intermediate_buffer: Vec<IntermediateFace<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
     _beta_construction_buffer: Vec<Coords2Shader>,
+    face_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
 
@@ -56,99 +53,68 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         Self {
             handle: map,
             params: params.unwrap_or_default(),
+            intermediate_buffer: Vec::new(),
             dart_construction_buffer: Vec::new(),
             _beta_construction_buffer: Vec::new(),
+            face_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
     }
 
-    pub fn build_darts(&mut self) {
-        // let n_face = self.handle.n_faces() as FaceIdentifier;
-        // get all faces
+    pub(crate) fn build_intermediate(&mut self) {
         let faces = self.handle.fetch_faces();
-        let face_indices = faces.identifiers.iter();
-        let face_vertices = face_indices.clone().map(|face_id| {
-            (
-                self.handle.i_cell::<2>(*face_id as DartIdentifier).count(),
-                self.handle
-                    .i_cell::<2>(*face_id as DartIdentifier)
-                    .map(|dart_id| {
-                        let vertex_id = self.handle.vertex_id(dart_id);
-                        self.handle.vertex(vertex_id)
-                    }),
-            )
+        let faces_ir = faces.identifiers.iter().map(|face_id| {
+            // build face data
+            let orbit = Orbit2::new(self.handle, OrbitPolicy::Face, *face_id as DartIdentifier)
+                .map(|id| self.handle.vertex(self.handle.vertex_id(id)));
+            let mut tmp = IntermediateFace::new(orbit);
+            // apply a first shrink
+            tmp.vertices.iter_mut().for_each(|v| {
+                let v_shrink_dir = (tmp.center - *v).unit_dir().unwrap();
+                *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+            });
+            tmp
         });
-        let centers = face_vertices.clone().map(|(n_vertices, vertices)| {
-            vertices
-                .map(|vertex2: Vertex2<T>| vertex2.into_inner())
-                .reduce(|coords1, coords2| coords1 + coords2)
-                .unwrap()
-                / T::from(n_vertices).unwrap()
+        // save results
+        self.intermediate_buffer.extend(faces_ir);
+    }
+
+    pub fn build_darts(&mut self) {
+        // get all faces
+        let tmp = self.intermediate_buffer.iter().flat_map(|face| {
+            (0..face.n_vertices).flat_map(|id| {
+                let mut v1 = face.vertices[id];
+                let mut v6 = face.vertices[(id + 1) % face.n_vertices];
+
+                let seg_dir = (v6 - v1).unit_dir().unwrap();
+                v1 += seg_dir * T::from(self.params.shrink_factor).unwrap();
+                v6 -= seg_dir * T::from(self.params.shrink_factor).unwrap();
+
+                let seg = v6 - v1;
+                let seg_length = seg.norm();
+                let seg_dir = seg.unit_dir().unwrap();
+                let seg_normal = seg.normal_dir();
+                let ahs = T::from(self.params.arrow_headsize).unwrap();
+                let at = T::from(self.params.arrow_thickness).unwrap();
+
+                let vcenter = v6 - seg_dir * ahs;
+                let v2 = vcenter - seg_normal * at;
+                let v3 = vcenter + seg_normal * at;
+                let v4 = vcenter + seg_normal * (ahs * seg_length);
+                let v5 = vcenter - seg_normal * (ahs * seg_length);
+
+                [
+                    Coords2Shader::from((v1, Entity::Dart)),
+                    Coords2Shader::from((v2, Entity::Dart)),
+                    Coords2Shader::from((v3, Entity::Dart)),
+                    Coords2Shader::from((v4, Entity::Dart)),
+                    Coords2Shader::from((v5, Entity::Dart)),
+                    Coords2Shader::from((v6, Entity::Dart)),
+                ]
+                .into_iter()
+            })
         });
-        self.dart_construction_buffer.extend(
-            face_indices
-                .copied()
-                .zip(face_vertices)
-                .zip(centers)
-                .flat_map(|((face_id, (n_vertices, vertices)), center)| {
-                    let vertices: Vec<Vertex2<T>> = vertices.collect();
-                    let vertices_pair = (0..n_vertices).map(move |vid| {
-                        let v1id = vid;
-                        let v2id = if vid == n_vertices - 1 { 0 } else { vid + 1 };
-                        (vertices[v1id], vertices[v2id])
-                    });
-                    let metadata = (0..n_vertices).map(move |_| (face_id, Vertex2::from(center)));
-                    vertices_pair
-                        .zip(metadata)
-                        .map(|((v1, v2), (fid, centerv))| {
-                            // shrink towards center
-                            let v1_shrink_dir = (centerv - v1).unit_dir().unwrap();
-                            let v2_shrink_dir = (centerv - v2).unit_dir().unwrap();
-
-                            let mut v1_intermediate =
-                                v1 + v1_shrink_dir * T::from(self.params.shrink_factor).unwrap();
-                            let mut v2_intermediate =
-                                v2 + v2_shrink_dir * T::from(self.params.shrink_factor).unwrap();
-
-                            // truncate length
-                            let seg_dir = (v2_intermediate - v1_intermediate).unit_dir().unwrap();
-                            v1_intermediate +=
-                                seg_dir * T::from(self.params.shrink_factor).unwrap();
-                            v2_intermediate -=
-                                seg_dir * T::from(self.params.shrink_factor).unwrap();
-
-                            // return a coordinate pair
-                            (v1_intermediate, v2_intermediate, fid)
-                        })
-                })
-                .flat_map(|(v1, v6, face_id)| {
-                    // transform the dart coordinates into triangles for the shader to render
-                    let seg = v6 - v1;
-                    let seg_length = seg.norm();
-                    let seg_dir = seg.unit_dir().unwrap();
-                    let seg_normal = seg.normal_dir();
-                    let ahs = T::from(self.params.arrow_headsize).unwrap();
-                    let at = T::from(self.params.arrow_thickness).unwrap();
-
-                    let vcenter = v6 - seg_dir * ahs;
-                    let v1 = v1.into_inner();
-                    let v2 = (vcenter - seg_normal * at).into_inner();
-                    let v3 = (vcenter + seg_normal * at).into_inner();
-                    let v4 = (vcenter + seg_normal * (ahs * seg_length)).into_inner();
-                    let v5 = (vcenter - seg_normal * (ahs * seg_length)).into_inner();
-                    let v6 = v6.into_inner();
-
-                    [
-                        Coords2Shader::new(as_f32_tuple!(v1), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v2), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v3), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v4), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v5), face_id),
-                        Coords2Shader::new(as_f32_tuple!(v6), face_id),
-                    ]
-                    .into_iter()
-                }),
-        );
+        self.dart_construction_buffer.extend(tmp);
     }
 
     #[allow(dead_code)]
@@ -156,8 +122,34 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         todo!()
     }
 
+    pub fn build_faces(&mut self) {
+        // because there's no "trianglefan" primitive in the webgpu standard,
+        // we have to duplicate vertices
+        let tmp = self.intermediate_buffer.iter().flat_map(|face| {
+            (1..face.n_vertices - 1).flat_map(|id| {
+                let mut tmp1 = face.vertices[0];
+                let mut tmp2 = face.vertices[id];
+                let mut tmp3 = face.vertices[id + 1];
+                let shrink_dir1 = (face.center - tmp1).unit_dir().unwrap();
+                let shrink_dir2 = (face.center - tmp2).unit_dir().unwrap();
+                let shrink_dir3 = (face.center - tmp3).unit_dir().unwrap();
+                tmp1 += shrink_dir1 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                tmp2 += shrink_dir2 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                tmp3 += shrink_dir3 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                [
+                    Coords2Shader::from((tmp1, Entity::Face)),
+                    Coords2Shader::from((tmp2, Entity::Face)),
+                    Coords2Shader::from((tmp3, Entity::Face)),
+                ]
+                .into_iter()
+            })
+        });
+        self.face_construction_buffer.extend(tmp);
+    }
+
     pub fn save_buffered(&mut self) {
         self.vertices.clear();
+        self.vertices.append(&mut self.face_construction_buffer);
         self.vertices.append(&mut self.dart_construction_buffer);
     }
 
