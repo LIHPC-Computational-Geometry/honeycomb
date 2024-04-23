@@ -123,7 +123,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
     }
 
     pub fn build_faces(&mut self) {
-        // because there's no trianglefan priitive in the webgpu standard,
+        // because there's no "trianglefan" primitive in the webgpu standard,
         // we have to duplicate vertices
         let tmp = self.intermediate_buffer.iter().flat_map(|face| {
             (1..face.n_vertices - 1).flat_map(|id| {
