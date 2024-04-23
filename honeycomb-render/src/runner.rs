@@ -24,7 +24,7 @@ cfg_if::cfg_if! {
 
 const TARGET_FPS: f32 = 240.;
 
-/// This yields an approximate 60 FPS
+/// This yields an approximate 240 FPS
 const MS_PER_FRAME: u128 = (1000. / TARGET_FPS) as u128;
 
 async fn inner<T: CoordsFloat>(
