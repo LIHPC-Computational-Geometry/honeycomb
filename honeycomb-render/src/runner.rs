@@ -22,6 +22,11 @@ cfg_if::cfg_if! {
     }
 }
 
+const TARGET_FPS: f32 = 240.;
+
+/// This yields an approximate 60 FPS
+const MS_PER_FRAME: u128 = (1000. / TARGET_FPS) as u128;
+
 async fn inner<T: CoordsFloat>(
     event_loop: EventLoop<()>,
     window: Window,
@@ -33,12 +38,8 @@ async fn inner<T: CoordsFloat>(
     } else {
         State::new_test(&window, render_params).await
     };
-    let mut instant = std::time::Instant::now();
     event_loop
         .run(move |event, target| {
-            // update time elapsed since last frame
-            state.delta_t = instant.elapsed();
-            instant = std::time::Instant::now();
             // process events
             match event {
                 Event::WindowEvent {
@@ -49,13 +50,18 @@ async fn inner<T: CoordsFloat>(
                         match wevent {
                             WindowEvent::Resized(new_size) => state.resize(Some(new_size)),
                             WindowEvent::RedrawRequested => {
+                                let start = std::time::Instant::now();
                                 state.update();
                                 match state.render() {
                                     Ok(_) => {}
                                     Err(wgpu::SurfaceError::Lost) => state.resize(None),
                                     Err(wgpu::SurfaceError::OutOfMemory) => target.exit(), // kill if OOM
                                     Err(e) => eprintln!("{:?}", e),
-                                }
+                                };
+                                // put a hard cap on the rendering speed
+                                std::thread::sleep(std::time::Duration::from_millis(
+                                    (MS_PER_FRAME - start.elapsed().as_millis()) as u64,
+                                ));
                             }
                             WindowEvent::CloseRequested => target.exit(),
                             _ => {}
