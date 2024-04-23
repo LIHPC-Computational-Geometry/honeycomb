@@ -33,9 +33,13 @@ async fn inner<T: CoordsFloat>(
     } else {
         State::new_test(&window, render_params).await
     };
-
+    let mut instant = std::time::Instant::now();
     event_loop
         .run(move |event, target| {
+            // update time elapsed since last frame
+            state.delta_t = instant.elapsed();
+            instant = std::time::Instant::now();
+            // process events
             match event {
                 Event::WindowEvent {
                     window_id,

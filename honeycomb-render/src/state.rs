@@ -61,6 +61,7 @@ pub struct State<'a, T: CoordsFloat> {
     smaa_target: smaa::SmaaTarget,
     map_handle: Option<CMap2RenderHandle<'a, T>>,
     window: &'a Window,
+    pub delta_t: std::time::Duration,
 }
 
 async fn inner(
@@ -293,6 +294,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
             smaa_target,
             map_handle: Some(map_handle),
             window,
+            delta_t: std::time::Duration::default(),
         }
     }
 
@@ -349,6 +351,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
             smaa_target,
             map_handle: None,
             window,
+            delta_t: std::time::Duration::default(),
         }
     }
 
@@ -369,7 +372,8 @@ impl<'a, T: CoordsFloat> State<'a, T> {
     }
 
     pub fn update(&mut self) {
-        self.camera_controller.update_camera(&mut self.camera);
+        self.camera_controller
+            .update_camera(&mut self.camera, self.delta_t.as_secs_f32());
         self.camera_uniform.update_view_proj(&self.camera);
         self.queue.write_buffer(
             &self.camera_buffer,

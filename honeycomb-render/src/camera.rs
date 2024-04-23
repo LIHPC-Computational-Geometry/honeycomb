@@ -19,13 +19,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.0, 1.0,
 );
 
-cfg_if::cfg_if! {
-    if #[cfg(target_os = "linux")] {
-        pub const SPEED_FACTOR: f32 = 0.005;
-    } else {
-        pub const SPEED_FACTOR: f32 = 0.05;
-    }
-}
+pub const SPEED_FACTOR: f32 = 0.005;
 
 pub struct Camera {
     pub eye: cgmath::Point3<f32>,
@@ -136,7 +130,7 @@ impl CameraController {
         }
     }
 
-    pub fn update_camera(&mut self, camera: &mut Camera) {
+    pub fn update_camera(&mut self, camera: &mut Camera, delta_t: f32) {
         use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_dir = forward.normalize();
