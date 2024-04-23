@@ -130,7 +130,7 @@ impl CameraController {
         }
     }
 
-    pub fn update_camera(&mut self, camera: &mut Camera, delta_t: f32) {
+    pub fn update_camera(&mut self, camera: &mut Camera) {
         use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_dir = forward.normalize();
