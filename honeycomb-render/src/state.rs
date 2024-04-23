@@ -49,7 +49,7 @@ pub struct State<'a, T: CoordsFloat> {
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+    size: PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     num_vertices: u32,
@@ -356,7 +356,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         self.window
     }
 
-    pub fn resize(&mut self, new_size_opt: Option<winit::dpi::PhysicalSize<u32>>) {
+    pub fn resize(&mut self, new_size_opt: Option<PhysicalSize<u32>>) {
         let new_size = new_size_opt.unwrap_or(self.size);
         self.config.width = new_size.width.max(1);
         self.config.height = new_size.height.max(1);
