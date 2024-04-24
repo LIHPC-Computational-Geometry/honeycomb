@@ -18,6 +18,22 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 
 // --- INNER ROUTINES
 
+/// todo
+///
+/// # Arguments
+///
+/// - `arg: type` --
+///
+/// # Return / Panic
+///
+///
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
 fn build2_grid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
@@ -106,6 +122,22 @@ fn build2_grid<T: CoordsFloat>(
     map
 }
 
+/// todo
+///
+/// # Arguments
+///
+/// - `arg: type` --
+///
+/// # Return / Panic
+///
+///
+///
+/// # Example
+///
+/// ```text
+///
+/// ```
+///
 fn build2_splitgrid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
@@ -224,6 +256,47 @@ pub struct GridBuilder<T: CoordsFloat> {
     len_per_cell: Option<[T; 3]>,
     lens: Option<[T; 3]>,
     split_quads: bool,
+}
+
+// editing methods
+impl<T: CoordsFloat> GridBuilder<T> {
+    // n_cells
+
+    #[must_use]
+    pub fn n_cells(mut self, n_cells: [usize; 3]) -> Self {
+        self.n_cells = Some(n_cells);
+        self
+    }
+
+    #[must_use]
+    pub fn n_cells_x(mut self, n_cells: usize) -> Self {
+        if let Some([nx, _, _]) = &mut self.n_cells {
+            *nx = n_cells;
+        } else {
+            self.n_cells = Some([n_cells, 0, 0]);
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn n_cells_y(mut self, n_cells: usize) -> Self {
+        if let Some([_, ny, _]) = &mut self.n_cells {
+            *ny = n_cells;
+        } else {
+            self.n_cells = Some([0, n_cells, 0]);
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn n_cells_z(mut self, n_cells: usize) -> Self {
+        if let Some([_, _, nz]) = &mut self.n_cells {
+            *nz = n_cells;
+        } else {
+            self.n_cells = Some([0, 0, n_cells]);
+        }
+        self
+    }
 }
 
 // building methods
