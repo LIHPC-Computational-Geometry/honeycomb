@@ -14,7 +14,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{utils::square_cmap2, CMap2, DartIdentifier, FloatType, Vertex2};
+use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -23,11 +23,11 @@ use std::hint::black_box;
 // ------ CONTENT
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    square_cmap2::<FloatType>(n_square)
+    GridBuilder::unit_squares(n_square).build2()
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = square_cmap2::<FloatType>(n_square);
+    let mut map = GridBuilder::unit_squares(n_square).build2();
     map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
     // because of the way we built the map in the square_cmap2 function & the ID computation
