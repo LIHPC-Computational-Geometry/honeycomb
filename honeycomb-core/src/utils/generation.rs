@@ -206,20 +206,51 @@ fn build2_splitgrid<T: CoordsFloat>(
 
 // --- PUBLIC API
 
+/// Builder structure for specialized [`CMap2`]
+///
+/// # Generics
+///
+/// - `T: CoordsFloat` -- Generic type of the future [`CMap2`] instance.
+///
+/// # Example
+///
+/// ```rust
+/// todo!()
+/// ```
+///
 #[derive(Default)]
 pub struct GridBuilder<T: CoordsFloat> {
-    ns_cell: Option<[usize; 3]>,
-    lens_per_cell: Option<[T; 3]>,
+    n_cells: Option<[usize; 3]>,
+    len_per_cell: Option<[T; 3]>,
     lens: Option<[T; 3]>,
     split_quads: bool,
 }
 
 impl<T: CoordsFloat> GridBuilder<T> {
+    /// Consumes the builder and produce a [`CMap2`] object.
+    ///
+    /// # Return
+    ///
+    /// Return a [`CMap2`] instance representing an orthogonal grid, which characteristics are
+    /// determined by the attributes of the consumed object.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if the provided information is not sufficient to generate a grid.
+    /// Two of these three fields should be provided:
+    /// - The number of cells per axis
+    /// - The dimensions of cells per axis
+    /// - The dimensions of the grid per axis
+    ///
+    /// # Example
+    ///
+    /// See [`GridBuilder`] example.
+    ///
     pub fn build2(self) -> CMap2<T> {
         // preprocess parameters
         let (ns_square, lens_per_cell): ([usize; 2], [T; 2]) = match (
-            self.ns_cell,
-            self.lens_per_cell,
+            self.n_cells,
+            self.len_per_cell,
             self.lens,
         ) {
             // from # cells and lengths per cell
@@ -301,8 +332,8 @@ impl<T: CoordsFloat> GridBuilder<T> {
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn unit_squares(n_square: usize) -> Self {
         Self {
-            ns_cell: Some([n_square; 3]),
-            lens_per_cell: Some([T::one(); 3]),
+            n_cells: Some([n_square; 3]),
+            len_per_cell: Some([T::one(); 3]),
             ..Default::default()
         }
     }
@@ -337,8 +368,8 @@ impl<T: CoordsFloat> GridBuilder<T> {
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn split_unit_squares(n_square: usize) -> Self {
         Self {
-            ns_cell: Some([n_square; 3]),
-            lens_per_cell: Some([T::one(); 3]),
+            n_cells: Some([n_square; 3]),
+            len_per_cell: Some([T::one(); 3]),
             split_quads: true,
             ..Default::default()
         }
@@ -385,7 +416,7 @@ mod tests {
 
     #[test]
     fn square_cmap2_correctness() {
-        let cmap: CMap2<f64> = square_cmap2(2);
+        let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2();
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
@@ -486,7 +517,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn splitsquare_cmap2_correctness() {
-        let cmap: CMap2<f64> = splitsquare_cmap2(2);
+        let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2();
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
