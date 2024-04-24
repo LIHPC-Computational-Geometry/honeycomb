@@ -226,6 +226,7 @@ pub struct GridBuilder<T: CoordsFloat> {
     split_quads: bool,
 }
 
+// building methods
 impl<T: CoordsFloat> GridBuilder<T> {
     /// Consumes the builder and produce a [`CMap2`] object.
     ///
