@@ -18,22 +18,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 
 // --- INNER ROUTINES
 
-/// todo
-///
-/// # Arguments
-///
-/// - `arg: type` --
-///
-/// # Return / Panic
-///
-///
-///
-/// # Example
-///
-/// ```text
-///
-/// ```
-///
+/// Internal grid-building routine
 fn build2_grid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
@@ -122,22 +107,7 @@ fn build2_grid<T: CoordsFloat>(
     map
 }
 
-/// todo
-///
-/// # Arguments
-///
-/// - `arg: type` --
-///
-/// # Return / Panic
-///
-///
-///
-/// # Example
-///
-/// ```text
-///
-/// ```
-///
+/// Internal grid-building routine
 fn build2_splitgrid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
@@ -238,8 +208,14 @@ fn build2_splitgrid<T: CoordsFloat>(
 
 // --- PUBLIC API
 
+/// Builder-level error enum
+///
+/// This enum is used to describe all non-panic errors that can occur when using a builder
+/// structure.
 #[derive(Debug)]
 pub enum BuilderError<'a> {
+    /// The builder is missing one or multiple parameters in order to proceed with the requested
+    /// operation.
     MissingParameters(&'a str),
 }
 
@@ -433,7 +409,9 @@ impl<T: CoordsFloat> GridBuilder<T> {
                 )
             }
             (_, _, _) => {
-                return Err(BuilderError::MissingParameters("Insufficient building parameters, please specify two out of three grid parameters"));
+                return Err(BuilderError::MissingParameters(
+                    "GridBuilder: insufficient building parameters",
+                ));
             }
         };
 
