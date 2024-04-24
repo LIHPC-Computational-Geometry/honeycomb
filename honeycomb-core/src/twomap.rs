@@ -1541,7 +1541,7 @@ mod tests {
     }
 
     #[test]
-    //#[should_panic]
+    #[should_panic]
     fn two_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.two_sew(1, 2); // should panic
@@ -1599,7 +1599,7 @@ mod tests {
         assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
     }
     #[test]
-    //#[should_panic]
+    #[should_panic]
     fn one_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.one_sew(1, 2); // should panic
