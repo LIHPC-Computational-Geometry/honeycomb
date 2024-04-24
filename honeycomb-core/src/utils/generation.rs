@@ -238,7 +238,16 @@ fn build2_splitgrid<T: CoordsFloat>(
 
 // --- PUBLIC API
 
-/// Builder structure for specialized [`CMap2`]
+/// Builder structure for specialized [`CMap2`].
+///
+/// The user must specify two out of these three characteristics:
+///
+/// - `n_cells: [usize; 3]` - The number of cells per axis
+/// - `len_per_cell: [T; 3]` - The dimensions of cells per axis
+/// - `lens: [T; 3]` -The dimensions of the grid per axis
+///
+/// This can be done using the provided eponymous methods. The structure can then be used to
+/// generate a [`CMap2`] using [`GridBuilder::build2`].
 ///
 /// # Generics
 ///
@@ -246,8 +255,19 @@ fn build2_splitgrid<T: CoordsFloat>(
 ///
 /// # Example
 ///
+/// The following code generates a map that can be visualized by running the example
+/// `render_squaremap_parameterized`:
+///
 /// ```rust
-/// todo!()
+/// # fn main() {
+/// use honeycomb_core::{CMap2, utils::GridBuilder};
+///
+/// let map = GridBuilder::default()
+///                 .n_cells([10, 5, 0])
+///                 .len_per_cell_x(1.0_f64)
+///                 .len_per_cell_y(2.0_f64)
+///                 .build2();
+/// # }
 /// ```
 ///
 #[derive(Default)]
@@ -260,13 +280,15 @@ pub struct GridBuilder<T: CoordsFloat> {
 
 macro_rules! setters {
     ($fld: ident, $fldx: ident, $fldy: ident, $fldz: ident, $zero: expr, $fldty: ty) => {
-        #[must_use]
+        /// Set values for all dimensions
+        #[must_use = "unused builder object, consider removing this method call"]
         pub fn $fld(mut self, $fld: [$fldty; 3]) -> Self {
             self.$fld = Some($fld);
             self
         }
 
-        #[must_use]
+        /// Set x-axis value
+        #[must_use = "unused builder object, consider removing this method call"]
         pub fn $fldx(mut self, $fld: $fldty) -> Self {
             if let Some([ptr, _, _]) = &mut self.$fld {
                 *ptr = $fld;
@@ -276,7 +298,8 @@ macro_rules! setters {
             self
         }
 
-        #[must_use]
+        /// Set y-axis value
+        #[must_use = "unused builder object, consider removing this method call"]
         pub fn $fldy(mut self, $fld: $fldty) -> Self {
             if let Some([_, ptr, _]) = &mut self.$fld {
                 *ptr = $fld;
@@ -286,7 +309,8 @@ macro_rules! setters {
             self
         }
 
-        #[must_use]
+        /// Set z-axis value
+        #[must_use = "unused builder object, consider removing this method call"]
         pub fn $fldz(mut self, $fld: $fldty) -> Self {
             if let Some([_, _, ptr]) = &mut self.$fld {
                 *ptr = $fld;
