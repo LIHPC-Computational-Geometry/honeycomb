@@ -258,45 +258,63 @@ pub struct GridBuilder<T: CoordsFloat> {
     split_quads: bool,
 }
 
+macro_rules! setters {
+    ($fld: ident, $fldx: ident, $fldy: ident, $fldz: ident, $zero: expr, $fldty: ty) => {
+        #[must_use]
+        pub fn $fld(mut self, $fld: [$fldty; 3]) -> Self {
+            self.$fld = Some($fld);
+            self
+        }
+
+        #[must_use]
+        pub fn $fldx(mut self, $fld: $fldty) -> Self {
+            if let Some([ptr, _, _]) = &mut self.$fld {
+                *ptr = $fld;
+            } else {
+                self.$fld = Some([$fld, $zero, $zero]);
+            }
+            self
+        }
+
+        #[must_use]
+        pub fn $fldy(mut self, $fld: $fldty) -> Self {
+            if let Some([_, ptr, _]) = &mut self.$fld {
+                *ptr = $fld;
+            } else {
+                self.$fld = Some([$zero, $fld, $zero]);
+            }
+            self
+        }
+
+        #[must_use]
+        pub fn $fldz(mut self, $fld: $fldty) -> Self {
+            if let Some([_, _, ptr]) = &mut self.$fld {
+                *ptr = $fld;
+            } else {
+                self.$fld = Some([$zero, $zero, $fld]);
+            }
+            self
+        }
+    };
+}
+
 // editing methods
 impl<T: CoordsFloat> GridBuilder<T> {
     // n_cells
+    setters!(n_cells, n_cells_x, n_cells_y, n_cells_z, 0, usize);
 
-    #[must_use]
-    pub fn n_cells(mut self, n_cells: [usize; 3]) -> Self {
-        self.n_cells = Some(n_cells);
-        self
-    }
+    // len_per_cell
+    setters!(
+        len_per_cell,
+        len_per_cell_x,
+        len_per_cell_y,
+        len_per_cell_z,
+        T::zero(),
+        T
+    );
 
-    #[must_use]
-    pub fn n_cells_x(mut self, n_cells: usize) -> Self {
-        if let Some([nx, _, _]) = &mut self.n_cells {
-            *nx = n_cells;
-        } else {
-            self.n_cells = Some([n_cells, 0, 0]);
-        }
-        self
-    }
-
-    #[must_use]
-    pub fn n_cells_y(mut self, n_cells: usize) -> Self {
-        if let Some([_, ny, _]) = &mut self.n_cells {
-            *ny = n_cells;
-        } else {
-            self.n_cells = Some([0, n_cells, 0]);
-        }
-        self
-    }
-
-    #[must_use]
-    pub fn n_cells_z(mut self, n_cells: usize) -> Self {
-        if let Some([_, _, nz]) = &mut self.n_cells {
-            *nz = n_cells;
-        } else {
-            self.n_cells = Some([0, 0, n_cells]);
-        }
-        self
-    }
+    // lens
+    setters!(lens, lens_x, lens_y, lens_z, T::zero(), T);
 }
 
 // building methods
