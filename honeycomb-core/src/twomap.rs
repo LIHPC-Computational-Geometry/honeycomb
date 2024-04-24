@@ -693,7 +693,9 @@ impl<T: CoordsFloat> CMap2<T> {
             assert!(
                 self.vertices.get(&(self.vertex_id(rhs_dart_id))).is_some(),
                 "{}",
-                format!("No vertex defined on vertex {rhs_dart_id}, use `one_link` instead of `one_sew`")
+                format!(
+                    "No vertex defined on dart {rhs_dart_id}, use `one_link` instead of `one_sew`"
+                )
             );
             self.one_link(lhs_dart_id, rhs_dart_id);
         } else {
@@ -747,6 +749,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 // WARNING: UNWANTED BEHAVIOR
                 // there should be a check in order to ensure that each dart has associated vertices
                 // otherwise, panic because the user should call link, not sew
+                assert!(
+                    self.vertices.get(&(self.vertex_id(lhs_dart_id))).is_some() | self.vertices.get(&(self.vertex_id(rhs_dart_id))).is_some(),
+                    "{}",
+                    format!("No vertices defined on either darts {lhs_dart_id}/{rhs_dart_id} , use `two_link` instead of `two_sew`")
+                );
                 self.two_link(lhs_dart_id, rhs_dart_id);
             }
             // update vertex associated to b1rhs/lhs
@@ -1543,7 +1550,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(
+        expected = "No vertices defined on either darts 1/2 , use `two_link` instead of `two_sew`"
+    )]
     fn two_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.two_sew(1, 2); // should panic
@@ -1601,7 +1610,7 @@ mod tests {
         assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
     }
     #[test]
-    #[should_panic(expected = "No vertex defined on vertex 2, use `one_link` instead of `one_sew`")]
+    #[should_panic(expected = "No vertex defined on dart 2, use `one_link` instead of `one_sew`")]
     fn one_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.one_sew(1, 2); // should panic
