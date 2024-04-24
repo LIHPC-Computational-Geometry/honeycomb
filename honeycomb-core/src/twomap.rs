@@ -690,9 +690,11 @@ impl<T: CoordsFloat> CMap2<T> {
         // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
-            // WARNING: UNWANTED BEHAVIOR
-            // there should be a check in order to ensure that vertex(rhs_dart) is defined
-            // otherwise, panic because the user should call link, not sew
+            assert!(
+                self.vertices.get(&(self.vertex_id(rhs_dart_id))).is_some(),
+                "{}",
+                format!("No vertex defined on vertex {rhs_dart_id}, use `one_link` instead of `one_sew`")
+            );
             self.one_link(lhs_dart_id, rhs_dart_id);
         } else {
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
@@ -1599,7 +1601,7 @@ mod tests {
         assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
     }
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "No vertex defined on vertex 2, use `one_link` instead of `one_sew`")]
     fn one_sew_no_attributes() {
         let mut map: CMap2<FloatType> = CMap2::new(2);
         map.one_sew(1, 2); // should panic
