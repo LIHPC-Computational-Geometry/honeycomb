@@ -23,7 +23,7 @@ use std::hint::black_box;
 // ------ CONTENT
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    GridBuilder::unit_squares(n_square).build2()
+    GridBuilder::unit_squares(n_square).build2().unwrap()
 }
 
 #[library_benchmark]

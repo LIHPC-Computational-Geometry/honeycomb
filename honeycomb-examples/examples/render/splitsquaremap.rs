@@ -6,6 +6,6 @@ fn main() {
         smaa_mode: SmaaMode::Smaa1X,
         ..Default::default()
     };
-    let map: CMap2<f32> = GridBuilder::split_unit_squares(4).build2();
+    let map: CMap2<f32> = GridBuilder::split_unit_squares(4).build2().unwrap();
     Runner::default().run(render_params, Some(&map));
 }

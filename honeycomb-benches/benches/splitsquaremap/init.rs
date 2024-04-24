@@ -23,7 +23,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> = GridBuilder::split_unit_squares(*n_square).build2();
+                let mut map: CMap2<FloatType> =
+                    GridBuilder::split_unit_squares(*n_square).build2().unwrap();
                 black_box(&mut map);
             })
         });

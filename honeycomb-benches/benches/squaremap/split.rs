@@ -142,7 +142,7 @@ fn split_diff(mut map: CMap2<FloatType>, split: &[bool]) {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2();
+    let map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
     let seed: u64 = 9817498146784;
     let rng = SmallRng::seed_from_u64(seed);
     let dist = Bernoulli::new(P_BERNOULLI).unwrap();

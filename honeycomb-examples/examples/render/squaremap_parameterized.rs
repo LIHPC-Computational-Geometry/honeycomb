@@ -10,6 +10,7 @@ fn main() {
         .n_cells([15, 5, 0])
         .len_per_cell_x(1.0_f64)
         .len_per_cell_y(3.0_f64)
-        .build2();
+        .build2()
+        .unwrap();
     Runner::default().run(render_params, Some(&map));
 }

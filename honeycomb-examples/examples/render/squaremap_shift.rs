@@ -16,7 +16,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2();
+    let mut map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 

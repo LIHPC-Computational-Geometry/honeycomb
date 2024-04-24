@@ -28,7 +28,7 @@ fn compute_dims(n_square: usize) -> usize {
 }
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    GridBuilder::unit_squares(n_square).build2()
+    GridBuilder::unit_squares(n_square).build2().unwrap()
 }
 
 fn get_unstructured_map(n_square: usize) -> CMap2<FloatType> {
