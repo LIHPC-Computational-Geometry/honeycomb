@@ -15,4 +15,4 @@ mod generation;
 
 // ------ PUBLIC RE-EXPORTS
 
-pub use generation::{splitsquare_cmap2, square_cmap2};
+pub use generation::{splitsquare_cmap2, square_cmap2, GridBuilder};
