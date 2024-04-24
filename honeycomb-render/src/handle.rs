@@ -81,39 +81,43 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     pub fn build_darts(&mut self) {
         // get all faces
-        let tmp = self.intermediate_buffer.iter().flat_map(|face| {
-            (0..face.n_vertices).flat_map(|id| {
-                let mut v1 = face.vertices[id];
-                let mut v6 = face.vertices[(id + 1) % face.n_vertices];
+        let tmp = self
+            .intermediate_buffer
+            .iter()
+            .filter(|face| face.n_vertices > 1)
+            .flat_map(|face| {
+                (0..face.n_vertices).flat_map(|id| {
+                    let mut v1 = face.vertices[id];
+                    let mut v6 = face.vertices[(id + 1) % face.n_vertices];
 
-                let seg_dir = (v6 - v1).unit_dir().unwrap();
-                v1 += seg_dir * T::from(self.params.shrink_factor).unwrap();
-                v6 -= seg_dir * T::from(self.params.shrink_factor).unwrap();
+                    let seg_dir = (v6 - v1).unit_dir().unwrap();
+                    v1 += seg_dir * T::from(self.params.shrink_factor).unwrap();
+                    v6 -= seg_dir * T::from(self.params.shrink_factor).unwrap();
 
-                let seg = v6 - v1;
-                let seg_length = seg.norm();
-                let seg_dir = seg.unit_dir().unwrap();
-                let seg_normal = seg.normal_dir();
-                let ahs = T::from(self.params.arrow_headsize).unwrap();
-                let at = T::from(self.params.arrow_thickness).unwrap();
+                    let seg = v6 - v1;
+                    let seg_length = seg.norm();
+                    let seg_dir = seg.unit_dir().unwrap();
+                    let seg_normal = seg.normal_dir();
+                    let ahs = T::from(self.params.arrow_headsize).unwrap();
+                    let at = T::from(self.params.arrow_thickness).unwrap();
 
-                let vcenter = v6 - seg_dir * ahs;
-                let v2 = vcenter - seg_normal * at;
-                let v3 = vcenter + seg_normal * at;
-                let v4 = vcenter + seg_normal * (ahs * seg_length);
-                let v5 = vcenter - seg_normal * (ahs * seg_length);
+                    let vcenter = v6 - seg_dir * ahs;
+                    let v2 = vcenter - seg_normal * at;
+                    let v3 = vcenter + seg_normal * at;
+                    let v4 = vcenter + seg_normal * (ahs * seg_length);
+                    let v5 = vcenter - seg_normal * (ahs * seg_length);
 
-                [
-                    Coords2Shader::from((v1, Entity::Dart)),
-                    Coords2Shader::from((v2, Entity::Dart)),
-                    Coords2Shader::from((v3, Entity::Dart)),
-                    Coords2Shader::from((v4, Entity::Dart)),
-                    Coords2Shader::from((v5, Entity::Dart)),
-                    Coords2Shader::from((v6, Entity::Dart)),
-                ]
-                .into_iter()
-            })
-        });
+                    [
+                        Coords2Shader::from((v1, Entity::Dart)),
+                        Coords2Shader::from((v2, Entity::Dart)),
+                        Coords2Shader::from((v3, Entity::Dart)),
+                        Coords2Shader::from((v4, Entity::Dart)),
+                        Coords2Shader::from((v5, Entity::Dart)),
+                        Coords2Shader::from((v6, Entity::Dart)),
+                    ]
+                    .into_iter()
+                })
+            });
         self.dart_construction_buffer.extend(tmp);
     }
 
