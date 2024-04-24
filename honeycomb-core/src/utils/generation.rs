@@ -258,6 +258,47 @@ impl<T: CoordsFloat> GridBuilder<T> {
 
 // predefinite constructs
 impl<T: CoordsFloat> GridBuilder<T> {
+    /// Generate a predefined [`GridBuilder`] object.
+    ///
+    /// This object can be used to build a 2-map representing an orthogonal mesh made of
+    /// `n_square * n_square` square cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_square: usize` -- Dimension of the desired mesh.
+    ///
+    /// ## Generics
+    ///
+    /// - `const T: CoordsFloat` -- Generic parameter of the returned [`GridBuilder`].
+    ///
+    /// # Return
+    ///
+    /// Returns a parameterized [`GridBuilder`] that can be used to generate a [`CMap2`] using the
+    /// [`GridBuilder::build2`] method.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use honeycomb_core::{CMap2, utils::GridBuilder};
+    ///
+    /// let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2();
+    /// ```
+    ///
+    /// The above code generates the following map:
+    ///
+    /// ![SQUARECMAP2](../../images/CMap2Square.svg)
+    ///
+    /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
+    /// Everywhere following the same pattern. Dart indexing is also consistent
+    /// with the following rules:
+    ///
+    /// - inside a cell, the first dart is the one on the bottom, pointing towards
+    ///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
+    ///   orientation.
+    /// - cells are ordered from left to right, from the bottom up. The same rule
+    ///   applies for face IDs.
+    ///
+    #[must_use = "unused builder object, consider removing this function call"]
     pub fn unit_squares(n_square: usize) -> Self {
         Self {
             ns_cell: Some([n_square; 3]),
@@ -266,6 +307,34 @@ impl<T: CoordsFloat> GridBuilder<T> {
         }
     }
 
+    /// Generate a predefined [`GridBuilder`] object.
+    ///
+    /// This object can be used to build a 2-map representing an orthogonal mesh made of
+    /// `n_square * n_square` squares, that are split diagonally for a total of
+    /// `n_square * n_square * 2` cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_square: usize` -- Dimension of the desired mesh.
+    ///
+    /// ## Generics
+    ///
+    /// - `const T: CoordsFloat` -- Generic parameter of the returned [`GridBuilder`].
+    ///
+    /// # Return
+    ///
+    /// Returns a parameterized [`GridBuilder`] that can be used to generate a [`CMap2`] using the
+    /// [`GridBuilder::build2`] method.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use honeycomb_core::{CMap2, utils::GridBuilder};
+    ///
+    /// let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2();
+    /// ```
+    ///
+    #[must_use = "unused builder object, consider removing this function call"]
     pub fn split_unit_squares(n_square: usize) -> Self {
         Self {
             ns_cell: Some([n_square; 3]),
@@ -278,50 +347,15 @@ impl<T: CoordsFloat> GridBuilder<T> {
 
 /// Generate a [`CMap2`] representing a mesh made up of squares.
 ///
+/// <div class="warning">
+///
+/// **This function is deprecated, please use [`GridBuilder::unit_squares`] instead.**
+///
+/// </div>
+///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square` square cells.
-///
-/// # Arguments
-///
-/// - `n_square: usize` -- Dimension of the returned mesh.
-///
-/// ## Generics
-///
-/// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
-///
-/// # Return
-///
-/// Returns a boundary-less [`CMap2`] of the specified size. The map contains
-/// `4 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
-/// vertices.
-///
-/// # Panics
-///
-/// If this function panics, this is most likely due to a mistake in implementation in the core
-/// crate.
-///
-/// # Example
-///
-/// ```
-/// use honeycomb_core::{CMap2, utils::square_cmap2};
-///
-/// let cmap: CMap2<f64> = square_cmap2(2);
-/// ```
-///
-/// The above code generates the following map:
-///
-/// ![SQUARECMAP2](../../images/CMap2Square.svg)
-///
-/// Note that *β<sub>1</sub>* is only represented in one cell but is defined
-/// Everywhere following the same pattern. Dart indexing is also consistent
-/// with the following rules:
-///
-/// - inside a cell, the first dart is the one on the bottom, pointing towards
-///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
-///   orientation.
-/// - cells are ordered from left to right, from the bottom up. The same rule
-///   applies for face IDs.
-///
+#[deprecated(note = "please use the `GridBuilder::unit_squares` function instead")]
 #[must_use = "constructed object is not used, consider removing this function call"]
 pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     build2_grid([n_square, n_square], [T::one(), T::one()])
@@ -329,30 +363,15 @@ pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 
 /// Generate a [`CMap2`] representing a mesh made up of squares split diagonally.
 ///
+/// <div class="warning">
+///
+/// **This function is deprecated, please use [`GridBuilder::unit_squares`] instead.**
+///
+/// </div>
+///
 /// This function builds and returns a 2-map representing a square mesh
 /// made of `n_square * n_square * 2` triangle cells.
-///
-/// # Arguments
-///
-/// - `n_square: usize` -- Dimension of the returned mesh.
-///
-/// ## Generics
-///
-/// - `const T: CoordsFloat` -- Generic parameter of the returned [`CMap2`].
-///
-/// # Return
-///
-/// Returns a boundary-less [`CMap2`] of the specified size. The map contains
-/// `6 * n_square * n_square` darts and `(n_square + 1) * (n_square + 1)`
-/// vertices.
-///
-/// The indexing follows the same logic described in the documentation of [`square_cmap2`].
-///
-/// # Panics
-///
-/// If this function panics, this is most likely due to a mistake in implementation in the core
-/// crate.
-///
+#[deprecated(note = "please use the `GridBuilder::split_unit_squares` function instead")]
 #[must_use = "constructed object is not used, consider removing this function call"]
 pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
     build2_splitgrid([n_square, n_square], [T::one(), T::one()])
