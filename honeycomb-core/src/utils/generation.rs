@@ -16,6 +16,30 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
+// --- INNER ROUTINES
+
+fn build2_grid<T: CoordsFloat>(builder: GridBuilder<T>) -> CMap2<T> {
+    todo!()
+}
+
+fn build2_splitgrid<T: CoordsFloat>(builder: GridBuilder<T>) -> CMap2<T> {
+    todo!()
+}
+
+// --- PUBLIC API
+
+pub struct GridBuilder<T: CoordsFloat> {
+    ns_cell: Option<[usize; 3]>,
+    lens_per_cell: Option<[T; 3]>,
+    lens: Option<[T; 3]>,
+}
+
+impl<T: CoordsFloat> GridBuilder<T> {
+    pub fn build2(self) -> CMap2<T> {
+        todo!()
+    }
+}
+
 /// Generate a [`CMap2`] representing a mesh made up of squares.
 ///
 /// This function builds and returns a 2-map representing a square mesh
