@@ -106,12 +106,16 @@ fn build2_grid<T: CoordsFloat>(
     map
 }
 
-fn build2_splitgrid<T: CoordsFloat>(builder: GridBuilder<T>) -> CMap2<T> {
+fn build2_splitgrid<T: CoordsFloat>(
+    [n_square_x, n_square_y]: [usize; 2],
+    [len_per_x, len_per_y]: [T; 2],
+) -> CMap2<T> {
     todo!()
 }
 
 // --- PUBLIC API
 
+#[derive(Default)]
 pub struct GridBuilder<T: CoordsFloat> {
     ns_cell: Option<[usize; 3]>,
     lens_per_cell: Option<[T; 3]>,
@@ -121,7 +125,43 @@ pub struct GridBuilder<T: CoordsFloat> {
 
 impl<T: CoordsFloat> GridBuilder<T> {
     pub fn build2(self) -> CMap2<T> {
-        todo!()
+        // preprocess parameters
+        let (ns_square, lens_per_cell): ([usize; 2], [T; 2]) = match (
+            self.ns_cell,
+            self.lens_per_cell,
+            self.lens,
+        ) {
+            // from # cells and lengths per cell
+            (Some([nx, ny, _]), Some([lpx, lpy, _]), lens) => {
+                if lens.is_some() {
+                    println!("W: All three grid parameters were specified, total lengths will be ignored");
+                }
+                ([nx, ny], [lpx, lpy])
+            }
+            // from # cells and total lengths
+            (Some([nx, ny, _]), None, Some([lx, ly, _])) => (
+                [nx, ny],
+                [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
+            ),
+            // from lengths per cell and total lengths
+            (None, Some([lpx, lpy, _]), Some([lx, ly, _])) => (
+                [
+                    (lx / lpx).ceil().to_usize().unwrap(),
+                    (ly / lpy).ceil().to_usize().unwrap(),
+                ],
+                [lpx, lpy],
+            ),
+            (_, _, _) => {
+                panic!("Insufficient building parameters, please specify two out of three grid parameters")
+            }
+        };
+
+        // build
+        if self.split_quads {
+            build2_splitgrid(ns_square, lens_per_cell)
+        } else {
+            build2_grid(ns_square, lens_per_cell)
+        }
     }
 }
 
