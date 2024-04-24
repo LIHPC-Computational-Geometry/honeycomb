@@ -256,6 +256,26 @@ impl<T: CoordsFloat> GridBuilder<T> {
     }
 }
 
+// predefinite constructs
+impl<T: CoordsFloat> GridBuilder<T> {
+    pub fn unit_squares(n_square: usize) -> Self {
+        Self {
+            ns_cell: Some([n_square; 3]),
+            lens_per_cell: Some([T::one(); 3]),
+            ..Default::default()
+        }
+    }
+
+    pub fn split_unit_squares(n_square: usize) -> Self {
+        Self {
+            ns_cell: Some([n_square; 3]),
+            lens_per_cell: Some([T::one(); 3]),
+            split_quads: true,
+            ..Default::default()
+        }
+    }
+}
+
 /// Generate a [`CMap2`] representing a mesh made up of squares.
 ///
 /// This function builds and returns a 2-map representing a square mesh
