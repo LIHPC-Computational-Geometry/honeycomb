@@ -238,6 +238,11 @@ fn build2_splitgrid<T: CoordsFloat>(
 
 // --- PUBLIC API
 
+#[derive(Debug)]
+pub enum BuilderError<'a> {
+    MissingParameters(&'a str),
+}
+
 /// Builder structure for specialized [`CMap2`].
 ///
 /// The user must specify two out of these three characteristics:
@@ -343,26 +348,28 @@ impl<T: CoordsFloat> GridBuilder<T> {
 
 // building methods
 impl<T: CoordsFloat> GridBuilder<T> {
+    #[allow(clippy::missing_errors_doc)]
     /// Consumes the builder and produce a [`CMap2`] object.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// Return a [`CMap2`] instance representing an orthogonal grid, which characteristics are
-    /// determined by the attributes of the consumed object.
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(map: CMap2)` -- The method used two of the three parameters to generate a [`CMap2`]
+    /// instance
+    /// - `Err(BuilderError::MissingParameters)` -- The provided information was not sufficient to
+    /// create an instance
     ///
     /// # Panics
     ///
-    /// This method may panic if the provided information is not sufficient to generate a grid.
-    /// Two of these three fields should be provided:
-    /// - The number of cells per axis
-    /// - The dimensions of cells per axis
-    /// - The dimensions of the grid per axis
+    /// This method may panic if
+    /// - type casting goes wrong during parameters parsing
+    /// - any of the used length is negative or null
     ///
     /// # Example
     ///
     /// See [`GridBuilder`] example.
     ///
-    pub fn build2(self) -> CMap2<T> {
+    pub fn build2<'a>(self) -> Result<CMap2<T>, BuilderError<'a>> {
         // preprocess parameters
         let (ns_square, lens_per_cell): ([usize; 2], [T; 2]) = match (
             self.n_cells,
@@ -374,32 +381,68 @@ impl<T: CoordsFloat> GridBuilder<T> {
                 if lens.is_some() {
                     println!("W: All three grid parameters were specified, total lengths will be ignored");
                 }
+                assert!(
+                    lpx.is_sign_positive() & !lpx.is_zero(),
+                    "Specified length per x cell is either null or negative"
+                );
+                assert!(
+                    lpy.is_sign_positive() & !lpy.is_zero(),
+                    "Specified length per y cell is either null or negative"
+                );
                 ([nx, ny], [lpx, lpy])
             }
             // from # cells and total lengths
-            (Some([nx, ny, _]), None, Some([lx, ly, _])) => (
-                [nx, ny],
-                [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
-            ),
+            (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
+                assert!(
+                    lx.is_sign_positive() & !lx.is_zero(),
+                    "Specified grid length along x is either null or negative"
+                );
+                assert!(
+                    ly.is_sign_positive() & !ly.is_zero(),
+                    "Specified grid length along y is either null or negative"
+                );
+                (
+                    [nx, ny],
+                    [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
+                )
+            }
             // from lengths per cell and total lengths
-            (None, Some([lpx, lpy, _]), Some([lx, ly, _])) => (
-                [
-                    (lx / lpx).ceil().to_usize().unwrap(),
-                    (ly / lpy).ceil().to_usize().unwrap(),
-                ],
-                [lpx, lpy],
-            ),
+            (None, Some([lpx, lpy, _]), Some([lx, ly, _])) => {
+                assert!(
+                    lpx.is_sign_positive() & !lpx.is_zero(),
+                    "Specified length per x cell is either null or negative"
+                );
+                assert!(
+                    lpy.is_sign_positive() & !lpy.is_zero(),
+                    "Specified length per y cell is either null or negative"
+                );
+                assert!(
+                    lx.is_sign_positive() & !lx.is_zero(),
+                    "Specified grid length along x is either null or negative"
+                );
+                assert!(
+                    ly.is_sign_positive() & !ly.is_zero(),
+                    "Specified grid length along y is either null or negative"
+                );
+                (
+                    [
+                        (lx / lpx).ceil().to_usize().unwrap(),
+                        (ly / lpy).ceil().to_usize().unwrap(),
+                    ],
+                    [lpx, lpy],
+                )
+            }
             (_, _, _) => {
-                panic!("Insufficient building parameters, please specify two out of three grid parameters")
+                return Err(BuilderError::MissingParameters("Insufficient building parameters, please specify two out of three grid parameters"));
             }
         };
 
         // build
-        if self.split_quads {
+        Ok(if self.split_quads {
             build2_splitgrid(ns_square, lens_per_cell)
         } else {
             build2_grid(ns_square, lens_per_cell)
-        }
+        })
     }
 }
 
@@ -428,7 +471,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// ```
     /// use honeycomb_core::{CMap2, utils::GridBuilder};
     ///
-    /// let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2();
+    /// let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2().unwrap();
     /// ```
     ///
     /// The above code generates the following map:
@@ -478,7 +521,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// ```
     /// use honeycomb_core::{CMap2, utils::GridBuilder};
     ///
-    /// let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2();
+    /// let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2().unwrap();
     /// ```
     ///
     #[must_use = "unused builder object, consider removing this function call"]
@@ -532,7 +575,7 @@ mod tests {
 
     #[test]
     fn square_cmap2_correctness() {
-        let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2();
+        let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2().unwrap();
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
@@ -633,7 +676,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn splitsquare_cmap2_correctness() {
-        let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2();
+        let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2().unwrap();
 
         // hardcoded because using a generic loop & dim would just mean
         // reusing the same pattern as the one used during construction
