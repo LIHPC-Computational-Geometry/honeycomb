@@ -263,10 +263,10 @@ fn build2_splitgrid<T: CoordsFloat>(
 /// use honeycomb_core::{CMap2, utils::GridBuilder};
 ///
 /// let map = GridBuilder::default()
-///                 .n_cells([10, 5, 0])
-///                 .len_per_cell_x(1.0_f64)
-///                 .len_per_cell_y(2.0_f64)
-///                 .build2();
+///     .n_cells([15, 5, 0])
+///     .len_per_cell_x(1.0_f64)
+///     .len_per_cell_y(3.0_f64)
+///     .build2();
 /// # }
 /// ```
 ///

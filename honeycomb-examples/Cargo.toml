@@ -35,6 +35,10 @@ name = "render_squaremap"
 path = "examples/render/squaremap.rs"
 
 [[example]]
+name = "render_squaremap_parameterized"
+path = "examples/render/squaremap_parameterized.rs"
+
+[[example]]
 name = "render_squaremap_shift"
 path = "examples/render/squaremap_shift.rs"
 
