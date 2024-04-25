@@ -25,6 +25,8 @@ pub struct RenderParameters {
     pub arrow_headsize: f32,
     /// Thickness of the darts.
     pub arrow_thickness: f32,
+    /// Size arrow thcikness and head relatively to their length.
+    pub relative_resize: bool,
 }
 
 impl Default for RenderParameters {
@@ -34,6 +36,7 @@ impl Default for RenderParameters {
             shrink_factor: 0.1,    // need to adjust
             arrow_headsize: 0.05,  // need to adjust
             arrow_thickness: 0.01, // need to adjust
+            relative_resize: true,
         }
     }
 }
@@ -95,21 +98,27 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                     vb -= seg_dir * T::from(self.params.shrink_factor).unwrap();
 
                     let seg = vb - va;
-                    // let seg_length = seg.norm();
                     let seg_normal = seg.normal_dir();
                     let ahs = T::from(self.params.arrow_headsize).unwrap();
                     let at = T::from(self.params.arrow_thickness).unwrap();
-                    let body_offset = seg_normal * at;
+                    let mut body_offset = seg_normal * at;
+                    let mut head_offset = seg_normal * ahs;
+                    let mut vcenter = vb - seg * ahs;
+                    if self.params.relative_resize {
+                        let seg_length = seg.norm();
+                        body_offset *= seg_length;
+                        head_offset *= seg_length;
+                        vcenter = vb - seg * seg_length * ahs;
+                    }
 
                     let v1 = va + body_offset;
                     let v2 = va - body_offset;
-                    let vcenter = vb - seg * ahs;
                     let v3 = vcenter - body_offset;
                     let v4 = v3;
                     let v5 = v1;
                     let v6 = vcenter + body_offset;
-                    let v7 = vcenter + seg_normal * ahs;
-                    let v8 = vcenter - seg_normal * ahs;
+                    let v7 = vcenter + head_offset;
+                    let v8 = vcenter - head_offset;
                     let v9 = vb;
                     [
                         Coords2Shader::from((v1, Entity::Dart)),
