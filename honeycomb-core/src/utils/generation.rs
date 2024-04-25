@@ -612,6 +612,35 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "Specified length per y cell is either null or negative")]
+    fn build_neg_lpc() {
+        let _ = GridBuilder::default()
+            .n_cells([4, 4, 0])
+            .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
+            .build2();
+    }
+
+    #[test]
+    #[should_panic(expected = "Specified grid length along x is either null or negative")]
+    fn build_null_l() {
+        let _ = GridBuilder::default()
+            .n_cells([4, 4, 0])
+            .lens([0.0_f64, 4.0_f64, 4.0_f64])
+            .build2();
+    }
+
+    #[test]
+    #[should_panic(expected = "Specified length per x cell is either null or negative")]
+    fn build_neg_lpc_neg_l() {
+        // lpc are parsed first so their panic msg should be the one to pop
+        // x val is parsed first so ...
+        let _ = GridBuilder::default()
+            .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
+            .lens([0.0_f64, 4.0_f64, 4.0_f64])
+            .build2();
+    }
+
+    #[test]
     fn square_cmap2_correctness() {
         let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2().unwrap();
 
