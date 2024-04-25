@@ -32,7 +32,7 @@ impl Default for RenderParameters {
         Self {
             smaa_mode: SmaaMode::Disabled,
             shrink_factor: 0.1,    // need to adjust
-            arrow_headsize: 0.1,   // need to adjust
+            arrow_headsize: 0.05,  // need to adjust
             arrow_thickness: 0.01, // need to adjust
         }
     }
@@ -87,26 +87,30 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             .filter(|face| face.n_vertices > 1)
             .flat_map(|face| {
                 (0..face.n_vertices).flat_map(|id| {
-                    let mut v1 = face.vertices[id];
-                    let mut v6 = face.vertices[(id + 1) % face.n_vertices];
+                    let mut va = face.vertices[id];
+                    let mut vb = face.vertices[(id + 1) % face.n_vertices];
 
-                    let seg_dir = (v6 - v1).unit_dir().unwrap();
-                    v1 += seg_dir * T::from(self.params.shrink_factor).unwrap();
-                    v6 -= seg_dir * T::from(self.params.shrink_factor).unwrap();
+                    let seg_dir = (vb - va).unit_dir().unwrap();
+                    va += seg_dir * T::from(self.params.shrink_factor).unwrap();
+                    vb -= seg_dir * T::from(self.params.shrink_factor).unwrap();
 
-                    let seg = v6 - v1;
+                    let seg = vb - va;
                     let seg_length = seg.norm();
-                    let seg_dir = seg.unit_dir().unwrap();
                     let seg_normal = seg.normal_dir();
                     let ahs = T::from(self.params.arrow_headsize).unwrap();
                     let at = T::from(self.params.arrow_thickness).unwrap();
+                    let body_offset = seg_normal * seg_length * at;
 
-                    let vcenter = v6 - seg_dir * ahs;
-                    let v2 = vcenter - seg_normal * at;
-                    let v3 = vcenter + seg_normal * at;
-                    let v4 = vcenter + seg_normal * (ahs * seg_length);
-                    let v5 = vcenter - seg_normal * (ahs * seg_length);
-
+                    let v1 = va + body_offset;
+                    let v2 = va - body_offset;
+                    let vcenter = vb - seg * ahs;
+                    let v3 = vcenter - body_offset;
+                    let v4 = v3;
+                    let v5 = v1;
+                    let v6 = vcenter + body_offset;
+                    let v7 = vcenter + seg_normal * seg_length * ahs;
+                    let v8 = vcenter - seg_normal * seg_length * ahs;
+                    let v9 = vb;
                     [
                         Coords2Shader::from((v1, Entity::Dart)),
                         Coords2Shader::from((v2, Entity::Dart)),
@@ -114,6 +118,9 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                         Coords2Shader::from((v4, Entity::Dart)),
                         Coords2Shader::from((v5, Entity::Dart)),
                         Coords2Shader::from((v6, Entity::Dart)),
+                        Coords2Shader::from((v7, Entity::Dart)),
+                        Coords2Shader::from((v8, Entity::Dart)),
+                        Coords2Shader::from((v9, Entity::Dart)),
                     ]
                     .into_iter()
                 })
