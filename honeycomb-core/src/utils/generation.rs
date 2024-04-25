@@ -251,7 +251,7 @@ pub enum BuilderError<'a> {
 /// # }
 /// ```
 ///
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct GridBuilder<T: CoordsFloat> {
     n_cells: Option<[usize; 3]>,
     len_per_cell: Option<[T; 3]>,
@@ -320,6 +320,13 @@ impl<T: CoordsFloat> GridBuilder<T> {
 
     // lens
     setters!(lens, lens_x, lens_y, lens_z, T::zero(), T);
+
+    /// Indicate whether to split quads of the grid
+    #[must_use = "unused builder object, consider removing this method call"]
+    pub fn split_quads(mut self, split: bool) -> Self {
+        self.split_quads = split;
+        self
+    }
 }
 
 // building methods
@@ -550,6 +557,43 @@ pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn build_nc_lpc_l() {
+        let builder = GridBuilder::default()
+            .n_cells([4, 4, 0])
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(builder.clone().build2().is_ok());
+        assert!(builder.split_quads(true).build2().is_ok());
+    }
+
+    #[test]
+    fn build_nc_lpc() {
+        let builder = GridBuilder::default()
+            .n_cells([4, 4, 0])
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64]);
+        assert!(builder.clone().build2().is_ok());
+        assert!(builder.split_quads(true).build2().is_ok());
+    }
+
+    #[test]
+    fn build_nc_l() {
+        let builder = GridBuilder::default()
+            .n_cells([4, 4, 0])
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(builder.clone().build2().is_ok());
+        assert!(builder.split_quads(true).build2().is_ok());
+    }
+
+    #[test]
+    fn build_lpc_l() {
+        let builder = GridBuilder::default()
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(builder.clone().build2().is_ok());
+        assert!(builder.split_quads(true).build2().is_ok());
+    }
 
     #[test]
     fn square_cmap2_correctness() {
