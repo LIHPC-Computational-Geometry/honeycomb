@@ -9,7 +9,7 @@ use criterion::{
     black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
     PlotConfiguration, Throughput,
 };
-use honeycomb_core::{utils::square_cmap2, CMap2, FloatType};
+use honeycomb_core::{utils::GridBuilder, CMap2, FloatType};
 
 // ------ CONTENT
 
@@ -23,7 +23,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> = square_cmap2(*n_square);
+                let mut map: CMap2<FloatType> =
+                    GridBuilder::unit_squares(*n_square).build2().unwrap();
                 black_box(&mut map);
             })
         });
