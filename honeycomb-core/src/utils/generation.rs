@@ -596,6 +596,22 @@ mod tests {
     }
 
     #[test]
+    fn build_incomplete() {
+        assert!(GridBuilder::default()
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .build2()
+            .is_err());
+        assert!(<GridBuilder<f64>>::default()
+            .n_cells([4, 4, 0])
+            .build2()
+            .is_err());
+        assert!(GridBuilder::default()
+            .lens([4.0_f64, 4.0_f64, 4.0_f64])
+            .build2()
+            .is_err());
+    }
+
+    #[test]
     fn square_cmap2_correctness() {
         let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2().unwrap();
 
