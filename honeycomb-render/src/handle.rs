@@ -95,11 +95,11 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                     vb -= seg_dir * T::from(self.params.shrink_factor).unwrap();
 
                     let seg = vb - va;
-                    let seg_length = seg.norm();
+                    // let seg_length = seg.norm();
                     let seg_normal = seg.normal_dir();
                     let ahs = T::from(self.params.arrow_headsize).unwrap();
                     let at = T::from(self.params.arrow_thickness).unwrap();
-                    let body_offset = seg_normal * seg_length * at;
+                    let body_offset = seg_normal * at;
 
                     let v1 = va + body_offset;
                     let v2 = va - body_offset;
@@ -108,8 +108,8 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                     let v4 = v3;
                     let v5 = v1;
                     let v6 = vcenter + body_offset;
-                    let v7 = vcenter + seg_normal * seg_length * ahs;
-                    let v8 = vcenter - seg_normal * seg_length * ahs;
+                    let v7 = vcenter + seg_normal * ahs;
+                    let v8 = vcenter - seg_normal * ahs;
                     let v9 = vb;
                     [
                         Coords2Shader::from((v1, Entity::Dart)),
