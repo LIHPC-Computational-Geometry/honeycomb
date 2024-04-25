@@ -213,12 +213,12 @@ fn build2_splitgrid<T: CoordsFloat>(
 /// This enum is used to describe all non-panic errors that can occur when using a builder
 /// structure.
 #[derive(Debug)]
-pub enum BuilderError<'a> {
+pub enum BuilderError {
     /// The builder is missing one or multiple parameters in order to proceed with the requested
     /// operation.
-    MissingParameters(&'a str),
+    MissingParameters(&'static str),
     /// One or multiple of the builder's fields are invalid.
-    InvalidParameters(&'a str),
+    InvalidParameters(&'static str),
 }
 
 /// Builder structure for specialized [`CMap2`].
@@ -361,7 +361,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     ///
     /// See [`GridBuilder`] example.
     ///
-    pub fn build2<'a>(self) -> Result<CMap2<T>, BuilderError<'a>> {
+    pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
         // preprocess parameters
         let (ns_square, lens_per_cell): ([usize; 2], [T; 2]) = match (
             self.n_cells,
