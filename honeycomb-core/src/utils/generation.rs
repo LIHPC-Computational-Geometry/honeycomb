@@ -217,6 +217,8 @@ pub enum BuilderError<'a> {
     /// The builder is missing one or multiple parameters in order to proceed with the requested
     /// operation.
     MissingParameters(&'a str),
+    /// One or multiple of the builder's fields are invalid.
+    InvalidParameters(&'a str),
 }
 
 /// Builder structure for specialized [`CMap2`].
@@ -329,6 +331,14 @@ impl<T: CoordsFloat> GridBuilder<T> {
     }
 }
 
+macro_rules! check_parameters {
+    ($id: ident, $msg: expr) => {
+        if $id.is_sign_negative() | $id.is_zero() {
+            return Err(BuilderError::InvalidParameters($msg));
+        }
+    };
+}
+
 // building methods
 impl<T: CoordsFloat> GridBuilder<T> {
     #[allow(clippy::missing_errors_doc)]
@@ -341,12 +351,11 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// instance
     /// - `Err(BuilderError::MissingParameters)` -- The provided information was not sufficient to
     /// create an instance
+    /// - `Err(BuilderError::InvalidParameters)` -- Any of the used length is negative or null
     ///
     /// # Panics
     ///
-    /// This method may panic if
-    /// - type casting goes wrong during parameters parsing
-    /// - any of the used length is negative or null
+    /// This method may panic if type casting goes wrong during parameters parsing.
     ///
     /// # Example
     ///
@@ -364,26 +373,18 @@ impl<T: CoordsFloat> GridBuilder<T> {
                 if lens.is_some() {
                     println!("W: All three grid parameters were specified, total lengths will be ignored");
                 }
-                assert!(
-                    lpx.is_sign_positive() & !lpx.is_zero(),
-                    "Specified length per x cell is either null or negative"
-                );
-                assert!(
-                    lpy.is_sign_positive() & !lpy.is_zero(),
-                    "Specified length per y cell is either null or negative"
-                );
+                #[rustfmt::skip]
+                check_parameters!(lpx, "Specified length per x cell is either null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpy, "Specified length per y cell is either null or negative");
                 ([nx, ny], [lpx, lpy])
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
-                assert!(
-                    lx.is_sign_positive() & !lx.is_zero(),
-                    "Specified grid length along x is either null or negative"
-                );
-                assert!(
-                    ly.is_sign_positive() & !ly.is_zero(),
-                    "Specified grid length along y is either null or negative"
-                );
+                #[rustfmt::skip]
+                check_parameters!(lx, "Specified grid length along x is either null or negative");
+                #[rustfmt::skip]
+                check_parameters!(ly, "Specified grid length along y is either null or negative");
                 (
                     [nx, ny],
                     [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
@@ -391,22 +392,14 @@ impl<T: CoordsFloat> GridBuilder<T> {
             }
             // from lengths per cell and total lengths
             (None, Some([lpx, lpy, _]), Some([lx, ly, _])) => {
-                assert!(
-                    lpx.is_sign_positive() & !lpx.is_zero(),
-                    "Specified length per x cell is either null or negative"
-                );
-                assert!(
-                    lpy.is_sign_positive() & !lpy.is_zero(),
-                    "Specified length per y cell is either null or negative"
-                );
-                assert!(
-                    lx.is_sign_positive() & !lx.is_zero(),
-                    "Specified grid length along x is either null or negative"
-                );
-                assert!(
-                    ly.is_sign_positive() & !ly.is_zero(),
-                    "Specified grid length along y is either null or negative"
-                );
+                #[rustfmt::skip]
+                check_parameters!(lpx, "Specified length per x cell is either null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpy, "Specified length per y cell is either null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lx, "Specified grid length along x is either null or negative");
+                #[rustfmt::skip]
+                check_parameters!(ly, "Specified grid length along y is either null or negative");
                 (
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
@@ -580,7 +573,8 @@ mod tests {
     #[test]
     fn build_nc_l() {
         let builder = GridBuilder::default()
-            .n_cells([4, 4, 0])
+            .n_cells_x(4)
+            .n_cells_y(4)
             .lens([4.0_f64, 4.0_f64, 4.0_f64]);
         assert!(builder.clone().build2().is_ok());
         assert!(builder.split_quads(true).build2().is_ok());
@@ -589,8 +583,10 @@ mod tests {
     #[test]
     fn build_lpc_l() {
         let builder = GridBuilder::default()
-            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+            .len_per_cell_x(1.0_f64)
+            .len_per_cell_y(1.0_f64)
+            .lens_x(4.0)
+            .lens_y(4.0);
         assert!(builder.clone().build2().is_ok());
         assert!(builder.split_quads(true).build2().is_ok());
     }
@@ -614,19 +610,21 @@ mod tests {
     #[test]
     #[should_panic(expected = "Specified length per y cell is either null or negative")]
     fn build_neg_lpc() {
-        let _ = GridBuilder::default()
+        let tmp = GridBuilder::default()
             .n_cells([4, 4, 0])
             .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
             .build2();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
     }
 
     #[test]
     #[should_panic(expected = "Specified grid length along x is either null or negative")]
     fn build_null_l() {
-        let _ = GridBuilder::default()
+        let tmp = GridBuilder::default()
             .n_cells([4, 4, 0])
             .lens([0.0_f64, 4.0_f64, 4.0_f64])
             .build2();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
     }
 
     #[test]
@@ -634,10 +632,11 @@ mod tests {
     fn build_neg_lpc_neg_l() {
         // lpc are parsed first so their panic msg should be the one to pop
         // x val is parsed first so ...
-        let _ = GridBuilder::default()
+        let tmp = GridBuilder::default()
             .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
             .lens([0.0_f64, 4.0_f64, 4.0_f64])
             .build2();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
     }
 
     #[test]
