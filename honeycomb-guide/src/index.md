@@ -90,3 +90,21 @@ The [SPDX](https://spdx.dev) license identifier for this project is `MIT OR Apac
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
 defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
+## References
+
+### Combinatorial Maps
+
+- Damiand, Guillaume, and Pascal Lienhardt. *Combinatorial Maps: Efficient Data Structures for Computer Graphics and
+  Image Processing*. Chapman&Hall/CRC, 2015.
+    - Provides an in-depth presentation of the structure and its variants
+    - [Link](https://hal.science/hal-01090890v1)
+- The CGAL Project. *CGAL User and Reference Manual*. CGAL Editorial Board, 5.6.1 edition, 2024.
+    - Provides concrete examples as well as code snippets of the CGAL implementation of the structure. The CGAL
+      implementation uses a different approach than ours, & support N-dimensionnal map.
+    - [Link](https://doc.cgal.org/latest/Combinatorial_map/)
+
+### Integration
+
+- The repository structure and workspace system is heavily inspired by
+  the [wgpu repository](https://github.com/gfx-rs/wgpu)
