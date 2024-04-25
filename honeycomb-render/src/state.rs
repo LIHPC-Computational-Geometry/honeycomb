@@ -266,7 +266,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         map_handle.build_intermediate();
         map_handle.build_darts();
         map_handle.build_faces();
-        // map_handle.build_betas();
+        map_handle.build_betas();
         map_handle.save_buffered();
 
         let render_slice = map_handle.vertices();

@@ -8,7 +8,9 @@
 use crate::representations::intermediates::{Entity, IntermediateFace};
 use crate::shader_data::Coords2Shader;
 use crate::SmaaMode;
-use honeycomb_core::{CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::{
+    CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
+};
 
 // ------ CONTENT
 
@@ -139,7 +141,37 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
 
     #[allow(dead_code)]
     pub fn build_betas(&mut self) {
-        todo!()
+        let tmp: Vec<EdgeIdentifier> = self.handle.fetch_edges().identifiers.clone();
+        let tmp = tmp
+            .iter()
+            .map(|edge_id| {
+                (
+                    *edge_id as DartIdentifier,
+                    self.handle.beta::<2>(*edge_id as DartIdentifier),
+                )
+            })
+            .filter(|(_, b2vid)| *b2vid != NULL_DART_ID)
+            .flat_map(|(dart_id, b2dart_id)| {
+                let va = self.handle.vertex(self.handle.vertex_id(dart_id));
+                let vb = self.handle.vertex(self.handle.vertex_id(b2dart_id));
+                let seg_dir = vb - va;
+                let center = Vertex2::average(&va, &vb);
+                let seg_normal = seg_dir.normal_dir();
+                let vr = center + seg_dir * T::from(0.01).unwrap();
+                let vl = center - seg_dir * T::from(0.01).unwrap();
+                let vt = center + seg_normal * T::from(0.1).unwrap();
+                let vb = center - seg_normal * T::from(0.1).unwrap();
+                [
+                    Coords2Shader::from((vt, Entity::Beta)),
+                    Coords2Shader::from((vl, Entity::Beta)),
+                    Coords2Shader::from((vr, Entity::Beta)),
+                    Coords2Shader::from((vl, Entity::Beta)),
+                    Coords2Shader::from((vr, Entity::Beta)),
+                    Coords2Shader::from((vb, Entity::Beta)),
+                ]
+                .into_iter()
+            });
+        self._beta_construction_buffer.extend(tmp);
     }
 
     pub fn build_faces(&mut self) {
@@ -171,6 +203,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         self.vertices.clear();
         self.vertices.append(&mut self.face_construction_buffer);
         self.vertices.append(&mut self.dart_construction_buffer);
+        self.vertices.append(&mut self._beta_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {
