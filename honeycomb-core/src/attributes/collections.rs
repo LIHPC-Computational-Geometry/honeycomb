@@ -89,27 +89,6 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
         &self.data[index.to_usize().unwrap()]
     }
 
-    /// Getter
-    ///
-    /// # Arguments
-    ///
-    /// - `index: T::IdentifierType` -- Cell index.
-    ///
-    /// # Return
-    ///
-    /// Return a mutable reference to the value indexed by `index`.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - the index lands out of bounds
-    /// - the index cannot be converted to `usize`
-    ///
-    #[deprecated]
-    pub fn get_mut(&mut self, index: &T::IdentifierType) -> &mut Option<T> {
-        &mut self.data[index.to_usize().unwrap()]
-    }
-
     /// Setter
     ///
     /// Set the value of an element at a given index.
@@ -312,28 +291,6 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     ///
     pub fn get(&self, index: &T::IdentifierType) -> Option<&T> {
         self.index_map[index.to_usize().unwrap()].map(|idx| &self.data[idx])
-    }
-
-    /// Getter
-    ///
-    /// # Arguments
-    ///
-    /// - `index: T::IdentifierType` -- Cell index.
-    ///
-    /// # Return
-    ///
-    /// Return an `Option` that may contain a mutable reference to the value associated to `index`,
-    /// if it exists.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - the index lands out of bounds
-    /// - the index cannot be converted to `usize`
-    ///
-    #[deprecated]
-    pub fn get_mut(&mut self, index: &T::IdentifierType) -> Option<&mut T> {
-        self.index_map[index.to_usize().unwrap()].map(|idx| &mut self.data[idx])
     }
 
     /// Setter
