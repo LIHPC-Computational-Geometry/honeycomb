@@ -11,6 +11,7 @@ fn main() {
     const N_SQUARE: usize = 16;
     let render_params = RenderParameters {
         smaa_mode: SmaaMode::Smaa1X,
+        relative_resize: false,
         ..Default::default()
     };
 

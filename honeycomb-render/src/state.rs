@@ -16,6 +16,9 @@ use std::borrow::Cow;
 use wgpu::util::DeviceExt;
 use wgpu::PrimitiveTopology;
 use winit::dpi::PhysicalSize;
+use winit::event::{ElementState, KeyEvent};
+use winit::event_loop::EventLoopWindowTarget;
+use winit::keyboard::{Key, NamedKey};
 use winit::{event::WindowEvent, window::Window};
 
 // ------ CONTENT
@@ -263,7 +266,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         map_handle.build_intermediate();
         map_handle.build_darts();
         map_handle.build_faces();
-        // map_handle.build_betas();
+        map_handle.build_betas();
         map_handle.save_buffered();
 
         let render_slice = map_handle.vertices();
@@ -364,7 +367,22 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         self.window.request_redraw();
     }
 
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
+    pub fn input(&mut self, event: &WindowEvent, target: &EventLoopWindowTarget<()>) -> bool {
+        // early check for exit
+        if let WindowEvent::KeyboardInput {
+            event: KeyEvent {
+                state, logical_key, ..
+            },
+            ..
+        } = event
+        {
+            let is_pressed = *state == ElementState::Pressed;
+            if let Key::Named(key) = logical_key {
+                if is_pressed & (key == &NamedKey::F1) {
+                    target.exit();
+                }
+            }
+        };
         self.camera_controller.process_events(event)
     }
 

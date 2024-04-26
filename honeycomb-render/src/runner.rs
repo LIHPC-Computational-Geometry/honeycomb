@@ -38,6 +38,7 @@ async fn inner<T: CoordsFloat>(
     } else {
         State::new_test(&window, render_params).await
     };
+    println!("I: Press F1 to quit");
     event_loop
         .run(move |event, target| {
             // process events
@@ -46,7 +47,7 @@ async fn inner<T: CoordsFloat>(
                     window_id,
                     event: wevent,
                 } => {
-                    if window_id == state.window().id() && !state.input(&wevent) {
+                    if window_id == state.window().id() && !state.input(&wevent, target) {
                         match wevent {
                             WindowEvent::Resized(new_size) => state.resize(Some(new_size)),
                             WindowEvent::RedrawRequested => {

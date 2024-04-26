@@ -4,7 +4,7 @@
 
 ## To be released
 
-...
+content from PR #49 / commit ce3948d2e7ccda4e58395ff9e715c946e9b8f744 onward
 
 ---
 

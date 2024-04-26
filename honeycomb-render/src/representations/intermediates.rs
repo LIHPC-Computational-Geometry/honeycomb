@@ -2,6 +2,7 @@ use honeycomb_core::{Coords2, CoordsFloat, Vertex2};
 
 pub enum Entity {
     Dart,
+    Beta,
     Face,
 }
 

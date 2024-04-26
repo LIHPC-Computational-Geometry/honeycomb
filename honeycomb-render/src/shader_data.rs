@@ -43,6 +43,7 @@ impl<T: CoordsFloat> From<(Vertex2<T>, Entity)> for Coords2Shader {
             position: as_f32_array!(v),
             color: match e {
                 Entity::Dart => 0,
+                Entity::Beta => 1,
                 Entity::Face => 2,
             },
         }
