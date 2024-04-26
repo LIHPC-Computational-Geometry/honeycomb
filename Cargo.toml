@@ -11,7 +11,7 @@ members = [
 [workspace.package]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-version = "0.2.0"
+version = "0.2.1"
 homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
 repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
 readme = "README.md"
