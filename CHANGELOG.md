@@ -4,7 +4,75 @@
 
 ## To be released
 
-content from PR #49 / commit ce3948d2e7ccda4e58395ff9e715c946e9b8f744 onward
+...
+
+---
+
+## 0.2.1
+
+### Workspace
+
+- bump `rand` version from `0.8.5` to `0.9.0-alpha.1` & update code accordingly (#63)
+
+### New features
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+- expand on tests of the core crate (#49)
+- implement the `GridBuilder` struct as a better, more versatile way to generate grid maps (#60)
+
+#### honeycomb-examples
+
+<sup>project examples</sup>
+
+- add the following examples:
+    - `render_squaremap_parameterized` (#60)
+    - `render_squaremap_shift`, based on benchmarking code (#52)
+    - `render_squaremap_split_diff`, based on benchmarking code (#52)
+    - `render_squaremap_split_some`, based on benchmarking code (#52)
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+- update usage instructions (#50)
+- add a **References** section to the index (#61)
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+- add code to properly render faces instead of using implicit coloring (#54)
+    - this implied creating new internal structures for efficiency purposes
+- add a cap on the number of frames rendered per second to fix speed disparity induced by machine performance (#56)
+
+### Refactor
+
+#### honeycomb-core
+
+- mark as deprecated:
+    - `AttrSparseVec::get_mut`, `AttrCompactVec::get_mut` (#49)
+    - `utils::square_cmap2`, `utils::splitsquare_cmap2` (#60)
+- fix various `clippy::pedantic` lints that were temporarily left as allowed (#51)
+- fix some unwanted behaviors:
+    - attribute re-insertion in `CMap2::two_unsew` (#55)
+    - not-panicking execution paths of `CMap2::one_sew` & `CMap2::two_sew` (#59)
+
+#### honeycomb-examples
+
+- fix `memory_usage` Rust code and associated script (#55)
+
+#### honeycomb-render
+
+- update render code to:
+    - skip darts and faces that have only one or less vertex defined (#59)
+    - draw proper arrows instead of triangles (#62)
+    - draw beta2 function as diamonds (#62)
+- edit the shader to color triangles according to the entity they form (#62)
+- add a key binding (F1) to close the render window (#62)
 
 ---
 
