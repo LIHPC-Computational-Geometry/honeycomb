@@ -513,38 +513,6 @@ impl<T: CoordsFloat> GridBuilder<T> {
     }
 }
 
-/// Generate a [`CMap2`] representing a mesh made up of squares.
-///
-/// <div class="warning">
-///
-/// **This function is deprecated, please use [`GridBuilder::unit_squares`] instead.**
-///
-/// </div>
-///
-/// This function builds and returns a 2-map representing a square mesh
-/// made of `n_square * n_square` square cells.
-#[deprecated(note = "please use the `GridBuilder::unit_squares` function instead")]
-#[must_use = "constructed object is not used, consider removing this function call"]
-pub fn square_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
-    build2_grid([n_square, n_square], [T::one(), T::one()])
-}
-
-/// Generate a [`CMap2`] representing a mesh made up of squares split diagonally.
-///
-/// <div class="warning">
-///
-/// **This function is deprecated, please use [`GridBuilder::unit_squares`] instead.**
-///
-/// </div>
-///
-/// This function builds and returns a 2-map representing a square mesh
-/// made of `n_square * n_square * 2` triangle cells.
-#[deprecated(note = "please use the `GridBuilder::split_unit_squares` function instead")]
-#[must_use = "constructed object is not used, consider removing this function call"]
-pub fn splitsquare_cmap2<T: CoordsFloat>(n_square: usize) -> CMap2<T> {
-    build2_splitgrid([n_square, n_square], [T::one(), T::one()])
-}
-
 // ------ TESTS
 
 #[cfg(test)]
