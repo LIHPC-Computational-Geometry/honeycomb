@@ -11,9 +11,8 @@ combinatorial maps for meshing applications. More specifically, the goal is
 to converge towards a (or multiple) structure(s) adapted to algorithms
 exploiting GPU and many-core architectures.
 
-The current objective is to ~write a first implementation in Rust, to then~
-improve the structure without having to deal with data races and similar
-issues, thanks to the Rust's guarantees.
+The current objective is to implement basic meshing algorithms to evaluate the viability of the implementation & improve
+our structure using Rust's framework to streamline the refactoring and parallelization process.
 
 ## Usage
 
