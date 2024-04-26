@@ -14,8 +14,12 @@ Honeycomb aims to provide a safe, efficient and scalable implementation of combi
 More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting GPUs
 and many-core architectures.
 
-The current objective is to ~write a first implementation in Rust, to then~ improve the structure without having to
-deal with data races and similar issues, thanks to the language's guarantees.
+The current objective is to
+
+- ~write a first implementation in Rust~
+- ~improve the structure without having to deal with data races and similar issues, thanks to the Rust's guarantees~
+- implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
+  Rust's framework to streamline the refactoring and parallelization process
 
 ### Core Requirements
 

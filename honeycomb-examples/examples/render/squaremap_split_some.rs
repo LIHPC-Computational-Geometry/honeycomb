@@ -1,7 +1,7 @@
 use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType};
 use honeycomb_render::*;
 use rand::distributions::Bernoulli;
-use rand::{distributions::Distribution, rngs::SmallRng, SeedableRng};
+use rand::{distributions::Distribution, rngs::SmallRng};
 use std::time::Instant;
 
 fn main() {

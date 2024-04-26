@@ -23,7 +23,6 @@ use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType};
 use rand::{
     distributions::{Bernoulli, Distribution},
     rngs::SmallRng,
-    SeedableRng,
 };
 
 // ------ CONTENT
