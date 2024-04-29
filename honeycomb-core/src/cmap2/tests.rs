@@ -1,4 +1,8 @@
+// ------ IMPORTS
+
 use crate::{CMap2, FloatType, Orbit2, OrbitPolicy, Vertex2};
+
+// ------ CONTENT
 
 #[test]
 fn example_test() {
