@@ -18,6 +18,8 @@
 
 // ------ CUSTOM LINTS
 
+// --- enable doc_auto_cfg feature if compiling in nightly
+#![cfg_attr(nightly, feature(doc_auto_cfg))]
 // --- some though love for the code
 #![warn(missing_docs)]
 #![warn(clippy::pedantic)]

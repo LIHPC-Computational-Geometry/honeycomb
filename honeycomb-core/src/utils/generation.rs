@@ -1,11 +1,5 @@
 //! Utility for sample map generation
 //!
-//! <div class="warning">
-//!
-//! **This code is only compiled if the `utils` feature is enabled.**
-//!
-//! </div>
-//!
 //! This module contains code used for sample map / mesh generation. This is mostly
 //! for testing and benchmarking, but could also be hijacked for very (topologically)
 //! simple mesh generation, hence this being kept public.
