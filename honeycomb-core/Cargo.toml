@@ -19,3 +19,6 @@ single_precision = []
 [dependencies]
 cfg-if.workspace = true
 num.workspace = true
+
+[build-dependencies]
+rustversion.workspace = true
