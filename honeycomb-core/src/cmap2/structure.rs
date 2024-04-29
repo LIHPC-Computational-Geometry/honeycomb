@@ -2,7 +2,7 @@
 
 // ------ IMPORTS
 
-use crate::cmap2::CMAP2_BETA;
+use super::CMAP2_BETA;
 use crate::{AttrSparseVec, CoordsFloat, DartIdentifier, Vertex2};
 use std::collections::BTreeSet;
 

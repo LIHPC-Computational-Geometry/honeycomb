@@ -2,7 +2,7 @@
 
 // ------ IMPORTS
 
-use super::{CMap2, CoordsFloat, DartIdentifier};
+use crate::{CMap2, CoordsFloat, DartIdentifier};
 use std::{fs::File, io::Write};
 
 // ------ CONTENT
