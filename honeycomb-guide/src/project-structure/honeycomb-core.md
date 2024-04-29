@@ -28,5 +28,4 @@ following:
 
 Note that optional features can be enabled when compiling this crate:
 
-- `utils` -- provides additionnal items that would qualify as quality-of-life, notably map generation functions.
-- `single_precision` -- uses `f32` instead of `f64` for coordinates representation in tests
+- `utils` -- provides additionnal implementations for map generation, benchmarking & debugging
