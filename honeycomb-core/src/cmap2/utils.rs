@@ -1,4 +1,13 @@
-//! mod doc
+//! [`CMap2`] utilities implementations
+//!
+//! <div class="warning">
+//!
+//! **This code is only compiled if the `utils` feature is enabled.**
+//!
+//! </div>
+//!
+//! This module contains utility code for the [`CMap2`] structure that is gated behind the `utils`
+//! feature.
 
 // ------ IMPORTS
 

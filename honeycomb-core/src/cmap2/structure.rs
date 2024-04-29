@@ -1,4 +1,7 @@
-//! mod doc
+//! Main definitions
+//!
+//! This module contains the main structure definition ([`CMap2`]) as well as its constructor
+//! implementation.
 
 // ------ IMPORTS
 

@@ -1,4 +1,4 @@
-//! mod doc
+//! Crate-level common definitions
 
 // ------ IMPORTS
 

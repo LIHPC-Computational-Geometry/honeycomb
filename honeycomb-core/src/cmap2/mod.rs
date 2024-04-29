@@ -1,9 +1,6 @@
-//! Map objects
+//! [`CMap2`] code
 //!
-//! This module contains code for the two main structures provided
-//! by the crate:
-//!
-//! - [`CMap2`], a 2D combinatorial map implementation
+//! This module contains code for the 2D implementation of combinatorial maps: [`CMap2`].
 //!
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
@@ -21,6 +18,9 @@ mod utils;
 
 pub use structure::CMap2;
 
+// ------ CONTENT
+
+/// Number of beta functions defined for [`CMap2`].
 const CMAP2_BETA: usize = 3;
 
 // ------ TESTS

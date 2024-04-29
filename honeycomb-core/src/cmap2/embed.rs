@@ -1,4 +1,8 @@
-//! mod doc
+//! Attribute operations implementation
+//!
+//! This module contains code used to implement operations on the embedded data associated to the
+//! map. This includes operations regarding vertices as well as (in the future) user-defined
+//! generic attributes
 
 // ------ IMPORT
 

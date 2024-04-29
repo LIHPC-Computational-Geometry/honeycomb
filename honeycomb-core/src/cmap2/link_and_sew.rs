@@ -1,4 +1,7 @@
-//! mod doc
+//! (Un)sew and (un)link implementations
+//!
+//! This module contains code used to implement sew, unsew, link and unlink operations in all
+//! dimensions for which they are defined (1, 2) for a [`CMap2`].
 
 // ------ IMPORTS
 
