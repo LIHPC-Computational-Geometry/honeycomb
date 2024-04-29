@@ -8,32 +8,3 @@
 pub mod coords;
 pub mod vector;
 pub mod vertex;
-
-// ------ IMPORTS
-
-use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
-
-// ------ CONTENT
-
-cfg_if::cfg_if! {
-    if #[cfg(feature = "single_precision")] {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f32;
-    } else {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f64;
-    }
-}
-
-/// Common trait implemented by types used for coordinate representation.
-pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
-{
-}
-
-impl CoordsFloat for f32 {}
-impl CoordsFloat for f64 {}

@@ -21,18 +21,6 @@ mod utils;
 
 pub use structure::CMap2;
 
-// ------ CONTENT
-
-/// Map-level error enum
-///
-/// This enum is used to describe all non-panic errors that can occur when operating on a map.
-#[derive(Debug, PartialEq)]
-pub enum CMapError {
-    /// Variant used when requesting a vertex using an ID that has no associated vertex
-    /// in storage.
-    UndefinedVertex,
-}
-
 const CMAP2_BETA: usize = 3;
 
 // ------ TESTS
