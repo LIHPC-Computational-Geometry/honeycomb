@@ -14,6 +14,7 @@ A quickstart example encompassing most features is provided for the following st
 - [CMap2](../honeycomb_core/struct.CMap2.html#example)
 - [Vector2](../honeycomb_core/struct.Vector2.html#example)
 - [Vertex2](../honeycomb_core/struct.Vertex2.html#example)
+- [GridBuilder](../honeycomb_core/utils/struct.GridBuilder.html#example)
 
 ## Content
 
@@ -24,3 +25,7 @@ following:
 - **Orbit2**: Generic 2D implementation for orbit computation
 - **Vector2**: 2D vector representation
 - **Vertex2**: 2D vertex representation
+
+Note that optional features can be enabled when compiling this crate:
+
+- `utils` -- provides additionnal implementations for map generation, benchmarking & debugging

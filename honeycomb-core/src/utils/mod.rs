@@ -15,5 +15,4 @@ mod generation;
 
 // ------ PUBLIC RE-EXPORTS
 
-#[allow(deprecated)]
-pub use generation::{splitsquare_cmap2, square_cmap2, GridBuilder};
+pub use generation::GridBuilder;
