@@ -2,11 +2,34 @@
 
 // ------ IMPORTS
 
+use super::CMAP2_BETA;
 use crate::{CMap2, CoordsFloat, DartIdentifier};
 use std::{fs::File, io::Write};
 
 // ------ CONTENT
 
+// --- fast overwrite method
+impl<T: CoordsFloat> CMap2<T> {
+    /// Set the values of the beta functions of a dart.
+    ///
+    /// <div class="warning">
+    ///
+    /// **This method is only compiled if the `utils` feature is enabled.**
+    ///
+    /// </div>
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `betas: [DartIdentifier; 3]` -- Value of the images as
+    ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
+    ///
+    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
+        self.betas[dart_id as usize] = betas;
+    }
+}
+
+// --- size methods
 impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
     ///
