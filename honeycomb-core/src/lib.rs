@@ -27,6 +27,7 @@
 #![allow(clippy::cast_possible_truncation)]
 
 // ------ MODULE DECLARATIONS
+
 mod attributes;
 mod cells;
 mod cmap2;
