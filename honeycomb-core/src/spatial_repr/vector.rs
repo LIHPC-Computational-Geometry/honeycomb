@@ -29,7 +29,7 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 /// let unit_y = Vector2::unit_y();
 ///
 /// assert_eq!(unit_x.dot(&unit_y), 0.0);
-/// assert_eq!(unit_x.normal_dir(), unit_y);
+/// assert_eq!(unit_x.normal_dir().unwrap(), unit_y);
 ///
 /// let two: FloatType = 2.0;
 /// let x_plus_y: Vector2<FloatType> = unit_x + unit_y;
@@ -362,6 +362,6 @@ mod tests {
     #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: InvalidUnitDir")]
     fn normal_dir_of_null_vel() {
         let origin: Vector2<FloatType> = Vector2::default();
-        let _ = origin.normal_dir(); // panics
+        let _ = origin.normal_dir().unwrap(); // panics
     }
 }
