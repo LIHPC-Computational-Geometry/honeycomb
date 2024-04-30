@@ -50,10 +50,10 @@ fn example_test() {
     assert_eq!(map.beta::<2>(2), 4);
     assert_eq!(map.vertex_id(2), 2);
     assert_eq!(map.vertex_id(5), 2);
-    assert_eq!(map.vertex(2), Vertex2::from((1.5, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((1.5, 0.0)));
     assert_eq!(map.vertex_id(3), 3);
     assert_eq!(map.vertex_id(4), 3);
-    assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.5)));
+    assert_eq!(map.vertex(3).unwrap(), Vertex2::from((0.0, 1.5)));
     let edges = map.fetch_edges();
     assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
 
@@ -62,12 +62,12 @@ fn example_test() {
         map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
         Ok(Vertex2::from((1.5, 0.0)))
     );
-    assert_eq!(map.vertex(2), Vertex2::from((1.0, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((1.0, 0.0)));
     assert_eq!(
         map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
         Ok(Vertex2::from((0.0, 1.5)))
     );
-    assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
+    assert_eq!(map.vertex(3).unwrap(), Vertex2::from((0.0, 1.0)));
 
     // separate the diagonal from the rest
     map.one_unsew(1);
@@ -89,10 +89,10 @@ fn example_test() {
     assert_eq!(&edges.identifiers, &[1, 3, 5, 6]);
     let vertices = map.fetch_vertices();
     assert_eq!(&vertices.identifiers, &[1, 3, 5, 6]);
-    assert_eq!(map.vertex(1), Vertex2::from((0.0, 0.0)));
-    assert_eq!(map.vertex(5), Vertex2::from((1.0, 0.0)));
-    assert_eq!(map.vertex(6), Vertex2::from((1.0, 1.0)));
-    assert_eq!(map.vertex(3), Vertex2::from((0.0, 1.0)));
+    assert_eq!(map.vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
+    assert_eq!(map.vertex(5).unwrap(), Vertex2::from((1.0, 0.0)));
+    assert_eq!(map.vertex(6).unwrap(), Vertex2::from((1.0, 1.0)));
+    assert_eq!(map.vertex(3).unwrap(), Vertex2::from((0.0, 1.0)));
     // darts
     assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
     assert_eq!(map.beta_runtime(1, 1), 5);
@@ -134,8 +134,8 @@ fn two_sew_complete() {
     map.insert_vertex(3, (1.0, 1.0));
     map.insert_vertex(4, (1.0, 0.0));
     map.two_sew(1, 3);
-    assert_eq!(map.vertex(1), Vertex2::from((0.5, 0.0)));
-    assert_eq!(map.vertex(2), Vertex2::from((0.5, 1.0)));
+    assert_eq!(map.vertex(1).unwrap(), Vertex2::from((0.5, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
 }
 
 #[test]
@@ -147,15 +147,15 @@ fn two_sew_incomplete() {
     map.insert_vertex(3, (1.0, 1.0));
     map.two_sew(1, 3);
     // missing beta1 image for dart 3
-    assert_eq!(map.vertex(1), Vertex2::from((0.0, 0.0)));
-    assert_eq!(map.vertex(2), Vertex2::from((0.5, 1.0)));
+    assert_eq!(map.vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
     map.two_unsew(1);
     assert_eq!(map.add_free_dart(), 4);
     map.one_link(3, 4);
     map.two_sew(1, 3);
     // missing vertex for dart 4
-    assert_eq!(map.vertex(1), Vertex2::from((0.0, 0.0)));
-    assert_eq!(map.vertex(2), Vertex2::from((0.5, 1.0)));
+    assert_eq!(map.vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
 }
 
 #[test]
@@ -164,8 +164,8 @@ fn two_sew_no_b1() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 1.0));
     map.two_sew(1, 2);
-    assert_eq!(map.vertex(1), Vertex2::from((0.0, 0.0)));
-    assert_eq!(map.vertex(2), Vertex2::from((1.0, 1.0)));
+    assert_eq!(map.vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((1.0, 1.0)));
 }
 
 #[test]
@@ -207,7 +207,7 @@ fn one_sew_complete() {
     map.insert_vertex(2, (0.0, 1.0));
     map.insert_vertex(3, (0.0, 2.0));
     map.one_sew(1, 3);
-    assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.5)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.0, 1.5)));
 }
 
 #[test]
@@ -217,7 +217,7 @@ fn one_sew_incomplete_attributes() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
     map.one_sew(1, 3);
-    assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.0, 1.0)));
 }
 
 #[test]
@@ -226,7 +226,7 @@ fn one_sew_incomplete_beta() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
     map.one_sew(1, 2);
-    assert_eq!(map.vertex(2), Vertex2::from((0.0, 1.0)));
+    assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.0, 1.0)));
 }
 #[test]
 #[should_panic(expected = "No vertex defined on dart 2, use `one_link` instead of `one_sew`")]
