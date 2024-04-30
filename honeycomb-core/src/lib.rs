@@ -29,11 +29,12 @@
 #![allow(clippy::cast_possible_truncation)]
 
 // ------ MODULE DECLARATIONS
+
 mod attributes;
 mod cells;
+mod cmap2;
+mod common;
 mod spatial_repr;
-mod twomap;
-
 #[cfg(feature = "utils")]
 pub mod utils;
 
@@ -50,12 +51,11 @@ pub use cells::{
         NULL_VOLUME_ID,
     },
     orbits::{Orbit2, OrbitPolicy},
-    DartIdentifier, NULL_DART_ID,
 };
+pub use cmap2::CMap2;
+pub use common::{CMapError, CoordsFloat, DartIdentifier, FloatType, NULL_DART_ID};
 pub use spatial_repr::{
     coords::{Coords2, CoordsError},
     vector::Vector2,
     vertex::Vertex2,
-    CoordsFloat, FloatType,
 };
-pub use twomap::{CMap2, CMapError};
