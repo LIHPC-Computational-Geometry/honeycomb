@@ -18,17 +18,19 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.n_attributes()
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Fetch vertex value associated to a given identifier.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
     /// The method returns:
-    /// - `&Some(v: Vertex2)` if there is a vertex associated to this ID.
-    /// - `None` otherwise
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(v: Vertex2)` if there is a vertex associated to this ID.
+    /// - `Err(CMapError::UndefinedVertexID)` -- otherwise
     ///
     /// # Panics
     ///
@@ -36,9 +38,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     ///
-    #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> &Option<Vertex2<T>> {
-        self.vertices.get(&vertex_id)
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
+        if let Some(val) = self.vertices.get(&vertex_id) {
+            return Ok(*val);
+        }
+        Err(CMapError::UndefinedVertex)
     }
 
     /// Insert a vertex in the combinatorial map.
