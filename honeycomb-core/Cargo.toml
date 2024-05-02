@@ -14,7 +14,9 @@ publish = true
 
 [features]
 utils = []
-single_precision = []
+_single_precision = []
+
+# deps
 
 [dependencies]
 cfg-if.workspace = true

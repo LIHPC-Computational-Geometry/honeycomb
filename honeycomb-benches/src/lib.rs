@@ -19,3 +19,17 @@
 //! - `prof-cmap2-editing` - `CMap2` editing methods benchmarks
 //! - `prof-cmap2-reading` - `CMap2` reading methods benchmarks
 //! - `prof-cmap2-sewing-unsewing` - `CMap2` (un)sewing methods benchmarks
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "_single_precision")] {
+        /// Floating-point type alias.
+        ///
+        /// This is mostly used to run tests using both `f64` and `f32`.
+        pub type FloatType = f32;
+    } else {
+        /// Floating-point type alias.
+        ///
+        /// This is mostly used to run tests using both `f64` and `f32`.
+        pub type FloatType = f64;
+    }
+}

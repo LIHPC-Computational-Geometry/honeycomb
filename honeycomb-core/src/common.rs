@@ -42,7 +42,7 @@ impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign> Co
 
 #[cfg(test)]
 cfg_if::cfg_if! {
-    if #[cfg(feature = "single_precision")] {
+    if #[cfg(feature = "_single_precision")] {
         /// Floating-point type alias.
         ///
         /// This is mostly used to run tests using both `f64` and `f32`.

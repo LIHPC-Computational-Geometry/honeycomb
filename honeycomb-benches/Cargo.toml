@@ -9,13 +9,23 @@ description = "Core structure benchmarks"
 authors.workspace = true
 publish = false
 
+[features]
+_single_precision = []
+
+# deps
+
+[dependencies]
+cfg-if.workspace = true
+
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
 criterion = { workspace = true, features = ["html_reports"] }
 iai-callgrind.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
 
-# Iai-callgrind benchmarks
+# benches
+
+## Iai-callgrind benchmarks
 
 [[bench]]
 name = "prof-cmap2-editing"
@@ -33,7 +43,7 @@ path = "benches/core/cmap2/sewing.rs"
 harness = false
 
 
-# Criterion benchmarks
+## Criterion benchmarks
 
 [[bench]]
 name = "squaremap-init"
