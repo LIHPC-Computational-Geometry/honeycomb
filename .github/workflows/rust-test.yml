@@ -24,7 +24,7 @@ jobs:
     strategy:
       matrix:
         features:
-          - single_precision
+          - _single_precision
           - utils
     runs-on: ubuntu-22.04
     steps:
@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         features:
-          - single_precision
+          - _single_precision
           - utils
     runs-on: ubuntu-22.04
     steps:
