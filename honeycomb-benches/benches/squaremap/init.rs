@@ -9,7 +9,8 @@ use criterion::{
     black_box, criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion,
     PlotConfiguration, Throughput,
 };
-use honeycomb_core::{utils::GridBuilder, CMap2, FloatType};
+use honeycomb_benches::FloatType;
+use honeycomb_core::{utils::GridBuilder, CMap2};
 
 // ------ CONTENT
 

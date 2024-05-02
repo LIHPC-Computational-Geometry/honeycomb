@@ -19,7 +19,8 @@
 // ------ IMPORTS
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType};
+use honeycomb_benches::FloatType;
+use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier};
 use rand::{
     distributions::{Bernoulli, Distribution},
     rngs::SmallRng,
