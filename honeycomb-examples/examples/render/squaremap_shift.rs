@@ -1,4 +1,4 @@
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType, Vector2, NULL_DART_ID};
+use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, Vector2, NULL_DART_ID};
 use honeycomb_render::*;
 use rand::{
     distributions::{Distribution, Uniform},
@@ -16,7 +16,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
+    let mut map: CMap2<f32> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 
@@ -25,11 +25,11 @@ fn main() {
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);
-    let range: Uniform<FloatType> =
+    let range: Uniform<f32> =
         Uniform::new(-0.5, 0.5).expect("Could not initialize the uniform distribution");
     let xs = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngx));
     let ys = (0..(N_SQUARE + 1).pow(2)).map(|_| range.sample(&mut rngy));
-    let offsets: Vec<Vector2<FloatType>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
+    let offsets: Vec<Vector2<f32>> = xs.zip(ys).map(|(x, y)| (x, y).into()).collect();
     let n_offsets = offsets.len();
     let elapsed = now.elapsed();
     println!(

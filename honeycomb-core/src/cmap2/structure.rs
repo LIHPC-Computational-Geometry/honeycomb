@@ -65,10 +65,10 @@ use std::collections::BTreeSet;
 /// # use honeycomb_core::CMapError;
 /// # fn main() -> Result<(), CMapError> {
 ///
-/// use honeycomb_core::{CMap2, FloatType, Orbit2, OrbitPolicy, Vertex2};
+/// use honeycomb_core::{CMap2, Orbit2, OrbitPolicy, Vertex2};
 ///
 /// // build a triangle
-/// let mut map: CMap2<FloatType> = CMap2::new(3); // three darts
+/// let mut map: CMap2<f64> = CMap2::new(3); // three darts
 /// map.one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
 /// map.one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
 /// map.one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
