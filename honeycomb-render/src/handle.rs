@@ -48,7 +48,7 @@ pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     params: RenderParameters,
     intermediate_buffer: Vec<IntermediateFace<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
-    _beta_construction_buffer: Vec<Coords2Shader>,
+    beta_construction_buffer: Vec<Coords2Shader>,
     face_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
@@ -60,7 +60,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             params: params.unwrap_or_default(),
             intermediate_buffer: Vec::new(),
             dart_construction_buffer: Vec::new(),
-            _beta_construction_buffer: Vec::new(),
+            beta_construction_buffer: Vec::new(),
             face_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
@@ -149,7 +149,6 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         self.dart_construction_buffer.extend(tmp);
     }
 
-    #[allow(dead_code)]
     pub fn build_betas(&mut self) {
         let tmp: Vec<EdgeIdentifier> = self.handle.fetch_edges().identifiers.clone();
         let tmp = tmp
@@ -191,7 +190,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                 ]
                 .into_iter()
             });
-        self._beta_construction_buffer.extend(tmp);
+        self.beta_construction_buffer.extend(tmp);
     }
 
     pub fn build_faces(&mut self) {
@@ -223,7 +222,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         self.vertices.clear();
         self.vertices.append(&mut self.face_construction_buffer);
         self.vertices.append(&mut self.dart_construction_buffer);
-        self.vertices.append(&mut self._beta_construction_buffer);
+        self.vertices.append(&mut self.beta_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {
