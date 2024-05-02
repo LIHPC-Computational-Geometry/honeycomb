@@ -127,8 +127,8 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Errors
     ///
-    /// This method will panic if called on a `Vector2` with a norm equal to zero, i.e. a null
-    /// `Vector2`.
+    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
+    /// i.e. a null `Vector2`.
     ///
     /// # Example
     ///
@@ -152,8 +152,8 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Errors
     ///
-    /// This method will panic under the same condition as [`Vector2::unit_dir`], i.e. if called
-    /// on a `Vector2` with a norm equal to zero, i.e. a null `Vector2`.
+    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
+    /// i.e. a null `Vector2`.
     ///
     /// # Example
     ///
@@ -359,9 +359,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: InvalidUnitDir")]
     fn normal_dir_of_null_vel() {
         let origin: Vector2<FloatType> = Vector2::default();
-        let _ = origin.normal_dir().unwrap(); // panics
+        let err = origin.normal_dir();
+        assert_eq!(err, Err(CoordsError::InvalidUnitDir));
     }
 }

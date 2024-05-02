@@ -55,6 +55,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `vertex_id: VertexIdentifier` -- Vertex identifier to attribute a value to.
     /// - `vertex: impl Into<Vertex2>` -- Value used to create a [Vertex2] value.
     ///
+    /// # Panics
+    ///
     /// The method may panic if:
     /// - **there is already a vertex associated to the specified index**
     /// - the index lands out of bounds
