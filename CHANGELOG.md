@@ -4,7 +4,22 @@
 
 ## To be released
 
-...
+### Workspace
+
+- implement nighly conditional compilation for doc generation (#66)
+
+### Refactor
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+- change some main methods return type to have better overall consistency (#67):
+    - `Vector2::normal_dir` now returns a result instead of potentially panicking
+    - `CMap2::vertex` now returns a result instead of panicking if no associated vertex is found
+- remove deprecated items from the last release (#64):
+    - `AttrSparseVec::get_mut`, `AttrCompactVec::get_mut`
+    - `utils::square_cmap2`, `utils::splitsquare_cmap2`
 
 ---
 
