@@ -32,7 +32,9 @@ fn offset(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
     let n_offsets = offsets.len();
     let vertices = map.fetch_vertices();
     vertices.identifiers.iter().for_each(|vertex_id| {
-        let current_value = map.vertex(*vertex_id as DartIdentifier);
+        // we can unwrap this safely since we built the grid manually
+        // & know that vertices are correctly defined
+        let current_value = map.vertex(*vertex_id as DartIdentifier).unwrap();
         let _ = map.replace_vertex(
             *vertex_id as VertexIdentifier,
             current_value + offsets[*vertex_id as usize % n_offsets],
@@ -56,7 +58,9 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
         }
     });
     inner.iter().for_each(|vertex_id| {
-        let current_value = map.vertex(*vertex_id);
+        // we can unwrap this safely since we built the grid manually
+        // & know that vertices are correctly defined
+        let current_value = map.vertex(*vertex_id).unwrap();
         let _ = map.replace_vertex(
             *vertex_id,
             current_value + offsets[*vertex_id as usize % n_offsets],

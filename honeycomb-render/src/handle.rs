@@ -48,7 +48,7 @@ pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
     params: RenderParameters,
     intermediate_buffer: Vec<IntermediateFace<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
-    _beta_construction_buffer: Vec<Coords2Shader>,
+    beta_construction_buffer: Vec<Coords2Shader>,
     face_construction_buffer: Vec<Coords2Shader>,
     vertices: Vec<Coords2Shader>,
 }
@@ -60,7 +60,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             params: params.unwrap_or_default(),
             intermediate_buffer: Vec::new(),
             dart_construction_buffer: Vec::new(),
-            _beta_construction_buffer: Vec::new(),
+            beta_construction_buffer: Vec::new(),
             face_construction_buffer: Vec::new(),
             vertices: Vec::new(),
         }
@@ -71,7 +71,12 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         let faces_ir = faces.identifiers.iter().map(|face_id| {
             // build face data
             let orbit = Orbit2::new(self.handle, OrbitPolicy::Face, *face_id as DartIdentifier)
-                .map(|id| self.handle.vertex(self.handle.vertex_id(id)));
+                .map(|id| {
+                    // in order to render the map, all vertices of a given face should be defined
+                    // unwraping here will crash the program, telling the user that a vertex could
+                    // not be found
+                    self.handle.vertex(self.handle.vertex_id(id)).unwrap()
+                });
             let mut tmp = IntermediateFace::new(orbit);
             // apply a first shrink
             tmp.vertices.iter_mut().for_each(|v| {
@@ -95,12 +100,17 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                     let mut va = face.vertices[id];
                     let mut vb = face.vertices[(id + 1) % face.n_vertices];
 
+                    // if vb == va, this unwrap will panick
+                    // this is ok ATM since there should not be two perfectly overlapping
+                    // darts/vertices; This would indicate that the face is incorrectly built
                     let seg_dir = (vb - va).unit_dir().unwrap();
                     va += seg_dir * T::from(self.params.shrink_factor).unwrap();
                     vb -= seg_dir * T::from(self.params.shrink_factor).unwrap();
 
                     let seg = vb - va;
-                    let seg_normal = seg.normal_dir();
+                    // same as above;
+                    // but the superposition could also be induced by an invalid shrink value here
+                    let seg_normal = seg.normal_dir().unwrap();
                     let ahs = T::from(self.params.arrow_headsize).unwrap();
                     let at = T::from(self.params.arrow_thickness).unwrap();
                     let mut body_offset = seg_normal * at;
@@ -139,7 +149,6 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         self.dart_construction_buffer.extend(tmp);
     }
 
-    #[allow(dead_code)]
     pub fn build_betas(&mut self) {
         let tmp: Vec<EdgeIdentifier> = self.handle.fetch_edges().identifiers.clone();
         let tmp = tmp
@@ -152,11 +161,21 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             })
             .filter(|(_, b2vid)| *b2vid != NULL_DART_ID)
             .flat_map(|(dart_id, b2dart_id)| {
-                let va = self.handle.vertex(self.handle.vertex_id(dart_id));
-                let vb = self.handle.vertex(self.handle.vertex_id(b2dart_id));
+                // in order to render the beta functions,
+                // the two vertices of each given edge in required
+                // dart that are free by beta 2 were already filtered above, so the
+                // only ones left should have a valid definition for the render to proceed
+                let va = self.handle.vertex(self.handle.vertex_id(dart_id)).unwrap();
+                let vb = self
+                    .handle
+                    .vertex(self.handle.vertex_id(b2dart_id))
+                    .unwrap();
                 let seg_dir = vb - va;
                 let center = Vertex2::average(&va, &vb);
-                let seg_normal = seg_dir.normal_dir();
+                // if vb == va, this unwrap will panick
+                // this is ok ATM since there should not be two perfectly overlapping
+                // darts/vertices; This would indicate that the face is incorrectly built
+                let seg_normal = seg_dir.normal_dir().unwrap();
                 let vr = center + seg_dir * T::from(0.01).unwrap();
                 let vl = center - seg_dir * T::from(0.01).unwrap();
                 let vt = center + seg_normal * T::from(0.1).unwrap();
@@ -171,7 +190,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
                 ]
                 .into_iter()
             });
-        self._beta_construction_buffer.extend(tmp);
+        self.beta_construction_buffer.extend(tmp);
     }
 
     pub fn build_faces(&mut self) {
@@ -203,7 +222,7 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
         self.vertices.clear();
         self.vertices.append(&mut self.face_construction_buffer);
         self.vertices.append(&mut self.dart_construction_buffer);
-        self.vertices.append(&mut self._beta_construction_buffer);
+        self.vertices.append(&mut self.beta_construction_buffer);
     }
 
     pub fn vertices(&self) -> &[Coords2Shader] {

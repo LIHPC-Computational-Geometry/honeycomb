@@ -29,7 +29,7 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 /// let unit_y = Vector2::unit_y();
 ///
 /// assert_eq!(unit_x.dot(&unit_y), 0.0);
-/// assert_eq!(unit_x.normal_dir(), unit_y);
+/// assert_eq!(unit_x.normal_dir().unwrap(), unit_y);
 ///
 /// let two: FloatType = 2.0;
 /// let x_plus_y: Vector2<FloatType> = unit_x + unit_y;
@@ -127,14 +127,14 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Errors
     ///
-    /// This method will panic if called on a `Vector2` with a norm equal to zero, i.e. a null
-    /// `Vector2`.
+    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
+    /// i.e. a null `Vector2`.
     ///
     /// # Example
     ///
     /// See [Vector2] example.
     ///
-    pub fn unit_dir(&self) -> Result<Vector2<T>, CoordsError> {
+    pub fn unit_dir(&self) -> Result<Self, CoordsError> {
         let norm = self.norm();
         if norm.is_zero() {
             Err(CoordsError::InvalidUnitDir)
@@ -150,17 +150,16 @@ impl<T: CoordsFloat> Vector2<T> {
     /// Return a [Vector2] indicating the direction of the normal to `self`. The norm of the
     /// returned struct is equal to one.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Because the returned `Vector2` is normalized, this method may panic under the same
-    /// condition as [`Self::unit_dir`].
+    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
+    /// i.e. a null `Vector2`.
     ///
     /// # Example
     ///
     /// See [Vector2] example.
     ///
-    #[must_use = "constructed object is not used, consider removing this method call"]
-    pub fn normal_dir(&self) -> Self {
+    pub fn normal_dir(&self) -> Result<Vector2<T>, CoordsError> {
         Self {
             inner: Coords2 {
                 x: -self.inner.y,
@@ -168,7 +167,6 @@ impl<T: CoordsFloat> Vector2<T> {
             },
         }
         .unit_dir()
-        .unwrap()
     }
 
     /// Compute the dot product between two vectors
@@ -342,22 +340,28 @@ mod tests {
     fn normal_dir() {
         let along_x = Vector2::unit_x() * 4.0;
         let along_y = Vector2::unit_y() * 3.0;
-        assert!(almost_equal_vec(&along_x.normal_dir(), &Vector2::unit_y()));
         assert!(almost_equal_vec(
-            &Vector2::unit_x().normal_dir(),
+            &along_x.normal_dir().unwrap(),
             &Vector2::unit_y()
         ));
-        assert!(almost_equal_vec(&along_y.normal_dir(), &-Vector2::unit_x()));
         assert!(almost_equal_vec(
-            &Vector2::unit_y().normal_dir(),
+            &Vector2::unit_x().normal_dir().unwrap(),
+            &Vector2::unit_y()
+        ));
+        assert!(almost_equal_vec(
+            &along_y.normal_dir().unwrap(),
+            &-Vector2::unit_x()
+        ));
+        assert!(almost_equal_vec(
+            &Vector2::unit_y().normal_dir().unwrap(),
             &-Vector2::unit_x()
         ));
     }
 
     #[test]
-    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: InvalidUnitDir")]
     fn normal_dir_of_null_vel() {
         let origin: Vector2<FloatType> = Vector2::default();
-        let _ = origin.normal_dir(); // panics
+        let err = origin.normal_dir();
+        assert_eq!(err, Err(CoordsError::InvalidUnitDir));
     }
 }

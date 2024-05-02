@@ -133,7 +133,7 @@ use std::collections::BTreeSet;
 /// assert_eq!(&faces.identifiers, &[1]);
 /// // we can check the vertices
 /// let vertices = map.fetch_vertices();
-/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.vertex(*vertex_id));
+/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.vertex(*vertex_id).unwrap());
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5

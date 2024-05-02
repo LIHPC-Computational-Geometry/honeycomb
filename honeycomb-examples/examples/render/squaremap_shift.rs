@@ -48,7 +48,9 @@ fn main() {
                 .map(|d_id| map.beta::<2>(d_id))
                 .collect();
             if !neighbors_vertex_cell.contains(&NULL_DART_ID) {
-                let current_value = map.vertex(*vertex_id);
+                // we can unwrap this safely since we built the grid manually
+                // & know that vertices are correctly defined
+                let current_value = map.vertex(*vertex_id).unwrap();
                 let _ = map.replace_vertex(
                     *vertex_id,
                     current_value + offsets[*vertex_id as usize % n_offsets],
