@@ -27,7 +27,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Return / Errors
     ///
-    /// The method returns:
     /// This method return a `Result` taking the following values:
     /// - `Ok(v: Vertex2)` if there is a vertex associated to this ID.
     /// - `Err(CMapError::UndefinedVertexID)` -- otherwise
