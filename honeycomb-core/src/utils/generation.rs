@@ -512,7 +512,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FloatType;
+    use crate::common::FloatType;
 
     #[test]
     fn build_nc_lpc_l() {

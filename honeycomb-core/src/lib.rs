@@ -40,6 +40,8 @@ pub mod utils;
 
 // ------ RE-EXPORTS
 
+// --- PUBLIC API
+
 pub use attributes::{
     collections::{AttrCompactVec, AttrSparseVec},
     traits::{AttributeBind, AttributeUpdate},
@@ -53,7 +55,7 @@ pub use cells::{
     orbits::{Orbit2, OrbitPolicy},
 };
 pub use cmap2::CMap2;
-pub use common::{CMapError, CoordsFloat, DartIdentifier, FloatType, NULL_DART_ID};
+pub use common::{CMapError, CoordsFloat, DartIdentifier, NULL_DART_ID};
 pub use spatial_repr::{
     coords::{Coords2, CoordsError},
     vector::Vector2,

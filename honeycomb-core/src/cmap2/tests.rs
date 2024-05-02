@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, FloatType, Orbit2, OrbitPolicy, Vertex2};
+use crate::{common::FloatType, CMap2, Orbit2, OrbitPolicy, Vertex2};
 
 // ------ CONTENT
 

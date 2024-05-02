@@ -291,7 +291,7 @@ impl<T: CoordsFloat> std::ops::Neg for Vector2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FloatType;
+    use crate::common::FloatType;
 
     macro_rules! almost_equal {
         ($f1: expr, $f2: expr) => {

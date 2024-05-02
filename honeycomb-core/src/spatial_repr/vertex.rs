@@ -255,7 +255,7 @@ impl<T: CoordsFloat> AttributeBind for Vertex2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FloatType;
+    use crate::common::FloatType;
 
     #[test]
     fn add_vertex_vector() {

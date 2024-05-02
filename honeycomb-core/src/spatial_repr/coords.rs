@@ -215,7 +215,7 @@ impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FloatType;
+    use crate::common::FloatType;
 
     fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
         const EPS: FloatType = 10.0e-12;

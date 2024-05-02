@@ -219,7 +219,7 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CMap2, DartIdentifier, FloatType, Orbit2, OrbitPolicy};
+    use crate::{common::FloatType, CMap2, DartIdentifier, Orbit2, OrbitPolicy};
 
     fn simple_map() -> CMap2<FloatType> {
         let mut map: CMap2<FloatType> = CMap2::new(6);
