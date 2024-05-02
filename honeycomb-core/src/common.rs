@@ -50,5 +50,4 @@ pub trait CoordsFloat:
 {
 }
 
-impl CoordsFloat for f32 {}
-impl CoordsFloat for f64 {}
+impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign> CoordsFloat for T {}
