@@ -14,7 +14,7 @@ use honeycomb_core::{CMap2, CoordsFloat};
 // extern
 use std::borrow::Cow;
 use wgpu::util::DeviceExt;
-use wgpu::PrimitiveTopology;
+use wgpu::{PipelineCompilationOptions, PrimitiveTopology};
 use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, KeyEvent};
 use winit::event_loop::ActiveEventLoop;
@@ -194,11 +194,13 @@ async fn inner(
             module: &shader,
             entry_point: "vs_main",
             buffers: &[Coords2Shader::desc()],
+            compilation_options: PipelineCompilationOptions::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
             entry_point: "fs_main",
             targets: &[Some(swapchain_format.into())],
+            compilation_options: PipelineCompilationOptions::default(),
         }),
         primitive: wgpu::PrimitiveState {
             topology: PrimitiveTopology::TriangleList,

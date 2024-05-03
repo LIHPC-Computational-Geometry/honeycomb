@@ -55,7 +55,8 @@ async fn inner<T: CoordsFloat>(
                                 };
                                 // put a hard cap on the rendering speed
                                 std::thread::sleep(std::time::Duration::from_millis(
-                                    (MS_PER_FRAME - start.elapsed().as_millis()) as u64,
+                                    (MS_PER_FRAME.saturating_sub(start.elapsed().as_millis()))
+                                        as u64,
                                 ));
                             }
                             WindowEvent::CloseRequested => target.exit(),
