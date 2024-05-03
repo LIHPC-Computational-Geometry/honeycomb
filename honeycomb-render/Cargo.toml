@@ -12,9 +12,6 @@ keywords.workspace = true
 authors.workspace = true
 publish = true
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
@@ -25,11 +22,3 @@ pollster.workspace = true
 smaa.workspace = true
 wgpu.workspace = true
 winit.workspace = true
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "1.0"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
-wgpu = { workspace = true, features = ["webgl"] }

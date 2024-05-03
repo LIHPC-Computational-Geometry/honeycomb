@@ -14,13 +14,7 @@ use honeycomb_core::{CMap2, CoordsFloat};
 
 // ------ CONTENT
 
-cfg_if::cfg_if! {
-    if #[cfg(target_arch = "wasm32")] {
-        pub type MapRef<'a, T> = &'static CMap2<T>;
-    } else {
-        pub type MapRef<'a, T> = &'a CMap2<T>;
-    }
-}
+pub type MapRef<'a, T> = &'a CMap2<T>;
 
 const TARGET_FPS: f32 = 240.;
 
@@ -104,16 +98,8 @@ impl Runner {
     /// ```
     ///
     pub fn run<T: CoordsFloat>(self, render_params: RenderParameters, map: Option<MapRef<'_, T>>) {
-        cfg_if::cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
-                std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-                console_log::init().expect("could not initialize logger");
-                wasm_bindgen_futures::spawn_local(inner(self.event_loop, self.window, render_params, map));
-            } else {
-                env_logger::init();
-                pollster::block_on(inner(self.event_loop, self.window, render_params, map));
-            }
-        }
+        env_logger::init();
+        pollster::block_on(inner(self.event_loop, self.window, render_params, map));
     }
 
     /// UNIMPLEMENTED
@@ -127,20 +113,6 @@ impl Default for Runner {
         let event_loop = EventLoop::new().unwrap();
         #[allow(unused_mut)]
         let mut builder = winit::window::WindowBuilder::new();
-        #[cfg(target_arch = "wasm32")]
-        {
-            use wasm_bindgen::JsCast;
-            use winit::platform::web::WindowBuilderExtWebSys;
-            let canvas = web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .get_element_by_id("wasm-example")
-                .unwrap()
-                .dyn_into::<web_sys::HtmlCanvasElement>()
-                .unwrap();
-            builder = builder.with_canvas(Some(canvas));
-        }
         let window = builder.build(&event_loop).unwrap();
 
         Self { event_loop, window }
