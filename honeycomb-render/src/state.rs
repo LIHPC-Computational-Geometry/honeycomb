@@ -17,7 +17,7 @@ use wgpu::util::DeviceExt;
 use wgpu::PrimitiveTopology;
 use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, KeyEvent};
-use winit::event_loop::EventLoopWindowTarget;
+use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 use winit::{event::WindowEvent, window::Window};
 
@@ -367,7 +367,7 @@ impl<'a, T: CoordsFloat> State<'a, T> {
         self.window.request_redraw();
     }
 
-    pub fn input(&mut self, event: &WindowEvent, target: &EventLoopWindowTarget<()>) -> bool {
+    pub fn input(&mut self, event: &WindowEvent, target: &ActiveEventLoop) -> bool {
         // early check for exit
         if let WindowEvent::KeyboardInput {
             event: KeyEvent {
