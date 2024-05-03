@@ -6,7 +6,7 @@
 
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
-use winit::window::Window;
+use winit::window::{Window, WindowAttributes};
 
 use crate::state::State;
 use crate::RenderParameters;
@@ -111,9 +111,9 @@ impl Runner {
 impl Default for Runner {
     fn default() -> Self {
         let event_loop = EventLoop::new().unwrap();
-        #[allow(unused_mut)]
-        let mut builder = winit::window::WindowBuilder::new();
-        let window = builder.build(&event_loop).unwrap();
+        let window = event_loop
+            .create_window(WindowAttributes::default())
+            .unwrap();
 
         Self { event_loop, window }
     }
