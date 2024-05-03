@@ -1,0 +1,12 @@
+//! mod doc
+
+use crate::handle::CMap2RenderHandle;
+use crate::state::gfx::GfxState;
+use honeycomb_core::CoordsFloat;
+use winit::window::Window;
+
+pub struct App<'a, T: CoordsFloat> {
+    pub(crate) window: Option<Window>,
+    pub(crate) gfx: Option<GfxState>,
+    pub(crate) map_handle: Option<CMap2RenderHandle<'a, T>>,
+}

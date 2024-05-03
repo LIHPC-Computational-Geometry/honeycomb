@@ -484,7 +484,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: tmp.is_none()")]
+    #[should_panic(expected = "assertion failed: state.is_none()")]
     fn sparse_vec_insert_already_existing() {
         generate_sparse!(storage);
         assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));

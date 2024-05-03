@@ -4,6 +4,9 @@
 
 // ------ IMPORTS
 
+mod app;
+mod gfx;
+
 // intern
 use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
 use crate::handle::CMap2RenderHandle;
