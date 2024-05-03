@@ -10,31 +10,37 @@ use winit::dpi::PhysicalSize;
 use winit::window::Window;
 
 pub struct GfxState {
-    surface: wgpu::Surface<'static>,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
-    size: PhysicalSize<u32>,
-    render_pipeline: wgpu::RenderPipeline,
-    vertex_buffer: wgpu::Buffer,
-    num_vertices: u32,
-    camera: Camera,
-    camera_uniform: CameraUniform,
-    camera_buffer: wgpu::Buffer,
-    camera_bind_group: wgpu::BindGroup,
-    camera_controller: CameraController,
-    smaa_target: smaa::SmaaTarget,
+    pub(crate) surface: wgpu::Surface<'static>,
+    pub(crate) device: wgpu::Device,
+    pub(crate) queue: wgpu::Queue,
+    pub(crate) config: wgpu::SurfaceConfiguration,
+    pub(crate) size: PhysicalSize<u32>,
+    pub(crate) render_pipeline: wgpu::RenderPipeline,
+    pub(crate) vertex_buffer: wgpu::Buffer,
+    pub(crate) num_vertices: u32,
+    pub(crate) camera: Camera,
+    pub(crate) camera_uniform: CameraUniform,
+    pub(crate) camera_buffer: wgpu::Buffer,
+    pub(crate) camera_bind_group: wgpu::BindGroup,
+    pub(crate) camera_controller: CameraController,
+    pub(crate) smaa_target: smaa::SmaaTarget,
 }
 
 impl GfxState {
-    pub async fn new(window: Arc<Window>, antialiasing: crate::SmaaMode) -> Self {
+    pub fn new(window: Arc<Window>, antialiasing: crate::SmaaMode) -> Self {
         let instance = wgpu::Instance::default();
-        let mut size = window.inner_size();
-        let surface = instance.create_surface(window).unwrap();
+
+        eprintln!("I: Available adapters:");
+        for a in instance.enumerate_adapters(wgpu::Backends::all()) {
+            eprintln!("    {:#?}", a.get_info())
+        }
 
         // fetch window size
+        let mut size = window.inner_size();
         size.width = size.width.max(1);
         size.height = size.height.max(1);
+
+        let surface = instance.create_surface(window).unwrap();
 
         let (
             device,
@@ -47,7 +53,7 @@ impl GfxState {
             camera_controller,
             swapchain_format,
             render_pipeline,
-        ) = inner(&surface, size).await;
+        ) = pollster::block_on(inner(&instance, &surface, size));
 
         let smaa_target = smaa::SmaaTarget::new(
             &device,
@@ -88,6 +94,7 @@ impl GfxState {
 }
 
 async fn inner(
+    instance: &wgpu::Instance,
     surface: &wgpu::Surface<'_>,
     size: PhysicalSize<u32>,
 ) -> (
@@ -102,21 +109,11 @@ async fn inner(
     wgpu::TextureFormat,
     wgpu::RenderPipeline,
 ) {
-    let instance = wgpu::Instance::default();
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        eprintln!("I: Available adapters:");
-        for a in instance.enumerate_adapters(wgpu::Backends::all()) {
-            eprintln!("    {:#?}", a.get_info())
-        }
-    }
-
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
             force_fallback_adapter: false,
-            compatible_surface: Some(&surface),
+            compatible_surface: Some(surface),
         })
         .await
         .expect("E: Failed to fetch appropriate adaptater");
