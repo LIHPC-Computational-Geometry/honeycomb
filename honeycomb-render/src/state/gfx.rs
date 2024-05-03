@@ -27,7 +27,11 @@ pub struct GfxState {
 }
 
 impl GfxState {
-    pub fn new(window: Arc<Window>, antialiasing: crate::SmaaMode) -> Self {
+    pub fn new(
+        window: Arc<Window>,
+        antialiasing: crate::SmaaMode,
+        render_slice: &[Coords2Shader],
+    ) -> Self {
         let instance = wgpu::Instance::default();
 
         eprintln!("I: Available adapters:");
@@ -63,8 +67,6 @@ impl GfxState {
             swapchain_format,
             smaa::SmaaMode::from(antialiasing),
         );
-
-        let render_slice: &[Coords2Shader] = &[];
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
