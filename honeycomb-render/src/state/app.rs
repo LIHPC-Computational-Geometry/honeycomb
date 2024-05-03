@@ -45,16 +45,22 @@ impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
         event: WindowEvent,
     ) {
         if self.window.as_ref().unwrap().id() == window_id
-            && !self.gfx.as_ref().unwrap().input(&event, event_loop)
+            && !self.gfx.as_mut().unwrap().input(&event, event_loop)
         {
             match event {
-                WindowEvent::Resized(new_size) => self.gfx.as_ref().unwrap().resize(Some(new_size)),
+                WindowEvent::Resized(new_size) => {
+                    self.gfx.as_mut().unwrap().resize(Some(new_size));
+                    self.window.as_ref().unwrap().request_redraw();
+                }
                 WindowEvent::RedrawRequested => {
                     let start = std::time::Instant::now();
-                    self.gfx.as_ref().unwrap().update();
-                    match self.gfx.as_ref().unwrap().render() {
+                    self.gfx.as_mut().unwrap().update();
+                    match self.gfx.as_mut().unwrap().render(None) {
                         Ok(_) => {}
-                        Err(wgpu::SurfaceError::Lost) => self.gfx.as_ref().unwrap().resize(None),
+                        Err(wgpu::SurfaceError::Lost) => {
+                            self.gfx.as_mut().unwrap().resize(None);
+                            self.window.as_ref().unwrap().request_redraw();
+                        }
                         Err(wgpu::SurfaceError::OutOfMemory) => event_loop.exit(), // kill if OOM
                         Err(e) => eprintln!("{:?}", e),
                     };

@@ -7,6 +7,9 @@ use std::sync::Arc;
 use wgpu::util::DeviceExt;
 use wgpu::{PipelineCompilationOptions, PrimitiveTopology};
 use winit::dpi::PhysicalSize;
+use winit::event::{ElementState, KeyEvent, WindowEvent};
+use winit::event_loop::ActiveEventLoop;
+use winit::keyboard::{Key, NamedKey};
 use winit::window::Window;
 
 pub struct GfxState {
@@ -92,6 +95,99 @@ impl GfxState {
             camera_controller,
             smaa_target,
         }
+    }
+
+    pub fn resize(&mut self, new_size_opt: Option<PhysicalSize<u32>>) {
+        let new_size = new_size_opt.unwrap_or(self.size);
+        self.config.width = new_size.width.max(1);
+        self.config.height = new_size.height.max(1);
+        self.surface.configure(&self.device, &self.config);
+    }
+
+    pub fn input(&mut self, event: &WindowEvent, target: &ActiveEventLoop) -> bool {
+        // early check for exit
+        if let WindowEvent::KeyboardInput {
+            event: KeyEvent {
+                state, logical_key, ..
+            },
+            ..
+        } = event
+        {
+            let is_pressed = *state == ElementState::Pressed;
+            if let Key::Named(key) = logical_key {
+                if is_pressed & (key == &NamedKey::F1) {
+                    target.exit();
+                }
+            }
+        };
+        self.camera_controller.process_events(event)
+    }
+
+    pub fn update(&mut self) {
+        self.camera_controller.update_camera(&mut self.camera);
+        self.camera_uniform.update_view_proj(&self.camera);
+        self.queue.write_buffer(
+            &self.camera_buffer,
+            0,
+            bytemuck::cast_slice(&[self.camera_uniform]),
+        );
+    }
+
+    pub fn render(
+        &mut self,
+        render_slice: Option<&[Coords2Shader]>,
+    ) -> Result<(), wgpu::SurfaceError> {
+        // update the vertex buffer & num vertices
+        if let Some(slice) = render_slice {
+            self.vertex_buffer =
+                self.device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Vertex Buffer"),
+                        contents: bytemuck::cast_slice(slice),
+                        usage: wgpu::BufferUsages::VERTEX,
+                    });
+            self.num_vertices = slice.len() as u32;
+        }
+
+        // render
+        let frame = self
+            .surface
+            .get_current_texture()
+            .expect("Failed to acquire next swap chain texture");
+        let view = frame
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let smaa_frame = self
+            .smaa_target
+            .start_frame(&self.device, &self.queue, &view);
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+        {
+            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: None,
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &smaa_frame,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            rpass.set_pipeline(&self.render_pipeline);
+            rpass.set_bind_group(0, &self.camera_bind_group, &[]);
+            rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            rpass.draw(0..self.num_vertices, 0..1);
+        }
+
+        self.queue.submit(Some(encoder.finish()));
+        smaa_frame.resolve();
+        frame.present();
+        Ok(())
     }
 }
 
