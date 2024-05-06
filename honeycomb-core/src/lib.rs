@@ -18,6 +18,7 @@
 // ------ CUSTOM LINTS
 
 // --- enable doc_auto_cfg feature if compiling in nightly
+#![allow(unexpected_cfgs)]
 #![cfg_attr(nightly, feature(doc_auto_cfg))]
 // --- some though love for the code
 #![warn(missing_docs)]
