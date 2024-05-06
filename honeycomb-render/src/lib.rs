@@ -18,10 +18,8 @@ use honeycomb_core::CMap2;
 
 // ------ MODULE DECLARATIONS
 
-mod camera;
 mod handle;
 mod runner;
-mod shader_data;
 mod state;
 
 mod representations;

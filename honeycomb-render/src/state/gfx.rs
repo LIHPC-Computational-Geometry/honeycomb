@@ -11,8 +11,8 @@ use winit::keyboard::{Key, NamedKey};
 use winit::window::Window;
 
 use crate::{
-    camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR},
-    shader_data::Coords2Shader,
+    representations::shader_data::Coords2Shader,
+    state::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR},
 };
 
 pub struct GfxState {

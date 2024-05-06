@@ -5,6 +5,7 @@
 // ------ MODULE DECLARATIONS
 
 mod app;
+mod camera;
 mod gfx;
 
 // ------ RE-EXPORTS

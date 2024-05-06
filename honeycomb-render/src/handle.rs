@@ -6,8 +6,10 @@
 // ------ IMPORTS
 
 use crate::{
-    representations::intermediates::{Entity, IntermediateFace},
-    shader_data::Coords2Shader,
+    representations::{
+        intermediates::{Entity, IntermediateFace},
+        shader_data::Coords2Shader,
+    },
     MapRef, SmaaMode,
 };
 use honeycomb_core::{
