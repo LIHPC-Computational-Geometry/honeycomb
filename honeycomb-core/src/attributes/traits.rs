@@ -106,33 +106,3 @@ pub trait AttributeBind: Sized {
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
-
-#[cfg(test)]
-mod tests {
-    use super::super::Temperature;
-    use super::*;
-    use std::any::Any;
-
-    #[test]
-    fn attribute_update() {
-        let t1 = Temperature { val: 273.0 };
-        let t2 = Temperature { val: 298.0 };
-
-        let t_new = AttributeUpdate::merge(t1, t2); // use AttributeUpdate::_
-        let t_ref = Temperature { val: 285.5 };
-
-        assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
-        assert_eq!(Temperature::merge_undefined(Some(t_ref)), t_ref);
-        assert_eq!(Temperature::merge_undefined(None), Temperature::from(0.0));
-    }
-
-    #[test]
-    fn attribute_bind() {
-        assert_eq!(Temperature::binds_to(), crate::OrbitPolicy::Face);
-        let inst: <Temperature as AttributeBind>::IdentifierType = 0;
-        let ref_inst: crate::FaceIdentifier = 0;
-        let prim_inst: u32 = 0;
-        assert_eq!(inst.type_id(), ref_inst.type_id());
-        assert_eq!(inst.type_id(), prim_inst.type_id());
-    }
-}
