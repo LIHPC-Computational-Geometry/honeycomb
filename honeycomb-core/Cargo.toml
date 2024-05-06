@@ -13,6 +13,7 @@ authors.workspace = true
 publish = true
 
 [features]
+io = ["dep:vtkio"]
 utils = []
 _single_precision = []
 
@@ -21,6 +22,7 @@ _single_precision = []
 [dependencies]
 cfg-if.workspace = true
 num.workspace = true
+vtkio = { workspace = true, optional = true }
 
 [build-dependencies]
 rustversion.workspace = true
