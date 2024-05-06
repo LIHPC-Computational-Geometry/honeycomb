@@ -7,6 +7,8 @@
 mod app;
 mod gfx;
 
+pub use app::App;
+
 // intern
 use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
 use crate::handle::CMap2RenderHandle;

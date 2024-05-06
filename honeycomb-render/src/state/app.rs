@@ -1,6 +1,7 @@
 //! mod doc
 
 use crate::handle::CMap2RenderHandle;
+use crate::runner::MapRef;
 use crate::state::gfx::GfxState;
 use crate::RenderParameters;
 use honeycomb_core::CoordsFloat;
@@ -22,11 +23,31 @@ pub struct App<'a, T: CoordsFloat> {
     map_handle: CMap2RenderHandle<'a, T>,
 }
 
+impl<'a, T: CoordsFloat> App<'a, T> {
+    pub fn new(params: RenderParameters, map: MapRef<'a, T>) -> Self {
+        let handle = CMap2RenderHandle::new(map, Some(params));
+
+        Self {
+            window: None,
+            gfx: None,
+            render_params: params,
+            map_handle: handle,
+        }
+    }
+}
+
 impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let win_attrs = Window::default_attributes().with_title("honeycomb-render");
         let window = Arc::new(event_loop.create_window(win_attrs).unwrap());
 
+        self.map_handle.build_intermediate();
+        self.map_handle.build_faces();
+        self.map_handle.build_darts();
+        self.map_handle.build_betas();
+        self.map_handle.save_buffered();
+
+        eprintln!("test");
         let gfx_state = GfxState::new(
             Arc::clone(&window),
             self.render_params.smaa_mode,

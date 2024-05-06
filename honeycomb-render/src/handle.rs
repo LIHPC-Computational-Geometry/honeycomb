@@ -18,6 +18,7 @@ use honeycomb_core::{
 ///
 /// The user can easily adjust parameters in this structure to obtain
 /// the preferred output style.
+#[derive(Clone, Copy)]
 pub struct RenderParameters {
     /// Anti-aliasing configuration.
     pub smaa_mode: SmaaMode,
