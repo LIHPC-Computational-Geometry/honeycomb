@@ -1,7 +1,5 @@
 //! mod doc
 
-use crate::camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR};
-use crate::shader_data::Coords2Shader;
 use std::borrow::Cow;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
@@ -11,6 +9,11 @@ use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::{Key, NamedKey};
 use winit::window::Window;
+
+use crate::{
+    camera::{Camera, CameraController, CameraUniform, SPEED_FACTOR},
+    shader_data::Coords2Shader,
+};
 
 pub struct GfxState {
     pub(crate) surface: wgpu::Surface<'static>,

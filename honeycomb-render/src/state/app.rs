@@ -1,8 +1,8 @@
 //! mod doc
 
 use crate::handle::CMap2RenderHandle;
-use crate::runner::MapRef;
 use crate::state::gfx::GfxState;
+use crate::MapRef;
 use crate::RenderParameters;
 use honeycomb_core::CoordsFloat;
 use std::sync::Arc;
@@ -87,7 +87,7 @@ impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
                     };
                     // put a hard cap on the rendering speed
                     std::thread::sleep(std::time::Duration::from_millis(
-                        (MS_PER_FRAME.saturating_sub(start.elapsed().as_millis())) as u64,
+                        MS_PER_FRAME.saturating_sub(start.elapsed().as_millis()) as u64,
                     ));
                 }
                 WindowEvent::CloseRequested => event_loop.exit(),

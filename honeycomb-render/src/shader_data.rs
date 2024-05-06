@@ -5,8 +5,9 @@
 
 // ------ IMPORTS
 
-use crate::representations::intermediates::Entity;
 use bytemuck::{Pod, Zeroable};
+
+use crate::representations::intermediates::Entity;
 use honeycomb_core::{CoordsFloat, Vertex2};
 
 // ------ CONTENT

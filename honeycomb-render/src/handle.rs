@@ -5,11 +5,13 @@
 
 // ------ IMPORTS
 
-use crate::representations::intermediates::{Entity, IntermediateFace};
-use crate::shader_data::Coords2Shader;
-use crate::SmaaMode;
+use crate::{
+    representations::intermediates::{Entity, IntermediateFace},
+    shader_data::Coords2Shader,
+    MapRef, SmaaMode,
+};
 use honeycomb_core::{
-    CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
+    CoordsFloat, DartIdentifier, EdgeIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -45,7 +47,7 @@ impl Default for RenderParameters {
 }
 
 pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
-    handle: &'a CMap2<T>,
+    handle: MapRef<'a, T>,
     params: RenderParameters,
     intermediate_buffer: Vec<IntermediateFace<T>>,
     dart_construction_buffer: Vec<Coords2Shader>,
@@ -55,7 +57,7 @@ pub struct CMap2RenderHandle<'a, T: CoordsFloat> {
 }
 
 impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
-    pub fn new(map: &'a CMap2<T>, params: Option<RenderParameters>) -> Self {
+    pub fn new(map: MapRef<'a, T>, params: Option<RenderParameters>) -> Self {
         Self {
             handle: map,
             params: params.unwrap_or_default(),

@@ -12,5 +12,5 @@ fn main() {
         .len_per_cell_y(3.0_f64)
         .build2()
         .unwrap();
-    Runner::default().run(render_params, Some(&map));
+    Runner::default().launch(render_params, Some(&map));
 }

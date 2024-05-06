@@ -60,5 +60,5 @@ fn main() {
     let elapsed = now.elapsed();
     println!("I: Finished shifting in {}μs", elapsed.as_micros());
 
-    Runner::default().run(render_params, Some(&map));
+    Runner::default().launch(render_params, Some(&map));
 }
