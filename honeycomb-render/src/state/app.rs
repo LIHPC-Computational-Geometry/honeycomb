@@ -1,6 +1,7 @@
 //! mod doc
 
 use crate::handle::CMap2RenderHandle;
+use crate::representations::shader_data::TEST_VERTICES;
 use crate::state::gfx::GfxState;
 use crate::MapRef;
 use crate::RenderParameters;
@@ -20,18 +21,16 @@ pub struct App<'a, T: CoordsFloat> {
     window: Option<Arc<Window>>,
     gfx: Option<GfxState>,
     render_params: RenderParameters,
-    map_handle: CMap2RenderHandle<'a, T>,
+    map_handle: Option<CMap2RenderHandle<'a, T>>,
 }
 
 impl<'a, T: CoordsFloat> App<'a, T> {
-    pub fn new(params: RenderParameters, map: MapRef<'a, T>) -> Self {
-        let handle = CMap2RenderHandle::new(map, Some(params));
-
+    pub fn new(params: RenderParameters, map: Option<MapRef<'a, T>>) -> Self {
         Self {
             window: None,
             gfx: None,
             render_params: params,
-            map_handle: handle,
+            map_handle: map.map(|map_ref| CMap2RenderHandle::new(map_ref, Some(params))),
         }
     }
 }
@@ -41,16 +40,22 @@ impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
         let win_attrs = Window::default_attributes().with_title("honeycomb-render");
         let window = Arc::new(event_loop.create_window(win_attrs).unwrap());
 
-        self.map_handle.build_intermediate();
-        self.map_handle.build_faces();
-        self.map_handle.build_darts();
-        self.map_handle.build_betas();
-        self.map_handle.save_buffered();
+        if self.map_handle.is_some() {
+            self.map_handle.as_mut().unwrap().build_intermediate();
+            self.map_handle.as_mut().unwrap().build_faces();
+            self.map_handle.as_mut().unwrap().build_darts();
+            self.map_handle.as_mut().unwrap().build_betas();
+            self.map_handle.as_mut().unwrap().save_buffered();
+        }
 
         let gfx_state = GfxState::new(
             Arc::clone(&window),
             self.render_params.smaa_mode,
-            self.map_handle.vertices(),
+            if self.map_handle.is_some() {
+                self.map_handle.as_ref().unwrap().vertices()
+            } else {
+                TEST_VERTICES
+            },
         );
         window.request_redraw();
 
