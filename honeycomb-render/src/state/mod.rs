@@ -22,6 +22,7 @@ pub use app::App;
 /// [SMAA]: https://github.com/fintelia/smaa-rs
 #[derive(Debug, Default, Clone, Copy)]
 pub enum SmaaMode {
+    #[allow(clippy::doc_markdown)]
     /// SMAA1x anti-aliasing.
     Smaa1X,
     #[default]

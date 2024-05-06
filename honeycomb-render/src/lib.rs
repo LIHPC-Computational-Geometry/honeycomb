@@ -2,7 +2,7 @@
 //!
 //! This crate implements a runner that can be used to display combinatorial maps.
 //!
-//! It currently only supports 2D maps as the core library only implements these (as [honeycomb_core::CMap2])
+//! It currently only supports 2D maps as the core library only implements these (as [`honeycomb_core::CMap2`])
 //!
 //! ## Key bindings
 //!
@@ -24,6 +24,7 @@
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
 
 // ------ MODULE DECLARATIONS
 

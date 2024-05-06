@@ -47,7 +47,6 @@ impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
         self.map_handle.build_betas();
         self.map_handle.save_buffered();
 
-        eprintln!("test");
         let gfx_state = GfxState::new(
             Arc::clone(&window),
             self.render_params.smaa_mode,
@@ -77,13 +76,13 @@ impl<'a, T: CoordsFloat> ApplicationHandler for App<'a, T> {
                     let start = std::time::Instant::now();
                     self.gfx.as_mut().unwrap().update();
                     match self.gfx.as_mut().unwrap().render(None) {
-                        Ok(_) => {}
+                        Ok(()) => {}
                         Err(wgpu::SurfaceError::Lost) => {
                             self.gfx.as_mut().unwrap().resize(None);
                             self.window.as_ref().unwrap().request_redraw();
                         }
                         Err(wgpu::SurfaceError::OutOfMemory) => event_loop.exit(), // kill if OOM
-                        Err(e) => eprintln!("{:?}", e),
+                        Err(e) => eprintln!("{e:?}"),
                     };
                     // put a hard cap on the rendering speed
                     std::thread::sleep(std::time::Duration::from_millis(

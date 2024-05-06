@@ -42,7 +42,7 @@ impl GfxState {
 
         eprintln!("I: Available adapters:");
         for a in instance.enumerate_adapters(wgpu::Backends::all()) {
-            eprintln!("    {:#?}", a.get_info())
+            eprintln!("    {:#?}", a.get_info());
         }
 
         // fetch window size
@@ -88,8 +88,8 @@ impl GfxState {
             queue,
             config,
             size,
-            vertex_buffer,
             render_pipeline,
+            vertex_buffer,
             num_vertices,
             camera,
             camera_uniform,
@@ -153,10 +153,7 @@ impl GfxState {
         }
 
         // render
-        let frame = self
-            .surface
-            .get_current_texture()
-            .expect("Failed to acquire next swap chain texture");
+        let frame = self.surface.get_current_texture()?;
         let view = frame
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
@@ -322,10 +319,10 @@ async fn inner(
         primitive: wgpu::PrimitiveState {
             topology: PrimitiveTopology::TriangleList,
             strip_index_format: None,
-            front_face: Default::default(),
+            front_face: wgpu::FrontFace::default(),
             cull_mode: None,
             unclipped_depth: false,
-            polygon_mode: Default::default(),
+            polygon_mode: wgpu::PolygonMode::default(),
             conservative: false,
         },
         depth_stencil: None,
