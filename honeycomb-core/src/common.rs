@@ -28,10 +28,21 @@ pub enum CMapError {
     UndefinedVertex,
 }
 
-// --- decimal types
+// --- generic decimal trait
 
+/// Common trait implemented by types used for coordinate representation.
+pub trait CoordsFloat:
+    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
+{
+}
+
+impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign> CoordsFloat for T {}
+
+// --- test utility
+
+#[cfg(test)]
 cfg_if::cfg_if! {
-    if #[cfg(feature = "single_precision")] {
+    if #[cfg(feature = "_single_precision")] {
         /// Floating-point type alias.
         ///
         /// This is mostly used to run tests using both `f64` and `f32`.
@@ -43,12 +54,3 @@ cfg_if::cfg_if! {
         pub type FloatType = f64;
     }
 }
-
-/// Common trait implemented by types used for coordinate representation.
-pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
-{
-}
-
-impl CoordsFloat for f32 {}
-impl CoordsFloat for f64 {}

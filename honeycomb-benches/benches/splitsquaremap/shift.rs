@@ -22,8 +22,9 @@ use rand::{
     rngs::SmallRng,
 };
 
+use honeycomb_benches::FloatType;
 use honeycomb_core::{
-    utils::GridBuilder, CMap2, DartIdentifier, FloatType, Vector2, VertexIdentifier, NULL_DART_ID,
+    utils::GridBuilder, CMap2, DartIdentifier, Vector2, VertexIdentifier, NULL_DART_ID,
 };
 
 // ------ CONTENT

@@ -6,8 +6,6 @@
 
 // ------ IMPORTS
 
-#[cfg(doc)]
-use crate::FloatType;
 use crate::{CoordsFloat, Vector2, Vertex2};
 
 use std::iter::Sum;
@@ -26,10 +24,7 @@ pub enum CoordsError {
     InvalidUnitDir,
 }
 
-/// 2-dimensional coordinates structure
-///
-/// The floating type used for coordinate representation is determined by the user. For tests, it
-/// can be controled using features and the [`FloatType`] alias.
+/// Bare-bone 2-dimensional coordinates representation
 ///
 /// # Generics
 ///
@@ -220,7 +215,7 @@ impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FloatType;
+    use crate::common::FloatType;
 
     fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
         const EPS: FloatType = 10.0e-12;

@@ -14,6 +14,9 @@
 
 <sup>core definitions and tools for combinatorial map implementation</sup>
 
+- replace `CoordsFloat` implementation blocks to automatize implementation
+  for all types that fit the traits requirement (#68)
+- remove `FloatType` from the public API (#68)
 - change some main methods return type to have better overall consistency (#67):
     - `Vector2::normal_dir` now returns a result instead of potentially panicking
     - `CMap2::vertex` now returns a result instead of panicking if no associated vertex is found

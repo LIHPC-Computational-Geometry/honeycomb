@@ -14,7 +14,8 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, FloatType};
+use honeycomb_benches::FloatType;
+use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
