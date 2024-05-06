@@ -2,7 +2,7 @@
 //!
 //! This crate implements a runner that can be used to display combinatorial maps.
 //!
-//! It currently only supports 2D maps as the core library only implements these (as [CMap2])
+//! It currently only supports 2D maps as the core library only implements these (as [`honeycomb_core::CMap2`])
 //!
 //! ## Key bindings
 //!
@@ -14,15 +14,22 @@
 //!
 //! Examples are available in the **honeycomb-examples** crate.
 
-#[cfg(doc)]
-use honeycomb_core::CMap2;
+// ------ CUSTOM LINTS
+
+// more lints
+#![warn(clippy::pedantic)]
+#![warn(missing_docs)]
+// some exceptions
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_precision_loss)]
 
 // ------ MODULE DECLARATIONS
 
-mod camera;
 mod handle;
 mod runner;
-mod shader_data;
 mod state;
 
 mod representations;
@@ -30,5 +37,10 @@ mod representations;
 // ------ RE-EXPORTS
 
 pub use handle::RenderParameters;
-pub use runner::Runner;
+pub use runner::{launch, launch_async};
 pub use state::SmaaMode;
+
+// ------ CONTENT
+
+/// Convenience type alias
+type MapRef<'a, T> = &'a honeycomb_core::CMap2<T>;

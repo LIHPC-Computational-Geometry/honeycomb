@@ -44,9 +44,9 @@ bytemuck = "1.15.0"
 cgmath = "0.18.0"
 env_logger = "0.11.3"
 pollster = "0.3.0"
-smaa = "0.13.0"
-wgpu = "0.19.4"
-winit = "0.29.15"
+smaa = "0.14.0"
+wgpu = "0.20.0"
+winit = "0.30.0"
 
 [profile.bench]
 debug = true
