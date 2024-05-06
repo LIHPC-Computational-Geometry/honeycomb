@@ -1,9 +1,9 @@
-use honeycomb_render::{RenderParameters, Runner, SmaaMode};
+use honeycomb_render::{launch, RenderParameters, SmaaMode};
 
 fn main() {
     let render_params = RenderParameters {
         smaa_mode: SmaaMode::Disabled,
         ..Default::default()
     };
-    Runner::default().launch::<f32>(render_params, None);
+    launch::<f32>(render_params, None);
 }

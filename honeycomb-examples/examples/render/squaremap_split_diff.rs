@@ -57,5 +57,5 @@ fn main() {
     let elapsed = now.elapsed();
     println!("I: Finished splitting in {}μs", elapsed.as_micros());
 
-    Runner::default().launch(render_params, Some(&map));
+    launch(render_params, Some(&map));
 }
