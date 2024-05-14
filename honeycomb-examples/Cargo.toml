@@ -17,8 +17,12 @@ rand = { workspace = true, features = ["small_rng"] }
 # I/O
 
 [[example]]
-name = "tri_vtk"
+name = "io_vtk_tri"
 path = "examples/io/tri.rs"
+
+[[example]]
+name = "io_vtk_quad"
+path = "examples/io/quad.rs"
 
 # memory usage
 
