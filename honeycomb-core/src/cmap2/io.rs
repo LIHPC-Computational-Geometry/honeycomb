@@ -33,6 +33,18 @@ macro_rules! build_vertices {
 }
 
 impl<T: CoordsFloat> CMap2<T> {
+    /// Build a [`CMap2`] from a `vtk` file.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if:
+    /// - the file cannot be loaded
+    /// - the internal building routine fails, i.e.
+    ///     - the file format is XML
+    ///     - the mesh contains one type of cell that is not supported (either because of
+    ///     dimension or orientation incompatibilities)
+    ///     - the file has major inconsistencies / errors
+    #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn from_vtk_file(file_path: &str) -> Self {
         use std::path::PathBuf;
         let file_path = PathBuf::from(file_path);
@@ -45,6 +57,7 @@ impl<T: CoordsFloat> CMap2<T> {
 // --- internals
 
 #[allow(clippy::too_many_lines)]
+/// Internal building routine for [`CMap2::from_vtk_file`].
 fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
@@ -99,11 +112,16 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                         CellType::Vertex => {
                             assert_eq!(vids.len(), 1, "failed to build cell - `Vertex` has {} instead of 1 vertex", vids.len());
                         }
-                        CellType::PolyVertex => {}
+                        CellType::PolyVertex => unimplemented!(
+                            "failed to build cell - `PolyVertex` cell type is not supported because for consistency"
+                        ),
                         CellType::Line => {
                             assert_eq!(vids.len(), 2, "failed to build cell - `Line` has {} instead of 2 vertices", vids.len());
+                            todo!()
                         }
-                        CellType::PolyLine => {}
+                        CellType::PolyLine => unimplemented!(
+                            "failed to build cell - `PolyLine` cell type is not supported because for consistency"
+                        ),
                         CellType::Triangle => {
                             // check validity
                             assert_eq!(vids.len(), 3, "failed to build cell - `Triangle` has {} instead of 3 vertices", vids.len());
@@ -125,6 +143,9 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                             "failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements"
                         ),
                         CellType::Polygon => {
+                            // FIXME: NOT TESTED
+                            // operation order should still work, but it would be nice to have 
+                            // an heterogeneous mesh
                             let n_vertices = vids.len();
                             let d0 = cmap.add_free_darts(n_vertices);
                             (0..n_vertices ).for_each(|i| {
@@ -167,7 +188,7 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                     });
                 }
                 VertexNumbers::XML { .. } => {
-                    todo!("XML file format is not currently supported")
+                    unimplemented!("XML file format is not currently supported")
                 }
             }
         }),
