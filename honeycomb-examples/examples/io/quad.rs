@@ -5,7 +5,7 @@ fn main() {
     let render_params = RenderParameters {
         smaa_mode: SmaaMode::Smaa1X,
         relative_resize: true,
-        shrink_factor: 0.03,
+        shrink_factor: 0.01,
         ..Default::default()
     };
     let map: CMap2<f64> = CMap2::from_vtk_file("honeycomb-examples/examples/io/quad.vtk");

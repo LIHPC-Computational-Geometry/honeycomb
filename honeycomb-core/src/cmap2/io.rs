@@ -44,6 +44,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 // --- internals
 
+#[allow(clippy::too_many_lines)]
 fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
@@ -129,6 +130,22 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                         ),
                         CellType::Quad => {
                             assert_eq!(vids.len(), 4,  "failed to build cell - `Quad` has {} instead of 4 vertices", vids.len());
+                            // build the quad
+                            let d0 = cmap.add_free_darts(4);
+                            let (d1, d2, d3) = (d0+1, d0+2, d0+3);
+                            cmap.insert_vertex(d0 as VertexIdentifier, vertices[vids[0]]);
+                            cmap.insert_vertex(d1 as VertexIdentifier, vertices[vids[1]]);
+                            cmap.insert_vertex(d2 as VertexIdentifier, vertices[vids[2]]);
+                            cmap.insert_vertex(d3 as VertexIdentifier, vertices[vids[3]]);
+                            cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                            cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                            cmap.one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
+                            cmap.one_link(d3, d0); // edge d3 links vertices vids[3] & vids[0]
+                            // record a trace of the built cell for future 2-sew
+                            sew_buffer.insert((vids[0], vids[1]), d0);
+                            sew_buffer.insert((vids[1], vids[2]), d1);
+                            sew_buffer.insert((vids[2], vids[3]), d2);
+                            sew_buffer.insert((vids[3], vids[0]), d3);
                         }
                         c => unimplemented!(
                             "failed to build cell - {c:#?} is not supported in 2-maps"
