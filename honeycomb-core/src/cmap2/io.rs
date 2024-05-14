@@ -124,7 +124,21 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                         CellType::TriangleStrip => unimplemented!(
                             "failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements"
                         ),
-                        CellType::Polygon => {}
+                        CellType::Polygon => {
+                            let n_vertices = vids.len();
+                            let d0 = cmap.add_free_darts(n_vertices);
+                            (0..n_vertices ).for_each(|i| {
+                                let di = d0 + i as DartIdentifier;
+                                let dip1 = if i==n_vertices-1 {
+                                    d0
+                                } else {
+                                    di +1
+                                };
+                                cmap.insert_vertex(di as VertexIdentifier, vertices[vids[i]]);
+                                cmap.one_link(di, dip1);
+                                sew_buffer.insert((vids[i], vids[(i + 1) % n_vertices]), di);
+                            });
+                        }
                         CellType::Pixel => unimplemented!(
                             "failed to build cell - `Pixel` cell type is not supported because of orientation requirements"
                         ),
