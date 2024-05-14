@@ -6,8 +6,9 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, Vertex2, VertexIdentifier};
+use crate::{CMap2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
 use num::Zero;
+use std::collections::BTreeMap;
 use vtkio::model::{CellType, Cells, DataSet, VertexNumbers, Vtk};
 use vtkio::IOBuffer;
 
@@ -35,6 +36,8 @@ macro_rules! build_vertices {
 
 impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
     fn from(value: Vtk) -> Self {
+        let mut cmap: CMap2<T> = CMap2::new(0);
+        let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
         match value.data {
             DataSet::ImageData { .. }
             | DataSet::StructuredGrid { .. }
@@ -60,7 +63,7 @@ impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
                 match cell_verts {
                     VertexNumbers::Legacy {
                         num_cells,
-                        vertices,
+                        vertices: verts,
                     } => {
                         // check basic stuff
                         assert_eq!(
@@ -69,15 +72,15 @@ impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
                             "failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES"
                         );
 
-                        // build a collection of vertex lists correspondign of each cell
-                        let mut cell_components: Vec<Vec<VertexIdentifier>> = Vec::new();
+                        // build a collection of vertex lists corresponding of each cell
+                        let mut cell_components: Vec<Vec<usize>> = Vec::new();
                         let mut take_next = 0;
-                        vertices.iter().for_each(|vertex_id| if take_next.is_zero() {
+                        verts.iter().for_each(|vertex_id| if take_next.is_zero() {
                             // making it usize since it's a counter
                             take_next = *vertex_id as usize;
                             cell_components.push(Vec::with_capacity(take_next));
                         } else {
-                            cell_components.last_mut().unwrap().push(*vertex_id as VertexIdentifier);
+                            cell_components.last_mut().unwrap().push(*vertex_id as usize);
                             take_next -= 1;
                         });
                         assert_eq!(num_cells as usize, cell_components.len());
@@ -92,7 +95,21 @@ impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
                             }
                             CellType::PolyLine => {}
                             CellType::Triangle => {
+                                // check validity
                                 assert_eq!(vids.len(), 3, "failed to build cell - `Triangle` has {} instead of 3 vertices", vids.len());
+                                // build the triangle
+                                let d0 = cmap.add_free_darts(3);
+                                let (d1, d2) = (d0+1, d0+2);
+                                cmap.insert_vertex(d0 as VertexIdentifier, vertices[vids[0]]);
+                                cmap.insert_vertex(d1 as VertexIdentifier, vertices[vids[1]]);
+                                cmap.insert_vertex(d2 as VertexIdentifier, vertices[vids[2]]);
+                                cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                                cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                                cmap.one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
+                                // record a trace of the built cell for future 2-sew
+                                sew_buffer.insert((vids[0], vids[1]), d0);
+                                sew_buffer.insert((vids[1], vids[2]), d1);
+                                sew_buffer.insert((vids[2], vids[0]), d2);
                             }
                             CellType::TriangleStrip => unimplemented!(
                                 "failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements"
@@ -110,12 +127,18 @@ impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
                         });
                     }
                     VertexNumbers::XML { .. } => {
-                        todo!()
+                        todo!("XML file format is not currently supported")
                     }
                 }
             }),
         }
-        todo!()
+        while let Some(((id0, id1), dart_id0)) = sew_buffer.pop_first() {
+            if let Some(dart_id1) = sew_buffer.remove(&(id1, id0)) {
+                cmap.two_sew(dart_id0, dart_id1);
+            }
+        }
+
+        cmap
     }
 }
 
