@@ -82,18 +82,28 @@ impl<T: CoordsFloat> From<Vtk> for CMap2<T> {
                         });
                         assert_eq!(num_cells as usize, cell_components.len());
 
-                        types.iter().for_each(|cell_type| match cell_type {
-                            CellType::Vertex => {}
+                        types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
+                            CellType::Vertex => {
+                                assert_eq!(vids.len(), 1, "failed to build cell - `Vertex` has {} instead of 1 vertex", vids.len());
+                            }
                             CellType::PolyVertex => {}
-                            CellType::Line => {}
+                            CellType::Line => {
+                                assert_eq!(vids.len(), 2, "failed to build cell - `Line` has {} instead of 2 vertices", vids.len());
+                            }
                             CellType::PolyLine => {}
-                            CellType::Triangle => {}
-                            CellType::TriangleStrip => {}
+                            CellType::Triangle => {
+                                assert_eq!(vids.len(), 3, "failed to build cell - `Triangle` has {} instead of 3 vertices", vids.len());
+                            }
+                            CellType::TriangleStrip => unimplemented!(
+                                "failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements"
+                            ),
                             CellType::Polygon => {}
                             CellType::Pixel => unimplemented!(
                                 "failed to build cell - `Pixel` cell type is not supported because of orientation requirements"
                             ),
-                            CellType::Quad => {}
+                            CellType::Quad => {
+                                assert_eq!(vids.len(), 4,  "failed to build cell - `Quad` has {} instead of 4 vertices", vids.len());
+                            }
                             c => unimplemented!(
                                 "failed to build cell - {c:#?} is not supported in 2-maps"
                             ),
