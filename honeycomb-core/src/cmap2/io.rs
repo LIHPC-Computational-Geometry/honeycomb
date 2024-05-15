@@ -111,13 +111,14 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                     types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
                         CellType::Vertex => {
                             assert_eq!(vids.len(), 1, "failed to build cell - `Vertex` has {} instead of 1 vertex", vids.len());
+                            // silent ignore
                         }
                         CellType::PolyVertex => unimplemented!(
                             "failed to build cell - `PolyVertex` cell type is not supported because for consistency"
                         ),
                         CellType::Line => {
                             assert_eq!(vids.len(), 2, "failed to build cell - `Line` has {} instead of 2 vertices", vids.len());
-                            todo!()
+                            // silent ignore
                         }
                         CellType::PolyLine => unimplemented!(
                             "failed to build cell - `PolyLine` cell type is not supported because for consistency"
@@ -145,7 +146,7 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                         CellType::Polygon => {
                             // FIXME: NOT TESTED
                             // operation order should still work, but it would be nice to have 
-                            // an heterogeneous mesh
+                            // an heterogeneous mesh to test on
                             let n_vertices = vids.len();
                             let d0 = cmap.add_free_darts(n_vertices);
                             (0..n_vertices ).for_each(|i| {
