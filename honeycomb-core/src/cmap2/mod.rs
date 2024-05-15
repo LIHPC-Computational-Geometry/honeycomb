@@ -11,6 +11,10 @@ mod basic_ops;
 mod embed;
 mod link_and_sew;
 mod structure;
+
+#[cfg(any(doc, feature = "io"))]
+mod io;
+
 #[cfg(any(doc, feature = "utils"))]
 mod utils;
 

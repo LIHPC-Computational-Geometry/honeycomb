@@ -10,13 +10,27 @@ authors.workspace = true
 publish = false
 
 [dev-dependencies]
-honeycomb-core = { workspace = true, features = ["utils"] }
+honeycomb-core = { workspace = true, features = ["utils", "io"] }
 honeycomb-render = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
+
+# I/O
+
+[[example]]
+name = "io_vtk_tri"
+path = "examples/io/tri.rs"
+
+[[example]]
+name = "io_vtk_quad"
+path = "examples/io/quad.rs"
+
+# memory usage
 
 [[example]]
 name = "memory_usage"
 path = "examples/memory_usage/compute.rs"
+
+# rendering
 
 [[example]]
 name = "render_default_no_aa"

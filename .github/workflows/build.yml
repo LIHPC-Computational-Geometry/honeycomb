@@ -23,7 +23,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build crates
-        run: cargo build --features utils --all
+        run: cargo build --features utils,io --all
   build_examples:
     name: Build examples for ${{ matrix.os }}
     strategy:
@@ -37,7 +37,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build examples
-        run: cargo build --features utils --examples
+        run: cargo build --features utils,io --examples
   build_benchmarks:
     name: Build benchmarks for ${{ matrix.os }}
     strategy:
@@ -51,4 +51,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build benchmarks
-        run: cargo build --features utils --benches
+        run: cargo build --features utils,io --benches

@@ -31,12 +31,12 @@ jobs:
       # generate raw coverage data
       # excluding the benchmark / example crates to remove some bias
       - name: Build code
-        run: cargo build --features utils --workspace --exclude honeycomb-benches --exclude honeycomb-examples --exclude honeycomb-render
+        run: cargo build --features utils,io --workspace --exclude honeycomb-benches --exclude honeycomb-examples --exclude honeycomb-render
         env:
           RUSTFLAGS: "-Cinstrument-coverage"
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       - name: Run tests
-        run: cargo test --features utils --workspace --exclude honeycomb-benches --exclude honeycomb-examples --exclude honeycomb-render
+        run: cargo test --features utils,io --workspace --exclude honeycomb-benches --exclude honeycomb-examples --exclude honeycomb-render
         env:
           RUSTFLAGS: "-Cinstrument-coverage"
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
