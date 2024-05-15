@@ -9,7 +9,8 @@
 use crate::{CMap2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
 use num::Zero;
 use std::collections::BTreeMap;
-use vtkio::model::{CellType, Cells, DataSet, VertexNumbers, Vtk};
+use std::fs::File;
+use vtkio::model::{ByteOrder, CellType, Cells, DataSet, Version, VertexNumbers, Vtk};
 use vtkio::IOBuffer;
 
 // ------ CONTENT
@@ -51,6 +52,29 @@ impl<T: CoordsFloat> CMap2<T> {
         let file = Vtk::import(&file_path)
             .unwrap_or_else(|_| panic!("Failed to load file: {file_path:?}"));
         build_cmap_from_vtk(file)
+    }
+
+    pub fn to_vtk_file(&self, out_path: &str) {
+        // build a Vtk structure
+        let mut vtk_file = Vtk {
+            version: Version::default(),
+            title: "cmap".to_string(),
+            byte_order: ByteOrder::BigEndian,
+            data: DataSet::UnstructuredGrid {
+                meta: None,
+                pieces: vec![],
+            },
+            file_path: None,
+        };
+        // ...
+
+        // create output file
+        let file_path = std::path::PathBuf::from(out_path);
+        let file = File::create_new(file_path).expect("Could not create vtk output file");
+        // write data to the created file
+        vtk_file
+            .write_legacy(file)
+            .expect("Could not write data to created file");
     }
 }
 
