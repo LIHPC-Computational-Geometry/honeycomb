@@ -10,7 +10,9 @@ use crate::{CMap2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
 use num::Zero;
 use std::collections::BTreeMap;
 use std::fs::File;
-use vtkio::model::{ByteOrder, CellType, Cells, DataSet, Version, VertexNumbers, Vtk};
+use vtkio::model::{
+    ByteOrder, CellType, Cells, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
+};
 use vtkio::IOBuffer;
 
 // ------ CONTENT
@@ -54,25 +56,30 @@ impl<T: CoordsFloat> CMap2<T> {
         build_cmap_from_vtk(file)
     }
 
+    /// Generate a legacy VTK file from the map.
+    ///
+    /// # Panics
+    ///
+    /// todo
     pub fn to_vtk_file(&self, out_path: &str) {
         // build a Vtk structure
-        let mut vtk_file = Vtk {
-            version: Version::default(),
+        let vtk_struct = Vtk {
+            version: Version::Legacy { major: 2, minor: 0 },
             title: "cmap".to_string(),
             byte_order: ByteOrder::BigEndian,
             data: DataSet::UnstructuredGrid {
                 meta: None,
-                pieces: vec![],
+                pieces: vec![Piece::Inline(Box::new(build_unstructured_piece(self)))],
             },
             file_path: None,
         };
-        // ...
 
         // create output file
         let file_path = std::path::PathBuf::from(out_path);
         let file = File::create_new(file_path).expect("Could not create vtk output file");
+
         // write data to the created file
-        vtk_file
+        vtk_struct
             .write_legacy(file)
             .expect("Could not write data to created file");
     }
@@ -225,4 +232,9 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     }
 
     cmap
+}
+
+/// Internal building routine for [`CMap2::to_vtk_file`].
+fn build_unstructured_piece<T: CoordsFloat>(map: &CMap2<T>) -> UnstructuredGridPiece {
+    todo!()
 }
