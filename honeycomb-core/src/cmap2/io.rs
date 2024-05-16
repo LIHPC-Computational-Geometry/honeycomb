@@ -10,14 +10,16 @@ use crate::{
     CMap2, Coords2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, Vertex2, VertexIdentifier,
     NULL_DART_ID,
 };
+
+use std::{any::TypeId, collections::BTreeMap, fs::File};
+
 use num::Zero;
-use std::any::TypeId;
-use std::collections::BTreeMap;
-use std::fs::File;
-use vtkio::model::{
-    ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
+use vtkio::{
+    model::{
+        ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
+    },
+    IOBuffer,
 };
-use vtkio::IOBuffer;
 
 // ------ CONTENT
 
@@ -64,7 +66,12 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///
     /// # Panics
     ///
-    /// todo
+    /// This function may panic if:
+    /// - the file already exists
+    /// - the file cannot be written to
+    /// - the internal writing routine fails, i.e.:
+    ///     - Vertex coordinates cannot be cast to `f32` or `f64`
+    ///     - A vertex cannot be found
     pub fn to_vtk_file(&self, out_path: &str) {
         // build a Vtk structure
         let vtk_struct = Vtk {
