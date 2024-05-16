@@ -316,7 +316,7 @@ where
         n_cells += 1;
     });
 
-    let piece = UnstructuredGridPiece {
+    UnstructuredGridPiece {
         points: if TypeId::of::<T>() == TypeId::of::<f32>() {
             IOBuffer::F32(vertices.map(|t| t.to_f32().unwrap()).collect())
         } else if TypeId::of::<T>() == TypeId::of::<f64>() {
@@ -332,7 +332,5 @@ where
             types: cell_types,
         },
         data: vtkio::model::Attributes::default(),
-    };
-
-    piece
+    }
 }
