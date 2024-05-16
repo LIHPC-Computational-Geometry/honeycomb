@@ -54,7 +54,7 @@ fn main() {
     let now = Instant::now();
 
     let file = std::fs::File::create_new("splitsome.vtk").unwrap();
-    map.to_vtk_file(file);
+    map.to_vtk_binary(file);
 
     let elapsed = now.elapsed();
     println!(

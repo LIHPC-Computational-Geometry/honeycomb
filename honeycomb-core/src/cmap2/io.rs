@@ -67,7 +67,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     /// This function may panic if the internal writing routine fails, i.e.:
     ///     - Vertex coordinates cannot be cast to `f32` or `f64`
     ///     - A vertex cannot be found
-    pub fn to_vtk_file(&self, writer: impl std::io::Write) {
+    pub fn to_vtk_binary(&self, writer: impl std::io::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {
             version: Version::Legacy { major: 2, minor: 0 },
@@ -83,7 +83,33 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         // write data to the created file
         vtk_struct
             .write_legacy(writer)
-            .expect("Could not write data to created file");
+            .expect("Could not write data to writer");
+    }
+
+    /// Generate a legacy VTK file from the map.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if the internal writing routine fails, i.e.:
+    ///     - Vertex coordinates cannot be cast to `f32` or `f64`
+    ///     - A vertex cannot be found
+    pub fn to_vtk_ascii(&self, writer: impl std::fmt::Write) {
+        // build a Vtk structure
+        let vtk_struct = Vtk {
+            version: Version::Legacy { major: 2, minor: 0 },
+            title: "cmap".to_string(),
+            byte_order: ByteOrder::BigEndian,
+            data: DataSet::UnstructuredGrid {
+                meta: None,
+                pieces: vec![Piece::Inline(Box::new(build_unstructured_piece(self)))],
+            },
+            file_path: None,
+        };
+
+        // write data to the created file
+        vtk_struct
+            .write_legacy_ascii(writer)
+            .expect("Could not write data to writer");
     }
 }
 

@@ -253,6 +253,6 @@ fn one_sew_no_attributes_bis() {
 #[test]
 fn io_consistency() {
     // the idea here would be to create a map from a file & reserialize it, making sure
-    // the serialized output is consistent (to some extent) with the inpu
+    // the serialized output is consistent (to some extent) with the input
     // todo
 }
