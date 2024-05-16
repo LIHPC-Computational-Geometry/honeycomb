@@ -11,7 +11,7 @@ use crate::{
     NULL_DART_ID,
 };
 
-use std::{any::TypeId, collections::BTreeMap, fs::File};
+use std::{any::TypeId, collections::BTreeMap};
 
 use num::Zero;
 use vtkio::{
@@ -54,11 +54,9 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///     dimension or orientation incompatibilities)
     ///     - the file has major inconsistencies / errors
     #[must_use = "constructed object is not used, consider removing this function call"]
-    pub fn from_vtk_file(file_path: &str) -> Self {
-        use std::path::PathBuf;
-        let file_path = PathBuf::from(file_path);
-        let file = Vtk::import(&file_path)
-            .unwrap_or_else(|_| panic!("Failed to load file: {file_path:?}"));
+    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+        let file =
+            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
         build_cmap_from_vtk(file)
     }
 
@@ -66,13 +64,10 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///
     /// # Panics
     ///
-    /// This function may panic if:
-    /// - the file already exists
-    /// - the file cannot be written to
-    /// - the internal writing routine fails, i.e.:
+    /// This function may panic if the internal writing routine fails, i.e.:
     ///     - Vertex coordinates cannot be cast to `f32` or `f64`
     ///     - A vertex cannot be found
-    pub fn to_vtk_file(&self, out_path: &str) {
+    pub fn to_vtk_file(&self, writer: impl std::io::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {
             version: Version::Legacy { major: 2, minor: 0 },
@@ -85,13 +80,9 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
             file_path: None,
         };
 
-        // create output file
-        let file_path = std::path::PathBuf::from(out_path);
-        let file = File::create_new(file_path).expect("Could not create vtk output file");
-
         // write data to the created file
         vtk_struct
-            .write_legacy(file)
+            .write_legacy(writer)
             .expect("Could not write data to created file");
     }
 }
