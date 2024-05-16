@@ -329,7 +329,8 @@ where
         } else if TypeId::of::<T>() == TypeId::of::<f64>() {
             IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
         } else {
-            unimplemented!()
+            println!("W: unrecognized coordinate type -- cast to f64 might fail");
+            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
         },
         cells: vtkio::model::Cells {
             cell_verts: VertexNumbers::Legacy {
