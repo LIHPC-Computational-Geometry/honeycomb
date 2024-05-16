@@ -13,6 +13,10 @@ Cargo.lock
 /*.csv
 /*.svg
 
+# ignore wild vtk files
+*.vtk
+!/honeycomb-examples/examples/io/*.vtk
+
 # ignore coverage-related files
 *.profraw
 *.lcov
