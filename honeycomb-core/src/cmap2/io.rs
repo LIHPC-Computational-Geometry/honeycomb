@@ -12,7 +12,7 @@ use crate::{
 };
 use num::Zero;
 use std::any::TypeId;
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::BTreeMap;
 use std::fs::File;
 use vtkio::model::{
     ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
@@ -262,7 +262,6 @@ where
     // --- faces
     let face_ids = map.fetch_faces().identifiers;
     let face_data = face_ids.into_iter().map(|id| {
-        n_cells += 1;
         let mut count: u32 = 0;
         // VecDeque will be useful later
         let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Face, id as DartIdentifier)
@@ -282,7 +281,6 @@ where
         .into_iter()
         .filter(|id| map.beta::<2>(*id as DartIdentifier) == NULL_DART_ID)
         .map(|id| {
-            n_cells += 1;
             let dart_id = id as DartIdentifier;
             let ndart_id = map.beta::<1>(dart_id);
             (
@@ -295,7 +293,28 @@ where
     // FIXME: ?
     // I'm not even sure corners can be detected without using additional attributes or metadata
     // let corner_data = vertex_ids.into_iter().filter(||)
+
+    // ------ build VTK data
     let mut cell_vertices: Vec<u32> = Vec::new();
+    let mut cell_types: Vec<CellType> = Vec::new();
+
+    edge_data.for_each(|(v1, v2)| {
+        cell_types.push(CellType::Line);
+        cell_vertices.extend([2_u32, v1, v2]);
+        n_cells += 1;
+    });
+
+    face_data.for_each(|(count, mut elements)| {
+        cell_types.push(match count {
+            0..=2 => return, // silent ignore
+            3 => CellType::Triangle,
+            4 => CellType::Quad,
+            5.. => CellType::Polygon,
+        });
+        cell_vertices.push(count);
+        cell_vertices.append(&mut elements);
+        n_cells += 1;
+    });
 
     let piece = UnstructuredGridPiece {
         points: if TypeId::of::<T>() == TypeId::of::<f32>() {
@@ -308,9 +327,9 @@ where
         cells: vtkio::model::Cells {
             cell_verts: VertexNumbers::Legacy {
                 num_cells: n_cells,
-                vertices: vec![],
+                vertices: cell_vertices,
             },
-            types: vec![],
+            types: cell_types,
         },
         data: vtkio::model::Attributes::default(),
     };
