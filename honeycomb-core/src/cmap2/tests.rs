@@ -4,6 +4,8 @@ use crate::{common::FloatType, CMap2, Orbit2, OrbitPolicy, Vertex2};
 
 // ------ CONTENT
 
+// --- GENERAL
+
 #[test]
 fn example_test() {
     // build a triangle
@@ -124,6 +126,8 @@ fn remove_dart_twice() {
     map.remove_free_dart(1); // this should panic
 }
 
+// --- (UN)SEW
+
 #[test]
 fn two_sew_complete() {
     let mut map: CMap2<FloatType> = CMap2::new(4);
@@ -241,4 +245,14 @@ fn one_sew_no_attributes_bis() {
     let mut map: CMap2<FloatType> = CMap2::new(3);
     map.two_link(1, 2);
     map.one_sew(1, 3); // panic
+}
+
+// --- IO
+
+#[cfg(feature = "io")]
+#[test]
+fn io_consistency() {
+    // the idea here would be to create a map from a file & reserialize it, making sure
+    // the serialized output is consistent (to some extent) with the inpu
+    // todo
 }
