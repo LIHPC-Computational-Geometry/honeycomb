@@ -6,12 +6,13 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
+use crate::{CMap2, Coords2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
 use num::Zero;
+use std::any::TypeId;
 use std::collections::BTreeMap;
 use std::fs::File;
 use vtkio::model::{
-    ByteOrder, CellType, Cells, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
+    ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
 };
 use vtkio::IOBuffer;
 
@@ -35,7 +36,7 @@ macro_rules! build_vertices {
     }};
 }
 
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Build a [`CMap2`] from a `vtk` file.
     ///
     /// # Panics
@@ -113,7 +114,7 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
                 _ => unimplemented!(),
             };
 
-            let Cells { cell_verts, types } = tmp.cells;
+            let vtkio::model::Cells { cell_verts, types } = tmp.cells;
             match cell_verts {
                 VertexNumbers::Legacy {
                     num_cells,
@@ -235,6 +236,42 @@ fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
 }
 
 /// Internal building routine for [`CMap2::to_vtk_file`].
-fn build_unstructured_piece<T: CoordsFloat>(map: &CMap2<T>) -> UnstructuredGridPiece {
-    todo!()
+fn build_unstructured_piece<T>(map: &CMap2<T>) -> UnstructuredGridPiece
+where
+    T: CoordsFloat + 'static,
+{
+    // common data
+    let vertex_ids: Vec<VertexIdentifier> = map.fetch_vertices().identifiers;
+    let mut id_map: BTreeMap<VertexIdentifier, usize> = BTreeMap::new();
+    vertex_ids.iter().enumerate().for_each(|(id, vid)| {
+        id_map.insert(*vid, id);
+    });
+    // ------ points data
+    let vertices = vertex_ids
+        .iter()
+        .map(|vid| map.vertex(*vid).unwrap())
+        .flat_map(|v| {
+            let Coords2 { x, y } = v.into_inner();
+            [x, y, T::zero()].into_iter()
+        });
+    // ------ cells data
+    // --- faces
+
+    // --- borders
+
+    // --- corners
+
+    let piece = UnstructuredGridPiece {
+        points: if TypeId::of::<T>() == TypeId::of::<f32>() {
+            IOBuffer::F32(vertices.map(|t| t.to_f32().unwrap()).collect())
+        } else if TypeId::of::<T>() == TypeId::of::<f64>() {
+            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
+        } else {
+            unimplemented!()
+        },
+        cells: vtkio::model::Cells::default(),
+        data: vtkio::model::Attributes::default(),
+    };
+
+    piece
 }
