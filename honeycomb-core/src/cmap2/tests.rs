@@ -251,8 +251,58 @@ fn one_sew_no_attributes_bis() {
 
 #[cfg(feature = "io")]
 #[test]
-fn io_consistency() {
-    // the idea here would be to create a map from a file & reserialize it, making sure
-    // the serialized output is consistent (to some extent) with the input
-    // todo
+fn io_write() {
+    // build a map looking like this:
+    //      15
+    //     / \
+    //    /   \
+    //   /     \
+    //  16      14
+    //  |       |
+    //  4---3---7
+    //  |   |  /|
+    //  |   | / |
+    //  |   |/  |
+    //  1---2---6
+    let mut cmap: CMap2<f32> = CMap2::new(16);
+    // bottom left square
+    cmap.one_link(1, 2);
+    cmap.one_link(2, 3);
+    cmap.one_link(3, 4);
+    cmap.one_link(4, 1);
+    // bottom right triangles
+    cmap.one_link(5, 6);
+    cmap.one_link(6, 7);
+    cmap.one_link(7, 5);
+    cmap.two_link(7, 8);
+    cmap.one_link(8, 9);
+    cmap.one_link(9, 10);
+    cmap.one_link(10, 8);
+    // top polygon
+    cmap.one_link(11, 12);
+    cmap.one_link(12, 13);
+    cmap.one_link(13, 14);
+    cmap.one_link(14, 15);
+    cmap.one_link(15, 16);
+    cmap.one_link(16, 11);
+    // assemble
+    cmap.two_link(2, 10);
+    cmap.two_link(3, 11);
+    cmap.two_link(9, 12);
+
+    // insert vertices
+    cmap.insert_vertex(1, (0.0, 0.0));
+    cmap.insert_vertex(2, (1.0, 0.0));
+    cmap.insert_vertex(6, (2.0, 0.0));
+    cmap.insert_vertex(4, (0.0, 1.0));
+    cmap.insert_vertex(3, (1.0, 1.0));
+    cmap.insert_vertex(7, (2.0, 1.0));
+    cmap.insert_vertex(16, (0.0, 2.0));
+    cmap.insert_vertex(15, (1.0, 3.0));
+    cmap.insert_vertex(14, (2.0, 2.0));
+
+    let mut res = String::new();
+    cmap.to_vtk_ascii(&mut res);
+    println!("{res}");
+    panic!()
 }
