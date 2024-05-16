@@ -8,7 +8,7 @@ fn main() {
         shrink_factor: 0.01,
         ..Default::default()
     };
-    let map: CMap2<f64> = CMap2::from_vtk_file("honeycomb-examples/examples/io/quad.vtk");
+    let map: CMap2<f64> = CMap2::from_vtk_file("assets/quad.vtk");
     assert_eq!(map.fetch_vertices().identifiers.len(), 21);
     assert_eq!(map.fetch_edges().identifiers.len(), 32);
     assert_eq!(map.fetch_faces().identifiers.len(), 12);

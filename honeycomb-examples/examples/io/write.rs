@@ -53,7 +53,8 @@ fn main() {
     println!("I: Start VTK file generation...");
     let now = Instant::now();
 
-    map.to_vtk_file("test.vtk");
+    let file = std::fs::File::create_new("splitsome.vtk").unwrap();
+    map.to_vtk_file(file);
 
     let elapsed = now.elapsed();
     println!(
