@@ -6,10 +6,13 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, Coords2, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
+use crate::{
+    CMap2, Coords2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, Vertex2, VertexIdentifier,
+    NULL_DART_ID,
+};
 use num::Zero;
 use std::any::TypeId;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::fs::File;
 use vtkio::model::{
     ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
@@ -255,11 +258,44 @@ where
             [x, y, T::zero()].into_iter()
         });
     // ------ cells data
+    let mut n_cells = 0;
     // --- faces
+    let face_ids = map.fetch_faces().identifiers;
+    let face_data = face_ids.into_iter().map(|id| {
+        n_cells += 1;
+        let mut count: u32 = 0;
+        // VecDeque will be useful later
+        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Face, id as DartIdentifier)
+            .map(|dart_id| {
+                count += 1;
+                id_map[&map.vertex_id(dart_id)] as u32
+            })
+            .collect();
+        (count, orbit)
+    });
 
     // --- borders
+    let edge_ids = map.fetch_edges().identifiers;
+    // because we do not model boundaries, we can get edges
+    // from filtering isolated darts making up edges
+    let edge_data = edge_ids
+        .into_iter()
+        .filter(|id| map.beta::<2>(*id as DartIdentifier) == NULL_DART_ID)
+        .map(|id| {
+            n_cells += 1;
+            let dart_id = id as DartIdentifier;
+            let ndart_id = map.beta::<1>(dart_id);
+            (
+                id_map[&map.vertex_id(dart_id)] as u32,
+                id_map[&map.vertex_id(ndart_id)] as u32,
+            )
+        });
 
     // --- corners
+    // FIXME: ?
+    // I'm not even sure corners can be detected without using additional attributes or metadata
+    // let corner_data = vertex_ids.into_iter().filter(||)
+    let mut cell_vertices: Vec<u32> = Vec::new();
 
     let piece = UnstructuredGridPiece {
         points: if TypeId::of::<T>() == TypeId::of::<f32>() {
@@ -269,7 +305,13 @@ where
         } else {
             unimplemented!()
         },
-        cells: vtkio::model::Cells::default(),
+        cells: vtkio::model::Cells {
+            cell_verts: VertexNumbers::Legacy {
+                num_cells: n_cells,
+                vertices: vec![],
+            },
+            types: vec![],
+        },
         data: vtkio::model::Attributes::default(),
     };
 
