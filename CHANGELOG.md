@@ -4,16 +4,38 @@
 
 ## To be released
 
+---
+
+## 0.3.0
+
+New changelog format!
+
 ### Workspace
 
+- rename non-published members' folder name (#77)
+- bump various dependencies' version & update code accordingly (#70, #?):
+    - `iai-callgrind` from `0.10.2` to `0.11.0`
+    - `smaa` from `0.13.0` to `0.14.0`
+    - `wgpu` from `0.19.4` to `0.20.0`
+    - `winit` from `0.29.15` to `0.30.0`
 - implement nighly conditional compilation for doc generation (#66)
 
-### Refactor
+### Published crates
 
 #### honeycomb-core
 
 <sup>core definitions and tools for combinatorial map implementation</sup>
 
+*new:*
+
+- implement basic I/O logic for `CMap2` using the `vtkio` crate (#73, 75)
+    - the scope of the support is detailed in the Rust Doc
+    - new method & function are available when enabling the new `io` feature
+- add a new feature, `io`, used to gate the implementation of VTK I/O code (#73)
+
+*refactor:*
+
+- remove the `FloatType`alias and the `single_precision` feature (#74, #76)
 - replace `CoordsFloat` implementation blocks to automatize implementation
   for all types that fit the traits requirement (#68)
 - remove `FloatType` from the public API (#68)
@@ -23,6 +45,37 @@
 - remove deprecated items from the last release (#64):
     - `AttrSparseVec::get_mut`, `AttrCompactVec::get_mut`
     - `utils::square_cmap2`, `utils::splitsquare_cmap2`
+
+*fix*:
+
+- correct the usage of epsilon values for floating point numbers comparison in tests (#79)
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*refactor:*
+
+- replace the `Runner` struct by a simpler `launch` function (#70)
+    - the function takes the same parameters that were provided to `Runner::run`
+- rewrite & reorganize most of the internal code due to `winit` update (#70)
+
+### Others
+
+#### honeycomb-examples
+
+<sup>project examples</sup>
+
+*new:*
+
+- add three new examples to illustrate the new I/O features of the core crate (#73, #75)
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+- update usage information & content (#?)
 
 ---
 
