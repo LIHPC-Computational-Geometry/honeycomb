@@ -5,7 +5,7 @@ members = [
     "honeycomb-benches",
     "honeycomb-core",
     "honeycomb-render",
-    "honeycomb-examples"
+    "examples"
 ]
 
 [workspace.package]
@@ -24,7 +24,7 @@ authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevali
 # members
 honeycomb-benches = { version = "0.2.1", path = "./honeycomb-benches" }
 honeycomb-core = { version = "0.2.1", path = "./honeycomb-core" }
-honeycomb-examples = { version = "0.2.1", path = "./honeycomb-examples" }
+honeycomb-examples = { version = "0.2.1", path = "./examples" }
 honeycomb-render = { version = "0.2.1", path = "./honeycomb-render" }
 
 # common

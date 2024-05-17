@@ -12,7 +12,7 @@
 //!
 //! ## Quickstart
 //!
-//! Examples are available in the **honeycomb-examples** crate.
+//! Examples are available in the dedicated crate.
 
 // ------ CUSTOM LINTS
 
