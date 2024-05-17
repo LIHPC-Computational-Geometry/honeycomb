@@ -23,17 +23,22 @@ fn almost_equal<T: CoordsFloat>(a: T, b: T) -> bool {
     }
 }
 
+macro_rules! almost_equals {
+    // Coords
+    ($lhs: expr, $rhs: expr) => {
+        almost_equal($lhs.x, $rhs.x) & almost_equal($lhs.x, $rhs.x)
+    };
+    // Vector / Vertex
+    (($lhs: expr, $rhs: expr)) => {
+        almost_equal($lhs.x(), $rhs.x()) & almost_equal($lhs.y(), $rhs.y())
+    };
+}
+
 // --- coords
 
 mod coords {
-    // utils
     use super::almost_equal;
     use crate::Coords2;
-    macro_rules! almost_equal_coords {
-        ($lhs: expr, $rhs: expr) => {
-            almost_equal($lhs.x, $rhs.x) & almost_equal($lhs.x, $rhs.x)
-        };
-    }
     // tests
     macro_rules! generate_sum_test {
         ($id: ident, $t: ty) => {
@@ -51,8 +56,8 @@ mod coords {
                 let owned_sum: Coords2<$t> = collection.into_iter().sum();
                 let borrowed_sum: Coords2<$t> = collection.iter().sum();
                 let ref_value: Coords2<$t> = Coords2::from((3.0, 3.0));
-                assert!(almost_equal_coords!(owned_sum, ref_value));
-                assert!(almost_equal_coords!(borrowed_sum, ref_value));
+                assert!(almost_equals!(owned_sum, ref_value));
+                assert!(almost_equals!(borrowed_sum, ref_value));
             }
         };
     }
@@ -66,12 +71,6 @@ mod coords {
 mod vector {
     use super::almost_equal;
     use crate::{CoordsError, Vector2};
-    // utils
-    macro_rules! almost_equal_vec {
-        ($lhs: expr, $rhs: expr) => {
-            almost_equal($lhs.x(), $rhs.x()) & almost_equal($lhs.y(), $rhs.y())
-        };
-    }
     // tests
     macro_rules! generate_dot_prod_test {
         ($id: ident, $t: ty) => {
@@ -91,22 +90,22 @@ mod vector {
             fn $id() {
                 let along_x = Vector2::<$t>::unit_x() * 4.0;
                 let along_y = Vector2::<$t>::unit_y() * 3.0;
-                assert!(almost_equal_vec!(
+                assert!(almost_equals!((
                     along_x.unit_dir().unwrap(),
                     Vector2::<$t>::unit_x()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     Vector2::<$t>::unit_x().unit_dir().unwrap(),
                     Vector2::<$t>::unit_x()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     along_y.unit_dir().unwrap(),
                     Vector2::<$t>::unit_y()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     (along_x + along_y).unit_dir().unwrap(),
                     Vector2::<$t>::from((4.0 / 5.0, 3.0 / 5.0))
-                ));
+                )));
                 let origin: Vector2<$t> = Vector2::default();
                 assert_eq!(origin.unit_dir(), Err(CoordsError::InvalidUnitDir));
             }
@@ -118,22 +117,22 @@ mod vector {
             fn $id() {
                 let along_x = Vector2::<$t>::unit_x() * 4.0;
                 let along_y = Vector2::<$t>::unit_y() * 3.0;
-                assert!(almost_equal_vec!(
+                assert!(almost_equals!((
                     along_x.normal_dir().unwrap(),
                     Vector2::<$t>::unit_y()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     Vector2::<$t>::unit_x().normal_dir().unwrap(),
                     Vector2::<$t>::unit_y()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     along_y.normal_dir().unwrap(),
                     -Vector2::<$t>::unit_x()
-                ));
-                assert!(almost_equal_vec!(
+                )));
+                assert!(almost_equals!((
                     Vector2::<$t>::unit_y().normal_dir().unwrap(),
                     -Vector2::<$t>::unit_x()
-                ));
+                )));
                 let origin: Vector2<$t> = Vector2::default();
                 assert_eq!(origin.normal_dir(), Err(CoordsError::InvalidUnitDir));
             }
