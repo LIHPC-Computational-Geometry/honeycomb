@@ -51,7 +51,7 @@ You can generate this documentation locally using **mdbook** and **cargo doc**:
 
 ```shell
 # Serve the doc on a local server
-mdbook serve --open -d ../target/doc/ honeycomb-guide/ &
+mdbook serve --open -d ../target/doc/ user-guide/ &
 cargo doc --all --no-deps
 ```
 
