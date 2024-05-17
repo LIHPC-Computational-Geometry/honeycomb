@@ -28,7 +28,7 @@ jobs:
       # Generate user guide first because it removes all existing files
       # from the target directory
       - name: Generate User Guide
-        run: mdbook build -d ../target/doc/ honeycomb-guide/
+        run: mdbook build -d ../target/doc/ user-guide/
       - name: Generate Rust Docs
         run: cargo +nightly doc --all --no-deps --features utils,io
 

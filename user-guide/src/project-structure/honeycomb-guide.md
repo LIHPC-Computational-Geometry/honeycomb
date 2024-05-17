@@ -11,7 +11,7 @@ found in the code documentation.
 You can generate this documentation locally using **mdbook** and **cargo doc**:
 
 ```shell
-mdbook serve --open -d ../target/doc/ honeycomb-guide/ &
+mdbook serve --open -d ../target/doc/ user-guide/ &
 cargo doc --all --no-deps
 ```
 

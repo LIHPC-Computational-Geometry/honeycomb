@@ -22,7 +22,7 @@ project as well as usage instructions. It can be generated offline using
 
 ```shell
 # Serve the doc on a local server
-mdbook serve --open -d ../target/doc/ honeycomb-guide/ &
+mdbook serve --open -d ../target/doc/ user-guide/ &
 cargo doc --all --no-deps
 ```
 
