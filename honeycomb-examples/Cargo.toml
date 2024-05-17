@@ -24,6 +24,10 @@ path = "examples/io/tri.rs"
 name = "io_vtk_quad"
 path = "examples/io/quad.rs"
 
+[[example]]
+name = "io_generate_vtk"
+path = "examples/io/write.rs"
+
 # memory usage
 
 [[example]]

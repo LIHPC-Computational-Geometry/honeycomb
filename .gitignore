@@ -13,6 +13,10 @@ Cargo.lock
 /*.csv
 /*.svg
 
+# ignore wild vtk files
+*.vtk
+!/assets/*.vtk
+
 # ignore coverage-related files
 *.profraw
 *.lcov
