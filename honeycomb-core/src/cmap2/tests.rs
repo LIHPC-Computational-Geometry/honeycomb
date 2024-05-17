@@ -1,8 +1,9 @@
 // ------ IMPORTS
 
 use crate::cmap2::io::build_cmap_from_vtk;
-use crate::{common::FloatType, CMap2, Orbit2, OrbitPolicy, Vertex2};
+use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
+
 
 // ------ CONTENT
 
@@ -11,7 +12,7 @@ use vtkio::Vtk;
 #[test]
 fn example_test() {
     // build a triangle
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.one_link(1, 2);
     map.one_link(2, 3);
     map.one_link(3, 1);
@@ -109,7 +110,7 @@ fn example_test() {
 #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: UndefinedVertex")]
 fn remove_vertex_twice() {
     // in its default state, all darts/vertices of a map are considered to be used
-    let mut map: CMap2<FloatType> = CMap2::new(4);
+    let mut map: CMap2<f64> = CMap2::new(4);
     // set vertex 1 as unused
     map.remove_vertex(1).unwrap();
     // set vertex 1 as unused, again
@@ -121,7 +122,7 @@ fn remove_vertex_twice() {
 fn remove_dart_twice() {
     // in its default state, all darts/vertices of a map are considered to be used
     // darts are also free
-    let mut map: CMap2<FloatType> = CMap2::new(4);
+    let mut map: CMap2<f64> = CMap2::new(4);
     // set dart 1 as unused
     map.remove_free_dart(1);
     // set dart 1 as unused, again
@@ -132,7 +133,7 @@ fn remove_dart_twice() {
 
 #[test]
 fn two_sew_complete() {
-    let mut map: CMap2<FloatType> = CMap2::new(4);
+    let mut map: CMap2<f64> = CMap2::new(4);
     map.one_link(1, 2);
     map.one_link(3, 4);
     map.insert_vertex(1, (0.0, 0.0));
@@ -146,7 +147,7 @@ fn two_sew_complete() {
 
 #[test]
 fn two_sew_incomplete() {
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.one_link(1, 2);
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
@@ -166,7 +167,7 @@ fn two_sew_incomplete() {
 
 #[test]
 fn two_sew_no_b1() {
-    let mut map: CMap2<FloatType> = CMap2::new(2);
+    let mut map: CMap2<f64> = CMap2::new(2);
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 1.0));
     map.two_sew(1, 2);
@@ -179,14 +180,14 @@ fn two_sew_no_b1() {
     expected = "No vertices defined on either darts 1/2 , use `two_link` instead of `two_sew`"
 )]
 fn two_sew_no_attributes() {
-    let mut map: CMap2<FloatType> = CMap2::new(2);
+    let mut map: CMap2<f64> = CMap2::new(2);
     map.two_sew(1, 2); // should panic
 }
 
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn two_sew_no_attributes_bis() {
-    let mut map: CMap2<FloatType> = CMap2::new(4);
+    let mut map: CMap2<f64> = CMap2::new(4);
     map.one_link(1, 2);
     map.one_link(3, 4);
     map.two_sew(1, 3); // panic
@@ -195,7 +196,7 @@ fn two_sew_no_attributes_bis() {
 #[test]
 #[should_panic(expected = "Dart 1 and 3 do not have consistent orientation for 2-sewing")]
 fn two_sew_bad_orientation() {
-    let mut map: CMap2<FloatType> = CMap2::new(4);
+    let mut map: CMap2<f64> = CMap2::new(4);
     map.one_link(1, 2);
     map.one_link(3, 4);
     map.insert_vertex(1, (0.0, 0.0));
@@ -207,7 +208,7 @@ fn two_sew_bad_orientation() {
 
 #[test]
 fn one_sew_complete() {
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.two_link(1, 2);
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
@@ -218,7 +219,7 @@ fn one_sew_complete() {
 
 #[test]
 fn one_sew_incomplete_attributes() {
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.two_link(1, 2);
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
@@ -228,7 +229,7 @@ fn one_sew_incomplete_attributes() {
 
 #[test]
 fn one_sew_incomplete_beta() {
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (0.0, 1.0));
     map.one_sew(1, 2);
@@ -237,14 +238,14 @@ fn one_sew_incomplete_beta() {
 #[test]
 #[should_panic(expected = "No vertex defined on dart 2, use `one_link` instead of `one_sew`")]
 fn one_sew_no_attributes() {
-    let mut map: CMap2<FloatType> = CMap2::new(2);
+    let mut map: CMap2<f64> = CMap2::new(2);
     map.one_sew(1, 2); // should panic
 }
 
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn one_sew_no_attributes_bis() {
-    let mut map: CMap2<FloatType> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMap2::new(3);
     map.two_link(1, 2);
     map.one_sew(1, 3); // panic
 }

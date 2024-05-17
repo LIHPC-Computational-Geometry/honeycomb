@@ -37,20 +37,3 @@ pub trait CoordsFloat:
 }
 
 impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign> CoordsFloat for T {}
-
-// --- test utility
-
-#[cfg(test)]
-cfg_if::cfg_if! {
-    if #[cfg(feature = "_single_precision")] {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f32;
-    } else {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f64;
-    }
-}

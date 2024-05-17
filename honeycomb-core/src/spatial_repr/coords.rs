@@ -215,28 +215,40 @@ impl<T: CoordsFloat> IndexMut<usize> for Coords2<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::FloatType;
 
-    fn almost_equal(lhs: &Coords2<FloatType>, rhs: &Coords2<FloatType>) -> bool {
-        const EPS: FloatType = 10.0e-12;
-        ((lhs.x - rhs.x).abs() < EPS) & ((lhs.y - rhs.y).abs() < EPS)
+    macro_rules! almost_equal {
+        ($f1: expr, $f2: expr, $t: ty) => {
+            ($f1 - $f2).abs() < <$t>::EPSILON
+        };
+    }
+    macro_rules! almost_equal_vec {
+        ($lhs: expr, $rhs: expr, $t: ty) => {
+            almost_equal!($lhs.x, $rhs.x, $t) & almost_equal!($lhs.y, $rhs.y, $t)
+        };
     }
 
-    #[test]
-    fn sum() {
-        let collection = [
-            Coords2::unit_x(),
-            Coords2::unit_x(),
-            Coords2::unit_x(),
-            Coords2::unit_y(),
-            Coords2::unit_y(),
-            Coords2::unit_y(),
-        ];
+    macro_rules! generate_sum_test {
+        ($id: ident, $t: ty) => {
+            #[test]
+            fn $id() {
+                let collection = [
+                    Coords2::unit_x(),
+                    Coords2::unit_x(),
+                    Coords2::unit_x(),
+                    Coords2::unit_y(),
+                    Coords2::unit_y(),
+                    Coords2::unit_y(),
+                ];
 
-        let owned_sum: Coords2<FloatType> = collection.into_iter().sum();
-        let borrowed_sum: Coords2<FloatType> = collection.iter().sum();
-        let ref_value: Coords2<FloatType> = Coords2::from((3.0, 3.0));
-        assert!(almost_equal(&owned_sum, &ref_value));
-        assert!(almost_equal(&borrowed_sum, &ref_value));
+                let owned_sum: Coords2<$t> = collection.into_iter().sum();
+                let borrowed_sum: Coords2<$t> = collection.iter().sum();
+                let ref_value: Coords2<$t> = Coords2::from((3.0, 3.0));
+                assert!(almost_equal_vec!(owned_sum, ref_value, $t));
+                assert!(almost_equal_vec!(borrowed_sum, ref_value, $t));
+            }
+        };
     }
+
+    generate_sum_test!(sum_simple, f32);
+    generate_sum_test!(sum_double, f64);
 }
