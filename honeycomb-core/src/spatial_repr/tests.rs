@@ -2,7 +2,7 @@
 
 // ------ CONTENT
 
-use crate::{Coords2, CoordsFloat};
+use crate::CoordsFloat;
 
 // --- common
 
@@ -19,7 +19,7 @@ fn almost_equal<T: CoordsFloat>(a: T, b: T) -> bool {
         abs_diff < (T::epsilon() * T::min_positive_value())
     } else {
         // regular case
-        abs_diff / (abs_sum).min(T::max_value()) < T::epsilon()
+        abs_diff / abs_sum.min(T::max_value()) < T::epsilon()
     }
 }
 
@@ -27,7 +27,8 @@ fn almost_equal<T: CoordsFloat>(a: T, b: T) -> bool {
 
 mod coords {
     // utils
-    use super::*;
+    use super::almost_equal;
+    use crate::Coords2;
     macro_rules! almost_equal_coords {
         ($lhs: expr, $rhs: expr) => {
             almost_equal($lhs.x, $rhs.x) & almost_equal($lhs.x, $rhs.x)
@@ -62,7 +63,100 @@ mod coords {
 
 // --- vector
 
-mod vector {}
+mod vector {
+    // utils
+    use super::almost_equal;
+    use crate::{CoordsError, Vector2};
+    macro_rules! almost_equal_vec {
+        ($lhs: expr, $rhs: expr, $t: ty) => {
+            almost_equal($lhs.x(), $rhs.x()) & almost_equal($lhs.y(), $rhs.y())
+        };
+    }
+    // tests
+    macro_rules! generate_dot_prod_test {
+        ($id: ident, $t: ty) => {
+            #[test]
+            fn $id() {
+                let along_x = Vector2::<$t>::unit_x() * 15.0;
+                let along_y = Vector2::<$t>::unit_y() * 10.0;
+                assert!(almost_equal(along_x.dot(&along_y), 0.0));
+                assert!(almost_equal(along_x.dot(&Vector2::unit_x()), 15.0));
+                assert!(almost_equal(along_y.dot(&Vector2::unit_y()), 10.0));
+            }
+        };
+    }
+    macro_rules! generate_unit_dir_test {
+        ($id: ident, $t: ty) => {
+            #[test]
+            fn $id() {
+                let along_x = Vector2::<$t>::unit_x() * 4.0;
+                let along_y = Vector2::<$t>::unit_y() * 3.0;
+                assert!(almost_equal_vec!(
+                    along_x.unit_dir().unwrap(),
+                    Vector2::<$t>::unit_x(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    Vector2::<$t>::unit_x().unit_dir().unwrap(),
+                    Vector2::<$t>::unit_x(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    along_y.unit_dir().unwrap(),
+                    Vector2::<$t>::unit_y(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    (along_x + along_y).unit_dir().unwrap(),
+                    Vector2::<$t>::from((4.0 / 5.0, 3.0 / 5.0)),
+                    $t
+                ));
+                let origin: Vector2<$t> = Vector2::default();
+                assert_eq!(origin.unit_dir(), Err(CoordsError::InvalidUnitDir));
+            }
+        };
+    }
+    macro_rules! generate_normal_dir_test {
+        ($id: ident, $t: ty) => {
+            #[test]
+            fn $id() {
+                let along_x = Vector2::<$t>::unit_x() * 4.0;
+                let along_y = Vector2::<$t>::unit_y() * 3.0;
+                assert!(almost_equal_vec!(
+                    along_x.normal_dir().unwrap(),
+                    Vector2::<$t>::unit_y(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    Vector2::<$t>::unit_x().normal_dir().unwrap(),
+                    Vector2::<$t>::unit_y(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    along_y.normal_dir().unwrap(),
+                    -Vector2::<$t>::unit_x(),
+                    $t
+                ));
+                assert!(almost_equal_vec!(
+                    Vector2::<$t>::unit_y().normal_dir().unwrap(),
+                    -Vector2::<$t>::unit_x(),
+                    $t
+                ));
+                let origin: Vector2<$t> = Vector2::default();
+                assert_eq!(origin.normal_dir(), Err(CoordsError::InvalidUnitDir));
+            }
+        };
+    }
+    // generation
+    generate_dot_prod_test!(dot_product_simple, f32);
+    generate_dot_prod_test!(dot_product_double, f64);
+
+    generate_unit_dir_test!(unit_dir_simple, f32);
+    generate_unit_dir_test!(unit_dir_double, f64);
+
+    generate_normal_dir_test!(normal_dir_simple, f32);
+    generate_normal_dir_test!(normal_dir_double, f64);
+}
 
 // --- vertex
 
