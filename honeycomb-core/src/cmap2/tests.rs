@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
 use crate::cmap2::io::build_cmap_from_vtk;
-use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2};
+use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -335,7 +335,28 @@ fn io_read() {
     let cmap: CMap2<f32> = build_cmap_from_vtk(vtk);
 
     // check result
-    todo!()
+    let faces = cmap.fetch_faces();
+    assert_eq!(faces.identifiers.len(), 4);
+    assert_eq!(cmap.fetch_edges().identifiers.len(), 12);
+    assert_eq!(cmap.fetch_vertices().identifiers.len(), 9);
+
+    let mut n_vertices_per_face: Vec<usize> = faces
+        .identifiers
+        .iter()
+        .map(|id| Orbit2::new(&cmap, OrbitPolicy::Face, *id as DartIdentifier).count())
+        .collect();
+    let (mut three_count, mut four_count, mut six_count): (usize, usize, usize) = (0, 0, 0);
+    while let Some(n) = n_vertices_per_face.pop() {
+        match n {
+            3 => three_count += 1,
+            4 => four_count += 1,
+            6 => six_count += 1,
+            _ => panic!("cmap was built incorrectly"),
+        }
+    }
+    assert_eq!(three_count, 2);
+    assert_eq!(four_count, 1);
+    assert_eq!(six_count, 1);
 }
 
 #[cfg(test)]
