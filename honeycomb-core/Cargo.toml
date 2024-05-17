@@ -15,7 +15,6 @@ publish = true
 [features]
 io = ["dep:vtkio"]
 utils = []
-_single_precision = []
 
 # deps
 

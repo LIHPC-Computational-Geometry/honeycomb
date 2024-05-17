@@ -19,14 +19,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Check Format
-        run: cargo fmt -- --check
+        run: cargo fmt --all --check
   clippy:
-    strategy:
-      matrix:
-        features:
-          - _single_precision
-          - utils
-          - io
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +29,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run Clippy
-        run: cargo clippy --features ${{ matrix.features }} -- -D warnings
+        run: cargo clippy --all-features -- -D warnings
   tests:
     strategy:
       matrix:
@@ -51,4 +45,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run Tests
-        run: cargo test --features ${{ matrix.features }} --all
+        run: cargo test --all --all-features
