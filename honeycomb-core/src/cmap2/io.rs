@@ -117,7 +117,9 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
 
 #[allow(clippy::too_many_lines)]
 /// Internal building routine for [`CMap2::from_vtk_file`].
-fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
+///
+/// This is marked as `pub(super)` for testing purposes.
+pub(super) fn build_cmap_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {

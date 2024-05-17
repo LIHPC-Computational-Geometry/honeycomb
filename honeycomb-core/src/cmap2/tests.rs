@@ -1,6 +1,8 @@
 // ------ IMPORTS
 
+use crate::cmap2::io::build_cmap_from_vtk;
 use crate::{common::FloatType, CMap2, Orbit2, OrbitPolicy, Vertex2};
+use vtkio::Vtk;
 
 // ------ CONTENT
 
@@ -301,8 +303,77 @@ fn io_write() {
     cmap.insert_vertex(15, (1.0, 3.0));
     cmap.insert_vertex(14, (2.0, 2.0));
 
+    // generate VTK data
     let mut res = String::new();
     cmap.to_vtk_ascii(&mut res);
     println!("{res}");
-    panic!()
+
+    // check result
+    todo!()
 }
+
+#[test]
+fn io_read() {
+    let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
+
+    let cmap: CMap2<f32> = build_cmap_from_vtk(vtk);
+
+    // check result
+    todo!()
+}
+
+#[cfg(test)]
+const VTK_ASCII: &[u8] = b"
+# vtk DataFile Version 2.0
+cmap
+ASCII
+
+DATASET UNSTRUCTURED_GRID
+POINTS 9 float
+0 0 0  1 0 0  1 1 0
+0 1 0  2 0 0  2 1 0
+2 2 0  1 3 0  0 2 0
+
+CELLS 17 54
+1 0
+1 4
+1 6
+1 7
+1 8
+2 0 1
+2 3 0
+2 1 4
+2 4 5
+2 5 6
+2 6 7
+2 7 8
+2 8 3
+4 0 1 2 3
+3 1 4 5
+3 1 5 2
+6 3 2 5 6 7 8
+
+CELL_TYPES 17
+1
+1
+1
+1
+1
+3
+3
+3
+3
+3
+3
+3
+3
+9
+5
+5
+7
+
+
+POINT_DATA 9
+
+CELL_DATA 17
+";
