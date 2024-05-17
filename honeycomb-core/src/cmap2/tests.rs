@@ -4,7 +4,6 @@ use crate::cmap2::io::build_cmap_from_vtk;
 use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 
-
 // ------ CONTENT
 
 // --- GENERAL
@@ -310,7 +309,23 @@ fn io_write() {
     println!("{res}");
 
     // check result
-    todo!()
+    assert!(res.contains("POINTS 9 float"));
+    assert!(res.contains("CELLS 12 44"));
+    assert!(res.contains("CELL_TYPES 12"));
+    // faces
+    assert!(res.contains("4 0 1 2 3"));
+    assert!(res.contains("3 1 4 5"));
+    assert!(res.contains("4 0 1 2 3"));
+    assert!(res.contains("4 0 1 2 3"));
+    // edges
+    assert!(res.contains("2 0 1"));
+    assert!(res.contains("2 3 0"));
+    assert!(res.contains("2 1 4"));
+    assert!(res.contains("2 4 5"));
+    assert!(res.contains("2 5 6"));
+    assert!(res.contains("2 6 7"));
+    assert!(res.contains("2 7 8"));
+    assert!(res.contains("2 8 3"));
 }
 
 #[test]
