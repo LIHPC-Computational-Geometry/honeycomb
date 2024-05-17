@@ -30,7 +30,7 @@ jobs:
       - name: Generate User Guide
         run: mdbook build -d ../target/doc/ honeycomb-guide/
       - name: Generate Rust Docs
-        run: cargo +nightly doc --all --no-deps --features utils,io
+        run: cargo +nightly doc --all --no-deps --all-features
 
       - name: Deploy Docs
         uses: peaceiris/actions-gh-pages@v3
