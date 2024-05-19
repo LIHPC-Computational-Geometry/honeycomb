@@ -34,12 +34,8 @@ lines to the manifest of the project:
 
 ```toml
 # Cargo.toml
-# ...
-
-[dependencies]
-# Other dependencies...
-honeycomb-core = "0.2.0"
-honeycomb-render = "0.2.0"
+honeycomb-core = "0.3.0"
+honeycomb-render = "0.3.0"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
@@ -52,8 +48,11 @@ You can generate this documentation locally using **mdbook** and **cargo doc**:
 ```shell
 # Serve the doc on a local server
 mdbook serve --open -d ../target/doc/ user-guide/ &
-cargo doc --all --no-deps
+cargo +nightly doc --all --all-features --no-deps
 ```
+
+Note that generating the doc using a stable toolchain is possible,
+the features just won't be documented as clearly.
 
 ## Links
 

@@ -18,12 +18,13 @@ our structure using Rust's framework to streamline the refactoring and paralleli
 
 The [user guide][UG] provides an overview of everything available in the
 project as well as usage instructions. It can be generated offline using
-**mdbook**:
+**mdbook**. Note that generating the doc using a stable toolchain is possible,
+the features just won't be documented as clearly.
 
 ```shell
 # Serve the doc on a local server
 mdbook serve --open -d ../target/doc/ user-guide/ &
-cargo doc --all --no-deps
+cargo +nightly doc --all --all-features --no-deps
 ```
 
 ```shell
