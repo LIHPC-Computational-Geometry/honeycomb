@@ -13,7 +13,7 @@ New changelog format!
 ### Workspace
 
 - rename non-published members' folder name (#77)
-- bump various dependencies' version & update code accordingly (#70, #?):
+- bump various dependencies' version & update code accordingly (#70, #81):
     - `iai-callgrind` from `0.10.2` to `0.11.0`
     - `smaa` from `0.13.0` to `0.14.0`
     - `wgpu` from `0.19.4` to `0.20.0`
@@ -75,7 +75,7 @@ New changelog format!
 <sup>**mdbook**-based user guide with information regarding usage & non-code-related
 aspects of the project</sup>
 
-- update usage information & content (#?)
+- update usage information & content (#82)
 
 ---
 
