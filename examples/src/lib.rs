@@ -4,6 +4,13 @@
 //!
 //! ## Available examples
 //!
+//! ### Input / Output
+//!
+//! - `io_generate_vtk` -- Serialize the map that is rendered by the `render_squaremap_split_some`
+//!   example. The file can be visualized using ParaView and compared to the render.
+//! - `io_vtk_quad` -- Initialize and render a map from the legacy VTK file `assets/quad.vtk`.
+//! - `io_vtk_tri` -- Initialize and render a map from the legacy VTK file `assets/tri.vtk`.
+//!
 //! ### Utilities
 //!
 //! - `memory_usage` -- Save the memory usage of a given map as three *csv* files. These files

@@ -12,10 +12,10 @@ mod embed;
 mod link_and_sew;
 mod structure;
 
-#[cfg(any(doc, feature = "io"))]
+#[cfg(feature = "io")]
 mod io;
 
-#[cfg(any(doc, feature = "utils"))]
+#[cfg(feature = "utils")]
 mod utils;
 
 // ------ RE-EXPORTS

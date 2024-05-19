@@ -4,6 +4,8 @@
 //! benchmarks cover individual methods of the structure while criterion benchmarks cover higher
 //! level computations.
 //!
+//! <div class="warning">The benchmarks are out-of-date and will be reworked at some point.</div>
+//!
 //! ## Available benchmarks
 //!
 //! ### Criterion-based

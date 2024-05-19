@@ -1,8 +1,9 @@
-//! Module short description
+//! Input/Output features implementation
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! The support for I/O is currently very restricted since this is not the focus of this project.
+//! Maps can be built from and serialized to VTK legacy files (both binary and ASCII). The
+//! `DATASET` of the VTK file should be `UNSTRUCTURED_GRID`, and only a given set of `CELL_TYPES`
+//! are supported, because of orientation and dimension restriction.
 
 // ------ IMPORTS
 
