@@ -14,6 +14,7 @@
 //! Optional features can be enabled when compiling this crate:
 //!
 //! - `utils` -- provides additionnal implementations for map generation, benchmarking & debugging
+//! - `io` -- provides a function and a method for building maps from VTK meshes and vice versa
 
 // ------ CUSTOM LINTS
 
