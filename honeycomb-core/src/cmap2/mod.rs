@@ -7,6 +7,7 @@
 
 // ------ MODULE DECLARATIONS
 
+mod advanced_ops;
 mod basic_ops;
 mod embed;
 mod link_and_sew;
