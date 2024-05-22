@@ -23,11 +23,20 @@ impl<T: CoordsFloat> CMap2<T> {
     /// In order to minimize editing of embedded data, the original darts are kept to their
     /// original vertices while the new darts are used to model the new point.
     ///
+    /// # Arguments
+    ///
+    /// - `edge_id: EdgeIdentifier` -- Edge to split in two.
+    /// - `midpoint_vertex: Option<T>` -- Relative position of the new vertex, starting from the
+    ///   vertex of the dart sharing `edge_id` as its identifier.
+    ///
     /// # Panics
     ///
     /// This method may panic if the edge upon which the operation is performed does not have two
-    /// defined vertices.a
-    pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<Vertex2<T>>) {
+    /// defined vertices.
+    pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<T>) {
+        if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
+            println!("W: vertex placement for split is not in ]0;1[ -- result may be incoherent");
+        }
         let d1 = edge_id as DartIdentifier;
         let d2 = self.beta::<2>(d1);
         // (*): unwrapping is ok because you probably shouldn't be using this method
@@ -47,9 +56,10 @@ impl<T: CoordsFloat> CMap2<T> {
             self.one_link(d1, b1d1_new);
             self.one_link(b1d1_new, b1d1_old);
             // insert the new vertex
+            let seg = v2 - v1;
             self.insert_vertex(
                 self.vertex_id(b1d1_new),
-                midpoint_vertex.unwrap_or(Vertex2::average(&v1, &v2)),
+                midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
             );
         } else {
             let b1d1_old = self.beta::<1>(d1);
@@ -78,9 +88,10 @@ impl<T: CoordsFloat> CMap2<T> {
             self.two_link(d1, b1d2_new);
             self.two_link(d2, b1d1_new);
             // insert the new vertex
+            let seg = v2 - v1;
             self.insert_vertex(
                 self.vertex_id(b1d1_new),
-                midpoint_vertex.unwrap_or(Vertex2::average(&v1, &v2)),
+                midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
             );
         }
     }

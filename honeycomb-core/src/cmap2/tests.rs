@@ -306,7 +306,7 @@ fn split_edge_isolated() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    map.split_edge(1, Some(Vertex2::from((0.6, 0.0))));
+    map.split_edge(1, Some(0.6));
     // after
     //    <-4- <2-
     //  1     3    2
