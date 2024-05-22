@@ -68,9 +68,13 @@ impl<T: CoordsFloat> CMap2<T> {
             self.two_unlink(d1);
             // rebuild the edge
             self.one_link(d1, b1d1_new);
-            self.one_link(b1d1_new, b1d1_old);
+            if b1d1_old != NULL_DART_ID {
+                self.one_link(b1d1_new, b1d1_old);
+            }
             self.one_link(d2, b1d2_new);
-            self.one_link(b1d2_new, b1d2_old);
+            if b1d2_old != NULL_DART_ID {
+                self.one_link(b1d2_new, b1d2_old);
+            }
             self.two_link(d1, b1d2_new);
             self.two_link(d2, b1d1_new);
             // insert the new vertex

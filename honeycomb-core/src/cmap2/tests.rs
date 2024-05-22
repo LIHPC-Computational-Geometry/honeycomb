@@ -258,10 +258,10 @@ fn split_edge_complete() {
     //  1         2         3         4
     //    ---1-->   ---2-->   ---3-->
     let mut map: CMap2<f64> = CMap2::new(6);
-    map.one_sew(1, 2);
-    map.one_sew(2, 3);
-    map.one_sew(4, 5);
-    map.one_sew(5, 6);
+    map.one_link(1, 2);
+    map.one_link(2, 3);
+    map.one_link(4, 5);
+    map.one_link(5, 6);
     map.two_link(1, 6);
     map.two_link(2, 5);
     map.two_link(3, 4);
