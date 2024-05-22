@@ -33,7 +33,7 @@ rustversion = "1.0.15"
 
 # core
 num = "0.4.2"
-vtkio = { git = "https://github.com/elrnv/vtkio.git", rev = "0c14e908d92702236aa322ec43688ae7b77969fa" }
+vtkio = { version = "0.6.3" }
 
 # benchmarks
 criterion = "0.5.1"
