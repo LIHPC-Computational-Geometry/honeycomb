@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
 use crate::cmap2::io::build_cmap_from_vtk;
-use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, Vertex2};
+use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -325,7 +325,20 @@ fn split_edge_isolated() {
 
 #[test]
 fn split_single_dart() {
-    //  1 ---1--> 2 ---2-->
+    // before
+    //  1 -----> 2 ->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.one_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    // split
+    map.split_edge(1, None);
+    // after
+    //  1 -> 3 -> 2 ->
+    assert_eq!(map.beta::<1>(1), 3);
+    assert_eq!(map.beta::<1>(3), 2);
+    assert_eq!(map.beta::<2>(3), NULL_DART_ID);
+    assert_eq!(map.vertex(3), Ok(Vertex2::from((0.5, 0.0))));
 }
 
 #[test]
@@ -334,6 +347,12 @@ fn split_edge_missing_vertex() {
     //    <--2---
     //  1         ?
     //    ---1-->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.two_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+    // split
+    map.split_edge(1, None);
 }
 
 // --- IO
