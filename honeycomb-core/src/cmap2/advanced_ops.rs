@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2};
+use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_ID};
 
 // ------ CONTENT
 
@@ -30,33 +30,37 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<Vertex2<T>>) {
         let d1 = edge_id as DartIdentifier;
         let d2 = self.beta::<2>(d1);
-        let b1d1_old = self.beta::<1>(d1);
-        let b1d2_old = self.beta::<1>(d2);
-        let b1d1_new = self.add_free_darts(2);
-        let b1d2_new = b1d1_new + 1;
-        // unsew current darts
-        self.one_unsew(d1);
-        self.one_unsew(d2);
-        self.two_unlink(d1);
-        // rebuild the edge
-        self.one_link(d1, b1d1_new);
-        self.one_link(b1d1_new, b1d1_old);
-        self.one_link(d2, b1d2_new);
-        self.one_link(b1d2_new, b1d2_old);
-        self.two_link(d1, b1d2_new);
-        self.two_link(d2, b1d1_new);
-        // (*): unwrapping is ok because you probably shouldn't be using this method
-        //      if both vertices of the edge aren't defined
-        self.insert_vertex(
-            self.vertex_id(b1d1_new),
-            midpoint_vertex.unwrap_or(Vertex2::average(
-                &self.vertex(self.vertex_id(d1)).expect(
-                    "E: attempt to split an edge that is not fully defined in the first place",
-                ), // (*)
-                &self.vertex(self.vertex_id(d2)).expect(
-                    "E: attempt to split an edge that is not fully defined in the first place",
-                ), // (*)
-            )),
-        );
+        if d2 == NULL_DART_ID {
+            todo!()
+        } else {
+            let b1d1_old = self.beta::<1>(d1);
+            let b1d2_old = self.beta::<1>(d2);
+            let b1d1_new = self.add_free_darts(2);
+            let b1d2_new = b1d1_new + 1;
+            // (*): unwrapping is ok because you probably shouldn't be using this method
+            //      if both vertices of the edge aren't defined
+            let v1 = self // (*)
+                .vertex(self.vertex_id(d1))
+                .expect("E: attempt to split an edge that is not fully defined in the first place");
+            let v2 = self // (*)
+                .vertex(self.vertex_id(d2))
+                .expect("E: attempt to split an edge that is not fully defined in the first place");
+            // unsew current darts
+            self.one_unlink(d1);
+            self.one_unlink(d2);
+            self.two_unlink(d1);
+            // rebuild the edge
+            self.one_link(d1, b1d1_new);
+            self.one_link(b1d1_new, b1d1_old);
+            self.one_link(d2, b1d2_new);
+            self.one_link(b1d2_new, b1d2_old);
+            self.two_link(d1, b1d2_new);
+            self.two_link(d2, b1d1_new);
+
+            self.insert_vertex(
+                self.vertex_id(b1d1_new),
+                midpoint_vertex.unwrap_or(Vertex2::average(&v1, &v2)),
+            );
+        }
     }
 }
