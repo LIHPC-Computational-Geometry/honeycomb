@@ -249,6 +249,93 @@ fn one_sew_no_attributes_bis() {
     map.one_sew(1, 3); // panic
 }
 
+// --- ADVANCED
+
+#[test]
+fn split_edge_complete() {
+    // before
+    //    <--6---   <--5---   <--4---
+    //  1         2         3         4
+    //    ---1-->   ---2-->   ---3-->
+    let mut map: CMap2<f64> = CMap2::new(6);
+    map.one_sew(1, 2);
+    map.one_sew(2, 3);
+    map.one_sew(4, 5);
+    map.one_sew(5, 6);
+    map.two_link(1, 6);
+    map.two_link(2, 5);
+    map.two_link(3, 4);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    map.insert_vertex(3, (2.0, 0.0));
+    map.insert_vertex(4, (3.0, 0.0));
+    // split
+    map.split_edge(2, None);
+    // after
+    //    <--6---   <8- <5-   <--4---
+    //  1         2    7    3         4
+    //    ---1-->   -2> -7>   ---3-->
+    assert_eq!(map.beta::<2>(2), 8);
+    assert_eq!(map.beta::<1>(1), 2);
+    assert_eq!(map.beta::<1>(2), 7);
+    assert_eq!(map.beta::<1>(7), 3);
+
+    assert_eq!(map.beta::<2>(5), 7);
+    assert_eq!(map.beta::<1>(4), 5);
+    assert_eq!(map.beta::<1>(5), 8);
+    assert_eq!(map.beta::<1>(8), 6);
+
+    assert_eq!(map.vertex_id(8), 7);
+    assert_eq!(map.vertex_id(7), 7);
+
+    assert_eq!(map.vertex(2), Ok(Vertex2::from((1.0, 0.0))));
+    assert_eq!(map.vertex(7), Ok(Vertex2::from((1.5, 0.0))));
+    assert_eq!(map.vertex(3), Ok(Vertex2::from((2.0, 0.0))));
+}
+
+#[test]
+fn split_edge_isolated() {
+    // before
+    //    <--2---
+    //  1         2
+    //    ---1-->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.two_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    // split
+    map.split_edge(1, Some(Vertex2::from((0.6, 0.0))));
+    // after
+    //    <-4- <2-
+    //  1     3    2
+    //    -1-> -3>
+    assert_eq!(map.beta::<2>(1), 4);
+    assert_eq!(map.beta::<1>(1), 3);
+
+    assert_eq!(map.beta::<2>(2), 3);
+    assert_eq!(map.beta::<1>(2), 4);
+
+    assert_eq!(map.vertex_id(3), 3);
+    assert_eq!(map.vertex_id(4), 3);
+
+    assert_eq!(map.vertex(1), Ok(Vertex2::from((0.0, 0.0))));
+    assert_eq!(map.vertex(3), Ok(Vertex2::from((0.6, 0.0))));
+    assert_eq!(map.vertex(2), Ok(Vertex2::from((1.0, 0.0))));
+}
+
+#[test]
+fn split_single_dart() {
+    //  1 ---1--> 2 ---2-->
+}
+
+#[test]
+#[should_panic(expected = "attempt to split an edge that is not fully defined in the first place")]
+fn split_edge_missing_vertex() {
+    //    <--2---
+    //  1         ?
+    //    ---1-->
+}
+
 // --- IO
 
 #[cfg(feature = "io")]
