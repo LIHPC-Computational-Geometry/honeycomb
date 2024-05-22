@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, EdgeIdentifier};
+use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2};
 
 // ------ CONTENT
 
@@ -22,7 +22,41 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// In order to minimize editing of embedded data, the original darts are kept to their
     /// original vertices while the new darts are used to model the new point.
-    pub fn split_edge(&mut self, edge_id: EdgeIdentifier) {
-        todo!()
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if the edge upon which the operation is performed isn't fully defined
+    /// (both topologically & geometrically).
+    pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<Vertex2<T>>) {
+        let d1 = edge_id as DartIdentifier;
+        let d2 = self.beta::<2>(d1);
+        let b1d1_old = self.beta::<1>(d1);
+        let b1d2_old = self.beta::<1>(d2);
+        let b1d1_new = self.add_free_darts(2);
+        let b1d2_new = b1d1_new + 1;
+        // unsew current darts
+        self.one_unsew(d1);
+        self.one_unsew(d2);
+        self.two_unlink(d1);
+        // rebuild the edge
+        self.one_link(d1, b1d1_new);
+        self.one_link(b1d1_new, b1d1_old);
+        self.one_link(d2, b1d2_new);
+        self.one_link(b1d2_new, b1d2_old);
+        self.two_link(d1, b1d2_new);
+        self.two_link(d2, b1d1_new);
+        // (*): unwrapping is ok because you probably shouldn't be using this method
+        //      if both vertices of the edge aren't defined
+        self.insert_vertex(
+            self.vertex_id(b1d1_new),
+            midpoint_vertex.unwrap_or(Vertex2::average(
+                &self.vertex(self.vertex_id(d1)).expect(
+                    "E: attempt to split an edge that is not fully defined in the first place",
+                ), // (*)
+                &self.vertex(self.vertex_id(d2)).expect(
+                    "E: attempt to split an edge that is not fully defined in the first place",
+                ), // (*)
+            )),
+        );
     }
 }
