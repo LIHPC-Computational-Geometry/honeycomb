@@ -8,3 +8,7 @@
 pub mod coords;
 pub mod vector;
 pub mod vertex;
+
+// ------ TESTS
+#[cfg(test)]
+mod tests;
