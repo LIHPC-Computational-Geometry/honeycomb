@@ -23,6 +23,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// In order to minimize editing of embedded data, the original darts are kept to their
     /// original vertices while the new darts are used to model the new point.
     ///
+    /// For an illustration of both principles, refer to the example section.
+    ///
     /// # Arguments
     ///
     /// - `edge_id: EdgeIdentifier` -- Edge to split in two.
@@ -33,6 +35,19 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if the edge upon which the operation is performed does not have two
     /// defined vertices.
+    ///
+    /// # Example
+    ///
+    /// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
+    /// `(0.0, 0.0)` and `(2.0, 0.0)`, calling `map.split_edge(1, Some(0.2))` would result in the
+    /// creation of two new darts, a new vertex (ID `3`) of value `(0.4, 0.0)` and the following
+    /// topology:
+    ///
+    /// ```text
+    ///    +----1---->              +-1-> +-3->     |
+    ///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
+    ///    <----2----+              <-4-- <-2-+     |
+    /// ```
     pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<T>) {
         if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
             println!("W: vertex placement for split is not in ]0;1[ -- result may be incoherent");
