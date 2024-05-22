@@ -28,5 +28,6 @@ pub use structure::CMap2;
 const CMAP2_BETA: usize = 3;
 
 // ------ TESTS
+mod advanced_ops;
 #[cfg(test)]
 mod tests;

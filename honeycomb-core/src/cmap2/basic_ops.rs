@@ -1,6 +1,6 @@
 //! Basic operations implementation
 //!
-//! This module contains code used to implement basic opearations of combinatorial maps, such as
+//! This module contains code used to implement basic operations of combinatorial maps, such as
 //! (but not limited to):
 //!
 //! - Dart addition / insertion / removal
