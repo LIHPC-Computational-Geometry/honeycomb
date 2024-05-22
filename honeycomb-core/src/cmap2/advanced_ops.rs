@@ -25,20 +25,37 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Panics
     ///
-    /// This method may panic if the edge upon which the operation is performed isn't fully defined
-    /// (both topologically & geometrically).
+    /// This method may panic if the edge upon which the operation is performed does not have two
+    /// defined vertices.a
     pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<Vertex2<T>>) {
         let d1 = edge_id as DartIdentifier;
         let d2 = self.beta::<2>(d1);
+        // (*): unwrapping is ok because you probably shouldn't be using this method
+        //      if both vertices of the edge aren't defined
         if d2 == NULL_DART_ID {
-            todo!()
+            let b1d1_old = self.beta::<1>(d1);
+            let b1d1_new = self.add_free_dart();
+            let v1 = self // (*)
+                .vertex(self.vertex_id(d1))
+                .expect("E: attempt to split an edge that is not fully defined in the first place");
+            let v2 = self // (*)
+                .vertex(self.vertex_id(b1d1_old))
+                .expect("E: attempt to split an edge that is not fully defined in the first place");
+            // unsew current dart
+            self.one_unlink(d1);
+            // rebuild the edge
+            self.one_link(d1, b1d1_new);
+            self.one_link(b1d1_new, b1d1_old);
+            // insert the new vertex
+            self.insert_vertex(
+                self.vertex_id(b1d1_new),
+                midpoint_vertex.unwrap_or(Vertex2::average(&v1, &v2)),
+            );
         } else {
             let b1d1_old = self.beta::<1>(d1);
             let b1d2_old = self.beta::<1>(d2);
             let b1d1_new = self.add_free_darts(2);
             let b1d2_new = b1d1_new + 1;
-            // (*): unwrapping is ok because you probably shouldn't be using this method
-            //      if both vertices of the edge aren't defined
             let v1 = self // (*)
                 .vertex(self.vertex_id(d1))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
@@ -56,7 +73,7 @@ impl<T: CoordsFloat> CMap2<T> {
             self.one_link(b1d2_new, b1d2_old);
             self.two_link(d1, b1d2_new);
             self.two_link(d2, b1d1_new);
-
+            // insert the new vertex
             self.insert_vertex(
                 self.vertex_id(b1d1_new),
                 midpoint_vertex.unwrap_or(Vertex2::average(&v1, &v2)),
