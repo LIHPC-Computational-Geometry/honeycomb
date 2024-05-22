@@ -1,9 +1,11 @@
 // ------ IMPORTS
 
-use crate::cmap2::io::build_cmap_from_vtk;
-use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
-use vtkio::Vtk;
+use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
 
+#[cfg(feature = "io")]
+use crate::{cmap2::io::build_cmap_from_vtk, DartIdentifier};
+#[cfg(feature = "io")]
+use vtkio::Vtk;
 // ------ CONTENT
 
 // --- GENERAL
@@ -434,6 +436,7 @@ fn io_write() {
     assert!(res.contains("2 8 3"));
 }
 
+#[cfg(feature = "io")]
 #[test]
 fn io_read() {
     let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
@@ -465,7 +468,7 @@ fn io_read() {
     assert_eq!(six_count, 1);
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "io"))]
 const VTK_ASCII: &[u8] = b"
 # vtk DataFile Version 2.0
 cmap
