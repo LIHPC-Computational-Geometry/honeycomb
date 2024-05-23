@@ -38,11 +38,6 @@ path = "benches/core/cmap2/basic_ops.rs"
 harness = false
 
 [[bench]]
-name = "prof-cmap2-reading"
-path = "benches/core/cmap2/reading.rs"
-harness = false
-
-[[bench]]
 name = "prof-cmap2-sewing-unsewing"
 path = "benches/core/cmap2/sewing.rs"
 harness = false

@@ -102,6 +102,22 @@ library_benchmark_group!(
 // --- vertex group
 
 #[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn read_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.vertex(1))
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_sparse_map(16))]
+#[bench::medium(&mut get_sparse_map(64))]
+#[bench::large(&mut get_sparse_map(256))]
+fn read_missing_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.vertex(1))
+}
+
+#[library_benchmark]
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
@@ -145,6 +161,8 @@ fn remove_missing_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType
 library_benchmark_group!(
     name = bench_vertices;
     benchmarks =
+        read_vertex,
+        read_missing_vertex,
         insert_vertex,
         replace_vertex,
         set_vertex,

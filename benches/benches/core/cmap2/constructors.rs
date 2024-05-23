@@ -7,13 +7,14 @@
 //!
 //! - `bench_constructors`: benches constructors functions.
 //! - `bench_fetches`: benches insertion methods (both behaviors).
+//! - `bench_icells`: benches the i-cell method
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
 
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, Vertex2};
+use honeycomb_core::{utils::GridBuilder, CMap2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -89,10 +90,46 @@ library_benchmark_group!(
         fetch_faces,
 );
 
+// --- i-cell group
+
+#[library_benchmark]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
+fn zero_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<0>(5));
+}
+
+#[library_benchmark]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
+fn one_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<1>(5));
+}
+
+#[library_benchmark]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
+fn two_cell(map: &CMap2<FloatType>) {
+    black_box(map.i_cell::<2>(5));
+}
+
+library_benchmark_group!(
+    name = bench_icells;
+    benchmarks =
+        zero_cell,
+        one_cell,
+        two_cell,
+);
+
 // --- main
 
 main!(
     config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
-    library_benchmark_groups = bench_constructors,
-    bench_fetches,
+    library_benchmark_groups =
+        bench_constructors,
+        bench_fetches,
+        bench_icells,
 );
