@@ -28,17 +28,17 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn single_beta_single_dart(map: &CMap2<FloatType>) -> DartIdentifier {
     black_box(map.beta::<1>(5))
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
 fn all_betas_single_dart(
     map: &CMap2<FloatType>,
 ) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
@@ -50,9 +50,9 @@ fn all_betas_single_dart(
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn single_beta_contiguous_darts(
     map: &CMap2<FloatType>,
 ) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
@@ -64,9 +64,9 @@ fn single_beta_contiguous_darts(
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn single_beta_random_darts(
     map: &CMap2<FloatType>,
 ) -> (DartIdentifier, DartIdentifier, DartIdentifier) {
@@ -87,17 +87,17 @@ library_benchmark_group!(
 );
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn i_free(map: &CMap2<FloatType>) -> bool {
     black_box(map.is_i_free::<1>(3))
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn free(map: &CMap2<FloatType>) -> bool {
     black_box(map.is_free(3))
 }
@@ -110,25 +110,25 @@ library_benchmark_group!(
 );
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn zero_cell(map: &CMap2<FloatType>) {
     black_box(map.i_cell::<0>(5));
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn one_cell(map: &CMap2<FloatType>) {
     black_box(map.i_cell::<1>(5));
 }
 
 #[library_benchmark]
-#[bench::small(&get_map(5))]
-#[bench::medium(&get_map(50))]
-#[bench::large(&get_map(500))]
+#[bench::small(&get_map(16))]
+#[bench::medium(&get_map(64))]
+#[bench::large(&get_map(256))]
 fn two_cell(map: &CMap2<FloatType>) {
     black_box(map.i_cell::<2>(5));
 }

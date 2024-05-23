@@ -48,17 +48,17 @@ fn constructor(n_darts: usize) -> CMap2<FloatType> {
 }
 
 #[library_benchmark]
-#[bench::small(&mut get_map(5))]
-#[bench::medium(&mut get_map(50))]
-#[bench::large(&mut get_map(500))]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
 fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.add_free_dart())
 }
 
 #[library_benchmark]
-#[bench::small(&mut get_map(5))]
-#[bench::medium(&mut get_map(50))]
-#[bench::large(&mut get_map(500))]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
 fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.add_free_darts(10))
 }
@@ -72,25 +72,25 @@ library_benchmark_group!(
 );
 
 #[library_benchmark]
-#[bench::small(&mut get_sparse_map(5))]
-#[bench::medium(&mut get_sparse_map(50))]
-#[bench::large(&mut get_sparse_map(500))]
+#[bench::small(&mut get_sparse_map(16))]
+#[bench::medium(&mut get_sparse_map(64))]
+#[bench::large(&mut get_sparse_map(256))]
 fn insert_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
 #[library_benchmark]
-#[bench::small(&mut get_map(5))]
-#[bench::medium(&mut get_map(50))]
-#[bench::large(&mut get_map(500))]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
 fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
 #[library_benchmark]
-#[bench::small(&mut get_sparse_map(5))]
-#[bench::medium(&mut get_sparse_map(50))]
-#[bench::large(&mut get_sparse_map(500))]
+#[bench::small(&mut get_sparse_map(16))]
+#[bench::medium(&mut get_sparse_map(64))]
+#[bench::large(&mut get_sparse_map(256))]
 fn insert_vertex(map: &mut CMap2<FloatType>) {
     black_box(map.insert_vertex(1, (0.0, 0.0)));
 }
@@ -104,9 +104,9 @@ library_benchmark_group!(
 );
 
 #[library_benchmark]
-#[bench::small(&mut get_map(5))]
-#[bench::medium(&mut get_map(50))]
-#[bench::large(&mut get_map(500))]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
 fn build_faces(map: &mut CMap2<FloatType>) {
     black_box(map.fetch_faces());
 }
