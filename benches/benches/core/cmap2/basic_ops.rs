@@ -12,8 +12,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::utils::GridBuilder;
-use honeycomb_core::{CMap2, DartIdentifier, Vertex2};
+use honeycomb_core::{utils::GridBuilder, CMap2, CMapError, DartIdentifier, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -37,7 +36,12 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
     map
 }
 
-// --- leftovers
+fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
+    (CMap2::new(0), n_squares.pow(2) * 4)
+}
+
+// --- dart group
+
 #[library_benchmark]
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
@@ -52,6 +56,12 @@ fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
 #[bench::large(&mut get_map(256))]
 fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.add_free_darts(10))
+}
+
+#[library_benchmark]
+#[benches::with_setup(args = [16, 32, 64, 128, 256, 512], setup = get_empty_map)]
+fn add_many_darts((mut map, n_darts): (CMap2<FloatType>, usize)) -> DartIdentifier {
+    black_box(map.add_free_darts(n_darts))
 }
 
 #[library_benchmark]
@@ -70,25 +80,76 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
+#[library_benchmark]
+#[bench::small(&mut CMap2::new(16_usize.pow(2) * 4))]
+#[bench::medium(&mut CMap2::new(64_usize.pow(2) * 4))]
+#[bench::large(&mut CMap2::new(256_usize.pow(2) * 4))]
+fn remove_dart(map: &mut CMap2<FloatType>) {
+    map.remove_free_dart(5);
+    black_box(map);
+}
+
 library_benchmark_group!(
     name = bench_darts;
     benchmarks =
+        add_single_dart,
+        add_ten_darts,
+        add_many_darts,
         insert_dart,
         insert_dart_full,
 );
+
+// --- vertex group
 
 #[library_benchmark]
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
 fn insert_vertex(map: &mut CMap2<FloatType>) {
-    black_box(map.insert_vertex(1, (0.0, 0.0)));
+    map.insert_vertex(1, (0.0, 0.0));
+    black_box(map);
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn replace_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.replace_vertex(1, (0.0, 0.0)))
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_sparse_map(16))]
+#[bench::medium(&mut get_sparse_map(64))]
+#[bench::large(&mut get_sparse_map(256))]
+fn set_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.replace_vertex(1, (0.0, 0.0)))
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn remove_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.remove_vertex(1))
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_sparse_map(16))]
+#[bench::medium(&mut get_sparse_map(64))]
+#[bench::large(&mut get_sparse_map(256))]
+fn remove_missing_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+    black_box(map.remove_vertex(1))
 }
 
 library_benchmark_group!(
     name = bench_vertices;
     benchmarks =
         insert_vertex,
+        replace_vertex,
+        set_vertex,
+        remove_vertex,
+        remove_missing_vertex,
 );
 
 // --- main
