@@ -28,8 +28,13 @@ rand = { workspace = true, features = ["small_rng"] }
 ## Iai-callgrind benchmarks
 
 [[bench]]
-name = "prof-cmap2-editing"
-path = "benches/core/cmap2/editing.rs"
+name = "prof-cmap2-build"
+path = "benches/core/cmap2/constructors.rs"
+harness = false
+
+[[bench]]
+name = "prof-cmap2-basic"
+path = "benches/core/cmap2/basic_ops.rs"
 harness = false
 
 [[bench]]

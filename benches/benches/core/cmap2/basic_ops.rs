@@ -2,26 +2,26 @@
 //! & provide accurate insights into the code behavior independently from
 //! available computing power.
 //!
-//! This file contains benchmarks of key editing methods and constructors,
-//! classfied into three groups:
+//! This file contains benchmarks of basic operations, classified into three groups:
 //!
-//! - `bench_new`: benches constructors and "add" methods.
-//! - `bench_insert`: benches insertion methods (both behaviors).
-//! - `bench_face_building`: benches the face building methods.
+//! - `bench_darts`: benches dart-related methods.
+//! - `bench_vertices`: benches vertex-related methods.
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
-//!
 
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, Vertex2};
+use honeycomb_core::utils::GridBuilder;
+use honeycomb_core::{CMap2, DartIdentifier, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
 use std::hint::black_box;
 
 // ------ CONTENT
+
+// --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
     GridBuilder::unit_squares(n_square).build2().unwrap()
@@ -37,16 +37,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
     map
 }
 
-fn compute_dims(n_square: usize) -> usize {
-    n_square.pow(2) * 4
-}
-
-#[library_benchmark]
-#[benches::with_setup(args = [16, 32, 64, 128, 256, 512], setup = compute_dims)]
-fn constructor(n_darts: usize) -> CMap2<FloatType> {
-    black_box(CMap2::new(n_darts))
-}
-
+// --- leftovers
 #[library_benchmark]
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
@@ -62,14 +53,6 @@ fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
 fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.add_free_darts(10))
 }
-
-library_benchmark_group!(
-    name = bench_new;
-    benchmarks =
-        constructor,
-        add_single_dart,
-        add_ten_darts,
-);
 
 #[library_benchmark]
 #[bench::small(&mut get_sparse_map(16))]
@@ -87,6 +70,13 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdentifier {
     black_box(map.insert_free_dart())
 }
 
+library_benchmark_group!(
+    name = bench_darts;
+    benchmarks =
+        insert_dart,
+        insert_dart_full,
+);
+
 #[library_benchmark]
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
@@ -96,30 +86,15 @@ fn insert_vertex(map: &mut CMap2<FloatType>) {
 }
 
 library_benchmark_group!(
-    name = bench_insert;
+    name = bench_vertices;
     benchmarks =
-        insert_dart,
-        insert_dart_full,
         insert_vertex,
 );
 
-#[library_benchmark]
-#[bench::small(&mut get_map(16))]
-#[bench::medium(&mut get_map(64))]
-#[bench::large(&mut get_map(256))]
-fn build_faces(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_faces());
-}
-
-library_benchmark_group!(
-    name = bench_face_building;
-    benchmarks =
-        build_faces,
-);
+// --- main
 
 main!(
     config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
-    library_benchmark_groups = bench_new,
-    bench_insert,
-    bench_face_building,
+    library_benchmark_groups = bench_darts,
+    bench_vertices,
 );
