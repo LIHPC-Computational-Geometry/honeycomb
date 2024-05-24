@@ -105,6 +105,8 @@ impl GfxState {
         self.config.width = new_size.width.max(1);
         self.config.height = new_size.height.max(1);
         self.surface.configure(&self.device, &self.config);
+        self.camera.aspect = self.config.width as f32 / self.config.height as f32;
+        self.camera_uniform.update_view_proj(&self.camera);
     }
 
     pub fn input(&mut self, event: &WindowEvent, target: &ActiveEventLoop) -> bool {
