@@ -19,7 +19,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
     group.plot_config(plot_config);
 
-    for pow in 5..13 {
+    for pow in 5..11 {
         let n_square = 2_usize.pow(pow);
         group.throughput(Throughput::Elements(n_square.pow(2) as u64));
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
