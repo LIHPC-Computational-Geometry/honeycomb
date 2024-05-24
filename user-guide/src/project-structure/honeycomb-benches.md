@@ -24,16 +24,16 @@ cargo bench --bench <BENCHMARK>
 
 The following benchmarks are available:
 
-| Name                         | Type          | Source file                       |
-|------------------------------|---------------|-----------------------------------|
-| `splitsquaremap-init`        | Criterion     | `benches/splitsquaremap/init.rs`  |
-| `splitsquaremap-shift`       | Criterion     | `benches/splitsquaremap/shift.rs` |
-| `squaremap-init`             | Criterion     | `benches/squaremap/init.rs`       |
-| `squaremap-shift`            | Criterion     | `benches/squaremap/shift.rs`      |
-| `squaremap-splitquads`       | Criterion     | `benches/squaremap/split.rs`      |
-| `prof-cmap2-editing`         | Iai-callgrind | `benches/core/cmap2/editing.rs`   |
-| `prof-cmap2-reading`         | Iai-callgrind | `benches/core/cmap2/reading.rs`   |
-| `prof-cmap2-sewing-unsewing` | Iai-callgrind | `benches/core/cmap2/sewing.rs`    |
+| Name                         | Type          | Source file                          |
+|------------------------------|---------------|--------------------------------------|
+| `splitsquaremap-init`        | Criterion     | `benches/splitsquaremap/init.rs`     |
+| `splitsquaremap-shift`       | Criterion     | `benches/splitsquaremap/shift.rs`    |
+| `squaremap-init`             | Criterion     | `benches/squaremap/init.rs`          |
+| `squaremap-shift`            | Criterion     | `benches/squaremap/shift.rs`         |
+| `squaremap-splitquads`       | Criterion     | `benches/squaremap/split.rs`         |
+| `prof-cmap2-basic`           | Iai-callgrind | `benches/core/cmap2/basic_ops.rs`    |
+| `prof-cmap2-build`           | Iai-callgrind | `benches/core/cmap2/constructors.rs` |
+| `prof-cmap2-sewing-unsewing` | Iai-callgrind | `benches/core/cmap2/link_and_sew.rs` |
 
 A detailed explanation about the purpose of each benchmark is provided at the beginning of their respective source
 files. As a rule of thumb, the **iai-callgrind** benchmarks cover individual methods of the structure while

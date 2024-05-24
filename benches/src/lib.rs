@@ -4,7 +4,6 @@
 //! benchmarks cover individual methods of the structure while criterion benchmarks cover higher
 //! level computations.
 //!
-//! <div class="warning">The benchmarks are out-of-date and will be reworked at some point.</div>
 //!
 //! ## Available benchmarks
 //!
@@ -18,9 +17,9 @@
 //!
 //! ### Iai-callgrind-based
 //!
-//! - `prof-cmap2-editing` - `CMap2` editing methods benchmarks
-//! - `prof-cmap2-reading` - `CMap2` reading methods benchmarks
-//! - `prof-cmap2-sewing-unsewing` - `CMap2` (un)sewing methods benchmarks
+//! - `prof-cmap2-basic` - `CMap2` basic operations benchmarks
+//! - `prof-cmap2-build` - `CMap2` constructor & building functions benchmarks
+//! - `prof-cmap2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "_single_precision")] {

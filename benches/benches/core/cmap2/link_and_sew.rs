@@ -5,11 +5,10 @@
 //! This file contains benchmarks of key editing methods and constructors,
 //! classfied into three groups
 //!
-//! - `bench_one_sewing`: benches the `one_sew` method over all sewing policies.
-//! - `bench_two_sewing`: benches the `two_sew` method over all sewing policies.
+//! - `bench_links`: benches all variants of the `link` and `unlink` methods.
+//! - `bench_sews`: benches all variants of the `sew` and `unsew` methods.
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
-//!
 
 // ------ IMPORTS
 
