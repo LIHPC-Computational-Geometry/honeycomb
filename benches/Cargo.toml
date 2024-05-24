@@ -39,7 +39,7 @@ harness = false
 
 [[bench]]
 name = "prof-cmap2-sewing-unsewing"
-path = "benches/core/cmap2/sewing.rs"
+path = "benches/core/cmap2/link_and_sew.rs"
 harness = false
 
 

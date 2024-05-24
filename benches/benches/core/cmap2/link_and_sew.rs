@@ -1,0 +1,143 @@
+//! These benchmarks uses iai-callgrind to fetch data from hardware counter
+//! & provide accurate insights into the code behavior independently from
+//! available computing power.
+//!
+//! This file contains benchmarks of key editing methods and constructors,
+//! classfied into three groups
+//!
+//! - `bench_one_sewing`: benches the `one_sew` method over all sewing policies.
+//! - `bench_two_sewing`: benches the `two_sew` method over all sewing policies.
+//!
+//! Each benchmark is repeated on CMap2 of different sizes.
+//!
+
+// ------ IMPORTS
+
+use honeycomb_benches::FloatType;
+use honeycomb_core::{utils::GridBuilder, CMap2};
+use iai_callgrind::{
+    library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
+};
+use std::hint::black_box;
+
+// ------ CONTENT
+
+// --- common
+
+fn get_map(n_square: usize) -> CMap2<FloatType> {
+    GridBuilder::unit_squares(n_square).build2().unwrap()
+}
+
+fn get_link_map(n_square: usize) -> CMap2<FloatType> {
+    CMap2::new(n_square.pow(2) * 4)
+}
+
+fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
+    let mut map = CMap2::new(n_square.pow(2) * 4);
+    map.insert_vertex(4, (0.0, 0.0));
+    map.insert_vertex(6, (1.0, 0.0));
+    map
+}
+
+// --- link group
+
+#[library_benchmark]
+#[bench::small(&mut get_link_map(16))]
+#[bench::medium(&mut get_link_map(64))]
+#[bench::large(&mut get_link_map(256))]
+fn one_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.one_link(4, 6);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_link_map(16))]
+#[bench::medium(&mut get_link_map(64))]
+#[bench::large(&mut get_link_map(256))]
+fn two_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.two_link(4, 6);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn one_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.one_unlink(4);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn two_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.two_unlink(4);
+    black_box(map)
+}
+
+library_benchmark_group!(
+    name = bench_links;
+    benchmarks =
+        one_link,
+        two_link,
+        one_unlink,
+        two_unlink,
+);
+
+// --- sew group
+
+#[library_benchmark]
+#[bench::small(&mut get_sew_map(16))]
+#[bench::medium(&mut get_sew_map(64))]
+#[bench::large(&mut get_sew_map(256))]
+fn one_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.one_sew(4, 6);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_sew_map(16))]
+#[bench::medium(&mut get_sew_map(64))]
+#[bench::large(&mut get_sew_map(256))]
+fn two_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.two_sew(4, 6);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn one_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.one_unsew(4);
+    black_box(map)
+}
+
+#[library_benchmark]
+#[bench::small(&mut get_map(16))]
+#[bench::medium(&mut get_map(64))]
+#[bench::large(&mut get_map(256))]
+fn two_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
+    map.two_unsew(4);
+    black_box(map)
+}
+
+library_benchmark_group!(
+    name = bench_sews;
+    benchmarks =
+        one_sew,
+        two_sew,
+        one_unsew,
+        two_unsew,
+);
+
+// --- main
+
+main!(
+    config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
+    library_benchmark_groups =
+        bench_links,
+        bench_sews,
+);
