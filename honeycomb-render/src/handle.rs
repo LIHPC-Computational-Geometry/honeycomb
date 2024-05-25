@@ -199,19 +199,24 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
     }
 
     pub fn build_faces(&mut self) {
-        // because there's no "trianglefan" primitive in the webgpu standard,
-        // we have to duplicate vertices
         let tmp = self.intermediate_buffer.iter().flat_map(|face| {
             (1..face.n_vertices - 1).flat_map(|id| {
+                // because there's no "trianglefan" primitive in the webgpu standard,
+                // we have to duplicate vertices
                 let mut tmp1 = face.vertices[0];
                 let mut tmp2 = face.vertices[id];
                 let mut tmp3 = face.vertices[id + 1];
-                let shrink_dir1 = (face.center - tmp1).unit_dir().unwrap();
-                let shrink_dir2 = (face.center - tmp2).unit_dir().unwrap();
-                let shrink_dir3 = (face.center - tmp3).unit_dir().unwrap();
-                tmp1 += shrink_dir1 * T::from(self.params.shrink_factor * 2.0).unwrap();
-                tmp2 += shrink_dir2 * T::from(self.params.shrink_factor * 2.0).unwrap();
-                tmp3 += shrink_dir3 * T::from(self.params.shrink_factor * 2.0).unwrap();
+                // technically, "shrinking" the polygon is called polygon offsetting
+                // real algorithms are annoyingly complicated, so here we'll just move vertices
+                // toward the center of gravity of the face (it is incorrect, but works well enough)
+                // for more information:
+                // https://doc.cgal.org/latest/Straight_skeleton_2/#Straight_skeleton_2Offset
+                let shrink_v1 = face.center - tmp1;
+                let shrink_v2 = face.center - tmp2;
+                let shrink_v3 = face.center - tmp3;
+                tmp1 += shrink_v1 * T::from(self.params.shrink_factor * 3.0).unwrap();
+                tmp2 += shrink_v2 * T::from(self.params.shrink_factor * 3.0).unwrap();
+                tmp3 += shrink_v3 * T::from(self.params.shrink_factor * 3.0).unwrap();
                 [
                     Coords2Shader::from((tmp1, Entity::Face)),
                     Coords2Shader::from((tmp2, Entity::Face)),
