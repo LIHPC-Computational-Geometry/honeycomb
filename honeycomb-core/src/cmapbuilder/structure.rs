@@ -8,11 +8,13 @@
 
 #[cfg(feature = "utils")]
 use crate::utils::GridBuilder;
-use crate::CoordsFloat;
+use crate::{CMap2, CMapError, CoordsFloat};
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
 // ------ CONTENT
+
+// --- main struct
 
 #[derive(Default)]
 pub struct CMapBuilder<T>
@@ -26,6 +28,8 @@ where
     n_darts: usize,
     coordstype: std::marker::PhantomData<T>,
 }
+
+// --- setters
 
 impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn n_darts(mut self, n_darts: usize) -> Self {
@@ -48,5 +52,29 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn using_grid_builder(mut self, grid_builder: GridBuilder<T>) -> Self {
         self.grid_builder = Some(grid_builder);
         self
+    }
+}
+
+// --- build methods
+
+impl<T: CoordsFloat> CMapBuilder<T> {
+    pub fn build2(self) -> Result<CMap2<T>, CMapError> {
+        todo!()
+    }
+
+    pub fn build3(self) {
+        unimplemented!("E: 3-maps are not yet implemented")
+    }
+}
+
+// --- predefinite setups
+
+impl<T: CoordsFloat> CMapBuilder<T> {
+    pub fn unit_grid(n_square: usize) -> Self {
+        todo!()
+    }
+
+    pub fn unit_split_grid(n_square: usize) -> Self {
+        todo!()
     }
 }
