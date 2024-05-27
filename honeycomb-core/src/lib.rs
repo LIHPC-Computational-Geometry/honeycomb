@@ -34,6 +34,7 @@
 mod attributes;
 mod cells;
 mod cmap2;
+mod cmapbuilder;
 mod common;
 mod spatial_repr;
 #[cfg(feature = "utils")]
