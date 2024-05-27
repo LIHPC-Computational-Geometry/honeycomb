@@ -59,7 +59,17 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
 impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn build2(self) -> Result<CMap2<T>, CMapError> {
-        todo!()
+        #[cfg(feature = "io")]
+        if let Some(vfile) = self.vtk_file {
+            // build from vtk
+            todo!()
+        }
+        #[cfg(feature = "utils")]
+        if let Some(gridb) = self.grid_builder {
+            // build from grid descriptor
+            todo!()
+        }
+        Ok(CMap2::new(self.n_darts))
     }
 
     pub fn build3(self) {
@@ -67,14 +77,22 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     }
 }
 
-// --- predefinite setups
+// --- predefinite grid setups
 
+#[cfg(feature = "utils")]
 impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn unit_grid(n_square: usize) -> Self {
-        todo!()
+        let gridb = GridBuilder::default()
+            .n_cells([n_square; 3])
+            .len_per_cell([T::one(); 3]);
+        CMapBuilder::default().using_grid_builder(gridb)
     }
 
     pub fn unit_split_grid(n_square: usize) -> Self {
-        todo!()
+        let gridb = GridBuilder::default()
+            .n_cells([n_square; 3])
+            .len_per_cell([T::one(); 3])
+            .split_quads(true);
+        CMapBuilder::default().using_grid_builder(gridb)
     }
 }
