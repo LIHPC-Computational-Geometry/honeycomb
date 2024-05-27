@@ -4,6 +4,7 @@ resolver = "2"
 members = [
     "benches",
     "honeycomb-core",
+    "honeycomb-kernels",
     "honeycomb-render",
     "examples"
 ]
@@ -24,6 +25,7 @@ authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevali
 # members
 honeycomb-benches = { version = "0.3.0", path = "./benches" }
 honeycomb-core = { version = "0.3.0", path = "./honeycomb-core" }
+honeycomb-kernels = { version = "0.3.0", path = "./honeycomb-kernels" }
 honeycomb-examples = { version = "0.3.0", path = "./examples" }
 honeycomb-render = { version = "0.3.0", path = "./honeycomb-render" }
 
