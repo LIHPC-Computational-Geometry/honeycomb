@@ -28,6 +28,10 @@ jobs:
         run: cargo publish --package honeycomb-core --token ${CIO_TOKEN}
         env:
           CIO_TOKEN: ${{ secrets.CRATESIO_TOKEN }}
+      - name: Publish kernels
+        run: cargo publish --package honeycomb-kernels --token ${CIO_TOKEN}
+        env:
+          CIO_TOKEN: ${{ secrets.CRATESIO_TOKEN }}
       - name: Publish render
         run: cargo publish --package honeycomb-render --token ${CIO_TOKEN}
         env:
