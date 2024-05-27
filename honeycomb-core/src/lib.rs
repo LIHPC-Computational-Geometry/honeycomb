@@ -57,6 +57,7 @@ pub use cells::{
     orbits::{Orbit2, OrbitPolicy},
 };
 pub use cmap2::CMap2;
+pub use cmapbuilder::CMapBuilder;
 pub use common::{CMapError, CoordsFloat, DartIdentifier, NULL_DART_ID};
 pub use spatial_repr::{
     coords::{Coords2, CoordsError},

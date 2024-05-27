@@ -6,7 +6,11 @@
 
 // ------ MODULE DECLARATIONS
 
+mod structure;
+
 // ------ RE-EXPORTS
+
+pub use structure::CMapBuilder;
 
 // ------ CONTENT
 
