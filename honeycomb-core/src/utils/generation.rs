@@ -145,7 +145,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// See [`GridBuilder`] example.
     ///
     pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
-        CMapBuilder::default().using_grid_builder(self).build2()
+        CMapBuilder::from_grid_descriptor(self).build2()
     }
 }
 

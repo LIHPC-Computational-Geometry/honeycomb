@@ -29,10 +29,37 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///     - the file has major inconsistencies / errors
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        CMapBuilder::default()
-            .using_vtk_file(file_path)
-            .build2()
-            .unwrap()
+        CMapBuilder::from_vtk_file(file_path).build2().unwrap()
+    }
+}
+
+impl<T: CoordsFloat> CMapBuilder<T> {
+    /// Import and set the VTK file that will be used when building the map.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if the file cannot be loaded
+    #[must_use = "unused builder object, consider removing this method call"]
+    pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+        let vtk_file =
+            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
+        self.vtk_file = Some(vtk_file);
+        self
+    }
+
+    /// Create a [`CMapBuilder`] from an imported VTK file.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if the file cannot be loaded
+    #[must_use = "unused builder object, consider removing this function call"]
+    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+        let vtk_file =
+            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
+        CMapBuilder {
+            vtk_file: Some(vtk_file),
+            ..Default::default()
+        }
     }
 }
 

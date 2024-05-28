@@ -31,41 +31,29 @@ pub enum BuilderError {
 
 // --- main struct
 
+/// Combinatorial map builder structure.
+///
+/// todo
 #[derive(Default)]
 pub struct CMapBuilder<T>
 where
     T: CoordsFloat,
 {
     #[cfg(feature = "io")]
-    vtk_file: Option<Vtk>,
+    pub(super) vtk_file: Option<Vtk>,
     #[cfg(feature = "utils")]
-    grid_descriptor: Option<GridDescriptor<T>>,
-    n_darts: usize,
-    coordstype: std::marker::PhantomData<T>,
+    pub(super) grid_descriptor: Option<GridDescriptor<T>>,
+    pub(super) n_darts: usize,
+    pub(super) coordstype: std::marker::PhantomData<T>,
 }
 
 // --- setters
 
 impl<T: CoordsFloat> CMapBuilder<T> {
+    /// Set the number of dart that that the created map will contain.
+    #[must_use = "unused builder object, consider removing this method call"]
     pub fn n_darts(mut self, n_darts: usize) -> Self {
         self.n_darts = n_darts;
-        self
-    }
-
-    #[cfg(feature = "io")]
-    pub fn using_vtk_file(
-        mut self,
-        file_path: impl AsRef<std::path::Path> + std::fmt::Debug,
-    ) -> Self {
-        let vtk_file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        self.vtk_file = Some(vtk_file);
-        self
-    }
-
-    #[cfg(feature = "utils")]
-    pub fn using_grid_builder(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
-        self.grid_descriptor = Some(grid_descriptor);
         self
     }
 }
@@ -73,6 +61,24 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 // --- build methods
 
 impl<T: CoordsFloat> CMapBuilder<T> {
+    #[allow(clippy::missing_errors_doc)]
+    /// Consumes the builder and produce a [`CMap2`] object.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method return a `Result` taking the following values:
+    /// - `Ok(map: CMap2)` -- Map generation was successful.
+    /// - `Err(BuilderError::MissingParameters)` -- todo
+    /// - `Err(BuilderError::InvalidParameters)` -- todo
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if type casting goes wrong during parameters parsing.
+    ///
+    /// # Example
+    ///
+    /// See [`CMapBuilder`] example.
+    ///
     pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
@@ -96,27 +102,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         Ok(CMap2::new(self.n_darts))
     }
 
+    /// UNIMPLEMENTED
     pub fn build3(self) {
         unimplemented!("E: 3-maps are not yet implemented")
-    }
-}
-
-// --- predefinite grid setups
-
-#[cfg(feature = "utils")]
-impl<T: CoordsFloat> CMapBuilder<T> {
-    pub fn unit_grid(n_square: usize) -> Self {
-        let gridd = GridDescriptor::default()
-            .n_cells([n_square; 3])
-            .len_per_cell([T::one(); 3]);
-        CMapBuilder::default().using_grid_builder(gridd)
-    }
-
-    pub fn unit_split_grid(n_square: usize) -> Self {
-        let gridd = GridDescriptor::default()
-            .n_cells([n_square; 3])
-            .len_per_cell([T::one(); 3])
-            .split_quads(true);
-        CMapBuilder::default().using_grid_builder(gridd)
     }
 }

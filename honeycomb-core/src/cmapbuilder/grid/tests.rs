@@ -101,8 +101,7 @@ fn square_cmap2_correctness() {
     let descriptor = GridDescriptor::default()
         .n_cells([2, 2, 2])
         .len_per_cell([1., 1., 1.]);
-    let cmap: CMap2<f64> = CMapBuilder::default()
-        .using_grid_builder(descriptor)
+    let cmap: CMap2<f64> = CMapBuilder::from_grid_descriptor(descriptor)
         .build2()
         .unwrap();
 
