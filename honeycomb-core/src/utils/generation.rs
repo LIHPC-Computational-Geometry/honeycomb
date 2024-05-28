@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier};
+use crate::{BuilderError, CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
@@ -202,19 +202,6 @@ fn build2_splitgrid<T: CoordsFloat>(
 
 // --- PUBLIC API
 
-/// Builder-level error enum
-///
-/// This enum is used to describe all non-panic errors that can occur when using a builder
-/// structure.
-#[derive(Debug)]
-pub enum BuilderError {
-    /// The builder is missing one or multiple parameters in order to proceed with the requested
-    /// operation.
-    MissingParameters(&'static str),
-    /// One or multiple of the builder's fields are invalid.
-    InvalidParameters(&'static str),
-}
-
 /// Builder structure for specialized [`CMap2`].
 ///
 /// The user must specify two out of these three characteristics:
@@ -249,10 +236,10 @@ pub enum BuilderError {
 ///
 #[derive(Default, Clone)]
 pub struct GridBuilder<T: CoordsFloat> {
-    n_cells: Option<[usize; 3]>,
-    len_per_cell: Option<[T; 3]>,
-    lens: Option<[T; 3]>,
-    split_quads: bool,
+    pub(crate) n_cells: Option<[usize; 3]>,
+    pub(crate) len_per_cell: Option<[T; 3]>,
+    pub(crate) lens: Option<[T; 3]>,
+    pub(crate) split_quads: bool,
 }
 
 macro_rules! setters {

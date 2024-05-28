@@ -14,6 +14,21 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
+// --- common error enum
+
+/// Builder-level error enum
+///
+/// This enum is used to describe all non-panic errors that can occur when using a builder
+/// structure.
+#[derive(Debug)]
+pub enum BuilderError {
+    /// The builder is missing one or multiple parameters in order to proceed with the requested
+    /// operation.
+    MissingParameters(&'static str),
+    /// One or multiple of the builder's fields are invalid.
+    InvalidParameters(&'static str),
+}
+
 // --- main struct
 
 #[derive(Default)]
@@ -58,7 +73,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 // --- build methods
 
 impl<T: CoordsFloat> CMapBuilder<T> {
-    pub fn build2(self) -> Result<CMap2<T>, CMapError> {
+    pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
@@ -67,7 +82,15 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_builder {
             // build from grid descriptor
-            todo!()
+            return if gridb.split_quads {
+                gridb
+                    .parse()
+                    .map(|(ns, lens)| super::grid::build2_splitgrid(ns, lens))
+            } else {
+                gridb
+                    .parse()
+                    .map(|(ns, lens)| super::grid::build2_grid(ns, lens))
+            };
         }
         Ok(CMap2::new(self.n_darts))
     }

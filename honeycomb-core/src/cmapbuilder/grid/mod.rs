@@ -6,9 +6,13 @@
 
 // ------ MODULE DECLARATIONS
 
+mod building_routines;
 mod descriptor;
 
-// ------ IMPORTS
+// ------ RE-EXPORTS
+
+pub(super) use building_routines::{build2_grid, build2_splitgrid};
+pub use descriptor::GridDescriptor;
 
 // ------ CONTENT
 

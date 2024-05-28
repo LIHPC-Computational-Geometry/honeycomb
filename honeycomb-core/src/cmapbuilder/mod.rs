@@ -14,7 +14,9 @@ mod structure;
 
 // ------ RE-EXPORTS
 
-pub use structure::CMapBuilder;
+#[cfg(feature = "utils")]
+pub use grid::GridDescriptor;
+pub use structure::{BuilderError, CMapBuilder};
 
 // ------ CONTENT
 
