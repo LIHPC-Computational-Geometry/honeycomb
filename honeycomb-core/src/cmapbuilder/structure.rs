@@ -7,8 +7,8 @@
 // ------ IMPORTS
 
 #[cfg(feature = "utils")]
-use crate::utils::GridBuilder;
-use crate::{CMap2, CMapError, CoordsFloat};
+use crate::GridDescriptor;
+use crate::{CMap2, CoordsFloat};
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
@@ -39,7 +39,7 @@ where
     #[cfg(feature = "io")]
     vtk_file: Option<Vtk>,
     #[cfg(feature = "utils")]
-    grid_builder: Option<GridBuilder<T>>,
+    grid_descriptor: Option<GridDescriptor<T>>,
     n_darts: usize,
     coordstype: std::marker::PhantomData<T>,
 }
@@ -64,8 +64,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     }
 
     #[cfg(feature = "utils")]
-    pub fn using_grid_builder(mut self, grid_builder: GridBuilder<T>) -> Self {
-        self.grid_builder = Some(grid_builder);
+    pub fn using_grid_builder(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
+        self.grid_descriptor = Some(grid_descriptor);
         self
     }
 }
@@ -80,7 +80,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             todo!()
         }
         #[cfg(feature = "utils")]
-        if let Some(gridb) = self.grid_builder {
+        if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             return if gridb.split_quads {
                 gridb
@@ -105,17 +105,17 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 #[cfg(feature = "utils")]
 impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn unit_grid(n_square: usize) -> Self {
-        let gridb = GridBuilder::default()
+        let gridd = GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3]);
-        CMapBuilder::default().using_grid_builder(gridb)
+        CMapBuilder::default().using_grid_builder(gridd)
     }
 
     pub fn unit_split_grid(n_square: usize) -> Self {
-        let gridb = GridBuilder::default()
+        let gridd = GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3])
             .split_quads(true);
-        CMapBuilder::default().using_grid_builder(gridb)
+        CMapBuilder::default().using_grid_builder(gridd)
     }
 }

@@ -14,6 +14,8 @@ use crate::{BuilderError, CoordsFloat};
 /// Temporary type alias before [`GridBuilder`] is renamed to this.
 pub type GridDescriptor<T> = GridBuilder<T>;
 
+// --- parsing routine
+
 macro_rules! check_parameters {
     ($id: ident, $msg: expr) => {
         if $id.is_sign_negative() | $id.is_zero() {
@@ -65,11 +67,9 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                     [lpx, lpy],
                 ))
             }
-            (_, _, _) => {
-                return Err(BuilderError::MissingParameters(
-                    "GridBuilder: insufficient building parameters",
-                ));
-            }
+            (_, _, _) => Err(BuilderError::MissingParameters(
+                "GridBuilder: insufficient building parameters",
+            )),
         }
     }
 }
