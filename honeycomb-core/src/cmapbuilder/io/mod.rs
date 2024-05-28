@@ -6,15 +6,7 @@
 
 // ------ MODULE DECLARATIONS
 
-#[cfg(feature = "utils")]
-mod grid;
-#[cfg(feature = "io")]
-mod io;
-mod structure;
-
-// ------ RE-EXPORTS
-
-pub use structure::CMapBuilder;
+// ------ IMPORTS
 
 // ------ CONTENT
 
