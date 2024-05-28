@@ -33,7 +33,23 @@ pub enum BuilderError {
 
 /// Combinatorial map builder structure.
 ///
-/// todo
+/// #
+///
+/// # Example
+///
+/// ```rust
+/// # use honeycomb_core::BuilderError;
+/// # fn main() -> Result<(), BuilderError> {
+/// use honeycomb_core::{CMap2, CMapBuilder};
+///
+/// let builder = CMapBuilder::default().n_darts(10);
+/// let map: CMap2<f64> = builder.build2()?;
+///
+/// assert_eq!(map.n_darts(), 11); // 10 + null dart = 11
+///
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Default)]
 pub struct CMapBuilder<T>
 where
@@ -68,8 +84,10 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(map: CMap2)` -- Map generation was successful.
-    /// - `Err(BuilderError::MissingParameters)` -- todo
-    /// - `Err(BuilderError::InvalidParameters)` -- todo
+    /// - `Err(BuilderError::MissingParameters)` -- The specified grid parameters are insufficient
+    ///   to build a map from it.
+    /// - `Err(BuilderError::InvalidParameters)` -- The specified grid parameters contain at least
+    ///   one invalid value (e.g. a negative length).
     ///
     /// # Panics
     ///

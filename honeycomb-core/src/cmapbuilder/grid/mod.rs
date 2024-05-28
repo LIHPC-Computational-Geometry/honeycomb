@@ -1,8 +1,7 @@
-//! Module short description
+//! Utility for sample map generation
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! This module contains code used to generate maps that represent grids. These have a variety
+//! of usages, most notably in tests, benchmarks, and specific algorithms.
 
 // ------ MODULE DECLARATIONS
 

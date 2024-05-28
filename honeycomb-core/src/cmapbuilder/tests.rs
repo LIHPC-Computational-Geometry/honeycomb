@@ -1,8 +1,12 @@
 // ------ IMPORTS
 
+use crate::{CMap2, CMapBuilder};
+
 // ------ CONTENT
 
 #[test]
-fn test() {
-    assert_eq!(1 + 1, 2);
+fn example_test() {
+    let builder = CMapBuilder::default().n_darts(10);
+    let cmap: CMap2<f64> = builder.build2().unwrap();
+    assert_eq!(cmap.n_darts(), 11);
 }
