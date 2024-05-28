@@ -43,24 +43,6 @@ macro_rules! build_vertices {
 }
 
 impl<T: CoordsFloat + 'static> CMap2<T> {
-    /// Build a [`CMap2`] from a `vtk` file.
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if:
-    /// - the file cannot be loaded
-    /// - the internal building routine fails, i.e.
-    ///     - the file format is XML
-    ///     - the mesh contains one type of cell that is not supported (either because of
-    ///     dimension or orientation incompatibilities)
-    ///     - the file has major inconsistencies / errors
-    #[must_use = "constructed object is not used, consider removing this function call"]
-    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        let file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        build_cmap_from_vtk(file)
-    }
-
     /// Generate a legacy VTK file from the map.
     ///
     /// # Panics
