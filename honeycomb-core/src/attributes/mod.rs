@@ -5,7 +5,7 @@
 // ------ MODULE DECLARATIONS
 
 pub mod collections;
-pub mod storage;
+pub mod manager;
 pub mod traits;
 
 // ------ TESTS
