@@ -6,6 +6,8 @@
 // ------ IMPORTS
 
 use crate::OrbitPolicy;
+use std::any::Any;
+use std::fmt::Debug;
 
 // ------ CONTENT
 
@@ -105,4 +107,26 @@ pub trait AttributeBind: Sized {
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
+}
+
+pub trait AttributeStorage<T: AttributeBind + AttributeUpdate>: Debug + Any {
+    type IdentifierType: num::ToPrimitive;
+
+    fn new() -> Self
+    where
+        Self: Sized;
+
+    fn extend(&mut self, length: usize);
+
+    fn n_attributes(&self) -> usize;
+
+    fn set(&mut self, id: Self::IdentifierType, val: T);
+
+    fn insert(&mut self, id: Self::IdentifierType, val: T);
+
+    fn get(&self, id: Self::IdentifierType) -> Option<T>;
+
+    fn replace(&mut self, id: Self::IdentifierType, val: T) -> Option<T>;
+
+    fn remove(&mut self, id: Self::IdentifierType) -> Option<T>;
 }
