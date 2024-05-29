@@ -5,6 +5,7 @@
 // ------ MODULE DECLARATIONS
 
 pub mod collections;
+pub mod storage;
 pub mod traits;
 
 // ------ TESTS
