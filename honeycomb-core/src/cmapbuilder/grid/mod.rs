@@ -39,7 +39,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// // ...
     ///
     /// // `CMapBuilder::from_grid_descriptor(gridd)`, or:
-    /// let builder = CMapBuilder::default().grid_descriptor(gridd);
+    /// let builder = CMapBuilder::<f64>::default().grid_descriptor(gridd);
     /// ```
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<T>) -> Self {
