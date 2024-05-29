@@ -2,6 +2,7 @@
 
 // ------ IMPORTS
 
+use std::fmt::Debug;
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 // ------ CONTENT

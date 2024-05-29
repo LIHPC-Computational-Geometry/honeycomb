@@ -100,7 +100,10 @@ pub trait AttributeUpdate: Sized {
 ///     }
 /// }
 /// ```
-pub trait AttributeBind: Sized {
+pub trait AttributeBind: Debug + Sized + Any {
+    /// Storage type used for the attribute.
+    type StorageType: AttributeStorage<Self>;
+
     /// Identifier type of the entity the attribute is bound to.
     type IdentifierType: num::ToPrimitive;
 
@@ -109,10 +112,10 @@ pub trait AttributeBind: Sized {
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
-pub trait AttributeStorage<T: AttributeBind + AttributeUpdate>: Debug + Any {
+pub trait AttributeStorage<T: AttributeBind>: Debug + Any {
     type IdentifierType: num::ToPrimitive;
 
-    fn new() -> Self
+    fn new(length: usize) -> Self
     where
         Self: Sized;
 
