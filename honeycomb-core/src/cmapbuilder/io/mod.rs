@@ -38,7 +38,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// # Panics
     ///
-    /// This function may panic if the file cannot be loaded
+    /// This function may panic if the file cannot be loaded.
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         let vtk_file =
@@ -49,9 +49,17 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
     /// Create a [`CMapBuilder`] from an imported VTK file.
     ///
+    /// This function is roughly equivalent to the following:
+    ///
+    /// ```rust
+    /// # use honeycomb_core::CMapBuilder;
+    /// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
+    /// let builder = CMapBuilder::default().vtk_file("some/path/to/file.vtk");
+    /// ```
+    ///
     /// # Panics
     ///
-    /// This function may panic if the file cannot be loaded
+    /// This function may panic if the file cannot be loaded.
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         let vtk_file =
@@ -82,7 +90,7 @@ macro_rules! build_vertices {
 #[allow(clippy::too_many_lines)]
 /// Internal building routine for [`CMap2::from_vtk_file`].
 ///
-/// This is marked as `pub(super)` for testing purposes.
+/// TODO: change return type to `Result` & propagate return up to the map builder methods.
 pub fn build2_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();

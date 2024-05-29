@@ -21,8 +21,6 @@ pub use descriptor::GridDescriptor;
 impl<T: CoordsFloat> CMapBuilder<T> {
     #[cfg(feature = "utils")]
     /// Set the [`GridDescriptor`] that will be used when building the map.
-    ///
-    /// todo
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn grid_descriptor(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
         self.grid_descriptor = Some(grid_descriptor);
@@ -32,7 +30,17 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     #[cfg(feature = "utils")]
     /// Create a [`CMapBuilder`] from a [`GridDescriptor`].
     ///
-    /// todo
+    /// This function is roughly equivalent to the following:
+    ///
+    /// ```rust
+    /// # use honeycomb_core::{CMapBuilder, GridDescriptor};
+    /// // setup grid descriptor
+    /// let gridd = GridDescriptor::default();
+    /// // ...
+    ///
+    /// // `CMapBuilder::from_grid_descriptor(gridd)`, or:
+    /// let builder = CMapBuilder::default().grid_descriptor(gridd);
+    /// ```
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<T>) -> Self {
         CMapBuilder {
