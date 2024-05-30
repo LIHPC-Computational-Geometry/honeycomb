@@ -86,6 +86,7 @@ macro_rules! setters {
 }
 
 // editing methods
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     // n_cells
     setters!(n_cells, n_cells_x, n_cells_y, n_cells_z, 0, usize);
@@ -112,6 +113,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
 }
 
 // building methods
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     #[allow(clippy::missing_errors_doc)]
     /// Consumes the builder and produce a [`CMap2`] object.
@@ -139,6 +141,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
 }
 
 // predefinite constructs
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     /// Generate a predefined [`GridBuilder`] object.
     ///
