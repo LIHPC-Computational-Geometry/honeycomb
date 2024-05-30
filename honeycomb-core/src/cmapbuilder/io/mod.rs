@@ -29,7 +29,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///     - the file has major inconsistencies / errors
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        CMapBuilder::from_vtk_file(file_path).build2().unwrap()
+        CMapBuilder::from_vtk_file(file_path).build().unwrap()
     }
 }
 

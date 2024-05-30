@@ -43,7 +43,7 @@ pub enum BuilderError {
 /// use honeycomb_core::{CMap2, CMapBuilder};
 ///
 /// let builder = CMapBuilder::default().n_darts(10);
-/// let map: CMap2<f64> = builder.build2()?;
+/// let map: CMap2<f64> = builder.build()?;
 ///
 /// assert_eq!(map.n_darts(), 11); // 10 + null dart = 11
 ///
@@ -97,7 +97,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// See [`CMapBuilder`] example.
     ///
-    pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
+    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
@@ -118,10 +118,5 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             };
         }
         Ok(CMap2::new(self.n_darts))
-    }
-
-    /// UNIMPLEMENTED
-    pub fn build3(self) {
-        unimplemented!("E: 3-maps are not yet implemented")
     }
 }
