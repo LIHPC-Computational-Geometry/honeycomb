@@ -45,7 +45,7 @@ pub mod utils;
 
 pub use attributes::{
     collections::{AttrCompactVec, AttrSparseVec},
-    traits::{AttributeBind, AttributeUpdate},
+    traits::{AttributeBind, AttributeStorage, AttributeUpdate},
 };
 pub use cells::{
     collections::{
