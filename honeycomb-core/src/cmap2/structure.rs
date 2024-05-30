@@ -175,6 +175,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [`CMap2`] example.
     ///
+    #[deprecated(note = "please use `CMapBuilder::n_darts` instead")]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn new(n_darts: usize) -> Self {
         Self {

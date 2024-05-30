@@ -27,6 +27,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///     - the mesh contains one type of cell that is not supported (either because of
     ///     dimension or orientation incompatibilities)
     ///     - the file has major inconsistencies / errors
+    #[deprecated(note = "please use `CMapBuilder::from_vtk_file` instead")]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         CMapBuilder::from_vtk_file(file_path).build().unwrap()
