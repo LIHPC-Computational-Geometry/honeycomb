@@ -24,6 +24,36 @@ pub struct AttrStorageManager {
     others: HashMap<TypeId, Box<dyn Any>>, // Orbit::Custom
 }
 
+macro_rules! get_storage {
+    ($slf: ident, $id: ident) => {
+        let probably_storage = match A::binds_to() {
+            OrbitPolicy::Vertex => $slf.vertices.get(&TypeId::of::<A>()),
+            OrbitPolicy::Edge => $slf.edges.get(&TypeId::of::<A>()),
+            OrbitPolicy::Face => $slf.faces.get(&TypeId::of::<A>()),
+            OrbitPolicy::Custom(_) => $slf.others.get(&TypeId::of::<A>()),
+        };
+        let $id = probably_storage
+            .expect("E: could not find storage associated to the specified attribute type")
+            .downcast_ref::<<A as AttributeBind>::StorageType>()
+            .expect("E: could not downcast generic storage to specified attribute type");
+    };
+}
+
+macro_rules! get_storage_mut {
+    ($slf: ident, $id: ident) => {
+        let probably_storage = match A::binds_to() {
+            OrbitPolicy::Vertex => $slf.vertices.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Face => $slf.faces.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Custom(_) => $slf.others.get_mut(&TypeId::of::<A>()),
+        };
+        let $id = probably_storage
+            .expect("E: could not find storage associated to the specified attribute type")
+            .downcast_mut::<<A as AttributeBind>::StorageType>()
+            .expect("E: could not downcast generic storage to specified attribute type");
+    };
+}
+
 impl AttrStorageManager {
     pub fn add_storage<A: AttributeBind + 'static>(
         &mut self,
@@ -66,44 +96,17 @@ impl AttrStorageManager {
     }
 
     pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
-        let probably_storage = match A::binds_to() {
-            OrbitPolicy::Vertex => self.vertices.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Edge => self.edges.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Face => self.faces.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Custom(_) => self.others.get_mut(&TypeId::of::<A>()),
-        };
-        let storage = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_mut::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+        get_storage_mut!(self, storage);
         storage.set(id, val);
     }
 
     pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
-        let probably_storage = match A::binds_to() {
-            OrbitPolicy::Vertex => self.vertices.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Edge => self.edges.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Face => self.faces.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Custom(_) => self.others.get_mut(&TypeId::of::<A>()),
-        };
-        let storage = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_mut::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+        get_storage_mut!(self, storage);
         storage.insert(id, val);
     }
 
     pub fn get_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        let probably_storage = match A::binds_to() {
-            OrbitPolicy::Vertex => self.vertices.get(&TypeId::of::<A>()),
-            OrbitPolicy::Edge => self.edges.get(&TypeId::of::<A>()),
-            OrbitPolicy::Face => self.faces.get(&TypeId::of::<A>()),
-            OrbitPolicy::Custom(_) => self.others.get(&TypeId::of::<A>()),
-        };
-        let storage = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_ref::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+        get_storage!(self, storage);
         storage.get(id)
     }
 
@@ -112,30 +115,12 @@ impl AttrStorageManager {
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
-        let probably_storage = match A::binds_to() {
-            OrbitPolicy::Vertex => self.vertices.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Edge => self.edges.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Face => self.faces.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Custom(_) => self.others.get_mut(&TypeId::of::<A>()),
-        };
-        let storage = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_mut::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+        get_storage_mut!(self, storage);
         storage.replace(id, val)
     }
 
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
-        let probably_storage = match A::binds_to() {
-            OrbitPolicy::Vertex => self.vertices.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Edge => self.edges.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Face => self.faces.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Custom(_) => self.others.get_mut(&TypeId::of::<A>()),
-        };
-        let storage = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_mut::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+        get_storage_mut!(self, storage);
         storage.remove(id)
     }
 }
