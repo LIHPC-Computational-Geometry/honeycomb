@@ -112,9 +112,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
-pub trait AttributeStorage<T: AttributeBind>: Debug + Any {
-    type IdentifierType: num::ToPrimitive;
-
+pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     fn new(length: usize) -> Self
     where
         Self: Sized;
@@ -123,13 +121,13 @@ pub trait AttributeStorage<T: AttributeBind>: Debug + Any {
 
     fn n_attributes(&self) -> usize;
 
-    fn set(&mut self, id: Self::IdentifierType, val: T);
+    fn set(&mut self, id: A::IdentifierType, val: A);
 
-    fn insert(&mut self, id: Self::IdentifierType, val: T);
+    fn insert(&mut self, id: A::IdentifierType, val: A);
 
-    fn get(&self, id: Self::IdentifierType) -> Option<T>;
+    fn get(&self, id: A::IdentifierType) -> Option<A>;
 
-    fn replace(&mut self, id: Self::IdentifierType, val: T) -> Option<T>;
+    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
 
-    fn remove(&mut self, id: Self::IdentifierType) -> Option<T>;
+    fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
 }

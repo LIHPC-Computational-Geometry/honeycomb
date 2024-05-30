@@ -433,9 +433,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
     }
 }
 
-impl<T: AttributeBind + AttributeUpdate + Copy> AttributeStorage<T> for AttrSparseVec<T> {
-    type IdentifierType = T::IdentifierType;
-
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -451,23 +449,23 @@ impl<T: AttributeBind + AttributeUpdate + Copy> AttributeStorage<T> for AttrSpar
         self.n_attributes()
     }
 
-    fn set(&mut self, id: Self::IdentifierType, val: T) {
+    fn set(&mut self, id: A::IdentifierType, val: A) {
         self.set(&id, val);
     }
 
-    fn insert(&mut self, id: Self::IdentifierType, val: T) {
+    fn insert(&mut self, id: A::IdentifierType, val: A) {
         self.insert(&id, val)
     }
 
-    fn get(&self, id: Self::IdentifierType) -> Option<T> {
+    fn get(&self, id: A::IdentifierType) -> Option<A> {
         *self.get(&id)
     }
 
-    fn replace(&mut self, id: Self::IdentifierType, val: T) -> Option<T> {
+    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         self.replace(&id, val)
     }
 
-    fn remove(&mut self, id: Self::IdentifierType) -> Option<T> {
+    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
         self.remove(&id)
     }
 }
