@@ -83,6 +83,11 @@ impl AttrStorageManager {
         }
     }
 
+    pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
+        get_storage_mut!(self, storage);
+        storage.extend(length)
+    }
+
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
         let probably_storage = match A::binds_to() {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
