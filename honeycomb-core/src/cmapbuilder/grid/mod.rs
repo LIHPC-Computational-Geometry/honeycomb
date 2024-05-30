@@ -11,7 +11,7 @@ mod descriptor;
 // ------ RE-EXPORTS
 
 use crate::{CMapBuilder, CoordsFloat};
-pub(super) use building_routines::{build2_grid, build2_splitgrid};
+pub(super) use building_routines::{build_2d_grid, build_2d_splitgrid};
 pub use descriptor::GridDescriptor;
 
 // ------ CONTENT

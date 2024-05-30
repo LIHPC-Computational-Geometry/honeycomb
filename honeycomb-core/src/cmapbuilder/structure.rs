@@ -102,7 +102,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         if let Some(vfile) = self.vtk_file {
             // build from vtk
             // this routine should return a Result instead of the map directly
-            return Ok(super::io::build2_from_vtk(vfile));
+            return Ok(super::io::build_2d_from_vtk(vfile));
         }
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
@@ -110,11 +110,11 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             return if gridb.split_quads {
                 gridb
                     .parse()
-                    .map(|(ns, lens)| super::grid::build2_splitgrid(ns, lens))
+                    .map(|(ns, lens)| super::grid::build_2d_splitgrid(ns, lens))
             } else {
                 gridb
                     .parse()
-                    .map(|(ns, lens)| super::grid::build2_grid(ns, lens))
+                    .map(|(ns, lens)| super::grid::build_2d_grid(ns, lens))
             };
         }
         Ok(CMap2::new(self.n_darts))

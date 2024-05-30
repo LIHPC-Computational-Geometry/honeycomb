@@ -9,7 +9,7 @@ use vtkio::Vtk;
 fn io_read() {
     let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
 
-    let cmap: CMap2<f32> = super::build2_from_vtk(vtk);
+    let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk);
 
     // check result
     let faces = cmap.fetch_faces();

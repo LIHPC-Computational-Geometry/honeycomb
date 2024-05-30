@@ -7,7 +7,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 // ------ CONTENT
 
 /// Internal grid-building routine
-pub fn build2_grid<T: CoordsFloat>(
+pub fn build_2d_grid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
 ) -> CMap2<T> {
@@ -96,7 +96,7 @@ pub fn build2_grid<T: CoordsFloat>(
 }
 
 /// Internal grid-building routine
-pub fn build2_splitgrid<T: CoordsFloat>(
+pub fn build_2d_splitgrid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
 ) -> CMap2<T> {

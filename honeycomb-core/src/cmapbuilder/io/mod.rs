@@ -91,7 +91,7 @@ macro_rules! build_vertices {
 /// Internal building routine for [`CMap2::from_vtk_file`].
 ///
 /// TODO: change return type to `Result` & propagate return up to the map builder methods.
-pub fn build2_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
+pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {
