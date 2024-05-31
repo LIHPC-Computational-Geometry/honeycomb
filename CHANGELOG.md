@@ -6,6 +6,49 @@
 
 ---
 
+## 0.3.1
+
+### Workspace
+
+- remove the feature matrix from the test CI, which now uses the `--all-features` option
+
+### Published crate
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+
+- add `CMap2::split_edge` for future algorithm implementations by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/83
+- add `CMapBuilder` structure by @imrn99 in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/87
+
+*refactor:*
+
+- deprecate old constructors by @imrn99 in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/88
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*fix:*
+
+- update aspect ratio to prevent deformation of the rendered map by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/85
+- shrink face relatively to their original sizes by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/86
+
+### Others
+
+#### honeycomb-benches
+
+*refactor:*
+
+- update and fix benchmarks by @imrn99 in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/84
+
+---
+
 ## 0.3.0
 
 New changelog format!
