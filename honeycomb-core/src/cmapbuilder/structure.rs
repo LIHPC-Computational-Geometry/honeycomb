@@ -110,11 +110,11 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             // build from grid descriptor
             return if gridb.split_quads {
                 gridb
-                    .parse()
+                    .parse_2d()
                     .map(|(ns, lens)| super::grid::build_2d_splitgrid(ns, lens))
             } else {
                 gridb
-                    .parse()
+                    .parse_2d()
                     .map(|(ns, lens)| super::grid::build_2d_grid(ns, lens))
             };
         }
