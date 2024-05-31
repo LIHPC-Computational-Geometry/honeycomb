@@ -9,4 +9,5 @@ mod generation;
 
 // ------ PUBLIC RE-EXPORTS
 
+#[allow(deprecated)]
 pub use generation::GridBuilder;

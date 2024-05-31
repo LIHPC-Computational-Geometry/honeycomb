@@ -2,11 +2,13 @@
 
 // ------ IMPORTS
 
+#[allow(deprecated)]
 use crate::utils::GridBuilder;
 use crate::{BuilderError, CoordsFloat};
 
 // ------ CONTENT
 
+#[allow(deprecated)]
 /// Temporary type alias before [`GridBuilder`] is renamed to this.
 pub type GridDescriptor<T> = GridBuilder<T>;
 
@@ -20,6 +22,7 @@ macro_rules! check_parameters {
     };
 }
 
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridDescriptor<T> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
     pub(crate) fn parse(self) -> Result<([usize; 2], [T; 2]), BuilderError> {

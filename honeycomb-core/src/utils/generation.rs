@@ -14,6 +14,12 @@ use crate::{BuilderError, CMap2, CMapBuilder, CoordsFloat};
 
 /// Builder structure for specialized [`CMap2`].
 ///
+/// <div class="warning">
+///
+/// This structure will be reneamed to [`GridDescriptor`] & have its `build2` removed.
+///
+/// </div>
+///
 /// The user must specify two out of these three characteristics:
 ///
 /// - `n_cells: [usize; 3]` - The number of cells per axis
@@ -26,24 +32,7 @@ use crate::{BuilderError, CMap2, CMapBuilder, CoordsFloat};
 /// # Generics
 ///
 /// - `T: CoordsFloat` -- Generic type of the future [`CMap2`] instance.
-///
-/// # Example
-///
-/// The following code generates a map that can be visualized by running the example
-/// `render_squaremap_parameterized`:
-///
-/// ```rust
-/// # fn main() {
-/// use honeycomb_core::{CMap2, utils::GridBuilder};
-///
-/// let map = GridBuilder::default()
-///     .n_cells([15, 5, 0])
-///     .len_per_cell_x(1.0_f64)
-///     .len_per_cell_y(3.0_f64)
-///     .build2();
-/// # }
-/// ```
-///
+#[deprecated(note = "please use `GridDescriptor` with `CMapBuilder::build` instead")]
 #[derive(Default, Clone)]
 pub struct GridBuilder<T: CoordsFloat> {
     pub(crate) n_cells: Option<[usize; 3]>,
@@ -97,6 +86,7 @@ macro_rules! setters {
 }
 
 // editing methods
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     // n_cells
     setters!(n_cells, n_cells_x, n_cells_y, n_cells_z, 0, usize);
@@ -123,6 +113,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
 }
 
 // building methods
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     #[allow(clippy::missing_errors_doc)]
     /// Consumes the builder and produce a [`CMap2`] object.
@@ -143,13 +134,14 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// # Example
     ///
     /// See [`GridBuilder`] example.
-    ///
+    #[deprecated]
     pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
         CMapBuilder::from_grid_descriptor(self).build()
     }
 }
 
 // predefinite constructs
+#[allow(deprecated)]
 impl<T: CoordsFloat> GridBuilder<T> {
     /// Generate a predefined [`GridBuilder`] object.
     ///
@@ -191,6 +183,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// - cells are ordered from left to right, from the bottom up. The same rule
     ///   applies for face IDs.
     ///
+    #[deprecated(note = "please use `CMapBuilder::unit_grid` instead")]
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn unit_squares(n_square: usize) -> Self {
         Self {
@@ -227,6 +220,7 @@ impl<T: CoordsFloat> GridBuilder<T> {
     /// let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2().unwrap();
     /// ```
     ///
+    #[deprecated(note = "please use `CMapBuilder::unit_split_grid` instead")]
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn split_unit_squares(n_square: usize) -> Self {
         Self {

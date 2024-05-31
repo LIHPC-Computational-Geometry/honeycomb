@@ -27,6 +27,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     ///     - the mesh contains one type of cell that is not supported (either because of
     ///     dimension or orientation incompatibilities)
     ///     - the file has major inconsistencies / errors
+    #[deprecated(note = "please use `CMapBuilder::from_vtk_file` instead")]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         CMapBuilder::from_vtk_file(file_path).build().unwrap()
@@ -92,6 +93,7 @@ macro_rules! build_vertices {
 ///
 /// TODO: change return type to `Result` & propagate return up to the map builder methods.
 pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
+    #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {
