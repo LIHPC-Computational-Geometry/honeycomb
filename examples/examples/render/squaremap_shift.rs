@@ -1,4 +1,4 @@
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier, Vector2, NULL_DART_ID};
+use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier, Vector2, NULL_DART_ID};
 use honeycomb_render::*;
 use rand::{
     distributions::{Distribution, Uniform},
@@ -16,7 +16,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<f32> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
+    let mut map: CMap2<f32> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 
