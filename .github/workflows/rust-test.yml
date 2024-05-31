@@ -31,12 +31,6 @@ jobs:
       - name: Run Clippy
         run: cargo clippy --all-features -- -D warnings
   tests:
-    strategy:
-      matrix:
-        features:
-          - _single_precision
-          - utils
-          - io
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
