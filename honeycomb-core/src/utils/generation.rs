@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{BuilderError, CMap2, CMapBuilder, CoordsFloat};
+use crate::{CMap2, CMapBuilder, CoordsFloat};
 
 // ------ CONTENT
 
@@ -109,125 +109,5 @@ impl<T: CoordsFloat> GridBuilder<T> {
     pub fn split_quads(mut self, split: bool) -> Self {
         self.split_quads = split;
         self
-    }
-}
-
-// building methods
-#[allow(deprecated)]
-impl<T: CoordsFloat> GridBuilder<T> {
-    #[allow(clippy::missing_errors_doc)]
-    /// Consumes the builder and produce a [`CMap2`] object.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method return a `Result` taking the following values:
-    /// - `Ok(map: CMap2)` -- The method used two of the three parameters to generate a [`CMap2`]
-    /// instance
-    /// - `Err(BuilderError::MissingParameters)` -- The provided information was not sufficient to
-    /// create an instance
-    /// - `Err(BuilderError::InvalidParameters)` -- Any of the used length is negative or null
-    ///
-    /// # Panics
-    ///
-    /// This method may panic if type casting goes wrong during parameters parsing.
-    ///
-    /// # Example
-    ///
-    /// See [`GridBuilder`] example.
-    #[deprecated]
-    pub fn build2(self) -> Result<CMap2<T>, BuilderError> {
-        CMapBuilder::from_grid_descriptor(self).build()
-    }
-}
-
-// predefinite constructs
-#[allow(deprecated)]
-impl<T: CoordsFloat> GridBuilder<T> {
-    /// Generate a predefined [`GridBuilder`] object.
-    ///
-    /// This object can be used to build a 2-map representing an orthogonal mesh made of
-    /// `n_square * n_square` square cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_square: usize` -- Dimension of the desired mesh.
-    ///
-    /// ## Generics
-    ///
-    /// - `const T: CoordsFloat` -- Generic parameter of the returned [`GridBuilder`].
-    ///
-    /// # Return
-    ///
-    /// Returns a parameterized [`GridBuilder`] that can be used to generate a [`CMap2`] using the
-    /// [`GridBuilder::build2`] method.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use honeycomb_core::{CMap2, utils::GridBuilder};
-    ///
-    /// let cmap: CMap2<f64> = GridBuilder::unit_squares(2).build2().unwrap();
-    /// ```
-    ///
-    /// The above code generates the following map:
-    ///
-    /// ![SQUARECMAP2](../../images/CMap2Square.svg)
-    ///
-    /// Note that *β<sub>1</sub>* is only represented in one cell but is defined
-    /// Everywhere following the same pattern. Dart indexing is also consistent
-    /// with the following rules:
-    ///
-    /// - inside a cell, the first dart is the one on the bottom, pointing towards
-    ///   the right. Increments (and *β<sub>1</sub>*) follow the trigonometric
-    ///   orientation.
-    /// - cells are ordered from left to right, from the bottom up. The same rule
-    ///   applies for face IDs.
-    ///
-    #[deprecated(note = "please use `CMapBuilder::unit_grid` instead")]
-    #[must_use = "unused builder object, consider removing this function call"]
-    pub fn unit_squares(n_square: usize) -> Self {
-        Self {
-            n_cells: Some([n_square; 3]),
-            len_per_cell: Some([T::one(); 3]),
-            ..Default::default()
-        }
-    }
-
-    /// Generate a predefined [`GridBuilder`] object.
-    ///
-    /// This object can be used to build a 2-map representing an orthogonal mesh made of
-    /// `n_square * n_square` squares, that are split diagonally for a total of
-    /// `n_square * n_square * 2` cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_square: usize` -- Dimension of the desired mesh.
-    ///
-    /// ## Generics
-    ///
-    /// - `const T: CoordsFloat` -- Generic parameter of the returned [`GridBuilder`].
-    ///
-    /// # Return
-    ///
-    /// Returns a parameterized [`GridBuilder`] that can be used to generate a [`CMap2`] using the
-    /// [`GridBuilder::build2`] method.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use honeycomb_core::{CMap2, utils::GridBuilder};
-    ///
-    /// let cmap: CMap2<f64> = GridBuilder::split_unit_squares(2).build2().unwrap();
-    /// ```
-    ///
-    #[deprecated(note = "please use `CMapBuilder::unit_split_grid` instead")]
-    #[must_use = "unused builder object, consider removing this function call"]
-    pub fn split_unit_squares(n_square: usize) -> Self {
-        Self {
-            n_cells: Some([n_square; 3]),
-            len_per_cell: Some([T::one(); 3]),
-            split_quads: true,
-            ..Default::default()
-        }
     }
 }
