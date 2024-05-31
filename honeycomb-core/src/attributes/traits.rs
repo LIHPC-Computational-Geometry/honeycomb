@@ -126,6 +126,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
+#[allow(unused, missing_docs)]
 pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     fn new(length: usize) -> Self
     where

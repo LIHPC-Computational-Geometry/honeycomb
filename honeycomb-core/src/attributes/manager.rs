@@ -54,6 +54,7 @@ macro_rules! get_storage_mut {
     };
 }
 
+#[allow(unused, missing_docs)]
 impl AttrStorageManager {
     pub fn add_storage<A: AttributeBind + 'static>(
         &mut self,
@@ -61,12 +62,14 @@ impl AttrStorageManager {
     ) -> Result<(), ManagerError> {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
-        if let Some(_) = match A::binds_to() {
+        if match A::binds_to() {
             OrbitPolicy::Vertex => self.vertices.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Edge => self.edges.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Face => self.faces.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Custom(_) => self.others.insert(typeid, Box::new(new_storage)),
-        } {
+        }
+        .is_some()
+        {
             Err(ManagerError::DuplicateStorage(
                 "storage of the specified type already exists",
             ))
@@ -85,7 +88,7 @@ impl AttrStorageManager {
 
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
-        storage.extend(length)
+        storage.extend(length);
     }
 
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
