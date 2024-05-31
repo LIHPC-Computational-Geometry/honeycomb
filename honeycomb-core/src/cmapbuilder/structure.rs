@@ -111,11 +111,11 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             return if gridb.split_quads {
                 gridb
                     .parse_2d()
-                    .map(|(ns, lens)| super::grid::build_2d_splitgrid(ns, lens))
+                    .map(|(ns, lens)| super::grid::building_routines::build_2d_splitgrid(ns, lens))
             } else {
                 gridb
                     .parse_2d()
-                    .map(|(ns, lens)| super::grid::build_2d_grid(ns, lens))
+                    .map(|(ns, lens)| super::grid::building_routines::build_2d_grid(ns, lens))
             };
         }
         #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate

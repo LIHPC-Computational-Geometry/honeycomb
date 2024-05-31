@@ -5,14 +5,12 @@
 
 // ------ MODULE DECLARATIONS
 
-mod building_routines;
-mod descriptor;
+pub mod building_routines;
+pub mod descriptor;
 
 // ------ RE-EXPORTS
 
-use crate::{CMapBuilder, CoordsFloat};
-pub(super) use building_routines::{build_2d_grid, build_2d_splitgrid};
-pub use descriptor::GridDescriptor;
+use crate::{CMapBuilder, CoordsFloat, GridDescriptor};
 
 // ------ CONTENT
 
