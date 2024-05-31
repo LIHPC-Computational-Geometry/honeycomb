@@ -454,7 +454,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
     }
 
     fn insert(&mut self, id: A::IdentifierType, val: A) {
-        self.insert(&id, val)
+        self.insert(&id, val);
     }
 
     fn get(&self, id: A::IdentifierType) -> Option<A> {
