@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 #[cfg(doc)]
-use crate::NULL_DART_ID;
+use crate::{CMapBuilder, NULL_DART_ID};
 
 use super::CMAP2_BETA;
 use crate::{AttrSparseVec, CoordsFloat, DartIdentifier, Vertex2};
@@ -60,7 +60,9 @@ use std::collections::BTreeSet;
 ///
 /// ![`CMAP2_EXAMPLE`](../images/CMap2Example.svg)
 ///
-/// Note that the map we operate on has no boundaries. In addition to the different
+/// Note that:
+/// - we create the map using its builder structure: [`CMapBuilder`].
+/// - the map we operate on has no boundaries. In addition to the different
 /// operations realized at each step, we insert a few assertions to demonstrate the
 /// progressive changes applied to the structure.
 ///
@@ -68,10 +70,10 @@ use std::collections::BTreeSet;
 /// # use honeycomb_core::CMapError;
 /// # fn main() -> Result<(), CMapError> {
 ///
-/// use honeycomb_core::{CMap2, Orbit2, OrbitPolicy, Vertex2};
+/// use honeycomb_core::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
 ///
 /// // build a triangle
-/// let mut map: CMap2<f64> = CMap2::new(3); // three darts
+/// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts
 /// map.one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
 /// map.one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
 /// map.one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
