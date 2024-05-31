@@ -14,7 +14,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{utils::GridBuilder, CMap2};
+use honeycomb_core::{CMap2, CMapBuilder};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -25,7 +25,7 @@ use std::hint::black_box;
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    GridBuilder::unit_squares(n_square).build2().unwrap()
+    CMapBuilder::unit_grid(n_square).build().unwrap()
 }
 
 // --- constructor group
@@ -33,19 +33,24 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn new(n_squares: usize) -> CMap2<FloatType> {
-    black_box(CMap2::new(n_squares.pow(2) * 4))
+    black_box(
+        CMapBuilder::default()
+            .n_darts(n_squares.pow(2) * 4)
+            .build()
+            .unwrap(),
+    )
 }
 
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn grid(n_squares: usize) -> CMap2<FloatType> {
-    black_box(GridBuilder::unit_squares(n_squares).build2().unwrap())
+    black_box(CMapBuilder::unit_grid(n_squares).build().unwrap())
 }
 
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn tet_grid(n_squares: usize) -> CMap2<FloatType> {
-    black_box(GridBuilder::split_unit_squares(n_squares).build2().unwrap())
+    black_box(CMapBuilder::unit_split_grid(n_squares).build().unwrap())
 }
 
 library_benchmark_group!(
