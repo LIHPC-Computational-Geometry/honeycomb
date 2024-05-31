@@ -73,7 +73,6 @@ macro_rules! build_vertices {
 ///
 /// TODO: change return type to `Result` & propagate return up to the map builder methods.
 pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
-    #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {

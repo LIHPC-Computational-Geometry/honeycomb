@@ -11,7 +11,6 @@ pub fn build_2d_grid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
 ) -> CMap2<T> {
-    #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
     let mut map: CMap2<T> = CMap2::new(4 * n_square_x * n_square_y);
 
     // first, topology
@@ -101,7 +100,6 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
 ) -> CMap2<T> {
-    #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
     let mut map: CMap2<T> = CMap2::new(6 * n_square_x * n_square_y);
 
     // first, topology
