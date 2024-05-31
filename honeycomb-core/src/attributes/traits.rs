@@ -85,14 +85,28 @@ pub trait AttributeUpdate: Sized {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::{AttributeBind, FaceIdentifier, OrbitPolicy};
+/// use honeycomb_core::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy, AttrSparseVec};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
+/// # impl AttributeUpdate for Temperature {
+/// #     fn merge(attr1: Self, attr2: Self) -> Self {
+/// #         Temperature { val: (attr1.val + attr2.val) / 2.0 }
+/// #     }
+/// #
+/// #     fn split(attr: Self) -> (Self, Self) {
+/// #         (attr, attr)
+/// #     }
+/// #
+/// #     fn merge_undefined(attr: Option<Self>) -> Self {
+/// #         attr.unwrap_or(Temperature { val: 0.0 })
+/// #     }
+/// # }
 ///
 /// impl AttributeBind for Temperature {
+///     # type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
 ///
 ///     fn binds_to<'a>() -> OrbitPolicy<'a> {

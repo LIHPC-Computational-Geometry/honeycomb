@@ -33,8 +33,11 @@ pub enum CMapError {
 
 /// Common trait implemented by types used for coordinate representation.
 pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign
+    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static
 {
 }
 
-impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign> CoordsFloat for T {}
+impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static>
+    CoordsFloat for T
+{
+}
