@@ -60,7 +60,7 @@ pub enum ManagerError {
 ///     }
 ///
 ///     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
-///         let probably_storage = &self.inner[TypeId::of::<A>()];
+///         let probably_storage = &self.inner[&TypeId::of::<A>()];
 ///         probably_storage
 ///             .downcast_ref::<<A as AttributeBind>::StorageType>()
 ///             .expect("E: could not downcast generic storage to specified attribute type")
