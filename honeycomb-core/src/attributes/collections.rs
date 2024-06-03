@@ -178,6 +178,49 @@ impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     }
 }
 
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
+    fn new(length: usize) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            data: (0..length).map(|_| None).collect(),
+        }
+    }
+
+    fn extend(&mut self, length: usize) {
+        self.data.extend((0..length).map(|_| None));
+    }
+
+    fn n_attributes(&self) -> usize {
+        self.data.iter().filter(|val| val.is_some()).count()
+    }
+
+    fn set(&mut self, id: A::IdentifierType, val: A) {
+        self.data[id.to_usize().unwrap()] = Some(val);
+    }
+
+    fn insert(&mut self, id: A::IdentifierType, val: A) {
+        let tmp = &mut self.data[id.to_usize().unwrap()];
+        assert!(tmp.is_none());
+        *tmp = Some(val);
+    }
+
+    fn get(&self, id: A::IdentifierType) -> Option<A> {
+        self.data[id.to_usize().unwrap()]
+    }
+
+    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+        self.data.push(Some(val));
+        self.data.swap_remove(id.to_usize().unwrap())
+    }
+
+    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
+        self.data.push(None);
+        self.data.swap_remove(id.to_usize().unwrap())
+    }
+}
+
 #[cfg(feature = "utils")]
 impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
@@ -430,42 +473,5 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
             + self.index_map.iter().filter(|val| val.is_some()).count()
                 * std::mem::size_of::<Option<usize>>()
             + self.data.len() * std::mem::size_of::<T>()
-    }
-}
-
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
-    fn new(length: usize) -> Self
-    where
-        Self: Sized,
-    {
-        Self::new(length)
-    }
-
-    fn extend(&mut self, length: usize) {
-        self.extend(length);
-    }
-
-    fn n_attributes(&self) -> usize {
-        self.n_attributes()
-    }
-
-    fn set(&mut self, id: A::IdentifierType, val: A) {
-        self.set(&id, val);
-    }
-
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
-        self.insert(&id, val);
-    }
-
-    fn get(&self, id: A::IdentifierType) -> Option<A> {
-        *self.get(&id)
-    }
-
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
-        self.replace(&id, val)
-    }
-
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
-        self.remove(&id)
     }
 }
