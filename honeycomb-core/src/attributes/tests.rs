@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{AttrCompactVec, AttrSparseVec, AttributeBind, AttributeUpdate};
+use crate::{AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate};
 use std::any::Any;
 
 // ------ CONTENT
@@ -74,16 +74,16 @@ fn attribute_bind() {
 macro_rules! generate_sparse {
     ($name: ident) => {
         let mut $name = AttrSparseVec::<Temperature>::new(10);
-        $name.insert(&0, Temperature::from(273.0));
-        $name.insert(&1, Temperature::from(275.0));
-        $name.insert(&2, Temperature::from(277.0));
-        $name.insert(&3, Temperature::from(279.0));
-        $name.insert(&4, Temperature::from(281.0));
-        $name.insert(&5, Temperature::from(283.0));
-        $name.insert(&6, Temperature::from(285.0));
-        $name.insert(&7, Temperature::from(287.0));
-        $name.insert(&8, Temperature::from(289.0));
-        $name.insert(&9, Temperature::from(291.0));
+        $name.insert(0, Temperature::from(273.0));
+        $name.insert(1, Temperature::from(275.0));
+        $name.insert(2, Temperature::from(277.0));
+        $name.insert(3, Temperature::from(279.0));
+        $name.insert(4, Temperature::from(281.0));
+        $name.insert(5, Temperature::from(283.0));
+        $name.insert(6, Temperature::from(285.0));
+        $name.insert(7, Temperature::from(287.0));
+        $name.insert(8, Temperature::from(289.0));
+        $name.insert(9, Temperature::from(291.0));
     };
 }
 
@@ -91,80 +91,80 @@ macro_rules! generate_sparse {
 fn sparse_vec_n_attributes() {
     generate_sparse!(storage);
     assert_eq!(storage.n_attributes(), 10);
-    let _ = storage.remove(&3);
+    let _ = storage.remove(3);
     assert_eq!(storage.n_attributes(), 9);
     // extend does not affect the number of attributes
     storage.extend(10);
-    assert!(storage.get(&15).is_none());
+    assert!(storage.get(15).is_none());
     assert_eq!(storage.n_attributes(), 9);
 }
 
 #[test]
 fn sparse_vec_get_set_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
-    storage.set(&3, Temperature::from(280.0));
-    assert_eq!(storage.get(&3), &Some(Temperature::from(280.0)));
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.set(3, Temperature::from(280.0));
+    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 fn sparse_vec_get_replace_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
-    storage.replace(&3, Temperature::from(280.0));
-    assert_eq!(storage.get(&3), &Some(Temperature::from(280.0)));
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.replace(3, Temperature::from(280.0));
+    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 #[should_panic(expected = "assertion failed: tmp.is_none()")]
 fn sparse_vec_insert_already_existing() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(&3), &Some(Temperature::from(279.0)));
-    storage.insert(&3, Temperature::from(280.0)); // panic
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.insert(3, Temperature::from(280.0)); // panic
 }
 
 #[test]
 fn sparse_vec_remove() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
 }
 
 #[test]
 fn sparse_vec_remove_remove() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
-    assert!(storage.remove(&3).is_none());
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert!(storage.remove(3).is_none());
 }
 
 #[test]
 fn sparse_vec_remove_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
-    assert!(storage.get(&3).is_none());
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert!(storage.get(3).is_none());
 }
 
 #[test]
 fn sparse_vec_remove_set() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
-    storage.set(&3, Temperature::from(280.0));
-    assert!(storage.get(&3).is_some());
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.set(3, Temperature::from(280.0));
+    assert!(storage.get(3).is_some());
 }
 
 #[test]
 fn sparse_vec_remove_insert() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
-    storage.insert(&3, Temperature::from(280.0));
-    assert!(storage.get(&3).is_some());
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.insert(3, Temperature::from(280.0));
+    assert!(storage.get(3).is_some());
 }
 
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn sparse_vec_replace_already_removed() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(&3), Some(Temperature::from(279.0)));
-    storage.replace(&3, Temperature::from(280.0)).unwrap(); // panic
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
 }
 
 macro_rules! generate_compact {

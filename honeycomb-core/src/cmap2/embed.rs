@@ -6,7 +6,7 @@
 
 // ------ IMPORT
 
-use crate::{CMap2, CMapError, CoordsFloat, Vertex2, VertexIdentifier};
+use crate::{AttributeStorage, CMap2, CMapError, CoordsFloat, Vertex2, VertexIdentifier};
 
 // ------ CONTENT
 
@@ -38,8 +38,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`
     ///
     pub fn vertex(&self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.get(&vertex_id) {
-            return Ok(*val);
+        if let Some(val) = self.vertices.get(vertex_id) {
+            return Ok(val);
         }
         Err(CMapError::UndefinedVertex)
     }
@@ -63,7 +63,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`
     ///
     pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
-        self.vertices.insert(&vertex_id, vertex.into());
+        self.vertices.insert(vertex_id, vertex.into());
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -80,7 +80,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(&vertex_id) {
+        if let Some(val) = self.vertices.remove(vertex_id) {
             return Ok(val);
         }
         Err(CMapError::UndefinedVertex)
@@ -106,7 +106,7 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.replace(&vertex_id, vertex.into()) {
+        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
             return Ok(val);
         };
         Err(CMapError::UndefinedVertex)
