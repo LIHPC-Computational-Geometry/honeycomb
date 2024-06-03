@@ -12,8 +12,10 @@ use std::collections::HashMap;
 
 // ------ CONTENT
 
+/// Attribute manager error enum.
 pub enum ManagerError {
-    DuplicateStorage(&'static str),
+    /// Storage of a given type already exists in the structure.
+    DuplicateStorage,
 }
 
 /// Main attribute storage structure.
@@ -71,9 +73,9 @@ pub enum ManagerError {
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
     vertices: HashMap<TypeId, Box<dyn Any>>,
-    /// Edges attributes' storages.
+    /// Edge attributes' storages.
     edges: HashMap<TypeId, Box<dyn Any>>,
-    /// Faces attributes' storages.
+    /// Face attributes' storages.
     faces: HashMap<TypeId, Box<dyn Any>>,
     /// Other storages.
     others: HashMap<TypeId, Box<dyn Any>>, // Orbit::Custom
@@ -109,8 +111,27 @@ macro_rules! get_storage_mut {
     };
 }
 
-#[allow(unused, missing_docs)]
 impl AttrStorageManager {
+    #[allow(clippy::missing_errors_doc)]
+    /// Add a new storage to the manager.
+    ///
+    /// For a breakdown of the principles used for implementation, refer to the *Explanation*
+    /// section of the [`AttrStorageManager`] documentation entry.
+    ///
+    /// # Arguments
+    ///
+    /// - `size: usize` -- Initial size of the new storage.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + 'static` -- Type of the attribute that will be stored.
+    ///
+    /// # Return / Error
+    ///
+    /// The function may return:
+    /// - `Ok(())` if the storage was successfully added,
+    /// - `Err(ManagerError::DuplicateStorage)` if there was already a storage for the specified
+    ///   attribute.
     pub fn add_storage<A: AttributeBind + 'static>(
         &mut self,
         size: usize,
@@ -125,27 +146,47 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            Err(ManagerError::DuplicateStorage(
-                "storage of the specified type already exists",
-            ))
+            Err(ManagerError::DuplicateStorage)
         } else {
             Ok(())
         }
     }
 
-    pub fn extend_storages(&mut self, length: usize) {
+    /// UNIMPLEMENTED
+    pub fn extend_storages(&mut self, _length: usize) {
         // not sure if this is actually possible since we need to fetch the attribute from storages,
         // which cannot be interpreted as such without the attribute in the first place
-        for storage in self.vertices.values_mut() {
+        for _storage in self.vertices.values_mut() {
             todo!()
         }
     }
 
+    /// Extend the size of the storage of a given attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Length by which the storage should be extended.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
         storage.extend(length);
     }
 
+    /// Get a reference to the storage of a given attribute.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    #[must_use = "unused getter result - please remove this method call"]
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
         let probably_storage = match A::binds_to() {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
@@ -158,21 +199,101 @@ impl AttrStorageManager {
             .expect("E: could not downcast generic storage to specified attribute type")
     }
 
+    /// Set the value of an attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    /// - `val: A` -- New value of the attribute for the given ID.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute being set.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
     pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
         storage.set(id, val);
     }
 
+    /// Set the value of an attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    /// - `val: A` -- New value of the attribute for the given ID.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute being set.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - **there already is a value associated to the given ID for the specified attribute**
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
     pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
         storage.insert(id, val);
     }
 
+    /// Get the value of an attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute fetched.
+    ///
+    /// # Return
+    ///
+    /// The method may return:
+    /// - `Some(val: A)` if there is an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
     pub fn get_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
         get_storage!(self, storage);
         storage.get(id)
     }
 
+    /// Set the value of an attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- ID of the cell to which the attribute is associated.
+    /// - `val: A` -- New value of the attribute for the given ID.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute being set.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
+    /// - `None` if there was not.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
     pub fn replace_attribute<A: AttributeBind>(
         &mut self,
         id: A::IdentifierType,
@@ -182,6 +303,28 @@ impl AttrStorageManager {
         storage.replace(id, val)
     }
 
+    /// Remove the an item from an attribute storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute fetched.
+    ///
+    /// # Return
+    ///
+    /// The method may return:
+    /// - `Some(val: A)` if was is an attribute associated with the specified index,
+    /// - `None` if there was not.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
         storage.remove(id)

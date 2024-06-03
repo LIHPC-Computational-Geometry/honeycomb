@@ -2,6 +2,8 @@
 
 // ------ IMPORTS
 
+#[cfg(doc)]
+use crate::CMapBuilder;
 use crate::{BuilderError, CoordsFloat};
 
 // ------ CONTENT
