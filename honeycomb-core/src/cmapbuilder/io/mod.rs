@@ -7,8 +7,7 @@
 
 // ------ IMPORTS
 use crate::{
-    BuilderError, CMap2, CMapBuilder, CMapError, CoordsFloat, DartIdentifier, Vertex2,
-    VertexIdentifier,
+    BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier,
 };
 use num::Zero;
 use std::collections::BTreeMap;

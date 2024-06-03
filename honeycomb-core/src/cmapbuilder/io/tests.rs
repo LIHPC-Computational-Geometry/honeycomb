@@ -8,8 +8,8 @@ use vtkio::Vtk;
 #[test]
 fn io_read() {
     let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
-
-    let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk);
+    // unwrap is fine since we know the VTK_ASCII const is correct
+    let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk).unwrap();
 
     // check result
     let faces = cmap.fetch_faces();
