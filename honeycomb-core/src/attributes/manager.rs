@@ -109,7 +109,6 @@ macro_rules! get_storage_mut {
     };
 }
 
-#[allow(unused, missing_docs)]
 impl AttrStorageManager {
     pub fn add_storage<A: AttributeBind + 'static>(
         &mut self,

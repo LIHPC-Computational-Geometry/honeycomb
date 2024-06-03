@@ -45,6 +45,7 @@ mod spatial_repr;
 // core
 pub use attributes::{
     collections::{AttrCompactVec, AttrSparseVec},
+    manager::{AttrStorageManager, ManagerError},
     traits::{AttributeBind, AttributeStorage, AttributeUpdate},
 };
 pub use cells::{
