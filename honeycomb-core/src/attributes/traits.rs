@@ -6,6 +6,8 @@
 // ------ IMPORTS
 
 use crate::OrbitPolicy;
+use std::any::Any;
+use std::fmt::Debug;
 
 // ------ CONTENT
 
@@ -83,14 +85,28 @@ pub trait AttributeUpdate: Sized {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::{AttributeBind, FaceIdentifier, OrbitPolicy};
+/// use honeycomb_core::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy, AttrSparseVec};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
 ///     pub val: f32
 /// }
+/// # impl AttributeUpdate for Temperature {
+/// #     fn merge(attr1: Self, attr2: Self) -> Self {
+/// #         Temperature { val: (attr1.val + attr2.val) / 2.0 }
+/// #     }
+/// #
+/// #     fn split(attr: Self) -> (Self, Self) {
+/// #         (attr, attr)
+/// #     }
+/// #
+/// #     fn merge_undefined(attr: Option<Self>) -> Self {
+/// #         attr.unwrap_or(Temperature { val: 0.0 })
+/// #     }
+/// # }
 ///
 /// impl AttributeBind for Temperature {
+///     # type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
 ///
 ///     fn binds_to<'a>() -> OrbitPolicy<'a> {
@@ -98,11 +114,35 @@ pub trait AttributeUpdate: Sized {
 ///     }
 /// }
 /// ```
-pub trait AttributeBind: Sized {
+pub trait AttributeBind: Debug + Sized + Any {
+    /// Storage type used for the attribute.
+    type StorageType: AttributeStorage<Self>;
+
     /// Identifier type of the entity the attribute is bound to.
     type IdentifierType: num::ToPrimitive;
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
+}
+
+#[allow(unused, missing_docs)]
+pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
+    fn new(length: usize) -> Self
+    where
+        Self: Sized;
+
+    fn extend(&mut self, length: usize);
+
+    fn n_attributes(&self) -> usize;
+
+    fn set(&mut self, id: A::IdentifierType, val: A);
+
+    fn insert(&mut self, id: A::IdentifierType, val: A);
+
+    fn get(&self, id: A::IdentifierType) -> Option<A>;
+
+    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
+
+    fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
 }

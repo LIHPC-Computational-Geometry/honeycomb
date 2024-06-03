@@ -29,6 +29,7 @@ impl AttributeUpdate for Temperature {
 }
 
 impl AttributeBind for Temperature {
+    type StorageType = AttrSparseVec<Temperature>;
     type IdentifierType = crate::FaceIdentifier;
     fn binds_to<'a>() -> crate::OrbitPolicy<'a> {
         crate::OrbitPolicy::Face

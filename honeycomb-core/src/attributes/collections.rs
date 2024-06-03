@@ -5,6 +5,7 @@
 
 // ------ IMPORTS
 
+use crate::attributes::traits::AttributeStorage;
 use crate::{AttributeBind, AttributeUpdate};
 use num::ToPrimitive;
 
@@ -27,7 +28,7 @@ use num::ToPrimitive;
 /// but it is kept public because it should eventually be part of the map building system where
 /// the user will add its own attributes and choose how they are stored. As such, no example
 /// is provided.
-///
+#[derive(Debug)]
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     /// Inner storage.
@@ -429,5 +430,42 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
             + self.index_map.iter().filter(|val| val.is_some()).count()
                 * std::mem::size_of::<Option<usize>>()
             + self.data.len() * std::mem::size_of::<T>()
+    }
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
+    fn new(length: usize) -> Self
+    where
+        Self: Sized,
+    {
+        Self::new(length)
+    }
+
+    fn extend(&mut self, length: usize) {
+        self.extend(length);
+    }
+
+    fn n_attributes(&self) -> usize {
+        self.n_attributes()
+    }
+
+    fn set(&mut self, id: A::IdentifierType, val: A) {
+        self.set(&id, val);
+    }
+
+    fn insert(&mut self, id: A::IdentifierType, val: A) {
+        self.insert(&id, val);
+    }
+
+    fn get(&self, id: A::IdentifierType) -> Option<A> {
+        *self.get(&id)
+    }
+
+    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+        self.replace(&id, val)
+    }
+
+    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
+        self.remove(&id)
     }
 }
