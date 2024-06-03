@@ -7,7 +7,8 @@
 
 // ------ IMPORTS
 use crate::{
-    BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier,
+    BuilderError, CMap2, CMapBuilder, CMapError, CoordsFloat, DartIdentifier, Vertex2,
+    VertexIdentifier,
 };
 use num::Zero;
 use std::collections::BTreeMap;
@@ -54,13 +55,22 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     }
 }
 
+macro_rules! if_true_error {
+    ($pr: expr, $er: expr) => {
+        if $pr {
+            return Err($er);
+        }
+    };
+}
+
 macro_rules! build_vertices {
     ($v: ident) => {{
-        if !($v.len() % 3).is_zero() {
-            return Err(BuilderError::InvalidVtkFile(
+        if_true_error!(
+            !($v.len() % 3).is_zero(),
+            BuilderError::InvalidVtkFile(
                 "failed to build vertices list - the point list contains an incomplete tuple",
-            ));
-        }
+            )
+        );
         $v.chunks_exact(3)
             .map(|slice| {
                 // WE IGNORE Z values
@@ -113,9 +123,12 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
                         vertices: verts,
                     } => {
                         // check basic stuff
-                        if num_cells as usize != types.len() {
-                            return Err(BuilderError::InvalidVtkFile("failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES"));
-                        }
+                        if_true_error!(
+                            num_cells as usize != types.len(),
+                            BuilderError::InvalidVtkFile(
+                                "failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES"
+                            )
+                        );
 
                         // build a collection of vertex lists corresponding of each cell
                         let mut cell_components: Vec<Vec<usize>> = Vec::new();
@@ -132,20 +145,29 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
 
                         let mut errs = types.iter().zip(cell_components.iter()).map(|(cell_type, vids)| match cell_type {
                             CellType::Vertex => {
-                                assert_eq!(vids.len(), 1, "failed to build cell - `Vertex` has {} instead of 1 vertex", vids.len());
+                                if_true_error!(
+                                    vids.len() != 1,
+                                    BuilderError::InvalidVtkFile("failed to build cell - `Vertex` cell has incorrect # of vertices (!=1)")
+                                );
                                 // silent ignore
                                 Ok(())
                             }
                             CellType::PolyVertex => Err(BuilderError::UnsupportedVtkData("failed to build cell - `PolyVertex` cell type is not supported because for consistency")),
                             CellType::Line => {
-                                assert_eq!(vids.len(), 2, "failed to build cell - `Line` has {} instead of 2 vertices", vids.len());
+                                if_true_error!(
+                                    vids.len() != 2,
+                                    BuilderError::InvalidVtkFile("failed to build cell - `Line` cell has incorrect # of vertices (!=2)")
+                                );
                                 // silent ignore
                                 Ok(())
                             }
                             CellType::PolyLine => Err(BuilderError::UnsupportedVtkData("failed to build cell - `PolyLine` cell type is not supported because for consistency")),
                             CellType::Triangle => {
                                 // check validity
-                                assert_eq!(vids.len(), 3, "failed to build cell - `Triangle` has {} instead of 3 vertices", vids.len());
+                                if_true_error!(
+                                    vids.len() != 3,
+                                    BuilderError::InvalidVtkFile("failed to build cell - `Triangle` cell has incorrect # of vertices (!=3)")
+                                );
                                 // build the triangle
                                 let d0 = cmap.add_free_darts(3);
                                 let (d1, d2) = (d0 + 1, d0 + 2);
@@ -183,7 +205,10 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
                             }
                             CellType::Pixel => Err(BuilderError::UnsupportedVtkData("failed to build cell - `Pixel` cell type is not supported because of orientation requirements")),
                             CellType::Quad => {
-                                assert_eq!(vids.len(), 4, "failed to build cell - `Quad` has {} instead of 4 vertices", vids.len());
+                                if_true_error!(
+                                    vids.len() != 4,
+                                    BuilderError::InvalidVtkFile("failed to build cell - `Quad` cell has incorrect # of vertices (!=4)")
+                                );
                                 // build the quad
                                 let d0 = cmap.add_free_darts(4);
                                 let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
