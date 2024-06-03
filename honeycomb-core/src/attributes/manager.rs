@@ -12,8 +12,10 @@ use std::collections::HashMap;
 
 // ------ CONTENT
 
+/// Attribute manager error enum.
 pub enum ManagerError {
-    DuplicateStorage(&'static str),
+    /// Storage of a given type already exists in the structure.
+    DuplicateStorage,
 }
 
 /// Main attribute storage structure.
@@ -71,9 +73,9 @@ pub enum ManagerError {
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
     vertices: HashMap<TypeId, Box<dyn Any>>,
-    /// Edges attributes' storages.
+    /// Edge attributes' storages.
     edges: HashMap<TypeId, Box<dyn Any>>,
-    /// Faces attributes' storages.
+    /// Face attributes' storages.
     faces: HashMap<TypeId, Box<dyn Any>>,
     /// Other storages.
     others: HashMap<TypeId, Box<dyn Any>>, // Orbit::Custom
@@ -124,9 +126,7 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            Err(ManagerError::DuplicateStorage(
-                "storage of the specified type already exists",
-            ))
+            Err(ManagerError::DuplicateStorage)
         } else {
             Ok(())
         }
