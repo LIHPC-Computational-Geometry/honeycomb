@@ -6,6 +6,6 @@ fn main() {
         smaa_mode: SmaaMode::Smaa1X,
         ..Default::default()
     };
-    let map: CMap2<f32> = CMapBuilder::unit_split_grid(4).build().unwrap();
+    let map: CMap2<f32> = CMapBuilder::unit_triangles(4).build().unwrap();
     launch(render_params, Some(&map));
 }

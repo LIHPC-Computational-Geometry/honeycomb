@@ -70,7 +70,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(10);
-    let map: CMap2<FloatType> = CMapBuilder::unit_split_grid(N_SQUARE).build().unwrap();
+    let map: CMap2<FloatType> = CMapBuilder::unit_triangles(N_SQUARE).build().unwrap();
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);

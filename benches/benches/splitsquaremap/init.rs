@@ -25,7 +25,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
                 let mut map: CMap2<FloatType> =
-                    CMapBuilder::unit_split_grid(*n_square).build().unwrap();
+                    CMapBuilder::unit_triangles(*n_square).build().unwrap();
                 black_box(&mut map);
             })
         });

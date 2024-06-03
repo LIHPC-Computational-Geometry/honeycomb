@@ -62,7 +62,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     #[must_use = "unused builder object, consider removing this function call"]
-    pub fn unit_split_grid(n_square: usize) -> Self {
+    pub fn unit_triangles(n_square: usize) -> Self {
         let gridd = GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3])

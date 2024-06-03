@@ -50,7 +50,7 @@ fn grid(n_squares: usize) -> CMap2<FloatType> {
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn tet_grid(n_squares: usize) -> CMap2<FloatType> {
-    black_box(CMapBuilder::unit_split_grid(n_squares).build().unwrap())
+    black_box(CMapBuilder::unit_triangles(n_squares).build().unwrap())
 }
 
 library_benchmark_group!(

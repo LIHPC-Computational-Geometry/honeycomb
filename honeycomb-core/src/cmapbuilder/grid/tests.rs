@@ -204,7 +204,7 @@ fn square_cmap2_correctness() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn splitsquare_cmap2_correctness() {
-    let cmap: CMap2<f64> = CMapBuilder::unit_split_grid(2).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::unit_triangles(2).build().unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction
