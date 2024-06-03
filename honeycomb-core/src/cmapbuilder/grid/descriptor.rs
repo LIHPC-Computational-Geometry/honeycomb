@@ -101,7 +101,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
 macro_rules! check_parameters {
     ($id: ident, $msg: expr) => {
         if $id.is_sign_negative() | $id.is_zero() {
-            return Err(BuilderError::InvalidParameters($msg));
+            return Err(BuilderError::InvalidGridParameters($msg));
         }
     };
 }
@@ -150,7 +150,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                     [lpx, lpy],
                 ))
             }
-            (_, _, _) => Err(BuilderError::MissingParameters(
+            (_, _, _) => Err(BuilderError::MissingGridParameters(
                 "GridBuilder: insufficient building parameters",
             )),
         }
