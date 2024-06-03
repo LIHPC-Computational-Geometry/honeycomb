@@ -37,8 +37,6 @@ mod cmap2;
 mod cmapbuilder;
 mod common;
 mod spatial_repr;
-#[cfg(feature = "utils")]
-pub mod utils;
 
 // ------ RE-EXPORTS
 

@@ -14,26 +14,6 @@ use vtkio::{IOBuffer, Vtk};
 
 // ------ CONTENT
 
-// will be deleted soon
-impl<T: CoordsFloat + 'static> CMap2<T> {
-    /// Build a [`CMap2`] from a `vtk` file.
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if:
-    /// - the file cannot be loaded
-    /// - the internal building routine fails, i.e.
-    ///     - the file format is XML
-    ///     - the mesh contains one type of cell that is not supported (either because of
-    ///     dimension or orientation incompatibilities)
-    ///     - the file has major inconsistencies / errors
-    #[deprecated(note = "please use `CMapBuilder::from_vtk_file` instead")]
-    #[must_use = "constructed object is not used, consider removing this function call"]
-    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        CMapBuilder::from_vtk_file(file_path).build().unwrap()
-    }
-}
-
 impl<T: CoordsFloat> CMapBuilder<T> {
     /// Import and set the VTK file that will be used when building the map.
     ///
@@ -93,7 +73,6 @@ macro_rules! build_vertices {
 ///
 /// TODO: change return type to `Result` & propagate return up to the map builder methods.
 pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
-    #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {

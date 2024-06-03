@@ -104,21 +104,19 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             // this routine should return a Result instead of the map directly
             return Ok(super::io::build_2d_from_vtk(vfile));
         }
-        #[allow(deprecated)]
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             return if gridb.split_quads {
                 gridb
-                    .parse()
-                    .map(|(ns, lens)| super::grid::build_2d_splitgrid(ns, lens))
+                    .parse_2d()
+                    .map(|(ns, lens)| super::grid::building_routines::build_2d_splitgrid(ns, lens))
             } else {
                 gridb
-                    .parse()
-                    .map(|(ns, lens)| super::grid::build_2d_grid(ns, lens))
+                    .parse_2d()
+                    .map(|(ns, lens)| super::grid::building_routines::build_2d_grid(ns, lens))
             };
         }
-        #[allow(deprecated)] // allow because CMap2::new() will still be available inside the crate
         Ok(CMap2::new(self.n_darts))
     }
 }

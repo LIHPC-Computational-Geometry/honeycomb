@@ -1,8 +1,8 @@
-use honeycomb_core::{utils::GridBuilder, CMap2, DartIdentifier};
+use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier};
 
 pub fn main() {
     // create a 3x3 grid & remove the central square
-    let mut cmap: CMap2<f64> = GridBuilder::unit_squares(3).build2().unwrap();
+    let mut cmap: CMap2<f64> = CMapBuilder::unit_grid(3).build().unwrap();
     // darts making up the central square
     let (d1, d2, d3, d4): (
         DartIdentifier,

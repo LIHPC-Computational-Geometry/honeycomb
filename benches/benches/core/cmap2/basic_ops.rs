@@ -12,7 +12,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{utils::GridBuilder, CMap2, CMapError, DartIdentifier, Vertex2};
+use honeycomb_core::{CMap2, CMapBuilder, CMapError, DartIdentifier, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -23,11 +23,11 @@ use std::hint::black_box;
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    GridBuilder::unit_squares(n_square).build2().unwrap()
+    CMapBuilder::unit_grid(n_square).build().unwrap()
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = GridBuilder::unit_squares(n_square).build2().unwrap();
+    let mut map = CMapBuilder::unit_grid(n_square).build().unwrap();
     map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
     // because of the way we built the map in the square_cmap2 function & the ID computation
@@ -37,7 +37,10 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
-    (CMap2::new(0), n_squares.pow(2) * 4)
+    (
+        CMapBuilder::default().build().unwrap(),
+        n_squares.pow(2) * 4,
+    )
 }
 
 // --- dart group
@@ -81,9 +84,9 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdentifier {
 }
 
 #[library_benchmark]
-#[bench::small(&mut CMap2::new(16_usize.pow(2) * 4))]
-#[bench::medium(&mut CMap2::new(64_usize.pow(2) * 4))]
-#[bench::large(&mut CMap2::new(256_usize.pow(2) * 4))]
+#[bench::small(&mut CMapBuilder::default().n_darts(16_usize.pow(2) * 4).build().unwrap())]
+#[bench::medium(&mut CMapBuilder::default().n_darts(64_usize.pow(2) * 4).build().unwrap())]
+#[bench::large(&mut CMapBuilder::default().n_darts(256_usize.pow(2) * 4).build().unwrap())]
 fn remove_dart(map: &mut CMap2<FloatType>) {
     map.remove_free_dart(5);
     black_box(map);

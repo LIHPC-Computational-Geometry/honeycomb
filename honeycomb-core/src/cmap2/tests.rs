@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
+use crate::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
 
 // ------ CONTENT
 
@@ -9,7 +9,7 @@ use crate::{CMap2, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
 #[test]
 fn example_test() {
     // build a triangle
-    let mut map: CMap2<f64> = CMap2::new(3);
+    let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
     map.one_link(1, 2);
     map.one_link(2, 3);
     map.one_link(3, 1);

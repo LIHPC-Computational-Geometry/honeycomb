@@ -5,14 +5,12 @@
 
 // ------ MODULE DECLARATIONS
 
-mod building_routines;
-mod descriptor;
+pub mod building_routines;
+pub mod descriptor;
 
 // ------ RE-EXPORTS
 
-use crate::{CMapBuilder, CoordsFloat};
-pub(super) use building_routines::{build_2d_grid, build_2d_splitgrid};
-pub use descriptor::GridDescriptor;
+use crate::{CMapBuilder, CoordsFloat, GridDescriptor};
 
 // ------ CONTENT
 
@@ -64,7 +62,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     #[must_use = "unused builder object, consider removing this function call"]
-    pub fn unit_split_grid(n_square: usize) -> Self {
+    pub fn unit_triangles(n_square: usize) -> Self {
         let gridd = GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3])

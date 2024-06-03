@@ -12,8 +12,8 @@ fn build_nc_lpc_l() {
         .n_cells([4, 4, 0])
         .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
         .lens([4.0_f64, 4.0_f64, 4.0_f64]);
-    assert!(descriptor.clone().parse().is_ok());
-    assert!(descriptor.split_quads(true).parse().is_ok());
+    assert!(descriptor.clone().parse_2d().is_ok());
+    assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -21,8 +21,8 @@ fn build_nc_lpc() {
     let descriptor = GridDescriptor::default()
         .n_cells([4, 4, 0])
         .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64]);
-    assert!(descriptor.clone().parse().is_ok());
-    assert!(descriptor.split_quads(true).parse().is_ok());
+    assert!(descriptor.clone().parse_2d().is_ok());
+    assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -31,8 +31,8 @@ fn build_nc_l() {
         .n_cells_x(4)
         .n_cells_y(4)
         .lens([4.0_f64, 4.0_f64, 4.0_f64]);
-    assert!(descriptor.clone().parse().is_ok());
-    assert!(descriptor.split_quads(true).parse().is_ok());
+    assert!(descriptor.clone().parse_2d().is_ok());
+    assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -42,23 +42,23 @@ fn build_lpc_l() {
         .len_per_cell_y(1.0_f64)
         .lens_x(4.0)
         .lens_y(4.0);
-    assert!(descriptor.clone().parse().is_ok());
-    assert!(descriptor.split_quads(true).parse().is_ok());
+    assert!(descriptor.clone().parse_2d().is_ok());
+    assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
 
 #[test]
 fn build_incomplete() {
     assert!(GridDescriptor::default()
         .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-        .parse()
+        .parse_2d()
         .is_err());
     assert!(<GridDescriptor<f64>>::default()
         .n_cells([4, 4, 0])
-        .parse()
+        .parse_2d()
         .is_err());
     assert!(GridDescriptor::default()
         .lens([4.0_f64, 4.0_f64, 4.0_f64])
-        .parse()
+        .parse_2d()
         .is_err());
 }
 
@@ -68,7 +68,7 @@ fn build_neg_lpc() {
     let tmp = GridDescriptor::default()
         .n_cells([4, 4, 0])
         .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
-        .parse();
+        .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
 
@@ -78,7 +78,7 @@ fn build_null_l() {
     let tmp = GridDescriptor::default()
         .n_cells([4, 4, 0])
         .lens([0.0_f64, 4.0_f64, 4.0_f64])
-        .parse();
+        .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
 
@@ -90,7 +90,7 @@ fn build_neg_lpc_neg_l() {
     let tmp = GridDescriptor::default()
         .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
         .lens([0.0_f64, 4.0_f64, 4.0_f64])
-        .parse();
+        .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
 
@@ -204,7 +204,7 @@ fn square_cmap2_correctness() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn splitsquare_cmap2_correctness() {
-    let cmap: CMap2<f64> = CMapBuilder::unit_split_grid(2).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::unit_triangles(2).build().unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction

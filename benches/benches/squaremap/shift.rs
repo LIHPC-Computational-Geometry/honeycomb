@@ -23,9 +23,7 @@ use rand::{
 };
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{
-    utils::GridBuilder, CMap2, DartIdentifier, Vector2, VertexIdentifier, NULL_DART_ID,
-};
+use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier, Vector2, VertexIdentifier, NULL_DART_ID};
 
 // ------ CONTENT
 
@@ -72,7 +70,7 @@ fn offset_if_inner(mut map: CMap2<FloatType>, offsets: &[Vector2<FloatType>]) {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     const N_SQUARE: usize = 2_usize.pow(10);
-    let map: CMap2<FloatType> = GridBuilder::unit_squares(N_SQUARE).build2().unwrap();
+    let map: CMap2<FloatType> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
     let seed: u64 = 9817498146784;
     let mut rngx = SmallRng::seed_from_u64(seed);
     let mut rngy = SmallRng::seed_from_u64(seed);

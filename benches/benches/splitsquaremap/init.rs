@@ -10,7 +10,7 @@ use criterion::{
     PlotConfiguration, Throughput,
 };
 use honeycomb_benches::FloatType;
-use honeycomb_core::{utils::GridBuilder, CMap2};
+use honeycomb_core::{CMap2, CMapBuilder};
 
 // ------ CONTENT
 
@@ -25,7 +25,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("init", ""), &n_square, |b, n_square| {
             b.iter(|| {
                 let mut map: CMap2<FloatType> =
-                    GridBuilder::split_unit_squares(*n_square).build2().unwrap();
+                    CMapBuilder::unit_triangles(*n_square).build().unwrap();
                 black_box(&mut map);
             })
         });
