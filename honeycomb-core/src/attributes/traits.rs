@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{AttrSparseVec, OrbitPolicy};
+use crate::OrbitPolicy;
 use std::any::Any;
 use std::fmt::Debug;
 
@@ -141,6 +141,7 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     /// # Return
     ///
     /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
+    #[must_use = "constructed object is not used, consider removing this function call"]
     fn new(length: usize) -> Self
     where
         Self: Sized;
@@ -154,6 +155,7 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
 
     /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
     /// its length.
+    #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
 
     /// Setter
