@@ -6,7 +6,9 @@
 //! are supported, because of orientation and dimension restriction.
 
 // ------ IMPORTS
-use crate::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
+use crate::{
+    BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier,
+};
 use num::Zero;
 use std::collections::BTreeMap;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
@@ -71,8 +73,10 @@ macro_rules! build_vertices {
 #[allow(clippy::too_many_lines)]
 /// Internal building routine for [`CMap2::from_vtk_file`].
 ///
-/// TODO: change return type to `Result` & propagate return up to the map builder methods.
-pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
+/// # Result / Errors
+///
+/// todo: explain failure conditions
+pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {
@@ -214,7 +218,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> CMap2<T> {
         }
     }
 
-    cmap
+    Ok(cmap)
 }
 
 // ------ TESTS
