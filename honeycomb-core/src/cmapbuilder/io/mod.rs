@@ -85,7 +85,22 @@ macro_rules! build_vertices {
 ///
 /// # Result / Errors
 ///
-/// todo: explain failure conditions
+/// This implementation support only a very specific subset of VTK files. This result in many
+/// possibilities for failure. This function may return:
+///
+/// - `Ok(CMap2)` -- The file was successfully parsed and its content made into a 2-map.
+/// - `Err(BuilderError)` -- The function failed for one of the following reasons (sorted
+/// by [`BuilderError`] variants):
+///     - `UnsupportedVtkData`: The file contains unsupported data, i.e.:
+///         - file format isn't Legacy,
+///         - data set is something other than `UnstructuredGrid`,
+///         - coordinate representation type isn't `float` or `double`
+///         - mesh contains unsupported cell types (`PolyVertex`, `PolyLine`, `TriangleStrip`,
+///         `Pixel` or anything 3D)
+///     - `InvalidVtkFile`: The file contains inconsistencies, i.e.:
+///         - the number of coordinates cannot be divided by `3`, meaning a tuple is incomplete
+///         - the number of `Cells` and `CellTypes` isn't equal
+///         - a given cell has an inconsistent number of vertices with its specified cell type
 pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
