@@ -22,11 +22,18 @@ use vtkio::Vtk;
 /// structure.
 #[derive(Debug)]
 pub enum BuilderError {
-    /// The builder is missing one or multiple parameters in order to proceed with the requested
-    /// operation.
-    MissingParameters(&'static str),
-    /// One or multiple of the builder's fields are invalid.
-    InvalidParameters(&'static str),
+    // grid-related variants
+    /// One or multiple of the specified grid characteristics are invalid.
+    InvalidGridParameters(&'static str),
+    /// The builder is missing one or multiple parameters to generate the grid.
+    MissingGridParameters(&'static str),
+    // vtk-related variants
+    /// Specified VTK file contains inconsistent data.
+    InvalidVtkFile(&'static str),
+    /// Specified VTK file could not be found.
+    MissingVtkFile(&'static str),
+    /// Specified VTK file contains unsupported data.
+    UnsupportedVtkData(&'static str),
 }
 
 // --- main struct
@@ -102,7 +109,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         if let Some(vfile) = self.vtk_file {
             // build from vtk
             // this routine should return a Result instead of the map directly
-            return Ok(super::io::build_2d_from_vtk(vfile));
+            return super::io::build_2d_from_vtk(vfile);
         }
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
