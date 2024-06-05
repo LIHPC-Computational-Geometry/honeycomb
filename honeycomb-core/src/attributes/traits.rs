@@ -160,7 +160,8 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
 
     /// Setter
     ///
-    /// Set the value of an element at a given index.
+    /// Set the value of an element at a given index. This operation is not affected by the initial
+    /// state of the edited entry.
     ///
     /// # Arguments
     ///
@@ -176,7 +177,8 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
 
     /// Setter
     ///
-    /// Insert a value at a given index.
+    /// Insert a value at a given index. This operation is affected by the initial state of
+    /// the edited entry, see the [Panics] section for more information.
     ///
     /// # Arguments
     ///
@@ -186,7 +188,7 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     /// # Panics
     ///
     /// The method:
-    /// - should panic if **there is already a value associated to the specified index**
+    /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn insert(&mut self, id: A::IdentifierType, val: A);
