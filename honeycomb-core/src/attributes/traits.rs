@@ -177,8 +177,8 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
 
     /// Setter
     ///
-    /// Insert a value at a given index. This operation is affected by the initial state of
-    /// the edited entry, see the [Panics] section for more information.
+    /// Insert a value at a given empty index.
+    /// Otherwise, see [Panics] section for more information.
     ///
     /// # Arguments
     ///
