@@ -119,7 +119,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: num::ToPrimitive;
+    type IdentifierType: num::ToPrimitive + Clone;
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
@@ -191,7 +191,10 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert(&mut self, id: A::IdentifierType, val: A);
+    fn insert(&mut self, id: A::IdentifierType, val: A) {
+        assert!(self.get(id.clone()).is_none());
+        self.set(id, val);
+    }
 
     /// Getter
     ///
