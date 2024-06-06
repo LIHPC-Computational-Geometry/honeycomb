@@ -9,7 +9,7 @@
 use crate::{CMapBuilder, NULL_DART_ID};
 
 use super::CMAP2_BETA;
-use crate::{AttrSparseVec, CoordsFloat, DartIdentifier, Vertex2};
+use crate::{AttrSparseVec, AttributeStorage, CoordsFloat, DartIdentifier, Vertex2};
 use std::collections::BTreeSet;
 
 // ------ CONTENT

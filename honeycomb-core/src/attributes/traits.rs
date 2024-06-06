@@ -119,30 +119,142 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: num::ToPrimitive;
+    type IdentifierType: num::ToPrimitive + Clone;
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
-#[allow(unused, missing_docs)]
+/// Common trait implemented by generic attribute storages.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
 pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
+    /// Constructor
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
+    /// the upper bound of IDs used to index the attribute's values, i.e. the number of darts
+    /// including the null dart.
+    ///
+    /// # Return
+    ///
+    /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
+    #[must_use = "constructed object is not used, consider removing this function call"]
     fn new(length: usize) -> Self
     where
         Self: Sized;
 
+    /// Extend the storage's length
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- length of which the storage should be extended.
     fn extend(&mut self, length: usize);
 
+    /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
+    /// its length.
+    #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
 
+    /// Setter
+    ///
+    /// Set the value of an element at a given index. This operation is not affected by the initial
+    /// state of the edited entry.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     fn set(&mut self, id: A::IdentifierType, val: A);
 
-    fn insert(&mut self, id: A::IdentifierType, val: A);
+    /// Setter
+    ///
+    /// Insert a value at a given empty index.
+    /// Otherwise, see [Panics] section for more information.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - **should panic if there is already a value associated to the specified index**
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn insert(&mut self, id: A::IdentifierType, val: A) {
+        assert!(self.get(id.clone()).is_none());
+        self.set(id, val);
+    }
 
+    /// Getter
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val: A)` if there is an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     fn get(&self, id: A::IdentifierType) -> Option<A>;
 
+    /// Setter
+    ///
+    /// Replace the value of an element at a given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// In both cases, the new value should be set to the one specified as argument.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
 
+    /// Remove an item from the storage and return it
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val: A)` if there was an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
 }

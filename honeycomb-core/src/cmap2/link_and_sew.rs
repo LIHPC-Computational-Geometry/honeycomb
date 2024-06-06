@@ -5,7 +5,9 @@
 
 // ------ IMPORTS
 
-use crate::{AttributeUpdate, CMap2, CoordsFloat, DartIdentifier, Vertex2, NULL_DART_ID};
+use crate::{
+    AttributeStorage, AttributeUpdate, CMap2, CoordsFloat, DartIdentifier, Vertex2, NULL_DART_ID,
+};
 
 // ------ CONTENT
 
@@ -40,7 +42,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
             assert!(
-                self.vertices.get(&(self.vertex_id(rhs_dart_id))).is_some(),
+                self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
                 "{}",
                 format!(
                     "No vertex defined on dart {rhs_dart_id}, use `one_link` instead of `one_sew`"
@@ -51,8 +53,8 @@ impl<T: CoordsFloat> CMap2<T> {
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
             let tmp = (
-                self.vertices.remove(&b2lhs_vid_old),
-                self.vertices.remove(&rhs_vid_old),
+                self.vertices.remove(b2lhs_vid_old),
+                self.vertices.remove(rhs_vid_old),
             );
             let new_vertex = match tmp {
                 (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -99,7 +101,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 // there should be a check in order to ensure that each dart has associated vertices
                 // otherwise, panic because the user should call link, not sew
                 assert!(
-                    self.vertices.get(&(self.vertex_id(lhs_dart_id))).is_some() | self.vertices.get(&(self.vertex_id(rhs_dart_id))).is_some(),
+                    self.vertices.get(self.vertex_id(lhs_dart_id)).is_some() | self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
                     "{}",
                     format!("No vertices defined on either darts {lhs_dart_id}/{rhs_dart_id} , use `two_link` instead of `two_sew`")
                 );
@@ -111,8 +113,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(&lhs_vid_old),
-                    self.vertices.remove(&b1rhs_vid_old),
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -130,8 +132,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmp = (
-                    self.vertices.remove(&b1lhs_vid_old),
-                    self.vertices.remove(&rhs_vid_old),
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
                 );
                 let new_vertex = match tmp {
                     (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
@@ -150,15 +152,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 let tmpa = (
-                    self.vertices.remove(&lhs_vid_old),
-                    self.vertices.remove(&b1rhs_vid_old),
+                    self.vertices.remove(lhs_vid_old),
+                    self.vertices.remove(b1rhs_vid_old),
                 );
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 let tmpb = (
-                    self.vertices.remove(&b1lhs_vid_old),
-                    self.vertices.remove(&rhs_vid_old),
+                    self.vertices.remove(b1lhs_vid_old),
+                    self.vertices.remove(rhs_vid_old),
                 );
 
                 // check orientation
