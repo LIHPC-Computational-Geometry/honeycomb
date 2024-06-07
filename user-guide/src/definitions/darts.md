@@ -4,8 +4,8 @@ Darts are the finest grain composing combinatorial maps. The structure of the ma
 darts, defined through beta functions. Additionally, a null dart is defined, we denote it *∅*.
 
 <figure style="text-align:center">
-    <img src="../images/Darts.svg" alt="Darts" />
-    <figcaption><i>Boundless square modeling using four darts</i></figcaption>
+    <img src="../images/bg_darts.svg" alt="Darts" />
+    <figcaption><i>Unorganized darts</i></figcaption>
 </figure>
 
 In our implementation, darts exist implicitly through indexing and their associated data. There are no dart *objects*
