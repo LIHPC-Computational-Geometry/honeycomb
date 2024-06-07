@@ -58,7 +58,7 @@ use std::collections::BTreeSet;
 /// The following example goes over multiple operations on the mesh in order
 /// to demonstrate general usage of the structure and its methods.
 ///
-/// ![`CMAP2_EXAMPLE`](../images/CMap2Example.svg)
+/// ![`CMAP2_EXAMPLE`](https://lihpc-computational-geometry.github.io/honeycomb/images/bg_hsscmap_example.svg)
 ///
 /// Note that:
 /// - we create the map using its builder structure: [`CMapBuilder`].
