@@ -18,8 +18,8 @@ With these elements, we can represent and operate on meshes.
 Operations on a combinatorial map can affect its topology, shape or both:
 
 <figure style="text-align:center">
-    <img src="../images/CMap2Mesh.svg" alt="MapMeshEquivalent" />
-    <figcaption><i>Mesh-Map equivalent of a four step transformation</i></figcaption>
+    <img src="../images/bg_hcmap_example.svg" alt="MapMeshEquivalent" />
+    <figcaption><i>Core crate quickstart example</i></figcaption>
 </figure>
 
 The specifics on how data is encoded is detailed in attribute-specific
