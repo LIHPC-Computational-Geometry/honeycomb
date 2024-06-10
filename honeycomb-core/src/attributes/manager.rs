@@ -1,8 +1,7 @@
-//! Module short description
+//! attribute super structure code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! this module contains all code used to implement a manager struct, used to handle generic
+//! attributes embedded in a given combinatorial map.
 
 // ------ IMPORTS
 
