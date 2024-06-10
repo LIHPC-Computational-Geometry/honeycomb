@@ -83,6 +83,23 @@ pub struct AttrStorageManager {
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
 
+// --- manager-wide methods
+
+impl AttrStorageManager {
+    /// Extend the size of all storages in the manager.
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Length by which storages should be extended.
+    pub fn extend_storages(&mut self, length: usize) {
+        for storage in self.vertices.values_mut() {
+            storage.extend(length);
+        }
+    }
+}
+
+// --- attribute-specific methods
+
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
         let probably_storage = match A::binds_to() {
@@ -112,23 +129,6 @@ macro_rules! get_storage_mut {
             .expect("E: could not downcast generic storage to specified attribute type");
     };
 }
-
-// --- manager-wide methods
-
-impl AttrStorageManager {
-    /// Extend the size of all storages in the manager.
-    ///
-    /// # Arguments
-    ///
-    /// - `length: usize` -- Length by which storages should be extended.
-    pub fn extend_storages(&mut self, length: usize) {
-        for storage in self.vertices.values_mut() {
-            storage.extend(length);
-        }
-    }
-}
-
-// --- attribute-specific methods
 
 impl AttrStorageManager {
     #[allow(clippy::missing_errors_doc)]
