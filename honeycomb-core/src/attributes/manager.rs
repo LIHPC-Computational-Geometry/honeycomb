@@ -46,7 +46,7 @@ pub enum ManagerError {
 /// ```
 /// # use std::any::{Any, TypeId};
 /// # use std::collections::HashMap;
-/// # use honeycomb_core::{AttributeBind, AttributeStorage};
+/// # use honeycomb_core::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
 /// pub struct Manager {
 ///     inner: HashMap<TypeId, Box<dyn Any>>,
 /// }

@@ -1,6 +1,9 @@
 // ------ IMPORTS
 
-use crate::{AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate};
+use crate::{
+    AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate,
+    UnknownAttributeStorage,
+};
 use std::any::Any;
 
 // ------ CONTENT
