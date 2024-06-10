@@ -46,7 +46,7 @@ mod spatial_repr;
 pub use attributes::{
     collections::{AttrCompactVec, AttrSparseVec},
     manager::{AttrStorageManager, ManagerError},
-    traits::{AttributeBind, AttributeStorage, AttributeUpdate},
+    traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage},
 };
 pub use cells::{
     collections::{

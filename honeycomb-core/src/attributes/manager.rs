@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::{AttributeBind, AttributeStorage, OrbitPolicy};
+use crate::{AttributeBind, AttributeStorage, OrbitPolicy, UnknownAttributeStorage};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 

@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use crate::attributes::traits::AttributeStorage;
-use crate::{AttributeBind, AttributeUpdate};
+use crate::{AttributeBind, AttributeUpdate, UnknownAttributeStorage};
 use num::ToPrimitive;
 
 // ------ CONTENT
@@ -35,7 +35,7 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -52,7 +52,9 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
     fn n_attributes(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count()
     }
+}
 
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
     fn set(&mut self, id: A::IdentifierType, val: A) {
         self.data[id.to_usize().unwrap()] = Some(val);
     }
@@ -131,7 +133,7 @@ pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
     data: Vec<A>,
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrCompactVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrCompactVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -150,7 +152,9 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
     fn n_attributes(&self) -> usize {
         self.data.len() - self.unused_data_slots.len()
     }
+}
 
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrCompactVec<A> {
     fn set(&mut self, id: A::IdentifierType, val: A) {
         if let Some(idx) = self.index_map[id.to_usize().unwrap()] {
             // internal index is defined => there should be associated data
