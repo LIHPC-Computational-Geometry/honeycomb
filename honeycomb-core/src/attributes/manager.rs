@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 use crate::{AttributeBind, AttributeStorage, OrbitPolicy, UnknownAttributeStorage};
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use std::collections::HashMap;
 
 // ------ CONTENT
@@ -72,13 +72,13 @@ pub enum ManagerError {
 #[derive(Default)]
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
-    vertices: HashMap<TypeId, Box<dyn Any>>,
+    vertices: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Edge attributes' storages.
-    edges: HashMap<TypeId, Box<dyn Any>>,
+    edges: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Face attributes' storages.
-    faces: HashMap<TypeId, Box<dyn Any>>,
+    faces: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Other storages.
-    others: HashMap<TypeId, Box<dyn Any>>, // Orbit::Custom
+    others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
 
 macro_rules! get_storage {
