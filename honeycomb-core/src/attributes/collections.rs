@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use crate::attributes::traits::AttributeStorage;
-use crate::{AttributeBind, AttributeUpdate};
+use crate::{AttributeBind, AttributeUpdate, DartIdentifier, UnknownAttributeStorage};
 use num::ToPrimitive;
 
 // ------ CONTENT
@@ -35,7 +35,7 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<Option<T>>,
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -53,6 +53,26 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
         self.data.iter().filter(|val| val.is_some()).count()
     }
 
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+            (None, None) => AttributeUpdate::merge_undefined(None),
+        };
+        self.set(out.into(), new_val);
+    }
+
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        let new_val = self
+            .remove(inp.into())
+            .expect("E: cannot split attribute value - value not found in storage");
+        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
+        self.set(lhs_out.into(), lhs_val);
+        self.set(rhs_out.into(), rhs_val);
+    }
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
     fn set(&mut self, id: A::IdentifierType, val: A) {
         self.data[id.to_usize().unwrap()] = Some(val);
     }
@@ -131,7 +151,7 @@ pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
     data: Vec<A>,
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrCompactVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrCompactVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -151,6 +171,26 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
         self.data.len() - self.unused_data_slots.len()
     }
 
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+            (None, None) => AttributeUpdate::merge_undefined(None),
+        };
+        self.set(out.into(), new_val);
+    }
+
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        let new_val = self
+            .remove(inp.into())
+            .expect("E: cannot split attribute value - value not found in storage");
+        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
+        self.set(lhs_out.into(), lhs_val);
+        self.set(rhs_out.into(), rhs_val);
+    }
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrCompactVec<A> {
     fn set(&mut self, id: A::IdentifierType, val: A) {
         if let Some(idx) = self.index_map[id.to_usize().unwrap()] {
             // internal index is defined => there should be associated data

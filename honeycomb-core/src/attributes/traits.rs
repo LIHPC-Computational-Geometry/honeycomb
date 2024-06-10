@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::OrbitPolicy;
+use crate::{DartIdentifier, OrbitPolicy};
 use std::any::Any;
 use std::fmt::Debug;
 
@@ -119,7 +119,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: num::ToPrimitive + Clone;
+    type IdentifierType: From<DartIdentifier> + num::ToPrimitive + Clone;
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
@@ -128,8 +128,10 @@ pub trait AttributeBind: Debug + Sized + Any {
 
 /// Common trait implemented by generic attribute storages.
 ///
+/// This trait contain attribute-agnostic function & methods.
+///
 /// The documentation of this trait describe the behavior each function & method should have.
-pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
+pub trait UnknownAttributeStorage: Debug + Any {
     /// Constructor
     ///
     /// # Arguments
@@ -158,6 +160,57 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
 
+    /// Merge attributes at specified index
+    ///
+    /// This method should serve as a wire to either `AttributeUpdate::merge`
+    /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
+    /// the storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Behavior pseudo-code
+    ///
+    /// ```text
+    /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
+    ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+    ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+    ///     None, None => AttributeUpdate::merge_undefined(None),
+    /// }
+    /// attributes.set(out, new_val);
+    /// ```
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+
+    /// Split attribute to specified indices
+    ///
+    /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
+    /// we want to split from the storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Behavior pseudo-code
+    ///
+    /// ```text
+    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
+    /// attributes[lhs_out] = val_lhs;
+    /// attributes[rhs_out] = val_rhs;
+    /// ```
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+}
+
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-specific methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// Setter
     ///
     /// Set the value of an element at a given index. This operation is not affected by the initial

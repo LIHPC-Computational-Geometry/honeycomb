@@ -6,7 +6,10 @@
 
 // ------ IMPORT
 
-use crate::{AttributeStorage, CMap2, CMapError, CoordsFloat, Vertex2, VertexIdentifier};
+use crate::{
+    AttributeStorage, CMap2, CMapError, CoordsFloat, UnknownAttributeStorage, Vertex2,
+    VertexIdentifier,
+};
 
 // ------ CONTENT
 

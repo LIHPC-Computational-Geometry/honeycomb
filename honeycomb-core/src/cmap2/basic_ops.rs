@@ -11,9 +11,9 @@
 
 use super::CMAP2_BETA;
 use crate::{
-    AttributeStorage, CMap2, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier,
-    FaceCollection, FaceIdentifier, Orbit2, OrbitPolicy, VertexCollection, VertexIdentifier,
-    NULL_DART_ID,
+    CMap2, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier, FaceCollection,
+    FaceIdentifier, Orbit2, OrbitPolicy, UnknownAttributeStorage, VertexCollection,
+    VertexIdentifier, NULL_DART_ID,
 };
 use std::collections::BTreeSet;
 
