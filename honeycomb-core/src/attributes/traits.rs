@@ -6,6 +6,7 @@
 // ------ IMPORTS
 
 use crate::{DartIdentifier, OrbitPolicy};
+use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
 
@@ -131,7 +132,7 @@ pub trait AttributeBind: Debug + Sized + Any {
 /// This trait contain attribute-agnostic function & methods.
 ///
 /// The documentation of this trait describe the behavior each function & method should have.
-pub trait UnknownAttributeStorage: Debug + Any {
+pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// Constructor
     ///
     /// # Arguments
@@ -204,6 +205,8 @@ pub trait UnknownAttributeStorage: Debug + Any {
     /// ```
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
 }
+
+impl_downcast!(UnknownAttributeStorage);
 
 /// Common trait implemented by generic attribute storages.
 ///
