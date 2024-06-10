@@ -108,6 +108,15 @@ impl AttrStorageManager {
 
     // merges
 
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_attributes(
         &mut self,
         orbit_policy: OrbitPolicy,
@@ -120,11 +129,18 @@ impl AttrStorageManager {
             OrbitPolicy::Edge => self.merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
             OrbitPolicy::Face => self.merge_face_attributes(id_out, id_in_lhs, id_in_rhs),
             OrbitPolicy::Custom(_) => {
-                todo!("custom orbit binding is a special case that will be treated later")
+                self.merge_other_attributes(orbit_policy, id_out, id_in_lhs, id_in_rhs);
             }
         }
     }
 
+    /// Execute a merging operation on all attributes associated with vertices for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_vertex_attributes(
         &mut self,
         id_out: DartIdentifier,
@@ -134,6 +150,13 @@ impl AttrStorageManager {
         todo!()
     }
 
+    /// Execute a merging operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_edge_attributes(
         &mut self,
         id_out: DartIdentifier,
@@ -143,6 +166,13 @@ impl AttrStorageManager {
         todo!()
     }
 
+    /// Execute a merging operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_face_attributes(
         &mut self,
         id_out: DartIdentifier,
@@ -152,6 +182,15 @@ impl AttrStorageManager {
         todo!()
     }
 
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_other_attributes(
         &mut self,
         orbit_policy: OrbitPolicy,
@@ -159,45 +198,21 @@ impl AttrStorageManager {
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        todo!()
+        todo!("custom orbit binding is a special case that will be treated later")
     }
 
     // splits
 
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_attributes(
-        &mut self,
-        orbit_policy: OrbitPolicy,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
-    }
-
-    pub fn split_vertex_attributes(
-        &mut self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
-    }
-
-    pub fn split_edge_attributes(
-        &mut self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
-    }
-
-    pub fn split_face_attributes(
-        &mut self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
-    }
-
-    pub fn split_other_attributes(
         &mut self,
         orbit_policy: OrbitPolicy,
         id_out_lhs: DartIdentifier,
@@ -209,9 +224,77 @@ impl AttrStorageManager {
             OrbitPolicy::Edge => self.split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
             OrbitPolicy::Face => self.split_face_attributes(id_out_lhs, id_out_rhs, id_in),
             OrbitPolicy::Custom(_) => {
-                todo!("custom orbit binding is a special case that will be treated later")
+                self.split_other_attributes(orbit_policy, id_out_lhs, id_out_rhs, id_in);
             }
         }
+    }
+
+    /// Execute a splitting operation on all attributes associated with vertices
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_vertex_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    /// Execute a splitting operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_edge_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    /// Execute a splitting operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_face_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_other_attributes(
+        &mut self,
+        orbit_policy: OrbitPolicy,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        todo!("custom orbit binding is a special case that will be treated later")
     }
 }
 
@@ -457,6 +540,13 @@ impl AttrStorageManager {
         storage.remove(id)
     }
 
+    /// Merge given attribute values.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_attribute<A: AttributeBind>(
         &mut self,
         id_out: DartIdentifier,
@@ -467,6 +557,13 @@ impl AttrStorageManager {
         storage.merge(id_out, id_in_lhs, id_in_rhs);
     }
 
+    /// Split given attribute value.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_attribute<A: AttributeBind>(
         &mut self,
         id_out_lhs: DartIdentifier,
