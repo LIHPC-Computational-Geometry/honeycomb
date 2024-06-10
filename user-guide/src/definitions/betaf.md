@@ -7,11 +7,6 @@ connections of the different cells of the map / mesh. In our case, we mostly use
 - *β<sub>1</sub>*, a (partial) permutation,
 - *β<sub>2</sub>*, *β<sub>3</sub>*, two (partial) involutions
 
-<figure style="text-align:center">
-    <img src="../images/BetaFunc.svg" alt="Embed" />
-    <figcaption><i>Representation of β<sub>1</sub> (red, only on a single face) and β<sub>2</sub> (yellow) for a simple 2-map</i></figcaption>
-</figure>
-
 Additionally, we define *β<sub>0</sub>* as the inverse of *β<sub>1</sub>*, i.e. *β<sub>0</sub>(β<sub>1</sub>(d)) = d*.
 This comes from a practical consideration for performances and efficiency of the implementation.
 
@@ -25,3 +20,25 @@ For a given dart *d*, we define two properties:
 
 - *d* is ***i*-free** if *β<sub>i</sub>(d) = ∅*, *∅* being the null dart
 - *d* is **free** if it is ***i*-free for all *i***
+
+## Construction Example
+
+<figure style="text-align:center">
+    <img src="../images/bg_darts.svg" alt="Embed" />
+    <figcaption><i>Start from unorganized darts</i></figcaption>
+</figure>
+
+<figure style="text-align:center">
+    <img src="../images/bg_beta1.svg" alt="Embed" />
+    <figcaption><i>Organize those using β<sub>1</sub></i></figcaption>
+</figure>
+
+<figure style="text-align:center">
+    <img src="../images/bg_beta2.svg" alt="Embed" />
+    <figcaption><i>Add β<sub>2</sub> images; For details on vertices, refer to the Embedding section</i></figcaption>
+</figure>
+
+<figure style="text-align:center">
+    <img src="../images/bg_map.svg" alt="Embed" />
+    <figcaption><i>Build up a larger map</i></figcaption>
+</figure>
