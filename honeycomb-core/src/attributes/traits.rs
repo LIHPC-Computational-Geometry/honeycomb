@@ -131,14 +131,7 @@ pub trait AttributeBind: Debug + Sized + Any {
 /// This trait contain attribute-agnostic function & methods.
 ///
 /// The documentation of this trait describe the behavior each function & method should have.
-pub trait UnknownAttributeStorage: Debug + Any {}
-
-/// Common trait implemented by generic attribute storages.
-///
-/// This trait contain attribute-specific methods.
-///
-/// The documentation of this trait describe the behavior each function & method should have.
-pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
+pub trait UnknownAttributeStorage: Debug + Any {
     /// Constructor
     ///
     /// # Arguments
@@ -166,7 +159,14 @@ pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     /// its length.
     #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
+}
 
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-specific methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// Setter
     ///
     /// Set the value of an element at a given index. This operation is not affected by the initial
