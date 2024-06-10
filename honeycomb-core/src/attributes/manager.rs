@@ -6,7 +6,9 @@
 
 // ------ IMPORTS
 
-use crate::{AttributeBind, AttributeStorage, OrbitPolicy, UnknownAttributeStorage};
+use crate::{
+    AttributeBind, AttributeStorage, DartIdentifier, OrbitPolicy, UnknownAttributeStorage,
+};
 use std::any::TypeId;
 use std::collections::HashMap;
 
@@ -111,6 +113,23 @@ macro_rules! get_storage_mut {
     };
 }
 
+// --- manager-wide methods
+
+impl AttrStorageManager {
+    /// Extend the size of all storages in the manager.
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Length by which storages should be extended.
+    pub fn extend_storages(&mut self, length: usize) {
+        for storage in self.vertices.values_mut() {
+            storage.extend(length);
+        }
+    }
+}
+
+// --- attribute-specific methods
+
 impl AttrStorageManager {
     #[allow(clippy::missing_errors_doc)]
     /// Add a new storage to the manager.
@@ -149,15 +168,6 @@ impl AttrStorageManager {
             Err(ManagerError::DuplicateStorage)
         } else {
             Ok(())
-        }
-    }
-
-    /// UNIMPLEMENTED
-    pub fn extend_storages(&mut self, _length: usize) {
-        // not sure if this is actually possible since we need to fetch the attribute from storages,
-        // which cannot be interpreted as such without the attribute in the first place
-        for _storage in self.vertices.values_mut() {
-            todo!()
         }
     }
 
@@ -328,5 +338,25 @@ impl AttrStorageManager {
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
         storage.remove(id)
+    }
+
+    pub fn merge_attribute<A: AttributeBind>(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        get_storage_mut!(self, storage);
+        storage.merge(id_out, id_in_lhs, id_in_rhs);
+    }
+
+    pub fn split_attribute<A: AttributeBind>(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        get_storage_mut!(self, storage);
+        storage.split(id_out_lhs, id_out_rhs, id_in);
     }
 }
