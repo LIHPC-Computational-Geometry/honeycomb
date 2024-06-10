@@ -106,6 +106,8 @@ impl AttrStorageManager {
         }
     }
 
+    // merges
+
     pub fn merge_attributes(
         &mut self,
         orbit_policy: OrbitPolicy,
@@ -152,11 +154,64 @@ impl AttrStorageManager {
 
     pub fn merge_other_attributes(
         &mut self,
+        orbit_policy: OrbitPolicy,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
         todo!()
+    }
+
+    // splits
+
+    pub fn split_attributes(
+        &mut self,
+        orbit_policy: OrbitPolicy,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    pub fn split_vertex_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    pub fn split_edge_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    pub fn split_face_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+    }
+
+    pub fn split_other_attributes(
+        &mut self,
+        orbit_policy: OrbitPolicy,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        match orbit_policy {
+            OrbitPolicy::Vertex => self.split_vertex_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Edge => self.split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Face => self.split_face_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Custom(_) => {
+                todo!("custom orbit binding is a special case that will be treated later")
+            }
+        }
     }
 }
 
