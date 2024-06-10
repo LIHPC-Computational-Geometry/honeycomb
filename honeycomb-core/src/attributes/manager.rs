@@ -96,6 +96,59 @@ impl AttrStorageManager {
             storage.extend(length);
         }
     }
+
+    pub fn merge_attributes(
+        &mut self,
+        orbit_policy: OrbitPolicy,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        match orbit_policy {
+            OrbitPolicy::Vertex => self.merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Edge => self.merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Face => self.merge_face_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Custom(_) => {
+                todo!("custom orbit binding is a special case that will be treated later")
+            }
+        }
+    }
+
+    pub fn merge_vertex_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        todo!()
+    }
+
+    pub fn merge_edge_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        todo!()
+    }
+
+    pub fn merge_face_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        todo!()
+    }
+
+    pub fn merge_other_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        todo!()
+    }
 }
 
 // --- attribute-specific methods
