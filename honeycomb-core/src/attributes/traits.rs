@@ -162,52 +162,46 @@ pub trait UnknownAttributeStorage: Debug + Any {
 
     /// Merge attributes at specified index
     ///
-    /// This method should serve as a wire to `AttributeUpdate::merge`, essentially doing
-    /// the following:
-    ///
-    /// ```text
-    /// attributes[out] = AttributeUpdate::merge(attributes[lhs_inp], attributes[rhs_inp]);
-    /// ```
+    /// This method should serve as a wire to either `AttributeUpdate::merge`
+    /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
+    /// the storage.
     ///
     /// # Arguments
     ///
     /// - `out: DartIdentifier` -- Identifier to associate the result with.
     /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
-    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
-
-    /// Merge attributes at specified index
     ///
-    /// This method should serve as a wire to `AttributeUpdate::merge_undefined`, essentially doing
-    /// the following:
+    /// # Behavior pseudo-code
     ///
     /// ```text
-    /// attr_in = attributes.get(id);
-    /// attributes[out] = AttributeUpdate::merge_undefined(attr_in);
+    /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
+    ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+    ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+    ///     None, None => AttributeUpdate::merge_undefined(None),
+    /// }
+    /// attributes.set(out, new_val);
     /// ```
-    ///
-    /// # Arguments
-    ///
-    /// - `out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `inp: DartIdentifier` -- Identifier of one (potential) attribute value to merge from.
-    fn merge_undefined(&mut self, out: DartIdentifier, inp: DartIdentifier);
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
 
     /// Split attribute to specified indices
     ///
-    /// This method should serve as a wire to `AttributeUpdate::split`, essentially doing
-    /// the following:
-    ///
-    /// ```text
-    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes[inp]);
-    /// attributes[lhs_out] = val_lhs;
-    /// attributes[rhs_out] = val_rhs;
-    /// ```
+    /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
+    /// we want to split from the storage.
     ///
     /// # Arguments
     ///
     /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Behavior pseudo-code
+    ///
+    /// ```text
+    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
+    /// attributes[lhs_out] = val_lhs;
+    /// attributes[rhs_out] = val_rhs;
+    /// ```
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
 }
 
