@@ -119,7 +119,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: num::ToPrimitive + Clone;
+    type IdentifierType: From<DartIdentifier> + num::ToPrimitive + Clone;
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.

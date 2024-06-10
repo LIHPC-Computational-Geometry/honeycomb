@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use crate::attributes::traits::AttributeStorage;
-use crate::{AttributeBind, AttributeUpdate, UnknownAttributeStorage};
+use crate::{AttributeBind, AttributeUpdate, DartIdentifier, UnknownAttributeStorage};
 use num::ToPrimitive;
 
 // ------ CONTENT
@@ -51,6 +51,24 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
 
     fn n_attributes(&self) -> usize {
         self.data.iter().filter(|val| val.is_some()).count()
+    }
+
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+            (None, None) => AttributeUpdate::merge_undefined(None),
+        };
+        self.set(out.into(), new_val);
+    }
+
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        let new_val = self
+            .remove(inp.into())
+            .expect("E: cannot split attribute value - value not found in storage");
+        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
+        self.set(lhs_out.into(), lhs_val);
+        self.set(rhs_out.into(), rhs_val);
     }
 }
 
@@ -151,6 +169,24 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
 
     fn n_attributes(&self) -> usize {
         self.data.len() - self.unused_data_slots.len()
+    }
+
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+            (None, None) => AttributeUpdate::merge_undefined(None),
+        };
+        self.set(out.into(), new_val);
+    }
+
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        let new_val = self
+            .remove(inp.into())
+            .expect("E: cannot split attribute value - value not found in storage");
+        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
+        self.set(lhs_out.into(), lhs_val);
+        self.set(rhs_out.into(), rhs_val);
     }
 }
 
