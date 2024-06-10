@@ -119,7 +119,7 @@ impl AttrStorageManager {
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_attributes(
         &mut self,
-        orbit_policy: OrbitPolicy,
+        orbit_policy: &OrbitPolicy,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
@@ -147,7 +147,9 @@ impl AttrStorageManager {
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        todo!()
+        for storage in self.vertices.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
     }
 
     /// Execute a merging operation on all attributes associated with edges for specified cells.
@@ -163,7 +165,9 @@ impl AttrStorageManager {
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        todo!()
+        for storage in self.edges.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
     }
 
     /// Execute a merging operation on all attributes associated with faces for specified cells.
@@ -179,7 +183,9 @@ impl AttrStorageManager {
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        todo!()
+        for storage in self.faces.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
     }
 
     /// Execute a merging operation on all attributes associated with a given orbit
@@ -193,10 +199,10 @@ impl AttrStorageManager {
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_other_attributes(
         &mut self,
-        orbit_policy: OrbitPolicy,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        _orbit_policy: &OrbitPolicy,
+        _id_out: DartIdentifier,
+        _id_in_lhs: DartIdentifier,
+        _id_in_rhs: DartIdentifier,
     ) {
         todo!("custom orbit binding is a special case that will be treated later")
     }
@@ -214,7 +220,7 @@ impl AttrStorageManager {
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_attributes(
         &mut self,
-        orbit_policy: OrbitPolicy,
+        orbit_policy: &OrbitPolicy,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
@@ -244,6 +250,9 @@ impl AttrStorageManager {
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
+        for storage in self.vertices.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
     }
 
     /// Execute a splitting operation on all attributes associated with edges for specified cells.
@@ -260,6 +269,9 @@ impl AttrStorageManager {
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
+        for storage in self.edges.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
     }
 
     /// Execute a splitting operation on all attributes associated with faces for specified cells.
@@ -276,6 +288,9 @@ impl AttrStorageManager {
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
+        for storage in self.faces.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
     }
 
     /// Execute a splitting operation on all attributes associated with a given orbit
@@ -289,10 +304,10 @@ impl AttrStorageManager {
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_other_attributes(
         &mut self,
-        orbit_policy: OrbitPolicy,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        _orbit_policy: &OrbitPolicy,
+        _id_out_lhs: DartIdentifier,
+        _id_out_rhs: DartIdentifier,
+        _id_in: DartIdentifier,
     ) {
         todo!("custom orbit binding is a special case that will be treated later")
     }
