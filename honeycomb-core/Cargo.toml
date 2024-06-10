@@ -20,6 +20,7 @@ utils = []
 
 [dependencies]
 cfg-if.workspace = true
+downcast-rs.workspace = true
 num.workspace = true
 vtkio = { workspace = true, optional = true }
 
