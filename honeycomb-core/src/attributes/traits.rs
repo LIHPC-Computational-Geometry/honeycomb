@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::OrbitPolicy;
+use crate::{DartIdentifier, OrbitPolicy};
 use std::any::Any;
 use std::fmt::Debug;
 
@@ -159,6 +159,56 @@ pub trait UnknownAttributeStorage: Debug + Any {
     /// its length.
     #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
+
+    /// Merge attributes at specified index
+    ///
+    /// This method should serve as a wire to `AttributeUpdate::merge`, essentially doing
+    /// the following:
+    ///
+    /// ```text
+    /// attributes[out] = AttributeUpdate::merge(attributes[lhs_inp], attributes[rhs_inp]);
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// - `out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+
+    /// Merge attributes at specified index
+    ///
+    /// This method should serve as a wire to `AttributeUpdate::merge_undefined`, essentially doing
+    /// the following:
+    ///
+    /// ```text
+    /// attr_in = attributes.get(id);
+    /// attributes[out] = AttributeUpdate::merge_undefined(attr_in);
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// - `out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `inp: DartIdentifier` -- Identifier of one (potential) attribute value to merge from.
+    fn merge_undefined(&mut self, out: DartIdentifier, inp: DartIdentifier);
+
+    /// Split attribute to specified indices
+    ///
+    /// This method should serve as a wire to `AttributeUpdate::split`, essentially doing
+    /// the following:
+    ///
+    /// ```text
+    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes[inp]);
+    /// attributes[lhs_out] = val_lhs;
+    /// attributes[rhs_out] = val_rhs;
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
 }
 
 /// Common trait implemented by generic attribute storages.
