@@ -128,6 +128,15 @@ pub trait AttributeBind: Debug + Sized + Any {
 
 /// Common trait implemented by generic attribute storages.
 ///
+/// This trait contain attribute-agnostic function & methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+pub trait UnknownAttributeStorage: Debug + Any {}
+
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-specific methods.
+///
 /// The documentation of this trait describe the behavior each function & method should have.
 pub trait AttributeStorage<A: AttributeBind>: Debug + Any {
     /// Constructor
