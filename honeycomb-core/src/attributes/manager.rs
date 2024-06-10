@@ -95,6 +95,15 @@ impl AttrStorageManager {
         for storage in self.vertices.values_mut() {
             storage.extend(length);
         }
+        for storage in self.edges.values_mut() {
+            storage.extend(length);
+        }
+        for storage in self.faces.values_mut() {
+            storage.extend(length);
+        }
+        for storage in self.others.values_mut() {
+            storage.extend(length);
+        }
     }
 
     pub fn merge_attributes(
