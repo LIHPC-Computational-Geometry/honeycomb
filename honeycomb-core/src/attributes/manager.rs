@@ -13,6 +13,7 @@ use std::collections::HashMap;
 // ------ CONTENT
 
 /// Attribute manager error enum.
+#[derive(Debug)]
 pub enum ManagerError {
     /// Storage of a given type already exists in the structure.
     DuplicateStorage,
