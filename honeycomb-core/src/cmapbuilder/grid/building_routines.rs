@@ -13,7 +13,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
     mut manager: AttrStorageManager,
 ) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(4 * n_square_x * n_square_y);
-    manager.extend_storages(4 * n_square_x * n_square_y); // todo: add it to the map
+    manager.extend_storages(4 * n_square_x * n_square_y + 1); // todo: add it to the map
 
     // first, topology
     (0..n_square_y).for_each(|y_idx| {
@@ -104,7 +104,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     mut manager: AttrStorageManager,
 ) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square_x * n_square_y);
-    manager.extend_storages(6 * n_square_x * n_square_y); // todo: add it to the map
+    manager.extend_storages(6 * n_square_x * n_square_y + 1); // todo: add it to the map
 
     // first, topology
     (0..n_square_y).for_each(|y_idx| {
