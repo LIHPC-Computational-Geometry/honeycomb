@@ -20,6 +20,10 @@ categories = ["data-structures", "mathematics", "science"]
 keywords = ["mesh", "meshing"]
 authors = ["Isaie Muron <isaie.muron@cea.fr>", "Cedric Chevalier <cedric.chevalier@cea.fr>"]
 
+[patch.crates-io]
+# This should allow us to use the latest commit as a dependency, without compromising crate publication
+vtkio = { git = "https://github.com/elrnv/vtkio", rev = "0c14e90" }
+
 [workspace.dependencies]
 # members
 honeycomb-benches = { version = "0.3.1", path = "./benches" }
