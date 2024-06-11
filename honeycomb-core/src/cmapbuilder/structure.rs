@@ -128,19 +128,19 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         if let Some(vfile) = self.vtk_file {
             // build from vtk
             // this routine should return a Result instead of the map directly
-            return super::io::build_2d_from_vtk(vfile);
+            return super::io::build_2d_from_vtk(vfile, self.attributes);
         }
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             return if gridb.split_quads {
-                gridb
-                    .parse_2d()
-                    .map(|(ns, lens)| super::grid::building_routines::build_2d_splitgrid(ns, lens))
+                gridb.parse_2d().map(|(ns, lens)| {
+                    super::grid::building_routines::build_2d_splitgrid(ns, lens, self.attributes)
+                })
             } else {
-                gridb
-                    .parse_2d()
-                    .map(|(ns, lens)| super::grid::building_routines::build_2d_grid(ns, lens))
+                gridb.parse_2d().map(|(ns, lens)| {
+                    super::grid::building_routines::build_2d_grid(ns, lens, self.attributes)
+                })
             };
         }
         Ok(CMap2::new(self.n_darts))

@@ -7,7 +7,8 @@
 
 // ------ IMPORTS
 use crate::{
-    BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier,
+    AttrStorageManager, BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2,
+    VertexIdentifier,
 };
 use num::Zero;
 use std::collections::BTreeMap;
@@ -101,7 +102,10 @@ macro_rules! build_vertices {
 ///         - the number of coordinates cannot be divided by `3`, meaning a tuple is incomplete
 ///         - the number of `Cells` and `CellTypes` isn't equal
 ///         - a given cell has an inconsistent number of vertices with its specified cell type
-pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, BuilderError> {
+pub fn build_2d_from_vtk<T: CoordsFloat>(
+    value: Vtk,
+    mut _manager: AttrStorageManager,
+) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {
