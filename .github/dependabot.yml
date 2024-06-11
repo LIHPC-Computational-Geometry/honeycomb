@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Check for github action updates monthly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  # Check for crates update weekly
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
