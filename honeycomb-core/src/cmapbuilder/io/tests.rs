@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy};
+use crate::{AttrStorageManager, CMap2, DartIdentifier, Orbit2, OrbitPolicy};
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -9,7 +9,7 @@ use vtkio::Vtk;
 fn io_read() {
     let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
     // unwrap is fine since we know the VTK_ASCII const is correct
-    let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk).unwrap();
+    let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk, AttrStorageManager::default()).unwrap();
 
     // check result
     let faces = cmap.fetch_faces();
