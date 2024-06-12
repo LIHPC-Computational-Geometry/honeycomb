@@ -6,7 +6,8 @@
 // ------ IMPORTS
 
 use crate::{
-    AttributeStorage, AttributeUpdate, CMap2, CoordsFloat, DartIdentifier, Vertex2, NULL_DART_ID,
+    AttributeStorage, AttributeUpdate, CMap2, CoordsFloat, DartIdentifier, UnknownAttributeStorage,
+    Vertex2, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -50,20 +51,14 @@ impl<T: CoordsFloat> CMap2<T> {
             );
             self.one_link(lhs_dart_id, rhs_dart_id);
         } else {
+            // fetch vertices ID before topology update
             let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
-            let tmp = (
-                self.vertices.remove(b2lhs_vid_old),
-                self.vertices.remove(rhs_vid_old),
-            );
-            let new_vertex = match tmp {
-                (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                (None, None) => Vertex2::merge_undefined(None),
-            };
-            // use b2lhs_vid as the index for the new vertex
+            // update the topology
             self.one_link(lhs_dart_id, rhs_dart_id);
-            self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
+            // merge vertices from the old IDs to the new one
+            self.vertices
+                .merge(self.vertex_id(rhs_dart_id), b2lhs_vid_old, rhs_vid_old);
         }
     }
 
@@ -97,9 +92,6 @@ impl<T: CoordsFloat> CMap2<T> {
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
             (true, true) => {
-                // WARNING: UNWANTED BEHAVIOR
-                // there should be a check in order to ensure that each dart has associated vertices
-                // otherwise, panic because the user should call link, not sew
                 assert!(
                     self.vertices.get(self.vertex_id(lhs_dart_id)).is_some() | self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
                     "{}",
@@ -109,66 +101,49 @@ impl<T: CoordsFloat> CMap2<T> {
             }
             // update vertex associated to b1rhs/lhs
             (true, false) => {
-                // read current values / remove old ones
+                // fetch vertices ID before topology update
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                let tmp = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
-                );
-                let new_vertex = match tmp {
-                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                    (None, None) => Vertex2::merge_undefined(None),
-                };
-                // update the topology (this is why we need the above lines)
+                // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // reinsert correct value
-                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertex);
+                // merge vertices from the old IDs to the new one
+                self.vertices
+                    .merge(self.vertex_id(lhs_dart_id), lhs_vid_old, b1rhs_vid_old);
             }
             // update vertex associated to b1lhs/rhs
             (false, true) => {
-                // read current values / remove old ones
+                // fetch vertices ID before topology update
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                let tmp = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
-                );
-                let new_vertex = match tmp {
-                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                    (None, None) => Vertex2::merge_undefined(None),
-                };
-                // update the topology (this is why we need the above lines)
+                // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // reinsert correct value
-                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertex);
+                // merge vertices from the old IDs to the new one
+                self.vertices
+                    .merge(self.vertex_id(rhs_dart_id), b1lhs_vid_old, rhs_vid_old);
             }
             // update both vertices making up the edge
             (false, false) => {
-                // read current values / remove old ones
+                // fetch vertices ID before topology update
                 // (lhs/b1rhs) vertex
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-                let tmpa = (
-                    self.vertices.remove(lhs_vid_old),
-                    self.vertices.remove(b1rhs_vid_old),
-                );
+
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                let tmpb = (
-                    self.vertices.remove(b1lhs_vid_old),
-                    self.vertices.remove(rhs_vid_old),
-                );
 
                 // check orientation
+                // FIXME: using `get` is suboptimal because read ops imply a copy in our collections
+                // FIXME: maybe we should directly read into the storage instead of using its API
                 #[rustfmt::skip]
                 if let (
-                    (Some(l_vertex), Some(b1r_vertex)),
-                    (Some(b1l_vertex), Some(r_vertex)),
-                ) = (tmpa, tmpb) {
+                    Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
+                    Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
+                ) = (
+                    self.vertices.get(lhs_vid_old), self.vertices.get(b1rhs_vid_old),// (lhs/b1rhs)
+                    self.vertices.get(b1lhs_vid_old), self.vertices.get(rhs_vid_old) // (b1lhs/rhs)
+                )
+                {
                     let lhs_vector = b1l_vertex - l_vertex;
                     let rhs_vector = b1r_vertex - r_vertex;
                     // dot product should be negative if the two darts have opposite direction
@@ -181,24 +156,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     );
                 };
 
-                // proceed with new vertices creation & insertion
-                let new_vertexa = match tmpa {
-                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                    (None, None) => Vertex2::merge_undefined(None),
-                };
-
-                let new_vertexb = match tmpb {
-                    (Some(val1), Some(val2)) => Vertex2::merge(val1, val2),
-                    (Some(val), None) | (None, Some(val)) => Vertex2::merge_undefined(Some(val)),
-                    (None, None) => Vertex2::merge_undefined(None),
-                };
                 // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-
-                // reinsert correct values
-                self.insert_vertex(self.vertex_id(lhs_dart_id), new_vertexa);
-                self.insert_vertex(self.vertex_id(rhs_dart_id), new_vertexb);
+                // merge vertices from the old IDs to the new one
+                self.vertices
+                    .merge(self.vertex_id(lhs_dart_id), lhs_vid_old, b1rhs_vid_old);
+                self.vertices
+                    .merge(self.vertex_id(rhs_dart_id), b1lhs_vid_old, rhs_vid_old);
             }
         }
     }
