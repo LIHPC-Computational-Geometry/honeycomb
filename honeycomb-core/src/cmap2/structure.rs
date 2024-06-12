@@ -11,7 +11,7 @@ use crate::{CMapBuilder, NULL_DART_ID};
 use super::CMAP2_BETA;
 use crate::{
     AttrSparseVec, AttrStorageManager, CoordsFloat, DartIdentifier, UnknownAttributeStorage,
-    Vertex2, NULL_DART_ID,
+    Vertex2,
 };
 use std::collections::BTreeSet;
 

@@ -119,41 +119,148 @@ impl<T: CoordsFloat> CMap2<T> {
 // --- generic attributes
 
 impl<T: CoordsFloat> CMap2<T> {
+    /// Setter
+    ///
+    /// Set the value of an attribute for a given index. This operation is not affected by
+    /// the initial state of the edited entry.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     pub fn set_attribute<A: AttributeBind + AttributeUpdate>(
         &mut self,
         id: A::IdentifierType,
         val: A,
     ) {
-        todo!()
+        self.attributes.set_attribute::<A>(id, val);
     }
 
+    /// Setter
+    ///
+    /// Insert an attribute value at a given undefined index. See [Panics] section information
+    /// on behavior if the value is already defined.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - **should panic if there is already a value associated to the specified index**
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     fn insert_attribute<A: AttributeBind + AttributeUpdate>(
         &mut self,
         id: A::IdentifierType,
         val: A,
     ) {
-        todo!()
+        self.attributes.insert_attribute::<A>(id, val);
     }
 
+    /// Getter
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val: A)` if there is an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     pub fn get_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        todo!()
+        self.attributes.get_attribute::<A>(id)
     }
 
+    /// Setter
+    ///
+    /// Replace the value of the attribute for a given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// In both cases, the new value should be set to the one specified as argument.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     pub fn replace_attribute<A: AttributeBind + AttributeUpdate>(
         &mut self,
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
-        todo!()
+        self.attributes.replace_attribute::<A>(id, val)
     }
 
+    /// Remove an attribute value from the storage and return it
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// ## Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    ///
+    /// # Return
+    ///
+    /// The method should return:
+    /// - `Some(val: A)` if there was an attribute associated with the specified index,
+    /// - `None` if there is not.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - may panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
     pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &mut self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        todo!()
+        self.attributes.remove_attribute::<A>(id)
     }
 }
