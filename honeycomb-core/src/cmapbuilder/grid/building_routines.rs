@@ -2,7 +2,7 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier};
+use crate::{AttrStorageManager, CMap2, CoordsFloat, DartIdentifier};
 
 // ------ CONTENT
 
@@ -10,8 +10,10 @@ use crate::{CMap2, CoordsFloat, DartIdentifier};
 pub fn build_2d_grid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
+    mut manager: AttrStorageManager,
 ) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(4 * n_square_x * n_square_y);
+    manager.extend_storages(4 * n_square_x * n_square_y + 1); // todo: add it to the map
 
     // first, topology
     (0..n_square_y).for_each(|y_idx| {
@@ -99,8 +101,10 @@ pub fn build_2d_grid<T: CoordsFloat>(
 pub fn build_2d_splitgrid<T: CoordsFloat>(
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
+    mut manager: AttrStorageManager,
 ) -> CMap2<T> {
     let mut map: CMap2<T> = CMap2::new(6 * n_square_x * n_square_y);
+    manager.extend_storages(6 * n_square_x * n_square_y + 1); // todo: add it to the map
 
     // first, topology
     (0..n_square_y).for_each(|y_idx| {

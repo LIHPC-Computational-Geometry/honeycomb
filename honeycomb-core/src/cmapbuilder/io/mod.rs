@@ -7,7 +7,8 @@
 
 // ------ IMPORTS
 use crate::{
-    BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier,
+    AttrStorageManager, BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2,
+    VertexIdentifier,
 };
 use num::Zero;
 use std::collections::BTreeMap;
@@ -101,7 +102,10 @@ macro_rules! build_vertices {
 ///         - the number of coordinates cannot be divided by `3`, meaning a tuple is incomplete
 ///         - the number of `Cells` and `CellTypes` isn't equal
 ///         - a given cell has an inconsistent number of vertices with its specified cell type
-pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, BuilderError> {
+pub fn build_2d_from_vtk<T: CoordsFloat>(
+    value: Vtk,
+    mut manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
+) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
     match value.data {
@@ -243,7 +247,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
                             }
                             _ => Err(BuilderError::UnsupportedVtkData("failed to build cell - found a CellType that is not supported in 2-maps")),
                         });
-                        if let Some(is_err) = errs.find(std::result::Result::is_err) {
+                        if let Some(is_err) = errs.find(Result::is_err) {
                             return Err(is_err.unwrap_err()); // unwrap & wrap because type inference is clunky
                         }
                     }
@@ -254,7 +258,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
                 Ok(())
             });
             // return the first error if there is one
-            if let Some(is_err) = tmp.find(std::result::Result::is_err) {
+            if let Some(is_err) = tmp.find(Result::is_err) {
                 return Err(is_err.unwrap_err()); // unwrap & wrap because type inference is clunky
             }
         }
@@ -264,7 +268,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(value: Vtk) -> Result<CMap2<T>, Builder
             cmap.two_sew(dart_id0, dart_id1);
         }
     }
-
+    manager.extend_storages(cmap.n_darts());
     Ok(cmap)
 }
 

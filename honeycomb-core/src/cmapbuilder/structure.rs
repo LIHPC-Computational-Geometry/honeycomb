@@ -8,7 +8,7 @@
 
 #[cfg(feature = "utils")]
 use crate::GridDescriptor;
-use crate::{CMap2, CoordsFloat};
+use crate::{AttrStorageManager, AttributeBind, CMap2, CoordsFloat};
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
@@ -66,6 +66,7 @@ where
     pub(super) vtk_file: Option<Vtk>,
     #[cfg(feature = "utils")]
     pub(super) grid_descriptor: Option<GridDescriptor<T>>,
+    pub(super) attributes: AttrStorageManager,
     pub(super) n_darts: usize,
     pub(super) coordstype: std::marker::PhantomData<T>,
 }
@@ -73,10 +74,28 @@ where
 // --- setters
 
 impl<T: CoordsFloat> CMapBuilder<T> {
-    /// Set the number of dart that that the created map will contain.
+    /// Set the number of dart that the created map will contain.
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn n_darts(mut self, n_darts: usize) -> Self {
         self.n_darts = n_darts;
+        self
+    }
+
+    /// Add the specified attribute that the created map will contain.
+    ///
+    /// Each attribute must be uniquely typed, i.e. a single type or struct cannot be added twice
+    /// to the builder / map. This includes type aliases as these are not distinct from the
+    /// compiler's perspective.
+    ///
+    /// If you have multiple attributes that are represented using the same data type, you may want
+    /// to look into the **Newtype** pattern
+    /// [here](https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html)
+    /// and [here](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
+    #[must_use = "unused builder object, consider removing this method call"]
+    pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
+        if self.attributes.add_storage::<A>(0).is_err() {
+            println!("W: attribute already added to the builder - continuing...");
+        }
         self
     }
 }
@@ -104,26 +123,27 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// See [`CMapBuilder`] example.
     ///
-    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
+    pub fn build(mut self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
             // this routine should return a Result instead of the map directly
-            return super::io::build_2d_from_vtk(vfile);
+            return super::io::build_2d_from_vtk(vfile, self.attributes);
         }
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             return if gridb.split_quads {
-                gridb
-                    .parse_2d()
-                    .map(|(ns, lens)| super::grid::building_routines::build_2d_splitgrid(ns, lens))
+                gridb.parse_2d().map(|(ns, lens)| {
+                    super::grid::building_routines::build_2d_splitgrid(ns, lens, self.attributes)
+                })
             } else {
-                gridb
-                    .parse_2d()
-                    .map(|(ns, lens)| super::grid::building_routines::build_2d_grid(ns, lens))
+                gridb.parse_2d().map(|(ns, lens)| {
+                    super::grid::building_routines::build_2d_grid(ns, lens, self.attributes)
+                })
             };
         }
+        self.attributes.extend_storages(self.n_darts); // todo: add it to the map
         Ok(CMap2::new(self.n_darts))
     }
 }
