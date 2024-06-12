@@ -9,7 +9,10 @@
 use crate::{CMapBuilder, NULL_DART_ID};
 
 use super::CMAP2_BETA;
-use crate::{AttrSparseVec, CoordsFloat, DartIdentifier, UnknownAttributeStorage, Vertex2};
+use crate::{
+    AttrSparseVec, AttrStorageManager, CoordsFloat, DartIdentifier, UnknownAttributeStorage,
+    Vertex2, NULL_DART_ID,
+};
 use std::collections::BTreeSet;
 
 // ------ CONTENT
@@ -150,6 +153,8 @@ use std::collections::BTreeSet;
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
+    pub(super) attributes: AttrStorageManager,
+    /// List of vertices making up the represented mesh
     pub(super) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
@@ -176,10 +181,40 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// See [`CMap2`] example.
-    ///
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
+            attributes: AttrStorageManager::default(),
+            vertices: AttrSparseVec::new(n_darts + 1),
+            unused_darts: BTreeSet::new(),
+            betas: vec![[0; CMAP2_BETA]; n_darts + 1],
+            n_darts: n_darts + 1,
+        }
+    }
+
+    /// Creates a new 2D combinatorial map with user-defined attributes
+    ///
+    /// # Arguments
+    ///
+    /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
+    /// - `attr_storage_manager: AttrStorageManager` -- Manager structure holding
+    ///   the user-defined attributes.
+    ///
+    /// # Return
+    ///
+    /// Returns a combinatorial map containing `n_darts + 1` darts, the amount of darts wanted plus
+    /// the null dart (at index [`NULL_DART_ID`] i.e. `0`).
+    ///
+    /// # Example
+    ///
+    /// See [`CMap2`] example.
+    #[must_use = "constructed object is not used, consider removing this function call"]
+    pub(crate) fn new_with_attributes(
+        n_darts: usize,
+        attr_storage_manager: AttrStorageManager,
+    ) -> Self {
+        Self {
+            attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
