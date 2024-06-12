@@ -56,9 +56,15 @@ impl<T: CoordsFloat> CMap2<T> {
             let rhs_vid_old = self.vertex_id(rhs_dart_id);
             // update the topology
             self.one_link(lhs_dart_id, rhs_dart_id);
-            // merge vertices from the old IDs to the new one
+            // merge vertices & attributes from the old IDs to the new one
+            // FIXME: VertexIdentifier should be cast to DartIdentifier
             self.vertices
                 .merge(self.vertex_id(rhs_dart_id), b2lhs_vid_old, rhs_vid_old);
+            self.attributes.merge_vertex_attributes(
+                self.vertex_id(rhs_dart_id),
+                b2lhs_vid_old,
+                rhs_vid_old,
+            );
         }
     }
 
@@ -102,32 +108,59 @@ impl<T: CoordsFloat> CMap2<T> {
             // update vertex associated to b1rhs/lhs
             (true, false) => {
                 // fetch vertices ID before topology update
+                let lhs_eid_old = self.edge_id(lhs_dart_id);
+                let rhs_eid_old = self.edge_id(b1rhs_dart_id);
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
                 // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // merge vertices from the old IDs to the new one
+                // merge vertices & attributes from the old IDs to the new one
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 self.vertices
                     .merge(self.vertex_id(lhs_dart_id), lhs_vid_old, b1rhs_vid_old);
+                self.attributes.merge_vertex_attributes(
+                    self.vertex_id(lhs_dart_id),
+                    lhs_vid_old,
+                    b1rhs_vid_old,
+                );
+                self.attributes.merge_edge_attributes(
+                    self.edge_id(lhs_dart_id),
+                    lhs_eid_old,
+                    rhs_eid_old,
+                );
             }
             // update vertex associated to b1lhs/rhs
             (false, true) => {
                 // fetch vertices ID before topology update
+                let lhs_eid_old = self.edge_id(lhs_dart_id);
+                let rhs_eid_old = self.edge_id(b1rhs_dart_id);
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
                 // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // merge vertices from the old IDs to the new one
+                // merge vertices & attributes from the old IDs to the new one
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 self.vertices
                     .merge(self.vertex_id(rhs_dart_id), b1lhs_vid_old, rhs_vid_old);
+                self.attributes.merge_vertex_attributes(
+                    self.vertex_id(rhs_dart_id),
+                    b1lhs_vid_old,
+                    rhs_vid_old,
+                );
+                self.attributes.merge_edge_attributes(
+                    self.edge_id(lhs_dart_id),
+                    lhs_eid_old,
+                    rhs_eid_old,
+                );
             }
             // update both vertices making up the edge
             (false, false) => {
                 // fetch vertices ID before topology update
+                let lhs_eid_old = self.edge_id(lhs_dart_id);
+                let rhs_eid_old = self.edge_id(b1rhs_dart_id);
                 // (lhs/b1rhs) vertex
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let b1rhs_vid_old = self.vertex_id(b1rhs_dart_id);
-
                 // (b1lhs/rhs) vertex
                 let b1lhs_vid_old = self.vertex_id(b1lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
@@ -158,11 +191,22 @@ impl<T: CoordsFloat> CMap2<T> {
 
                 // update the topology
                 self.two_link(lhs_dart_id, rhs_dart_id);
-                // merge vertices from the old IDs to the new one
+                // merge vertices & attributes from the old IDs to the new one
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 self.vertices
                     .merge(self.vertex_id(lhs_dart_id), lhs_vid_old, b1rhs_vid_old);
                 self.vertices
                     .merge(self.vertex_id(rhs_dart_id), b1lhs_vid_old, rhs_vid_old);
+                self.attributes.merge_vertex_attributes(
+                    self.vertex_id(rhs_dart_id),
+                    b1lhs_vid_old,
+                    rhs_vid_old,
+                );
+                self.attributes.merge_edge_attributes(
+                    self.edge_id(lhs_dart_id),
+                    lhs_eid_old,
+                    rhs_eid_old,
+                );
             }
         }
     }
