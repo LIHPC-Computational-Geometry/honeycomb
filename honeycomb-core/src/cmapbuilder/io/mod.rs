@@ -104,7 +104,7 @@ macro_rules! build_vertices {
 ///         - a given cell has an inconsistent number of vertices with its specified cell type
 pub fn build_2d_from_vtk<T: CoordsFloat>(
     value: Vtk,
-    mut manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
+    mut _manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
 ) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
@@ -268,7 +268,6 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
             cmap.two_sew(dart_id0, dart_id1);
         }
     }
-    manager.extend_storages(cmap.n_darts());
     Ok(cmap)
 }
 
