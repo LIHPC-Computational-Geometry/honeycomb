@@ -32,6 +32,7 @@ cfg-if = "1"
 rustversion = "1.0.15"
 
 # core
+downcast-rs = "1.2.1"
 num = "0.4.2"
 vtkio = { version = "0.6.3" }
 

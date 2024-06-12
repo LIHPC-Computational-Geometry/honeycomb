@@ -1,13 +1,14 @@
-//! Module short description
+//! attribute super structure code
 //!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! this module contains all code used to implement a manager struct, used to handle generic
+//! attributes embedded in a given combinatorial map.
 
 // ------ IMPORTS
 
-use crate::{AttributeBind, AttributeStorage, OrbitPolicy, UnknownAttributeStorage};
-use std::any::{Any, TypeId};
+use crate::{
+    AttributeBind, AttributeStorage, DartIdentifier, OrbitPolicy, UnknownAttributeStorage,
+};
+use std::any::TypeId;
 use std::collections::HashMap;
 
 // ------ CONTENT
@@ -72,14 +73,246 @@ pub enum ManagerError {
 #[derive(Default)]
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
-    vertices: HashMap<TypeId, Box<dyn Any>>,
+    vertices: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Edge attributes' storages.
-    edges: HashMap<TypeId, Box<dyn Any>>,
+    edges: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Face attributes' storages.
-    faces: HashMap<TypeId, Box<dyn Any>>,
+    faces: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Other storages.
-    others: HashMap<TypeId, Box<dyn Any>>, // Orbit::Custom
+    others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
+
+// --- manager-wide methods
+
+impl AttrStorageManager {
+    /// Extend the size of all storages in the manager.
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Length by which storages should be extended.
+    pub fn extend_storages(&mut self, length: usize) {
+        for storage in self.vertices.values_mut() {
+            storage.extend(length);
+        }
+        for storage in self.edges.values_mut() {
+            storage.extend(length);
+        }
+        for storage in self.faces.values_mut() {
+            storage.extend(length);
+        }
+        for storage in self.others.values_mut() {
+            storage.extend(length);
+        }
+    }
+
+    // merges
+
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_attributes(
+        &mut self,
+        orbit_policy: &OrbitPolicy,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        match orbit_policy {
+            OrbitPolicy::Vertex => self.merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Edge => self.merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Face => self.merge_face_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Custom(_) => {
+                self.merge_other_attributes(orbit_policy, id_out, id_in_lhs, id_in_rhs);
+            }
+        }
+    }
+
+    /// Execute a merging operation on all attributes associated with vertices for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_vertex_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        for storage in self.vertices.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
+    }
+
+    /// Execute a merging operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_edge_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        for storage in self.edges.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
+    }
+
+    /// Execute a merging operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_face_attributes(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        for storage in self.faces.values_mut() {
+            storage.merge(id_out, id_in_lhs, id_in_rhs);
+        }
+    }
+
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_other_attributes(
+        &mut self,
+        _orbit_policy: &OrbitPolicy,
+        _id_out: DartIdentifier,
+        _id_in_lhs: DartIdentifier,
+        _id_in_rhs: DartIdentifier,
+    ) {
+        todo!("custom orbit binding is a special case that will be treated later")
+    }
+
+    // splits
+
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_attributes(
+        &mut self,
+        orbit_policy: &OrbitPolicy,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        match orbit_policy {
+            OrbitPolicy::Vertex => self.split_vertex_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Edge => self.split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Face => self.split_face_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Custom(_) => {
+                self.split_other_attributes(orbit_policy, id_out_lhs, id_out_rhs, id_in);
+            }
+        }
+    }
+
+    /// Execute a splitting operation on all attributes associated with vertices
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_vertex_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        for storage in self.vertices.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
+    }
+
+    /// Execute a splitting operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_edge_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        for storage in self.edges.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
+    }
+
+    /// Execute a splitting operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_face_attributes(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        for storage in self.faces.values_mut() {
+            storage.split(id_out_lhs, id_out_rhs, id_in);
+        }
+    }
+
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_other_attributes(
+        &mut self,
+        _orbit_policy: &OrbitPolicy,
+        _id_out_lhs: DartIdentifier,
+        _id_out_rhs: DartIdentifier,
+        _id_in: DartIdentifier,
+    ) {
+        todo!("custom orbit binding is a special case that will be treated later")
+    }
+}
+
+// --- attribute-specific methods
 
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
@@ -149,15 +382,6 @@ impl AttrStorageManager {
             Err(ManagerError::DuplicateStorage)
         } else {
             Ok(())
-        }
-    }
-
-    /// UNIMPLEMENTED
-    pub fn extend_storages(&mut self, _length: usize) {
-        // not sure if this is actually possible since we need to fetch the attribute from storages,
-        // which cannot be interpreted as such without the attribute in the first place
-        for _storage in self.vertices.values_mut() {
-            todo!()
         }
     }
 
@@ -328,5 +552,39 @@ impl AttrStorageManager {
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
         storage.remove(id)
+    }
+
+    /// Merge given attribute values.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    pub fn merge_attribute<A: AttributeBind>(
+        &mut self,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) {
+        get_storage_mut!(self, storage);
+        storage.merge(id_out, id_in_lhs, id_in_rhs);
+    }
+
+    /// Split given attribute value.
+    ///
+    /// # Arguments
+    ///
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    pub fn split_attribute<A: AttributeBind>(
+        &mut self,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) {
+        get_storage_mut!(self, storage);
+        storage.split(id_out_lhs, id_out_rhs, id_in);
     }
 }
