@@ -166,7 +166,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn insert_attribute<A: AttributeBind + AttributeUpdate>(
         &mut self,
         id: A::IdentifierType,
         val: A,
