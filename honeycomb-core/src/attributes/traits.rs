@@ -6,7 +6,9 @@
 // ------ IMPORTS
 
 use crate::{DartIdentifier, OrbitPolicy};
+use cfg_if::cfg_if;
 use downcast_rs::{impl_downcast, Downcast};
+use dyn_clone::{clone_trait_object, DynClone};
 use std::any::Any;
 use std::fmt::Debug;
 
@@ -127,85 +129,105 @@ pub trait AttributeBind: Debug + Sized + Any {
     fn binds_to<'a>() -> OrbitPolicy<'a>;
 }
 
-/// Common trait implemented by generic attribute storages.
-///
-/// This trait contain attribute-agnostic function & methods.
-///
-/// The documentation of this trait describe the behavior each function & method should have.
-pub trait UnknownAttributeStorage: Any + Debug + Downcast {
-    /// Constructor
-    ///
-    /// # Arguments
-    ///
-    /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
-    /// the upper bound of IDs used to index the attribute's values, i.e. the number of darts
-    /// including the null dart.
-    ///
-    /// # Return
-    ///
-    /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
-    #[must_use = "constructed object is not used, consider removing this function call"]
-    fn new(length: usize) -> Self
-    where
-        Self: Sized;
+macro_rules! unknown_attribute_storage {
+    () => {
+        /// Constructor
+        ///
+        /// # Arguments
+        ///
+        /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
+        /// the upper bound of IDs used to index the attribute's values, i.e. the number of darts
+        /// including the null dart.
+        ///
+        /// # Return
+        ///
+        /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
+        #[must_use = "constructed object is not used, consider removing this function call"]
+        fn new(length: usize) -> Self
+        where
+            Self: Sized;
 
-    /// Extend the storage's length
-    ///
-    /// # Arguments
-    ///
-    /// - `length: usize` -- length of which the storage should be extended.
-    fn extend(&mut self, length: usize);
+        /// Extend the storage's length
+        ///
+        /// # Arguments
+        ///
+        /// - `length: usize` -- length of which the storage should be extended.
+        fn extend(&mut self, length: usize);
 
-    /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
-    /// its length.
-    #[must_use = "returned value is not used, consider removing this method call"]
-    fn n_attributes(&self) -> usize;
+        /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
+        /// its length.
+        #[must_use = "returned value is not used, consider removing this method call"]
+        fn n_attributes(&self) -> usize;
 
-    /// Merge attributes at specified index
-    ///
-    /// This method should serve as a wire to either `AttributeUpdate::merge`
-    /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
-    /// the storage.
-    ///
-    /// # Arguments
-    ///
-    /// - `out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Behavior pseudo-code
-    ///
-    /// ```text
-    /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
-    ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-    ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-    ///     None, None => AttributeUpdate::merge_undefined(None),
-    /// }
-    /// attributes.set(out, new_val);
-    /// ```
-    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+        /// Merge attributes at specified index
+        ///
+        /// This method should serve as a wire to either `AttributeUpdate::merge`
+        /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
+        /// the storage.
+        ///
+        /// # Arguments
+        ///
+        /// - `out: DartIdentifier` -- Identifier to associate the result with.
+        /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
+        /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+        ///
+        /// # Behavior pseudo-code
+        ///
+        /// ```text
+        /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
+        ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+        ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+        ///     None, None => AttributeUpdate::merge_undefined(None),
+        /// }
+        /// attributes.set(out, new_val);
+        /// ```
+        fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
 
-    /// Split attribute to specified indices
-    ///
-    /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
-    /// we want to split from the storage.
-    ///
-    /// # Arguments
-    ///
-    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Behavior pseudo-code
-    ///
-    /// ```text
-    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
-    /// attributes[lhs_out] = val_lhs;
-    /// attributes[rhs_out] = val_rhs;
-    /// ```
-    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+        /// Split attribute to specified indices
+        ///
+        /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
+        /// we want to split from the storage.
+        ///
+        /// # Arguments
+        ///
+        /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
+        /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
+        /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+        ///
+        /// # Behavior pseudo-code
+        ///
+        /// ```text
+        /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
+        /// attributes[lhs_out] = val_lhs;
+        /// attributes[rhs_out] = val_rhs;
+        /// ```
+        fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+    };
 }
 
+cfg_if! {
+    if #[cfg(feature = "utils")] {
+        /// Common trait implemented by generic attribute storages.
+        ///
+        /// This trait contain attribute-agnostic function & methods.
+        ///
+        /// The documentation of this trait describe the behavior each function & method should have.
+        pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
+            unknown_attribute_storage!();
+        }
+    } else {
+        /// Common trait implemented by generic attribute storages.
+        ///
+        /// This trait contain attribute-agnostic function & methods.
+        ///
+        /// The documentation of this trait describe the behavior each function & method should have.
+        pub trait UnknownAttributeStorage: Any + Debug + Downcast {
+            unknown_attribute_storage!();
+        }
+    }
+}
+
+clone_trait_object!(UnknownAttributeStorage);
 impl_downcast!(UnknownAttributeStorage);
 
 /// Common trait implemented by generic attribute storages.
