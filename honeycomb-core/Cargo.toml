@@ -14,13 +14,14 @@ publish = true
 
 [features]
 io = ["dep:vtkio"]
-utils = []
+utils = ["dep:dyn-clone"]
 
 # deps
 
 [dependencies]
 cfg-if.workspace = true
 downcast-rs.workspace = true
+dyn-clone = { workspace = true, optional = true }
 num.workspace = true
 vtkio = { workspace = true, optional = true }
 
