@@ -7,8 +7,8 @@
 // ------ IMPORT
 
 use crate::{
-    AttributeStorage, CMap2, CMapError, CoordsFloat, UnknownAttributeStorage, Vertex2,
-    VertexIdentifier,
+    AttributeBind, AttributeStorage, AttributeUpdate, CMap2, CMapError, CoordsFloat,
+    UnknownAttributeStorage, Vertex2, VertexIdentifier,
 };
 
 // ------ CONTENT
@@ -113,5 +113,47 @@ impl<T: CoordsFloat> CMap2<T> {
             return Ok(val);
         };
         Err(CMapError::UndefinedVertex)
+    }
+}
+
+// --- generic attributes
+
+impl<T: CoordsFloat> CMap2<T> {
+    pub fn set_attribute<A: AttributeBind + AttributeUpdate>(
+        &mut self,
+        id: A::IdentifierType,
+        val: A,
+    ) {
+        todo!()
+    }
+
+    fn insert_attribute<A: AttributeBind + AttributeUpdate>(
+        &mut self,
+        id: A::IdentifierType,
+        val: A,
+    ) {
+        todo!()
+    }
+
+    pub fn get_attribute<A: AttributeBind + AttributeUpdate>(
+        &self,
+        id: A::IdentifierType,
+    ) -> Option<A> {
+        todo!()
+    }
+
+    pub fn replace_attribute<A: AttributeBind + AttributeUpdate>(
+        &mut self,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Option<A> {
+        todo!()
+    }
+
+    pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
+        &mut self,
+        id: A::IdentifierType,
+    ) -> Option<A> {
+        todo!()
     }
 }
