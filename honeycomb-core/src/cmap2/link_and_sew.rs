@@ -6,8 +6,7 @@
 // ------ IMPORTS
 
 use crate::{
-    AttributeStorage, AttributeUpdate, CMap2, CoordsFloat, DartIdentifier, UnknownAttributeStorage,
-    Vertex2, NULL_DART_ID,
+    AttributeStorage, CMap2, CoordsFloat, DartIdentifier, UnknownAttributeStorage, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -232,22 +231,28 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    ///
     pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
             self.one_unlink(lhs_dart_id);
         } else {
-            // read current values / remove old ones
+            // fetch IDs before topology update
             let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-            // we only need to remove a single vertex since we're unlinking
-            let vertex = self.remove_vertex(self.vertex_id(rhs_dart_id)).unwrap();
-            let (v1, v2) = Vertex2::split(vertex);
+            let vid_old = self.vertex_id(rhs_dart_id);
             // update the topology
             self.one_unlink(lhs_dart_id);
-            // reinsert correct values
-            let _ = self.replace_vertex(self.vertex_id(b2lhs_dart_id), v1);
-            let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), v2);
+            // split vertices & attributes from the old ID to the new ones
+            // FIXME: VertexIdentifier should be cast to DartIdentifier
+            self.vertices.split(
+                self.vertex_id(b2lhs_dart_id),
+                self.vertex_id(rhs_dart_id),
+                vid_old,
+            );
+            self.attributes.split_vertex_attributes(
+                self.vertex_id(b2lhs_dart_id),
+                self.vertex_id(rhs_dart_id),
+                vid_old,
+            );
         }
     }
 
@@ -272,45 +277,75 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    ///
     pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
-            (true, true) => self.two_unlink(lhs_dart_id),
-            (true, false) => {
-                let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
-                let (v1, v2) = Vertex2::split(rhs_vertex);
+            (true, true) => {
+                // fetch IDs before topology update
+                let eid_old = self.edge_id(lhs_dart_id);
+                // update the topology
                 self.two_unlink(lhs_dart_id);
-                self.insert_vertex(self.vertex_id(b1lhs_dart_id), v1);
-                self.insert_vertex(self.vertex_id(rhs_dart_id), v2);
+                // split attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.attributes
+                    .split_edge_attributes(lhs_dart_id, rhs_dart_id, eid_old);
+            }
+            (true, false) => {
+                // fetch IDs before topology update
+                let eid_old = self.edge_id(lhs_dart_id);
+                let rhs_vid_old = self.vertex_id(rhs_dart_id);
+                // update the topology
+                self.two_unlink(lhs_dart_id);
+                // split vertex & attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.attributes
+                    .split_edge_attributes(lhs_dart_id, rhs_dart_id, eid_old);
+                self.attributes.split_vertex_attributes(
+                    self.vertex_id(b1lhs_dart_id),
+                    self.vertex_id(rhs_dart_id),
+                    rhs_vid_old,
+                );
             }
             (false, true) => {
+                // fetch IDs before topology update
+                let eid_old = self.edge_id(lhs_dart_id);
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
-                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
-                let (v1, v2) = Vertex2::split(lhs_vertex);
+                // update the topology
                 self.two_unlink(lhs_dart_id);
-                self.insert_vertex(self.vertex_id(lhs_dart_id), v1);
-                self.insert_vertex(self.vertex_id(b1rhs_dart_id), v2);
+                // split vertex & attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.attributes
+                    .split_edge_attributes(lhs_dart_id, rhs_dart_id, eid_old);
+                self.attributes.split_vertex_attributes(
+                    self.vertex_id(lhs_dart_id),
+                    self.vertex_id(b1rhs_dart_id),
+                    lhs_vid_old,
+                );
             }
             (false, false) => {
+                // fetch IDs before topology update
+                let eid_old = self.edge_id(lhs_dart_id);
                 let lhs_vid_old = self.vertex_id(lhs_dart_id);
                 let rhs_vid_old = self.vertex_id(rhs_dart_id);
-                let lhs_vertex = self.remove_vertex(lhs_vid_old).unwrap();
-                let rhs_vertex = self.remove_vertex(rhs_vid_old).unwrap();
+                // update the topology
                 self.two_unlink(lhs_dart_id);
-                let (rhs_v1, rhs_v2) = Vertex2::split(rhs_vertex);
-                let (lhs_v1, lhs_v2) = Vertex2::split(lhs_vertex);
-
-                // short version: not all i-unsews create separate i-cells
-                self.insert_vertex(self.vertex_id(b1lhs_dart_id), rhs_v1);
-                let _ = self.replace_vertex(self.vertex_id(rhs_dart_id), rhs_v2);
-                // same
-                self.insert_vertex(self.vertex_id(lhs_dart_id), lhs_v1);
-                let _ = self.replace_vertex(self.vertex_id(b1rhs_dart_id), lhs_v2);
+                // split vertices & attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.attributes
+                    .split_edge_attributes(lhs_dart_id, rhs_dart_id, eid_old);
+                self.attributes.split_vertex_attributes(
+                    self.vertex_id(b1lhs_dart_id),
+                    self.vertex_id(rhs_dart_id),
+                    rhs_vid_old,
+                );
+                self.attributes.split_vertex_attributes(
+                    self.vertex_id(lhs_dart_id),
+                    self.vertex_id(b1rhs_dart_id),
+                    lhs_vid_old,
+                );
             }
         }
     }
@@ -378,6 +413,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
     ///
     pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        // FIXME: should panic if rhs is null
         let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
         self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
         self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
@@ -394,6 +430,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
     ///
     pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+        // FIXME: should panic if rhs is null
         let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
         self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
         self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
