@@ -123,7 +123,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// See [`CMapBuilder`] example.
     ///
-    pub fn build(mut self) -> Result<CMap2<T>, BuilderError> {
+    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
