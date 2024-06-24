@@ -211,8 +211,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new_with_attributes(
         n_darts: usize,
-        attr_storage_manager: AttrStorageManager,
+        mut attr_storage_manager: AttrStorageManager,
     ) -> Self {
+        attr_storage_manager.extend_storages(n_darts + 1);
         Self {
             attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),

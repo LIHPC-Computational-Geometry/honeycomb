@@ -96,7 +96,7 @@ fn temperature_map() {
         map.get_attribute::<Temperature>(map.vertex_id(3)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(1)), Ok(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(2)), Ok(Vertex2::from((1., 0.))));
     assert_eq!(map.vertex(map.vertex_id(3)), Ok(Vertex2::from((1., 0.))));
 }
 

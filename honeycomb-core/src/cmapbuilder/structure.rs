@@ -143,7 +143,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
                 })
             };
         }
-        self.attributes.extend_storages(self.n_darts);
         Ok(CMap2::new_with_attributes(self.n_darts, self.attributes))
     }
 }
