@@ -40,17 +40,17 @@ pub enum ManagerError {
 /// linked to literal-typed keys, such as typos, naming conventions, portability, etc.
 ///
 /// Generics passed in access methods also have a secondary usage. To store heterogeneous
-/// collections, the internal hashmaps uses `Box<dyn Any>` as their value type. This requires us
-/// to cast back the stored object (implementing `Any`) to the correct collection type. This is
-/// achieved by using the associated storage type [`AttributeBind::StorageType`]. The code would
-/// look like this:
+/// collections, the internal hashmaps uses `Box<dyn UnknownAttributeStorage>` as their value type.
+/// Some cases require us to downcast the stored object (implementing `UnknownAttributeStorage`) to
+/// the correct collection type. This is achieved by using the `downcast-rs` crate and
+/// the associated storage type [`AttributeBind::StorageType`]. The code roughly looks like this:
 ///
 /// ```
-/// # use std::any::{Any, TypeId};
+/// # use std::any::TypeId;
 /// # use std::collections::HashMap;
 /// # use honeycomb_core::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
 /// pub struct Manager {
-///     inner: HashMap<TypeId, Box<dyn Any>>,
+///     inner: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
 /// }
 ///
 /// impl Manager {
@@ -65,6 +65,9 @@ pub enum ManagerError {
 ///
 ///     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
 ///         let probably_storage = &self.inner[&TypeId::of::<A>()];
+///         // downcast is possible because:
+///         // - StorageType: AttributeStorage<A>
+///         // - AttributeStorage<A>: UnknownAttributeStorage
 ///         probably_storage
 ///             .downcast_ref::<<A as AttributeBind>::StorageType>()
 ///             .expect("E: could not downcast generic storage to specified attribute type")
@@ -411,7 +414,7 @@ impl AttrStorageManager {
     ///
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
         let probably_storage = match A::binds_to() {
@@ -440,7 +443,7 @@ impl AttrStorageManager {
     ///
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
     pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
@@ -463,7 +466,7 @@ impl AttrStorageManager {
     /// This method may panic if:
     /// - **there already is a value associated to the given ID for the specified attribute**
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
     pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
@@ -490,7 +493,7 @@ impl AttrStorageManager {
     ///
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
     pub fn get_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
         get_storage!(self, storage);
@@ -518,7 +521,7 @@ impl AttrStorageManager {
     ///
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
     pub fn replace_attribute<A: AttributeBind>(
         &mut self,
@@ -549,7 +552,7 @@ impl AttrStorageManager {
     ///
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn Any>` to `<A as AttributeBind>::StorageType` fails
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
