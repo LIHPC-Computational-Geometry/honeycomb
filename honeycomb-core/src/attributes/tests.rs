@@ -1,8 +1,8 @@
 // ------ IMPORTS
 
 use crate::{
-    AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate,
-    UnknownAttributeStorage,
+    AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate, CMap2,
+    CMapBuilder, UnknownAttributeStorage, Vertex2,
 };
 use std::any::Any;
 
@@ -33,9 +33,9 @@ impl AttributeUpdate for Temperature {
 
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
-    type IdentifierType = crate::FaceIdentifier;
+    type IdentifierType = crate::VertexIdentifier;
     fn binds_to<'a>() -> crate::OrbitPolicy<'a> {
-        crate::OrbitPolicy::Face
+        crate::OrbitPolicy::Vertex
     }
 }
 
@@ -45,7 +45,62 @@ impl From<f32> for Temperature {
     }
 }
 
-// --- tests
+// --- usual workflow test
+
+#[test]
+fn temperature_map() {
+    // build the map
+    let builder = CMapBuilder::default()
+        .n_darts(6)
+        .add_attribute::<Temperature>();
+    let mut map: CMap2<f64> = builder.build().unwrap();
+    map.two_link(1, 2);
+    map.two_link(3, 4);
+    map.two_link(5, 6);
+    map.one_link(1, 3);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    map.insert_vertex(4, (1.5, 0.0));
+    map.insert_vertex(5, (2.5, 0.0));
+    map.insert_vertex(6, (3.0, 0.0));
+    map.set_attribute::<Temperature>(1, Temperature::from(273.));
+    map.set_attribute::<Temperature>(2, Temperature::from(275.));
+    map.set_attribute::<Temperature>(4, Temperature::from(277.));
+    map.set_attribute::<Temperature>(5, Temperature::from(273.));
+    map.set_attribute::<Temperature>(6, Temperature::from(273.));
+    // test the map
+    assert_eq!(
+        map.get_attribute::<Temperature>(map.vertex_id(4)),
+        Some(Temperature::from(277.))
+    );
+    assert_eq!(
+        map.get_attribute::<Temperature>(map.vertex_id(5)),
+        Some(Temperature::from(273.))
+    );
+    // sew one segment
+    map.one_sew(3, 5);
+    assert_eq!(map.vertex_id(4), map.vertex_id(5));
+    assert_eq!(
+        map.get_attribute::<Temperature>(map.vertex_id(4)),
+        Some(Temperature::from(275.))
+    );
+    assert_eq!(map.vertex(map.vertex_id(4)), Ok(Vertex2::from((2., 0.))));
+    // unsew another
+    map.one_unsew(1);
+    assert_ne!(map.vertex_id(2), map.vertex_id(3));
+    assert_eq!(
+        map.get_attribute::<Temperature>(map.vertex_id(2)),
+        Some(Temperature::from(275.))
+    );
+    assert_eq!(
+        map.get_attribute::<Temperature>(map.vertex_id(3)),
+        Some(Temperature::from(275.))
+    );
+    assert_eq!(map.vertex(map.vertex_id(1)), Ok(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(3)), Ok(Vertex2::from((1., 0.))));
+}
+
+// --- unit tests
 
 // traits
 
@@ -64,7 +119,7 @@ fn attribute_update() {
 
 #[test]
 fn attribute_bind() {
-    assert_eq!(Temperature::binds_to(), crate::OrbitPolicy::Face);
+    assert_eq!(Temperature::binds_to(), crate::OrbitPolicy::Vertex);
     let inst: <Temperature as AttributeBind>::IdentifierType = 0;
     let ref_inst: crate::FaceIdentifier = 0;
     let prim_inst: u32 = 0;
