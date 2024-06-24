@@ -1,8 +1,8 @@
 // ------ IMPORTS
 
 use crate::{
-    AttrCompactVec, AttrSparseVec, AttributeBind, AttributeStorage, AttributeUpdate, CMap2,
-    CMapBuilder, UnknownAttributeStorage, Vertex2,
+    AttrCompactVec, AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
+    AttributeUpdate, CMap2, CMapBuilder, UnknownAttributeStorage, Vertex2,
 };
 use std::any::Any;
 
@@ -415,4 +415,114 @@ fn compact_vec_replace_already_removed() {
     generate_compact!(storage);
     assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
     storage.replace(3, Temperature::from(280.0)); // panic
+}
+
+// storage manager
+
+macro_rules! generate_manager {
+    ($name: ident) => {
+        let mut $name = AttrStorageManager::default();
+        assert!($name.add_storage::<Temperature>(10).is_ok());
+        $name.insert_attribute(0, Temperature::from(273.0));
+        $name.insert_attribute(1, Temperature::from(275.0));
+        $name.insert_attribute(2, Temperature::from(277.0));
+        $name.insert_attribute(3, Temperature::from(279.0));
+        $name.insert_attribute(4, Temperature::from(281.0));
+        $name.insert_attribute(5, Temperature::from(283.0));
+        $name.insert_attribute(6, Temperature::from(285.0));
+        $name.insert_attribute(7, Temperature::from(287.0));
+        $name.insert_attribute(8, Temperature::from(289.0));
+        $name.insert_attribute(9, Temperature::from(291.0));
+    };
+}
+
+#[allow(clippy::cast_precision_loss)]
+#[test]
+fn manager_extend() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    manager.extend_storage::<Temperature>(10);
+    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    (10..20)
+        .for_each(|id| manager.insert_attribute(id, Temperature::from(273.0 + 2.0 * id as f32)));
+    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 20);
+}
+
+#[test]
+#[should_panic(expected = "index out of bounds: the len is 10 but the index is 15")]
+fn manager_set_oob() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    manager.insert_attribute(15, Temperature::from(0.0)); // panic
+}
+
+#[test]
+fn manager_get_set_get() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(279.0)));
+    manager.set_attribute(3, Temperature::from(280.0));
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(280.0)));
+}
+
+#[test]
+fn manager_vec_get_replace_get() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(279.0)));
+    manager.replace_attribute(3, Temperature::from(280.0));
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(280.0)));
+}
+
+// expect tmp.is_none since Temperate::StorageType is AttrSparseVec
+#[test]
+#[should_panic(expected = "assertion failed: tmp.is_none()")]
+fn manager_vec_insert_already_existing() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(279.0)));
+    manager.insert_attribute(3, Temperature::from(280.0)); // panic
+}
+
+#[test]
+fn manager_vec_remove() {
+    generate_manager!(manager);
+    generate_compact!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+}
+
+#[test]
+fn manager_vec_remove_remove() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    assert!(manager.remove_attribute::<Temperature>(3).is_none());
+}
+
+#[test]
+fn manager_vec_remove_get() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    assert!(manager.get_attribute::<Temperature>(3).is_none());
+}
+
+#[test]
+fn manager_vec_remove_set() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    manager.set_attribute(3, Temperature::from(280.0));
+    assert!(manager.get_attribute::<Temperature>(3).is_some());
+}
+
+#[test]
+fn manager_vec_remove_insert() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    manager.insert_attribute(3, Temperature::from(280.0));
+    assert!(manager.get_attribute::<Temperature>(3).is_some());
+}
+
+#[test]
+fn manager_vec_replace_already_removed() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    assert!(manager
+        .replace_attribute(3, Temperature::from(280.0))
+        .is_none());
 }
