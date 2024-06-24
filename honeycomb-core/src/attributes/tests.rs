@@ -189,6 +189,18 @@ fn sparse_vec_merge_undefined() {
 }
 
 #[test]
+fn sparse_vec_split() {
+    generate_sparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.split(3, 6, 8);
+    assert_eq!(storage.get(3), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(8), None);
+}
+
+#[test]
 fn sparse_vec_get_set_get() {
     generate_sparse!(storage);
     assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
@@ -329,6 +341,18 @@ fn compact_vec_merge_undefined() {
     assert_eq!(storage.get(3), None);
     assert_eq!(storage.get(4), None);
     assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+}
+
+#[test]
+fn compact_vec_split() {
+    generate_compact!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.split(3, 6, 8);
+    assert_eq!(storage.get(3), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(8), None);
 }
 
 #[test]
@@ -525,4 +549,47 @@ fn manager_vec_replace_already_removed() {
     assert!(manager
         .replace_attribute(3, Temperature::from(280.0))
         .is_none());
+}
+
+#[test]
+fn manager_merge_attribute() {
+    generate_manager!(manager);
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(279.0)));
+    assert_eq!(manager.get_attribute(6), Some(Temperature::from(285.0)));
+    assert_eq!(manager.get_attribute(8), Some(Temperature::from(289.0)));
+    manager.merge_attribute::<Temperature>(8, 3, 6);
+    assert_eq!(manager.get_attribute::<Temperature>(3), None);
+    assert_eq!(manager.get_attribute::<Temperature>(6), None);
+    assert_eq!(manager.get_attribute(8), Some(Temperature::from(282.0)));
+}
+
+#[test]
+fn manager_merge_undefined_attribute() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    assert_eq!(manager.remove_attribute(6), Some(Temperature::from(285.0)));
+    assert_eq!(manager.remove_attribute(8), Some(Temperature::from(289.0)));
+    // merge from two undefined value
+    manager.merge_attribute::<Temperature>(8, 3, 6);
+    assert_eq!(manager.get_attribute::<Temperature>(3), None);
+    assert_eq!(manager.get_attribute::<Temperature>(6), None);
+    assert_eq!(manager.get_attribute(8), Some(Temperature::from(0.0)));
+    // merge from one undefined value
+    assert_eq!(manager.get_attribute(4), Some(Temperature::from(281.0)));
+    manager.merge_attribute::<Temperature>(6, 3, 4);
+    assert_eq!(manager.get_attribute::<Temperature>(3), None);
+    assert_eq!(manager.get_attribute::<Temperature>(4), None);
+    assert_eq!(manager.get_attribute(6), Some(Temperature::from(281.0)));
+}
+
+#[test]
+fn manager_split_attribute() {
+    generate_manager!(manager);
+    assert_eq!(manager.remove_attribute(3), Some(Temperature::from(279.0)));
+    assert_eq!(manager.remove_attribute(6), Some(Temperature::from(285.0)));
+    assert_eq!(manager.get_attribute(8), Some(Temperature::from(289.0)));
+    manager.split_attribute::<Temperature>(3, 6, 8);
+    assert_eq!(manager.get_attribute(3), Some(Temperature::from(289.0)));
+    assert_eq!(manager.get_attribute(6), Some(Temperature::from(289.0)));
+    assert_eq!(manager.get_attribute::<Temperature>(8), None);
 }
