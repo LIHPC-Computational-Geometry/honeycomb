@@ -208,6 +208,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// See [`CMap2`] example.
+    #[cfg(feature = "utils")]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new_with_attributes(
         n_darts: usize,

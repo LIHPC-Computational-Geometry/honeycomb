@@ -8,9 +8,11 @@
 use crate::{DartIdentifier, OrbitPolicy};
 use cfg_if::cfg_if;
 use downcast_rs::{impl_downcast, Downcast};
-use dyn_clone::{clone_trait_object, DynClone};
 use std::any::Any;
 use std::fmt::Debug;
+
+#[cfg(feature = "utils")]
+use dyn_clone::{clone_trait_object, DynClone};
 
 // ------ CONTENT
 
@@ -227,6 +229,7 @@ cfg_if! {
     }
 }
 
+#[cfg(feature = "utils")]
 clone_trait_object!(UnknownAttributeStorage);
 impl_downcast!(UnknownAttributeStorage);
 
