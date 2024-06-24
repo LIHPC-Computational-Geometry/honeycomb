@@ -4,6 +4,38 @@
 
 ## To be released
 
+**This update contains breaking changes**
+
+### Workspace
+
+- update visuals in code documentation & user guide by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/95
+- bump various actions' versions
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+- implement a generic attribute system to bind custom data structures to topological entities of a `CMap2`
+    - implement `AttrStorageManager` struct and `AttributeStorage` trait by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/89
+    - **replace standalone impl blocks of attribute collections** by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/92
+    - add `UnknownAttributeStorage` trait for attribute-agnostic methods by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/96
+    - replace `Any` by `UnknownAttributeStorage` to handle collections in attribute manager by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/97
+    - add storage manager to builder by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/102
+    - add generic storage manager to `CMap2` by @imrn99
+      in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/103
+- change internal Vtk building routine to return a `Result` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/91
+- **expand `BuilderError` with more specialized variants** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/91
+
 ---
 
 ## 0.3.1
@@ -12,7 +44,7 @@
 
 - remove the feature matrix from the test CI, which now uses the `--all-features` option
 
-### Published crate
+### Published crates
 
 #### honeycomb-core
 
