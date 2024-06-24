@@ -158,6 +158,37 @@ fn sparse_vec_n_attributes() {
 }
 
 #[test]
+fn sparse_vec_merge() {
+    generate_sparse!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(282.0)));
+}
+
+#[test]
+fn sparse_vec_merge_undefined() {
+    generate_sparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.remove(8), Some(Temperature::from(289.0)));
+    // merge from two undefined value
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(0.0)));
+    // merge from one undefined value
+    assert_eq!(storage.get(4), Some(Temperature::from(281.0)));
+    storage.merge(6, 3, 4);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(4), None);
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+}
+
+#[test]
 fn sparse_vec_get_set_get() {
     generate_sparse!(storage);
     assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
@@ -268,6 +299,37 @@ fn compact_vec_n_used_attributes() {
     assert_eq!(storage.n_used_attributes(), 9);
 }
  */
+
+#[test]
+fn compact_vec_merge() {
+    generate_compact!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(282.0)));
+}
+
+#[test]
+fn compact_vec_merge_undefined() {
+    generate_compact!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.remove(8), Some(Temperature::from(289.0)));
+    // merge from two undefined value
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(0.0)));
+    // merge from one undefined value
+    assert_eq!(storage.get(4), Some(Temperature::from(281.0)));
+    storage.merge(6, 3, 4);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(4), None);
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+}
 
 #[test]
 fn compact_vec_extend_through_set() {
