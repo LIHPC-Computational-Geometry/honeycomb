@@ -198,7 +198,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `n_darts: usize` -- Number of darts composing the new combinatorial map.
     /// - `attr_storage_manager: AttrStorageManager` -- Manager structure holding
-    ///   the user-defined attributes.
+    ///   the user-defined attributes. The containers held by the manager should
+    ///   all be empty.
     ///
     /// # Return
     ///
@@ -209,10 +210,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// See [`CMap2`] example.
     #[must_use = "constructed object is not used, consider removing this function call"]
-    pub(crate) fn new_with_attributes(
+    pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
         mut attr_storage_manager: AttrStorageManager,
     ) -> Self {
+        // extend all storages to the expected length: n_darts + 1 (for the null dart)
+        // the passed manager should be containing defined, empty storage i.e. attributes
+        // are known, but no space has been used/allocated yet
         attr_storage_manager.extend_storages(n_darts + 1);
         Self {
             attributes: attr_storage_manager,

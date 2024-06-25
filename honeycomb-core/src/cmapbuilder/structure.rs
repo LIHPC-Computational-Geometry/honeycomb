@@ -122,7 +122,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// # Example
     ///
     /// See [`CMapBuilder`] example.
-    ///
     pub fn build(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
@@ -143,6 +142,9 @@ impl<T: CoordsFloat> CMapBuilder<T> {
                 })
             };
         }
-        Ok(CMap2::new_with_attributes(self.n_darts, self.attributes))
+        Ok(CMap2::new_with_undefined_attributes(
+            self.n_darts,
+            self.attributes,
+        ))
     }
 }
