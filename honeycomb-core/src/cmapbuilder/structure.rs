@@ -122,8 +122,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// # Example
     ///
     /// See [`CMapBuilder`] example.
-    ///
-    pub fn build(mut self) -> Result<CMap2<T>, BuilderError> {
+    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
         #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
@@ -143,7 +142,9 @@ impl<T: CoordsFloat> CMapBuilder<T> {
                 })
             };
         }
-        self.attributes.extend_storages(self.n_darts); // todo: add it to the map
-        Ok(CMap2::new(self.n_darts))
+        Ok(CMap2::new_with_undefined_attributes(
+            self.n_darts,
+            self.attributes,
+        ))
     }
 }
