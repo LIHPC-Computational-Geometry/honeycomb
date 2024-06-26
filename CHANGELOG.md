@@ -4,6 +4,10 @@
 
 ## To be released
 
+---
+
+## 0.4.0
+
 **This update contains breaking changes**
 
 ### Workspace
