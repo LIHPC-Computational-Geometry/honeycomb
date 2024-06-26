@@ -1,0 +1,15 @@
+[package]
+name = "honeycomb-kernels"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Meshing kernel implementations using combinatorial maps"
+categories.workspace = true
+keywords.workspace = true
+authors.workspace = true
+publish = true
+
+[dependencies]
