@@ -181,6 +181,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// See [`CMap2`] example.
+    #[allow(unused)]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
@@ -209,7 +210,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// See [`CMap2`] example.
-    #[cfg(feature = "utils")]
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
