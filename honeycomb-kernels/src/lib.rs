@@ -9,3 +9,7 @@
 //! ## Kernels
 //!
 //! - Grid Submersion Algorithm
+
+// ------ MODULE DECLARATIONS
+
+mod grisubal;
