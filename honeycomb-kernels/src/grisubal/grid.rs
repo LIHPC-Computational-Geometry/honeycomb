@@ -19,10 +19,10 @@ impl GridCellId {
 }
 
 pub struct BBox2<T: CoordsFloat> {
-    pub tleft: T,
-    pub tright: T,
-    pub bleft: T,
-    pub bright: T,
+    pub min_x: T,
+    pub max_x: T,
+    pub min_y: T,
+    pub max_y: T,
 }
 
 impl<T: CoordsFloat> BBox2<T> {
