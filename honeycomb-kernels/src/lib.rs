@@ -18,7 +18,9 @@ mod grisubal;
 
 // --- PUBLIC API
 
+pub use grisubal::grisubal;
+
 // --- INTERNALS
 
 pub(crate) use grisubal::grid::{BBox2, GridCellId};
-pub(crate) use grisubal::inp::{Geometry2, Segment};
+pub(crate) use grisubal::inp::{Clamp, Geometry2, Segment};

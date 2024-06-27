@@ -11,14 +11,22 @@ use honeycomb_core::{CMap2, CoordsFloat};
 
 // ------ CONTENT
 
-fn build_mesh<T: CoordsFloat>(geometry: Geometry2<T>) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>) -> CMap2<T> {
     todo!()
 }
 
-fn remove_inner<T: CoordsFloat>(cmap2: &mut CMap2<T>) {
+pub fn remove_inner<T: CoordsFloat>(
+    cmap2: &mut CMap2<T>,
+    geometry: &Geometry2<T>,
+    invert_normal_dir: bool,
+) {
     todo!()
 }
 
-fn remove_outer<T: CoordsFloat>(cmap2: &mut CMap2<T>) {
+pub fn remove_outer<T: CoordsFloat>(
+    cmap2: &mut CMap2<T>,
+    geometry: &Geometry2<T>,
+    invert_normal_dir: bool,
+) {
     todo!()
 }

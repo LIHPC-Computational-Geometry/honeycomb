@@ -12,6 +12,13 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
+pub enum Clamp {
+    All,
+    Inner,
+    Outer,
+    None,
+}
+
 pub fn load_geometry<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path> + std::fmt::Debug,
 ) -> Geometry2<T> {
