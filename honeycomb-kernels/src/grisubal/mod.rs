@@ -1,14 +1,30 @@
-//! Module short description
+//! *GRISUBAL* algorithm description & implementation
 //!
-//! Should you interact with this module directly?
+//! This module contain all code used to implement our grid submersion algorithm, or *grisubal*
+//! for short.
 //!
-//! Content description if needed
+//! This algorithm builds the mesh of a geometry by overlapping a grid over it and making
+//! adjustment to fit the grid to the geometry. It is inspired by the approach described in
+//! [this](https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf)
+//! research note.
+//!
+//! # Assumptions / Hypotheses
+//!
+//! - All components of the geometry are located in positive X/Y
+//! - Edges are consistently oriented (i.e. normals of edges making up a face all point
+//!   outward / inward, no mix)
+//!
+//! # Pseudo code
+//!
+//! ```text
+//! todo
+//! ```
 
 // ------ MODULE DECLARATIONS
 
-pub mod grid;
-pub mod inp;
-pub mod kernel;
+pub(crate) mod grid;
+pub(crate) mod inp;
+pub(crate) mod kernel;
 
 // ------ IMPORTS
 
@@ -18,6 +34,13 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
+/// Main algorithm call function.
+///
+/// # Example
+///
+/// ```
+/// todo!()
+/// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     invert_normal_dir: bool,

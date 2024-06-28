@@ -12,15 +12,15 @@
 
 // ------ MODULE DECLARATIONS
 
-mod grisubal;
+pub mod grisubal;
 
 // ------ RE-EXPORTS
 
 // --- PUBLIC API
 
-pub use grisubal::grisubal;
+pub use grisubal::{grisubal, inp::Clamp};
 
 // --- INTERNALS
 
 pub(crate) use grisubal::grid::{BBox2, GridCellId};
-pub(crate) use grisubal::inp::{Clamp, Geometry2, Segment};
+pub(crate) use grisubal::inp::{Geometry2, Segment};
