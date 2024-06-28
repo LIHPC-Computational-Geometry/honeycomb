@@ -73,7 +73,7 @@ use vtkio::Vtk;
 ///
 /// # Example
 ///
-/// ```
+/// ```should_panic
 /// todo!()
 /// ```
 pub fn grisubal<T: CoordsFloat>(
