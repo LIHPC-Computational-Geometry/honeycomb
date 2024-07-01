@@ -18,7 +18,7 @@ impl GridCellId {
     /// Compute the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
     /// two cells.
     pub fn man_dist(lhs: Self, rhs: Self) -> usize {
-        todo!()
+        lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
     }
 }
 
@@ -32,7 +32,23 @@ pub struct BBox2<T: CoordsFloat> {
 
 impl<T: CoordsFloat> BBox2<T> {
     /// Builds the descriptor of a grid overlapping the bounding box.
-    pub fn overlapping_grid(&self, (len_x, len_y): (T, T)) -> GridDescriptor<T> {
-        todo!()
+    pub fn overlapping_grid(&self, (len_cell_x, len_cell_y): (T, T)) -> GridDescriptor<T> {
+        assert!(
+            self.min_x > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(
+            self.min_y > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(self.max_x > self.min_x);
+        assert!(self.max_y > self.min_y);
+        let n_cells_x = (self.max_x / len_cell_x).ceil().to_usize();
+        let n_cells_y = (self.max_y / len_cell_y).ceil().to_usize();
+        GridDescriptor::default()
+            .n_cells_x(n_cells_x.unwrap())
+            .n_cells_y(n_cells_y.unwrap())
+            .len_per_cell_x(len_cell_x)
+            .len_per_cell_y(len_cell_y)
     }
 }
