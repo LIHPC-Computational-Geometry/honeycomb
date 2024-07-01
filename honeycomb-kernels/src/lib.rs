@@ -8,4 +8,22 @@
 //!
 //! ## Kernels
 //!
-//! - Grid Submersion Algorithm
+//! - `grisubal` -- Grid Submersion Algorithm
+
+// ------ MODULE DECLARATIONS
+
+#[allow(unused)]
+pub mod grisubal;
+
+// ------ RE-EXPORTS
+
+// --- PUBLIC API
+
+pub use grisubal::{grisubal, inp::Clamp};
+
+// --- INTERNALS
+
+#[allow(unused)]
+pub(crate) use grisubal::grid::{BBox2, GridCellId};
+#[allow(unused)]
+pub(crate) use grisubal::inp::{Geometry2, Segment};
