@@ -46,7 +46,25 @@ pub struct Geometry2<T: CoordsFloat> {
 impl<T: CoordsFloat> Geometry2<T> {
     /// Return the bounding box of the geometry.
     pub fn bbox(&self) -> BBox2<T> {
-        todo!()
+        assert!(
+            self.vertices.first().is_some(),
+            "E: specified geometry does not contain any vertex"
+        );
+        let mut bbox = BBox2 {
+            min_x: self.vertices[0].x(),
+            max_x: self.vertices[0].x(),
+            min_y: self.vertices[0].y(),
+            max_y: self.vertices[0].y(),
+        };
+
+        self.vertices.iter().for_each(|v| {
+            bbox.min_x = bbox.min_x.min(v.x());
+            bbox.max_x = bbox.max_x.max(v.x()); // may not be optimal
+            bbox.min_y = bbox.min_y.min(v.y()); // don't care
+            bbox.max_y = bbox.max_y.max(v.y());
+        });
+
+        bbox
     }
 }
 
