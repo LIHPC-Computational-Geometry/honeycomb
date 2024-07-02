@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="GRISUBAL algorithm description &amp; implementation"><title>honeycomb_kernels::grisubal - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_kernels" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (cf2df68d1 2024-07-01)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_kernels/index.html">honeycomb_kernels</a><span class="version">0.4.0</span></h2></div><h2 class="location"><a href="#">Module grisubal</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#functions">Functions</a></li></ul></section><h2><a href="../index.html">In crate honeycomb_kernels</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">honeycomb_kernels</a>::<wbr><a class="mod" href="#">grisubal</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/honeycomb_kernels/grisubal/mod.rs.html#1-109">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><em>GRISUBAL</em> algorithm description &amp; implementation</p>
+<p>This module contain all code used to implement our grid submersion algorithm, or <em>grisubal</em>
+for short.</p>
+<p>This algorithm builds the mesh of a geometry by overlapping a grid over it and making
+adjustment to fit the grid to the geometry. It is inspired by the approach described in
+<a href="https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf">this</a>
+research note.</p>
+<h2 id="assumptions--hypotheses"><a class="doc-anchor" href="#assumptions--hypotheses">§</a>Assumptions / Hypotheses</h2>
+<ul>
+<li>All components of the geometry are located in positive X/Y</li>
+<li>Edges are consistently oriented (i.e. normals of edges making up a face all point
+outward / inward, no mix)</li>
+</ul>
+<h2 id="pseudo-code"><a class="doc-anchor" href="#pseudo-code">§</a>Pseudo code</h2><h3 id="map-generation"><a class="doc-anchor" href="#map-generation">§</a>Map generation</h3>
+<p><strong>Input</strong>:</p>
+<ul>
+<li>Geometry of interest</li>
+<li>Grid characteristics (length of cell along X/Y-axis)</li>
+</ul>
+<p><strong>Algorithm</strong>:</p>
+<p>Let <code>S</code> be the set of all segments making up the boundaries of the geometry.
+Let <code>PoI</code> be the set of points of interests of the boundaries (i.e. vertices that must be inserted into the final mesh)
+Let <code>DoI</code> be the corresponding set of darts of interests</p>
+<p>For all segments <code>[A, B]</code> of <code>S</code>:</p>
+<ul>
+<li>compute the Manhattan distance <code>d</code> between cell(A) and cell(B):
+<ul>
+<li>if  <code>d == 0</code>: <code>A</code> and <code>B</code> belong to the same grid cell
+<ul>
+<li>Do nothing</li>
+</ul>
+</li>
+<li>if <code>d == 1</code>: <code>A</code> and <code>B</code> belong to neighbor cells
+<ul>
+<li>Compute the intersection <code>C</code> between the segment and the grid’s edge</li>
+<li>Split the grid’s edge to add <code>C</code> on it, add relevant darts to <code>DoI</code></li>
+<li>Replace segment <code>[A, B]</code> by segments <code>[A, C]</code>, <code>[C, B]</code></li>
+<li>Add <code>C</code> to <code>PoI</code></li>
+</ul>
+</li>
+<li>if <code>d &gt; 1</code>: <code>A</code> and <code>B</code> belong to different, non-neighbor cells
+<ul>
+<li>Compute all intersections <code>Ci</code> between the segment and grid’s edges</li>
+<li>Split grid’s edges to add <code>Ci</code>s on them, add relevant darts to <code>DoI</code></li>
+<li>Replace segment <code>[A, B]</code> by segments <code>[A, C1]</code>, <code>[C1, C2]</code>, …, <code>[CX, B]</code></li>
+<li>Add all <code>Ci</code>s to <code>PoI</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>if <code>B</code> belongs to <code>PoI</code>:
+<ul>
+<li>Insert <code>B</code> into the map</li>
+<li>Add relevant darts to <code>DoI</code></li>
+</ul>
+</li>
+</ul>
+<p>For all points <code>P</code> of <code>PoI</code>:</p>
+<ul>
+<li>search <code>S</code> to find <code>P'</code>, the first “next” point to belong to <code>PoI</code></li>
+<li>use <code>DoI</code> to build the <code>[P, P']</code> segment into the map (this may need some refinement to avoid execution-path inconsistencies)</li>
+</ul>
+<h3 id="post-processing-clip"><a class="doc-anchor" href="#post-processing-clip">§</a>Post-processing clip</h3>
+<p>TBD</p>
+</div></details><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.grisubal.html" title="fn honeycomb_kernels::grisubal::grisubal">grisubal</a></div><div class="desc docblock-short">Main algorithm call function.</div></li></ul></section></div></main></body></html>

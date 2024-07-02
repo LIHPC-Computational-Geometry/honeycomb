@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generic attribute trait for logical behavior description"><title>AttributeUpdate in honeycomb_core - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="honeycomb_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (cf2df68d1 2024-07-01)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../honeycomb_core/index.html">honeycomb_core</a><span class="version">0.4.0</span></h2></div><h2 class="location"><a href="#">AttributeUpdate</a></h2><div class="sidebar-elems"><section><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.merge">merge</a></li><li><a href="#tymethod.split">split</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.merge_undefined">merge_undefined</a></li></ul><h3><a href="#object-safety">Object Safety</a></h3><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In crate honeycomb_core</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="index.html">honeycomb_core</a>::<wbr><a class="trait" href="#">AttributeUpdate</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/honeycomb_core/attributes/traits.rs.html#59-80">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait AttributeUpdate: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> {
+    // Required methods
+    fn <a href="#tymethod.merge" class="fn">merge</a>(attr1: Self, attr2: Self) -&gt; Self;
+<span class="item-spacer"></span>    fn <a href="#tymethod.split" class="fn">split</a>(attr: Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(Self, Self)</a>;
+
+    // Provided method
+    fn <a href="#method.merge_undefined" class="fn">merge_undefined</a>(attr: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;) -&gt; Self { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generic attribute trait for logical behavior description</p>
+<p>This trait can be implemented for a given attribute in order to define the behavior to
+follow when (un)sewing operations result in an update of the attribute.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>For an intensive property of a system (e.g. a temperature), an implementation would look
+like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>honeycomb_core::AttributeUpdate;
+
+<span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Temperature {
+    <span class="kw">pub </span>val: f32
+}
+
+<span class="kw">impl </span>AttributeUpdate <span class="kw">for </span>Temperature {
+    <span class="kw">fn </span>merge(attr1: <span class="self">Self</span>, attr2: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        Temperature { val: (attr1.val + attr2.val) / <span class="number">2.0 </span>}
+    }
+
+    <span class="kw">fn </span>split(attr: <span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
+        (attr, attr)
+    }
+
+    <span class="kw">fn </span>merge_undefined(attr: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;) -&gt; <span class="self">Self </span>{
+        attr.unwrap_or(Temperature { val: <span class="number">0.0 </span>})
+    }
+}
+
+<span class="kw">let </span>t1 = Temperature { val: <span class="number">273.0 </span>};
+<span class="kw">let </span>t2 = Temperature { val: <span class="number">298.0 </span>};
+
+<span class="kw">let </span>t_new = AttributeUpdate::merge(t1, t2); <span class="comment">// use AttributeUpdate::_
+</span><span class="kw">let </span>t_ref = Temperature { val: <span class="number">285.5 </span>};
+
+<span class="macro">assert_eq!</span>(Temperature::split(t_new), (t_ref, t_ref)); <span class="comment">// or Temperature::_</span></code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.merge" class="method"><a class="src rightside" href="../src/honeycomb_core/attributes/traits.rs.html#61">source</a><h4 class="code-header">fn <a href="#tymethod.merge" class="fn">merge</a>(attr1: Self, attr2: Self) -&gt; Self</h4></section></summary><div class="docblock"><p>Merging routine, i.e. how to obtain the new attribute value from the two existing ones.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.split" class="method"><a class="src rightside" href="../src/honeycomb_core/attributes/traits.rs.html#64">source</a><h4 class="code-header">fn <a href="#tymethod.split" class="fn">split</a>(attr: Self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(Self, Self)</a></h4></section></summary><div class="docblock"><p>Splitting routine, i.e. how to obtain the two attributes from a single one.</p>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.merge_undefined" class="method"><a class="src rightside" href="../src/honeycomb_core/attributes/traits.rs.html#77-79">source</a><h4 class="code-header">fn <a href="#method.merge_undefined" class="fn">merge_undefined</a>(attr: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;) -&gt; Self</h4></section></summary><div class="docblock"><p>Fallback merging routine, i.e. how to obtain the new attribute value from potentially
+undefined instances.</p>
+<p>The default implementation may panic if no attribute can be used to create a value. The
+reason for that is as follows:</p>
+<p>This trait and its methods were designed with the (un)sewing operation in mind. Their
+purpose is to simplify the code needed to propagate updates of attributes affected by the
+(un)sewing operation. Considering this context, as well as the definition of (un)linking
+operations, this panic seems reasonable: If the darts you are sewing have totally undefined
+attributes, you should most likely be linking them instead of sewing.</p>
+</div></details></div><h2 id="object-safety" class="section-header">Object Safety<a href="#object-safety" class="anchor">§</a></h2><div class="object-safety-info">This trait is <b>not</b> <a href="https://doc.rust-lang.org/nightly/reference/items/traits.html#object-safety">object safe</a>.</div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-AttributeUpdate-for-Vertex2%3CT%3E" class="impl"><a class="src rightside" href="../src/honeycomb_core/spatial_repr/vertex.rs.html#229-241">source</a><a href="#impl-AttributeUpdate-for-Vertex2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="trait.CoordsFloat.html" title="trait honeycomb_core::CoordsFloat">CoordsFloat</a>&gt; <a class="trait" href="trait.AttributeUpdate.html" title="trait honeycomb_core::AttributeUpdate">AttributeUpdate</a> for <a class="struct" href="struct.Vertex2.html" title="struct honeycomb_core::Vertex2">Vertex2</a>&lt;T&gt;</h3></section><div class="docblock"><p>Attribute logic definitions</p>
+<ul>
+<li><strong>MERGING POLICY</strong> - The new vertex is placed at the midpoint between the two existing ones.</li>
+<li><strong>SPLITTING POLICY</strong> - The current vertex is duplicated.</li>
+<li><strong>UNDEFINED ATTRIBUTES MERGING</strong> - The new vertex takes the value of the one provided if it
+exists, otherwise the function panics.</li>
+</ul>
+</div></div><script src="../trait.impl/honeycomb_core/attributes/traits/trait.AttributeUpdate.js" async></script></section></div></main></body></html>
