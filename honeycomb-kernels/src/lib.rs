@@ -19,7 +19,7 @@ pub mod grisubal;
 
 // --- PUBLIC API
 
-pub use grisubal::{grisubal, inp::Clamp};
+pub use grisubal::{grisubal, inp::Clip};
 
 // --- INTERNALS
 

@@ -63,7 +63,7 @@ pub(crate) mod kernel;
 
 // ------ IMPORTS
 
-use crate::{Clamp, Geometry2};
+use crate::{Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 
@@ -77,7 +77,7 @@ use vtkio::Vtk;
 ///   [VTK Format] for more information about the expected formatting.
 /// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
 ///   relative to the geometry.
-/// - `clamp: Option<Clamp>` -- Indicates which part of the map should be clipped, jf any, in
+/// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, jf any, in
 ///   the post-processing phase.
 ///
 /// ## VTK Format
@@ -100,7 +100,7 @@ use vtkio::Vtk;
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     invert_normal_dir: bool,
-    clamp: Option<Clamp>,
+    clip: Option<Clip>,
 ) -> CMap2<T> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
@@ -112,14 +112,14 @@ pub fn grisubal<T: CoordsFloat>(
     // build the map
     let mut cmap = kernel::build_mesh(&geometry);
     // optional post-processing
-    match clamp.unwrap_or(Clamp::None) {
-        Clamp::All => {
+    match clip.unwrap_or(Clip::None) {
+        Clip::All => {
             kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir);
             kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir);
         }
-        Clamp::Inner => kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir),
-        Clamp::Outer => kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir),
-        Clamp::None => {}
+        Clip::Inner => kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir),
+        Clip::Outer => kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir),
+        Clip::None => {}
     }
     // return result
     cmap
