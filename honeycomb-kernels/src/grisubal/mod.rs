@@ -71,6 +71,17 @@ use vtkio::Vtk;
 
 /// Main algorithm call function.
 ///
+/// # Arguments
+///
+/// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry. See
+///   [VTK Format] for more information about the expected formatting.
+/// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
+///   relative to the geometry.
+/// - `clamp: Option<Clamp>` -- Indicates which part of the map should be clipped in the post
+///   processing phase, if any.
+///
+/// ## VTK Format
+///
 /// # Example
 ///
 /// ```should_panic
