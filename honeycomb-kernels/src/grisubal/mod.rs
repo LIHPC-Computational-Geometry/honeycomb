@@ -95,7 +95,12 @@ use vtkio::Vtk;
 /// # Example
 ///
 /// ```should_panic
-/// todo!()
+/// # fn main() {
+/// use honeycomb_core::CMap2;
+/// use honeycomb_kernels::{Clip, grisubal};
+/// // this panics because the file does not exist, but the usage is correct
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", true, Some(Clip::Outer));
+/// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
@@ -105,7 +110,7 @@ pub fn grisubal<T: CoordsFloat>(
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
-        Err(e) => panic!("E: could not load geometry from vtk file - {}", e),
+        Err(e) => panic!("E: could not open specified vtk file - {}", e),
     };
     // pre-processing
     let geometry = Geometry2::from(geometry_vtk);
