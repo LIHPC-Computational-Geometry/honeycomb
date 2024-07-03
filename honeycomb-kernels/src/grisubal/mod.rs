@@ -77,10 +77,20 @@ use vtkio::Vtk;
 ///   [VTK Format] for more information about the expected formatting.
 /// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
 ///   relative to the geometry.
-/// - `clamp: Option<Clamp>` -- Indicates which part of the map should be clipped in the post
-///   processing phase, if any.
+/// - `clamp: Option<Clamp>` -- Indicates which part of the map should be clipped, jf any, in
+///   the post-processing phase.
 ///
 /// ## VTK Format
+///
+/// At the moment, the input geometry should be specified via a file under the VTK Legacy format.
+/// Just like the `io` feature provided in the core crate, there are a few additional requirements
+/// for the geometry to be loaded correctly:
+/// - The geometry should have a consistent orientation, i.e. the order in which the points are
+///   given should form normals with a consistent direction (either pointing inward or outward the
+///   geometry).
+/// - The geometry should be described using in an `UnstructuredGrid` data set, with supported
+///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
+///   geometry to match while vertices will be considered as points of interests.
 ///
 /// # Example
 ///
