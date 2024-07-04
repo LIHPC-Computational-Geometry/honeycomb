@@ -63,7 +63,7 @@ pub(crate) mod kernel;
 
 // ------ IMPORTS
 
-use crate::{Clamp, Geometry2};
+use crate::{Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 
@@ -71,34 +71,61 @@ use vtkio::Vtk;
 
 /// Main algorithm call function.
 ///
+/// # Arguments
+///
+/// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry. See
+///   [VTK Format] for more information about the expected formatting.
+/// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
+///   relative to the geometry.
+/// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, jf any, in
+///   the post-processing phase.
+///
+/// ## VTK Format
+///
+/// At the moment, the input geometry should be specified via a file under the VTK Legacy format.
+/// Just like the `io` feature provided in the core crate, there are a few additional requirements
+/// for the geometry to be loaded correctly:
+/// - The geometry should have a consistent orientation, i.e. the order in which the points are
+///   given should form normals with a consistent direction (either pointing inward or outward the
+///   geometry).
+/// - The geometry should be described using in an `UnstructuredGrid` data set, with supported
+///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
+///   geometry to match while vertices will be considered as points of interests.
+///
 /// # Example
 ///
 /// ```should_panic
-/// todo!()
+/// # fn main() {
+/// use honeycomb_core::CMap2;
+/// use honeycomb_kernels::{Clip, grisubal};
+/// // this panics because the file does not exist, but the usage is correct
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", true, (1., 1.), Some(Clip::Outer));
+/// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     invert_normal_dir: bool,
-    clamp: Option<Clamp>,
+    grid_cell_sizes: (T, T),
+    clip: Option<Clip>,
 ) -> CMap2<T> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
-        Err(e) => panic!("E: could not load geometry from vtk file - {}", e),
+        Err(e) => panic!("E: could not open specified vtk file - {}", e),
     };
     // pre-processing
     let geometry = Geometry2::from(geometry_vtk);
     // build the map
-    let mut cmap = kernel::build_mesh(&geometry);
+    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes);
     // optional post-processing
-    match clamp.unwrap_or(Clamp::None) {
-        Clamp::All => {
+    match clip.unwrap_or(Clip::None) {
+        Clip::All => {
             kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir);
             kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir);
         }
-        Clamp::Inner => kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir),
-        Clamp::Outer => kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir),
-        Clamp::None => {}
+        Clip::Inner => kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir),
+        Clip::Outer => kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir),
+        Clip::None => {}
     }
     // return result
     cmap
