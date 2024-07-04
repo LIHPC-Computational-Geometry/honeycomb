@@ -24,7 +24,7 @@ use honeycomb_core::{CMap2, CoordsFloat};
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
     todo!()
 }
 

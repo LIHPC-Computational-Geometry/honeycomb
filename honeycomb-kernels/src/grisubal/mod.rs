@@ -105,6 +105,7 @@ use vtkio::Vtk;
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     invert_normal_dir: bool,
+    grid_cell_sizes: (T, T),
     clip: Option<Clip>,
 ) -> CMap2<T> {
     // load geometry from file
@@ -115,7 +116,7 @@ pub fn grisubal<T: CoordsFloat>(
     // pre-processing
     let geometry = Geometry2::from(geometry_vtk);
     // build the map
-    let mut cmap = kernel::build_mesh(&geometry);
+    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes);
     // optional post-processing
     match clip.unwrap_or(Clip::None) {
         Clip::All => {
