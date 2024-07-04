@@ -12,14 +12,14 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
-/// Post-processing clamp operation.
+/// Post-processing clip operation.
 #[derive(Default)]
 pub enum Clip {
-    /// Clamp inner & outer cells, leaving only boundaries of the geometry.
+    /// Clip inner & outer cells, leaving only boundaries of the geometry.
     All,
-    /// Clamp inner cells.
+    /// Clip inner cells.
     Inner,
-    /// Clamp outer cells.
+    /// Clip outer cells.
     Outer,
     /// Do nothing. Default value.
     #[default]

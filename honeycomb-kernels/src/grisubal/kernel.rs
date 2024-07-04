@@ -15,7 +15,7 @@ use honeycomb_core::{CMap2, CoordsFloat};
 ///
 /// This function builds a combinatorial map from the described geometry. The returned
 /// map is an adjusted grid that can be clipped in order to keep only part of the mesh.
-/// See [`grisubal::Clamp`] for more information.
+/// See [`grisubal::Clip`] for more information.
 ///
 /// # Arguments
 ///
