@@ -153,7 +153,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                                     assert_eq!(vids.len(), 1,
                                         "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)"
                                     );
-                                    todo!()
+                                    poi.push(vids[0]);
                                 }
                                 CellType::PolyVertex =>
                                     panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
@@ -161,7 +161,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                                     assert_eq!(vids.len(), 2,
                                     "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)"
                                 );
-                                    todo!()
+                                    segments.push(Segment(vids[0], vids[1]));
                                 }
                                 CellType::PolyLine =>
                                     panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
