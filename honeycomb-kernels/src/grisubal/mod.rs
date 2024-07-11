@@ -21,13 +21,13 @@
 //! **Input**:
 //! - Geometry of interest
 //! - Grid characteristics (length of cell along X/Y-axis)
-//!  
+//!
 //! **Algorithm**:
 //!
 //! Let `S` be the set of all segments making up the boundaries of the geometry.
 //! Let `PoI` be the set of points of interests of the boundaries (i.e. vertices that must be inserted into the final mesh)
 //! Let `DoI` be the corresponding set of darts of interests
-//!  
+//!
 //! For all segments `[A, B]` of `S`:
 //! - compute the Manhattan distance `d` between cell(A) and cell(B):
 //!     - if  `d == 0`: `A` and `B` belong to the same grid cell
