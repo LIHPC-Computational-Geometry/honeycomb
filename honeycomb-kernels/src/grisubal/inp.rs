@@ -40,11 +40,11 @@ pub fn load_geometry<T: CoordsFloat>(
 /// Geometry representation structure.
 pub struct Geometry2<T: CoordsFloat> {
     /// Vertices of the geometry.
-    vertices: Vec<Vertex2<T>>,
+    pub vertices: Vec<Vertex2<T>>,
     /// Edges / segments making up the geometry.
-    segments: Vec<Segment>,
+    pub segments: Vec<Segment>,
     /// Points of interest, i.e. points to insert unconditionally in the future map / mesh.
-    poi: Vec<usize>,
+    pub poi: Vec<usize>,
 }
 
 impl<T: CoordsFloat> Geometry2<T> {
@@ -194,4 +194,5 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 /// Segment modelling structure.
 ///
 /// Inner values correspond to vertex indices, order matters.
-pub struct Segment(usize, usize);
+#[derive(Debug, PartialEq)]
+pub struct Segment(pub usize, pub usize);
