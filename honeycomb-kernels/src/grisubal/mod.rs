@@ -92,6 +92,13 @@ use vtkio::Vtk;
 ///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
 ///   geometry to match while vertices will be considered as points of interests.
 ///
+/// # Panics
+///
+/// This function may panic if:
+/// - the specified file cannot be opened
+/// - an internal routine panics, i.e.:
+///     - TODO: complete
+///
 /// # Example
 ///
 /// ```should_panic
@@ -111,7 +118,7 @@ pub fn grisubal<T: CoordsFloat>(
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
-        Err(e) => panic!("E: could not open specified vtk file - {}", e),
+        Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
     // pre-processing
     let geometry = Geometry2::from(geometry_vtk);
