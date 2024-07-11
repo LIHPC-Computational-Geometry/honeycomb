@@ -98,11 +98,9 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
             | DataSet::StructuredGrid { .. }
             | DataSet::RectilinearGrid { .. }
             | DataSet::Field { .. } => {
-                todo!()
+                panic!("E: dataset not supported - only `UnstructuredGrid` is currently supported")
             }
-            DataSet::PolyData { .. } => {
-                todo!()
-            }
+            DataSet::PolyData { .. } => todo!("E: `PolyData` data set is not yet supported"),
             DataSet::UnstructuredGrid { pieces, .. } => {
                 let mut vertices = Vec::new();
                 let mut segments = Vec::new();
