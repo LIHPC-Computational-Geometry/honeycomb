@@ -38,6 +38,8 @@ pub fn load_geometry<T: CoordsFloat>(
 }
 
 /// Geometry representation structure.
+///
+/// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
 pub struct Geometry2<T: CoordsFloat> {
     /// Vertices of the geometry.
     pub vertices: Vec<Vertex2<T>>,
@@ -88,6 +90,7 @@ macro_rules! build_vertices {
     }};
 }
 
+/// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
 impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     fn from(value: Vtk) -> Self {
         // What we are reading / how we construct the geometry:
