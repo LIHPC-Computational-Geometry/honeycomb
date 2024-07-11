@@ -101,6 +101,9 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                 todo!()
             }
             DataSet::UnstructuredGrid { pieces, .. } => {
+                let mut vertices = Vec::new();
+                let mut segments = Vec::new();
+                let mut poi = Vec::new();
                 let tmp = pieces.iter().map(|piece| {
                     // assume inline data
                     let tmp = piece
@@ -115,6 +118,8 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                         IOBuffer::F32(v) => build_vertices!(v),
                         _ => panic!("E: unsupported coordinate representation type - please use float or double"),
                     };
+                    let mut poi: Vec<usize> = Vec::new();
+                    let mut segments: Vec<Segment> = Vec::new();
 
                     let vtkio::model::Cells { cell_verts, types } = tmp.cells;
                     match cell_verts {
@@ -157,9 +162,20 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                             panic!("XML Vtk files are not supported");
                         }
                     }
+                    (vertices, segments, poi)
                 });
-
-                todo!()
+                
+                tmp.for_each(|(mut ver, mut seg, mut points)| {
+                    vertices.append(&mut ver);
+                    segments.append(&mut seg);
+                    poi.append(&mut points);
+                });
+                
+                Geometry2 {
+                    vertices,
+                    segments,
+                    poi,
+                }
             }
         }
     }
