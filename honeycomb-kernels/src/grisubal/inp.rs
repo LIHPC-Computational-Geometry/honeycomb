@@ -9,7 +9,10 @@
 use crate::BBox2;
 use honeycomb_core::{CoordsFloat, Vertex2};
 use num::Zero;
-use vtkio::{model::{CellType, DataSet, VertexNumbers}, IOBuffer, Vtk};
+use vtkio::{
+    model::{CellType, DataSet, VertexNumbers},
+    IOBuffer, Vtk,
+};
 
 // ------ CONTENT
 
@@ -128,9 +131,10 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                             vertices: verts,
                         } => {
                             // check basic stuff
-                            assert_eq!(num_cells as usize, types.len(), 
-                            "E: failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES");
-    
+                            assert_eq!(num_cells as usize, types.len(),
+                                "E: failed to build geometry - inconsistent number of cell between CELLS and CELL_TYPES"
+                            );
+
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
                             let mut take_next = 0;
@@ -143,34 +147,40 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                                 take_next -= 1;
                             });
                             assert_eq!(num_cells as usize, cell_components.len());
-    
+
                             types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
                                 CellType::Vertex => {
-                                    assert_eq!(vids.len(), 1, "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)");
+                                    assert_eq!(vids.len(), 1,
+                                        "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)"
+                                    );
                                     todo!()
                                 }
-                                CellType::PolyVertex => panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
+                                CellType::PolyVertex =>
+                                    panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
                                 CellType::Line => {
-                                    assert_eq!(vids.len(), 2, "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)");
+                                    assert_eq!(vids.len(), 2,
+                                    "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)"
+                                );
                                     todo!()
                                 }
-                                CellType::PolyLine => panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
+                                CellType::PolyLine =>
+                                    panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
                                 _ => {}, // silent ignore all other cells that do not make up boundaries
                             });
                         }
                         VertexNumbers::XML { .. } => {
-                            panic!("XML Vtk files are not supported");
+                            panic!("E: XML Vtk files are not supported");
                         }
                     }
                     (vertices, segments, poi)
                 });
-                
+
                 tmp.for_each(|(mut ver, mut seg, mut points)| {
                     vertices.append(&mut ver);
                     segments.append(&mut seg);
                     poi.append(&mut points);
                 });
-                
+
                 Geometry2 {
                     vertices,
                     segments,
