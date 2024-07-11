@@ -10,6 +10,15 @@
 //!
 //! - `grisubal` -- Grid Submersion Algorithm
 
+// ------ CUSTOM LINTS
+
+// --- some though love for the code
+#![warn(missing_docs)]
+#![warn(clippy::pedantic)]
+// --- some tolerance
+#![allow(clippy::similar_names)]
+#![allow(clippy::module_name_repetitions)]
+
 // ------ MODULE DECLARATIONS
 
 #[allow(unused)]

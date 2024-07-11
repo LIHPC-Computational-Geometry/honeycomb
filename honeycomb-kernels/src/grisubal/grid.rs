@@ -17,7 +17,7 @@ pub struct GridCellId(usize, usize);
 impl GridCellId {
     /// Compute the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
     /// two cells.
-    pub fn man_dist(lhs: Self, rhs: Self) -> usize {
+    pub fn man_dist(lhs: &Self, rhs: &Self) -> usize {
         lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
     }
 }

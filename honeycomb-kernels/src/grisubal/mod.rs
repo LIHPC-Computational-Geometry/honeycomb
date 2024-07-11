@@ -21,13 +21,13 @@
 //! **Input**:
 //! - Geometry of interest
 //! - Grid characteristics (length of cell along X/Y-axis)
-//!  
+//!
 //! **Algorithm**:
 //!
 //! Let `S` be the set of all segments making up the boundaries of the geometry.
 //! Let `PoI` be the set of points of interests of the boundaries (i.e. vertices that must be inserted into the final mesh)
 //! Let `DoI` be the corresponding set of darts of interests
-//!  
+//!
 //! For all segments `[A, B]` of `S`:
 //! - compute the Manhattan distance `d` between cell(A) and cell(B):
 //!     - if  `d == 0`: `A` and `B` belong to the same grid cell
@@ -92,6 +92,13 @@ use vtkio::Vtk;
 ///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
 ///   geometry to match while vertices will be considered as points of interests.
 ///
+/// # Panics
+///
+/// This function may panic if:
+/// - the specified file cannot be opened
+/// - an internal routine panics, i.e.:
+///     - TODO: complete
+///
 /// # Example
 ///
 /// ```should_panic
@@ -111,7 +118,7 @@ pub fn grisubal<T: CoordsFloat>(
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
-        Err(e) => panic!("E: could not open specified vtk file - {}", e),
+        Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
     // pre-processing
     let geometry = Geometry2::from(geometry_vtk);
