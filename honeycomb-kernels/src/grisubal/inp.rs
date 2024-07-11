@@ -8,7 +8,8 @@
 
 use crate::BBox2;
 use honeycomb_core::{CoordsFloat, Vertex2};
-use vtkio::Vtk;
+use num::Zero;
+use vtkio::{model::{CellType, DataSet, VertexNumbers}, IOBuffer, Vtk};
 
 // ------ CONTENT
 
@@ -68,9 +69,99 @@ impl<T: CoordsFloat> Geometry2<T> {
     }
 }
 
+macro_rules! build_vertices {
+    ($v: ident) => {{
+        assert!(
+            ($v.len() % 3).is_zero(),
+            "E: failed to build vertices list - the point list contains an incomplete tuple"
+        );
+        $v.chunks_exact(3)
+            .map(|slice| {
+                // WE IGNORE Z values
+                let &[x, y, _] = slice else { panic!() };
+                Vertex2::from((T::from(x).unwrap(), T::from(y).unwrap()))
+            })
+            .collect()
+    }};
+}
+
 impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     fn from(value: Vtk) -> Self {
-        todo!()
+        // What we are reading / how we construct the geometry:
+        // The input VTK file should describe boundaries (e.g. edges in 2D) & key vertices (e.g. sharp corners)
+        // Those should be described by using simple
+        match value.data {
+            DataSet::ImageData { .. }
+            | DataSet::StructuredGrid { .. }
+            | DataSet::RectilinearGrid { .. }
+            | DataSet::Field { .. } => {
+                todo!()
+            }
+            DataSet::PolyData { .. } => {
+                todo!()
+            }
+            DataSet::UnstructuredGrid { pieces, .. } => {
+                let tmp = pieces.iter().map(|piece| {
+                    // assume inline data
+                    let tmp = piece
+                        .load_piece_data(None)
+                        .expect("E: failed to load piece data - is it not inlined?");
+
+                    // build vertex list
+                    // since we're expecting coordinates, we'll assume floating type
+                    // we're also converting directly to our vertex type since we're building a 2-map
+                    let vertices: Vec<Vertex2<T>> = match tmp.points {
+                        IOBuffer::F64(v) => build_vertices!(v),
+                        IOBuffer::F32(v) => build_vertices!(v),
+                        _ => panic!("E: unsupported coordinate representation type - please use float or double"),
+                    };
+
+                    let vtkio::model::Cells { cell_verts, types } = tmp.cells;
+                    match cell_verts {
+                        VertexNumbers::Legacy {
+                            num_cells,
+                            vertices: verts,
+                        } => {
+                            // check basic stuff
+                            assert_eq!(num_cells as usize, types.len(), 
+                            "E: failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES");
+    
+                            // build a collection of vertex lists corresponding of each cell
+                            let mut cell_components: Vec<Vec<usize>> = Vec::new();
+                            let mut take_next = 0;
+                            verts.iter().for_each(|vertex_id| if take_next.is_zero() {
+                                // making it usize since it's a counter
+                                take_next = *vertex_id as usize;
+                                cell_components.push(Vec::with_capacity(take_next));
+                            } else {
+                                cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                                take_next -= 1;
+                            });
+                            assert_eq!(num_cells as usize, cell_components.len());
+    
+                            types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
+                                CellType::Vertex => {
+                                    assert_eq!(vids.len(), 1, "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)");
+                                    todo!()
+                                }
+                                CellType::PolyVertex => panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
+                                CellType::Line => {
+                                    assert_eq!(vids.len(), 2, "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)");
+                                    todo!()
+                                }
+                                CellType::PolyLine => panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
+                                _ => {}, // silent ignore all other cells that do not make up boundaries
+                            });
+                        }
+                        VertexNumbers::XML { .. } => {
+                            panic!("XML Vtk files are not supported");
+                        }
+                    }
+                });
+
+                todo!()
+            }
+        }
     }
 }
 
