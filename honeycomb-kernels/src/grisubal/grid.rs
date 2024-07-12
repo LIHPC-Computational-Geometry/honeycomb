@@ -12,13 +12,20 @@ use honeycomb_core::{CoordsFloat, GridDescriptor};
 ///
 /// Cells `(X, Y)` take value in range `(0, 0)` to `(N, M)`,
 /// from left to right (X), from bottom to top (Y).
-pub struct GridCellId(usize, usize);
+pub struct GridCellId(pub usize, pub usize);
 
 impl GridCellId {
     /// Compute the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
     /// two cells.
     pub fn man_dist(lhs: &Self, rhs: &Self) -> usize {
         lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
+    }
+
+    pub fn diff(lhs: &Self, rhs: &Self) -> (isize, isize) {
+        (
+            rhs.0 as isize - lhs.0 as isize,
+            rhs.1 as isize - lhs.1 as isize,
+        )
     }
 }
 
