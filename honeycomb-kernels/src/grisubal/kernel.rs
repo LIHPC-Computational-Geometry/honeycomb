@@ -6,8 +6,10 @@
 
 // ------ IMPORTS
 
-use crate::{grisubal::model::Geometry2, GridCellId, IsBoundary, Segment};
-use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat};
+use crate::{grisubal::model::Geometry2, GridCellId, IsBoundary};
+use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier};
+
+use super::model::GeometryVertex;
 
 // ------ CONTENT
 
@@ -28,6 +30,10 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // build the overlapping grid we'll modify
     let bbox = geometry.bbox();
     let (cx, cy) = grid_cell_sizes; // will need later
+    let (nx, ny) = (
+        (bbox.max_x / cx).ceil().to_usize().unwrap(),
+        (bbox.max_y / cy).ceil().to_usize().unwrap(),
+    );
     let ogrid = bbox.overlapping_grid(grid_cell_sizes);
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
@@ -42,11 +48,11 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
-    let mut new_vertices = geometry.vertices.clone();
+    let mut n_vertices = geometry.vertices.len();
     let mut new_poi = geometry.poi.clone();
-    let new_segments = geometry.segments.iter().flat_map(|seg| {
+    let new_segments = geometry.segments.iter().flat_map(|&(v1_id, v2_id)| {
         // fetch vertices of the segment
-        let (v1, v2) = (&geometry.vertices[seg.0], &geometry.vertices[seg.1]);
+        let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
         // compute their position in the grid
         // we assume that the origin of the grid is at (0., 0.)
         let (c1, c2) = (
@@ -60,15 +66,53 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             ),
         );
         // check neighbor status
-        match GridCellId::man_dist(&c1, &c2) {
+        let new_segs = match GridCellId::man_dist(&c1, &c2) {
             // trivial case:
             // v1 & v2 belong to the same cell
-            0 => todo!(),
+            0 => [(v1_id, v2_id)],
             // ok case:
             // v1 & v2 belong to neighboring cells
             1 => {
+                // fetch base dart the cell of v1
+                let d0: DartIdentifier = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
                 // which edge of the cell are we intersecting?
-
+                let diff = GridCellId::diff(&c1, &c2);
+                #[rustfmt::skip]
+                let (t, edge_id) = match diff {
+                    // left
+                    (-1,  0) => {
+                        let x_intersec = T::from(c1.0).unwrap() * cx;
+                        let y = T::from(c1.1 + 1).unwrap() * cy;
+                        let s = (x_intersec - v1.x()) / (v2.x() - v1.x());
+                        let t = (s * (v2.y() - v1.y()) - (y - v1.y())) / cy;
+                        (t, d0 + 3)
+                    }
+                    // right
+                    ( 1,  0) => {
+                        let x_intersec = T::from(c1.0).unwrap() * cx;
+                        let y = T::from(c1.1 + 1).unwrap() * cy;
+                        let s = (x_intersec - v1.x()) / (v2.x() - v1.x());
+                        let t = (s * (v2.y() - v1.y()) - (y - v1.y())) / cy;
+                        (T::one() - t, d0 + 1)
+                    }
+                    // down
+                    ( 0, -1) => {
+                        let x = T::from(c1.0 + 1).unwrap() * cx;
+                        let y_intersec = T::from(c1.1).unwrap() * cy;
+                        let s = (y_intersec - v1.y()) / (v2.y() - v1.y());
+                        let t = (s * (v2.x() - v1.x()) - (x - v1.x())) / cx;
+                        (t, d0)
+                    }
+                    // up
+                    ( 0,  1) => {
+                        let x = T::from(c1.0 + 1).unwrap() * cx;
+                        let y_intersec = T::from(c1.1).unwrap() * cy;
+                        let s = (y_intersec - v1.y()) / (v2.y() - v1.y());
+                        let t = (s * (v2.x() - v1.x()) - (x - v1.x())) / cx;
+                        (t, d0 + 2)
+                    }
+                    _ => unreachable!(),
+                };
                 // compute the intersection point & add it to the vertices/poi
 
                 // return new sub-segments
@@ -81,10 +125,15 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 // the number of cell we're going through to reach v2 from v1, which is equal to the number of
                 // additional vertices resulting from intersection with the grid
                 // i.e. we're generating i+1 segments
+                let move_along = *v2 - *v1;
+                let mut t = T::zero();
                 todo!()
             }
+        };
+        if geometry.poi.contains(&v2_id) {
+            todo!()
         }
-        todo!()
+        new_segs
     });
 
     // STEP 2
