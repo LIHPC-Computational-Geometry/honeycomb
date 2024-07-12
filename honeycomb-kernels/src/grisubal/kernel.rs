@@ -7,7 +7,7 @@
 // ------ IMPORTS
 
 use crate::grisubal::inp::Geometry2;
-use honeycomb_core::{CMap2, CoordsFloat};
+use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat};
 
 // ------ CONTENT
 
@@ -25,7 +25,18 @@ use honeycomb_core::{CMap2, CoordsFloat};
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
 pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
-    todo!()
+    // build the overlapping grid we'll modify
+    let bbox = geometry.bbox();
+    let ogrid = bbox.overlapping_grid(grid_cell_sizes);
+    let mut cmap = CMapBuilder::default()
+        .grid_descriptor(ogrid)
+        .build()
+        .expect("E: could not build overlapping grid map");
+
+    // process the geometry
+
+    // return result
+    cmap
 }
 
 /// Clipping routine.
