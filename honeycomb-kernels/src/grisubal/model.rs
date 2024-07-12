@@ -7,7 +7,10 @@
 // ------ IMPORTS
 
 use crate::BBox2;
-use honeycomb_core::{CoordsFloat, Vertex2};
+use honeycomb_core::{
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, OrbitPolicy, Vertex2,
+    VertexIdentifier,
+};
 use num::Zero;
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
@@ -197,3 +200,29 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 /// Inner values correspond to vertex indices, order matters.
 #[derive(Debug, PartialEq)]
 pub struct Segment(pub usize, pub usize);
+
+#[derive(Clone, Copy, Debug)]
+pub struct IsBoundary(bool);
+
+impl AttributeUpdate for IsBoundary {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        // if we fuse two vertices and at least one is part of the boundary,
+        // the resulting one should be part of the boundary to prevent a missing link in the chain
+        IsBoundary(attr1.0 || attr2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        // if we split a vertex in two, both resulting vertices should hold the same property
+        (attr, attr)
+    }
+}
+
+impl AttributeBind for IsBoundary {
+    fn binds_to<'a>() -> OrbitPolicy<'a> {
+        OrbitPolicy::Vertex
+    }
+
+    type IdentifierType = VertexIdentifier;
+
+    type StorageType = AttrSparseVec<Self>;
+}
