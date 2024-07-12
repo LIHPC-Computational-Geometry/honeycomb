@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::grisubal::inp::Geometry2;
+use crate::grisubal::model::Geometry2;
 use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat};
 
 // ------ CONTENT

@@ -28,11 +28,11 @@ pub mod grisubal;
 
 // --- PUBLIC API
 
-pub use grisubal::{grisubal, inp::Clip};
+pub use grisubal::{grisubal, model::Clip};
 
 // --- INTERNALS
 
 #[allow(unused)]
 pub(crate) use grisubal::grid::{BBox2, GridCellId};
 #[allow(unused)]
-pub(crate) use grisubal::inp::{Geometry2, Segment};
+pub(crate) use grisubal::model::{Geometry2, Segment};
