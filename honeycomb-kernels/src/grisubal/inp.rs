@@ -8,7 +8,11 @@
 
 use crate::BBox2;
 use honeycomb_core::{CoordsFloat, Vertex2};
-use vtkio::Vtk;
+use num::Zero;
+use vtkio::{
+    model::{CellType, DataSet, VertexNumbers},
+    IOBuffer, Vtk,
+};
 
 // ------ CONTENT
 
@@ -34,13 +38,15 @@ pub fn load_geometry<T: CoordsFloat>(
 }
 
 /// Geometry representation structure.
+///
+/// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
 pub struct Geometry2<T: CoordsFloat> {
     /// Vertices of the geometry.
-    vertices: Vec<Vertex2<T>>,
+    pub vertices: Vec<Vertex2<T>>,
     /// Edges / segments making up the geometry.
-    segments: Vec<Segment>,
+    pub segments: Vec<Segment>,
     /// Points of interest, i.e. points to insert unconditionally in the future map / mesh.
-    poi: Vec<usize>,
+    pub poi: Vec<usize>,
 }
 
 impl<T: CoordsFloat> Geometry2<T> {
@@ -68,13 +74,126 @@ impl<T: CoordsFloat> Geometry2<T> {
     }
 }
 
+macro_rules! build_vertices {
+    ($v: ident) => {{
+        assert!(
+            ($v.len() % 3).is_zero(),
+            "E: failed to build vertices list - the point list contains an incomplete tuple"
+        );
+        $v.chunks_exact(3)
+            .map(|slice| {
+                // WE IGNORE Z values
+                let &[x, y, _] = slice else { panic!() };
+                Vertex2::from((T::from(x).unwrap(), T::from(y).unwrap()))
+            })
+            .collect()
+    }};
+}
+
+/// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
 impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     fn from(value: Vtk) -> Self {
-        todo!()
+        // What we are reading / how we construct the geometry:
+        // The input VTK file should describe boundaries (e.g. edges in 2D) & key vertices (e.g. sharp corners)
+        // Those should be described by using simple
+        match value.data {
+            DataSet::ImageData { .. }
+            | DataSet::StructuredGrid { .. }
+            | DataSet::RectilinearGrid { .. }
+            | DataSet::Field { .. } => {
+                panic!("E: dataset not supported - only `UnstructuredGrid` is currently supported")
+            }
+            DataSet::PolyData { .. } => todo!("E: `PolyData` data set is not yet supported"),
+            DataSet::UnstructuredGrid { pieces, .. } => {
+                let mut vertices = Vec::new();
+                let mut segments = Vec::new();
+                let mut poi = Vec::new();
+                let tmp = pieces.iter().map(|piece| {
+                    // assume inline data
+                    let tmp = piece
+                        .load_piece_data(None)
+                        .expect("E: failed to load piece data - is it not inlined?");
+
+                    // build vertex list
+                    // since we're expecting coordinates, we'll assume floating type
+                    // we're also converting directly to our vertex type since we're building a 2-map
+                    let vertices: Vec<Vertex2<T>> = match tmp.points {
+                        IOBuffer::F64(v) => build_vertices!(v),
+                        IOBuffer::F32(v) => build_vertices!(v),
+                        _ => panic!("E: unsupported coordinate representation type - please use float or double"),
+                    };
+                    let mut poi: Vec<usize> = Vec::new();
+                    let mut segments: Vec<Segment> = Vec::new();
+
+                    let vtkio::model::Cells { cell_verts, types } = tmp.cells;
+                    match cell_verts {
+                        VertexNumbers::Legacy {
+                            num_cells,
+                            vertices: verts,
+                        } => {
+                            // check basic stuff
+                            assert_eq!(num_cells as usize, types.len(),
+                                "E: failed to build geometry - inconsistent number of cell between CELLS and CELL_TYPES"
+                            );
+
+                            // build a collection of vertex lists corresponding of each cell
+                            let mut cell_components: Vec<Vec<usize>> = Vec::new();
+                            let mut take_next = 0;
+                            verts.iter().for_each(|vertex_id| if take_next.is_zero() {
+                                // making it usize since it's a counter
+                                take_next = *vertex_id as usize;
+                                cell_components.push(Vec::with_capacity(take_next));
+                            } else {
+                                cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                                take_next -= 1;
+                            });
+                            assert_eq!(num_cells as usize, cell_components.len());
+
+                            types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
+                                CellType::Vertex => {
+                                    assert_eq!(vids.len(), 1,
+                                        "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)"
+                                    );
+                                    poi.push(vids[0]);
+                                }
+                                CellType::PolyVertex =>
+                                    panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
+                                CellType::Line => {
+                                    assert_eq!(vids.len(), 2,
+                                    "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)"
+                                );
+                                    segments.push(Segment(vids[0], vids[1]));
+                                }
+                                CellType::PolyLine =>
+                                    panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
+                                _ => {}, // silent ignore all other cells that do not make up boundaries
+                            });
+                        }
+                        VertexNumbers::XML { .. } => {
+                            panic!("E: XML Vtk files are not supported");
+                        }
+                    }
+                    (vertices, segments, poi)
+                });
+
+                tmp.for_each(|(mut ver, mut seg, mut points)| {
+                    vertices.append(&mut ver);
+                    segments.append(&mut seg);
+                    poi.append(&mut points);
+                });
+
+                Geometry2 {
+                    vertices,
+                    segments,
+                    poi,
+                }
+            }
+        }
     }
 }
 
 /// Segment modelling structure.
 ///
 /// Inner values correspond to vertex indices, order matters.
-pub struct Segment(usize, usize);
+#[derive(Debug, PartialEq)]
+pub struct Segment(pub usize, pub usize);
