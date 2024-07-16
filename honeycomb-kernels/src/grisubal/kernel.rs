@@ -21,28 +21,28 @@ use super::model::GeometryVertex;
 macro_rules! left_intersec {
     ($va: ident, $vb: ident, $vdart:ident, $cy: ident) => {{
         let s = ($vdart.x() - $va.x()) / ($vb.x() - $va.x());
-        ($vdart.y() - $va.y() - ($vb.y() - $va.y()) * s) / $cy
+        (s, ($vdart.y() - $va.y() - ($vb.y() - $va.y()) * s) / $cy)
     }};
 }
 
 macro_rules! right_intersec {
     ($va: ident, $vb: ident, $vdart:ident, $cy: ident) => {{
         let s = ($vdart.x() - $va.x()) / ($vb.x() - $va.x());
-        (($vb.y() - $va.y()) * s - ($vdart.y() - $va.y())) / $cy
+        (s, (($vb.y() - $va.y()) * s - ($vdart.y() - $va.y())) / $cy)
     }};
 }
 
 macro_rules! down_intersec {
     ($va: ident, $vb: ident, $vdart:ident, $cx: ident) => {{
         let s = ($vdart.y() - $va.y()) / ($vb.y() - $va.y());
-        (($vb.x() - $va.x()) * s - ($vdart.x() - $va.x())) / $cx
+        (s, (($vb.x() - $va.x()) * s - ($vdart.x() - $va.x())) / $cx)
     }};
 }
 
 macro_rules! up_intersec {
     ($va: ident, $vb: ident, $vdart:ident, $cx: ident) => {{
         let s = ($vdart.y() - $va.y()) / ($vb.y() - $va.y());
-        (($vdart.x() - $va.x()) - ($vb.x() - $va.x()) * s) / $cx
+        (s, (($vdart.x() - $va.x()) - ($vb.x() - $va.x()) * s) / $cx)
     }};
 }
 
@@ -135,7 +135,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                             T::from(c1.1 + 1).unwrap() * cy,
                         ));
                         // call macro
-                        let t = left_intersec!(v1, v2, v_dart, cy);
+                        let (_, t) = left_intersec!(v1, v2, v_dart, cy);
                         (t, d0 + 3)
                     }
                     // cross right
@@ -145,7 +145,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                             T::from(c1.0 + 1).unwrap() * cx,
                             T::from(c1.1    ).unwrap() * cy,
                         ));
-                        let t = right_intersec!(v1, v2, v_dart, cy);
+                        let (_, t) = right_intersec!(v1, v2, v_dart, cy);
                         (t, d0 + 1) // adjust for dart direction
                     }
                     // cross down
@@ -155,7 +155,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                             T::from(c1.0).unwrap() * cx,
                             T::from(c1.1).unwrap() * cy,
                         ));
-                        let t = down_intersec!(v1, v2, v_dart, cx);
+                        let (_, t) = down_intersec!(v1, v2, v_dart, cx);
                         (t, d0)
                     }
                     // cross up
@@ -165,7 +165,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                             T::from(c1.0 + 1).unwrap() * cx,
                             T::from(c1.1 + 1).unwrap() * cy,
                         ));
-                        let t = up_intersec!(v1, v2, v_dart, cx);
+                        let (_, t) = up_intersec!(v1, v2, v_dart, cx);
                         (t, d0 + 2)
                     }
                     _ => unreachable!(),
@@ -220,7 +220,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .map(|x| {
                                     let x_v_dart = T::from(x).unwrap() * cx;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let mut t = right_intersec!(v1, v2, v_dart, cy);
+                                    let (_, mut t) = right_intersec!(v1, v2, v_dart, cy);
                                     let d_base = (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize)
                                         as DartIdentifier;
                                     // adjust t for edge direction
@@ -243,7 +243,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .map(|x| {
                                     let x_v_dart = T::from(x).unwrap() * cx;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let mut t = left_intersec!(v1, v2, v_dart, cy);
+                                    let (_, mut t) = left_intersec!(v1, v2, v_dart, cy);
                                     let d_base =
                                         (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
                                     // adjust t for edge direction
@@ -286,7 +286,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .map(|y| {
                                     let y_v_dart = T::from(y).unwrap() * cy;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let mut t = up_intersec!(v1, v2, v_dart, cx);
+                                    let (_, mut t) = up_intersec!(v1, v2, v_dart, cx);
                                     let d_base =
                                         (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
                                     // adjust t for edge direction
@@ -309,7 +309,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .map(|y| {
                                     let y_v_dart = T::from(y).unwrap() * cy;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let mut t = down_intersec!(v1, v2, v_dart, cx);
+                                    let (_, mut t) = down_intersec!(v1, v2, v_dart, cx);
                                     let d_base =
                                         (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
                                     // adjust t for edge direction
@@ -368,9 +368,9 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         )
                                     })
                                     .map(|(v_dart, cell_x)| {
-                                        let t = right_intersec!(v1, v2, v_dart, ncy);
+                                        let (s, t) = right_intersec!(v1, v2, v_dart, ncy);
                                         let dart_id = 0 + 1 as DartIdentifier; // base dart + 1
-                                        (t, t, dart_id)
+                                        (s, t, dart_id)
                                     });
                                 let intersec_h_data = (j_base + 1..=j_base + j)
                                     .map(|y| {
@@ -383,9 +383,9 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         )
                                     })
                                     .map(|(v_dart, cell_y)| {
-                                        let t = up_intersec!(v1, v2, v_dart, ncx);
+                                        let (s, t) = up_intersec!(v1, v2, v_dart, ncx);
                                         let dart_id = 0 + 2 as DartIdentifier; // base dart + 1
-                                        (t, t, dart_id)
+                                        (s, t, dart_id)
                                     });
                                 // regroup all intersection data
                                 let mut intersec_data = vec![];
