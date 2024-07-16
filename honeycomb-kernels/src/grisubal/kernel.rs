@@ -6,7 +6,10 @@
 
 // ------ IMPORTS
 
-use std::collections::HashMap;
+use std::{
+    cmp::{max, min},
+    collections::{HashMap, VecDeque},
+};
 
 use crate::{grisubal::model::Geometry2, GridCellId, IsBoundary};
 use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
@@ -118,6 +121,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             // v1 & v2 belong to neighboring cells
             1 => {
                 // fetch base dart the cell of v1
+                #[allow(clippy::cast_possible_truncation)]
                 let d0 = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
                 // which edge of the cell are we intersecting?
                 let diff = GridCellId::diff(&c1, &c2);
@@ -194,14 +198,99 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             }
             // highly annoying case:
             // v1 & v2 do not belong to neighboring cell
-            i => {
+            _ => {
                 // because we're using strait segments (not curves), the manhattan distance gives us
                 // the number of cell we're going through to reach v2 from v1, which is equal to the number of
                 // additional vertices resulting from intersection with the grid
                 // i.e. we're generating i+1 segments
-                let move_along = *v2 - *v1;
-                let mut t = T::zero();
-                todo!()
+                let diff = GridCellId::diff(&c1, &c2);
+                // pure vertical / horizontal traversal are treated separately because `t` is computed directly
+                // other cases require adjustment since we'll be computating `t`s over longer segments rather than
+                // the edge of a single grid case
+                match diff {
+                    (i, 0) => {
+                        // we can solve the intersection equation
+                        // for each vertical edge of the grid we cross (i times)
+                        // vertical offsets range from 1..=i or i..=0; i cannot be 0 or 1 due to the outer match
+                        let i_base = c1.0 as isize;
+                        let mut vs: VecDeque<GeometryVertex> = if i > 0 {
+                            // cross to right => v_dart is the bottom right vertex of the cell
+                            let offrange = i_base + 1..=i_base + i;
+                            let y_v_dart = T::from(c1.1).unwrap() * cy;
+                            offrange
+                                .map(|x| {
+                                    let x_v_dart = T::from(x).unwrap() * cx;
+                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
+                                    let mut t = right_intersec!(v1, v2, v_dart, cy);
+                                    let d_base = (1
+                                        + 4 * (c1.0 as isize + x - 1)
+                                        + (nx * 4 * c1.1) as isize)
+                                        as DartIdentifier;
+                                    // adjust t for edge direction
+                                    let dart_id = d_base + 1;
+                                    let edge_id = cmap.edge_id(dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != dart_id {
+                                        t = T::one() - t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(t));
+                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    GeometryVertex::Intersec(new_vid)
+                                })
+                                .collect()
+                        } else {
+                            // cross to left  => v_dart is the top left vertex of the cell
+                            let offrange = (i_base + 1 - i..=i_base);
+                            let y_v_dart = T::from(c1.1 + 1).unwrap() * cy;
+                            offrange
+                                .map(|x| {
+                                    let x_v_dart = T::from(x).unwrap() * cx;
+                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
+                                    let mut t = right_intersec!(v1, v2, v_dart, cy);
+                                    let d_base = (1
+                                        + 4 * (c1.0 as isize + x - 1)
+                                        + (nx * 4 * c1.1) as isize)
+                                        as DartIdentifier;
+                                    // adjust t for edge direction
+                                    let dart_id = d_base + 3;
+                                    let edge_id = cmap.edge_id(dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != dart_id {
+                                        t = T::one() - t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(t));
+                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    GeometryVertex::Intersec(new_vid)
+                                })
+                                .rev() // reverse to preserve v1 to v2 order
+                                .collect()
+                        };
+                        vs.push_front(if geometry.poi.contains(&v1_id) {
+                            GeometryVertex::PoI(v1_id)
+                        } else {
+                            GeometryVertex::Regular(v1_id)
+                        });
+                        vs.push_back(if geometry.poi.contains(&v2_id) {
+                            GeometryVertex::PoI(v2_id)
+                        } else {
+                            GeometryVertex::Regular(v2_id)
+                        });
+                        vs.make_contiguous().windows(2).for_each(|seg| {
+                            new_segments.insert(seg[0].clone(), seg[1].clone());
+                        });
+                    }
+                    (0, j) => {
+                        // we can solve the intersection equation
+                        // for each horizontal edge of the grid we cross (j times)
+                        // horizontal offsets range from 1..=j or j..=0; j cannot be 0 or 1 due to the outer match
+                        let off_range = min(1, j)..=max(j, 0);
+                        todo!()
+                    }
+                    (i, j) => {
+                        // most annoying case, once again
+                        todo!()
+                    }
+                }
             }
         };
     });
