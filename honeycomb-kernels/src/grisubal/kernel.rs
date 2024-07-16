@@ -6,12 +6,42 @@
 
 // ------ IMPORTS
 
+use std::collections::HashMap;
+
 use crate::{grisubal::model::Geometry2, GridCellId, IsBoundary};
-use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier};
+use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
 
 use super::model::GeometryVertex;
 
 // ------ CONTENT
+
+macro_rules! left_intersec {
+    ($va: ident, $vb: ident, $vdart:ident, $cy: ident) => {{
+        let s = ($vdart.x() - $va.x()) / ($vb.x() - $va.x());
+        ($vdart.y() - $va.y() - ($vb.y() - $va.y()) * s) / $cy
+    }};
+}
+
+macro_rules! right_intersec {
+    ($va: ident, $vb: ident, $vdart:ident, $cy: ident) => {{
+        let s = ($vdart.x() - $va.x()) / ($vb.x() - $va.x());
+        (($vb.y() - $va.y()) * s - ($vdart.y() - $va.y())) / $cy
+    }};
+}
+
+macro_rules! down_intersec {
+    ($va: ident, $vb: ident, $vdart:ident, $cx: ident) => {{
+        let s = ($vdart.y() - $va.y()) / ($vb.y() - $va.y());
+        (($vb.x() - $va.x()) * s - ($vdart.x() - $va.x())) / $cx
+    }};
+}
+
+macro_rules! up_intersec {
+    ($va: ident, $vb: ident, $vdart:ident, $cx: ident) => {{
+        let s = ($vdart.y() - $va.y()) / ($vb.y() - $va.y());
+        (($vdart.x() - $va.x()) - ($vb.x() - $va.x()) * s) / $cx
+    }};
+}
 
 /// Inner building routine.
 ///
@@ -26,6 +56,7 @@ use super::model::GeometryVertex;
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
+#[allow(clippy::too_many_lines)]
 pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
     // build the overlapping grid we'll modify
     let bbox = geometry.bbox();
@@ -49,8 +80,8 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let mut n_vertices = geometry.vertices.len();
-    let mut new_poi = geometry.poi.clone();
-    let new_segments = geometry.segments.iter().flat_map(|&(v1_id, v2_id)| {
+    let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
+    geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
         // fetch vertices of the segment
         let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
         // compute their position in the grid
@@ -66,57 +97,100 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             ),
         );
         // check neighbor status
-        let new_segs = match GridCellId::man_dist(&c1, &c2) {
+        match GridCellId::man_dist(&c1, &c2) {
             // trivial case:
             // v1 & v2 belong to the same cell
-            0 => [(v1_id, v2_id)],
+            0 => {
+                new_segments.insert(
+                    if geometry.poi.contains(&v1_id) {
+                        GeometryVertex::PoI(v1_id)
+                    } else {
+                        GeometryVertex::Regular(v1_id)
+                    },
+                    if geometry.poi.contains(&v2_id) {
+                        GeometryVertex::PoI(v2_id)
+                    } else {
+                        GeometryVertex::Regular(v2_id)
+                    },
+                );
+            }
             // ok case:
             // v1 & v2 belong to neighboring cells
             1 => {
                 // fetch base dart the cell of v1
-                let d0: DartIdentifier = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
+                let d0 = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
                 // which edge of the cell are we intersecting?
                 let diff = GridCellId::diff(&c1, &c2);
                 #[rustfmt::skip]
-                let (t, edge_id) = match diff {
-                    // left
+                let (mut t, dart_id) = match diff {
+                    // cross left
                     (-1,  0) => {
-                        let x_intersec = T::from(c1.0).unwrap() * cx;
-                        let y = T::from(c1.1 + 1).unwrap() * cy;
-                        let s = (x_intersec - v1.x()) / (v2.x() - v1.x());
-                        let t = (s * (v2.y() - v1.y()) - (y - v1.y())) / cy;
+                        // vertex associated to crossed dart, i.e. top left corner
+                        let v_dart = Vertex2::from((
+                            T::from(c1.0    ).unwrap() * cx,
+                            T::from(c1.1 + 1).unwrap() * cy,
+                        ));
+                        // call macro
+                        let t = left_intersec!(v1, v2, v_dart, cy);
                         (t, d0 + 3)
                     }
-                    // right
+                    // cross right
                     ( 1,  0) => {
-                        let x_intersec = T::from(c1.0).unwrap() * cx;
-                        let y = T::from(c1.1 + 1).unwrap() * cy;
-                        let s = (x_intersec - v1.x()) / (v2.x() - v1.x());
-                        let t = (s * (v2.y() - v1.y()) - (y - v1.y())) / cy;
-                        (T::one() - t, d0 + 1)
+                        // vertex associated to crossed dart, i.e. down right corner
+                        let v_dart = Vertex2::from((
+                            T::from(c1.0 + 1).unwrap() * cx,
+                            T::from(c1.1    ).unwrap() * cy,
+                        ));
+                        let t = right_intersec!(v1, v2, v_dart, cy);
+                        (t, d0 + 1) // adjust for dart direction
                     }
-                    // down
+                    // cross down
                     ( 0, -1) => {
-                        let x = T::from(c1.0 + 1).unwrap() * cx;
-                        let y_intersec = T::from(c1.1).unwrap() * cy;
-                        let s = (y_intersec - v1.y()) / (v2.y() - v1.y());
-                        let t = (s * (v2.x() - v1.x()) - (x - v1.x())) / cx;
+                        // vertex associated to crossed dart, i.e. down left corner
+                        let v_dart = Vertex2::from((
+                            T::from(c1.0).unwrap() * cx,
+                            T::from(c1.1).unwrap() * cy,
+                        ));
+                        let t = down_intersec!(v1, v2, v_dart, cx);
                         (t, d0)
                     }
-                    // up
+                    // cross up
                     ( 0,  1) => {
-                        let x = T::from(c1.0 + 1).unwrap() * cx;
-                        let y_intersec = T::from(c1.1).unwrap() * cy;
-                        let s = (y_intersec - v1.y()) / (v2.y() - v1.y());
-                        let t = (s * (v2.x() - v1.x()) - (x - v1.x())) / cx;
+                        // vertex associated to crossed dart, i.e. up right corner
+                        let v_dart = Vertex2::from((
+                            T::from(c1.0 + 1).unwrap() * cx,
+                            T::from(c1.1 + 1).unwrap() * cy,
+                        ));
+                        let t = up_intersec!(v1, v2, v_dart, cx);
                         (t, d0 + 2)
                     }
                     _ => unreachable!(),
                 };
-                // compute the intersection point & add it to the vertices/poi
-
-                // return new sub-segments
-                todo!()
+                // t is adjusted for dart direction; but it needs to be adjusted according to the edge's direction
+                let edge_id = cmap.edge_id(dart_id);
+                // works in 2D because edges are 2 darts at most
+                if edge_id != dart_id {
+                    t = T::one() - t;
+                }
+                // insert the intersection point & add it to the vertices/poi
+                cmap.split_edge(edge_id, Some(t));
+                let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                new_segments.insert(
+                    if geometry.poi.contains(&v1_id) {
+                        GeometryVertex::PoI(v1_id)
+                    } else {
+                        GeometryVertex::Regular(v1_id)
+                    },
+                    GeometryVertex::Intersec(new_vid),
+                );
+                new_segments.insert(
+                    GeometryVertex::Intersec(new_vid),
+                    if geometry.poi.contains(&v2_id) {
+                        GeometryVertex::PoI(v2_id)
+                    } else {
+                        GeometryVertex::Regular(v2_id)
+                    },
+                );
             }
             // highly annoying case:
             // v1 & v2 do not belong to neighboring cell
@@ -130,10 +204,6 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 todo!()
             }
         };
-        if geometry.poi.contains(&v2_id) {
-            todo!()
-        }
-        new_segs
     });
 
     // STEP 2

@@ -195,7 +195,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum GeometryVertex {
     Regular(usize),
     PoI(usize),
