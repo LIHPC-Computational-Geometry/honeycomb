@@ -211,7 +211,6 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                     (i, 0) => {
                         // we can solve the intersection equation
                         // for each vertical edge of the grid we cross (i times)
-                        // vertical offsets range from 1..=i or i..=0; i cannot be 0 or 1 due to the outer match
                         let i_base = c1.0 as isize;
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
                             // cross to right => v_dart is the bottom right vertex of the cell
@@ -222,9 +221,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                     let x_v_dart = T::from(x).unwrap() * cx;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
                                     let mut t = right_intersec!(v1, v2, v_dart, cy);
-                                    let d_base = (1
-                                        + 4 * (c1.0 as isize + x - 1)
-                                        + (nx * 4 * c1.1) as isize)
+                                    let d_base = (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize)
                                         as DartIdentifier;
                                     // adjust t for edge direction
                                     let dart_id = d_base + 1;
@@ -246,11 +243,9 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .map(|x| {
                                     let x_v_dart = T::from(x).unwrap() * cx;
                                     let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let mut t = right_intersec!(v1, v2, v_dart, cy);
-                                    let d_base = (1
-                                        + 4 * (c1.0 as isize + x - 1)
-                                        + (nx * 4 * c1.1) as isize)
-                                        as DartIdentifier;
+                                    let mut t = left_intersec!(v1, v2, v_dart, cy);
+                                    let d_base =
+                                        (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
                                     // adjust t for edge direction
                                     let dart_id = d_base + 3;
                                     let edge_id = cmap.edge_id(dart_id);
@@ -282,9 +277,68 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                     (0, j) => {
                         // we can solve the intersection equation
                         // for each horizontal edge of the grid we cross (j times)
-                        // horizontal offsets range from 1..=j or j..=0; j cannot be 0 or 1 due to the outer match
-                        let off_range = min(1, j)..=max(j, 0);
-                        todo!()
+                        let j_base = c1.0 as isize;
+                        let mut vs: VecDeque<GeometryVertex> = if j > 0 {
+                            // cross to top => v_dart is the top right vertex of the cell
+                            let offrange = j_base + 1..=j_base + j;
+                            let x_v_dart = T::from(c1.0 + 1).unwrap() * cx;
+                            offrange
+                                .map(|y| {
+                                    let y_v_dart = T::from(y).unwrap() * cy;
+                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
+                                    let mut t = up_intersec!(v1, v2, v_dart, cx);
+                                    let d_base =
+                                        (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
+                                    // adjust t for edge direction
+                                    let dart_id = d_base + 2;
+                                    let edge_id = cmap.edge_id(dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != dart_id {
+                                        t = T::one() - t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(t));
+                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    GeometryVertex::Intersec(new_vid)
+                                })
+                                .collect()
+                        } else {
+                            // cross to bottom  => v_dart is the bottom left vertex of the cell
+                            let offrange = (j_base + 1 - j..=j_base);
+                            let x_v_dart = T::from(c1.0).unwrap() * cx;
+                            offrange
+                                .map(|y| {
+                                    let y_v_dart = T::from(y).unwrap() * cy;
+                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
+                                    let mut t = down_intersec!(v1, v2, v_dart, cx);
+                                    let d_base =
+                                        (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
+                                    // adjust t for edge direction
+                                    let dart_id = d_base;
+                                    let edge_id = cmap.edge_id(dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != dart_id {
+                                        t = T::one() - t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(t));
+                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    GeometryVertex::Intersec(new_vid)
+                                })
+                                .rev() // reverse to preserve v1 to v2 order
+                                .collect()
+                        };
+                        vs.push_front(if geometry.poi.contains(&v1_id) {
+                            GeometryVertex::PoI(v1_id)
+                        } else {
+                            GeometryVertex::Regular(v1_id)
+                        });
+                        vs.push_back(if geometry.poi.contains(&v2_id) {
+                            GeometryVertex::PoI(v2_id)
+                        } else {
+                            GeometryVertex::Regular(v2_id)
+                        });
+                        vs.make_contiguous().windows(2).for_each(|seg| {
+                            new_segments.insert(seg[0].clone(), seg[1].clone());
+                        });
                     }
                     (i, j) => {
                         // most annoying case, once again
