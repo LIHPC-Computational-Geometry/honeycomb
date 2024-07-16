@@ -178,7 +178,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 }
                 // insert the intersection point & add it to the vertices/poi
                 cmap.split_edge(edge_id, Some(t));
-                let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                let new_vid = cmap.beta::<1>(dart_id);
                 new_segments.insert(
                     if geometry.poi.contains(&v1_id) {
                         GeometryVertex::PoI(v1_id)
@@ -231,7 +231,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         t = T::one() - t;
                                     }
                                     cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    let new_vid = cmap.beta::<1>(dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 })
                                 .collect()
@@ -254,7 +254,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         t = T::one() - t;
                                     }
                                     cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    let new_vid = cmap.beta::<1>(dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 })
                                 .rev() // reverse to preserve v1 to v2 order
@@ -297,7 +297,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         t = T::one() - t;
                                     }
                                     cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    let new_vid = cmap.beta::<1>(dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 })
                                 .collect()
@@ -320,7 +320,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         t = T::one() - t;
                                     }
                                     cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id) as VertexIdentifier;
+                                    let new_vid = cmap.beta::<1>(dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 })
                                 .rev() // reverse to preserve v1 to v2 order
@@ -428,7 +428,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                         *t = T::one() - *t;
                                     }
                                     cmap.split_edge(edge_id, Some(*t));
-                                    let new_vid = cmap.beta::<1>(*dart_id) as VertexIdentifier;
+                                    let new_vid = cmap.beta::<1>(*dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 }));
                                 vs.push(if geometry.poi.contains(&v2_id) {

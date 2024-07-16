@@ -199,7 +199,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 pub enum GeometryVertex {
     Regular(usize),
     PoI(usize),
-    Intersec(VertexIdentifier),
+    Intersec(DartIdentifier),
 }
 
 #[derive(Clone, Copy, Debug)]
