@@ -237,7 +237,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .collect()
                         } else {
                             // cross to left  => v_dart is the top left vertex of the cell
-                            let offrange = (i_base + 1 - i..=i_base);
+                            let offrange = (i_base + 1 + i..=i_base);
                             let y_v_dart = T::from(c1.1 + 1).unwrap() * cy;
                             offrange
                                 .map(|x| {
@@ -303,7 +303,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                                 .collect()
                         } else {
                             // cross to bottom  => v_dart is the bottom left vertex of the cell
-                            let offrange = (j_base + 1 - j..=j_base);
+                            let offrange = (j_base + 1 + j..=j_base);
                             let x_v_dart = T::from(c1.0).unwrap() * cx;
                             offrange
                                 .map(|y| {
@@ -342,7 +342,71 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                     }
                     (i, j) => {
                         // most annoying case, once again
-                        todo!()
+                        // in order to process this, we'll consider "minimal extended segments" that we should intersect
+                        // we'll compute these intersections (s, t and the intersected dart d), sort results by s to
+                        // order segments from v1 to v2, and insert the computed segment similarly to previous cases
+                        let i_base = c1.0 as isize;
+                        let j_base = c1.1 as isize;
+                        let ncx: T = T::from(i.abs() + 1).unwrap() * cx; // length of horizontal segments
+                        let ncy = T::from(j.abs() + 1).unwrap() * cy; // length of vertical segments
+
+                        // the first thing to determine is the quadrant in which the segment is oriented
+                        // taking v1 as the origin & v2 to define the direction
+                        // we don't need to worry about i or j being 0 thanks to the outer & current match
+                        match (i.is_positive(), j.is_positive()) {
+                            (true, true) => {
+                                // directed to top right; we'll intersect either top or right dart of grid cells
+                                // vertical segments intersections
+                                let intersec_v_data = (i_base + 1..=i_base + i)
+                                    .map(|x| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(x).unwrap() * cx, // many xs
+                                                T::from(j_base).unwrap(), // min y
+                                            )),
+                                            x - 1, // cell idx along x; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_x)| {
+                                        let t = right_intersec!(v1, v2, v_dart, ncy);
+                                        let dart_id = 0 + 1 as DartIdentifier; // base dart + 1
+                                        (t, t, dart_id)
+                                    });
+                                let intersec_h_data = (j_base + 1..=j_base + j)
+                                    .map(|y| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(i_base + i).unwrap(), // max x
+                                                T::from(y).unwrap() * cy,     // many ys
+                                            )),
+                                            y - 1, // cell idx along y; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_y)| {
+                                        let t = up_intersec!(v1, v2, v_dart, ncx);
+                                        let dart_id = 0 + 2 as DartIdentifier; // base dart + 1
+                                        (t, t, dart_id)
+                                    });
+                                // regroup all intersection data
+                                let mut intersec_data = vec![];
+                                intersec_data.extend(intersec_v_data);
+                                intersec_data.extend(intersec_h_data);
+                                // sort by s in order to conserve segment order
+                                intersec_data
+                                    .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+                                // insert
+                                intersec_data.windows(2).for_each(|seg| todo!());
+                            }
+                            (true, false) => {
+                                // directed to bottom right; we'll intersect either bottom or right dart of grid cells
+                            }
+                            (false, false) => {
+                                // directed to bottom left; we'll intersect either bottom or left dart of grid cells
+                            }
+                            (false, true) => {
+                                // directed to top left; we'll intersect either top or left dart of grid cells
+                            }
+                        }
                     }
                 }
             }
