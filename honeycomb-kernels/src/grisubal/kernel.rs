@@ -77,6 +77,9 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
 
     // process the geometry
 
+    // FIXME: THE VERTEX INSERTIONS DUE TO INTERSECTIONS ONLY WORKS WITH A SINGLE INTERSECTION PER EDGE
+    // POSSIBLE FIX: DELAY VERTEX INSERTION & USE A `nsplit_edge` METHOD INSTEAD OF `split_edge`
+
     // STEP 1
     // the aim of this step is to build an exhaustive list of the segments making up
     // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
@@ -122,51 +125,43 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             1 => {
                 // fetch base dart the cell of v1
                 #[allow(clippy::cast_possible_truncation)]
-                let d0 = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
+                let d_base = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
                 // which edge of the cell are we intersecting?
                 let diff = GridCellId::diff(&c1, &c2);
                 #[rustfmt::skip]
                 let (mut t, dart_id) = match diff {
                     // cross left
                     (-1,  0) => {
+                        let dart_id = d_base + 3;
                         // vertex associated to crossed dart, i.e. top left corner
-                        let v_dart = Vertex2::from((
-                            T::from(c1.0    ).unwrap() * cx,
-                            T::from(c1.1 + 1).unwrap() * cy,
-                        ));
+                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                         // call macro
                         let (_, t) = left_intersec!(v1, v2, v_dart, cy);
-                        (t, d0 + 3)
+                        (t, dart_id)
                     }
                     // cross right
                     ( 1,  0) => {
+                        let dart_id = d_base + 1;
                         // vertex associated to crossed dart, i.e. down right corner
-                        let v_dart = Vertex2::from((
-                            T::from(c1.0 + 1).unwrap() * cx,
-                            T::from(c1.1    ).unwrap() * cy,
-                        ));
+                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                         let (_, t) = right_intersec!(v1, v2, v_dart, cy);
-                        (t, d0 + 1) // adjust for dart direction
+                        (t, dart_id) // adjust for dart direction
                     }
                     // cross down
                     ( 0, -1) => {
+                        let dart_id = d_base;
                         // vertex associated to crossed dart, i.e. down left corner
-                        let v_dart = Vertex2::from((
-                            T::from(c1.0).unwrap() * cx,
-                            T::from(c1.1).unwrap() * cy,
-                        ));
+                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                         let (_, t) = down_intersec!(v1, v2, v_dart, cx);
-                        (t, d0)
+                        (t, dart_id)
                     }
                     // cross up
                     ( 0,  1) => {
+                        let dart_id = d_base + 2;
                         // vertex associated to crossed dart, i.e. up right corner
-                        let v_dart = Vertex2::from((
-                            T::from(c1.0 + 1).unwrap() * cx,
-                            T::from(c1.1 + 1).unwrap() * cy,
-                        ));
+                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                         let (_, t) = up_intersec!(v1, v2, v_dart, cx);
-                        (t, d0 + 2)
+                        (t, dart_id)
                     }
                     _ => unreachable!(),
                 };
@@ -215,16 +210,14 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
                             // cross to right => v_dart is the bottom right vertex of the cell
                             let offrange = i_base + 1..=i_base + i;
-                            let y_v_dart = T::from(c1.1).unwrap() * cy;
                             offrange
                                 .map(|x| {
-                                    let x_v_dart = T::from(x).unwrap() * cx;
-                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let (_, mut t) = right_intersec!(v1, v2, v_dart, cy);
                                     let d_base = (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize)
                                         as DartIdentifier;
-                                    // adjust t for edge direction
                                     let dart_id = d_base + 1;
+                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                    let (_, mut t) = right_intersec!(v1, v2, v_dart, cy);
+                                    // adjust t for edge direction
                                     let edge_id = cmap.edge_id(dart_id);
                                     // works in 2D because edges are 2 darts at most
                                     if edge_id != dart_id {
@@ -238,16 +231,15 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                         } else {
                             // cross to left  => v_dart is the top left vertex of the cell
                             let offrange = (i_base + 1 + i..=i_base);
-                            let y_v_dart = T::from(c1.1 + 1).unwrap() * cy;
                             offrange
                                 .map(|x| {
-                                    let x_v_dart = T::from(x).unwrap() * cx;
-                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let (_, mut t) = left_intersec!(v1, v2, v_dart, cy);
+                                    // fetch intersected dart & corresponding vertex
                                     let d_base =
                                         (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
-                                    // adjust t for edge direction
                                     let dart_id = d_base + 3;
+                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                    let (_, mut t) = left_intersec!(v1, v2, v_dart, cy);
+                                    // adjust t for edge direction
                                     let edge_id = cmap.edge_id(dart_id);
                                     // works in 2D because edges are 2 darts at most
                                     if edge_id != dart_id {
@@ -281,16 +273,14 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                         let mut vs: VecDeque<GeometryVertex> = if j > 0 {
                             // cross to top => v_dart is the top right vertex of the cell
                             let offrange = j_base + 1..=j_base + j;
-                            let x_v_dart = T::from(c1.0 + 1).unwrap() * cx;
                             offrange
                                 .map(|y| {
-                                    let y_v_dart = T::from(y).unwrap() * cy;
-                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let (_, mut t) = up_intersec!(v1, v2, v_dart, cx);
                                     let d_base =
                                         (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
-                                    // adjust t for edge direction
                                     let dart_id = d_base + 2;
+                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                    let (_, mut t) = up_intersec!(v1, v2, v_dart, cx);
+                                    // adjust t for edge direction
                                     let edge_id = cmap.edge_id(dart_id);
                                     // works in 2D because edges are 2 darts at most
                                     if edge_id != dart_id {
@@ -304,16 +294,14 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                         } else {
                             // cross to bottom  => v_dart is the bottom left vertex of the cell
                             let offrange = (j_base + 1 + j..=j_base);
-                            let x_v_dart = T::from(c1.0).unwrap() * cx;
                             offrange
                                 .map(|y| {
-                                    let y_v_dart = T::from(y).unwrap() * cy;
-                                    let v_dart = Vertex2::from((x_v_dart, y_v_dart));
-                                    let (_, mut t) = down_intersec!(v1, v2, v_dart, cx);
                                     let d_base =
                                         (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
-                                    // adjust t for edge direction
                                     let dart_id = d_base;
+                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                    let (_, mut t) = down_intersec!(v1, v2, v_dart, cx);
+                                    // adjust t for edge direction
                                     let edge_id = cmap.edge_id(dart_id);
                                     // works in 2D because edges are 2 darts at most
                                     if edge_id != dart_id {
