@@ -58,7 +58,12 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-#[allow(clippy::too_many_lines)]
+#[allow(
+    clippy::too_many_lines,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
 pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
     // build the overlapping grid we'll modify
     let bbox = geometry.bbox();

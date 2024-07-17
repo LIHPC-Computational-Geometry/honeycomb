@@ -21,6 +21,7 @@ impl GridCellId {
         lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
     }
 
+    #[allow(clippy::cast_possible_wrap)]
     pub fn diff(lhs: &Self, rhs: &Self) -> (isize, isize) {
         (
             rhs.0 as isize - lhs.0 as isize,
