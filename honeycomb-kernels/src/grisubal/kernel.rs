@@ -698,6 +698,8 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // STEP 2
     // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
     // the actual segments that will be inserted into the map.
+    // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
+    // hence the use of the `MapEdge` structure.
 
     let edges = new_segments
         .iter()
@@ -734,12 +736,20 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 unreachable!()
             };
 
+            // the data in this structure can be used to entirely deduce the new connections that should be made
+            // at STEP 3
             MapEdge {
-                start: *d_start,
+                start: cmap.beta::<2>(*d_start), // dart locality shenanigans
                 intermediates,
                 end: *d_end,
             }
         });
+
+    // STEP 3
+    // now that we have some segments that are directly defined between intersections, we can use some N-maps'
+    // properties to easily build the geometry into the map.
+    // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
+    // instances are very precisely set, and can therefore be used to create all the new connectivities.
 
     // return result
     cmap
