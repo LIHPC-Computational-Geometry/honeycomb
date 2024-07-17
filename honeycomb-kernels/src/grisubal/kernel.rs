@@ -9,6 +9,7 @@
 use std::{
     cmp::{max, min},
     collections::{HashMap, VecDeque},
+    process::id,
 };
 
 use crate::{Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
@@ -701,7 +702,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
     // hence the use of the `MapEdge` structure.
 
-    let edges = new_segments
+    let edges: Vec<MapEdge> = new_segments
         .iter()
         .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
         .map(|(start, v)| {
@@ -743,13 +744,52 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 intermediates,
                 end: *d_end,
             }
-        });
+        })
+        .collect();
 
     // STEP 3
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
     // properties to easily build the geometry into the map.
     // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
     // instances are very precisely set, and can therefore be used to create all the new connectivities.
+    for MapEdge {
+        start,
+        intermediates,
+        end,
+    } in &edges
+    {
+        // remove deprecated connectivities & save what data is necessary
+        let b1_start_old = cmap.beta::<1>(*start);
+        let b0_end_old = cmap.beta::<0>(*end);
+        cmap.one_unlink(*start);
+        cmap.one_unlink(b0_end_old);
+        let d_new = cmap.add_free_darts(2);
+        let b2_d_new = d_new + 1;
+        cmap.two_link(d_new, b2_d_new);
+
+        // rebuild
+        cmap.one_link(*start, d_new);
+        cmap.one_link(b2_d_new, b1_start_old);
+        if intermediates.is_empty() {
+            // new darts link directly to the end
+            cmap.one_link(d_new, *end);
+            cmap.one_link(b0_end_old, b2_d_new);
+        } else {
+            // we need to play with intermediates & windows
+            // start to first intermediate; expect should not happen due to if statement
+            let di_first = intermediates.first().expect("E: unreachable");
+            cmap.one_sew(d_new, *di_first);
+            // intermediate to intermediate
+            intermediates.windows(2).for_each(|ds| {
+                let &[di1, di2] = ds else { unreachable!() };
+                cmap.one_sew(di1, di2);
+            });
+            // last intermediate to end; last may be the same as first
+            let di_last = intermediates.last().expect("E: unreachable");
+            cmap.one_link(*di_last, *end);
+            cmap.one_link(b0_end_old, cmap.beta::<2>(*di_last));
+        }
+    }
 
     // return result
     cmap
