@@ -431,12 +431,264 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                             }
                             (true, false) => {
                                 // directed to bottom right; we'll intersect either bottom or right dart of grid cells
+                                // vertical segments intersections
+                                let intersec_v_data = (i_base + 1..=i_base + i)
+                                    .map(|x| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(x).unwrap() * cx, // many xs
+                                                T::from(j_base).unwrap(), // min y
+                                            )),
+                                            x - 1, // cell idx along x; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_x)| {
+                                        let (s, t_extended) = right_intersec!(v1, v2, v_dart, ncy);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_y =
+                                            (t_extended * T::from(j.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_y) / T::from(j.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x as usize
+                                            + nx * 4 * cell_y.to_usize().unwrap();
+                                        let dart_id = (d_base + 1) as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                let intersec_h_data = (j_base + 1 + j..=j_base)
+                                    .map(|y| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(i_base).unwrap(), // min x
+                                                T::from(y).unwrap() * cy, // many ys
+                                            )),
+                                            y - 1, // cell idx along y; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_y)| {
+                                        let (s, t_extended) = down_intersec!(v1, v2, v_dart, ncx);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_x =
+                                            (t_extended * T::from(i.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_x) / T::from(i.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x.to_usize().unwrap()
+                                            + nx * 4 * cell_y as usize;
+                                        let dart_id = d_base as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                // regroup all intersection data
+                                let mut intersec_data = vec![];
+                                intersec_data.extend(intersec_v_data);
+                                intersec_data.extend(intersec_h_data);
+                                // sort by s in order to conserve segment order
+                                intersec_data
+                                    .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+                                // collect geometry vertices
+                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
+                                    GeometryVertex::PoI(v1_id)
+                                } else {
+                                    GeometryVertex::Regular(v1_id)
+                                }];
+                                vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
+                                    // insert new vertex in the map
+                                    let edge_id = cmap.edge_id(*dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != *dart_id {
+                                        *t = T::one() - *t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(*t));
+                                    let new_vid = cmap.beta::<1>(*dart_id);
+                                    GeometryVertex::Intersec(new_vid)
+                                }));
+                                vs.push(if geometry.poi.contains(&v2_id) {
+                                    GeometryVertex::PoI(v2_id)
+                                } else {
+                                    GeometryVertex::Regular(v2_id)
+                                });
+                                // insert segments
+                                vs.windows(2).for_each(|seg| {
+                                    new_segments.insert(seg[0].clone(), seg[1].clone());
+                                });
                             }
                             (false, false) => {
                                 // directed to bottom left; we'll intersect either bottom or left dart of grid cells
+                                // vertical segments intersections
+                                let intersec_v_data = (i_base + 1 + i..=i_base)
+                                    .map(|x| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(x).unwrap() * cx,     // many xs
+                                                T::from(j_base + j).unwrap(), // max y
+                                            )),
+                                            x - 1, // cell idx along x; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_x)| {
+                                        let (s, t_extended) = left_intersec!(v1, v2, v_dart, ncy);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_y =
+                                            (t_extended * T::from(j.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_y) / T::from(j.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x as usize
+                                            + nx * 4 * cell_y.to_usize().unwrap();
+                                        let dart_id = (d_base + 3) as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                let intersec_h_data = (j_base + 1 + j..=j_base)
+                                    .map(|y| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(i_base).unwrap(), // min x
+                                                T::from(y).unwrap() * cy, // many ys
+                                            )),
+                                            y - 1, // cell idx along y; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_y)| {
+                                        let (s, t_extended) = down_intersec!(v1, v2, v_dart, ncx);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_x =
+                                            (t_extended * T::from(i.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_x) / T::from(i.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x.to_usize().unwrap()
+                                            + nx * 4 * cell_y as usize;
+                                        let dart_id = d_base as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                // regroup all intersection data
+                                let mut intersec_data = vec![];
+                                intersec_data.extend(intersec_v_data);
+                                intersec_data.extend(intersec_h_data);
+                                // sort by s in order to conserve segment order
+                                intersec_data
+                                    .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+                                // collect geometry vertices
+                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
+                                    GeometryVertex::PoI(v1_id)
+                                } else {
+                                    GeometryVertex::Regular(v1_id)
+                                }];
+                                vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
+                                    // insert new vertex in the map
+                                    let edge_id = cmap.edge_id(*dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != *dart_id {
+                                        *t = T::one() - *t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(*t));
+                                    let new_vid = cmap.beta::<1>(*dart_id);
+                                    GeometryVertex::Intersec(new_vid)
+                                }));
+                                vs.push(if geometry.poi.contains(&v2_id) {
+                                    GeometryVertex::PoI(v2_id)
+                                } else {
+                                    GeometryVertex::Regular(v2_id)
+                                });
+                                // insert segments
+                                vs.windows(2).for_each(|seg| {
+                                    new_segments.insert(seg[0].clone(), seg[1].clone());
+                                });
                             }
                             (false, true) => {
                                 // directed to top left; we'll intersect either top or left dart of grid cells
+                                // vertical segments intersections
+                                let intersec_v_data = (i_base + 1 + i..=i_base)
+                                    .map(|x| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(x).unwrap() * cx,     // many xs
+                                                T::from(j_base + j).unwrap(), // max y
+                                            )),
+                                            x - 1, // cell idx along x; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_x)| {
+                                        let (s, t_extended) = left_intersec!(v1, v2, v_dart, ncy);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_y =
+                                            (t_extended * T::from(j.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_y) / T::from(j.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x as usize
+                                            + nx * 4 * cell_y.to_usize().unwrap();
+                                        let dart_id = (d_base + 3) as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                let intersec_h_data = (j_base + 1..=j_base + j)
+                                    .map(|y| {
+                                        (
+                                            Vertex2::from((
+                                                T::from(i_base + i).unwrap(), // max x
+                                                T::from(y).unwrap() * cy,     // many ys
+                                            )),
+                                            y - 1, // cell idx along y; useful later
+                                        )
+                                    })
+                                    .map(|(v_dart, cell_y)| {
+                                        let (s, t_extended) = up_intersec!(v1, v2, v_dart, ncx);
+                                        // in which y cell do we cross the vertical segment?
+                                        let cell_x =
+                                            (t_extended * T::from(i.abs() + 1).unwrap()).floor();
+                                        // what's the value of t on the crossed segment ?
+                                        let t =
+                                            (t_extended - cell_x) / T::from(i.abs() + 1).unwrap();
+                                        // which dart are we crossing?
+                                        let d_base = 1
+                                            + 4 * cell_x.to_usize().unwrap()
+                                            + nx * 4 * cell_y as usize;
+                                        let dart_id = (d_base + 2) as DartIdentifier; // base dart + 1
+                                        (s, t, dart_id)
+                                    });
+                                // regroup all intersection data
+                                let mut intersec_data = vec![];
+                                intersec_data.extend(intersec_v_data);
+                                intersec_data.extend(intersec_h_data);
+                                // sort by s in order to conserve segment order
+                                intersec_data
+                                    .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+                                // collect geometry vertices
+                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
+                                    GeometryVertex::PoI(v1_id)
+                                } else {
+                                    GeometryVertex::Regular(v1_id)
+                                }];
+                                vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
+                                    // insert new vertex in the map
+                                    let edge_id = cmap.edge_id(*dart_id);
+                                    // works in 2D because edges are 2 darts at most
+                                    if edge_id != *dart_id {
+                                        *t = T::one() - *t;
+                                    }
+                                    cmap.split_edge(edge_id, Some(*t));
+                                    let new_vid = cmap.beta::<1>(*dart_id);
+                                    GeometryVertex::Intersec(new_vid)
+                                }));
+                                vs.push(if geometry.poi.contains(&v2_id) {
+                                    GeometryVertex::PoI(v2_id)
+                                } else {
+                                    GeometryVertex::Regular(v2_id)
+                                });
+                                // insert segments
+                                vs.windows(2).for_each(|seg| {
+                                    new_segments.insert(seg[0].clone(), seg[1].clone());
+                                });
                             }
                         }
                     }
