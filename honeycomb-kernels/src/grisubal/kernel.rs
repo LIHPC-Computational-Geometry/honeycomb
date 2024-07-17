@@ -11,10 +11,8 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
-use crate::{grisubal::model::Geometry2, GridCellId, IsBoundary};
+use crate::{Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
 use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, VertexIdentifier};
-
-use super::model::GeometryVertex;
 
 // ------ CONTENT
 
@@ -699,25 +697,49 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
 
     // STEP 2
     // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
-    // the actual segments that will be inserted into the map. This is done in 2 sub-steps:
-    //
-    // a) all segment starting with either a PoI or an intersection must be rebuilt into
-    //    segments where both ends are a PoI or an intersection, by following along the
-    //    next segments if landing on regular vertices
-    // b) all segments made up of one or two regular vertices must be deleted
+    // the actual segments that will be inserted into the map.
 
-    // a)
-    new_segments.iter_mut().for_each(|(start, end)| {
-        while let GeometryVertex::Regular(next) = end {
-            *end = new_segments[end].clone();
-        }
-    });
-    // b)
-    new_segments.retain(|k, v| match (k, v) {
-        (GeometryVertex::Regular(_), _) => false,
-        (_, GeometryVertex::Regular(_)) => false,
-        _ => true,
-    });
+    let edges = new_segments
+        .iter()
+        .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
+        .map(|(start, v)| {
+            let mut end = v;
+            let mut intermediates = Vec::new();
+            // while we land on regular vertices, go to the next
+            while !matches!(end, GeometryVertex::Intersec(_)) {
+                match end {
+                    GeometryVertex::PoI(vid) => {
+                        // insert the PoI in the map; create some darts to go with it
+                        let v = geometry.vertices[*vid];
+                        let d = cmap.add_free_darts(2);
+                        cmap.two_link(d, d + 1);
+                        cmap.insert_vertex(d as VertexIdentifier, v);
+                        // save intermediate & update end point
+                        intermediates.push(d);
+                        end = &new_segments[end];
+                    }
+                    GeometryVertex::Regular(_) => {
+                        // skip; update end point
+                        end = &new_segments[end];
+                    }
+                    GeometryVertex::Intersec(_) => unreachable!(), // outer while should prevent this from happening
+                }
+            }
+            let GeometryVertex::Intersec(d_start) = start else {
+                // unreachable due to filter
+                unreachable!();
+            };
+            let GeometryVertex::Intersec(d_end) = end else {
+                // unreachable due to while block
+                unreachable!()
+            };
+
+            MapEdge {
+                start: *d_start,
+                intermediates,
+                end: *d_end,
+            }
+        });
 
     // return result
     cmap

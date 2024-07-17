@@ -202,6 +202,12 @@ pub enum GeometryVertex {
     Intersec(DartIdentifier),
 }
 
+pub struct MapEdge {
+    pub start: DartIdentifier,
+    pub intermediates: Vec<DartIdentifier>,
+    pub end: DartIdentifier,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct IsBoundary(bool);
 

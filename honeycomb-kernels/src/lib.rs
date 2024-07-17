@@ -35,4 +35,4 @@ pub use grisubal::{grisubal, model::Clip};
 #[allow(unused)]
 pub(crate) use grisubal::grid::{BBox2, GridCellId};
 #[allow(unused)]
-pub(crate) use grisubal::model::{Geometry2, IsBoundary};
+pub(crate) use grisubal::model::{Geometry2, GeometryVertex, IsBoundary, MapEdge};
