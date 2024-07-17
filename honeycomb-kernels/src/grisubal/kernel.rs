@@ -698,6 +698,26 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     });
 
     // STEP 2
+    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
+    // the actual segments that will be inserted into the map. This is done in 2 sub-steps:
+    //
+    // a) all segment starting with either a PoI or an intersection must be rebuilt into
+    //    segments where both ends are a PoI or an intersection, by following along the
+    //    next segments if landing on regular vertices
+    // b) all segments made up of one or two regular vertices must be deleted
+
+    // a)
+    new_segments.iter_mut().for_each(|(start, end)| {
+        while let GeometryVertex::Regular(next) = end {
+            *end = new_segments[end].clone();
+        }
+    });
+    // b)
+    new_segments.retain(|k, v| match (k, v) {
+        (GeometryVertex::Regular(_), _) => false,
+        (_, GeometryVertex::Regular(_)) => false,
+        _ => true,
+    });
 
     // return result
     cmap
