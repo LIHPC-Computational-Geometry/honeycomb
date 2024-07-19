@@ -85,8 +85,10 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
 
     // process the geometry
 
-    // FIXME: THE VERTEX INSERTIONS DUE TO INTERSECTIONS ONLY WORKS WITH A SINGLE INTERSECTION PER EDGE
+    // FIXME:
+    // a) THE VERTEX INSERTIONS DUE TO INTERSECTIONS ONLY WORKS WITH A SINGLE INTERSECTION PER EDGE
     // POSSIBLE FIX: DELAY VERTEX INSERTION & USE A `nsplit_edge` METHOD INSTEAD OF `split_edge`
+    // b) WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS?
 
     // STEP 1
     // the aim of this step is to build an exhaustive list of the segments making up
@@ -369,7 +371,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             .collect();
                         // sort intersections from v1 to v2
                         intersec_data.sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
-
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
@@ -388,8 +389,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         vs.windows(2).for_each(|seg| {
                             new_segments.insert(seg[0].clone(), seg[1].clone());
                         });
-
-                        todo!()
                     }
                 }
             }
