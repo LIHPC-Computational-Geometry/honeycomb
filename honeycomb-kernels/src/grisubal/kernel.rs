@@ -220,10 +220,14 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // for each vertical edge of the grid we cross (i times)
                         let i_base = c1.0 as isize;
                         let tmp =
-                            (min(i_base + 1, i_base + 1 + i)..=max(i_base + i, i_base)).map(|x| {
+                            // the range is either
+                            // i > 0: i_base..i_base + i
+                            // or
+                            // i < 0: i_base + 1 + i..i_base + 1
+                            (min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1)).map(|x| {
                                 // cell base dart
                                 let d_base =
-                                    (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize) as DartIdentifier;
+                                    (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
                                 // intersected dart
                                 let dart_id = if i.is_positive() {
                                     d_base + 1
@@ -266,7 +270,11 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // for each horizontal edge of the grid we cross (j times)
                         let j_base = c1.0 as isize;
                         let tmp =
-                            (min(j_base + 1, j_base + 1 + j)..=max(j_base + j, j_base)).map(|y| {
+                            // the range is either
+                            // j > 0: j_base..j_base + j
+                            // or
+                            // j < 0: j_base + 1 + j..j_base + 1
+                            (min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1)).map(|y| {
                                 // cell base dart
                                 let d_base = (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
                                 // intersected dart
