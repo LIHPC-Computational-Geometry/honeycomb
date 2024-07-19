@@ -58,12 +58,6 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-#[allow(
-    clippy::too_many_lines,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss
-)]
 pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
     // build the overlapping grid we'll modify
     let bbox = geometry.bbox();
@@ -89,6 +83,42 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
+    let new_segments = generate_intersected_segments(&mut cmap, geometry, (nx, ny), (cx, cy));
+
+    // STEP 2
+    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
+    // the actual segments that will be inserted into the map.
+    // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
+    // hence the use of the `MapEdge` structure.
+
+    let edges = generate_edge_data(&mut cmap, geometry, &new_segments);
+
+    // STEP 3
+    // now that we have some segments that are directly defined between intersections, we can use some N-maps'
+    // properties to easily build the geometry into the map.
+    // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
+    // instances are very precisely set, and can therefore be used to create all the new connectivities.
+
+    insert_edges_in_map(&mut cmap, &edges);
+
+    // return result
+    cmap
+}
+
+// --- main kernels steps
+
+#[allow(
+    clippy::too_many_lines,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+fn generate_intersected_segments<T: CoordsFloat>(
+    cmap: &mut CMap2<T>,
+    geometry: &Geometry2<T>,
+    (nx, ny): (usize, usize),
+    (cx, cy): (T, T),
+) -> HashMap<GeometryVertex, GeometryVertex> {
     let mut n_vertices = geometry.vertices.len();
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
     geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
@@ -700,14 +730,15 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             }
         };
     });
+    new_segments
+}
 
-    // STEP 2
-    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
-    // the actual segments that will be inserted into the map.
-    // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
-    // hence the use of the `MapEdge` structure.
-
-    let edges: Vec<MapEdge> = new_segments
+fn generate_edge_data<T: CoordsFloat>(
+    cmap: &mut CMap2<T>,
+    geometry: &Geometry2<T>,
+    new_segments: &HashMap<GeometryVertex, GeometryVertex>,
+) -> Vec<MapEdge> {
+    new_segments
         .iter()
         .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
         .map(|(start, v)| {
@@ -750,18 +781,15 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
                 end: *d_end,
             }
         })
-        .collect();
+        .collect()
+}
 
-    // STEP 3
-    // now that we have some segments that are directly defined between intersections, we can use some N-maps'
-    // properties to easily build the geometry into the map.
-    // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
-    // instances are very precisely set, and can therefore be used to create all the new connectivities.
+fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge]) {
     for MapEdge {
         start,
         intermediates,
         end,
-    } in &edges
+    } in edges
     {
         // remove deprecated connectivities & save what data is necessary
         let b1_start_old = cmap.beta::<1>(*start);
@@ -795,10 +823,9 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
             cmap.one_link(b0_end_old, cmap.beta::<2>(*di_last));
         }
     }
-
-    // return result
-    cmap
 }
+
+// --- clipping
 
 /// Clipping routine.
 ///
