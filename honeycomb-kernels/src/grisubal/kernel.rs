@@ -157,46 +157,30 @@ fn generate_intersected_segments<T: CoordsFloat>(
             // ok case:
             // v1 & v2 belong to neighboring cells
             1 => {
-                // fetch base dart the cell of v1
+                // fetch base dart of the cell of v1
                 #[allow(clippy::cast_possible_truncation)]
                 let d_base = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
                 // which edge of the cell are we intersecting?
                 let diff = GridCellId::diff(&c1, &c2);
+                // which dart does this correspond to?
                 #[rustfmt::skip]
-                let (mut t, dart_id) = match diff {
-                    // cross left
-                    (-1,  0) => {
-                        let dart_id = d_base + 3;
-                        // vertex associated to crossed dart, i.e. top left corner
-                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                        // call macro
-                        let (_, t) = left_intersec!(v1, v2, v_dart, cy);
-                        (t, dart_id)
-                    }
-                    // cross right
-                    ( 1,  0) => {
-                        let dart_id = d_base + 1;
-                        // vertex associated to crossed dart, i.e. down right corner
-                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                        let (_, t) = right_intersec!(v1, v2, v_dart, cy);
-                        (t, dart_id) // adjust for dart direction
-                    }
-                    // cross down
-                    ( 0, -1) => {
-                        let dart_id = d_base;
-                        // vertex associated to crossed dart, i.e. down left corner
-                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                        let (_, t) = down_intersec!(v1, v2, v_dart, cx);
-                        (t, dart_id)
-                    }
-                    // cross up
-                    ( 0,  1) => {
-                        let dart_id = d_base + 2;
-                        // vertex associated to crossed dart, i.e. up right corner
-                        let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                        let (_, t) = up_intersec!(v1, v2, v_dart, cx);
-                        (t, dart_id)
-                    }
+                let dart_id = match diff {
+                    (-1,  0) => d_base + 3,
+                    ( 1,  0) => d_base + 1,
+                    ( 0, -1) => d_base    ,
+                    ( 0,  1) => d_base + 2,
+                    _ => unreachable!(),
+                };
+                // what's the vertex associated to the dart?
+                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                // compute relative position of the intersection on the interecting edges
+                // `s` is relative to the segment `v1v2`, `t` to the grid's segment (the origin being `v_dart`)
+                #[rustfmt::skip]
+                let (_s, mut t) = match diff {
+                    (-1,  0) => left_intersec!(v1, v2, v_dart, cy),
+                    ( 1,  0) => right_intersec!(v1, v2, v_dart, cy),
+                    ( 0, -1) => down_intersec!(v1, v2, v_dart, cx),
+                    ( 0,  1) => up_intersec!(v1, v2, v_dart, cx),
                     _ => unreachable!(),
                 };
                 // t is adjusted for dart direction; but it needs to be adjusted according to the edge's direction
