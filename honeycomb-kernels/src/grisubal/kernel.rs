@@ -17,6 +17,16 @@ use honeycomb_core::{CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2, V
 
 // ------ CONTENT
 
+macro_rules! make_geometry_vertex {
+    ($g: ident, $vid: ident) => {
+        if $g.poi.contains(&$vid) {
+            GeometryVertex::PoI($vid)
+        } else {
+            GeometryVertex::Regular($vid)
+        }
+    };
+}
+
 macro_rules! left_intersec {
     ($va: ident, $vb: ident, $vdart:ident, $cy: ident) => {{
         let s = ($vdart.x() - $va.x()) / ($vb.x() - $va.x());
@@ -142,16 +152,8 @@ fn generate_intersected_segments<T: CoordsFloat>(
             // v1 & v2 belong to the same cell
             0 => {
                 new_segments.insert(
-                    if geometry.poi.contains(&v1_id) {
-                        GeometryVertex::PoI(v1_id)
-                    } else {
-                        GeometryVertex::Regular(v1_id)
-                    },
-                    if geometry.poi.contains(&v2_id) {
-                        GeometryVertex::PoI(v2_id)
-                    } else {
-                        GeometryVertex::Regular(v2_id)
-                    },
+                    make_geometry_vertex!(geometry, v1_id),
+                    make_geometry_vertex!(geometry, v2_id),
                 );
             }
             // ok case:
@@ -193,20 +195,12 @@ fn generate_intersected_segments<T: CoordsFloat>(
                 cmap.split_edge(edge_id, Some(t));
                 let new_vid = cmap.beta::<1>(dart_id);
                 new_segments.insert(
-                    if geometry.poi.contains(&v1_id) {
-                        GeometryVertex::PoI(v1_id)
-                    } else {
-                        GeometryVertex::Regular(v1_id)
-                    },
+                    make_geometry_vertex!(geometry, v1_id),
                     GeometryVertex::Intersec(new_vid),
                 );
                 new_segments.insert(
                     GeometryVertex::Intersec(new_vid),
-                    if geometry.poi.contains(&v2_id) {
-                        GeometryVertex::PoI(v2_id)
-                    } else {
-                        GeometryVertex::Regular(v2_id)
-                    },
+                    make_geometry_vertex!(geometry, v2_id),
                 );
             }
             // highly annoying case:
@@ -261,16 +255,8 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         } else {
                             tmp.rev().collect()
                         };
-                        vs.push_front(if geometry.poi.contains(&v1_id) {
-                            GeometryVertex::PoI(v1_id)
-                        } else {
-                            GeometryVertex::Regular(v1_id)
-                        });
-                        vs.push_back(if geometry.poi.contains(&v2_id) {
-                            GeometryVertex::PoI(v2_id)
-                        } else {
-                            GeometryVertex::Regular(v2_id)
-                        });
+                        vs.push_front(make_geometry_vertex!(geometry, v1_id));
+                        vs.push_back(make_geometry_vertex!(geometry, v2_id));
                         vs.make_contiguous().windows(2).for_each(|seg| {
                             new_segments.insert(seg[0].clone(), seg[1].clone());
                         });
@@ -311,16 +297,8 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             tmp.rev().collect()
                         };
                         // complete the vertex list
-                        vs.push_front(if geometry.poi.contains(&v1_id) {
-                            GeometryVertex::PoI(v1_id)
-                        } else {
-                            GeometryVertex::Regular(v1_id)
-                        });
-                        vs.push_back(if geometry.poi.contains(&v2_id) {
-                            GeometryVertex::PoI(v2_id)
-                        } else {
-                            GeometryVertex::Regular(v2_id)
-                        });
+                        vs.push_front(make_geometry_vertex!(geometry, v1_id));
+                        vs.push_back(make_geometry_vertex!(geometry, v2_id));
                         // insert new segments
                         vs.make_contiguous().windows(2).for_each(|seg| {
                             new_segments.insert(seg[0].clone(), seg[1].clone());
@@ -401,11 +379,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 intersec_data
                                     .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
                                 // collect geometry vertices
-                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
-                                    GeometryVertex::PoI(v1_id)
-                                } else {
-                                    GeometryVertex::Regular(v1_id)
-                                }];
+                                let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                                 vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
                                     // insert new vertex in the map
                                     let edge_id = cmap.edge_id(*dart_id);
@@ -417,11 +391,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     let new_vid = cmap.beta::<1>(*dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 }));
-                                vs.push(if geometry.poi.contains(&v2_id) {
-                                    GeometryVertex::PoI(v2_id)
-                                } else {
-                                    GeometryVertex::Regular(v2_id)
-                                });
+                                vs.push(make_geometry_vertex!(geometry, v2_id));
                                 // insert segments
                                 vs.windows(2).for_each(|seg| {
                                     new_segments.insert(seg[0].clone(), seg[1].clone());
@@ -488,11 +458,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 intersec_data
                                     .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
                                 // collect geometry vertices
-                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
-                                    GeometryVertex::PoI(v1_id)
-                                } else {
-                                    GeometryVertex::Regular(v1_id)
-                                }];
+                                let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                                 vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
                                     // insert new vertex in the map
                                     let edge_id = cmap.edge_id(*dart_id);
@@ -504,11 +470,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     let new_vid = cmap.beta::<1>(*dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 }));
-                                vs.push(if geometry.poi.contains(&v2_id) {
-                                    GeometryVertex::PoI(v2_id)
-                                } else {
-                                    GeometryVertex::Regular(v2_id)
-                                });
+                                vs.push(make_geometry_vertex!(geometry, v2_id));
                                 // insert segments
                                 vs.windows(2).for_each(|seg| {
                                     new_segments.insert(seg[0].clone(), seg[1].clone());
@@ -575,11 +537,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 intersec_data
                                     .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
                                 // collect geometry vertices
-                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
-                                    GeometryVertex::PoI(v1_id)
-                                } else {
-                                    GeometryVertex::Regular(v1_id)
-                                }];
+                                let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                                 vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
                                     // insert new vertex in the map
                                     let edge_id = cmap.edge_id(*dart_id);
@@ -591,11 +549,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     let new_vid = cmap.beta::<1>(*dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 }));
-                                vs.push(if geometry.poi.contains(&v2_id) {
-                                    GeometryVertex::PoI(v2_id)
-                                } else {
-                                    GeometryVertex::Regular(v2_id)
-                                });
+                                vs.push(make_geometry_vertex!(geometry, v2_id));
                                 // insert segments
                                 vs.windows(2).for_each(|seg| {
                                     new_segments.insert(seg[0].clone(), seg[1].clone());
@@ -662,11 +616,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 intersec_data
                                     .sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
                                 // collect geometry vertices
-                                let mut vs = vec![if geometry.poi.contains(&v1_id) {
-                                    GeometryVertex::PoI(v1_id)
-                                } else {
-                                    GeometryVertex::Regular(v1_id)
-                                }];
+                                let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                                 vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
                                     // insert new vertex in the map
                                     let edge_id = cmap.edge_id(*dart_id);
@@ -678,11 +628,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     let new_vid = cmap.beta::<1>(*dart_id);
                                     GeometryVertex::Intersec(new_vid)
                                 }));
-                                vs.push(if geometry.poi.contains(&v2_id) {
-                                    GeometryVertex::PoI(v2_id)
-                                } else {
-                                    GeometryVertex::Regular(v2_id)
-                                });
+                                vs.push(make_geometry_vertex!(geometry, v2_id));
                                 // insert segments
                                 vs.windows(2).for_each(|seg| {
                                     new_segments.insert(seg[0].clone(), seg[1].clone());
