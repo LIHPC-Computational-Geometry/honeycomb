@@ -215,7 +215,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                 // because we're using strait segments (not curves), the manhattan distance gives us
                 // the number of cell we're going through to reach v2 from v1, which is equal to the number of
                 // additional vertices resulting from intersection with the grid
-                // i.e. we're generating i+1 segments
+                // i.e. we're generating d+1 segments
                 let diff = GridCellId::diff(&c1, &c2);
                 // pure vertical / horizontal traversal are treated separately because `t` is computed directly
                 // other cases require adjustment since we'll be computating `t`s over longer segments rather than
@@ -225,50 +225,41 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // we can solve the intersection equation
                         // for each vertical edge of the grid we cross (i times)
                         let i_base = c1.0 as isize;
+                        let tmp =
+                            (min(i_base + 1, i_base + 1 + i)..=max(i_base + i, i_base)).map(|x| {
+                                // cell base dart
+                                let d_base =
+                                    (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize) as DartIdentifier;
+                                // intersected dart
+                                let dart_id = if i.is_positive() {
+                                    d_base + 1
+                                } else {
+                                    d_base + 3
+                                };
+                                // vertex associated to the intersected dart
+                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                // compute intersection
+                                let (_s, mut t) = if i.is_positive() {
+                                    right_intersec!(v1, v2, v_dart, cy)
+                                } else {
+                                    left_intersec!(v1, v2, v_dart, cy)
+                                };
+                                // adjust t for edge direction
+                                let edge_id = cmap.edge_id(dart_id);
+                                // works in 2D because edges are 2 darts at most
+                                if edge_id != dart_id {
+                                    t = T::one() - t;
+                                }
+                                cmap.split_edge(edge_id, Some(t));
+                                let new_vid = cmap.beta::<1>(dart_id);
+                                GeometryVertex::Intersec(new_vid)
+                            });
+                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
-                            // cross to right => v_dart is the bottom right vertex of the cell
-                            let offrange = i_base + 1..=i_base + i;
-                            offrange
-                                .map(|x| {
-                                    let d_base = (1 + 4 * (x - 1) + (nx * 4 * c1.1) as isize)
-                                        as DartIdentifier;
-                                    let dart_id = d_base + 1;
-                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                                    let (_, mut t) = right_intersec!(v1, v2, v_dart, cy);
-                                    // adjust t for edge direction
-                                    let edge_id = cmap.edge_id(dart_id);
-                                    // works in 2D because edges are 2 darts at most
-                                    if edge_id != dart_id {
-                                        t = T::one() - t;
-                                    }
-                                    cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id);
-                                    GeometryVertex::Intersec(new_vid)
-                                })
-                                .collect()
+                            tmp.collect()
                         } else {
-                            // cross to left  => v_dart is the top left vertex of the cell
-                            let offrange = (i_base + 1 + i..=i_base);
-                            offrange
-                                .map(|x| {
-                                    // fetch intersected dart & corresponding vertex
-                                    let d_base =
-                                        (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
-                                    let dart_id = d_base + 3;
-                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                                    let (_, mut t) = left_intersec!(v1, v2, v_dart, cy);
-                                    // adjust t for edge direction
-                                    let edge_id = cmap.edge_id(dart_id);
-                                    // works in 2D because edges are 2 darts at most
-                                    if edge_id != dart_id {
-                                        t = T::one() - t;
-                                    }
-                                    cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id);
-                                    GeometryVertex::Intersec(new_vid)
-                                })
-                                .rev() // reverse to preserve v1 to v2 order
-                                .collect()
+                            tmp.rev().collect()
                         };
                         vs.push_front(if geometry.poi.contains(&v1_id) {
                             GeometryVertex::PoI(v1_id)
@@ -288,50 +279,38 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // we can solve the intersection equation
                         // for each horizontal edge of the grid we cross (j times)
                         let j_base = c1.0 as isize;
+                        let tmp =
+                            (min(j_base + 1, j_base + 1 + j)..=max(j_base + j, j_base)).map(|y| {
+                                // cell base dart
+                                let d_base = (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
+                                // intersected dart
+                                let dart_id = if j.is_positive() { d_base + 2 } else { d_base };
+                                // vertex associated to the intersected dart
+                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                // compute intersection
+                                let (_s, mut t) = if j.is_positive() {
+                                    up_intersec!(v1, v2, v_dart, cx)
+                                } else {
+                                    down_intersec!(v1, v2, v_dart, cx)
+                                };
+                                // adjust t for edge direction
+                                let edge_id = cmap.edge_id(dart_id);
+                                // works in 2D because edges are 2 darts at most
+                                if edge_id != dart_id {
+                                    t = T::one() - t;
+                                }
+                                cmap.split_edge(edge_id, Some(t));
+                                let new_did = cmap.beta::<1>(dart_id);
+                                GeometryVertex::Intersec(new_did)
+                            });
+                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if j > 0 {
-                            // cross to top => v_dart is the top right vertex of the cell
-                            let offrange = j_base + 1..=j_base + j;
-                            offrange
-                                .map(|y| {
-                                    let d_base =
-                                        (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
-                                    let dart_id = d_base + 2;
-                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                                    let (_, mut t) = up_intersec!(v1, v2, v_dart, cx);
-                                    // adjust t for edge direction
-                                    let edge_id = cmap.edge_id(dart_id);
-                                    // works in 2D because edges are 2 darts at most
-                                    if edge_id != dart_id {
-                                        t = T::one() - t;
-                                    }
-                                    cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id);
-                                    GeometryVertex::Intersec(new_vid)
-                                })
-                                .collect()
+                            tmp.collect()
                         } else {
-                            // cross to bottom  => v_dart is the bottom left vertex of the cell
-                            let offrange = (j_base + 1 + j..=j_base);
-                            offrange
-                                .map(|y| {
-                                    let d_base =
-                                        (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
-                                    let dart_id = d_base;
-                                    let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
-                                    let (_, mut t) = down_intersec!(v1, v2, v_dart, cx);
-                                    // adjust t for edge direction
-                                    let edge_id = cmap.edge_id(dart_id);
-                                    // works in 2D because edges are 2 darts at most
-                                    if edge_id != dart_id {
-                                        t = T::one() - t;
-                                    }
-                                    cmap.split_edge(edge_id, Some(t));
-                                    let new_vid = cmap.beta::<1>(dart_id);
-                                    GeometryVertex::Intersec(new_vid)
-                                })
-                                .rev() // reverse to preserve v1 to v2 order
-                                .collect()
+                            tmp.rev().collect()
                         };
+                        // complete the vertex list
                         vs.push_front(if geometry.poi.contains(&v1_id) {
                             GeometryVertex::PoI(v1_id)
                         } else {
@@ -342,6 +321,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         } else {
                             GeometryVertex::Regular(v2_id)
                         });
+                        // insert new segments
                         vs.make_contiguous().windows(2).for_each(|seg| {
                             new_segments.insert(seg[0].clone(), seg[1].clone());
                         });
