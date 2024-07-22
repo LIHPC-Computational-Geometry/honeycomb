@@ -23,7 +23,7 @@ hypothesis are listed in the documentation of the crate.
 The mesh is built by capturing the input geometry in an overlapping grid, by first computing intersection vertices and
 then rebuild new edges from the captured vertices. This is explained in more details [here](./kernel-grisubal.md).
 
-[IMRN-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
+[IMR-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
 
 ### Examples
 
