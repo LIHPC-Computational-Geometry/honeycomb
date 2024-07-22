@@ -10,6 +10,7 @@
     - [honeycomb-examples](./project-structure/honeycomb-examples.md)
     - [honeycomb-guide](./project-structure/honeycomb-guide.md)
     - [honeycomb-kernels](./project-structure/honeycomb-kernels.md)
+        - [grisubal](./project-structure/kernel-grisubal.md)
     - [honeycomb-render](./project-structure/honeycomb-render.md)
 
 # Definitions

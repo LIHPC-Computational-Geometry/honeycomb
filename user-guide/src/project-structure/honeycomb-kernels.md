@@ -12,13 +12,20 @@ combinatorial maps. These implementations have multiple purposes:
 3. Stressing the data structure, to identify its advantages and its pitfalls in a meshing context
 4. Testing for more unwanted behaviors / bugs
 
+Explanations provided on this page focus on the overall workflow of algorithms; Implementation-specific details and
+hypothesis are listed in the documentation of the crate.
 
 ## Algorithms
 
 ### Grisubal
 
+**Grisubal**, short for **GRId SUBmersion ALgorithm**, is a mesh generation algorithm inspired by [Morph][IMR-RN].
+The mesh is built by capturing the input geometry in an overlapping grid, by first computing intersection vertices and
+then rebuild new edges from the captured vertices. This is explained in more details [here](./kernel-grisubal.md).
 
+[IMRN-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
 
 ### Examples
 
-Examples will be provided in the [dedicated crate](./honeycomb-examples.md), under the `examples/kernels/` directory.
+Using these algorihtms can be done with a one-shot call to their respective function, so there are no examples beside
+the ones provided in the crate documentation.
