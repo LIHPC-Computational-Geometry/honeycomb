@@ -58,8 +58,8 @@
 // ------ MODULE DECLARATIONS
 
 pub(crate) mod grid;
-pub(crate) mod inp;
 pub(crate) mod kernel;
+pub(crate) mod model;
 
 // ------ IMPORTS
 

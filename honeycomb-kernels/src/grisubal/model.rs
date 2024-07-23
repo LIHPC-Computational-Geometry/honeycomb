@@ -7,7 +7,10 @@
 // ------ IMPORTS
 
 use crate::BBox2;
-use honeycomb_core::{CoordsFloat, Vertex2};
+use honeycomb_core::{
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
+    Vertex2, VertexIdentifier,
+};
 use num::Zero;
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
@@ -44,7 +47,7 @@ pub struct Geometry2<T: CoordsFloat> {
     /// Vertices of the geometry.
     pub vertices: Vec<Vertex2<T>>,
     /// Edges / segments making up the geometry.
-    pub segments: Vec<Segment>,
+    pub segments: Vec<(usize, usize)>,
     /// Points of interest, i.e. points to insert unconditionally in the future map / mesh.
     pub poi: Vec<usize>,
 }
@@ -123,7 +126,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                         _ => panic!("E: unsupported coordinate representation type - please use float or double"),
                     };
                     let mut poi: Vec<usize> = Vec::new();
-                    let mut segments: Vec<Segment> = Vec::new();
+                    let mut segments: Vec<(usize, usize)> = Vec::new();
 
                     let vtkio::model::Cells { cell_verts, types } = tmp.cells;
                     match cell_verts {
@@ -162,7 +165,7 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                                     assert_eq!(vids.len(), 2,
                                     "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)"
                                 );
-                                    segments.push(Segment(vids[0], vids[1]));
+                                    segments.push((vids[0],vids[1]));
                                 }
                                 CellType::PolyLine =>
                                     panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
@@ -192,8 +195,41 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     }
 }
 
-/// Segment modelling structure.
-///
-/// Inner values correspond to vertex indices, order matters.
-#[derive(Debug, PartialEq)]
-pub struct Segment(pub usize, pub usize);
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum GeometryVertex {
+    Regular(usize),
+    PoI(usize),
+    Intersec(DartIdentifier),
+}
+
+pub struct MapEdge {
+    pub start: DartIdentifier,
+    pub intermediates: Vec<DartIdentifier>,
+    pub end: DartIdentifier,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct IsBoundary(bool);
+
+impl AttributeUpdate for IsBoundary {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        // if we fuse two vertices and at least one is part of the boundary,
+        // the resulting one should be part of the boundary to prevent a missing link in the chain
+        IsBoundary(attr1.0 || attr2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        // if we split a vertex in two, both resulting vertices should hold the same property
+        (attr, attr)
+    }
+}
+
+impl AttributeBind for IsBoundary {
+    fn binds_to<'a>() -> OrbitPolicy<'a> {
+        OrbitPolicy::Vertex
+    }
+
+    type IdentifierType = VertexIdentifier;
+
+    type StorageType = AttrSparseVec<Self>;
+}

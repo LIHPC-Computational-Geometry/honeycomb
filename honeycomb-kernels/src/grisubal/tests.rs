@@ -3,7 +3,7 @@
 use honeycomb_core::Vertex2;
 use vtkio::Vtk;
 
-use crate::{Geometry2, Segment};
+use crate::Geometry2;
 
 // ------ CONTENT
 
@@ -93,14 +93,14 @@ fn build_valid_geometry() {
     assert!(vertices.contains(&Vertex2::from((2., 2.))));
     // segments
     assert_eq!(segments.len(), 8);
-    assert!(segments.contains(&Segment(0, 1)));
-    assert!(segments.contains(&Segment(3, 0)));
-    assert!(segments.contains(&Segment(1, 4)));
-    assert!(segments.contains(&Segment(4, 5)));
-    assert!(segments.contains(&Segment(5, 6)));
-    assert!(segments.contains(&Segment(6, 7)));
-    assert!(segments.contains(&Segment(7, 8)));
-    assert!(segments.contains(&Segment(8, 3)));
+    assert!(segments.contains(&(0, 1)));
+    assert!(segments.contains(&(3, 0)));
+    assert!(segments.contains(&(1, 4)));
+    assert!(segments.contains(&(4, 5)));
+    assert!(segments.contains(&(5, 6)));
+    assert!(segments.contains(&(6, 7)));
+    assert!(segments.contains(&(7, 8)));
+    assert!(segments.contains(&(8, 3)));
     // poi
     assert_eq!(poi.len(), 5);
     assert!(poi.contains(&0));
