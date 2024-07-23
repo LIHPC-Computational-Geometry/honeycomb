@@ -29,8 +29,6 @@ This can be used to ensure irregular geometries are captured correctly by the al
 
 ### Step 1 - Intersect Grid & Geometry
 
-#### Overview
-
 The goal of this step is to edit and complete the segment list to obtain a list of non-dividable segments that can be
 used for reconstruction at a later step. Consider the previous geometry, submerged in an overlapping grid:
 
@@ -77,8 +75,6 @@ edges into the final 2-map.
 
 ### Step 3 - Insert Segments
 
-#### Overview
-
 Given the data built up at the last step, we can proceed with insertion into the map. At this point, only darts linking
 the first intersection to the following vertex need to be added to the map.
 
@@ -106,5 +102,34 @@ Consider a given segment of the geometry. Each of the segment follow one of thre
 - `B` - Vertices belong to different non-neighboring cells.
 - `C` - Both vertices belong to the same cell.
 
+We can identify which case we're in by computing the Manhattan distance between grid cells of the respective vertices:
+
+- `A` - Distance is equal to `1`.
+- `B` - Distance is strictly superior to `1`.
+- `C` - Distance is `0`.
+
+The `A` case is pretty straight forward: By considering that the segment is oriented from
+the start to its end, we can deduce which side of the cell it's intersecting, and compute the relative position of the
+intersection `t`:
+
+<figure style="text-align:center">
+    <img src="../images/grisubal/intersec_single.svg" alt="Single Intersection" />
+    <figcaption><i>Intersection at the scale of a single cell</i></figcaption>
+</figure>
+
+The `B` case is trickier to handle because we need to compute multiple intersections, and know their order to be able
+to build the segment back into the map.
+
+<figure style="text-align:center">
+    <img src="../images/grisubal/intersec_multiple.svg" alt="Many Intersections" />
+    <figcaption><i>Repeated intersections with the grid</i></figcaption>
+</figure>
+
+By considering the minimal subgrid containing both vertices, as well as the direction of the segment, we can list all
+edges that are potentially intersected.
+
+We can compute coefficients `s` and `t` for each of the potentially intersected segments. If the segment is actually
+intersected, both coefficients will have a value between `0` and `1`. `s` being the relative position of the
+intersection along the original segment, we can use its value to reorder all valid intersections for segment building.
 
 ### Insertion Logic
