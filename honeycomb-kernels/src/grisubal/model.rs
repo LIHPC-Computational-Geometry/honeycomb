@@ -25,9 +25,9 @@ pub enum Clip {
     /// Clip inner & outer cells, leaving only boundaries of the geometry.
     All,
     /// Clip inner cells.
-    Inner,
+    Normal,
     /// Clip outer cells.
-    Outer,
+    AntiNormal,
     /// Do nothing. Default value.
     #[default]
     None,

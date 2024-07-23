@@ -111,7 +111,6 @@ use vtkio::Vtk;
 /// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
-    invert_normal_dir: bool,
     grid_cell_sizes: (T, T),
     clip: Option<Clip>,
 ) -> CMap2<T> {
@@ -125,13 +124,16 @@ pub fn grisubal<T: CoordsFloat>(
     // build the map
     let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes);
     // optional post-processing
-    match clip.unwrap_or(Clip::None) {
+    match clip.unwrap_or_default() {
         Clip::All => {
-            kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir);
-            kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir);
+            todo!()
         }
-        Clip::Inner => kernel::remove_inner(&mut cmap, &geometry, invert_normal_dir),
-        Clip::Outer => kernel::remove_outer(&mut cmap, &geometry, invert_normal_dir),
+        Clip::Normal => {
+            todo!()
+        }
+        Clip::AntiNormal => {
+            todo!()
+        }
         Clip::None => {}
     }
     // return result
