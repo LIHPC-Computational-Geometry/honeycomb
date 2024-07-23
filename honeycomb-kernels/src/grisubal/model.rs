@@ -20,15 +20,20 @@ use vtkio::{
 // ------ CONTENT
 
 /// Post-processing clip operation.
+///
+/// Note that the part of the map that is clipped depends on the orientation of the original geometry provided as
+/// input.
 #[derive(Default)]
 pub enum Clip {
-    /// Clip inner & outer cells, leaving only boundaries of the geometry.
+    /// Clip all elements beside the captured boundary.
     All,
-    /// Clip inner cells.
+    /// Clip elements located on the *normal* side of the boundary, i.e. for an oriented segment `AB`, elements
+    /// towards the left side of the orthogonal line to `AB`.
     Normal,
-    /// Clip outer cells.
+    /// Clip elements located on the *anti-normal* side of the boundary, i.e. for an oriented segment `AB`, elements
+    /// towards the right side of the orthogonal line to `AB`.
     AntiNormal,
-    /// Do nothing. Default value.
+    /// Keep all elements. Default value.
     #[default]
     None,
 }

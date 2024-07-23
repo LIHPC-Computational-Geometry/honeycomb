@@ -77,8 +77,8 @@ use vtkio::Vtk;
 ///   [VTK Format] for more information about the expected formatting.
 /// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
 ///   relative to the geometry.
-/// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, jf any, in
-///   the post-processing phase.
+/// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, if any, in
+///   the post-processing phase. For more information on the clipping process, see [`Clip`].
 ///
 /// ## VTK Format
 ///
@@ -106,7 +106,7 @@ use vtkio::Vtk;
 /// use honeycomb_core::CMap2;
 /// use honeycomb_kernels::{Clip, grisubal};
 /// // this panics because the file does not exist, but the usage is correct
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", true, (1., 1.), Some(Clip::Outer));
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", (1., 1.), Some(Clip::Normal));
 /// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
