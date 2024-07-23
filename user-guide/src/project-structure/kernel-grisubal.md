@@ -154,4 +154,7 @@ These steps are followed:
     - `1-sew` the last intermediate to *d<sub>end</sub>*, as well as the dart that was deconnected from
       *d<sub>end</sub>*
 
-Depending on the clipping policy, ...
+<figure style="text-align:center">
+    <img src="../images/grisubal/insertion.svg" alt="Insertion" />
+    <figcaption><i>Insertion of new edges with one intermediate</i></figcaption>
+</figure>
