@@ -133,3 +133,25 @@ intersected, both coefficients will have a value between `0` and `1`. `s` being 
 intersection along the original segment, we can use its value to reorder all valid intersections for segment building.
 
 ### Insertion Logic
+
+For a given instance of data containing:
+
+- a starting dart: *d<sub>start</sub>*
+- (optional) one or more intermediate darts: *{ d<sub>i</sub> } <sub>i</sub>*
+- an ending dart: *d<sub>end</sub>*
+
+These steps are followed:
+
+- `1-unsew` *d<sub>start</sub>*
+- `0-unsew` *d<sub>end</sub>*, i.e. `1-unsew` *β<sub>0</sub> (d<sub>end</sub>)*
+- create a pair of dart & link it via *β<sub>2</sub>*
+- `1-sew` *d<sub>start</sub>* to this pair, as well as the dart that was deconnected from *d<sub>start</sub>*
+- if there's no intermediate, `1-sew` the pair to the ending dart, as well as the dart that was deconnected from
+  *d<sub>end</sub>*
+- if there are intermediates:
+    - `1-sew` the pair to the first intermediate, as well as the dart that was deconnected from *d<sub>start</sub>*
+    - successively `1-sew` intermediates
+    - `1-sew` the last intermediate to *d<sub>end</sub>*, as well as the dart that was deconnected from
+      *d<sub>end</sub>*
+
+Depending on the clipping policy, ...
