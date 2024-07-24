@@ -270,7 +270,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                     (0, j) => {
                         // we can solve the intersection equation
                         // for each horizontal edge of the grid we cross (j times)
-                        let j_base = c1.0 as isize;
+                        let j_base = c1.1 as isize;
                         let tmp =
                             // the range is either
                             // j > 0: j_base..j_base + j
