@@ -12,7 +12,12 @@ publish = false
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils", "io"] }
 honeycomb-render = { workspace = true }
+honeycomb-kernels = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
+
+[[example]]
+name = "grisubal"
+path = "examples/kernels/grisubal.rs"
 
 # I/O
 
