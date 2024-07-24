@@ -85,8 +85,9 @@ impl<'a, T: CoordsFloat> CMap2RenderHandle<'a, T> {
             let mut tmp = IntermediateFace::new(orbit);
             // apply a first shrink
             tmp.vertices.iter_mut().for_each(|v| {
-                let v_shrink_dir = (tmp.center - *v).unit_dir().unwrap();
-                *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+                if let Ok(v_shrink_dir) = (tmp.center - *v).unit_dir() {
+                    *v += v_shrink_dir * T::from(self.params.shrink_factor).unwrap();
+                }
             });
             tmp
         });
