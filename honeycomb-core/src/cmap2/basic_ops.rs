@@ -51,6 +51,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.n_darts += 1;
         self.betas.push([0; CMAP2_BETA]);
         self.vertices.extend(1);
+        self.attributes.extend_storages(1);
         new_id
     }
 
@@ -72,6 +73,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.n_darts += n_darts;
         self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
         self.vertices.extend(n_darts);
+        self.attributes.extend_storages(n_darts);
         new_id
     }
 
