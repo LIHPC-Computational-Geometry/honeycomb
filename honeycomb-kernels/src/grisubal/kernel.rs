@@ -476,10 +476,12 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge]) {
             // start to first intermediate; expect should not happen due to if statement
             let di_first = intermediates.first().expect("E: unreachable");
             cmap.one_sew(d_new, *di_first);
+            cmap.one_link(cmap.beta::<2>(*di_first), cmap.beta::<2>(d_new));
             // intermediate to intermediate
             intermediates.windows(2).for_each(|ds| {
                 let &[di1, di2] = ds else { unreachable!() };
                 cmap.one_sew(di1, di2);
+                cmap.one_link(cmap.beta::<2>(di2), cmap.beta::<2>(di1));
             });
             // last intermediate to end; last may be the same as first
             let di_last = intermediates.last().expect("E: unreachable");
