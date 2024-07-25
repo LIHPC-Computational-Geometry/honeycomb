@@ -1,4 +1,4 @@
-use honeycomb_core::{Coords2, CoordsFloat, Vertex2};
+use honeycomb_core::{CoordsFloat, Vertex2};
 
 pub enum Entity {
     Dart,
@@ -20,12 +20,15 @@ impl<T: CoordsFloat> IntermediateFace<T> {
             // with 0 or 1 vertex, there won't be much to render, we can throw in a dummy value
             0 | 1 => Vertex2::from((T::zero(), T::zero())),
             // otherwise, compute the average of all vertices to get the center of the cell
-            _ => Vertex2::from(
-                tmp.iter()
-                    .map(|vertex2: &Vertex2<T>| vertex2.into_inner())
-                    .sum::<Coords2<T>>()
-                    / T::from(n_vertices).unwrap(),
-            ),
+            _ => {
+                let Vertex2(x, y) = tmp.iter().fold(Vertex2(T::zero(), T::zero()), |v1, v2| {
+                    Vertex2(v1.0 + v2.0, v1.1 + v2.1)
+                });
+                Vertex2(
+                    x / T::from(n_vertices).unwrap(),
+                    y / T::from(n_vertices).unwrap(),
+                )
+            }
         };
         Self {
             n_vertices,
