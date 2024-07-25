@@ -1,0 +1,3 @@
+[submodule "assets/meshing-samples"]
+	path = assets/meshing-samples
+	url = https://github.com/imrn99/meshing-samples.git
