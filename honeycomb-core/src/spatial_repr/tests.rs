@@ -104,7 +104,7 @@ mod vector {
                 )));
                 assert!(almost_equals!((
                     (along_x + along_y).unit_dir().unwrap(),
-                    Vector2::<$t>::from((4.0 / 5.0, 3.0 / 5.0))
+                    Vector2::<$t>(4.0 / 5.0, 3.0 / 5.0)
                 )));
                 let origin: Vector2<$t> = Vector2::default();
                 assert_eq!(origin.unit_dir(), Err(CoordsError::InvalidUnitDir));
@@ -157,64 +157,64 @@ mod vertex {
     #[test]
     fn add_vertex_vector() {
         {
-            let mut a: Vertex2<f64> = Vertex2::from((1.0, 1.0));
-            let b: Vector2<f64> = Vector2::from((1.0, 0.0));
+            let mut a: Vertex2<f64> = Vertex2(1.0, 1.0);
+            let b: Vector2<f64> = Vector2(1.0, 0.0);
             let a_moved = a + b;
-            assert_eq!(a_moved, Vertex2::from((2.0, 1.0)));
+            assert_eq!(a_moved, Vertex2(2.0, 1.0));
             a += &b;
             assert_eq!(a, a_moved);
             a += b;
-            assert_eq!(a, Vertex2::from((3.0, 1.0)));
+            assert_eq!(a, Vertex2(3.0, 1.0));
         }
         {
-            let mut a: Vertex2<f32> = Vertex2::from((1.0, 1.0));
-            let b: Vector2<f32> = Vector2::from((1.0, 0.0));
+            let mut a: Vertex2<f32> = Vertex2(1.0, 1.0);
+            let b: Vector2<f32> = Vector2(1.0, 0.0);
             let a_moved = a + b;
-            assert_eq!(a_moved, Vertex2::from((2.0, 1.0)));
+            assert_eq!(a_moved, Vertex2(2.0, 1.0));
             a += &b;
             assert_eq!(a, a_moved);
             a += b;
-            assert_eq!(a, Vertex2::from((3.0, 1.0)));
+            assert_eq!(a, Vertex2(3.0, 1.0));
         }
     }
 
     #[test]
     fn sub_vertex_vector() {
         {
-            let mut a: Vertex2<f64> = Vertex2::from((1.0, 1.0));
-            let b: Vector2<f64> = Vector2::from((1.0, 0.0));
+            let mut a: Vertex2<f64> = Vertex2(1.0, 1.0);
+            let b: Vector2<f64> = Vector2(1.0, 0.0);
             let a_moved = a - b;
-            assert_eq!(a_moved, Vertex2::from((0.0, 1.0)));
+            assert_eq!(a_moved, Vertex2(0.0, 1.0));
             a -= &b;
             assert_eq!(a, a_moved);
             a -= b;
-            assert_eq!(a, Vertex2::from((-1.0, 1.0)));
+            assert_eq!(a, Vertex2(-1.0, 1.0));
         }
         {
-            let mut a: Vertex2<f32> = Vertex2::from((1.0, 1.0));
-            let b: Vector2<f32> = Vector2::from((1.0, 0.0));
+            let mut a: Vertex2<f32> = Vertex2(1.0, 1.0);
+            let b: Vector2<f32> = Vector2(1.0, 0.0);
             let a_moved = a - b;
-            assert_eq!(a_moved, Vertex2::from((0.0, 1.0)));
+            assert_eq!(a_moved, Vertex2(0.0, 1.0));
             a -= &b;
             assert_eq!(a, a_moved);
             a -= b;
-            assert_eq!(a, Vertex2::from((-1.0, 1.0)));
+            assert_eq!(a, Vertex2(-1.0, 1.0));
         }
     }
 
     #[test]
     fn sub_vertex_vertex() {
         {
-            let a: Vertex2<f64> = Vertex2::from((1.0, 1.0));
-            let b: Vertex2<f64> = Vertex2::from((1.0, 0.0));
+            let a: Vertex2<f64> = Vertex2(1.0, 1.0);
+            let b: Vertex2<f64> = Vertex2(1.0, 0.0);
             let ab = b - a;
-            assert_eq!(ab, Vector2::from((0.0, -1.0)));
+            assert_eq!(ab, Vector2(0.0, -1.0));
         }
         {
-            let a: Vertex2<f32> = Vertex2::from((1.0, 1.0));
-            let b: Vertex2<f32> = Vertex2::from((1.0, 0.0));
+            let a: Vertex2<f32> = Vertex2(1.0, 1.0);
+            let b: Vertex2<f32> = Vertex2(1.0, 0.0);
             let ab = b - a;
-            assert_eq!(ab, Vector2::from((0.0, -1.0)));
+            assert_eq!(ab, Vector2(0.0, -1.0));
         }
     }
 }

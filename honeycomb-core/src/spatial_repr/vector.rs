@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{Coords2, CoordsError, CoordsFloat};
+use crate::{CoordsError, CoordsFloat};
 
 // ------ CONTENT
 
@@ -35,16 +35,13 @@ use crate::{Coords2, CoordsError, CoordsFloat};
 /// let x_plus_y: Vector2<f64> = unit_x + unit_y;
 ///
 /// assert_eq!(x_plus_y.norm(), two.sqrt());
-/// assert_eq!(x_plus_y.unit_dir()?, Vector2::from((1.0 / two.sqrt(), 1.0 / two.sqrt())));
+/// assert_eq!(x_plus_y.unit_dir()?, Vector2(1.0 / two.sqrt(), 1.0 / two.sqrt()));
 /// # Ok(())
 /// # }
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct Vector2<T: CoordsFloat> {
-    /// Coordinates value.
-    inner: Coords2<T>,
-}
+pub struct Vector2<T: CoordsFloat>(pub T, pub T);
 
 impl<T: CoordsFloat> Vector2<T> {
     /// Base vector
@@ -55,9 +52,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_x() -> Self {
-        Self {
-            inner: Coords2::unit_x(),
-        }
+        Self(T::one(), T::zero())
     }
 
     /// Base vector
@@ -68,9 +63,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub fn unit_y() -> Self {
-        Self {
-            inner: Coords2::unit_y(),
-        }
+        Self(T::zero(), T::one())
     }
 
     /// Consume `self` to return inner value
@@ -79,8 +72,8 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// Return a [Coords2] object.
     ///
-    pub fn into_inner(self) -> Coords2<T> {
-        self.inner
+    pub fn into_inner(self) -> (T, T) {
+        (self.0, self.1)
     }
 
     /// Getter
@@ -90,7 +83,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// Return the value of the `x` coordinate of the vector.
     ///
     pub fn x(&self) -> T {
-        self.inner.x
+        self.0
     }
 
     /// Getter
@@ -100,7 +93,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// Return the value of the `y` coordinate of the vector.
     ///
     pub fn y(&self) -> T {
-        self.inner.y
+        self.1
     }
 
     /// Compute the norm of `self`.
@@ -115,7 +108,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn norm(&self) -> T {
-        self.inner.x.hypot(self.inner.y)
+        self.0.hypot(self.1)
     }
 
     /// Compute the direction of `self` as a unit vector.
@@ -160,13 +153,7 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn normal_dir(&self) -> Result<Vector2<T>, CoordsError> {
-        Self {
-            inner: Coords2 {
-                x: -self.inner.y,
-                y: self.inner.x,
-            },
-        }
-        .unit_dir()
+        Self(-self.1, self.0).unit_dir() // unit(-y, x)
     }
 
     /// Compute the dot product between two vectors
@@ -184,27 +171,9 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn dot(&self, other: &Vector2<T>) -> T {
-        self.inner.x * other.inner.x + self.inner.y * other.inner.y
+        self.0 * other.0 + self.1 * other.1
     }
 }
-
-// Building traits
-
-macro_rules! impl_from_for_vector {
-    ($src_type: ty) => {
-        impl<T: CoordsFloat> From<$src_type> for Vector2<T> {
-            fn from(value: $src_type) -> Self {
-                Self {
-                    inner: Coords2::from(value),
-                }
-            }
-        }
-    };
-}
-
-impl_from_for_vector!((T, T));
-impl_from_for_vector!([T; 2]);
-impl_from_for_vector!(Coords2<T>);
 
 // Basic operations
 
@@ -212,15 +181,14 @@ impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vector2<T> {
     type Output = Self;
 
     fn add(self, rhs: Vector2<T>) -> Self::Output {
-        Self {
-            inner: self.inner + rhs.into_inner(),
-        }
+        Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vector2<T> {
     fn add_assign(&mut self, rhs: Vector2<T>) {
-        self.inner += rhs.into_inner();
+        self.0 += rhs.0;
+        self.1 += rhs.1;
     }
 }
 
@@ -228,15 +196,14 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vector2<T> {
     type Output = Self;
 
     fn sub(self, rhs: Vector2<T>) -> Self::Output {
-        Self {
-            inner: self.inner - rhs.into_inner(),
-        }
+        Self(self.0 - rhs.0, self.1 - rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vector2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        self.inner -= rhs.into_inner();
+        self.0 -= rhs.0;
+        self.0 -= rhs.0;
     }
 }
 
@@ -244,15 +211,14 @@ impl<T: CoordsFloat> std::ops::Mul<T> for Vector2<T> {
     type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
-        Self {
-            inner: self.inner * rhs,
-        }
+        Self(self.0 * rhs, self.1 * rhs)
     }
 }
 
 impl<T: CoordsFloat> std::ops::MulAssign<T> for Vector2<T> {
     fn mul_assign(&mut self, rhs: T) {
-        self.inner *= rhs;
+        self.0 *= rhs;
+        self.1 *= rhs;
     }
 }
 
@@ -260,21 +226,16 @@ impl<T: CoordsFloat> std::ops::Div<T> for Vector2<T> {
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        // there is an assert in the Coords2 impl but
-        // putting one here will shorten the stack trace
         assert!(!rhs.is_zero());
-        Self {
-            inner: self.inner / rhs,
-        }
+        Self(self.0 / rhs, self.1 / rhs)
     }
 }
 
 impl<T: CoordsFloat> std::ops::DivAssign<T> for Vector2<T> {
     fn div_assign(&mut self, rhs: T) {
-        // there is an assert in the Coords2 impl but
-        // putting one here will shorten the stack trace
         assert!(!rhs.is_zero());
-        self.inner /= rhs;
+        self.0 /= rhs;
+        self.1 /= rhs;
     }
 }
 
@@ -282,6 +243,6 @@ impl<T: CoordsFloat> std::ops::Neg for Vector2<T> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self { inner: -self.inner }
+        Self(-self.0, -self.1)
     }
 }
