@@ -5,9 +5,19 @@
 
 // ------ MODULE DECLARATIONS
 
-pub mod coords;
 pub mod vector;
 pub mod vertex;
+
+// ------ CONTENT
+
+/// Coordinates-level error enum
+#[derive(Debug, PartialEq)]
+pub enum CoordsError {
+    /// Error during the computation of the unit directional vector.
+    ///
+    /// This is returned when trying to compute the unit vector of a null [Coords2] structure.
+    InvalidUnitDir,
+}
 
 // ------ TESTS
 #[cfg(test)]

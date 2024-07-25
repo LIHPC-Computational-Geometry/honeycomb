@@ -36,36 +36,6 @@ macro_rules! almost_equals {
 
 // --- coords
 
-mod coords {
-    use super::almost_equal;
-    use crate::Coords2;
-    // tests
-    macro_rules! generate_sum_test {
-        ($id: ident, $t: ty) => {
-            #[test]
-            fn $id() {
-                let collection = [
-                    Coords2::unit_x(),
-                    Coords2::unit_x(),
-                    Coords2::unit_x(),
-                    Coords2::unit_y(),
-                    Coords2::unit_y(),
-                    Coords2::unit_y(),
-                ];
-
-                let owned_sum: Coords2<$t> = collection.into_iter().sum();
-                let borrowed_sum: Coords2<$t> = collection.iter().sum();
-                let ref_value: Coords2<$t> = Coords2::from((3.0, 3.0));
-                assert!(almost_equals!(owned_sum, ref_value));
-                assert!(almost_equals!(borrowed_sum, ref_value));
-            }
-        };
-    }
-    // generation
-    generate_sum_test!(sum_simple, f32);
-    generate_sum_test!(sum_double, f64);
-}
-
 // --- vector
 
 mod vector {
