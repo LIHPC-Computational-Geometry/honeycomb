@@ -114,6 +114,14 @@ impl<T: CoordsFloat> Vertex2<T> {
     }
 }
 
+// Building trait
+
+impl<T: CoordsFloat> From<(T, T)> for Vertex2<T> {
+    fn from((x, y): (T, T)) -> Self {
+        Self(x, y)
+    }
+}
+
 // Basic operations
 
 // -- add flavors

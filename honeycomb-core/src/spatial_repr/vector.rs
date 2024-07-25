@@ -175,6 +175,14 @@ impl<T: CoordsFloat> Vector2<T> {
     }
 }
 
+// Building trait
+
+impl<T: CoordsFloat> From<(T, T)> for Vector2<T> {
+    fn from((x, y): (T, T)) -> Self {
+        Self(x, y)
+    }
+}
+
 // Basic operations
 
 impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vector2<T> {

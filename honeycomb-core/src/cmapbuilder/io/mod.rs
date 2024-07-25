@@ -75,7 +75,7 @@ macro_rules! build_vertices {
             .map(|slice| {
                 // WE IGNORE Z values
                 let &[x, y, _] = slice else { panic!() };
-                Vertex2::from((T::from(x).unwrap(), T::from(y).unwrap()))
+                Vertex2(T::from(x).unwrap(), T::from(y).unwrap())
             })
             .collect()
     }};

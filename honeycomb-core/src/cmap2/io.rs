@@ -8,8 +8,7 @@
 // ------ IMPORTS
 
 use crate::{
-    CMap2, Coords2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
-    NULL_DART_ID,
+    CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, VertexIdentifier, NULL_DART_ID,
 };
 
 use std::{any::TypeId, collections::BTreeMap};
@@ -94,10 +93,7 @@ where
     let vertices = vertex_ids
         .iter()
         .map(|vid| map.vertex(*vid).unwrap())
-        .flat_map(|v| {
-            let Coords2 { x, y } = v.into_inner();
-            [x, y, T::zero()].into_iter()
-        });
+        .flat_map(|v| [v.x(), v.y(), T::zero()].into_iter());
     // ------ cells data
     let mut n_cells = 0;
     // --- faces
