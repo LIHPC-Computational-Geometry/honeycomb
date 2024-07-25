@@ -148,7 +148,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Setter
     ///
-    /// Insert an attribute value at a given undefined index. See [Panics] section information
+    /// Insert an attribute value at a given undefined index. See [#Panics] section information
     /// on behavior if the value is already defined.
     ///
     /// # Arguments

@@ -259,7 +259,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// Setter
     ///
     /// Insert a value at a given empty index.
-    /// Otherwise, see [Panics] section for more information.
+    /// Otherwise, see [#Panics] section for more information.
     ///
     /// # Arguments
     ///

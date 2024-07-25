@@ -1,7 +1,6 @@
 //! Custom spatial representation
 //!
-//! This module contains all code used to model vertices as wrappers of a common
-//! type ([Coords2]).
+//! This module contains all code used to model vertices.
 
 // ------ IMPORTS
 
@@ -13,9 +12,6 @@ use crate::{
 // ------ CONTENT
 
 /// 2D vertex representation
-///
-/// This structure is a wrapper around a [Coords2] value. Defining this as a wrapper
-/// instead of a simple type alias allow us to introduce the notion of homogeneity.
 ///
 /// # Generics
 ///
@@ -60,7 +56,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     ///
     /// # Return
     ///
-    /// Return a [Coords2] object.
+    /// Return coordinate values as a simple tuple.
     ///
     pub fn into_inner(self) -> (T, T) {
         (self.0, self.1)
@@ -102,12 +98,11 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// ```rust
     /// use honeycomb_core::Vertex2;
     ///
-    /// let far_far_away: Vertex2<f64> = Vertex2::from((2.0, 2.0));
+    /// let far_far_away: Vertex2<f64> = Vertex2(2.0, 2.0);
     /// let origin: Vertex2<f64> = Vertex2::default();
     ///
-    /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2::from((1.0, 1.0)));
+    /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2(1.0, 1.0));
     /// ```
-    ///
     pub fn average(lhs: &Vertex2<T>, rhs: &Vertex2<T>) -> Vertex2<T> {
         let two = T::from(2.0).unwrap();
         Vertex2((lhs.0 + rhs.0) / two, (lhs.1 + rhs.1) / two)

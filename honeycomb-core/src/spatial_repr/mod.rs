@@ -15,7 +15,7 @@ pub mod vertex;
 pub enum CoordsError {
     /// Error during the computation of the unit directional vector.
     ///
-    /// This is returned when trying to compute the unit vector of a null [Coords2] structure.
+    /// This is returned when trying to compute the unit vector of a null [`vector::Vector2`].
     InvalidUnitDir,
 }
 

@@ -1,7 +1,6 @@
 //! Custom spatial representation
 //!
-//! This module contains all code used to model vectors as wrappers of a common
-//! type ([Coords2]).
+//! This module contains all code used to model vectors.
 
 // ------ IMPORTS
 
@@ -10,9 +9,6 @@ use crate::{CoordsError, CoordsFloat};
 // ------ CONTENT
 
 /// 2D vector representation
-///
-/// This structure is a wrapper around a [Coords2] value. Defining this as a wrapper
-/// instead of a simple type alias allow us to introduce the notion of homogeneity.
 ///
 /// # Generics
 ///
@@ -70,7 +66,7 @@ impl<T: CoordsFloat> Vector2<T> {
     ///
     /// # Return
     ///
-    /// Return a [Coords2] object.
+    /// Return coordinate values as a simple tuple.
     ///
     pub fn into_inner(self) -> (T, T) {
         (self.0, self.1)
