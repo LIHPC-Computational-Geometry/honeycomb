@@ -134,7 +134,41 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Example
     ///
-    /// TODO: complete
+    /// ```
+    /// // before
+    /// //    <--2---
+    /// //  1         2
+    /// //    ---1-->
+    /// let mut map: CMap2<f64> = CMap2::new(2);
+    /// map.two_link(1, 2);
+    /// map.insert_vertex(1, (0.0, 0.0));
+    /// map.insert_vertex(2, (1.0, 0.0));
+    /// // split
+    /// let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    /// // after
+    /// //    <-<-<-<
+    /// //  1 -3-4-5- 2
+    /// //    >->->->
+    /// assert_eq!(&new_darts, &[3, 4, 5]);
+    /// assert_eq!(map.vertex(3), Ok(Vertex2(0.25, 0.0)));
+    /// assert_eq!(map.vertex(4), Ok(Vertex2(0.50, 0.0)));
+    /// assert_eq!(map.vertex(5), Ok(Vertex2(0.75, 0.0)));
+    ///
+    /// assert_eq!(map.beta::<1>(1), 3);
+    /// assert_eq!(map.beta::<1>(3), 4);
+    /// assert_eq!(map.beta::<1>(4), 5);
+    /// assert_eq!(map.beta::<1>(5), NULL_DART_ID);
+    ///
+    /// assert_eq!(map.beta::<1>(2), 6);
+    /// assert_eq!(map.beta::<1>(6), 7);
+    /// assert_eq!(map.beta::<1>(7), 8);
+    /// assert_eq!(map.beta::<1>(8), NULL_DART_ID);
+    ///
+    /// assert_eq!(map.beta::<2>(1), 8);
+    /// assert_eq!(map.beta::<2>(3), 7);
+    /// assert_eq!(map.beta::<2>(4), 6);
+    /// assert_eq!(map.beta::<2>(5), 2);
+    /// ```
     pub fn splitn_edge(
         &mut self,
         edge_id: EdgeIdentifier,
