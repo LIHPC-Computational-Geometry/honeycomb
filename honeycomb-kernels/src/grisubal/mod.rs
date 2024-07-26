@@ -128,10 +128,10 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::All => {
             todo!()
         }
-        Clip::Normal => {
+        Clip::Left => {
             todo!()
         }
-        Clip::AntiNormal => {
+        Clip::Right => {
             todo!()
         }
         Clip::None => {}

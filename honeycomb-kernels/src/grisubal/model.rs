@@ -27,12 +27,10 @@ use vtkio::{
 pub enum Clip {
     /// Clip all elements beside the captured boundary.
     All,
-    /// Clip elements located on the *normal* side of the boundary, i.e. for an oriented segment `AB`, elements
-    /// towards the left side of the orthogonal line to `AB`.
-    Normal,
-    /// Clip elements located on the *anti-normal* side of the boundary, i.e. for an oriented segment `AB`, elements
-    /// towards the right side of the orthogonal line to `AB`.
-    AntiNormal,
+    /// Clip elements located on the left side of the oriented boundary.
+    Left,
+    /// Clip elements located on the right side of the oriented boundary.
+    Right,
     /// Keep all elements. Default value.
     #[default]
     None,
