@@ -10,7 +10,7 @@ use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DA
 // ------ CONTENT
 
 impl<T: CoordsFloat> CMap2<T> {
-    /// Split an edge into to segments.
+    /// Split an edge into two segments.
     ///
     /// <div class="warning">
     /// This implementation is 2D specific.
@@ -112,6 +112,29 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    /// Split an edge into `n` segments.
+    ///
+    /// <div class="warning">
+    /// This implementation is 2D specific.
+    /// </div>
+    ///
+    /// # Arguments
+    ///
+    /// - `edge_id: EdgeIdentifier` -- Edge to split in two.
+    /// - `midpoint_vertices: I` -- Relative positions of new vertices, starting from the
+    ///   vertex of the dart sharing `edge_id` as its identifier.
+    ///
+    /// ## Generics
+    ///
+    /// - `I: Iterator<Item = T>` -- Iterator over `T` values. These should be in the `]0; 1[` open range.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if the edge upon which the operation is performed does not have two defined vertices.
+    ///
+    /// # Example
+    ///
+    /// TODO: complete
     pub fn splitn_edge<I>(
         &mut self,
         edge_id: EdgeIdentifier,
@@ -144,6 +167,11 @@ impl<T: CoordsFloat> CMap2<T> {
         let mut prev_d = base_dart1;
         let darts: Vec<DartIdentifier> = midpoint_vertices
             .map(|t| {
+                if (t >= T::one()) | (t <= T::zero()) {
+                    println!(
+                        "W: vertex placement for split is not in ]0;1[ -- result may be incoherent"
+                    );
+                }
                 let new_v = v1 + seg * t;
                 let new_d = self.add_free_dart();
                 self.one_link(prev_d, new_d);
