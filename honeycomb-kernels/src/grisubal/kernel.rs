@@ -495,24 +495,14 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge]) {
 
 /// Clipping routine.
 ///
-/// This function takes a map built by [`build_mesh`] and removes cells that model the "inside" of
-/// the geometry.
-pub fn remove_inner<T: CoordsFloat>(
-    cmap2: &mut CMap2<T>,
-    geometry: &Geometry2<T>,
-    invert_normal_dir: bool,
-) {
+/// This function takes a map built by [`build_mesh`] and removes cells on the *normal* side of the boundary.
+pub fn remove_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
     todo!()
 }
 
 /// Clipping routine
 ///
-/// This function takes a map built by [`build_mesh`] and removes cells that model the "outside" of
-/// the geometry.
-pub fn remove_outer<T: CoordsFloat>(
-    cmap2: &mut CMap2<T>,
-    geometry: &Geometry2<T>,
-    invert_normal_dir: bool,
-) {
+/// This function takes a map built by [`build_mesh`] and removes cells on the *anti-normal* side of the boundary.
+pub fn remove_anti_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
     todo!()
 }
