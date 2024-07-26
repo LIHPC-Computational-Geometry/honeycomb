@@ -91,13 +91,13 @@ macro_rules! build_vertices {
 ///
 /// - `Ok(CMap2)` -- The file was successfully parsed and its content made into a 2-map.
 /// - `Err(BuilderError)` -- The function failed for one of the following reasons (sorted
-/// by [`BuilderError`] variants):
+///   by [`BuilderError`] variants):
 ///     - `UnsupportedVtkData`: The file contains unsupported data, i.e.:
 ///         - file format isn't Legacy,
 ///         - data set is something other than `UnstructuredGrid`,
 ///         - coordinate representation type isn't `float` or `double`
 ///         - mesh contains unsupported cell types (`PolyVertex`, `PolyLine`, `TriangleStrip`,
-///         `Pixel` or anything 3D)
+///           `Pixel` or anything 3D)
 ///     - `InvalidVtkFile`: The file contains inconsistencies, i.e.:
 ///         - the number of coordinates cannot be divided by `3`, meaning a tuple is incomplete
 ///         - the number of `Cells` and `CellTypes` isn't equal

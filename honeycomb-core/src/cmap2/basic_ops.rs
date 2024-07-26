@@ -247,10 +247,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cell. This definition has three interesting properties:
     ///
     /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    /// associated cell ID.
+    ///   associated cell ID.
     /// - Cell IDs are not affected by the order of traversal of the map.
     /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    /// that the storage is consistent / up to date.
+    ///   that the storage is consistent / up to date.
     ///
     /// These properties come at the literal cost of the computation routine, which is:
     /// 1. a BFS to compute a given orbit
@@ -281,10 +281,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cell. This definition has three interesting properties:
     ///
     /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    /// associated cell ID.
+    ///   associated cell ID.
     /// - Cell IDs are not affected by the order of traversal of the map.
     /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    /// that the storage is consistent / up to date.
+    ///   that the storage is consistent / up to date.
     ///
     /// These properties come at the literal cost of the computation routine, which is:
     /// 1. a BFS to compute a given orbit
@@ -315,10 +315,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// cell. This definition has three interesting properties:
     ///
     /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    /// associated cell ID.
+    ///   associated cell ID.
     /// - Cell IDs are not affected by the order of traversal of the map.
     /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    /// that the storage is consistent / up to date.
+    ///   that the storage is consistent / up to date.
     ///
     /// These properties come at the literal cost of the computation routine, which is:
     /// 1. a BFS to compute a given orbit
@@ -341,7 +341,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ## Generics
     ///
     /// - `const I: u8` -- Dimension of the cell of interest. *I* should be 0 (vertex), 1 (edge) or
-    /// 2 (face) for a 2D map.
+    ///   2 (face) for a 2D map.
     ///
     /// # Return
     ///

@@ -66,8 +66,8 @@ use std::collections::BTreeSet;
 /// Note that:
 /// - we create the map using its builder structure: [`CMapBuilder`].
 /// - the map we operate on has no boundaries. In addition to the different
-/// operations realized at each step, we insert a few assertions to demonstrate the
-/// progressive changes applied to the structure.
+///   operations realized at each step, we insert a few assertions to demonstrate the
+///   progressive changes applied to the structure.
 ///
 /// ```
 /// # use honeycomb_core::CMapError;

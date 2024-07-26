@@ -101,7 +101,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
-    /// returned
+    ///   returned
     /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
     ///
     pub fn replace_vertex(

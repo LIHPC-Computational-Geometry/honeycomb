@@ -130,8 +130,8 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
 /// # Generics
 ///
 /// - `A: AttributeBind + AttributeUpdate + Clone` -- Type of the stored attributes. The
-/// `Clone` implementation is required in order to return copied values & invalidate internal
-/// storage slot.
+///   `Clone` implementation is required in order to return copied values & invalidate internal
+///   storage slot.
 ///
 /// # Example
 ///

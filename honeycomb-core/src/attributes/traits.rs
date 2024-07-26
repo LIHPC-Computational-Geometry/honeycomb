@@ -138,8 +138,8 @@ macro_rules! unknown_attribute_storage {
         /// # Arguments
         ///
         /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
-        /// the upper bound of IDs used to index the attribute's values, i.e. the number of darts
-        /// including the null dart.
+        ///   the upper bound of IDs used to index the attribute's values, i.e. the number of darts
+        ///   including the null dart.
         ///
         /// # Return
         ///

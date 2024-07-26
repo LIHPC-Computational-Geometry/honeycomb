@@ -48,9 +48,9 @@ pub enum OrbitPolicy<'a> {
 /// [Breadth-first search algorithm][WIKIBFS]. This means that:
 ///
 /// - we look at the images of the current dart through all beta functions,
-/// adding those to a queue, before moving on to the next dart.
+///   adding those to a queue, before moving on to the next dart.
 /// - we apply the beta functions in their specified order (in the case of a
-/// custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
+///   custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
 ///
 /// Both of these points allow the structure to be used for sewing operations at the cost of some
 /// performance (non-trivial parallelization & sequential consistency requirements).
@@ -78,7 +78,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// # Arguments
     ///
     /// - `map_handle: &'a CMap2<T>` -- Reference to the map containing the beta
-    /// functions used in the BFS.
+    ///   functions used in the BFS.
     /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
     ///
