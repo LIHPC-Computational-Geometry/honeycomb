@@ -249,6 +249,8 @@ fn one_sew_no_attributes_bis() {
 
 // --- ADVANCED
 
+// split_edge
+
 #[test]
 fn split_edge_complete() {
     // before
@@ -351,6 +353,132 @@ fn split_edge_missing_vertex() {
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
     map.split_edge(1, None);
+}
+
+// splitn_edge
+
+#[test]
+fn splitn_edge_complete() {
+    // before
+    //    <--6---   <--5---   <--4---
+    //  1         2         3         4
+    //    ---1-->   ---2-->   ---3-->
+    let mut map: CMap2<f64> = CMap2::new(6);
+    map.one_link(1, 2);
+    map.one_link(2, 3);
+    map.one_link(4, 5);
+    map.one_link(5, 6);
+    map.two_link(1, 6);
+    map.two_link(2, 5);
+    map.two_link(3, 4);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    map.insert_vertex(3, (2.0, 0.0));
+    map.insert_vertex(4, (3.0, 0.0));
+    // split
+    let new_darts = map.splitn_edge(2, [0.25, 0.50, 0.75].into_iter());
+    // after
+    //    <--6---             <--4---
+    //  1         2 -7-8-9- 3         4
+    //    ---1-->             ---3-->
+    assert_eq!(&new_darts, &[7, 8, 9]);
+    assert_eq!(map.vertex(7), Ok(Vertex2(1.25, 0.0)));
+    assert_eq!(map.vertex(8), Ok(Vertex2(1.50, 0.0)));
+    assert_eq!(map.vertex(9), Ok(Vertex2(1.75, 0.0)));
+
+    assert_eq!(map.beta::<1>(2), 7);
+    assert_eq!(map.beta::<1>(7), 8);
+    assert_eq!(map.beta::<1>(8), 9);
+    assert_eq!(map.beta::<1>(9), 3);
+
+    assert_eq!(map.beta::<1>(5), 10);
+    assert_eq!(map.beta::<1>(10), 11);
+    assert_eq!(map.beta::<1>(11), 12);
+    assert_eq!(map.beta::<1>(12), 6);
+
+    assert_eq!(map.beta::<2>(2), 12);
+    assert_eq!(map.beta::<2>(7), 11);
+    assert_eq!(map.beta::<2>(8), 10);
+    assert_eq!(map.beta::<2>(9), 5);
+}
+
+#[test]
+fn splitn_edge_isolated() {
+    // before
+    //    <--2---
+    //  1         2
+    //    ---1-->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.two_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    // split
+    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
+    // after
+    //    <-<-<-<
+    //  1 -3-4-5- 2
+    //    >->->->
+    assert_eq!(&new_darts, &[3, 4, 5]);
+    assert_eq!(map.vertex(3), Ok(Vertex2(0.25, 0.0)));
+    assert_eq!(map.vertex(4), Ok(Vertex2(0.50, 0.0)));
+    assert_eq!(map.vertex(5), Ok(Vertex2(0.75, 0.0)));
+
+    assert_eq!(map.beta::<1>(1), 3);
+    assert_eq!(map.beta::<1>(3), 4);
+    assert_eq!(map.beta::<1>(4), 5);
+    assert_eq!(map.beta::<1>(5), NULL_DART_ID);
+
+    assert_eq!(map.beta::<1>(2), 6);
+    assert_eq!(map.beta::<1>(6), 7);
+    assert_eq!(map.beta::<1>(7), 8);
+    assert_eq!(map.beta::<1>(8), NULL_DART_ID);
+
+    assert_eq!(map.beta::<2>(1), 8);
+    assert_eq!(map.beta::<2>(3), 7);
+    assert_eq!(map.beta::<2>(4), 6);
+    assert_eq!(map.beta::<2>(5), 2);
+}
+
+#[test]
+fn splitn_single_dart() {
+    // before
+    //  1 -----> 2 ->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.one_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    map.insert_vertex(2, (1.0, 0.0));
+    // split
+    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
+    // after
+    //  1 -> 3 -> 4 -> 5 -> 2 ->
+    assert_eq!(&new_darts, &[3, 4, 5]);
+    assert_eq!(map.vertex(3), Ok(Vertex2(0.25, 0.0)));
+    assert_eq!(map.vertex(4), Ok(Vertex2(0.50, 0.0)));
+    assert_eq!(map.vertex(5), Ok(Vertex2(0.75, 0.0)));
+
+    assert_eq!(map.beta::<1>(1), 3);
+    assert_eq!(map.beta::<1>(3), 4);
+    assert_eq!(map.beta::<1>(4), 5);
+    assert_eq!(map.beta::<1>(5), 2);
+
+    assert_eq!(map.beta::<2>(1), NULL_DART_ID);
+    assert_eq!(map.beta::<2>(3), NULL_DART_ID);
+    assert_eq!(map.beta::<2>(4), NULL_DART_ID);
+    assert_eq!(map.beta::<2>(5), NULL_DART_ID);
+}
+
+#[test]
+#[should_panic(expected = "attempt to split an edge that is not fully defined in the first place")]
+fn splitn_edge_missing_vertex() {
+    //    <--2---
+    //  1         ?
+    //    ---1-->
+    let mut map: CMap2<f64> = CMap2::new(2);
+    map.two_link(1, 2);
+    map.insert_vertex(1, (0.0, 0.0));
+    // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+    // split
+    map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
 }
 
 // --- IO

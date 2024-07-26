@@ -154,7 +154,11 @@ impl<T: CoordsFloat> CMap2<T> {
             .vertex(self.vertex_id(base_dart1))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
         let v2 = self // (*)
-            .vertex(self.vertex_id(b1d1_old))
+            .vertex(self.vertex_id(if base_dart2 == NULL_DART_ID {
+                b1d1_old
+            } else {
+                base_dart2
+            }))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
         let seg = v2 - v1;
 
