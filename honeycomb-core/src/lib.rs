@@ -28,6 +28,7 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::doc_lazy_continuation)] // TODO: remove exception & fix lints
 
 // ------ MODULE DECLARATIONS
 
