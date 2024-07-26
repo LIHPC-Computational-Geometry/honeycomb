@@ -2,7 +2,7 @@ use honeycomb_kernels::grisubal;
 use honeycomb_render::{RenderParameters, SmaaMode};
 
 fn main() {
-    let map = grisubal::<f64>("assets/rectangle.vtk", false, (1., 1.), None);
+    let map = grisubal::<f64>("assets/rectangle.vtk", (1., 1.), None);
 
     let render_params = RenderParameters {
         smaa_mode: SmaaMode::Smaa1X,
