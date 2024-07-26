@@ -135,11 +135,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// ```
+    /// # use honeycomb_core::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
     /// // before
     /// //    <--2---
     /// //  1         2
     /// //    ---1-->
-    /// let mut map: CMap2<f64> = CMap2::new(2);
+    /// let mut map: CMap2<f64> = CMapBuilder::default()
+    ///                             .n_darts(2)
+    ///                             .build()
+    ///                             .unwrap();
     /// map.two_link(1, 2);
     /// map.insert_vertex(1, (0.0, 0.0));
     /// map.insert_vertex(2, (1.0, 0.0));
