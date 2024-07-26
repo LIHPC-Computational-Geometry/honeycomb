@@ -75,8 +75,6 @@ use vtkio::Vtk;
 ///
 /// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry. See
 ///   [VTK Format] for more information about the expected formatting.
-/// - `invert_normal_dir: bool` -- Indicates whether segments' normals point inward or outward
-///   relative to the geometry.
 /// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, if any, in
 ///   the post-processing phase. For more information on the clipping process, see [`Clip`].
 ///
