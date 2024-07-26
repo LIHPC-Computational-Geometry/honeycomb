@@ -111,4 +111,64 @@ impl<T: CoordsFloat> CMap2<T> {
             );
         }
     }
+
+    pub fn splitn_edge<I>(
+        &mut self,
+        edge_id: EdgeIdentifier,
+        midpoint_vertices: I,
+    ) -> Vec<DartIdentifier>
+    where
+        I: Iterator<Item = T>,
+    {
+        // base darts making up the edge
+        let base_dart1 = edge_id as DartIdentifier;
+        let base_dart2 = self.beta::<2>(base_dart1);
+        let b1d1_old = self.beta::<1>(base_dart1);
+
+        // (*): unwrapping is ok since splitting an edge that does not have both its vertices
+        //      defined is undefined behavior, therefore panic
+        let v1 = self // (*)
+            .vertex(self.vertex_id(base_dart1))
+            .expect("E: attempt to split an edge that is not fully defined in the first place");
+        let v2 = self // (*)
+            .vertex(self.vertex_id(b1d1_old))
+            .expect("E: attempt to split an edge that is not fully defined in the first place");
+        let seg = v2 - v1;
+
+        // unsew current dart
+        self.one_unlink(base_dart1);
+        if base_dart2 != NULL_DART_ID {
+            self.two_unlink(base_dart1);
+        }
+        // insert new vertices / darts on base_dart1's side
+        let mut prev_d = base_dart1;
+        let darts: Vec<DartIdentifier> = midpoint_vertices
+            .map(|t| {
+                let new_v = v1 + seg * t;
+                let new_d = self.add_free_dart();
+                self.one_link(prev_d, new_d);
+                self.insert_vertex(new_d, new_v);
+                prev_d = new_d;
+                new_d
+            })
+            .collect();
+        self.one_link(prev_d, b1d1_old);
+
+        // if b2(base_dart1) is defined, insert vertices / darts on its side too
+        if base_dart2 != NULL_DART_ID {
+            let b1d2_old = self.beta::<1>(base_dart2);
+            self.one_unlink(base_dart2);
+            let mut prev_d = base_dart2;
+            darts.iter().rev().for_each(|d| {
+                self.two_link(prev_d, *d);
+                let new_d = self.add_free_dart();
+                self.one_link(prev_d, new_d);
+                prev_d = new_d;
+            });
+            self.one_link(prev_d, b1d2_old);
+            self.two_link(prev_d, base_dart1);
+        }
+
+        darts
+    }
 }
