@@ -376,7 +376,7 @@ fn splitn_edge_complete() {
     map.insert_vertex(3, (2.0, 0.0));
     map.insert_vertex(4, (3.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(2, [0.25, 0.50, 0.75].into_iter());
+    let new_darts = map.splitn_edge(2, [0.25, 0.50, 0.75]);
     // after
     //    <--6---             <--4---
     //  1         2 -7-8-9- 3         4
@@ -413,7 +413,7 @@ fn splitn_edge_isolated() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
+    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
     // after
     //    <-<-<-<
     //  1 -3-4-5- 2
@@ -448,7 +448,7 @@ fn splitn_single_dart() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
+    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
     // after
     //  1 -> 3 -> 4 -> 5 -> 2 ->
     assert_eq!(&new_darts, &[3, 4, 5]);
@@ -478,7 +478,7 @@ fn splitn_edge_missing_vertex() {
     map.insert_vertex(1, (0.0, 0.0));
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
-    map.splitn_edge(1, [0.25, 0.50, 0.75].into_iter());
+    map.splitn_edge(1, [0.25, 0.50, 0.75]);
 }
 
 // --- IO

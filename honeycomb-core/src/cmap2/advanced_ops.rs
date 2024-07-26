@@ -135,14 +135,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// TODO: complete
-    pub fn splitn_edge<I>(
+    pub fn splitn_edge(
         &mut self,
         edge_id: EdgeIdentifier,
-        midpoint_vertices: I,
-    ) -> Vec<DartIdentifier>
-    where
-        I: Iterator<Item = T>,
-    {
+        midpoint_vertices: impl IntoIterator<Item = T>,
+    ) -> Vec<DartIdentifier> {
         // base darts making up the edge
         let base_dart1 = edge_id as DartIdentifier;
         let base_dart2 = self.beta::<2>(base_dart1);
@@ -170,6 +167,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // insert new vertices / darts on base_dart1's side
         let mut prev_d = base_dart1;
         let darts: Vec<DartIdentifier> = midpoint_vertices
+            .into_iter()
             .map(|t| {
                 if (t >= T::one()) | (t <= T::zero()) {
                     println!(
