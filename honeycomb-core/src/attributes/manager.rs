@@ -428,6 +428,24 @@ impl AttrStorageManager {
             .expect("E: could not downcast generic storage to specified attribute type")
     }
 
+    /// Remove an entire attribute storage from the manager.
+    ///
+    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
+    /// before the final result is returned.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
+    pub fn remove_storage<A: AttributeBind>(&mut self) {
+        // we could return it ?
+        let _ = match A::binds_to() {
+            OrbitPolicy::Vertex => &self.vertices.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Edge => &self.edges.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Face => &self.faces.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Custom(_) => &self.others.remove(&TypeId::of::<A>()),
+        };
+    }
+
     /// Set the value of an attribute.
     ///
     /// # Arguments
