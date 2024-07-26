@@ -13,6 +13,22 @@ use crate::{
 
 // ------ CONTENT
 
+// --- big guns
+
+impl<T: CoordsFloat> CMap2<T> {
+    /// Remove an entire attribute storage from the map.
+    ///
+    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
+    /// before the final result is returned.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
+    pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
+        self.attributes.remove_storage::<A>();
+    }
+}
+
 // --- vertex attributes
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
