@@ -1,21 +1,17 @@
 //! Custom spatial representation
 //!
-//! This module contains all code used to model vertices as wrappers of a common
-//! type ([Coords2]).
+//! This module contains all code used to model vertices.
 
 // ------ IMPORTS
 
 use crate::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, Coords2, CoordsFloat, OrbitPolicy, Vector2,
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, OrbitPolicy, Vector2,
     VertexIdentifier,
 };
 
 // ------ CONTENT
 
 /// 2D vertex representation
-///
-/// This structure is a wrapper around a [Coords2] value. Defining this as a wrapper
-/// instead of a simple type alias allow us to introduce the notion of homogeneity.
 ///
 /// # Generics
 ///
@@ -28,8 +24,8 @@ use crate::{
 /// # fn main() -> Result<(), CoordsError> {
 /// use honeycomb_core::{Vector2, Vertex2};
 ///
-/// let v1 = Vertex2::from((1.0, 0.0));
-/// let v2 = Vertex2::from((1.0, 1.0));
+/// let v1 = Vertex2(1.0, 0.0);
+/// let v2 = Vertex2(1.0, 1.0);
 ///
 /// assert_eq!(v1.x(), 1.0);
 /// assert_eq!(v1.y(), 0.0);
@@ -41,7 +37,7 @@ use crate::{
 /// assert_eq!(v2_minus_v1.norm(), 1.0);
 /// assert_eq!(v2_minus_v1.unit_dir()?, Vector2::unit_y());
 ///
-/// let mut v3 = Vertex2::from((0.0, 1.0));
+/// let mut v3 = Vertex2(0.0, 1.0);
 /// // vertexA + vectorB = vertexA'
 /// v3 += v2_minus_v1;
 ///
@@ -53,19 +49,17 @@ use crate::{
 /// ```
 ///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
-pub struct Vertex2<T: CoordsFloat> {
-    inner: Coords2<T>,
-}
+pub struct Vertex2<T: CoordsFloat>(pub T, pub T);
 
 impl<T: CoordsFloat> Vertex2<T> {
     /// Consume `self` to return inner value
     ///
     /// # Return
     ///
-    /// Return a [Coords2] object.
+    /// Return coordinate values as a simple tuple.
     ///
-    pub fn into_inner(self) -> Coords2<T> {
-        self.inner
+    pub fn into_inner(self) -> (T, T) {
+        (self.0, self.1)
     }
 
     /// Getter
@@ -75,7 +69,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// Return the value of the `x` coordinate of the vertex.
     ///
     pub fn x(&self) -> T {
-        self.inner.x
+        self.0
     }
 
     /// Getter
@@ -85,7 +79,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// Return the value of the `y` coordinate of the vertex.
     ///
     pub fn y(&self) -> T {
-        self.inner.y
+        self.1
     }
 
     /// Compute the mid-point between two vertices.
@@ -104,35 +98,24 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// ```rust
     /// use honeycomb_core::Vertex2;
     ///
-    /// let far_far_away: Vertex2<f64> = Vertex2::from((2.0, 2.0));
+    /// let far_far_away: Vertex2<f64> = Vertex2(2.0, 2.0);
     /// let origin: Vertex2<f64> = Vertex2::default();
     ///
-    /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2::from((1.0, 1.0)));
+    /// assert_eq!(Vertex2::average(&origin, &far_far_away), Vertex2(1.0, 1.0));
     /// ```
-    ///
     pub fn average(lhs: &Vertex2<T>, rhs: &Vertex2<T>) -> Vertex2<T> {
         let two = T::from(2.0).unwrap();
-        Vertex2::from(((lhs.x() + rhs.x()) / two, (lhs.y() + rhs.y()) / two))
+        Vertex2((lhs.0 + rhs.0) / two, (lhs.1 + rhs.1) / two)
     }
 }
 
-// Building traits
+// Building trait
 
-macro_rules! impl_from_for_vertex {
-    ($src_type: ty) => {
-        impl<T: CoordsFloat> From<$src_type> for Vertex2<T> {
-            fn from(value: $src_type) -> Self {
-                Self {
-                    inner: Coords2::from(value),
-                }
-            }
-        }
-    };
+impl<T: CoordsFloat> From<(T, T)> for Vertex2<T> {
+    fn from((x, y): (T, T)) -> Self {
+        Self(x, y)
+    }
 }
-
-impl_from_for_vertex!((T, T));
-impl_from_for_vertex!([T; 2]);
-impl_from_for_vertex!(Coords2<T>);
 
 // Basic operations
 
@@ -143,15 +126,14 @@ impl<T: CoordsFloat> std::ops::Add<Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn add(self, rhs: Vector2<T>) -> Self::Output {
-        Self {
-            inner: self.inner + rhs.into_inner(),
-        }
+        Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::AddAssign<Vector2<T>> for Vertex2<T> {
     fn add_assign(&mut self, rhs: Vector2<T>) {
-        self.inner += rhs.into_inner();
+        self.0 += rhs.0;
+        self.1 += rhs.1;
     }
 }
 
@@ -160,17 +142,14 @@ impl<T: CoordsFloat> std::ops::Add<&Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn add(self, rhs: &Vector2<T>) -> Self::Output {
-        let mut tmp = self.inner;
-        tmp.x += rhs.x();
-        tmp.y += rhs.y();
-        Self { inner: tmp }
+        Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::AddAssign<&Vector2<T>> for Vertex2<T> {
     fn add_assign(&mut self, rhs: &Vector2<T>) {
-        self.inner.x += rhs.x();
-        self.inner.y += rhs.y();
+        self.0 += rhs.0;
+        self.1 += rhs.1;
     }
 }
 
@@ -181,15 +160,14 @@ impl<T: CoordsFloat> std::ops::Sub<Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn sub(self, rhs: Vector2<T>) -> Self::Output {
-        Self {
-            inner: self.inner - rhs.into_inner(),
-        }
+        Self(self.0 - rhs.0, self.1 - rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::SubAssign<Vector2<T>> for Vertex2<T> {
     fn sub_assign(&mut self, rhs: Vector2<T>) {
-        self.inner -= rhs.into_inner();
+        self.0 -= rhs.0;
+        self.1 -= rhs.1;
     }
 }
 
@@ -198,17 +176,14 @@ impl<T: CoordsFloat> std::ops::Sub<&Vector2<T>> for Vertex2<T> {
     type Output = Self;
 
     fn sub(self, rhs: &Vector2<T>) -> Self::Output {
-        let mut tmp = self.inner;
-        tmp.x -= rhs.x();
-        tmp.y -= rhs.y();
-        Self { inner: tmp }
+        Self(self.0 - rhs.0, self.1 - rhs.1)
     }
 }
 
 impl<T: CoordsFloat> std::ops::SubAssign<&Vector2<T>> for Vertex2<T> {
     fn sub_assign(&mut self, rhs: &Vector2<T>) {
-        self.inner.x -= rhs.x();
-        self.inner.y -= rhs.y();
+        self.0 -= rhs.0;
+        self.1 -= rhs.1;
     }
 }
 
@@ -216,7 +191,7 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
     type Output = Vector2<T>;
 
     fn sub(self, rhs: Vertex2<T>) -> Self::Output {
-        Vector2::from(self.into_inner() - rhs.into_inner())
+        Vector2(self.0 - rhs.0, self.1 - rhs.1)
     }
 }
 
