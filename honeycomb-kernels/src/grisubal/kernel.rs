@@ -459,29 +459,25 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]
         let b2_d_new = d_new + 1;
         cmap.two_link(d_new, b2_d_new);
 
-        // rebuild
+        // rebuild - this is the final construct if there are no intermediates
         cmap.one_link(*start, d_new);
         cmap.one_link(b2_d_new, b1_start_old);
-        if intermediates.is_empty() {
-            // new darts link directly to the end
-            cmap.one_link(d_new, *end);
-            cmap.one_link(b0_end_old, b2_d_new);
-        } else {
-            // we need to play with intermediates & windows
-            // start to first intermediate; expect should not happen due to if statement
-            let di_first = intermediates.first().expect("E: unreachable");
-            cmap.one_sew(d_new, *di_first);
-            cmap.one_link(cmap.beta::<2>(*di_first), cmap.beta::<2>(d_new));
-            // intermediate to intermediate
-            intermediates.windows(2).for_each(|ds| {
-                let &[di1, di2] = ds else { unreachable!() };
-                cmap.one_sew(di1, di2);
-                cmap.one_link(cmap.beta::<2>(di2), cmap.beta::<2>(di1));
-            });
-            // last intermediate to end; last may be the same as first
-            let di_last = intermediates.last().expect("E: unreachable");
-            cmap.one_link(*di_last, *end);
-            cmap.one_link(b0_end_old, cmap.beta::<2>(*di_last));
+        cmap.one_link(d_new, *end);
+        cmap.one_link(b0_end_old, b2_d_new);
+
+        if !intermediates.is_empty() {
+            // we can add intermediates after by using the splitn_edge method on a temporary start-to-end edge
+            let darts = cmap.splitn_edge(
+                cmap.edge_id(d_new),
+                vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
+            );
+            darts
+                .iter()
+                .zip(intermediates.iter())
+                .for_each(|(dart_id, v)| {
+                    let vid = cmap.vertex_id(*dart_id);
+                    cmap.replace_vertex(vid, *v);
+                });
         }
     }
 }
