@@ -448,6 +448,7 @@ fn insert_intersections<T: CoordsFloat>(
     // b. proceed with insertion
     // c. map back inserted darts / vertices to the initial vector layout in order for usage with segment data
 
+    /*
     // a.
     let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T)>> = HashMap::new();
     intersection_metadata
@@ -483,6 +484,21 @@ fn insert_intersections<T: CoordsFloat>(
                 res[*id] = *dart_id;
             });
     }
+    */
+
+    intersection_metadata
+        .iter_mut()
+        .enumerate()
+        .for_each(|(idx, (dart_id, t))| {
+            let edge_id = cmap.edge_id(*dart_id);
+            // works in 2D because edges are 2 darts at most
+            if edge_id != *dart_id {
+                *t = T::one() - *t;
+            }
+            cmap.split_edge(edge_id, Some(*t));
+            let new_vid = cmap.beta::<1>(*dart_id);
+            res[idx] = new_vid;
+        });
 
     res
 }
