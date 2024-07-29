@@ -448,9 +448,9 @@ fn insert_intersections<T: CoordsFloat>(
     // b. proceed with insertion
     // c. map back inserted darts / vertices to the initial vector layout in order for usage with segment data
 
-    /*
     // a.
-    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T)>> = HashMap::new();
+    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
+        HashMap::new();
     intersection_metadata
         .into_iter()
         .enumerate()
@@ -463,29 +463,35 @@ fn insert_intersections<T: CoordsFloat>(
             }
             if let Some(storage) = edge_intersec.get_mut(&edge_id) {
                 // not the first intersction with this given edge
-                storage.push((idx, t));
+                storage.push((idx, t, dart_id));
             } else {
                 // first intersction with this given edge
-                edge_intersec.insert(edge_id, vec![(idx, t)]);
+                edge_intersec.insert(edge_id, vec![(idx, t, dart_id)]);
             }
         });
 
     // b.
     for (edge_id, vs) in &mut edge_intersec {
         // sort ts
-        vs.sort_by(|(_, t1), (_, t2)| t1.partial_cmp(t2).unwrap());
-        let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t)| *t));
+        vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).unwrap());
+        let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
         // order should be consistent between collection because of the sort_by call
         vs.iter()
             .zip(new_darts.iter())
             // chaining this directly avoids an additional `.collect()`
-            .for_each(|((id, _), dart_id)| {
+            .for_each(|((id, _, old_dart_id), dart_id)| {
                 // c.
-                res[*id] = *dart_id;
+                // reajust according to intersection side
+                res[*id] = if *old_dart_id == *edge_id {
+                    *dart_id
+                } else {
+                    // ! not sure how generalized this operation can be !
+                    cmap.beta::<1>(cmap.beta::<2>(*dart_id))
+                };
             });
     }
-    */
 
+    /*
     intersection_metadata
         .iter_mut()
         .enumerate()
@@ -499,6 +505,7 @@ fn insert_intersections<T: CoordsFloat>(
             let new_vid = cmap.beta::<1>(*dart_id);
             res[idx] = new_vid;
         });
+        */
 
     res
 }
