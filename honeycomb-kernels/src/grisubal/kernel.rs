@@ -88,10 +88,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
 
     // process the geometry
 
-    // FIXME:
-    // a) THE VERTEX INSERTIONS DUE TO INTERSECTIONS ONLY WORKS WITH A SINGLE INTERSECTION PER EDGE
-    // POSSIBLE FIX: DELAY VERTEX INSERTION & USE A `nsplit_edge` METHOD INSTEAD OF `split_edge`
-    // b) WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS?
+    // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 
     // STEP 1
     // the aim of this step is to build an exhaustive list of the segments making up
@@ -101,20 +98,20 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     let (new_segments, intersection_metadata) =
         generate_intersected_segments(&mut cmap, geometry, (nx, ny), (cx, cy));
 
-    // STEP 1b
-    // insert the intersection vertices into the map & recover their encoding dart
+    // STEP 2
+    // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
+    // indexing with the input Vec, meaning that indices in GeometryVertex::Intersec instances are still valid.
 
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
 
-    // STEP 2
-    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build
-    // the actual segments that will be inserted into the map.
-    // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
-    // hence the use of the `MapEdge` structure.
+    // STEP 3
+    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build the actual segments that
+    // will be inserted into the map. Intersections serve as anchor points for the new segments while PoI make up
+    // "intermediate" points of segments.
 
     let edges = generate_edge_data(&mut cmap, geometry, &new_segments, &intersection_darts);
 
-    // STEP 3
+    // STEP 4
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
     // properties to easily build the geometry into the map.
     // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
@@ -200,17 +197,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                     ( 0,  1) => up_intersec!(v1, v2, v_dart, cx),
                     _ => unreachable!(),
                 };
-                /*
-                // t is adjusted for dart direction; but it needs to be adjusted according to the edge's direction
-                let edge_id = cmap.edge_id(dart_id);
-                // works in 2D because edges are 2 darts at most
-                if edge_id != dart_id {
-                    t = T::one() - t;
-                }
-                // insert the intersection point & add it to the vertices/poi
-                cmap.split_edge(edge_id, Some(t));
-                let new_vid = cmap.beta::<1>(dart_id);
-                */
 
                 // WARNING: these two lines should be atomic
                 let id = intersection_metadata.len();
@@ -264,17 +250,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 } else {
                                     left_intersec!(v1, v2, v_dart, cy)
                                 };
-                                /*
-                                // adjust t for edge direction
-                                let edge_id = cmap.edge_id(dart_id);
-                                // works in 2D because edges are 2 darts at most
-                                if edge_id != dart_id {
-                                    t = T::one() - t;
-                                }
-                                cmap.split_edge(edge_id, Some(t));
-                                let new_vid = cmap.beta::<1>(dart_id);
-                                GeometryVertex::Intersec(new_vid)
-                                */
 
                                 // WARNING: these two lines should be atomic
                                 let id = intersection_metadata.len();
@@ -317,16 +292,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 } else {
                                     down_intersec!(v1, v2, v_dart, cx)
                                 };
-                                /*
-                                // adjust t for edge direction
-                                let edge_id = cmap.edge_id(dart_id);
-                                // works in 2D because edges are 2 darts at most
-                                if edge_id != dart_id {
-                                    t = T::one() - t;
-                                }
-                                cmap.split_edge(edge_id, Some(t));
-                                let new_did = cmap.beta::<1>(dart_id);
-                                */
 
                                 // WARNING: these two lines should be atomic
                                 let id = intersection_metadata.len();
@@ -409,16 +374,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
-                            /*
-                            // insert new vertex in the map
-                            let edge_id = cmap.edge_id(*dart_id);
-                            // works in 2D because edges are 2 darts at most
-                            if edge_id != *dart_id {
-                                *t = T::one() - *t;
-                            }
-                            cmap.split_edge(edge_id, Some(*t));
-                            let new_vid = cmap.beta::<1>(*dart_id);
-                            */
                             // WARNING: these two lines should be atomic
                             let id = intersection_metadata.len();
                             intersection_metadata.push((*dart_id, *t));
@@ -490,22 +445,6 @@ fn insert_intersections<T: CoordsFloat>(
                 };
             });
     }
-
-    /*
-    intersection_metadata
-        .iter_mut()
-        .enumerate()
-        .for_each(|(idx, (dart_id, t))| {
-            let edge_id = cmap.edge_id(*dart_id);
-            // works in 2D because edges are 2 darts at most
-            if edge_id != *dart_id {
-                *t = T::one() - *t;
-            }
-            cmap.split_edge(edge_id, Some(*t));
-            let new_vid = cmap.beta::<1>(*dart_id);
-            res[idx] = new_vid;
-        });
-        */
 
     res
 }
