@@ -82,7 +82,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     let ogrid = bbox.overlapping_grid(grid_cell_sizes);
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
-        .add_attribute::<IsBoundary>() // will be used for clipping
+        //.add_attribute::<IsBoundary>() // will be used for clipping
         .build()
         .expect("E: could not build overlapping grid map");
 
@@ -112,7 +112,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // For practical reasons, it is easier to avoid having a PoI as the start or the end of a segment,
     // hence the use of the `MapEdge` structure.
 
-    let edges = generate_edge_data(&mut cmap, geometry, &new_segments);
+    let edges = generate_edge_data(&mut cmap, geometry, &new_segments, &intersection_darts);
 
     // STEP 3
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
@@ -440,7 +440,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
 
 fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    intersection_metadata: Vec<(DartIdentifier, T)>,
+    mut intersection_metadata: Vec<(DartIdentifier, T)>,
 ) -> Vec<DartIdentifier> {
     let mut res = vec![NULL_DART_ID; intersection_metadata.len()];
     // we need to:
@@ -474,6 +474,7 @@ fn insert_intersections<T: CoordsFloat>(
         // sort ts
         vs.sort_by(|(_, t1), (_, t2)| t1.partial_cmp(t2).unwrap());
         let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t)| *t));
+        // order should be consistent between collection because of the sort_by call
         vs.iter()
             .zip(new_darts.iter())
             // chaining this directly avoids an additional `.collect()`
@@ -490,6 +491,7 @@ fn generate_edge_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
+    intersection_darts: &[DartIdentifier],
 ) -> Vec<MapEdge> {
     new_segments
         .iter()
@@ -517,26 +519,26 @@ fn generate_edge_data<T: CoordsFloat>(
                     GeometryVertex::Intersec(_) => unreachable!(), // outer while should prevent this from happening
                 }
             }
-            let GeometryVertex::Intersec(d_start) = start else {
+            let GeometryVertex::Intersec(d_start_idx) = start else {
                 // unreachable due to filter
                 unreachable!();
             };
-            let GeometryVertex::Intersec(d_end) = end else {
+            let GeometryVertex::Intersec(d_end_idx) = end else {
                 // unreachable due to while block
                 unreachable!()
             };
 
-            todo!();
+            let d_start = intersection_darts[*d_start_idx];
+            let d_end = intersection_darts[*d_end_idx];
 
             // the data in this structure can be used to entirely deduce the new connections that should be made
             // at STEP 3
-            /*
+
             MapEdge {
-                start: cmap.beta::<2>(*d_start), // dart locality shenanigans
+                start: cmap.beta::<2>(d_start), // dart locality shenanigans
                 intermediates,
-                end: *d_end,
+                end: d_end,
             }
-            */
         })
         .collect()
 }
