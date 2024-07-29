@@ -202,15 +202,13 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum GeometryVertex<T: CoordsFloat> {
+pub enum GeometryVertex {
     /// Regular vertex. Inner `usize` indicates the vertex ID in-geometry.
     Regular(usize),
     /// Characteristic vertex, i.e. Point of Interest. Inner `usize` indicates the vertex ID in-geometry.
     PoI(usize),
-    /// Interection vertex. Inner `DartIdentifier, T` values give the interesected dart & the relative position of the
-    /// intersection along its edge. Note that the `T` value should be adjusted for direction since
-    /// [`CMap2::split_edge`] uses the direction of the edge, not necessarily of the dart.
-    Intersec(DartIdentifier, T),
+    /// Interection vertex. Inner `usize` indices the associated metadata ID in the dedicated collection.
+    Intersec(usize),
 }
 
 pub struct MapEdge {
