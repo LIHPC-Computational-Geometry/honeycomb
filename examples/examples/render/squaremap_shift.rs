@@ -1,8 +1,9 @@
 use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier, Vector2, NULL_DART_ID};
 use honeycomb_render::*;
 use rand::{
-    distributions::{Distribution, Uniform},
+    distr::{Distribution, Uniform},
     rngs::SmallRng,
+    SeedableRng,
 };
 use std::time::Instant;
 
