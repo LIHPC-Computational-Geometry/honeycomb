@@ -22,8 +22,9 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 use honeycomb_benches::FloatType;
 use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier};
 use rand::{
-    distributions::{Bernoulli, Distribution},
+    distr::{Bernoulli, Distribution},
     rngs::SmallRng,
+    SeedableRng,
 };
 
 // ------ CONTENT

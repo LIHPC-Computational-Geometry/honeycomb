@@ -1,6 +1,9 @@
 use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier};
-use rand::distributions::Bernoulli;
-use rand::{distributions::Distribution, rngs::SmallRng};
+use rand::{
+    distr::{Bernoulli, Distribution},
+    rngs::SmallRng,
+    SeedableRng,
+};
 use std::time::Instant;
 
 fn main() {

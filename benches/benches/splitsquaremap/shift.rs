@@ -18,8 +18,9 @@ use std::collections::BTreeSet;
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use rand::{
-    distributions::{Distribution, Uniform},
+    distr::{Distribution, Uniform},
     rngs::SmallRng,
+    SeedableRng,
 };
 
 use honeycomb_benches::FloatType;
