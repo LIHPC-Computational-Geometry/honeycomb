@@ -205,9 +205,9 @@ pub enum GeometryVertex {
     Intersec(DartIdentifier),
 }
 
-pub struct MapEdge {
+pub struct MapEdge<T: CoordsFloat> {
     pub start: DartIdentifier,
-    pub intermediates: Vec<DartIdentifier>,
+    pub intermediates: Vec<Vertex2<T>>,
     pub end: DartIdentifier,
 }
 

@@ -401,7 +401,7 @@ fn generate_edge_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
-) -> Vec<MapEdge> {
+) -> Vec<MapEdge<T>> {
     new_segments
         .iter()
         .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
@@ -412,13 +412,8 @@ fn generate_edge_data<T: CoordsFloat>(
             while !matches!(end, GeometryVertex::Intersec(_)) {
                 match end {
                     GeometryVertex::PoI(vid) => {
-                        // insert the PoI in the map; create some darts to go with it
-                        let v = geometry.vertices[*vid];
-                        let d = cmap.add_free_darts(2);
-                        cmap.two_link(d, d + 1);
-                        cmap.insert_vertex(d as VertexIdentifier, v);
-                        // save intermediate & update end point
-                        intermediates.push(d);
+                        // save the PoI as an intermediate & update end point
+                        intermediates.push(geometry.vertices[*vid]);
                         end = &new_segments[end];
                     }
                     GeometryVertex::Regular(_) => {
@@ -448,7 +443,7 @@ fn generate_edge_data<T: CoordsFloat>(
         .collect()
 }
 
-fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge]) {
+fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     for MapEdge {
         start,
         intermediates,
