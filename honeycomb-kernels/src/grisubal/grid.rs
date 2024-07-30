@@ -54,8 +54,8 @@ impl<T: CoordsFloat> BBox2<T> {
         let n_cells_x = (self.max_x / len_cell_x).ceil().to_usize();
         let n_cells_y = (self.max_y / len_cell_y).ceil().to_usize();
         GridDescriptor::default()
-            .n_cells_x(n_cells_x.unwrap())
-            .n_cells_y(n_cells_y.unwrap())
+            .n_cells_x(n_cells_x.unwrap() + 1)
+            .n_cells_y(n_cells_y.unwrap() + 1)
             .len_per_cell_x(len_cell_x)
             .len_per_cell_y(len_cell_y)
     }

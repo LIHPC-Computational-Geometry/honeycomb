@@ -76,8 +76,8 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     let bbox = geometry.bbox();
     let (cx, cy) = grid_cell_sizes; // will need later
     let (nx, ny) = (
-        (bbox.max_x / cx).ceil().to_usize().unwrap(),
-        (bbox.max_y / cy).ceil().to_usize().unwrap(),
+        (bbox.max_x / cx).ceil().to_usize().unwrap() + 1,
+        (bbox.max_y / cy).ceil().to_usize().unwrap() + 1,
     );
     let ogrid = bbox.overlapping_grid(grid_cell_sizes);
     let mut cmap = CMapBuilder::default()
