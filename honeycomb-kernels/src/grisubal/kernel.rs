@@ -454,8 +454,7 @@ fn generate_edge_data<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
     intersection_darts: &[DartIdentifier],
-) -> Vec<MapEdge> {
-
+) -> Vec<MapEdge<T>> {
     new_segments
         .iter()
         .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
