@@ -198,7 +198,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                     _ => unreachable!(),
                 };
 
-                // WARNING: these two lines should be atomic
+                // FIXME: these two lines should be atomic
                 let id = intersection_metadata.len();
                 intersection_metadata.push((dart_id, t));
 
@@ -251,7 +251,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     left_intersec!(v1, v2, v_dart, cy)
                                 };
 
-                                // WARNING: these two lines should be atomic
+                                // FIXME: these two lines should be atomic
                                 let id = intersection_metadata.len();
                                 intersection_metadata.push((dart_id, t));
 
@@ -293,7 +293,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                     down_intersec!(v1, v2, v_dart, cx)
                                 };
 
-                                // WARNING: these two lines should be atomic
+                                // FIXME: these two lines should be atomic
                                 let id = intersection_metadata.len();
                                 intersection_metadata.push((dart_id, t));
 
@@ -374,7 +374,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
-                            // WARNING: these two lines should be atomic
+                            // FIXME: these two lines should be atomic
                             let id = intersection_metadata.len();
                             intersection_metadata.push((*dart_id, *t));
 
