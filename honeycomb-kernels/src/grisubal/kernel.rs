@@ -125,6 +125,17 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
 
 // --- main kernels steps
 
+fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, (cx, cy): (T, T)) {
+    // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
+    // at their coordinates, so the shape will be captured via intersection anyway
+    geometry.poi.retain(|idx| {
+        let v = geometry.vertices[*idx];
+        let on_x_axis = (v.x() % cx).is_zero();
+        let on_y_axis = (v.y() % cy).is_zero();
+        !(on_x_axis | on_y_axis)
+    });
+}
+
 #[allow(
     clippy::too_many_lines,
     clippy::cast_possible_truncation,
