@@ -17,6 +17,9 @@ use vtkio::{
     IOBuffer, Vtk,
 };
 
+#[cfg(doc)]
+use honeycomb_core::CMap2;
+
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -200,9 +203,12 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum GeometryVertex {
+    /// Regular vertex. Inner `usize` indicates the vertex ID in-geometry.
     Regular(usize),
+    /// Characteristic vertex, i.e. Point of Interest. Inner `usize` indicates the vertex ID in-geometry.
     PoI(usize),
-    Intersec(DartIdentifier),
+    /// Interection vertex. Inner `usize` indices the associated metadata ID in the dedicated collection.
+    Intersec(usize),
 }
 
 pub struct MapEdge<T: CoordsFloat> {
