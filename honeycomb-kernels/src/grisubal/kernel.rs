@@ -137,6 +137,7 @@ fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, (cx, cy): (
     // at their coordinates, so the shape will be captured via intersection anyway
     geometry.poi.retain(|idx| {
         let v = geometry.vertices[*idx];
+        // origin is assumed to be (0.0, 0.0)
         let on_x_axis = (v.x() % cx).is_zero();
         let on_y_axis = (v.y() % cy).is_zero();
         !(on_x_axis | on_y_axis)
