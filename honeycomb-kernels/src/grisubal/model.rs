@@ -210,8 +210,10 @@ pub enum GeometryVertex {
     /// Intersection vertex. Inner `usize` indices the associated metadata ID in the dedicated collection.
     Intersec(usize),
     /// Intersection corner. This variant is dedicated to corner intersection and contain data that is directly
-    /// used to instantiate [`MapEdge`] objects.
-    IntersecCorner(DartIdentifier, DartIdentifier),
+    /// used to instantiate [`MapEdge`] objects. The contained dart correspond to the intersected dart (end dart); the
+    /// dart of the opposite quadrant (start dart of the next segment) can be retrieved by applying a combination of
+    /// beta functions
+    IntersecCorner(DartIdentifier),
 }
 
 pub struct MapEdge<T: CoordsFloat> {

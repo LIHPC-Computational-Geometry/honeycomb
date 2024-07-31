@@ -386,13 +386,9 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             if t.is_zero() {
                                 // we assume that the segment fully goes through the corner and does not land exactly
                                 // on it, this allows us to compute directly the dart from which the next segment
-                                // should start: the one incident to the vertex in the opposite quadrant (*)
+                                // should start: the one incident to the vertex in the opposite quadrant
                                 let dart_in = *dart_id;
-                                // (*): this is accessible using a combination of beta functions
-                                // out = b2(b1(b2(in)))
-                                let dart_out =
-                                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(dart_in)));
-                                GeometryVertex::IntersecCorner(dart_in, dart_out)
+                                GeometryVertex::IntersecCorner(dart_in)
                             } else {
                                 // FIXME: these two lines should be atomic
                                 let id = intersection_metadata.len();
@@ -490,7 +486,7 @@ fn generate_edge_data<T: CoordsFloat>(
             // while we land on regular vertices, go to the next
             while !matches!(
                 end,
-                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..)
+                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(_)
             ) {
                 match end {
                     GeometryVertex::PoI(vid) => {
@@ -512,14 +508,14 @@ fn generate_edge_data<T: CoordsFloat>(
                 GeometryVertex::Intersec(d_start_idx) => {
                     cmap.beta::<2>(intersection_darts[*d_start_idx])
                 }
-                GeometryVertex::IntersecCorner(d_in, _) => {
+                GeometryVertex::IntersecCorner(d_in) => {
                     cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(*d_in)))
                 }
                 _ => unreachable!(), // unreachable due to filter
             };
             let d_end = match end {
                 GeometryVertex::Intersec(d_end_idx) => intersection_darts[*d_end_idx],
-                GeometryVertex::IntersecCorner(d_in, _) => *d_in,
+                GeometryVertex::IntersecCorner(d_in) => *d_in,
                 _ => unreachable!(), // unreachable due to filter
             };
 
