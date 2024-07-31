@@ -366,11 +366,11 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 // in that case, we keep the data of the intersection at relative position 0;
                                 // this corresponds to the dart that should be linked to by the previous point
                                 // of the segment
-                                if vt.is_zero() & ht.is_one() {
+                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
                                     return Some((vs, vt, vdart_id));
                                 }
-                                if vt.is_one() & ht.is_zero() {
-                                    return Some((hs, ht, hdart_id));
+                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
+                                    return Some((hs, zero, hdart_id));
                                 }
 
                                 // intersect none; this is possible since we're looking at cells of a subgrid,
@@ -512,7 +512,9 @@ fn generate_edge_data<T: CoordsFloat>(
                 GeometryVertex::Intersec(d_start_idx) => {
                     cmap.beta::<2>(intersection_darts[*d_start_idx])
                 }
-                GeometryVertex::IntersecCorner(_, d_out) => *d_out,
+                GeometryVertex::IntersecCorner(d_in, _) => {
+                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(*d_in)))
+                }
                 _ => unreachable!(), // unreachable due to filter
             };
             let d_end = match end {
