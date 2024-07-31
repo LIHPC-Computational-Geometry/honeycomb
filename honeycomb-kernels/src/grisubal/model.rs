@@ -207,8 +207,11 @@ pub enum GeometryVertex {
     Regular(usize),
     /// Characteristic vertex, i.e. Point of Interest. Inner `usize` indicates the vertex ID in-geometry.
     PoI(usize),
-    /// Interection vertex. Inner `usize` indices the associated metadata ID in the dedicated collection.
+    /// Intersection vertex. Inner `usize` indices the associated metadata ID in the dedicated collection.
     Intersec(usize),
+    /// Intersection corner. This variant is dedicated to corner intersection and contain data that is directly
+    /// used to instantiate [`MapEdge`] objects.
+    IntersecCorner(DartIdentifier, DartIdentifier),
 }
 
 pub struct MapEdge<T: CoordsFloat> {

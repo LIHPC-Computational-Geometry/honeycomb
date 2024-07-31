@@ -386,8 +386,13 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             if t.is_zero() {
                                 // we assume that the segment fully goes through the corner and does not land exactly
                                 // on it, this allows us to compute directly the dart from which the next segment
-                                // should start
-                                todo!()
+                                // should start: the one incident to the vertex in the opposite quadrant (*)
+                                let dart_in = *dart_id;
+                                // (*): this is accessible using a combination of beta functions
+                                // out = b2(b1(b2(in)))
+                                let dart_out =
+                                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(dart_id)));
+                                GeometryVertex::IntersecCorner(dart_in, dart_out)
                             } else {
                                 // FIXME: these two lines should be atomic
                                 let id = intersection_metadata.len();
