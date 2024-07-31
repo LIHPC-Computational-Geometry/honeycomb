@@ -12,7 +12,7 @@ use std::{
     process::id,
 };
 
-use crate::{Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
+use crate::{remove_redundant_poi, Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, VertexIdentifier,
     NULL_DART_ID,
@@ -71,7 +71,10 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, T)) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    grid_cell_sizes: (T, T),
+) -> CMap2<T> {
     // build the overlapping grid we'll modify
     let bbox = geometry.bbox();
     let (cx, cy) = grid_cell_sizes; // will need later
@@ -87,6 +90,10 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
         .expect("E: could not build overlapping grid map");
 
     // process the geometry
+
+    // preparations
+
+    remove_redundant_poi(geometry, (cx, cy));
 
     // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 

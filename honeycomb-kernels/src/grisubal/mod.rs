@@ -117,9 +117,9 @@ pub fn grisubal<T: CoordsFloat>(
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
     // pre-processing
-    let geometry = Geometry2::from(geometry_vtk);
+    let mut geometry = Geometry2::from(geometry_vtk);
     // build the map
-    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes);
+    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
     // optional post-processing
     match clip.unwrap_or_default() {
         Clip::All => {
