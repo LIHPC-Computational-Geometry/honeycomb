@@ -391,7 +391,7 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 // (*): this is accessible using a combination of beta functions
                                 // out = b2(b1(b2(in)))
                                 let dart_out =
-                                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(dart_id)));
+                                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(dart_in)));
                                 GeometryVertex::IntersecCorner(dart_in, dart_out)
                             } else {
                                 // FIXME: these two lines should be atomic
@@ -478,12 +478,20 @@ fn generate_edge_data<T: CoordsFloat>(
 ) -> Vec<MapEdge<T>> {
     new_segments
         .iter()
-        .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
+        .filter(|(k, _)| {
+            matches!(
+                k,
+                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..)
+            )
+        })
         .map(|(start, v)| {
             let mut end = v;
             let mut intermediates = Vec::new();
             // while we land on regular vertices, go to the next
-            while !matches!(end, GeometryVertex::Intersec(_)) {
+            while !matches!(
+                end,
+                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..)
+            ) {
                 match end {
                     GeometryVertex::PoI(vid) => {
                         // save the PoI as an intermediate & update end point
@@ -494,26 +502,30 @@ fn generate_edge_data<T: CoordsFloat>(
                         // skip; update end point
                         end = &new_segments[end];
                     }
-                    GeometryVertex::Intersec(_) => unreachable!(), // outer while should prevent this from happening
+                    GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..) => {
+                        unreachable!() // outer while should prevent this from happening
+                    }
                 }
             }
-            let GeometryVertex::Intersec(d_start_idx) = start else {
-                // unreachable due to filter
-                unreachable!();
-            };
-            let GeometryVertex::Intersec(d_end_idx) = end else {
-                // unreachable due to while block
-                unreachable!()
-            };
 
-            let d_start = intersection_darts[*d_start_idx];
-            let d_end = intersection_darts[*d_end_idx];
+            let d_start = match start {
+                GeometryVertex::Intersec(d_start_idx) => {
+                    cmap.beta::<2>(intersection_darts[*d_start_idx])
+                }
+                GeometryVertex::IntersecCorner(_, d_out) => *d_out,
+                _ => unreachable!(), // unreachable due to filter
+            };
+            let d_end = match end {
+                GeometryVertex::Intersec(d_end_idx) => intersection_darts[*d_end_idx],
+                GeometryVertex::IntersecCorner(d_in, _) => *d_in,
+                _ => unreachable!(), // unreachable due to filter
+            };
 
             // the data in this structure can be used to entirely deduce the new connections that should be made
             // at STEP 3
 
             MapEdge {
-                start: cmap.beta::<2>(d_start), // dart locality shenanigans
+                start: d_start,
                 intermediates,
                 end: d_end,
             }
