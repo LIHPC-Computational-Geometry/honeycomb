@@ -215,13 +215,10 @@ fn generate_intersected_segments<T: CoordsFloat>(
             // v1 & v2 do not belong to neighboring cell
             _ => {
                 // because we're using strait segments (not curves), the manhattan distance gives us
-                // the number of cell we're going through to reach v2 from v1, which is equal to the number of
-                // additional vertices resulting from intersection with the grid
-                // i.e. we're generating d+1 segments
+                // the number of cell we're going through to reach v2 from v1
                 let diff = GridCellId::diff(&c1, &c2);
-                // pure vertical / horizontal traversal are treated separately because `t` is computed directly
-                // other cases require adjustment since we'll be computating `t`s over longer segments rather than
-                // the edge of a single grid case
+                // pure vertical / horizontal traversal are treated separately because it ensures we're not trying
+                // to compute intersections of parallel segments (which results at best in a division by 0)
                 match diff {
                     (i, 0) => {
                         // we can solve the intersection equation
@@ -315,9 +312,10 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         });
                     }
                     (i, j) => {
-                        // most annoying case, once again
                         // in order to process this, we'll consider a "sub-grid" & use the direction of the segment to
                         // deduce which pair of dart we are supposed to intersect
+                        // we also have to consider corner traversal; this corresponds to intersecting both darts of
+                        // the pair at respective relative positions 1 and 0 (or 0 and 1)
                         let i_base = c1.0 as isize;
                         let j_base = c1.1 as isize;
                         let i_cell_range = min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1);
@@ -357,13 +355,24 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 let zero = T::zero();
                                 let one = T::one();
                                 // we can deduce if and which side is intersected using s and t values
-                                // these should be comprised between 0 and 1
+                                // these should be comprised strictly between 0 and 1 for regular intersections
                                 if (zero < vs) & (vs < one) & (zero < vt) & (vt < one) {
                                     return Some((vs, vt, vdart_id)); // intersect vertical side
                                 }
                                 if (zero < hs) & (hs < one) & (zero < ht) & (ht < one) {
                                     return Some((hs, ht, hdart_id)); // intersect horizontal side
                                 }
+                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
+                                // in that case, we keep the data of the intersection at relative position 0;
+                                // this corresponds to the dart that should be linked to by the previous point
+                                // of the segment
+                                if vt.is_zero() & ht.is_one() {
+                                    return Some((vs, vt, vdart_id));
+                                }
+                                if vt.is_one() & ht.is_zero() {
+                                    return Some((hs, ht, hdart_id));
+                                }
+
                                 // intersect none; this is possible since we're looking at cells of a subgrid,
                                 // not following through the segment's intersections
                                 None
@@ -374,11 +383,18 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
-                            // FIXME: these two lines should be atomic
-                            let id = intersection_metadata.len();
-                            intersection_metadata.push((*dart_id, *t));
+                            if t.is_zero() {
+                                // we assume that the segment fully goes through the corner and does not land exactly
+                                // on it, this allows us to compute directly the dart from which the next segment
+                                // should start
+                                todo!()
+                            } else {
+                                // FIXME: these two lines should be atomic
+                                let id = intersection_metadata.len();
+                                intersection_metadata.push((*dart_id, *t));
 
-                            GeometryVertex::Intersec(id)
+                                GeometryVertex::Intersec(id)
+                            }
                         }));
                         vs.push(make_geometry_vertex!(geometry, v2_id));
                         // insert segments
