@@ -354,6 +354,17 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             .filter_map(|(hdart_id, vdart_id, (vs, vt), (hs, ht))| {
                                 let zero = T::zero();
                                 let one = T::one();
+                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
+                                // in that case, we keep the data of the intersection at relative position 0;
+                                // this corresponds to the dart that should be linked to by the previous point
+                                // of the segment
+                                // we check those first to avoid intersecting segment extremely close to their vertices
+                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
+                                    return Some((vs, vt, vdart_id));
+                                }
+                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
+                                    return Some((hs, zero, hdart_id));
+                                }
                                 // we can deduce if and which side is intersected using s and t values
                                 // these should be comprised strictly between 0 and 1 for regular intersections
                                 if (zero < vs) & (vs < one) & (zero < vt) & (vt < one) {
@@ -361,16 +372,6 @@ fn generate_intersected_segments<T: CoordsFloat>(
                                 }
                                 if (zero < hs) & (hs < one) & (zero < ht) & (ht < one) {
                                     return Some((hs, ht, hdart_id)); // intersect horizontal side
-                                }
-                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
-                                // in that case, we keep the data of the intersection at relative position 0;
-                                // this corresponds to the dart that should be linked to by the previous point
-                                // of the segment
-                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
-                                    return Some((vs, vt, vdart_id));
-                                }
-                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
-                                    return Some((hs, zero, hdart_id));
                                 }
 
                                 // intersect none; this is possible since we're looking at cells of a subgrid,
