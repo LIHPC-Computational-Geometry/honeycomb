@@ -201,6 +201,9 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     }
 }
 
+/// Remove from their geometry points of interest that intersect with a grid of specified dimension.
+///
+/// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
 pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, (cx, cy): (T, T)) {
     // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
     // at their coordinates, so the shape will be captured via intersection anyway
