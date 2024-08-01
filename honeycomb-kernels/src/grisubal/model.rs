@@ -201,6 +201,47 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
     }
 }
 
+pub fn compute_overlapping_grid<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+    [len_cell_x, len_cell_y]: [T; 2],
+    allow_origin_offset: bool,
+) -> ([usize; 2], Option<Vertex2<T>>) {
+    // compute the minimum bounding box
+    let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
+        let tmp = geometry
+            .vertices
+            .first()
+            .expect("E: specified geometry does not contain any vertex");
+        (tmp.x(), tmp.x(), tmp.y(), tmp.y())
+    };
+
+    geometry.vertices.iter().for_each(|v| {
+        min_x = min_x.min(v.x());
+        max_x = max_x.max(v.x()); // may not be optimal
+        min_y = min_y.min(v.y()); // don't care
+        max_y = max_y.max(v.y());
+    });
+
+    // compute characteristics of the overlapping Cartesian grid
+    if allow_origin_offset {
+        todo!()
+    } else {
+        assert!(
+            min_x > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(
+            min_y > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(max_x > min_x);
+        assert!(max_y > min_y);
+        let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
+        let n_cells_y = (max_y / len_cell_y).ceil().to_usize().unwrap() + 1;
+        ([n_cells_x, n_cells_y], None)
+    }
+}
+
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
 ///
 /// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
