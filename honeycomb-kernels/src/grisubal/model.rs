@@ -217,32 +217,37 @@ pub struct MapEdge<T: CoordsFloat> {
     pub end: DartIdentifier,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct IsBoundary(pub bool);
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Boundary {
+    Left,
+    Right,
+    None,
+}
 
-impl AttributeUpdate for IsBoundary {
+impl AttributeUpdate for Boundary {
     fn merge(attr1: Self, attr2: Self) -> Self {
-        // if we fuse two vertices and at least one is part of the boundary,
-        // the resulting one should be part of the boundary to prevent a missing link in the chain
-        IsBoundary(attr1.0 || attr2.0)
+        if attr1 == attr2 {
+            attr1
+        } else {
+            Boundary::None
+        }
     }
 
     fn split(attr: Self) -> (Self, Self) {
-        // if we split a vertex in two, both resulting vertices should hold the same property
-        (attr, attr)
+        unreachable!()
     }
 
     fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap_or(IsBoundary(false))
+        attr.unwrap_or(Boundary::None)
     }
 }
 
-impl AttributeBind for IsBoundary {
+impl AttributeBind for Boundary {
     fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Edge
+        OrbitPolicy::Custom(&[])
     }
 
-    type IdentifierType = EdgeIdentifier;
+    type IdentifierType = DartIdentifier;
 
     type StorageType = AttrSparseVec<Self>;
 }
