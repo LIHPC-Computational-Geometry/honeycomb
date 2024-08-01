@@ -82,7 +82,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     let ogrid = bbox.overlapping_grid(grid_cell_sizes);
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
-        //.add_attribute::<IsBoundary>() // will be used for clipping
+        .add_attribute::<IsBoundary>() // will be used for clipping
         .build()
         .expect("E: could not build overlapping grid map");
 

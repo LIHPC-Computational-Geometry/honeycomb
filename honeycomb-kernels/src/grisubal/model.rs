@@ -231,6 +231,10 @@ impl AttributeUpdate for IsBoundary {
         // if we split a vertex in two, both resulting vertices should hold the same property
         (attr, attr)
     }
+
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap_or(IsBoundary(false))
+    }
 }
 
 impl AttributeBind for IsBoundary {
