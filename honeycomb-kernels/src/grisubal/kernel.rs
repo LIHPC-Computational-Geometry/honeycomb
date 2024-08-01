@@ -12,10 +12,13 @@ use std::{
     process::id,
 };
 
-use crate::{remove_redundant_poi, Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
+use crate::{
+    compute_overlapping_grid, remove_redundant_poi, Geometry2, GeometryVertex, GridCellId,
+    IsBoundary, MapEdge,
+};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, VertexIdentifier,
-    NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
+    VertexIdentifier, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -75,14 +78,16 @@ pub fn build_mesh<T: CoordsFloat>(
     geometry: &mut Geometry2<T>,
     grid_cell_sizes: (T, T),
 ) -> CMap2<T> {
-    // build the overlapping grid we'll modify
-    let bbox = geometry.bbox();
+    // compute grid characteristics
     let (cx, cy) = grid_cell_sizes; // will need later
-    let (nx, ny) = (
-        (bbox.max_x / cx).ceil().to_usize().unwrap() + 1,
-        (bbox.max_y / cy).ceil().to_usize().unwrap() + 1,
-    );
-    let ogrid = bbox.overlapping_grid(grid_cell_sizes);
+    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false);
+    // build grid descriptor
+    let ogrid = GridDescriptor::default()
+        .n_cells_x(nx)
+        .n_cells_y(ny)
+        .len_per_cell_x(cx)
+        .len_per_cell_y(cy);
+    // build initial map
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
         //.add_attribute::<IsBoundary>() // will be used for clipping

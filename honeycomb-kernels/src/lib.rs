@@ -36,5 +36,5 @@ pub use grisubal::{grisubal, model::Clip};
 pub(crate) use grisubal::grid::{BBox2, GridCellId};
 #[allow(unused)]
 pub(crate) use grisubal::model::{
-    remove_redundant_poi, Geometry2, GeometryVertex, IsBoundary, MapEdge,
+    compute_overlapping_grid, remove_redundant_poi, Geometry2, GeometryVertex, IsBoundary, MapEdge,
 };
