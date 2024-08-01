@@ -138,7 +138,7 @@ pub fn build_mesh<T: CoordsFloat>(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss
 )]
-fn generate_intersection_data<T: CoordsFloat>(
+pub(super) fn generate_intersection_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     (nx, ny): (usize, usize),
@@ -418,7 +418,7 @@ fn generate_intersection_data<T: CoordsFloat>(
     (new_segments, intersection_metadata)
 }
 
-fn insert_intersections<T: CoordsFloat>(
+pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     mut intersection_metadata: Vec<(DartIdentifier, T)>,
 ) -> Vec<DartIdentifier> {
@@ -474,7 +474,7 @@ fn insert_intersections<T: CoordsFloat>(
     res
 }
 
-fn generate_edge_data<T: CoordsFloat>(
+pub(super) fn generate_edge_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
@@ -539,7 +539,7 @@ fn generate_edge_data<T: CoordsFloat>(
         .collect()
 }
 
-fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
+pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     for MapEdge {
         start,
         intermediates,

@@ -1,9 +1,14 @@
 // ------ IMPORTS
 
-use honeycomb_core::Vertex2;
+use honeycomb_core::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 
-use crate::Geometry2;
+use crate::{
+    grisubal::kernel::{
+        generate_edge_data, generate_intersection_data, insert_edges_in_map, insert_intersections,
+    },
+    Geometry2, GeometryVertex, MapEdge,
+};
 
 // ------ CONTENT
 
@@ -108,4 +113,146 @@ fn build_valid_geometry() {
     assert!(poi.contains(&6));
     assert!(poi.contains(&7));
     assert!(poi.contains(&8));
+}
+
+#[allow(clippy::too_many_lines)]
+#[test]
+fn single_intersections() {
+    let mut cmap = CMapBuilder::from_grid_descriptor(
+        GridDescriptor::default()
+            .len_per_cell([1.0; 3])
+            .n_cells([2; 3]),
+    )
+    .build()
+    .unwrap();
+
+    // square with bottom left at (0.5,0.5) & top right at (1.5,1.5)
+    let mut geometry = Geometry2 {
+        vertices: vec![
+            Vertex2(0.5, 0.5),
+            Vertex2(1.5, 0.5),
+            Vertex2(1.5, 1.5),
+            Vertex2(0.5, 1.5),
+        ],
+        segments: vec![(0, 1), (1, 2), (2, 3), (3, 0)],
+        poi: vec![0, 1, 2, 3],
+    };
+
+    let (segments, intersection_metadata) =
+        generate_intersection_data(&mut cmap, &geometry, (2, 2), (1.0, 1.0));
+
+    assert_eq!(intersection_metadata.len(), 4);
+    // FIXME: INDEX ACCESSES WON'T WORK IN PARALLEL
+    assert_eq!(intersection_metadata[0], (2, 0.5));
+    assert_eq!(intersection_metadata[1], (7, 0.5));
+    assert_eq!(intersection_metadata[2], (16, 0.5));
+    assert_eq!(intersection_metadata[3], (9, 0.5));
+    // go through the segments
+    assert!(segments.contains_key(&GeometryVertex::PoI(0)));
+    assert_eq!(
+        segments[&GeometryVertex::PoI(0)],
+        GeometryVertex::Intersec(0)
+    );
+    assert!(segments.contains_key(&GeometryVertex::Intersec(0)));
+    assert_eq!(
+        segments[&GeometryVertex::Intersec(0)],
+        GeometryVertex::PoI(1)
+    );
+    assert!(segments.contains_key(&GeometryVertex::PoI(1)));
+    assert_eq!(
+        segments[&GeometryVertex::PoI(1)],
+        GeometryVertex::Intersec(1)
+    );
+    assert!(segments.contains_key(&GeometryVertex::Intersec(1)));
+    assert_eq!(
+        segments[&GeometryVertex::Intersec(1)],
+        GeometryVertex::PoI(2)
+    );
+    assert!(segments.contains_key(&GeometryVertex::PoI(2)));
+    assert_eq!(
+        segments[&GeometryVertex::PoI(2)],
+        GeometryVertex::Intersec(2)
+    );
+    assert!(segments.contains_key(&GeometryVertex::Intersec(2)));
+    assert_eq!(
+        segments[&GeometryVertex::Intersec(2)],
+        GeometryVertex::PoI(3)
+    );
+    assert!(segments.contains_key(&GeometryVertex::PoI(3)));
+    assert_eq!(
+        segments[&GeometryVertex::PoI(3)],
+        GeometryVertex::Intersec(3)
+    );
+    assert!(segments.contains_key(&GeometryVertex::Intersec(3)));
+    assert_eq!(
+        segments[&GeometryVertex::Intersec(3)],
+        GeometryVertex::PoI(0)
+    );
+
+    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+
+    assert_eq!(intersection_darts.len(), 4);
+    // check new vertices at intersection
+    assert_eq!(
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(2))),
+        Ok(Vertex2(1.0, 0.5))
+    );
+    assert_eq!(
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(7))),
+        Ok(Vertex2(1.5, 1.0))
+    );
+    assert_eq!(
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(10))),
+        Ok(Vertex2(1.0, 1.5))
+    );
+    assert_eq!(
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(3))),
+        Ok(Vertex2(0.5, 1.0))
+    );
+
+    let mut edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+
+    assert_eq!(edges.len(), 4);
+    edges.retain(|edge| !edge.intermediates.is_empty());
+    assert_eq!(edges.len(), 4);
+
+    insert_edges_in_map(&mut cmap, &edges);
+
+    // we're expecting something like this
+    // +-----+-----+
+    // |     |     |
+    // | 9   |   14|
+    // |  +--|--+  |
+    // |  |10|13|  |
+    // |  |  |  |  |
+    // +--+--+--+--+
+    // |  |3 |8 |  |
+    // |  |  |  |  |
+    // |  +--|--+  |
+    // | 1   |   5 |
+    // |     |     |
+    // +-----+-----+
+
+    let faces = cmap.fetch_faces();
+    assert_eq!(faces.identifiers.len(), 8);
+    // bottom left
+    assert!(faces.identifiers.contains(&1));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 1).count(), 6);
+    assert!(faces.identifiers.contains(&3));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 3).count(), 4);
+    // bottom right
+    assert!(faces.identifiers.contains(&5));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 5).count(), 6);
+    assert!(faces.identifiers.contains(&8));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 8).count(), 4);
+    // top right
+    assert!(faces.identifiers.contains(&9));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 9).count(), 6);
+    assert!(faces.identifiers.contains(&10));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 10).count(), 4);
+    // top left
+    assert!(faces.identifiers.contains(&14));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 14).count(), 6);
+    assert!(faces.identifiers.contains(&13));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 13).count(), 4);
 }
