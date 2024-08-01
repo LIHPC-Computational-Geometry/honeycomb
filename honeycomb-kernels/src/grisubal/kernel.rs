@@ -96,7 +96,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersected_segments(&mut cmap, geometry, (nx, ny), (cx, cy));
+        generate_intersection_data(&mut cmap, geometry, (nx, ny), (cx, cy));
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -131,7 +131,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &Geometry2<T>, grid_cell_sizes: (T, 
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss
 )]
-fn generate_intersected_segments<T: CoordsFloat>(
+fn generate_intersection_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     (nx, ny): (usize, usize),
