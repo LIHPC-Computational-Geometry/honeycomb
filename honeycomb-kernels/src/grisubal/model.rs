@@ -8,8 +8,8 @@
 
 use crate::BBox2;
 use honeycomb_core::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
-    Vertex2, VertexIdentifier,
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
+    OrbitPolicy, Vertex2, VertexIdentifier,
 };
 use num::Zero;
 use vtkio::{
@@ -239,10 +239,10 @@ impl AttributeUpdate for IsBoundary {
 
 impl AttributeBind for IsBoundary {
     fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Vertex
+        OrbitPolicy::Edge
     }
 
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = EdgeIdentifier;
 
     type StorageType = AttrSparseVec<Self>;
 }
