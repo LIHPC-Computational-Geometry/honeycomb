@@ -29,34 +29,3 @@ impl GridCellId {
         )
     }
 }
-
-/// Represent a 2-dimensional bounding box
-pub struct BBox2<T: CoordsFloat> {
-    pub min_x: T,
-    pub max_x: T,
-    pub min_y: T,
-    pub max_y: T,
-}
-
-impl<T: CoordsFloat> BBox2<T> {
-    /// Builds the descriptor of a grid overlapping the bounding box.
-    pub fn overlapping_grid(&self, (len_cell_x, len_cell_y): (T, T)) -> GridDescriptor<T> {
-        assert!(
-            self.min_x > T::zero(),
-            "E: the geometry should be entirely defined in positive Xs/Ys"
-        );
-        assert!(
-            self.min_y > T::zero(),
-            "E: the geometry should be entirely defined in positive Xs/Ys"
-        );
-        assert!(self.max_x > self.min_x);
-        assert!(self.max_y > self.min_y);
-        let n_cells_x = (self.max_x / len_cell_x).ceil().to_usize();
-        let n_cells_y = (self.max_y / len_cell_y).ceil().to_usize();
-        GridDescriptor::default()
-            .n_cells_x(n_cells_x.unwrap() + 1)
-            .n_cells_y(n_cells_y.unwrap() + 1)
-            .len_per_cell_x(len_cell_x)
-            .len_per_cell_y(len_cell_y)
-    }
-}
