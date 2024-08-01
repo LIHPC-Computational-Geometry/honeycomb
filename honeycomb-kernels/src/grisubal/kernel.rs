@@ -103,7 +103,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersected_segments(&mut cmap, geometry, (nx, ny), (cx, cy));
+        generate_intersection_data(&mut cmap, geometry, (nx, ny), (cx, cy));
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -138,7 +138,7 @@ pub fn build_mesh<T: CoordsFloat>(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss
 )]
-fn generate_intersected_segments<T: CoordsFloat>(
+fn generate_intersection_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     (nx, ny): (usize, usize),
@@ -222,13 +222,10 @@ fn generate_intersected_segments<T: CoordsFloat>(
             // v1 & v2 do not belong to neighboring cell
             _ => {
                 // because we're using strait segments (not curves), the manhattan distance gives us
-                // the number of cell we're going through to reach v2 from v1, which is equal to the number of
-                // additional vertices resulting from intersection with the grid
-                // i.e. we're generating d+1 segments
+                // the number of cell we're going through to reach v2 from v1
                 let diff = GridCellId::diff(&c1, &c2);
-                // pure vertical / horizontal traversal are treated separately because `t` is computed directly
-                // other cases require adjustment since we'll be computating `t`s over longer segments rather than
-                // the edge of a single grid case
+                // pure vertical / horizontal traversal are treated separately because it ensures we're not trying
+                // to compute intersections of parallel segments (which results at best in a division by 0)
                 match diff {
                     (i, 0) => {
                         // we can solve the intersection equation
@@ -322,9 +319,10 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         });
                     }
                     (i, j) => {
-                        // most annoying case, once again
                         // in order to process this, we'll consider a "sub-grid" & use the direction of the segment to
                         // deduce which pair of dart we are supposed to intersect
+                        // we also have to consider corner traversal; this corresponds to intersecting both darts of
+                        // the pair at respective relative positions 1 and 0 (or 0 and 1)
                         let i_base = c1.0 as isize;
                         let j_base = c1.1 as isize;
                         let i_cell_range = min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1);
@@ -363,14 +361,26 @@ fn generate_intersected_segments<T: CoordsFloat>(
                             .filter_map(|(hdart_id, vdart_id, (vs, vt), (hs, ht))| {
                                 let zero = T::zero();
                                 let one = T::one();
+                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
+                                // in that case, we keep the data of the intersection at relative position 0;
+                                // this corresponds to the dart that should be linked to by the previous point
+                                // of the segment
+                                // we check those first to avoid intersecting segment extremely close to their vertices
+                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
+                                    return Some((vs, vt, vdart_id));
+                                }
+                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
+                                    return Some((hs, zero, hdart_id));
+                                }
                                 // we can deduce if and which side is intersected using s and t values
-                                // these should be comprised between 0 and 1
+                                // these should be comprised strictly between 0 and 1 for regular intersections
                                 if (zero < vs) & (vs < one) & (zero < vt) & (vt < one) {
                                     return Some((vs, vt, vdart_id)); // intersect vertical side
                                 }
                                 if (zero < hs) & (hs < one) & (zero < ht) & (ht < one) {
                                     return Some((hs, ht, hdart_id)); // intersect horizontal side
                                 }
+
                                 // intersect none; this is possible since we're looking at cells of a subgrid,
                                 // not following through the segment's intersections
                                 None
@@ -381,11 +391,19 @@ fn generate_intersected_segments<T: CoordsFloat>(
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
-                            // FIXME: these two lines should be atomic
-                            let id = intersection_metadata.len();
-                            intersection_metadata.push((*dart_id, *t));
+                            if t.is_zero() {
+                                // we assume that the segment fully goes through the corner and does not land exactly
+                                // on it, this allows us to compute directly the dart from which the next segment
+                                // should start: the one incident to the vertex in the opposite quadrant
+                                let dart_in = *dart_id;
+                                GeometryVertex::IntersecCorner(dart_in)
+                            } else {
+                                // FIXME: these two lines should be atomic
+                                let id = intersection_metadata.len();
+                                intersection_metadata.push((*dart_id, *t));
 
-                            GeometryVertex::Intersec(id)
+                                GeometryVertex::Intersec(id)
+                            }
                         }));
                         vs.push(make_geometry_vertex!(geometry, v2_id));
                         // insert segments
@@ -464,12 +482,20 @@ fn generate_edge_data<T: CoordsFloat>(
 ) -> Vec<MapEdge<T>> {
     new_segments
         .iter()
-        .filter(|(k, _)| matches!(k, GeometryVertex::Intersec(_)))
+        .filter(|(k, _)| {
+            matches!(
+                k,
+                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..)
+            )
+        })
         .map(|(start, v)| {
             let mut end = v;
             let mut intermediates = Vec::new();
             // while we land on regular vertices, go to the next
-            while !matches!(end, GeometryVertex::Intersec(_)) {
+            while !matches!(
+                end,
+                GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(_)
+            ) {
                 match end {
                     GeometryVertex::PoI(vid) => {
                         // save the PoI as an intermediate & update end point
@@ -480,26 +506,32 @@ fn generate_edge_data<T: CoordsFloat>(
                         // skip; update end point
                         end = &new_segments[end];
                     }
-                    GeometryVertex::Intersec(_) => unreachable!(), // outer while should prevent this from happening
+                    GeometryVertex::Intersec(_) | GeometryVertex::IntersecCorner(..) => {
+                        unreachable!() // outer while should prevent this from happening
+                    }
                 }
             }
-            let GeometryVertex::Intersec(d_start_idx) = start else {
-                // unreachable due to filter
-                unreachable!();
-            };
-            let GeometryVertex::Intersec(d_end_idx) = end else {
-                // unreachable due to while block
-                unreachable!()
-            };
 
-            let d_start = intersection_darts[*d_start_idx];
-            let d_end = intersection_darts[*d_end_idx];
+            let d_start = match start {
+                GeometryVertex::Intersec(d_start_idx) => {
+                    cmap.beta::<2>(intersection_darts[*d_start_idx])
+                }
+                GeometryVertex::IntersecCorner(d_in) => {
+                    cmap.beta::<2>(cmap.beta::<1>(cmap.beta::<2>(*d_in)))
+                }
+                _ => unreachable!(), // unreachable due to filter
+            };
+            let d_end = match end {
+                GeometryVertex::Intersec(d_end_idx) => intersection_darts[*d_end_idx],
+                GeometryVertex::IntersecCorner(d_in) => *d_in,
+                _ => unreachable!(), // unreachable due to filter
+            };
 
             // the data in this structure can be used to entirely deduce the new connections that should be made
             // at STEP 3
 
             MapEdge {
-                start: cmap.beta::<2>(d_start), // dart locality shenanigans
+                start: d_start,
                 intermediates,
                 end: d_end,
             }
