@@ -12,7 +12,7 @@ use std::{
     process::id,
 };
 
-use crate::{remove_redundant_poi, Geometry2, GeometryVertex, GridCellId, Boundary, MapEdge};
+use crate::{remove_redundant_poi, Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, VertexIdentifier,
     NULL_DART_ID,
