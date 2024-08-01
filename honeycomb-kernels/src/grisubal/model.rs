@@ -218,7 +218,7 @@ pub struct MapEdge<T: CoordsFloat> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct IsBoundary(bool);
+pub struct IsBoundary(pub bool);
 
 impl AttributeUpdate for IsBoundary {
     fn merge(attr1: Self, attr2: Self) -> Self {

@@ -536,6 +536,12 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]
                     cmap.replace_vertex(vid, *v);
                 });
         }
+
+        let mut d_boundary = cmap.beta::<1>(*start);
+        while d_boundary != *end {
+            cmap.set_attribute::<IsBoundary>(cmap.edge_id(d_boundary), IsBoundary(true));
+            d_boundary = cmap.beta::<1>(d_boundary);
+        }
     }
 }
 
