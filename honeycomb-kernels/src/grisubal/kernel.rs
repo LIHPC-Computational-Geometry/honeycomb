@@ -9,7 +9,6 @@
 use std::{
     cmp::{max, min},
     collections::{HashMap, VecDeque},
-    process::id,
 };
 
 use crate::{
@@ -17,8 +16,7 @@ use crate::{
     GridCellId, MapEdge,
 };
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
-    VertexIdentifier, NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -142,13 +140,12 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2])
 pub(super) fn generate_intersection_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
-    [nx, ny]: [usize; 2],
+    [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
 ) -> (
     HashMap<GeometryVertex, GeometryVertex>,
     Vec<(DartIdentifier, T)>,
 ) {
-    let mut n_vertices = geometry.vertices.len();
     let mut intersection_metadata = Vec::new();
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
     geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
@@ -198,7 +195,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 // compute relative position of the intersection on the interecting edges
                 // `s` is relative to the segment `v1v2`, `t` to the grid's segment (the origin being `v_dart`)
                 #[rustfmt::skip]
-                let (_s, mut t) = match diff {
+                let (_s, t) = match diff {
                     (-1,  0) => left_intersec!(v1, v2, v_dart, cy),
                     ( 1,  0) => right_intersec!(v1, v2, v_dart, cy),
                     ( 0, -1) => down_intersec!(v1, v2, v_dart, cx),
@@ -250,7 +247,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 // vertex associated to the intersected dart
                                 let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                                 // compute intersection
-                                let (_s, mut t) = if i.is_positive() {
+                                let (_s, t) = if i.is_positive() {
                                     right_intersec!(v1, v2, v_dart, cy)
                                 } else {
                                     left_intersec!(v1, v2, v_dart, cy)
@@ -292,7 +289,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 // vertex associated to the intersected dart
                                 let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
                                 // compute intersection
-                                let (_s, mut t) = if j.is_positive() {
+                                let (_s, t) = if j.is_positive() {
                                     up_intersec!(v1, v2, v_dart, cx)
                                 } else {
                                     down_intersec!(v1, v2, v_dart, cx)
@@ -421,7 +418,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
 pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    mut intersection_metadata: Vec<(DartIdentifier, T)>,
+    intersection_metadata: Vec<(DartIdentifier, T)>,
 ) -> Vec<DartIdentifier> {
     let mut res = vec![NULL_DART_ID; intersection_metadata.len()];
     // we need to:
@@ -573,7 +570,7 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
                 .zip(intermediates.iter())
                 .for_each(|(dart_id, v)| {
                     let vid = cmap.vertex_id(*dart_id);
-                    cmap.replace_vertex(vid, *v);
+                    let _ = cmap.replace_vertex(vid, *v);
                 });
         }
 
@@ -591,6 +588,7 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
 /// Clipping routine.
 ///
 /// This function takes a map built by [`build_mesh`] and removes cells on the *normal* side of the boundary.
+#[allow(unused)]
 pub fn remove_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
     todo!()
 }
@@ -598,6 +596,7 @@ pub fn remove_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<
 /// Clipping routine
 ///
 /// This function takes a map built by [`build_mesh`] and removes cells on the *anti-normal* side of the boundary.
+#[allow(unused)]
 pub fn remove_anti_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
     todo!()
 }

@@ -7,7 +7,7 @@ use crate::{
     grisubal::kernel::{
         generate_edge_data, generate_intersection_data, insert_edges_in_map, insert_intersections,
     },
-    Boundary, Geometry2, GeometryVertex, MapEdge,
+    Boundary, Geometry2, GeometryVertex,
 };
 
 // ------ CONTENT
@@ -128,7 +128,7 @@ fn regular_intersections() {
     .unwrap();
 
     // square with bottom left at (0.5,0.5) & top right at (1.5,1.5)
-    let mut geometry = Geometry2 {
+    let geometry = Geometry2 {
         vertices: vec![
             Vertex2(0.5, 0.5),
             Vertex2(1.5, 0.5),
@@ -270,7 +270,7 @@ fn corner_intersection() {
     .unwrap();
 
     // square with bottom left at (0.5,0.5) & top right at (1.5,1.5)
-    let mut geometry = Geometry2 {
+    let geometry = Geometry2 {
         vertices: vec![Vertex2(0.5, 0.5), Vertex2(1.5, 0.5), Vertex2(1.5, 1.5)],
         segments: vec![(0, 1), (1, 2), (2, 0)],
         poi: vec![0, 1, 2],
