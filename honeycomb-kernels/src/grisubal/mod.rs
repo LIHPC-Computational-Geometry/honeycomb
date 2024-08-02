@@ -72,10 +72,17 @@ use vtkio::Vtk;
 
 #[derive(Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
+///
+/// Each variant has an associated message that details more precisely what was detected.
 pub enum GrisubalError {
-    /// An orientation issue has been detected in the input geometry; The associated message details more precisely
-    /// what was detected.
+    /// An orientation issue has been detected in the input geometry.
     InconsistentOrientation(String),
+    /// The specified geometry does not match one (or more) requirements of the algorithm.
+    InvalidInput(String),
+    /// The VTK file used to try to build a `Geometry2` object contains invalid data (per VTK's format).
+    BadVtkData(String),
+    /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
+    UnsupportedVtkData(String),
 }
 
 /// Main algorithm call function.
