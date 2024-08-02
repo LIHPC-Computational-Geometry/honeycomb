@@ -33,8 +33,8 @@ pub use grisubal::{grisubal, model::Clip, GrisubalError};
 // --- INTERNALS
 
 #[allow(unused)]
-pub(crate) use grisubal::grid::{BBox2, GridCellId};
+pub(crate) use grisubal::grid::GridCellId;
 #[allow(unused)]
 pub(crate) use grisubal::model::{
-    remove_redundant_poi, Geometry2, GeometryVertex, IsBoundary, MapEdge,
+    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex, MapEdge,
 };

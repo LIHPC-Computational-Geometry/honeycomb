@@ -7,7 +7,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if let Some(path) = args.get(1) {
-        let map = grisubal::<f64>(path, (1., 1.), None);
+        let map = grisubal::<f64>(path, [1., 1.], None);
 
         let render_params = RenderParameters {
             smaa_mode: SmaaMode::Smaa1X,

@@ -9,9 +9,10 @@
 use std::collections::HashSet;
 
 use crate::{BBox2, GrisubalError};
+
 use honeycomb_core::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
-    Vertex2, VertexIdentifier,
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
+    OrbitPolicy, Vertex2, VertexIdentifier,
 };
 use num::Zero;
 use vtkio::{
@@ -58,31 +59,6 @@ pub struct Geometry2<T: CoordsFloat> {
     pub segments: Vec<(usize, usize)>,
     /// Points of interest, i.e. points to insert unconditionally in the future map / mesh.
     pub poi: Vec<usize>,
-}
-
-impl<T: CoordsFloat> Geometry2<T> {
-    /// Return the bounding box of the geometry.
-    pub fn bbox(&self) -> BBox2<T> {
-        assert!(
-            self.vertices.first().is_some(),
-            "E: specified geometry does not contain any vertex"
-        );
-        let mut bbox = BBox2 {
-            min_x: self.vertices[0].x(),
-            max_x: self.vertices[0].x(),
-            min_y: self.vertices[0].y(),
-            max_y: self.vertices[0].y(),
-        };
-
-        self.vertices.iter().for_each(|v| {
-            bbox.min_x = bbox.min_x.min(v.x());
-            bbox.max_x = bbox.max_x.max(v.x()); // may not be optimal
-            bbox.min_y = bbox.min_y.min(v.y()); // don't care
-            bbox.max_y = bbox.max_y.max(v.y());
-        });
-
-        bbox
-    }
 }
 
 macro_rules! build_vertices {
@@ -234,12 +210,52 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
     }
 
     Ok(())
+
+pub fn compute_overlapping_grid<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+    [len_cell_x, len_cell_y]: [T; 2],
+    allow_origin_offset: bool,
+) -> ([usize; 2], Option<Vertex2<T>>) {
+    // compute the minimum bounding box
+    let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
+        let tmp = geometry
+            .vertices
+            .first()
+            .expect("E: specified geometry does not contain any vertex");
+        (tmp.x(), tmp.x(), tmp.y(), tmp.y())
+    };
+
+    geometry.vertices.iter().for_each(|v| {
+        min_x = min_x.min(v.x());
+        max_x = max_x.max(v.x()); // may not be optimal
+        min_y = min_y.min(v.y()); // don't care
+        max_y = max_y.max(v.y());
+    });
+
+    // compute characteristics of the overlapping Cartesian grid
+    if allow_origin_offset {
+        todo!()
+    } else {
+        assert!(
+            min_x > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(
+            min_y > T::zero(),
+            "E: the geometry should be entirely defined in positive Xs/Ys"
+        );
+        assert!(max_x > min_x);
+        assert!(max_y > min_y);
+        let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
+        let n_cells_y = (max_y / len_cell_y).ceil().to_usize().unwrap() + 1;
+        ([n_cells_x, n_cells_y], None)
+    }
 }
 
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
 ///
 /// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
-pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, (cx, cy): (T, T)) {
+pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) {
     // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
     // at their coordinates, so the shape will be captured via intersection anyway
     geometry.poi.retain(|idx| {
@@ -272,28 +288,53 @@ pub struct MapEdge<T: CoordsFloat> {
     pub end: DartIdentifier,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct IsBoundary(bool);
+/// Boundary-modeling enum.
+///
+/// This enum is used as an attribute (bound to single darts) to describe:
+///
+/// 1. if a dart is part of the captured geometry's boundary (`Left`/`Right` vs `None`)
+/// 2. if it is, which side of the boundary it belongs to (`Left` vs `Right`)
+///
+/// The following image shows an oriented boundary (red), along with darts modeling its left side (purple),
+/// right side (blue), and darts that do not model the boundary (black).
+///
+/// ![`DART_SIDES`](https://lihpc-computational-geometry.github.io/honeycomb/images/grisubal/left_right_darts.svg)
+///
+/// The attribute is set during the capture of the geometry so that it can be used at the (optional) clipping step.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Boundary {
+    /// Dart model the left side of the oriented boundary.
+    Left,
+    /// Dart model the right side of the oriented boundary.
+    Right,
+    /// Dart is not part of the boundary.
+    None,
+}
 
-impl AttributeUpdate for IsBoundary {
+impl AttributeUpdate for Boundary {
     fn merge(attr1: Self, attr2: Self) -> Self {
-        // if we fuse two vertices and at least one is part of the boundary,
-        // the resulting one should be part of the boundary to prevent a missing link in the chain
-        IsBoundary(attr1.0 || attr2.0)
+        if attr1 == attr2 {
+            attr1
+        } else {
+            Boundary::None
+        }
     }
 
     fn split(attr: Self) -> (Self, Self) {
-        // if we split a vertex in two, both resulting vertices should hold the same property
-        (attr, attr)
+        unreachable!()
+    }
+
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap_or(Boundary::None)
     }
 }
 
-impl AttributeBind for IsBoundary {
+impl AttributeBind for Boundary {
     fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Vertex
+        OrbitPolicy::Custom(&[])
     }
 
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = DartIdentifier;
 
     type StorageType = AttrSparseVec<Self>;
 }

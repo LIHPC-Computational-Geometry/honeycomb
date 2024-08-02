@@ -12,10 +12,13 @@ use std::{
     process::id,
 };
 
-use crate::{remove_redundant_poi, Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
+use crate::{
+    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex,
+    GridCellId, MapEdge,
+};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, VertexIdentifier,
-    NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
+    VertexIdentifier, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -71,21 +74,19 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(
-    geometry: &mut Geometry2<T>,
-    grid_cell_sizes: (T, T),
-) -> CMap2<T> {
-    // build the overlapping grid we'll modify
-    let bbox = geometry.bbox();
-    let (cx, cy) = grid_cell_sizes; // will need later
-    let (nx, ny) = (
-        (bbox.max_x / cx).ceil().to_usize().unwrap() + 1,
-        (bbox.max_y / cy).ceil().to_usize().unwrap() + 1,
-    );
-    let ogrid = bbox.overlapping_grid(grid_cell_sizes);
+pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) -> CMap2<T> {
+    // compute grid characteristics
+    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false);
+    // build grid descriptor
+    let ogrid = GridDescriptor::default()
+        .n_cells_x(nx)
+        .n_cells_y(ny)
+        .len_per_cell_x(cx)
+        .len_per_cell_y(cy);
+    // build initial map
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
-        //.add_attribute::<IsBoundary>() // will be used for clipping
+        .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: could not build overlapping grid map");
 
@@ -93,7 +94,7 @@ pub fn build_mesh<T: CoordsFloat>(
 
     // preparations
 
-    remove_redundant_poi(geometry, (cx, cy));
+    remove_redundant_poi(geometry, [cx, cy]);
 
     // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 
@@ -103,7 +104,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, geometry, (nx, ny), (cx, cy));
+        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy]);
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -138,11 +139,11 @@ pub fn build_mesh<T: CoordsFloat>(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss
 )]
-fn generate_intersection_data<T: CoordsFloat>(
+pub(super) fn generate_intersection_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
-    (nx, ny): (usize, usize),
-    (cx, cy): (T, T),
+    [nx, ny]: [usize; 2],
+    [cx, cy]: [T; 2],
 ) -> (
     HashMap<GeometryVertex, GeometryVertex>,
     Vec<(DartIdentifier, T)>,
@@ -418,7 +419,7 @@ fn generate_intersection_data<T: CoordsFloat>(
     (new_segments, intersection_metadata)
 }
 
-fn insert_intersections<T: CoordsFloat>(
+pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     mut intersection_metadata: Vec<(DartIdentifier, T)>,
 ) -> Vec<DartIdentifier> {
@@ -474,7 +475,7 @@ fn insert_intersections<T: CoordsFloat>(
     res
 }
 
-fn generate_edge_data<T: CoordsFloat>(
+pub(super) fn generate_edge_data<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
@@ -539,7 +540,7 @@ fn generate_edge_data<T: CoordsFloat>(
         .collect()
 }
 
-fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
+pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     for MapEdge {
         start,
         intermediates,
@@ -574,6 +575,13 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]
                     let vid = cmap.vertex_id(*dart_id);
                     cmap.replace_vertex(vid, *v);
                 });
+        }
+
+        let mut d_boundary = cmap.beta::<1>(*start);
+        while d_boundary != *end {
+            cmap.set_attribute::<Boundary>(d_boundary, Boundary::Left);
+            cmap.set_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
+            d_boundary = cmap.beta::<1>(d_boundary);
         }
     }
 }

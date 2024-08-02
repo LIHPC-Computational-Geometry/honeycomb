@@ -110,12 +110,12 @@ pub enum GrisubalError {
 /// # fn main() {
 /// use honeycomb_core::CMap2;
 /// use honeycomb_kernels::{Clip, grisubal};
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", (1., 1.), Some(Clip::Left));
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left));
 /// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
-    grid_cell_sizes: (T, T),
+    grid_cell_sizes: [T; 2],
     clip: Option<Clip>,
 ) -> CMap2<T> {
     // load geometry from file
