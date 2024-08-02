@@ -12,14 +12,12 @@ use std::{
 };
 
 use crate::{
-    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex,
-    GridCellId, MapEdge,
+    compute_overlapping_grid, Boundary, Geometry2, GeometryVertex, GridCellId, GrisubalError,
+    MapEdge,
 };
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
 };
-
-use super::GrisubalError;
 
 // ------ CONTENT
 
@@ -94,10 +92,6 @@ pub fn build_mesh<T: CoordsFloat>(
         .expect("E: could not build overlapping grid map");
 
     // process the geometry
-
-    // preparations
-
-    remove_redundant_poi(geometry, [cx, cy]);
 
     // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 

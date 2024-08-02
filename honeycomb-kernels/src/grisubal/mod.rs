@@ -63,9 +63,8 @@ pub(crate) mod model;
 
 // ------ IMPORTS
 
-use crate::{Clip, Geometry2};
+use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
-use model::detect_orientation_issue;
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -137,9 +136,12 @@ pub fn grisubal<T: CoordsFloat>(
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
+
     // pre-processing
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
     detect_orientation_issue(&geometry)?;
+    remove_redundant_poi(&mut geometry, grid_cell_sizes);
+
     // build the map
     #[allow(unused)]
     let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
