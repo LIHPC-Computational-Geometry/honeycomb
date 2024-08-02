@@ -8,7 +8,7 @@
 
 use std::collections::HashSet;
 
-use crate::{BBox2, GrisubalError};
+use crate::GrisubalError;
 
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
@@ -210,6 +210,7 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
     }
 
     Ok(())
+}
 
 pub fn compute_overlapping_grid<T: CoordsFloat>(
     geometry: &Geometry2<T>,
