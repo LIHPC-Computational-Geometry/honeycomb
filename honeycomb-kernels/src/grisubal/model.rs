@@ -244,8 +244,8 @@ pub struct MapEdge<T: CoordsFloat> {
 /// 1. if a dart is part of the captured geometry's boundary (`Left`/`Right` vs `None`)
 /// 2. if it is, which side of the boundary it belongs to (`Left` vs `Right`)
 ///
-/// The following image show an oriented boundary (red), along with darts modeling its left side (purple),
-/// right side (blue), and dart thta do not model the boundary (black).
+/// The following image shows an oriented boundary (red), along with darts modeling its left side (purple),
+/// right side (blue), and darts that do not model the boundary (black).
 ///
 /// ![`DART_SIDES`](https://lihpc-computational-geometry.github.io/honeycomb/images/grisubal/left_right_darts.svg)
 ///
