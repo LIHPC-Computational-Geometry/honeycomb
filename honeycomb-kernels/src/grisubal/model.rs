@@ -7,8 +7,8 @@
 // ------ IMPORTS
 
 use honeycomb_core::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
-    Vertex2, VertexIdentifier,
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
+    OrbitPolicy, Vertex2, VertexIdentifier,
 };
 use num::Zero;
 use vtkio::{
@@ -252,28 +252,53 @@ pub struct MapEdge<T: CoordsFloat> {
     pub end: DartIdentifier,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct IsBoundary(bool);
+/// Boundary-modeling enum.
+///
+/// This enum is used as an attribute (bound to single darts) to describe:
+///
+/// 1. if a dart is part of the captured geometry's boundary (`Left`/`Right` vs `None`)
+/// 2. if it is, which side of the boundary it belongs to (`Left` vs `Right`)
+///
+/// The following image shows an oriented boundary (red), along with darts modeling its left side (purple),
+/// right side (blue), and darts that do not model the boundary (black).
+///
+/// ![`DART_SIDES`](https://lihpc-computational-geometry.github.io/honeycomb/images/grisubal/left_right_darts.svg)
+///
+/// The attribute is set during the capture of the geometry so that it can be used at the (optional) clipping step.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Boundary {
+    /// Dart model the left side of the oriented boundary.
+    Left,
+    /// Dart model the right side of the oriented boundary.
+    Right,
+    /// Dart is not part of the boundary.
+    None,
+}
 
-impl AttributeUpdate for IsBoundary {
+impl AttributeUpdate for Boundary {
     fn merge(attr1: Self, attr2: Self) -> Self {
-        // if we fuse two vertices and at least one is part of the boundary,
-        // the resulting one should be part of the boundary to prevent a missing link in the chain
-        IsBoundary(attr1.0 || attr2.0)
+        if attr1 == attr2 {
+            attr1
+        } else {
+            Boundary::None
+        }
     }
 
     fn split(attr: Self) -> (Self, Self) {
-        // if we split a vertex in two, both resulting vertices should hold the same property
-        (attr, attr)
+        unreachable!()
+    }
+
+    fn merge_undefined(attr: Option<Self>) -> Self {
+        attr.unwrap_or(Boundary::None)
     }
 }
 
-impl AttributeBind for IsBoundary {
+impl AttributeBind for Boundary {
     fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Vertex
+        OrbitPolicy::Custom(&[])
     }
 
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = DartIdentifier;
 
     type StorageType = AttrSparseVec<Self>;
 }
