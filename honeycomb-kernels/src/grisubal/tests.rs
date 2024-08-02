@@ -7,7 +7,7 @@ use crate::{
     grisubal::kernel::{
         generate_edge_data, generate_intersection_data, insert_edges_in_map, insert_intersections,
     },
-    Geometry2, GeometryVertex, MapEdge,
+    Boundary, Geometry2, GeometryVertex, MapEdge,
 };
 
 // ------ CONTENT
@@ -123,6 +123,7 @@ fn regular_intersections() {
             .len_per_cell([1.0; 3])
             .n_cells([2; 3]),
     )
+    .add_attribute::<Boundary>()
     .build()
     .unwrap();
 
@@ -264,6 +265,7 @@ fn corner_intersection() {
             .len_per_cell([1.0; 3])
             .n_cells([2; 3]),
     )
+    .add_attribute::<Boundary>()
     .build()
     .unwrap();
 

@@ -6,6 +6,10 @@
 
 // ------ IMPORTS
 
+use std::collections::HashSet;
+
+use crate::GrisubalError;
+
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
     OrbitPolicy, Vertex2, VertexIdentifier,
@@ -173,6 +177,39 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
             }
         }
     }
+}
+
+/// Check for orientation issue **per boundary**.
+///
+/// This function check for the most obvious orientation issue; given a boundary, are all segments making it up
+/// oriented consistently. If it is not the case, then there is at least one of:
+///
+/// - a vertex being the origin of two segment
+/// - a vertex being the end-point of two segment
+///
+/// This does not cover consistent orientation across distinct boundaries (e.g. a geometry with a hole in it).
+pub fn detect_orientation_issue<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+) -> Result<(), GrisubalError> {
+    let mut origins = HashSet::new();
+    let mut endpoints = HashSet::new();
+
+    for (orig, endp) in &geometry.segments {
+        if !origins.insert(orig) {
+            return Err(GrisubalError::InconsistentOrientation(format!(
+                "two segments have the same vertex as their respective origin: vertex #{}",
+                *orig
+            )));
+        }
+        if !endpoints.insert(endp) {
+            return Err(GrisubalError::InconsistentOrientation(format!(
+                "two segments have the same vertex as their respective end-point: vertex #{}",
+                *endp
+            )));
+        }
+    }
+
+    Ok(())
 }
 
 pub fn compute_overlapping_grid<T: CoordsFloat>(

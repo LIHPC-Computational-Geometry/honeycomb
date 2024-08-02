@@ -69,6 +69,13 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
+/// Enum used to model potential errors of the `grisubal` kernel.
+pub enum GrisubalError {
+    /// An orientation issue has been detected in the input geometry; The associated message details more precisely
+    /// what was detected.
+    InconsistentOrientation(String),
+}
+
 /// Main algorithm call function.
 ///
 /// # Arguments
