@@ -11,8 +11,8 @@ use std::collections::HashSet;
 use crate::GrisubalError;
 
 use honeycomb_core::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, EdgeIdentifier,
-    OrbitPolicy, Vertex2, VertexIdentifier,
+    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
+    Vertex2,
 };
 use num::Zero;
 use vtkio::{
@@ -40,13 +40,6 @@ pub enum Clip {
     /// Keep all elements. Default value.
     #[default]
     None,
-}
-
-/// Build a [Geometry2] object from a VTK file.
-pub fn load_geometry<T: CoordsFloat>(
-    file_path: impl AsRef<std::path::Path> + std::fmt::Debug,
-) -> Geometry2<T> {
-    todo!()
 }
 
 /// Geometry representation structure.
@@ -321,7 +314,7 @@ impl AttributeUpdate for Boundary {
         }
     }
 
-    fn split(attr: Self) -> (Self, Self) {
+    fn split(_attr: Self) -> (Self, Self) {
         unreachable!()
     }
 

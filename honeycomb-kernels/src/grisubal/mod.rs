@@ -126,6 +126,7 @@ pub fn grisubal<T: CoordsFloat>(
     // pre-processing
     let mut geometry = Geometry2::from(geometry_vtk);
     // build the map
+    #[allow(unused)]
     let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
     // optional post-processing
     match clip.unwrap_or_default() {

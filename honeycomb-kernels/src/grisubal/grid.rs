@@ -4,8 +4,6 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::{CoordsFloat, GridDescriptor};
-
 // ------ CONTENT
 
 /// Structure used to index the overlapping grid's cases.
