@@ -237,10 +237,26 @@ pub struct MapEdge<T: CoordsFloat> {
     pub end: DartIdentifier,
 }
 
+/// Boundary-modeling enum.
+///
+/// This enum is used as an attribute (bound to single darts) to describe:
+///
+/// 1. if a dart is part of the captured geometry's boundary (`Left`/`Right` vs `None`)
+/// 2. if it is, which side of the boundary it belongs to (`Left` vs `Right`)
+///
+/// The following image show an oriented boundary (red), along with darts modeling its left side (purple),
+/// right side (blue), and dart thta do not model the boundary (black).
+///
+/// ![`DART_SIDES`](https://lihpc-computational-geometry.github.io/honeycomb/images/grisubal/left_right_darts.svg)
+///
+/// The attribute is set during the capture of the geometry so that it can be used at the (optional) clipping step.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Boundary {
+    /// Dart model the left side of the oriented boundary.
     Left,
+    /// Dart model the right side of the oriented boundary.
     Right,
+    /// Dart is not part of the boundary.
     None,
 }
 
