@@ -40,7 +40,7 @@ rustversion = "1.0.15"
 downcast-rs = "1.2.1"
 dyn-clone = "1.0.17"
 num = "0.4.2"
-vtkio = { version = "0.6.3" }
+vtkio = { version = "0.7.0-rc1", default-features = false }
 
 # benchmarks
 criterion = "0.5.1"
