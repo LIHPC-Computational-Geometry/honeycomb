@@ -33,7 +33,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     pub fn to_vtk_binary(&self, writer: impl std::io::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {
-            version: Version { major: 2, minor: 0 },
+            version: Version::Legacy { major: 2, minor: 0 },
             title: "cmap".to_string(),
             byte_order: ByteOrder::BigEndian,
             data: DataSet::UnstructuredGrid {
@@ -59,7 +59,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     pub fn to_vtk_ascii(&self, writer: impl std::fmt::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {
-            version: Version { major: 2, minor: 0 },
+            version: Version::Legacy { major: 2, minor: 0 },
             title: "cmap".to_string(),
             byte_order: ByteOrder::BigEndian,
             data: DataSet::UnstructuredGrid {
