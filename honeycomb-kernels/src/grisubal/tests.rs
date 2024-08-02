@@ -75,7 +75,7 @@ fn build_valid_geometry() {
     // parse vtk
     let vtk = Vtk::parse_legacy_be(VTK_ASCII).unwrap();
     // build geometry
-    let geometry: Geometry2<f32> = Geometry2::from(vtk);
+    let geometry: Geometry2<f32> = Geometry2::try_from(vtk).unwrap();
     // check results; we're expecting:
     // - 9 vertices
     // - 8 segments making up the boundaries

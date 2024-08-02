@@ -63,21 +63,28 @@ pub(crate) mod model;
 
 // ------ IMPORTS
 
-use crate::{Clip, Geometry2};
+use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
-use model::detect_orientation_issue;
 use vtkio::Vtk;
 
 // ------ CONTENT
 
 #[derive(Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
+///
+/// Each variant has an associated message that details more precisely what was detected.
 pub enum GrisubalError {
-    /// An orientation issue has been detected in the input geometry; The associated message details more precisely
-    /// what was detected.
+    /// An orientation issue has been detected in the input geometry.
     InconsistentOrientation(String),
+    /// The specified geometry does not match one (or more) requirements of the algorithm.
+    InvalidInput(String),
+    /// The VTK file used to try to build a `Geometry2` object contains invalid data (per VTK's format).
+    BadVtkData(&'static str),
+    /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
+    UnsupportedVtkData(&'static str),
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Main algorithm call function.
 ///
 /// # Arguments
@@ -99,6 +106,10 @@ pub enum GrisubalError {
 ///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
 ///   geometry to match while vertices will be considered as points of interests.
 ///
+/// # Return / Errors
+///
+/// TODO: complete
+///
 /// # Panics
 ///
 /// This function may panic if:
@@ -109,28 +120,32 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # fn main() {
-/// use honeycomb_core::CMap2;
-/// use honeycomb_kernels::{Clip, grisubal};
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left));
+/// # use honeycomb_core::CMap2;
+/// # use honeycomb_kernels::{grisubal, Clip, GrisubalError};
+/// # fn main() -> Result<(), GrisubalError>{
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left))?;
+/// # Ok(())
 /// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
     clip: Option<Clip>,
-) -> CMap2<T> {
+) -> Result<CMap2<T>, GrisubalError> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
+
     // pre-processing
-    let mut geometry = Geometry2::from(geometry_vtk);
-    detect_orientation_issue(&geometry).unwrap();
+    let mut geometry = Geometry2::try_from(geometry_vtk)?;
+    detect_orientation_issue(&geometry)?;
+    remove_redundant_poi(&mut geometry, grid_cell_sizes);
+
     // build the map
     #[allow(unused)]
-    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
+    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
     // optional post-processing
     match clip.unwrap_or_default() {
         Clip::All => {
@@ -145,7 +160,7 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::None => {}
     }
     // return result
-    cmap
+    Ok(cmap)
 }
 
 // ------ TESTS
