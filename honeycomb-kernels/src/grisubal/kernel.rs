@@ -12,9 +12,10 @@ use std::{
     process::id,
 };
 
-
-
-use crate::{compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
+use crate::{
+    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex,
+    GridCellId, MapEdge,
+};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     VertexIdentifier, NULL_DART_ID,
