@@ -147,7 +147,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                                     None
                                 }
                                 CellType::PolyVertex =>
-                                    Some(GrisubalError::BadVtkData("`PolyVertex` cell type is not supported, use `Vertex`s instead")),
+                                    Some(GrisubalError::UnsupportedVtkData("`PolyVertex` cell type is not supported, use `Vertex`s instead")),
                                 CellType::Line => {
                                     if vids.len() != 2 {
                                         return Some(GrisubalError::BadVtkData("`Line` cell has incorrect # of vertices (!=2)"));
