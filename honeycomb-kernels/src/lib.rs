@@ -28,7 +28,7 @@ pub mod grisubal;
 
 // --- PUBLIC API
 
-pub use grisubal::{grisubal, model::Clip};
+pub use grisubal::{grisubal, model::Clip, GrisubalError};
 
 // --- INTERNALS
 

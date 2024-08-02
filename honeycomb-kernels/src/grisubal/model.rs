@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use crate::BBox2;
+use crate::{BBox2, GrisubalError};
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
     Vertex2, VertexIdentifier,
@@ -199,6 +199,21 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
             }
         }
     }
+}
+
+/// Check for orientation issue **per boundary**.
+///
+/// This function check for the most obvious orientation issue; given a boundary, are all segments making it up
+/// oriented consistently. If it is not the case, then there is at least one of:
+///
+/// - a vertex being the origin of two segment
+/// - a vertex being the end-point of two segment
+///
+/// This does not cover consistent orientation across distinct boundaries (e.g. a geometry with a hole in it).
+pub fn detect_orientation_issue<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+) -> Result<(), GrisubalError> {
+    todo!()
 }
 
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
