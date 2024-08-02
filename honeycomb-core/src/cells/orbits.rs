@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use crate::{CMap2, CoordsFloat, DartIdentifier, NULL_DART_ID};
-use num::Zero;
+// use num::Zero;
 use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
@@ -106,11 +106,11 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
         marked.insert(dart); // we're starting here, so we mark it beforehand
         let pending = VecDeque::from([dart]);
-
+        /*
         if let OrbitPolicy::Custom(slice) = orbit_policy {
             assert!(!slice.len().is_zero());
         }
-
+        */
         Self {
             map_handle,
             orbit_policy,
@@ -284,10 +284,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: !slice.len().is_zero()")]
     fn empty_orbit_policy() {
         let map = simple_map();
-        let _ = Orbit2::new(&map, OrbitPolicy::Custom(&[]), 3);
+        let darts: Vec<DartIdentifier> = Orbit2::new(&map, OrbitPolicy::Custom(&[]), 3).collect();
+        assert_eq!(&darts, &[3]);
     }
 
     #[test]

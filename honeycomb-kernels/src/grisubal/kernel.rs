@@ -12,7 +12,7 @@ use std::{
     process::id,
 };
 
-use crate::{remove_redundant_poi, Geometry2, GeometryVertex, GridCellId, IsBoundary, MapEdge};
+use crate::{remove_redundant_poi, Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, VertexIdentifier,
     NULL_DART_ID,
@@ -85,7 +85,7 @@ pub fn build_mesh<T: CoordsFloat>(
     let ogrid = bbox.overlapping_grid(grid_cell_sizes);
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
-        //.add_attribute::<IsBoundary>() // will be used for clipping
+        .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: could not build overlapping grid map");
 
@@ -574,6 +574,13 @@ fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]
                     let vid = cmap.vertex_id(*dart_id);
                     cmap.replace_vertex(vid, *v);
                 });
+        }
+
+        let mut d_boundary = cmap.beta::<1>(*start);
+        while d_boundary != *end {
+            cmap.set_attribute::<Boundary>(d_boundary, Boundary::Left);
+            cmap.set_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
+            d_boundary = cmap.beta::<1>(d_boundary);
         }
     }
 }
