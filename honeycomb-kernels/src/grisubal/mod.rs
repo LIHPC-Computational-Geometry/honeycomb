@@ -126,7 +126,7 @@ pub fn grisubal<T: CoordsFloat>(
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
     // pre-processing
-    let mut geometry = Geometry2::from(geometry_vtk);
+    let mut geometry = Geometry2::try_from(geometry_vtk).unwrap();
     detect_orientation_issue(&geometry).unwrap();
     // build the map
     #[allow(unused)]

@@ -71,8 +71,10 @@ macro_rules! build_vertices {
 }
 
 /// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
-impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
-    fn from(value: Vtk) -> Self {
+impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
+    type Error = GrisubalError;
+
+    fn try_from(value: Vtk) -> Result<Self, Self::Error> {
         // What we are reading / how we construct the geometry:
         // The input VTK file should describe boundaries (e.g. edges in 2D) & key vertices (e.g. sharp corners)
         // Those should be described by using simple
@@ -162,11 +164,11 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                     poi.append(&mut points);
                 });
 
-                Geometry2 {
+                Ok(Geometry2 {
                     vertices,
                     segments,
                     poi,
-                }
+                })
             }
         }
     }
