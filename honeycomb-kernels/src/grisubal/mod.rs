@@ -65,10 +65,12 @@ pub(crate) mod model;
 
 use crate::{Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
+use model::detect_orientation_issue;
 use vtkio::Vtk;
 
 // ------ CONTENT
 
+#[derive(Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
 pub enum GrisubalError {
     /// An orientation issue has been detected in the input geometry; The associated message details more precisely
@@ -125,6 +127,7 @@ pub fn grisubal<T: CoordsFloat>(
     };
     // pre-processing
     let mut geometry = Geometry2::from(geometry_vtk);
+    detect_orientation_issue(&geometry).unwrap();
     // build the map
     #[allow(unused)]
     let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
