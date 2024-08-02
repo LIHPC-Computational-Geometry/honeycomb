@@ -80,9 +80,9 @@ pub enum GrisubalError {
     /// The specified geometry does not match one (or more) requirements of the algorithm.
     InvalidInput(String),
     /// The VTK file used to try to build a `Geometry2` object contains invalid data (per VTK's format).
-    BadVtkData(String),
+    BadVtkData(&'static str),
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
-    UnsupportedVtkData(String),
+    UnsupportedVtkData(&'static str),
 }
 
 /// Main algorithm call function.
@@ -152,7 +152,7 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::None => {}
     }
     // return result
-    cmap
+    cmap.unwrap()
 }
 
 // ------ TESTS

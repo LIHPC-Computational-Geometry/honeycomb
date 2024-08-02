@@ -19,6 +19,8 @@ use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
 };
 
+use super::GrisubalError;
+
 // ------ CONTENT
 
 macro_rules! make_geometry_vertex {
@@ -72,9 +74,12 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    [cx, cy]: [T; 2],
+) -> Result<CMap2<T>, GrisubalError> {
     // compute grid characteristics
-    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false);
+    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false)?;
     // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
@@ -126,7 +131,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2])
     insert_edges_in_map(&mut cmap, &edges);
 
     // return result
-    cmap
+    Ok(cmap)
 }
 
 // --- main kernels steps
