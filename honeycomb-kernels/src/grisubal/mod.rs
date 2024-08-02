@@ -69,6 +69,10 @@ use vtkio::Vtk;
 
 // ------ CONTENT
 
+pub enum GrisubalError {
+    InconsistentOrientation(&'static str),
+}
+
 /// Main algorithm call function.
 ///
 /// # Arguments
