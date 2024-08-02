@@ -220,14 +220,16 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
 
     for (orig, endp) in &geometry.segments {
         if !origins.insert(orig) {
-            return Err(GrisubalError::InconsistentOrientation(
-                "two segments have the same vertex as their respective origin",
-            ));
+            return Err(GrisubalError::InconsistentOrientation(format!(
+                "two segments have the same vertex as their respective origin: vertex #{}",
+                *orig
+            )));
         }
         if !endpoints.insert(endp) {
-            return Err(GrisubalError::InconsistentOrientation(
-                "two segments have the same vertex as their respective endpoint",
-            ));
+            return Err(GrisubalError::InconsistentOrientation(format!(
+                "two segments have the same vertex as their respective end-point: vertex #{}",
+                *endp
+            )));
         }
     }
 

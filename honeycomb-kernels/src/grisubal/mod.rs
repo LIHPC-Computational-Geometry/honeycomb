@@ -73,7 +73,7 @@ use vtkio::Vtk;
 pub enum GrisubalError {
     /// An orientation issue has been detected in the input geometry; The associated message details more precisely
     /// what was detected.
-    InconsistentOrientation(&'static str),
+    InconsistentOrientation(String),
 }
 
 /// Main algorithm call function.
