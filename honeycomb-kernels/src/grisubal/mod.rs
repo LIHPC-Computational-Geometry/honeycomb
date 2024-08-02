@@ -85,6 +85,7 @@ pub enum GrisubalError {
     UnsupportedVtkData(&'static str),
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Main algorithm call function.
 ///
 /// # Arguments
@@ -106,6 +107,10 @@ pub enum GrisubalError {
 ///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
 ///   geometry to match while vertices will be considered as points of interests.
 ///
+/// # Return / Errors
+///
+/// TODO: complete
+///
 /// # Panics
 ///
 /// This function may panic if:
@@ -126,18 +131,18 @@ pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
     clip: Option<Clip>,
-) -> CMap2<T> {
+) -> Result<CMap2<T>, GrisubalError> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
     // pre-processing
-    let mut geometry = Geometry2::try_from(geometry_vtk).unwrap();
-    detect_orientation_issue(&geometry).unwrap();
+    let mut geometry = Geometry2::try_from(geometry_vtk)?;
+    detect_orientation_issue(&geometry)?;
     // build the map
     #[allow(unused)]
-    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
+    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
     // optional post-processing
     match clip.unwrap_or_default() {
         Clip::All => {
@@ -152,7 +157,7 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::None => {}
     }
     // return result
-    cmap.unwrap()
+    Ok(cmap)
 }
 
 // ------ TESTS
