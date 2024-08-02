@@ -6,6 +6,8 @@
 
 // ------ IMPORTS
 
+use std::collections::HashSet;
+
 use crate::{BBox2, GrisubalError};
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
@@ -213,7 +215,19 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
 pub fn detect_orientation_issue<T: CoordsFloat>(
     geometry: &Geometry2<T>,
 ) -> Result<(), GrisubalError> {
-    todo!()
+    let mut origins = HashSet::new();
+    let mut endpoints = HashSet::new();
+
+    for (orig, endp) in &geometry.segments {
+        if !origins.insert(orig) {
+            return Err(GrisubalError::InconsistentOrientation("TODO: complete"));
+        }
+        if !endpoints.insert(endp) {
+            return Err(GrisubalError::InconsistentOrientation("TODO: complete"));
+        }
+    }
+
+    Ok(())
 }
 
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
