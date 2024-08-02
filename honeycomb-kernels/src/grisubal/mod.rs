@@ -120,10 +120,11 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # fn main() {
-/// use honeycomb_core::CMap2;
-/// use honeycomb_kernels::{Clip, grisubal};
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left));
+/// # use honeycomb_core::CMap2;
+/// # use honeycomb_kernels::{grisubal, Clip, GrisubalError};
+/// # fn main() -> Result<(), GrisubalError>{
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left))?;
+/// # Ok(())
 /// # }
 /// ```
 pub fn grisubal<T: CoordsFloat>(
