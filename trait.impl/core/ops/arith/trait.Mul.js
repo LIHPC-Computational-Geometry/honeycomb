@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"honeycomb_core":[["impl&lt;T: <a class=\"trait\" href=\"honeycomb_core/trait.CoordsFloat.html\" title=\"trait honeycomb_core::CoordsFloat\">CoordsFloat</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/arith/trait.Mul.html\" title=\"trait core::ops::arith::Mul\">Mul</a>&lt;T&gt; for <a class=\"struct\" href=\"honeycomb_core/struct.Vector2.html\" title=\"struct honeycomb_core::Vector2\">Vector2</a>&lt;T&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

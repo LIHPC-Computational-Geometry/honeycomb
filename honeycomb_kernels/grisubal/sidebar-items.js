@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GrisubalError"],"fn":["grisubal"]};
