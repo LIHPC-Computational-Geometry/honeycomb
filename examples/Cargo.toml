@@ -41,9 +41,9 @@ path = "examples/memory_usage/compute.rs"
 
 # rendering
 
-# [[example]]
-# name = "render_default_no_aa"
-# path = "examples/render/default_no_aa.rs"
+[[example]]
+name = "render_default_no_aa"
+path = "examples/render/default_no_aa.rs"
 
 # [[example]]
 # name = "render_default_smaa1x"

@@ -49,6 +49,10 @@ rand = "0.9.0-alpha.2"
 
 # render
 bevy = "0.14.1"
+bevy_egui = "0.28.0"
+bevy_mod_picking = "0.20.1"
+bevy_mod_outline = "0.8.1"
+egui_dock = "0.13.0"
 
 [profile.bench]
 debug = true

@@ -25,9 +25,12 @@ mod gui;
 mod inspector;
 mod options;
 mod render;
-
 // ------ PUBLIC API
 
-pub mod prelude {}
+pub use app::App;
 
 // ------ PRIVATE RE-EXPORTS
+
+use gui::*;
+use options::{resource::*, tab::*, *};
+use render::{camera::*, ScenePlugin};
