@@ -19,6 +19,15 @@
 
 // ------ MODULE DECLARATIONS
 
-// ------ RE-EXPORTS
+mod app;
+mod capture;
+mod gui;
+mod inspector;
+mod options;
+mod render;
 
-// ------ CONTENT
+// ------ PUBLIC API
+
+pub mod prelude {}
+
+// ------ PRIVATE RE-EXPORTS

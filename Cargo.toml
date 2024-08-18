@@ -48,6 +48,7 @@ iai-callgrind = "0.12.0"
 rand = "0.9.0-alpha.2"
 
 # render
+bevy = "0.14.1"
 
 [profile.bench]
 debug = true

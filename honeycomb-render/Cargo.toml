@@ -14,3 +14,4 @@ publish = true
 
 [dependencies]
 honeycomb-core.workspace = true
+bevy = { workspace = true, default-features = false, features = ["bevy_ui"] }
