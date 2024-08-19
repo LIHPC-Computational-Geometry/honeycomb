@@ -24,32 +24,7 @@
 //!
 //! **Algorithm**:
 //!
-//! Let `S` be the set of all segments making up the boundaries of the geometry.
-//! Let `PoI` be the set of points of interests of the boundaries (i.e. vertices that must be inserted into the final mesh)
-//! Let `DoI` be the corresponding set of darts of interests
-//!
-//! For all segments `[A, B]` of `S`:
-//! - compute the Manhattan distance `d` between cell(A) and cell(B):
-//!     - if  `d == 0`: `A` and `B` belong to the same grid cell
-//!         - Do nothing
-//!     - if `d == 1`: `A` and `B` belong to neighbor cells
-//!         - Compute the intersection `C` between the segment and the grid's edge
-//!         - Split the grid's edge to add `C` on it, add relevant darts to `DoI`
-//!         - Replace segment `[A, B]` by segments `[A, C]`, `[C, B]`
-//!         - Add `C` to `PoI`
-//!     - if `d > 1`: `A` and `B` belong to different, non-neighbor cells
-//!         - Compute all intersections `Ci` between the segment and grid's edges
-//!         - Split grid's edges to add `Ci`s on them, add relevant darts to `DoI`
-//!         - Replace segment `[A, B]` by segments `[A, C1]`, `[C1, C2]`, ..., `[CX, B]`
-//!         - Add all `Ci`s to `PoI`
-//! - if `B` belongs to `PoI`:
-//!     - Insert `B` into the map
-//!     - Add relevant darts to `DoI`
-//!
-//! For all points `P` of `PoI`:
-//! - search `S` to find `P'`, the first "next" point to belong to `PoI`
-//! - use `DoI` to build the `[P, P']` segment into the map (this may need some refinement to avoid execution-path inconsistencies)
-//!
+//! TODO
 //!
 //! ## Post-processing clip
 //!
@@ -78,7 +53,8 @@ pub enum GrisubalError {
     InconsistentOrientation(String),
     /// The specified geometry does not match one (or more) requirements of the algorithm.
     InvalidInput(String),
-    /// The VTK file used to try to build a `Geometry2` object contains invalid data (per VTK's format).
+    /// The VTK file used to try to build a `Geometry2` object contains invalid data
+    /// (per VTK's specification).
     BadVtkData(&'static str),
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
     UnsupportedVtkData(&'static str),
