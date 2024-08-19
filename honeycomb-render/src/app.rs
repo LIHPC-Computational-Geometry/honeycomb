@@ -1,21 +1,25 @@
-use crate::GuiPlugin;
-use crate::OptionsPlugin;
-use crate::ScenePlugin;
+use crate::capture::Capture;
+use crate::{CaptureList, GuiPlugin, OptionsPlugin, ScenePlugin};
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
 use honeycomb_core::{CMap2, CoordsFloat};
 
 pub struct App {
     app: BevyApp,
+    capture_list: CaptureList,
 }
 
 impl App {
     pub fn add_capture<T: CoordsFloat>(&mut self, cmap: &CMap2<T>) {
-        todo!()
+        let mut capture = Capture::from(cmap);
+        capture.metadata.capture_id = self.capture_list.0.len();
+        self.capture_list.0.push(capture);
     }
 
-    pub fn run(&mut self) {
-        let _ = self.app.run();
+    pub fn run(mut self) {
+        self.app.insert_resource(self.capture_list);
+        // .add_systems(populate_entities.run_if(resource_added::<CaptureList>)); or smth
+        self.app.run();
     }
 }
 
@@ -29,6 +33,9 @@ impl Default for App {
             .add_plugins(OptionsPlugin)
             .add_plugins(GuiPlugin)
             .add_plugins(ScenePlugin);
-        Self { app }
+        Self {
+            app,
+            capture_list: CaptureList(Vec::new()),
+        }
     }
 }

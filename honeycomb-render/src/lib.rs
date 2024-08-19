@@ -31,6 +31,7 @@ pub use app::App;
 
 // ------ PRIVATE RE-EXPORTS
 
+use capture::{ecs_data::*, *};
 use gui::*;
 use options::{resource::*, tab::*, *};
 use render::{camera::*, ScenePlugin};

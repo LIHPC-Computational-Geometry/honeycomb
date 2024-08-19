@@ -1,13 +1,21 @@
-mod resource;
+pub mod ecs_data;
 
+use crate::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use honeycomb_core::{CMap2, CoordsFloat, FaceIdentifier};
 
+#[derive(Resource)]
+pub struct CaptureList(pub Vec<Capture>);
+
 pub struct Capture {
     pub metadata: CaptureMD,
-    pub vertices: Vec<Vec2>,
-    pub normals: HashMap<FaceIdentifier, Vec<Vec2>>,
+    pub vertex_vals: Vec<Vec3>,
+    pub normals: HashMap<FaceIdentifier, Vec<Vec3>>,
+    pub darts: Vec<(DartHeadBundle, DartBodyBundle)>,
+    pub vertices: Vec<VertexBundle>,
+    pub edges: Vec<EdgeBundle>,
+    pub faces: Vec<FaceBundle>,
 }
 
 impl<T: CoordsFloat> From<&CMap2<T>> for Capture {
