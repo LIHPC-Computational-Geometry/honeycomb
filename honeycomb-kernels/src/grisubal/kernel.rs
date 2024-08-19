@@ -12,8 +12,8 @@ use std::{
 };
 
 use crate::{
-    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex,
-    GridCellId, MapEdge,
+    compute_overlapping_grid, Boundary, Geometry2, GeometryVertex, GridCellId, GrisubalError,
+    MapEdge,
 };
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
@@ -72,9 +72,12 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    [cx, cy]: [T; 2],
+) -> Result<CMap2<T>, GrisubalError> {
     // compute grid characteristics
-    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false);
+    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false)?;
     // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
@@ -89,10 +92,6 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2])
         .expect("E: could not build overlapping grid map");
 
     // process the geometry
-
-    // preparations
-
-    remove_redundant_poi(geometry, [cx, cy]);
 
     // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 
@@ -126,7 +125,7 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2])
     insert_edges_in_map(&mut cmap, &edges);
 
     // return result
-    cmap
+    Ok(cmap)
 }
 
 // --- main kernels steps
