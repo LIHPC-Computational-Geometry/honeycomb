@@ -32,16 +32,18 @@
 
 // ------ MODULE DECLARATIONS
 
+pub(crate) mod clip;
 pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
 
 // ------ IMPORTS
 
+use crate::grisubal::clip::{clip_left, clip_right};
+use crate::grisubal::model::Boundary;
 use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
-
 // ------ CONTENT
 
 #[derive(Debug)]
@@ -99,14 +101,15 @@ pub enum GrisubalError {
 /// # use honeycomb_core::CMap2;
 /// # use honeycomb_kernels::{grisubal, Clip, GrisubalError};
 /// # fn main() -> Result<(), GrisubalError>{
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left))?;
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
 /// # Ok(())
 /// # }
 /// ```
+#[allow(clippy::needless_pass_by_value)]
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
-    clip: Option<Clip>,
+    clip: Clip,
 ) -> Result<CMap2<T>, GrisubalError> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
@@ -123,22 +126,18 @@ pub fn grisubal<T: CoordsFloat>(
     #[allow(unused)]
     let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
     // optional post-processing
-    match clip.unwrap_or_default() {
-        Clip::All => {
-            todo!()
-        }
-        Clip::Left => {
-            todo!()
-        }
-        Clip::Right => {
-            todo!()
-        }
+    match clip {
+        Clip::Left => clip_left(&mut cmap)?,
+        Clip::Right => clip_right(&mut cmap)?,
         Clip::None => {}
     }
-    // return result
+    // remove attribute used for clipping
+    cmap.remove_attribute_storage::<Boundary>();
+
     Ok(cmap)
 }
 
 // ------ TESTS
+
 #[cfg(test)]
 mod tests;
