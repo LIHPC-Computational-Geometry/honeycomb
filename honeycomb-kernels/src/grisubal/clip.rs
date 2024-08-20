@@ -8,9 +8,8 @@
 
 use crate::grisubal::model::Boundary;
 use crate::GrisubalError;
-use crate::GrisubalError::InconsistentOrientation;
 use honeycomb_core::{
-    CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, NULL_DART_ID,
+    CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};
 // ------ CONTENT
@@ -41,15 +40,16 @@ pub fn clip_left<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, Grisuba
                 .find(|did| matches!(cmap.get_attribute::<Boundary>(*did), Some(Boundary::Right)))
             {
                 // TODO: explain why it is an inconsistency
-                return Err(InconsistentOrientation(
+                return Err(GrisubalError::InconsistentOrientation(
                     format!("reached right side (dart #{rid}, face #{face_id}) without crossing the boundary")
                 ));
             }
-            // find neighbor faces where darts aren't tagged
+            // find neighbor faces where entry darts aren't tagged
+            let darts = Orbit2::new(&cmap, OrbitPolicy::Face, face_id as DartIdentifier);
             queue.extend(darts.filter_map(|dart_id| {
                 if matches!(
                     cmap.get_attribute::<Boundary>(cmap.beta::<2>(dart_id)),
-                    Some(Boundary::None)
+                    Some(Boundary::None) | None
                 ) {
                     return Some(cmap.face_id(cmap.beta::<2>(dart_id)));
                 }
@@ -57,15 +57,26 @@ pub fn clip_left<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, Grisuba
             }));
         }
     }
+    marked.remove(&0);
 
-    // split the boundary & nuke all darts of marked faces
+    // save vertices & split boundary
+    let right_boundary: Vec<(DartIdentifier, Vertex2<T>)> = (1..cmap.n_darts() as DartIdentifier)
+        .filter_map(|dart_id| {
+            if matches!(
+                cmap.get_attribute::<Boundary>(dart_id),
+                Some(Boundary::Right),
+            ) {
+                return Some((dart_id, cmap.vertex(cmap.vertex_id(dart_id)).unwrap()));
+            }
+            None
+        })
+        .collect();
+
     for &face_id in &marked {
         let darts: Vec<DartIdentifier> =
             Orbit2::new(&cmap, OrbitPolicy::Face, face_id as DartIdentifier).collect();
         for &dart in &darts {
-            if cmap.beta::<2>(dart) != NULL_DART_ID {
-                cmap.two_unsew(dart);
-            }
+            let _ = cmap.remove_vertex(cmap.vertex_id(dart));
         }
     }
 
@@ -77,15 +88,12 @@ pub fn clip_left<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, Grisuba
             cmap.remove_free_dart(dart);
         }
     }
-    (1..cmap.n_darts() as DartIdentifier).for_each(|dart_id| {
-        // use darts on the left side of the boundary as starting points to walk through faces
-        if matches!(
-            cmap.get_attribute::<Boundary>(dart_id),
-            Some(Boundary::Right),
-        ) {
-            println!("vertex: {:#?}", cmap.vertex(cmap.vertex_id(dart_id)))
-        }
-    });
+    for (dart, vertex) in right_boundary {
+        let b1 = cmap.beta::<1>(dart);
+        let b0 = cmap.beta::<0>(dart);
+        cmap.set_betas(dart, [b0, b1, NULL_DART_ID]); // set beta2(dart) to 0
+        cmap.insert_vertex(cmap.vertex_id(dart), vertex);
+    }
 
     Ok(cmap)
 }
