@@ -32,6 +32,7 @@
 
 // ------ MODULE DECLARATIONS
 
+pub(crate) mod clip;
 pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
@@ -39,6 +40,7 @@ pub(crate) mod model;
 // ------ IMPORTS
 
 use crate::grisubal::clip::{clip_left, clip_right};
+use crate::grisubal::model::Boundary;
 use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
@@ -125,13 +127,17 @@ pub fn grisubal<T: CoordsFloat>(
     let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
     // optional post-processing
     match clip {
-        Clip::Left => clip_left(cmap),
-        Clip::Right => clip_right(cmap),
-        Clip::None => Ok(cmap),
+        Clip::Left => clip_left(&mut cmap)?,
+        Clip::Right => clip_right(&mut cmap)?,
+        Clip::None => {}
     }
+    // remove attribute used for clipping
+    cmap.remove_attribute_storage::<Boundary>();
+
+    Ok(cmap)
 }
 
 // ------ TESTS
-mod clip;
+
 #[cfg(test)]
 mod tests;

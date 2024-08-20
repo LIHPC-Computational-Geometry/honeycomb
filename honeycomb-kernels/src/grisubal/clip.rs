@@ -1,8 +1,4 @@
-//! Module short description
-//!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
+//! clipping operation routines
 
 // ------ IMPORTS
 
@@ -12,26 +8,29 @@ use honeycomb_core::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};
+
 // ------ CONTENT
 
-pub fn clip_left<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, GrisubalError> {
+/// Clip content on the left side of the boundary.
+pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
     let marked = mark_faces(&cmap, Boundary::Left, Boundary::Right)?;
 
     // save vertices & split boundary
-    delete_darts(&mut cmap, marked, Boundary::Right);
+    delete_darts(cmap, marked, Boundary::Right);
 
-    Ok(cmap)
+    Ok(())
 }
 
-pub fn clip_right<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, GrisubalError> {
+/// Clip content on the right side of the boundary.
+pub fn clip_right<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
     let marked = mark_faces(&cmap, Boundary::Right, Boundary::Left)?;
 
     // save vertices & split boundary
-    delete_darts(&mut cmap, marked, Boundary::Left);
+    delete_darts(cmap, marked, Boundary::Left);
 
-    Ok(cmap)
+    Ok(())
 }
 
 // --- internals
@@ -57,11 +56,9 @@ fn mark_faces<T: CoordsFloat>(
         if marked.insert(face_id) {
             // detect orientation issues / open geometries
             let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier);
-            if let Some(rid) = darts.find(|did| cmap.get_attribute::<Boundary>(*did) == Some(other))
-            {
-                // TODO: explain why it is an inconsistency
+            if let Some(_) = darts.find(|did| cmap.get_attribute::<Boundary>(*did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
-                    format!("reached right side (dart #{rid}, face #{face_id}) without crossing the boundary")
+                    "reached other side of the boundary without crossing it".to_string(),
                 ));
             }
             // find neighbor faces where entry darts aren't tagged
