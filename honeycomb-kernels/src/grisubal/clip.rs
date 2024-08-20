@@ -14,7 +14,7 @@ use std::collections::{HashSet, VecDeque};
 /// Clip content on the left side of the boundary.
 pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
-    let marked = mark_faces(&cmap, Boundary::Left, Boundary::Right)?;
+    let marked = mark_faces(cmap, Boundary::Left, Boundary::Right)?;
 
     // save vertices & split boundary
     delete_darts(cmap, marked, Boundary::Right);
@@ -25,7 +25,7 @@ pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalErro
 /// Clip content on the right side of the boundary.
 pub fn clip_right<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
-    let marked = mark_faces(&cmap, Boundary::Right, Boundary::Left)?;
+    let marked = mark_faces(cmap, Boundary::Right, Boundary::Left)?;
 
     // save vertices & split boundary
     delete_darts(cmap, marked, Boundary::Left);
@@ -56,7 +56,7 @@ fn mark_faces<T: CoordsFloat>(
         if marked.insert(face_id) {
             // detect orientation issues / open geometries
             let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier);
-            if let Some(_) = darts.find(|did| cmap.get_attribute::<Boundary>(*did) == Some(other)) {
+            if darts.any(|did| cmap.get_attribute::<Boundary>(did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
                     "reached other side of the boundary without crossing it".to_string(),
                 ));
