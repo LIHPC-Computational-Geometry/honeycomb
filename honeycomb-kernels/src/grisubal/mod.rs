@@ -10,9 +10,11 @@
 //!
 //! # Assumptions / Hypotheses
 //!
-//! - All components of the geometry are located in positive X/Y
-//! - Edges are consistently oriented (i.e. normals of edges making up a face all point
-//!   outward / inward, no mix)
+//! Boundaries are consistently oriented, i.e.:
+//! - normals of segments making up a boundary all point outward / inward, no mix
+//! - boundaries are closed
+//! - if there are nested boundaries, their orientation are consistent one with the other; this is
+//!   an extension of the first condition
 //!
 //! # Pseudo code
 //!
