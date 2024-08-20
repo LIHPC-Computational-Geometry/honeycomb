@@ -38,10 +38,10 @@ pub(crate) mod model;
 
 // ------ IMPORTS
 
+use crate::grisubal::clip::clip_left;
 use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
-
 // ------ CONTENT
 
 #[derive(Debug)]
@@ -127,18 +127,15 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::All => {
             todo!()
         }
-        Clip::Left => {
-            todo!()
-        }
+        Clip::Left => clip_left(cmap),
         Clip::Right => {
             todo!()
         }
-        Clip::None => {}
+        Clip::None => Ok(cmap),
     }
-    // return result
-    Ok(cmap)
 }
 
 // ------ TESTS
+mod clip;
 #[cfg(test)]
 mod tests;
