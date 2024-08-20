@@ -244,6 +244,17 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         max_y = max_y.max(v.y());
     });
 
+    if max_x <= min_x {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
+        )));
+    }
+    if max_y <= min_y {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
+        )));
+    }
+
     // compute characteristics of the overlapping Cartesian grid
     if allow_origin_offset {
         // create a ~one-and-a-half cell buffer to contain the geometry
@@ -263,16 +274,6 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         if min_y <= T::zero() {
             return Err(GrisubalError::InvalidInput(format!(
                 "the geometry should be entirely defined in positive Ys - min_y = {min_y:?}"
-            )));
-        }
-        if max_x <= min_x {
-            return Err(GrisubalError::InvalidInput(format!(
-                "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
-            )));
-        }
-        if max_y <= min_y {
-            return Err(GrisubalError::InvalidInput(format!(
-                "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
             )));
         }
         let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
