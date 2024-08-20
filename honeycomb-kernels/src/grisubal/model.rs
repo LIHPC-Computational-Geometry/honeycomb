@@ -246,7 +246,14 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
 
     // compute characteristics of the overlapping Cartesian grid
     if allow_origin_offset {
-        todo!()
+        // create a ~one-and-a-half cell buffer to contain the geometry
+        // this, along with the `+1` below, guarantees that
+        // dart at the boundary of the grid are not intersected by the geometry
+        let og_x = min_x - len_cell_x * T::from(1.5).unwrap();
+        let og_y = min_y - len_cell_y * T::from(1.5).unwrap();
+        let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
+        let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
+        Ok(([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y))))
     } else {
         if min_x <= T::zero() {
             return Err(GrisubalError::InvalidInput(format!(
