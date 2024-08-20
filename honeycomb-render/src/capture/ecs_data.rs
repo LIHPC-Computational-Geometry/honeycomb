@@ -12,14 +12,14 @@ pub struct FaceNormals(pub HashMap<FaceIdentifier, Vec<Vec3>>);
 
 // --- bundles
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct DartHeadBundle {
-    capture_id: CaptureId,
+    pub capture_id: CaptureId,
     id: MapId<DartIdentifier>,
     vertex_id: MapId<VertexIdentifier>,
     edge_id: MapId<EdgeIdentifier>,
-    face_id: MapId<FaceIdentifier>,
-    dart_head: DartHead,
+    pub face_id: MapId<FaceIdentifier>,
+    pub dart_head: DartHead,
 }
 
 impl DartHeadBundle {
@@ -43,14 +43,14 @@ impl DartHeadBundle {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct DartBodyBundle {
-    capture_id: CaptureId,
+    pub capture_id: CaptureId,
     id: MapId<DartIdentifier>,
     vertex_id: MapId<VertexIdentifier>,
     edge_id: MapId<EdgeIdentifier>,
-    face_id: MapId<FaceIdentifier>,
-    dart_body: DartBody,
+    pub face_id: MapId<FaceIdentifier>,
+    pub dart_body: DartBody,
 }
 
 impl DartBodyBundle {
@@ -74,11 +74,11 @@ impl DartBodyBundle {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct VertexBundle {
-    capture_id: CaptureId,
+    pub capture_id: CaptureId,
     id: MapId<VertexIdentifier>,
-    vertex: Vertex,
+    pub vertex: Vertex,
 }
 
 impl VertexBundle {
@@ -91,11 +91,11 @@ impl VertexBundle {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct EdgeBundle {
-    capture_id: CaptureId,
+    pub capture_id: CaptureId,
     id: MapId<EdgeIdentifier>,
-    edge: Edge,
+    pub edge: Edge,
 }
 
 impl EdgeBundle {
@@ -108,11 +108,11 @@ impl EdgeBundle {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Clone)]
 pub struct FaceBundle {
-    capture_id: CaptureId,
-    id: MapId<FaceIdentifier>,
-    face: Face,
+    pub capture_id: CaptureId,
+    pub id: MapId<FaceIdentifier>,
+    pub face: Face,
 }
 
 impl FaceBundle {
@@ -127,35 +127,35 @@ impl FaceBundle {
 
 // --- individual components
 
-#[derive(Component)]
+#[derive(Component, Clone, PartialEq, Eq)]
 pub struct CaptureId(pub usize);
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct MapId<I>(pub I);
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct DartHead {
     pub vertex: usize, // (v0_id, v1_id)
     pub normal: usize, // vertex normals (for shrink ops)
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct DartBody {
     pub vertices: (usize, usize), // (v0_id, v1_id)
     pub normals: (usize, usize),  // vertex normals (for shrink ops)
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Beta(pub u8, pub usize, pub usize); // beta id, v0_id, v1_id ?
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Vertex(pub usize); // map id, vid
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Edge(pub usize, pub usize); // v0_id, v1_id
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Face(pub Vec<usize>); // vertex list
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Volume;

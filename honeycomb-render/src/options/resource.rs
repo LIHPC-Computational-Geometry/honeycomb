@@ -63,7 +63,8 @@ declare_newtype_resource!(BetaWidth, f32);
 declare_newtype_resource!(VertexWidth, f32);
 declare_newtype_resource!(EdgeWidth, f32);
 
-// -- dart specific options
+// -- more specific options
 
+declare_newtype_resource!(VertexHandle, Handle<Mesh>);
 declare_newtype_resource!(DartHeadHandle, Handle<Mesh>);
 declare_newtype_resource!(DartHeadMul, f32, 1.5);

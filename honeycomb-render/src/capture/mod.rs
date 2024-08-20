@@ -1,9 +1,14 @@
 pub mod ecs_data;
+mod system;
 
+use crate::capture::ecs_data::CaptureId;
 use crate::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use honeycomb_core::{CMap2, CoordsFloat, FaceIdentifier};
+
+#[derive(Resource)]
+pub struct FocusedCapture(pub CaptureId);
 
 #[derive(Resource)]
 pub struct CaptureList(pub Vec<Capture>);
