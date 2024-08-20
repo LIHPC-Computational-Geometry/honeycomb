@@ -24,6 +24,16 @@ pub fn clip_left<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, Grisuba
     Ok(cmap)
 }
 
+pub fn clip_right<T: CoordsFloat>(mut cmap: CMap2<T>) -> Result<CMap2<T>, GrisubalError> {
+    // color faces using a bfs starting on multiple nodes
+    let marked = mark_faces(&cmap, Boundary::Right, Boundary::Left)?;
+
+    // save vertices & split boundary
+    delete_darts(&mut cmap, marked, Boundary::Left);
+
+    Ok(cmap)
+}
+
 // --- internals
 
 #[allow(clippy::cast_possible_truncation)]

@@ -31,8 +31,6 @@ use honeycomb_core::CMap2;
 /// input.
 #[derive(Default)]
 pub enum Clip {
-    /// Clip all elements beside the captured boundary.
-    All,
     /// Clip elements located on the left side of the oriented boundary.
     Left,
     /// Clip elements located on the right side of the oriented boundary.
@@ -152,7 +150,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                                     if vids.len() != 2 {
                                         return Some(GrisubalError::BadVtkData("`Line` cell has incorrect # of vertices (!=2)"));
                                     }
-                                    segments.push((vids[0],vids[1]));
+                                    segments.push((vids[0], vids[1]));
                                     None
                                 }
                                 CellType::PolyLine =>
