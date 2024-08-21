@@ -13,8 +13,8 @@ use std::{
 
 use crate::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor,
-    Vertex2, NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
+    NULL_DART_ID,
 };
 
 // ------ CONTENT
