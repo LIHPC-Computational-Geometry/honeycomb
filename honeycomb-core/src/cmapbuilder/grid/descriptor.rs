@@ -118,6 +118,7 @@ macro_rules! check_parameters {
 
 impl<T: CoordsFloat> GridDescriptor<T> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
+    #[allow(clippy::type_complexity)]
     pub(crate) fn parse_2d(self) -> Result<(Vertex2<T>, [usize; 2], [T; 2]), BuilderError> {
         match (self.n_cells, self.len_per_cell, self.lens) {
             // from # cells and lengths per cell
