@@ -4,7 +4,7 @@
 
 #[cfg(doc)]
 use crate::CMapBuilder;
-use crate::{BuilderError, CoordsFloat};
+use crate::{BuilderError, CoordsFloat, Vertex2};
 
 // ------ CONTENT
 
@@ -21,6 +21,7 @@ use crate::{BuilderError, CoordsFloat};
 /// - `T: CoordsFloat` -- Generic type of the future map object.
 #[derive(Default, Clone)]
 pub struct GridDescriptor<T: CoordsFloat> {
+    pub(crate) origin: Vertex2<T>,
     pub(crate) n_cells: Option<[usize; 3]>,
     pub(crate) len_per_cell: Option<[T; 3]>,
     pub(crate) lens: Option<[T; 3]>,
@@ -89,6 +90,13 @@ impl<T: CoordsFloat> GridDescriptor<T> {
 
     // lens
     setters!(lens, lens_x, lens_y, lens_z, T::zero(), T);
+
+    /// Set origin (most bottom-left vertex) of the grid
+    #[must_use = "unused builder object, consider removing this method call"]
+    pub fn origin(mut self, origin: Vertex2<T>) -> Self {
+        self.origin = origin;
+        self
+    }
 
     /// Indicate whether to split quads of the grid
     #[must_use = "unused builder object, consider removing this method call"]
