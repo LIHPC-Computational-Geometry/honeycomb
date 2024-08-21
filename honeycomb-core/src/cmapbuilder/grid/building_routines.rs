@@ -2,12 +2,13 @@
 
 // ------ IMPORTS
 
-use crate::{AttrStorageManager, CMap2, CoordsFloat, DartIdentifier};
+use crate::{AttrStorageManager, CMap2, CoordsFloat, DartIdentifier, Vector2, Vertex2};
 
 // ------ CONTENT
 
 /// Internal grid-building routine
 pub fn build_2d_grid<T: CoordsFloat>(
+    origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
     manager: AttrStorageManager,
@@ -46,10 +47,11 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 let vertex_id = map.vertex_id(base_dart);
                 map.insert_vertex(
                     vertex_id,
-                    (
-                        T::from(x_idx).unwrap() * len_per_x,
-                        T::from(y_idx).unwrap() * len_per_y,
-                    ),
+                    origin
+                        + Vector2(
+                            T::from(x_idx).unwrap() * len_per_x,
+                            T::from(y_idx).unwrap() * len_per_y,
+                        ),
                 );
                 let last_column = x_idx == n_square_x - 1;
                 let last_row = y_idx == n_square_y - 1;
@@ -59,10 +61,11 @@ pub fn build_2d_grid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 1);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx + 1).unwrap() * len_per_x,
-                            T::from(y_idx).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx + 1).unwrap() * len_per_x,
+                                T::from(y_idx).unwrap() * len_per_y,
+                            ),
                     );
                 }
                 if last_row {
@@ -70,10 +73,11 @@ pub fn build_2d_grid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 3);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx).unwrap() * len_per_x,
-                            T::from(y_idx + 1).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx).unwrap() * len_per_x,
+                                T::from(y_idx + 1).unwrap() * len_per_y,
+                            ),
                     );
                 }
                 if last_row & last_column {
@@ -81,10 +85,11 @@ pub fn build_2d_grid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 2);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx + 1).unwrap() * len_per_x,
-                            T::from(y_idx + 1).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx + 1).unwrap() * len_per_x,
+                                T::from(y_idx + 1).unwrap() * len_per_y,
+                            ),
                     );
                 }
             }
@@ -99,6 +104,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 
 /// Internal grid-building routine
 pub fn build_2d_splitgrid<T: CoordsFloat>(
+    origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
     manager: AttrStorageManager,
@@ -144,10 +150,11 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 let vertex_id = map.vertex_id(base_dart);
                 map.insert_vertex(
                     vertex_id,
-                    (
-                        T::from(x_idx).unwrap() * len_per_x,
-                        T::from(y_idx).unwrap() * len_per_y,
-                    ),
+                    origin
+                        + Vector2(
+                            T::from(x_idx).unwrap() * len_per_x,
+                            T::from(y_idx).unwrap() * len_per_y,
+                        ),
                 );
                 let last_column = x_idx == n_square_x - 1;
                 let last_row = y_idx == n_square_y - 1;
@@ -157,10 +164,11 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 4);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx + 1).unwrap() * len_per_x,
-                            T::from(y_idx).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx + 1).unwrap() * len_per_x,
+                                T::from(y_idx).unwrap() * len_per_y,
+                            ),
                     );
                 }
                 if last_row {
@@ -168,10 +176,11 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 2);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx).unwrap() * len_per_x,
-                            T::from(y_idx + 1).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx).unwrap() * len_per_x,
+                                T::from(y_idx + 1).unwrap() * len_per_y,
+                            ),
                     );
                 }
                 if last_row & last_column {
@@ -179,10 +188,11 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                     let vertex_id = map.vertex_id(base_dart + 5);
                     map.insert_vertex(
                         vertex_id,
-                        (
-                            T::from(x_idx + 1).unwrap() * len_per_x,
-                            T::from(y_idx + 1).unwrap() * len_per_y,
-                        ),
+                        origin
+                            + Vector2(
+                                T::from(x_idx + 1).unwrap() * len_per_x,
+                                T::from(y_idx + 1).unwrap() * len_per_y,
+                            ),
                     );
                 }
             }

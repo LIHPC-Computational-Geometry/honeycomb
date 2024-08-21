@@ -133,12 +133,17 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             return if gridb.split_quads {
-                gridb.parse_2d().map(|(ns, lens)| {
-                    super::grid::building_routines::build_2d_splitgrid(ns, lens, self.attributes)
+                gridb.parse_2d().map(|(origin, ns, lens)| {
+                    super::grid::building_routines::build_2d_splitgrid(
+                        origin,
+                        ns,
+                        lens,
+                        self.attributes,
+                    )
                 })
             } else {
-                gridb.parse_2d().map(|(ns, lens)| {
-                    super::grid::building_routines::build_2d_grid(ns, lens, self.attributes)
+                gridb.parse_2d().map(|(origin, ns, lens)| {
+                    super::grid::building_routines::build_2d_grid(origin, ns, lens, self.attributes)
                 })
             };
         }
