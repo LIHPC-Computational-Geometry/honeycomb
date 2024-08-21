@@ -118,7 +118,7 @@ macro_rules! check_parameters {
 
 impl<T: CoordsFloat> GridDescriptor<T> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
-    pub(crate) fn parse_2d(self) -> Result<([usize; 2], [T; 2]), BuilderError> {
+    pub(crate) fn parse_2d(self) -> Result<(Vertex2<T>, [usize; 2], [T; 2]), BuilderError> {
         match (self.n_cells, self.len_per_cell, self.lens) {
             // from # cells and lengths per cell
             (Some([nx, ny, _]), Some([lpx, lpy, _]), lens) => {
@@ -129,7 +129,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 check_parameters!(lpx, "Specified length per x cell is either null or negative");
                 #[rustfmt::skip]
                 check_parameters!(lpy, "Specified length per y cell is either null or negative");
-                Ok(([nx, ny], [lpx, lpy]))
+                Ok((self.origin, [nx, ny], [lpx, lpy]))
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
@@ -138,6 +138,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "Specified grid length along y is either null or negative");
                 Ok((
+                    self.origin,
                     [nx, ny],
                     [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
                 ))
@@ -153,6 +154,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "Specified grid length along y is either null or negative");
                 Ok((
+                    self.origin,
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
                         (ly / lpy).ceil().to_usize().unwrap(),
