@@ -20,9 +20,9 @@ use vtkio::{
     IOBuffer, Vtk,
 };
 
+use crate::grisubal::grid::GridCellId;
 #[cfg(doc)]
 use honeycomb_core::CMap2;
-
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -264,7 +264,18 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         let og_y = min_y - len_cell_y * T::from(1.5).unwrap();
         let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
         let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
-        Ok(([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y))))
+        let tmp = ([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y)));
+
+        let (on_corner, reflect) =
+            detect_overlaps(&geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+
+        if on_corner | reflect {
+            return Err(GrisubalError::InvalidInput(format!(
+                "land on corner: {on_corner} - reflect on an axis: {reflect}"
+            )));
+        }
+
+        Ok(tmp)
     } else {
         if min_x <= T::zero() {
             return Err(GrisubalError::InvalidInput(format!(
@@ -299,6 +310,74 @@ pub fn remove_redundant_poi<T: CoordsFloat>(
         let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
         !(on_x_axis | on_y_axis)
     });
+}
+
+pub fn detect_overlaps<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+    [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
+) -> (bool, bool) {
+    let on_corner = geometry
+        .vertices
+        .iter()
+        .map(|v| {
+            let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+            let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
+            on_x_axis && on_y_axis
+        })
+        .any(|a| a);
+
+    let bad_reflection = geometry
+        .vertices
+        .iter()
+        .enumerate()
+        .filter_map(|(id, v)| {
+            let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+            let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
+            if on_x_axis | on_y_axis {
+                return Some(id);
+            }
+            None
+        })
+        .map(|id| {
+            let vid_in = geometry
+                .segments
+                .iter()
+                .find_map(|(vin, ref_id)| {
+                    if id == *ref_id {
+                        return Some(*vin);
+                    }
+                    None
+                })
+                .expect("E: open geometry?");
+            let vid_out = geometry
+                .segments
+                .iter()
+                .find_map(|(ref_id, vout)| {
+                    if id == *ref_id {
+                        return Some(*vout);
+                    }
+                    None
+                })
+                .expect("E: open geometry?");
+            let v_in = geometry.vertices[vid_in];
+            let v_out = geometry.vertices[vid_out];
+            let Vertex2(ox, oy) = origin;
+            let (c_in, c_out) = (
+                GridCellId(
+                    ((v_in.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v_in.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+                GridCellId(
+                    ((v_out.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v_out.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+            );
+            c_in == c_out
+        })
+        .any(|a| a);
+
+    (on_corner, bad_reflection)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
