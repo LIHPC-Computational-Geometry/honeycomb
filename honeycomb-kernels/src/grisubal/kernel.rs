@@ -13,7 +13,7 @@ use std::{
 
 use crate::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vector2,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor,
     Vertex2, NULL_DART_ID,
 };
 
@@ -82,22 +82,14 @@ pub fn build_mesh<T: CoordsFloat>(
         .n_cells_x(nx)
         .n_cells_y(ny)
         .len_per_cell_x(cx)
-        .len_per_cell_y(cy);
+        .len_per_cell_y(cy)
+        .origin(origin.unwrap_or_default());
     // build initial map
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: could not build overlapping grid map");
-
-    // FIXME: add the origin offset capabilities directly into the grid descriptor
-    if let Some(og) = origin {
-        let offset = Vector2(og.x(), og.y());
-        cmap.fetch_vertices().identifiers.iter().for_each(|vid| {
-            let tmp = cmap.vertex(*vid).unwrap();
-            cmap.replace_vertex(*vid, tmp + offset).unwrap();
-        });
-    }
 
     // process the geometry
 
