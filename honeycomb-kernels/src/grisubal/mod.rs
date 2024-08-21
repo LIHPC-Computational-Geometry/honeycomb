@@ -42,8 +42,8 @@ pub(crate) mod model;
 // ------ IMPORTS
 
 use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::Boundary;
-use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
+use crate::grisubal::model::{compute_overlapping_grid, detect_orientation_issue, Boundary};
+use crate::{remove_redundant_poi, Clip, Geometry2};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 // ------ CONTENT
@@ -122,11 +122,14 @@ pub fn grisubal<T: CoordsFloat>(
     // pre-processing
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
     detect_orientation_issue(&geometry)?;
+
+    // compute an overlapping grid & remove redundant PoIs
+    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, true)?;
     remove_redundant_poi(&mut geometry, grid_cell_sizes);
 
     // build the map
     #[allow(unused)]
-    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
+    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
     // optional post-processing
     match clip {
         Clip::Left => clip_left(&mut cmap)?,

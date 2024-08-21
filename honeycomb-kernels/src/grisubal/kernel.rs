@@ -11,10 +11,7 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
-use crate::{
-    compute_overlapping_grid, Boundary, Geometry2, GeometryVertex, GridCellId, GrisubalError,
-    MapEdge,
-};
+use crate::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vector2,
     Vertex2, NULL_DART_ID,
@@ -74,11 +71,12 @@ macro_rules! up_intersec {
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
 pub fn build_mesh<T: CoordsFloat>(
-    geometry: &mut Geometry2<T>,
+    geometry: &Geometry2<T>,
     [cx, cy]: [T; 2],
-) -> Result<CMap2<T>, GrisubalError> {
+    [nx, ny]: [usize; 2],
+    origin: Option<Vertex2<T>>,
+) -> CMap2<T> {
     // compute grid characteristics
-    let ([nx, ny], origin) = compute_overlapping_grid(geometry, [cx, cy], true)?;
     // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
@@ -135,7 +133,7 @@ pub fn build_mesh<T: CoordsFloat>(
     insert_edges_in_map(&mut cmap, &edges);
 
     // return result
-    Ok(cmap)
+    cmap
 }
 
 // --- main kernels steps
