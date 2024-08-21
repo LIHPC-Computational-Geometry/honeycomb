@@ -41,9 +41,10 @@ pub(crate) mod model;
 
 // ------ IMPORTS
 
-use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::{compute_overlapping_grid, detect_orientation_issue, Boundary};
-use crate::{remove_redundant_poi, Clip, Geometry2};
+use crate::{
+    clip_left, clip_right, compute_overlapping_grid, detect_orientation_issue,
+    remove_redundant_poi, Boundary, Clip, Geometry2,
+};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 // ------ CONTENT
