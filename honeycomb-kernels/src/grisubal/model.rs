@@ -285,14 +285,18 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
 ///
 /// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
-pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) {
+pub fn remove_redundant_poi<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
+) {
     // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
     // at their coordinates, so the shape will be captured via intersection anyway
     geometry.poi.retain(|idx| {
         let v = geometry.vertices[*idx];
         // origin is assumed to be (0.0, 0.0)
-        let on_x_axis = (v.x() % cx).is_zero();
-        let on_y_axis = (v.y() % cy).is_zero();
+        let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+        let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
         !(on_x_axis | on_y_axis)
     });
 }
