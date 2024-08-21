@@ -140,7 +140,7 @@ fn regular_intersections() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0]);
+        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0], None);
 
     assert_eq!(intersection_metadata.len(), 4);
     // FIXME: INDEX ACCESSES WON'T WORK IN PARALLEL
@@ -277,7 +277,7 @@ fn corner_intersection() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0]);
+        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0], None);
 
     assert_eq!(intersection_metadata.len(), 2);
     assert_eq!(intersection_metadata[0], (2, 0.5));

@@ -244,9 +244,27 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         max_y = max_y.max(v.y());
     });
 
+    if max_x <= min_x {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
+        )));
+    }
+    if max_y <= min_y {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
+        )));
+    }
+
     // compute characteristics of the overlapping Cartesian grid
     if allow_origin_offset {
-        todo!()
+        // create a ~one-and-a-half cell buffer to contain the geometry
+        // this, along with the `+1` below, guarantees that
+        // dart at the boundary of the grid are not intersected by the geometry
+        let og_x = min_x - len_cell_x * T::from(1.5).unwrap();
+        let og_y = min_y - len_cell_y * T::from(1.5).unwrap();
+        let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
+        let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
+        Ok(([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y))))
     } else {
         if min_x <= T::zero() {
             return Err(GrisubalError::InvalidInput(format!(
@@ -258,16 +276,6 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
                 "the geometry should be entirely defined in positive Ys - min_y = {min_y:?}"
             )));
         }
-        if max_x <= min_x {
-            return Err(GrisubalError::InvalidInput(format!(
-                "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
-            )));
-        }
-        if max_y <= min_y {
-            return Err(GrisubalError::InvalidInput(format!(
-                "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
-            )));
-        }
         let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
         let n_cells_y = (max_y / len_cell_y).ceil().to_usize().unwrap() + 1;
         Ok(([n_cells_x, n_cells_y], None))
@@ -277,14 +285,18 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
 ///
 /// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
-pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) {
+pub fn remove_redundant_poi<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
+) {
     // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
     // at their coordinates, so the shape will be captured via intersection anyway
     geometry.poi.retain(|idx| {
         let v = geometry.vertices[*idx];
         // origin is assumed to be (0.0, 0.0)
-        let on_x_axis = (v.x() % cx).is_zero();
-        let on_y_axis = (v.y() % cy).is_zero();
+        let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+        let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
         !(on_x_axis | on_y_axis)
     });
 }

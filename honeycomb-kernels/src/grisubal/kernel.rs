@@ -11,12 +11,10 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
-use crate::{
-    compute_overlapping_grid, Boundary, Geometry2, GeometryVertex, GridCellId, GrisubalError,
-    MapEdge,
-};
+use crate::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vector2,
+    Vertex2, NULL_DART_ID,
 };
 
 // ------ CONTENT
@@ -73,11 +71,12 @@ macro_rules! up_intersec {
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
 pub fn build_mesh<T: CoordsFloat>(
-    geometry: &mut Geometry2<T>,
+    geometry: &Geometry2<T>,
     [cx, cy]: [T; 2],
-) -> Result<CMap2<T>, GrisubalError> {
+    [nx, ny]: [usize; 2],
+    origin: Option<Vertex2<T>>,
+) -> CMap2<T> {
     // compute grid characteristics
-    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false)?;
     // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
@@ -91,6 +90,15 @@ pub fn build_mesh<T: CoordsFloat>(
         .build()
         .expect("E: could not build overlapping grid map");
 
+    // FIXME: add the origin offset capabilities directly into the grid descriptor
+    if let Some(og) = origin {
+        let offset = Vector2(og.x(), og.y());
+        cmap.fetch_vertices().identifiers.iter().for_each(|vid| {
+            let tmp = cmap.vertex(*vid).unwrap();
+            cmap.replace_vertex(*vid, tmp + offset).unwrap();
+        });
+    }
+
     // process the geometry
 
     // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
@@ -101,7 +109,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy]);
+        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy], origin);
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -125,7 +133,7 @@ pub fn build_mesh<T: CoordsFloat>(
     insert_edges_in_map(&mut cmap, &edges);
 
     // return result
-    Ok(cmap)
+    cmap
 }
 
 // --- main kernels steps
@@ -141,6 +149,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
+    origin: Option<Vertex2<T>>,
 ) -> (
     HashMap<GeometryVertex, GeometryVertex>,
     Vec<(DartIdentifier, T)>,
@@ -152,16 +161,29 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
         let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
         // compute their position in the grid
         // we assume that the origin of the grid is at (0., 0.)
-        let (c1, c2) = (
-            GridCellId(
-                (v1.x() / cx).floor().to_usize().unwrap(),
-                (v1.y() / cy).floor().to_usize().unwrap(),
-            ),
-            GridCellId(
-                (v2.x() / cx).floor().to_usize().unwrap(),
-                (v2.y() / cy).floor().to_usize().unwrap(),
-            ),
-        );
+        let (c1, c2) = if let Some(Vertex2(ox, oy)) = origin {
+            (
+                GridCellId(
+                    ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+                GridCellId(
+                    ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+            )
+        } else {
+            (
+                GridCellId(
+                    (v1.x() / cx).floor().to_usize().unwrap(),
+                    (v1.y() / cy).floor().to_usize().unwrap(),
+                ),
+                GridCellId(
+                    (v2.x() / cx).floor().to_usize().unwrap(),
+                    (v2.y() / cy).floor().to_usize().unwrap(),
+                ),
+            )
+        };
         // check neighbor status
         match GridCellId::man_dist(&c1, &c2) {
             // trivial case:
@@ -258,7 +280,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
-                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
                             tmp.collect()
@@ -300,7 +322,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
-                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if j > 0 {
                             tmp.collect()

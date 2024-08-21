@@ -10,9 +10,11 @@
 //!
 //! # Assumptions / Hypotheses
 //!
-//! - All components of the geometry are located in positive X/Y
-//! - Edges are consistently oriented (i.e. normals of edges making up a face all point
-//!   outward / inward, no mix)
+//! Boundaries are consistently oriented, i.e.:
+//! - normals of segments making up a boundary all point outward / inward, no mix
+//! - boundaries are closed
+//! - if there are nested boundaries, their orientation are consistent one with the other; this is
+//!   an extension of the first condition
 //!
 //! # Pseudo code
 //!
@@ -39,9 +41,10 @@ pub(crate) mod model;
 
 // ------ IMPORTS
 
-use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::Boundary;
-use crate::{detect_orientation_issue, remove_redundant_poi, Clip, Geometry2};
+use crate::{
+    clip_left, clip_right, compute_overlapping_grid, detect_orientation_issue,
+    remove_redundant_poi, Boundary, Clip, Geometry2,
+};
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 // ------ CONTENT
@@ -120,11 +123,14 @@ pub fn grisubal<T: CoordsFloat>(
     // pre-processing
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
     detect_orientation_issue(&geometry)?;
-    remove_redundant_poi(&mut geometry, grid_cell_sizes);
+
+    // compute an overlapping grid & remove redundant PoIs
+    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, true)?;
+    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin.unwrap_or_default());
 
     // build the map
     #[allow(unused)]
-    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes)?;
+    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
     // optional post-processing
     match clip {
         Clip::Left => clip_left(&mut cmap)?,
