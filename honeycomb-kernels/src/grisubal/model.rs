@@ -260,22 +260,27 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         // create a ~one-and-a-half cell buffer to contain the geometry
         // this, along with the `+1` below, guarantees that
         // dart at the boundary of the grid are not intersected by the geometry
-        let og_x = min_x - len_cell_x * T::from(1.5).unwrap();
-        let og_y = min_y - len_cell_y * T::from(1.5).unwrap();
-        let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
-        let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
-        let tmp = ([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y)));
+        let mut og_x = min_x - len_cell_x * T::from(1.5).unwrap();
+        let mut og_y = min_y - len_cell_y * T::from(1.5).unwrap();
+        let (mut on_corner, mut reflect) =
+            detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+        let mut i = 1;
 
-        let (on_corner, reflect) =
-            detect_overlaps(&geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
-
-        if on_corner | reflect {
-            return Err(GrisubalError::InvalidInput(format!(
-                "land on corner: {on_corner} - reflect on an axis: {reflect}"
-            )));
+        while on_corner | reflect {
+            println!(
+                "W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin"
+            );
+            og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+            og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+            (on_corner, reflect) =
+                detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+            i += 1;
         }
 
-        Ok(tmp)
+        let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
+        let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
+
+        Ok(([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y))))
     } else {
         if min_x <= T::zero() {
             return Err(GrisubalError::InvalidInput(format!(
@@ -339,7 +344,16 @@ pub fn detect_overlaps<T: CoordsFloat>(
             }
             None
         })
+        // skip vertices that do not belong to the boundary
+        .filter(|id| {
+            geometry
+                .segments
+                .iter()
+                .any(|(v1, v2)| (id == v1) || (id == v2))
+        })
         .map(|id| {
+            // if a vertex appear in the boundary, there should be both a segment landing and a
+            // segment starting on the vertex; hence `.expect()`
             let vid_in = geometry
                 .segments
                 .iter()
@@ -350,6 +364,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     None
                 })
                 .expect("E: open geometry?");
+            // same
             let vid_out = geometry
                 .segments
                 .iter()
@@ -373,6 +388,8 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     ((v_out.y() - oy) / cy).floor().to_usize().unwrap(),
                 ),
             );
+            // if v_in and v_out belong to the same grid cell, there was a "reflection" on one
+            // of the grid's axis
             c_in == c_out
         })
         .any(|a| a);
