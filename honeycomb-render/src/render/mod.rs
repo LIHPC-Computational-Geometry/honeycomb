@@ -22,7 +22,7 @@ impl Plugin for ScenePlugin {
             .add_plugins(OutlinePlugin)
             .insert_resource(SelectionPluginSettings::default())
             .add_systems(Update, picking::update_picking);
-        // scene content
+        // scene camera, light
         app.add_systems(Startup, scene::setup_scene);
     }
 }

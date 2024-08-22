@@ -1,4 +1,4 @@
-use crate::capture::Capture;
+use crate::capture::{Capture, CapturePlugin};
 use crate::{CaptureList, GuiPlugin, OptionsPlugin, ScenePlugin};
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
@@ -10,10 +10,11 @@ pub struct App {
 }
 
 impl App {
-    pub fn add_capture<T: CoordsFloat>(&mut self, cmap: &CMap2<T>) {
+    pub fn add_capture<T: CoordsFloat>(mut self, cmap: &CMap2<T>) -> Self {
         let cap_id = self.capture_list.0.len();
         let capture = Capture::new(cap_id, cmap).unwrap();
         self.capture_list.0.push(capture);
+        self
     }
 
     pub fn run(mut self) {
@@ -32,7 +33,8 @@ impl Default for App {
         app.add_plugins(DefaultPlugins)
             .add_plugins(OptionsPlugin)
             .add_plugins(GuiPlugin)
-            .add_plugins(ScenePlugin);
+            .add_plugins(ScenePlugin)
+            .add_plugins(CapturePlugin);
         Self {
             app,
             capture_list: CaptureList(Vec::new()),

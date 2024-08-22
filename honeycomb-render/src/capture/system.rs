@@ -11,7 +11,7 @@ use bevy_mod_picking::PickableBundle;
 
 #[allow(clippy::needless_pass_by_value, clippy::too_many_arguments)]
 pub fn populate_darts(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     focused_capture: Res<FocusedCapture>,
@@ -88,7 +88,7 @@ pub fn populate_beta() {
 
 #[allow(clippy::needless_pass_by_value)]
 pub fn populate_vertices(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     focused_capture: Res<FocusedCapture>,
@@ -128,7 +128,7 @@ pub fn populate_vertices(
 
 #[allow(clippy::needless_pass_by_value)]
 pub fn populate_edges(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     focused_capture: Res<FocusedCapture>,
@@ -174,7 +174,7 @@ pub fn populate_edges(
 
 #[allow(clippy::needless_pass_by_value)]
 pub fn populate_faces(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     focused_capture: Res<FocusedCapture>,
     captures: Res<CaptureList>,

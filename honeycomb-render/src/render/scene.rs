@@ -1,8 +1,5 @@
 use crate::PanOrbitCamera;
-use bevy::color::palettes::css::{BLUE, LIME, RED};
 use bevy::prelude::*;
-use bevy_mod_outline::{OutlineBundle, OutlineVolume};
-use bevy_mod_picking::PickableBundle;
 
 pub fn setup_scene(
     mut commands: Commands,
@@ -22,6 +19,7 @@ pub fn setup_scene(
         },
     ));
 
+    /*
     let cube_mesh = meshes.add(Cuboid::default());
 
     let cube_count: i32 = 3;
@@ -52,6 +50,7 @@ pub fn setup_scene(
                 ..default()
             });
     }
+     */
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {

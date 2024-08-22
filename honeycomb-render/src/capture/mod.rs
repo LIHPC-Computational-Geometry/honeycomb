@@ -2,19 +2,46 @@ pub mod ecs_data;
 mod system;
 
 use crate::capture::ecs_data::CaptureId;
+use crate::capture::system::{populate_darts, populate_edges, populate_faces, populate_vertices};
 use crate::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use bevy::prelude::*;
-use bevy::render::render_resource::encase::private::RuntimeSizedArray;
 use bevy::utils::HashMap;
 use honeycomb_core::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
 };
 
+pub struct CapturePlugin;
+
+impl Plugin for CapturePlugin {
+    fn build(&self, app: &mut App) {
+        // resource
+        app.insert_resource(FocusedCapture::default())
+            .insert_resource(CaptureList::default());
+        // systems
+        app.add_systems(Startup, populate_darts)
+            .add_systems(Startup, populate_vertices)
+            .add_systems(Startup, populate_edges)
+            .add_systems(Startup, populate_faces);
+    }
+}
+
 #[derive(Resource)]
 pub struct FocusedCapture(pub CaptureId);
 
+impl Default for FocusedCapture {
+    fn default() -> Self {
+        Self(CaptureId(0))
+    }
+}
+
 #[derive(Resource)]
 pub struct CaptureList(pub Vec<Capture>);
+
+impl Default for CaptureList {
+    fn default() -> Self {
+        Self(Vec::new())
+    }
+}
 
 pub struct Capture {
     pub metadata: CaptureMD,
@@ -65,7 +92,11 @@ impl Capture {
             .iter()
             .map(|id| {
                 let v1id = cmap.vertex_id(*id as DartIdentifier);
-                let v2id = cmap.vertex_id(cmap.beta::<2>(*id as DartIdentifier));
+                let v2id = if cmap.is_i_free::<2>(*id as DartIdentifier) {
+                    cmap.vertex_id(cmap.beta::<1>(*id as DartIdentifier))
+                } else {
+                    cmap.vertex_id(cmap.beta::<2>(*id as DartIdentifier))
+                };
                 EdgeBundle::new(cap_id, *id, (index_map[&v1id], index_map[&v2id]))
             })
             .collect();
