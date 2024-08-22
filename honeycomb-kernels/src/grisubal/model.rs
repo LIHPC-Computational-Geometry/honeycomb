@@ -23,6 +23,7 @@ use vtkio::{
 use crate::grisubal::grid::GridCellId;
 #[cfg(doc)]
 use honeycomb_core::CMap2;
+
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -221,6 +222,7 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
     Ok(())
 }
 
+#[allow(clippy::cast_precision_loss)]
 pub fn compute_overlapping_grid<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [len_cell_x, len_cell_y]: [T; 2],
