@@ -76,11 +76,13 @@ pub fn populate_darts(
             // FIXME: clunky
             let mut transform_head =
                 Transform::from_translation(v2 - (dir * dart_shrink.0.abs() / 4.));
-            transform_head.rotation = if dir == Vec3::Y {
+            transform_head.rotation = Quat::from_rotation_arc(Vec3::Y, dir);
+            /*if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
-                Quat::from_rotation_arc(-dir, Vec3::Y)
+                Quat::from_rotation_arc(dir, Vec3::Y)
             };
+            */
             commands.spawn((
                 head.clone(),
                 PbrBundle {

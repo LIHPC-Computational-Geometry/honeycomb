@@ -172,7 +172,7 @@ impl Capture {
                 });
 
                 let heads =
-                    tmp[0..tmp.len() - 2]
+                    tmp[0..tmp.len() - 1]
                         .iter()
                         .map(|(dart_id, vertex_id, loc_normal_id)| {
                             DartHeadBundle::new(
