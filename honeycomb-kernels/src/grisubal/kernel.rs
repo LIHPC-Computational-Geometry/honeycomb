@@ -362,9 +362,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                     left_intersec!(v1, v2, v_vdart, cy)
                                 };
                                 let h_coeffs = if j.is_positive() {
-                                    right_intersec!(v1, v2, v_hdart, cx)
+                                    up_intersec!(v1, v2, v_hdart, cx)
                                 } else {
-                                    left_intersec!(v1, v2, v_hdart, cx)
+                                    down_intersec!(v1, v2, v_hdart, cx)
                                 };
 
                                 (hdart_id, vdart_id, v_coeffs, h_coeffs)

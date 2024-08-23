@@ -45,7 +45,7 @@ use crate::{
     clip_left, clip_right, compute_overlapping_grid, detect_orientation_issue,
     remove_redundant_poi, Boundary, Clip, Geometry2,
 };
-use honeycomb_core::{CMap2, CoordsFloat};
+use honeycomb_core::{CMap2, CoordsFloat, Vertex2};
 use vtkio::Vtk;
 // ------ CONTENT
 
@@ -121,7 +121,29 @@ pub fn grisubal<T: CoordsFloat>(
     };
 
     // pre-processing
-    let mut geometry = Geometry2::try_from(geometry_vtk)?;
+    let mut geometry = Geometry2 {
+        vertices: vec![
+            Vertex2(T::from(1.33).unwrap(), T::from(0.5).unwrap()),
+            Vertex2(T::from(1.66).unwrap(), T::from(0.5).unwrap()),
+            Vertex2(T::from(2.5).unwrap(), T::from(1.33).unwrap()),
+            Vertex2(T::from(2.5).unwrap(), T::from(1.66).unwrap()),
+            Vertex2(T::from(1.66).unwrap(), T::from(2.5).unwrap()),
+            Vertex2(T::from(1.33).unwrap(), T::from(2.5).unwrap()),
+            Vertex2(T::from(0.5).unwrap(), T::from(1.66).unwrap()),
+            Vertex2(T::from(0.5).unwrap(), T::from(1.33).unwrap()),
+        ],
+        segments: vec![
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 4),
+            (4, 5),
+            (5, 6),
+            (6, 7),
+            (7, 0),
+        ],
+        poi: vec![0, 1, 2, 3, 4, 5, 6, 7],
+    };
     detect_orientation_issue(&geometry)?;
 
     // compute an overlapping grid & remove redundant PoIs
