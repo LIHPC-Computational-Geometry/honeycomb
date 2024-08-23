@@ -407,7 +407,7 @@ pub fn successive_straight_intersections() {
     // same as the one of the `regular_intersections`, so we won't repeat the assertions
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
 
-    let mut edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+    let edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
 
     assert_eq!(edges.len(), 8);
     assert_eq!(
