@@ -6,7 +6,7 @@ pub fn setup_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let camera_transform = Transform::from_xyz(5.0, 5.0, 5.0);
+    let camera_transform = Transform::from_xyz(0.0, 0.0, 5.0);
 
     commands.spawn((
         PanOrbitCamera {

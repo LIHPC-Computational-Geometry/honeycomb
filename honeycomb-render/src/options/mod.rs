@@ -17,7 +17,7 @@ impl Plugin for OptionsPlugin {
         // mat handle
         // ...
         // shrink
-        app.insert_resource(resource::DartShrink::default())
+        app.insert_resource(resource::DartShrink(-0.3))
             .insert_resource(resource::FaceShrink::default())
             .insert_resource(resource::VolumeShrink::default());
         // width

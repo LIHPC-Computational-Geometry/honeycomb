@@ -21,18 +21,22 @@ pub fn populate_darts(
     dart_width: Res<DartWidth>,
     dart_shrink: Res<DartShrink>,
 ) {
-    let dart_head_handle = meshes.add(Sphere::new(dart_head_mul.0 * dart_width.0 / 2.));
+    let mut head_shape = Cone::default(); // Sphere::new(dart_head_mul.0 * dart_width.0 / 2.));
+    head_shape.radius = dart_head_mul.0 * dart_width.0 / 2.;
+    head_shape.height = dart_head_mul.0 * dart_width.0 / 2.;
+    let dart_head_handle = meshes.add(head_shape);
     let dart_mat = materials.add(Color::Srgba(Srgba::from_u8_array(
         dart_render_color.1.to_array(),
     )));
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let normals = &capture.normals;
-        let visibility = if focused_capture.0 .0 == capture.metadata.capture_id {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        let visibility =
+            if focused_capture.0 .0 == capture.metadata.capture_id && dart_render_color.0 {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
         for (head, body) in &capture.darts {
             let face_id = head.face_id.0;
             let (n1, n2) = (
@@ -45,7 +49,8 @@ pub fn populate_darts(
             );
             let (v1, v2) = (*ov1 + (*n1 * dart_shrink.0), *ov2 + (*n2 * dart_shrink.0));
             let (dir, len) = ((v2 - v1).normalize(), (v2 - v1).length());
-            let mut transform = Transform::from_translation(v1);
+
+            let mut transform = Transform::from_translation((v1 + v2) / 2.);
             transform.rotation = if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
@@ -55,7 +60,11 @@ pub fn populate_darts(
             commands.spawn((
                 body.clone(),
                 PbrBundle {
-                    mesh: meshes.add(Cylinder::new(dart_width.0 / 2., len)),
+                    mesh: meshes.add(Cylinder::new(
+                        dart_width.0 / 2.,
+                        // FIXME: clunky
+                        len * (1. - dart_shrink.0.abs()),
+                    )),
                     material: dart_mat.clone(),
                     transform,
                     visibility,
@@ -64,12 +73,20 @@ pub fn populate_darts(
                 PickableBundle::default(),
             ));
             // dart head
+            // FIXME: clunky
+            let mut transform_head =
+                Transform::from_translation(v2 - (dir * dart_shrink.0.abs() / 4.));
+            transform_head.rotation = if dir == Vec3::Y {
+                Quat::IDENTITY
+            } else {
+                Quat::from_rotation_arc(-dir, Vec3::Y)
+            };
             commands.spawn((
                 head.clone(),
                 PbrBundle {
                     mesh: dart_head_handle.clone(),
                     material: dart_mat.clone(),
-                    transform: Transform::from_translation(v2),
+                    transform: transform_head,
                     visibility,
                     ..Default::default()
                 },
@@ -102,11 +119,12 @@ pub fn populate_vertices(
     )));
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
-        let visibility = if focused_capture.0 .0 == capture.metadata.capture_id {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        let visibility =
+            if focused_capture.0 .0 == capture.metadata.capture_id && vertex_render_color.0 {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
         // insert vertices
         for vertex in &capture.vertices {
             commands.spawn((
@@ -141,16 +159,17 @@ pub fn populate_edges(
     )));
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
-        let visibility = if focused_capture.0 .0 == capture.metadata.capture_id {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        let visibility =
+            if focused_capture.0 .0 == capture.metadata.capture_id && edge_render_color.0 {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
         for edge in &capture.edges {
             let v1 = &vertices[edge.edge.0]; // == translation
             let v2 = &vertices[edge.edge.1];
             let (dir, len) = ((*v2 - *v1).normalize(), (*v2 - *v1).length());
-            let mut transform = Transform::from_translation(*v1);
+            let mut transform = Transform::from_translation((*v1 + *v2) / 2.);
             transform.rotation = if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
@@ -159,7 +178,7 @@ pub fn populate_edges(
             commands.spawn((
                 edge.clone(),
                 PbrBundle {
-                    mesh: meshes.add(Cylinder::new(edge_width.0 / 2., len / 2.)),
+                    mesh: meshes.add(Cylinder::new(edge_width.0 / 2., len)),
                     material: edge_mat.clone(),
                     transform,
                     visibility,
@@ -187,11 +206,12 @@ pub fn populate_faces(
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let normals = &capture.normals;
-        let visibility = if focused_capture.0 .0 == capture.metadata.capture_id {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        let visibility =
+            if focused_capture.0 .0 == capture.metadata.capture_id && face_render_color.0 {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
         for face in &capture.faces {
             let loc_n = &normals[&face.id.0];
             let ovs = face
