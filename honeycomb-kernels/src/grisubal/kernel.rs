@@ -336,8 +336,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         // the pair at respective relative positions 1 and 0 (or 0 and 1)
                         let i_base = c1.0 as isize;
                         let j_base = c1.1 as isize;
-                        let i_cell_range = min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1);
-                        let j_cell_range = min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1);
+                        let i_cell_range = min(i_base, i_base + i)..=max(i_base + i, i_base);
+                        let j_cell_range = min(j_base, j_base + j)..=max(j_base + j, j_base);
                         let subgrid_cells =
                             i_cell_range.flat_map(|x| j_cell_range.clone().map(move |y| (x, y)));
 
