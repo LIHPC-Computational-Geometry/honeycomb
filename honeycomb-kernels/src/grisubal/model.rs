@@ -414,6 +414,7 @@ pub enum GeometryVertex {
     IntersecCorner(DartIdentifier),
 }
 
+#[derive(Debug)]
 pub struct MapEdge<T: CoordsFloat> {
     pub start: DartIdentifier,
     pub intermediates: Vec<Vertex2<T>>,
