@@ -372,23 +372,39 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             .filter_map(|(hdart_id, vdart_id, (vs, vt), (hs, ht))| {
                                 let zero = T::zero();
                                 let one = T::one();
-                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
-                                // in that case, we keep the data of the intersection at relative position 0;
-                                // this corresponds to the dart that should be linked to by the previous point
-                                // of the segment
-                                // we check those first to avoid intersecting segment extremely close to their vertices
-                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
-                                    return Some((vs, vt, vdart_id));
+                                // there is one corner intersection to check per (i, j) quadrant
+                                match (i.is_positive(), j.is_positive()) {
+                                    // check
+                                    (true, true) | (false, false) => {
+                                        if ((vt - one).abs() < T::epsilon())
+                                            && (ht.abs() < T::epsilon())
+                                        {
+                                            return Some((hs, zero, hdart_id));
+                                        }
+                                    }
+                                    (false, true) | (true, false) => {
+                                        if (vt.abs() < T::epsilon())
+                                            && ((ht - one).abs() < T::epsilon())
+                                        {
+                                            return Some((vs, zero, vdart_id));
+                                        }
+                                    }
                                 }
-                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
-                                    return Some((hs, zero, hdart_id));
-                                }
+
                                 // we can deduce if and which side is intersected using s and t values
                                 // these should be comprised strictly between 0 and 1 for regular intersections
-                                if (zero < vs) & (vs < one) & (zero < vt) & (vt < one) {
+                                if (T::epsilon() <= vs)
+                                    & (vs <= one - T::epsilon())
+                                    & (T::epsilon() <= vt)
+                                    & (vt <= one - T::epsilon())
+                                {
                                     return Some((vs, vt, vdart_id)); // intersect vertical side
                                 }
-                                if (zero < hs) & (hs < one) & (zero < ht) & (ht < one) {
+                                if (T::epsilon() < hs)
+                                    & (hs <= one - T::epsilon())
+                                    & (T::epsilon() <= ht)
+                                    & (ht <= one - T::epsilon())
+                                {
                                     return Some((hs, ht, hdart_id)); // intersect horizontal side
                                 }
 
@@ -398,7 +414,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             })
                             .collect();
                         // sort intersections from v1 to v2
+                        intersec_data.retain(|(s, _, _)| (T::zero() <= *s) && (*s <= T::one()));
                         intersec_data.sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
