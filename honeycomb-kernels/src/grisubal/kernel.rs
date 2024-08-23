@@ -74,7 +74,7 @@ pub fn build_mesh<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [cx, cy]: [T; 2],
     [nx, ny]: [usize; 2],
-    origin: Option<Vertex2<T>>,
+    origin: Vertex2<T>,
 ) -> CMap2<T> {
     // compute grid characteristics
     // build grid descriptor
@@ -83,7 +83,8 @@ pub fn build_mesh<T: CoordsFloat>(
         .n_cells_y(ny)
         .len_per_cell_x(cx)
         .len_per_cell_y(cy)
-        .origin(origin.unwrap_or_default());
+        .origin(origin);
+
     // build initial map
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
@@ -92,8 +93,6 @@ pub fn build_mesh<T: CoordsFloat>(
         .expect("E: could not build overlapping grid map");
 
     // process the geometry
-
-    // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
 
     // STEP 1
     // the aim of this step is to build an exhaustive list of the segments making up
@@ -141,7 +140,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
-    origin: Option<Vertex2<T>>,
+    origin: Vertex2<T>,
 ) -> (
     HashMap<GeometryVertex, GeometryVertex>,
     Vec<(DartIdentifier, T)>,
@@ -150,32 +149,20 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
     geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
         // fetch vertices of the segment
+        let Vertex2(ox, oy) = origin;
         let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
         // compute their position in the grid
         // we assume that the origin of the grid is at (0., 0.)
-        let (c1, c2) = if let Some(Vertex2(ox, oy)) = origin {
-            (
-                GridCellId(
-                    ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
-                    ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
-                ),
-                GridCellId(
-                    ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
-                    ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
-                ),
-            )
-        } else {
-            (
-                GridCellId(
-                    (v1.x() / cx).floor().to_usize().unwrap(),
-                    (v1.y() / cy).floor().to_usize().unwrap(),
-                ),
-                GridCellId(
-                    (v2.x() / cx).floor().to_usize().unwrap(),
-                    (v2.y() / cy).floor().to_usize().unwrap(),
-                ),
-            )
-        };
+        let (c1, c2) = (
+            GridCellId(
+                ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
+                ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
+            ),
+            GridCellId(
+                ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
+                ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
+            ),
+        );
         // check neighbor status
         match GridCellId::man_dist(&c1, &c2) {
             // trivial case:
@@ -612,22 +599,4 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             d_boundary = cmap.beta::<1>(d_boundary);
         }
     }
-}
-
-// --- clipping
-
-/// Clipping routine.
-///
-/// This function takes a map built by [`build_mesh`] and removes cells on the *normal* side of the boundary.
-#[allow(unused)]
-pub fn remove_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
-    todo!()
-}
-
-/// Clipping routine
-///
-/// This function takes a map built by [`build_mesh`] and removes cells on the *anti-normal* side of the boundary.
-#[allow(unused)]
-pub fn remove_anti_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
-    todo!()
 }

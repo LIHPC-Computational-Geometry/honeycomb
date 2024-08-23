@@ -125,8 +125,8 @@ pub fn grisubal<T: CoordsFloat>(
     detect_orientation_issue(&geometry)?;
 
     // compute an overlapping grid & remove redundant PoIs
-    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, true)?;
-    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin.unwrap_or_default());
+    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
 
     // build the map
     #[allow(unused)]
