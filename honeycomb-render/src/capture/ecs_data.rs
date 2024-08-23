@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::{DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier};
+use honeycomb_core::{
+    DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
+};
 
 // --- shared data
 
@@ -15,10 +17,10 @@ pub struct FaceNormals(pub HashMap<FaceIdentifier, Vec<Vec3>>);
 #[derive(Bundle, Clone)]
 pub struct DartHeadBundle {
     pub capture_id: CaptureId,
-    id: MapId<DartIdentifier>,
-    vertex_id: MapId<VertexIdentifier>,
-    edge_id: MapId<EdgeIdentifier>,
-    pub face_id: MapId<FaceIdentifier>,
+    id: DartId,
+    vertex_id: VertexId,
+    edge_id: EdgeId,
+    pub face_id: FaceId,
     pub dart_head: DartHead,
 }
 
@@ -34,10 +36,10 @@ impl DartHeadBundle {
     ) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
-            id: MapId(id),
-            vertex_id: MapId(vertex_id),
-            edge_id: MapId(edge_id),
-            face_id: MapId(face_id),
+            id: DartId(id),
+            vertex_id: VertexId(vertex_id),
+            edge_id: EdgeId(edge_id),
+            face_id: FaceId(face_id),
             dart_head: DartHead { vertex, normal },
         }
     }
@@ -46,10 +48,10 @@ impl DartHeadBundle {
 #[derive(Bundle, Clone)]
 pub struct DartBodyBundle {
     pub capture_id: CaptureId,
-    id: MapId<DartIdentifier>,
-    vertex_id: MapId<VertexIdentifier>,
-    edge_id: MapId<EdgeIdentifier>,
-    pub face_id: MapId<FaceIdentifier>,
+    id: DartId,
+    vertex_id: VertexId,
+    edge_id: EdgeId,
+    pub face_id: FaceId,
     pub dart_body: DartBody,
 }
 
@@ -65,10 +67,10 @@ impl DartBodyBundle {
     ) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
-            id: MapId(id),
-            vertex_id: MapId(vertex_id),
-            edge_id: MapId(edge_id),
-            face_id: MapId(face_id),
+            id: DartId(id),
+            vertex_id: VertexId(vertex_id),
+            edge_id: EdgeId(edge_id),
+            face_id: FaceId(face_id),
             dart_body: DartBody { vertices, normals },
         }
     }
@@ -77,7 +79,7 @@ impl DartBodyBundle {
 #[derive(Bundle, Clone)]
 pub struct VertexBundle {
     pub capture_id: CaptureId,
-    id: MapId<VertexIdentifier>,
+    id: VertexId,
     pub vertex: Vertex,
 }
 
@@ -85,7 +87,7 @@ impl VertexBundle {
     pub fn new(capture_id: usize, id: VertexIdentifier, vertex: usize) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
-            id: MapId(id),
+            id: VertexId(id),
             vertex: Vertex(vertex),
         }
     }
@@ -94,7 +96,7 @@ impl VertexBundle {
 #[derive(Bundle, Clone)]
 pub struct EdgeBundle {
     pub capture_id: CaptureId,
-    id: MapId<EdgeIdentifier>,
+    id: EdgeId,
     pub edge: Edge,
 }
 
@@ -102,7 +104,7 @@ impl EdgeBundle {
     pub fn new(capture_id: usize, id: EdgeIdentifier, vertices: (usize, usize)) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
-            id: MapId(id),
+            id: EdgeId(id),
             edge: Edge(vertices.0, vertices.1),
         }
     }
@@ -111,7 +113,7 @@ impl EdgeBundle {
 #[derive(Bundle, Clone)]
 pub struct FaceBundle {
     pub capture_id: CaptureId,
-    pub id: MapId<FaceIdentifier>,
+    pub id: FaceId,
     pub face: Face,
 }
 
@@ -119,7 +121,7 @@ impl FaceBundle {
     pub fn new(capture_id: usize, id: FaceIdentifier, vertices: Vec<usize>) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
-            id: MapId(id),
+            id: FaceId(id),
             face: Face(vertices),
         }
     }
@@ -132,6 +134,21 @@ pub struct CaptureId(pub usize);
 
 #[derive(Component, Clone)]
 pub struct MapId<I>(pub I);
+
+#[derive(Component, Clone)]
+pub struct DartId(pub DartIdentifier);
+
+#[derive(Component, Clone)]
+pub struct VertexId(pub VertexIdentifier);
+
+#[derive(Component, Clone)]
+pub struct EdgeId(pub EdgeIdentifier);
+
+#[derive(Component, Clone)]
+pub struct FaceId(pub FaceIdentifier);
+
+#[derive(Component, Clone)]
+pub struct VolumeId(pub VolumeIdentifier);
 
 #[derive(Component, Clone)]
 pub struct DartHead {

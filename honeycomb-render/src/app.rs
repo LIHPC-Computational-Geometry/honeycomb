@@ -12,7 +12,7 @@ pub struct App {
 impl App {
     pub fn add_capture<T: CoordsFloat>(mut self, cmap: &CMap2<T>) -> Self {
         let cap_id = self.capture_list.0.len();
-        let capture = Capture::new(cap_id, cmap).unwrap();
+        let capture = Capture::new(cap_id, cmap);
         self.capture_list.0.push(capture);
         self
     }

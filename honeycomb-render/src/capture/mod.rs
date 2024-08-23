@@ -2,7 +2,7 @@ pub mod ecs_data;
 mod system;
 
 use crate::capture::ecs_data::CaptureId;
-use crate::capture::system::{populate_darts, populate_edges, populate_faces, populate_vertices};
+use crate::capture::system::{populate_darts, populate_edges, populate_vertices};
 use crate::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -20,8 +20,8 @@ impl Plugin for CapturePlugin {
         // systems
         app.add_systems(Startup, populate_darts)
             .add_systems(Startup, populate_vertices)
-            .add_systems(Startup, populate_edges)
-            .add_systems(Startup, populate_faces);
+            .add_systems(Startup, populate_edges);
+        //.add_systems(Startup, populate_faces);
     }
 }
 
@@ -54,7 +54,8 @@ pub struct Capture {
 }
 
 impl Capture {
-    pub fn new<T: CoordsFloat>(cap_id: usize, cmap: &CMap2<T>) -> Result<Capture, String> {
+    #[allow(clippy::too_many_lines)]
+    pub fn new<T: CoordsFloat>(cap_id: usize, cmap: &CMap2<T>) -> Self {
         let map_vertices = cmap.fetch_vertices();
         let map_edges = cmap.fetch_edges();
         let map_faces = cmap.fetch_faces();
@@ -143,14 +144,14 @@ impl Capture {
                     (vec_in.cross(Vec3::Z) + vec_out.cross(Vec3::Z)).normalize()
                 });
 
+                assert_eq!(loc_normals.len(), n_v);
+
                 normals.insert(*id, loc_normals);
 
                 // common dart iterator
                 let mut tmp = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdentifier)
-                    .zip(vertex_ids.iter().enumerate())
-                    .map(|(dart_id, (vertex_id, loc_normal_id))| {
-                        (dart_id, vertex_id, *loc_normal_id)
-                    })
+                    .enumerate()
+                    .map(|(idx, dart_id)| (dart_id, index_map[&cmap.vertex_id(dart_id)], idx))
                     .collect::<Vec<_>>();
                 tmp.push(tmp[0]); // trick for the `.windows` call
 
@@ -191,7 +192,7 @@ impl Capture {
             })
             .collect();
 
-        Ok(Self {
+        Self {
             metadata,
             vertex_vals,
             normals,
@@ -199,7 +200,7 @@ impl Capture {
             vertices,
             edges,
             faces,
-        })
+        }
     }
 }
 
