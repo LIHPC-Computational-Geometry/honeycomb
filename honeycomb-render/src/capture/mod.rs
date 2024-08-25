@@ -34,14 +34,8 @@ impl Default for FocusedCapture {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct CaptureList(pub Vec<Capture>);
-
-impl Default for CaptureList {
-    fn default() -> Self {
-        Self(Vec::new())
-    }
-}
 
 pub struct Capture {
     pub metadata: CaptureMD,

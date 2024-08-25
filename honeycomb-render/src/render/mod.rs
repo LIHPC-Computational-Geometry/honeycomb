@@ -4,7 +4,10 @@ mod scene;
 #[allow(clippy::needless_pass_by_value)]
 mod update;
 
-use crate::options::resource::{DartHeadMul, DartRenderColor, DartShrink, DartWidth};
+use crate::{
+    DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
+    FocusedCapture, VertexRenderColor, VertexWidth,
+};
 use bevy::prelude::*;
 use bevy_mod_outline::OutlinePlugin;
 use bevy_mod_picking::selection::SelectionPluginSettings;
@@ -26,6 +29,21 @@ impl Plugin for ScenePlugin {
             .add_systems(Update, picking::update_picking);
         // update displayed content
 
+        // FocusedCapture change
+        app.add_systems(
+            Update,
+            (
+                update::dart_render,
+                update::vertices_render,
+                update::edges_render,
+            )
+                .run_if(
+                    resource_changed::<FocusedCapture>
+                        .and_then(not(resource_added::<FocusedCapture>)),
+                ),
+        );
+
+        // dart updates
         app.add_systems(
             Update,
             (update::dart_render, update::dart_mat_handle).run_if(
@@ -58,6 +76,34 @@ impl Plugin for ScenePlugin {
             Update,
             (update::dart_heads_transform, update::dart_bodies_transform)
                 .run_if(resource_changed::<DartShrink>.and_then(not(resource_added::<DartShrink>))),
+        );
+
+        // vertex updates
+        app.add_systems(
+            Update,
+            (update::vertices_render, update::vertices_mat_handle).run_if(
+                resource_changed::<VertexRenderColor>
+                    .and_then(not(resource_added::<VertexRenderColor>)),
+            ),
+        );
+        app.add_systems(
+            Update,
+            update::vertices_handle.run_if(
+                resource_changed::<VertexWidth>.and_then(not(resource_added::<VertexWidth>)),
+            ),
+        );
+        // edge updates
+        app.add_systems(
+            Update,
+            (update::edges_render, update::edges_mat_handle).run_if(
+                resource_changed::<EdgeRenderColor>
+                    .and_then(not(resource_added::<EdgeRenderColor>)),
+            ),
+        );
+        app.add_systems(
+            Update,
+            update::edges_handle
+                .run_if(resource_changed::<EdgeWidth>.and_then(not(resource_added::<EdgeWidth>))),
         );
     }
 }

@@ -22,9 +22,10 @@ pub fn populate_darts(
     dart_width: Res<DartWidth>,
     dart_shrink: Res<DartShrink>,
 ) {
-    let mut head_shape = Cone::default(); // Sphere::new(dart_head_mul.0 * dart_width.0 / 2.));
-    head_shape.radius = dart_head_mul.0 * dart_width.0 / 2.;
-    head_shape.height = dart_head_mul.0 * dart_width.0 / 2.;
+    let head_shape = Cone {
+        radius: dart_head_mul.0 * dart_width.0 / 2.,
+        height: dart_head_mul.0 * dart_width.0 / 2.,
+    };
     let dart_head_handle = meshes.add(head_shape);
     let dart_mat = materials.add(Color::Srgba(Srgba::from_u8_array(
         dart_render_color.1.to_array(),
