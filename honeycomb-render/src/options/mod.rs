@@ -17,14 +17,14 @@ impl Plugin for OptionsPlugin {
         // mat handle
         // ...
         // shrink
-        app.insert_resource(resource::DartShrink(-0.3))
+        app.insert_resource(resource::DartShrink(-0.2))
             .insert_resource(resource::FaceShrink::default())
             .insert_resource(resource::VolumeShrink::default());
         // width
-        app.insert_resource(resource::DartWidth(0.1))
-            .insert_resource(resource::BetaWidth(0.1))
-            .insert_resource(resource::VertexWidth(0.15))
-            .insert_resource(resource::EdgeWidth(0.1));
+        app.insert_resource(resource::DartWidth(0.05))
+            .insert_resource(resource::BetaWidth(0.05))
+            .insert_resource(resource::VertexWidth(0.075))
+            .insert_resource(resource::EdgeWidth(0.05));
         // dart stuff
         app.insert_resource(resource::DartHeadMul::default());
     }

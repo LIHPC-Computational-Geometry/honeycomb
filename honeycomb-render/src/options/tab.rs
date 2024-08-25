@@ -31,7 +31,7 @@ macro_rules! opt_rendercol {
 macro_rules! opt_dragvalue {
     ($ui: ident, $world: ident, $param: ident) => {{
         let mut val = $world.resource_mut::<$param>();
-        $ui.add(egui::DragValue::new(&mut val.0).speed(0.05));
+        $ui.add(egui::DragValue::new(&mut val.0).speed(0.01));
     }};
 }
 

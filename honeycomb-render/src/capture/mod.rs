@@ -171,20 +171,20 @@ impl Capture {
                     )
                 });
 
-                let heads =
-                    tmp[0..tmp.len() - 1]
-                        .iter()
-                        .map(|(dart_id, vertex_id, loc_normal_id)| {
-                            DartHeadBundle::new(
-                                cap_id,
-                                *dart_id,
-                                cmap.vertex_id(*dart_id),
-                                cmap.edge_id(*dart_id),
-                                *id,
-                                *vertex_id,
-                                *loc_normal_id,
-                            )
-                        });
+                let heads = tmp.windows(2).map(|wd| {
+                    let [(dart_id, v1_id, v1n_id), (_, v2_id, v2n_id)] = wd else {
+                        unreachable!("i kneel");
+                    };
+                    DartHeadBundle::new(
+                        cap_id,
+                        *dart_id,
+                        cmap.vertex_id(*dart_id),
+                        cmap.edge_id(*dart_id),
+                        *id,
+                        (*v1_id, *v2_id),
+                        (*v1n_id, *v2n_id),
+                    )
+                });
 
                 darts.extend(heads.zip(bodies));
 

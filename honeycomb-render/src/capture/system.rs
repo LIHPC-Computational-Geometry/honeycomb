@@ -1,10 +1,11 @@
-use crate::capture::FocusedCapture;
-use crate::options::resource::{
+use crate::capture::ecs_data::{FaceNormals, MapVertices};
+use crate::CaptureList;
+use crate::FocusedCapture;
+use crate::{
     DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink, DartWidth,
     EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceRenderColor, FaceShrink,
     VertexHandle, VertexMatHandle, VertexRenderColor, VertexWidth,
 };
-use crate::CaptureList;
 use bevy::color::Color;
 use bevy::prelude::*;
 use bevy_mod_picking::PickableBundle;
@@ -74,15 +75,10 @@ pub fn populate_darts(
             ));
             // dart head
             // FIXME: clunky
-            let mut transform_head =
-                Transform::from_translation(v2 - (dir * dart_shrink.0.abs() / 4.));
+            let mut transform_head = Transform::from_translation(
+                (v1 + v2 + dir * len * (1. - dart_shrink.0.abs())) / 2.,
+            );
             transform_head.rotation = Quat::from_rotation_arc(Vec3::Y, dir);
-            /*if dir == Vec3::Y {
-                Quat::IDENTITY
-            } else {
-                Quat::from_rotation_arc(dir, Vec3::Y)
-            };
-            */
             commands.spawn((
                 head.clone(),
                 PbrBundle {
@@ -95,6 +91,8 @@ pub fn populate_darts(
                 PickableBundle::default(),
             ));
         }
+        commands.insert_resource(MapVertices(vertices.clone()));
+        commands.insert_resource(FaceNormals(normals.clone()));
     }
     commands.insert_resource(DartHeadHandle(dart_head_handle));
     commands.insert_resource(DartMatHandle(dart_mat));

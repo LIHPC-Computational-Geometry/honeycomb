@@ -31,8 +31,8 @@ impl DartHeadBundle {
         vertex_id: VertexIdentifier,
         edge_id: EdgeIdentifier,
         face_id: FaceIdentifier,
-        vertex: usize,
-        normal: usize,
+        vertices: (usize, usize),
+        normals: (usize, usize),
     ) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
@@ -40,7 +40,7 @@ impl DartHeadBundle {
             vertex_id: VertexId(vertex_id),
             edge_id: EdgeId(edge_id),
             face_id: FaceId(face_id),
-            dart_head: DartHead { vertex, normal },
+            dart_head: DartHead { vertices, normals },
         }
     }
 }
@@ -152,8 +152,8 @@ pub struct VolumeId(pub VolumeIdentifier);
 
 #[derive(Component, Clone)]
 pub struct DartHead {
-    pub vertex: usize, // (v0_id, v1_id)
-    pub normal: usize, // vertex normals (for shrink ops)
+    pub vertices: (usize, usize), // (v0_id, v1_id); we need both for rotation computations
+    pub normals: (usize, usize),  // vertex normals (for shrink ops)
 }
 
 #[derive(Component, Clone)]

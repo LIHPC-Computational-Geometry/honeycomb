@@ -1,11 +1,7 @@
 use crate::PanOrbitCamera;
 use bevy::prelude::*;
 
-pub fn setup_scene(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+pub fn setup_scene(mut commands: Commands) {
     let camera_transform = Transform::from_xyz(0.0, 0.0, 5.0);
 
     commands.spawn((
@@ -18,39 +14,6 @@ pub fn setup_scene(
             ..default()
         },
     ));
-
-    /*
-    let cube_mesh = meshes.add(Cuboid::default());
-
-    let cube_count: i32 = 3;
-
-    let colors: [Color; 3] = [RED.into(), LIME.into(), BLUE.into()];
-
-    for i in 0..cube_count {
-        commands
-            .spawn((
-                PbrBundle {
-                    mesh: cube_mesh.clone(),
-                    material: materials.add(colors[i as usize % colors.len()]),
-                    transform: Transform::from_xyz(
-                        -(cube_count / 2) as f32 * 1.5 + (i as f32 * 1.5),
-                        0.0,
-                        0.0,
-                    ),
-                    ..default()
-                },
-                PickableBundle::default(),
-            ))
-            .insert(OutlineBundle {
-                outline: OutlineVolume {
-                    visible: false,
-                    colour: Color::WHITE,
-                    width: 2.0,
-                },
-                ..default()
-            });
-    }
-     */
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
