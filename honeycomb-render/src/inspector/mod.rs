@@ -1,1 +1,1 @@
-mod tab;
+pub mod tab;

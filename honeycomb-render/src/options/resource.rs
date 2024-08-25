@@ -67,4 +67,4 @@ declare_newtype_resource!(EdgeWidth, f32);
 
 declare_newtype_resource!(VertexHandle, Handle<Mesh>);
 declare_newtype_resource!(DartHeadHandle, Handle<Mesh>);
-declare_newtype_resource!(DartHeadMul, f32, 1.5);
+declare_newtype_resource!(DartHeadMul, f32, 2.0);

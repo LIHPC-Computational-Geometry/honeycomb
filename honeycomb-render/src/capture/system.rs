@@ -1,13 +1,12 @@
-use crate::capture::ecs_data::{FaceNormals, MapVertices};
-use crate::CaptureList;
-use crate::FocusedCapture;
 use crate::{
-    DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink, DartWidth,
-    EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceRenderColor, FaceShrink,
-    VertexHandle, VertexMatHandle, VertexRenderColor, VertexWidth,
+    CaptureList, DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink,
+    DartWidth, EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceNormals,
+    FaceRenderColor, FaceShrink, FocusedCapture, MapVertices, VertexHandle, VertexMatHandle,
+    VertexRenderColor, VertexWidth,
 };
 use bevy::color::Color;
 use bevy::prelude::*;
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 use bevy_mod_picking::PickableBundle;
 
 #[allow(clippy::needless_pass_by_value, clippy::too_many_arguments)]
@@ -59,38 +58,56 @@ pub fn populate_darts(
                 Quat::from_rotation_arc(dir, Vec3::Y)
             };
             // dart body
-            commands.spawn((
-                body.clone(),
-                PbrBundle {
-                    mesh: meshes.add(Cylinder::new(
-                        dart_width.0 / 2.,
-                        // FIXME: clunky
-                        len * (1. - dart_shrink.0.abs()),
-                    )),
-                    material: dart_mat.clone(),
-                    transform,
-                    visibility,
-                    ..Default::default()
-                },
-                PickableBundle::default(),
-            ));
+            commands
+                .spawn((
+                    body.clone(),
+                    PbrBundle {
+                        mesh: meshes.add(Cylinder::new(
+                            dart_width.0,
+                            // FIXME: clunky
+                            len * (1. - dart_shrink.0.abs()),
+                        )),
+                        material: dart_mat.clone(),
+                        transform,
+                        visibility,
+                        ..Default::default()
+                    },
+                    PickableBundle::default(),
+                ))
+                .insert(OutlineBundle {
+                    outline: OutlineVolume {
+                        visible: false,
+                        colour: Color::WHITE,
+                        width: 1.0,
+                    },
+                    ..default()
+                });
             // dart head
             // FIXME: clunky
             let mut transform_head = Transform::from_translation(
                 (v1 + v2 + dir * len * (1. - dart_shrink.0.abs())) / 2.,
             );
             transform_head.rotation = Quat::from_rotation_arc(Vec3::Y, dir);
-            commands.spawn((
-                head.clone(),
-                PbrBundle {
-                    mesh: dart_head_handle.clone(),
-                    material: dart_mat.clone(),
-                    transform: transform_head,
-                    visibility,
-                    ..Default::default()
-                },
-                PickableBundle::default(),
-            ));
+            commands
+                .spawn((
+                    head.clone(),
+                    PbrBundle {
+                        mesh: dart_head_handle.clone(),
+                        material: dart_mat.clone(),
+                        transform: transform_head,
+                        visibility,
+                        ..Default::default()
+                    },
+                    PickableBundle::default(),
+                ))
+                .insert(OutlineBundle {
+                    outline: OutlineVolume {
+                        visible: false,
+                        colour: Color::WHITE,
+                        width: 1.0,
+                    },
+                    ..default()
+                });
         }
         commands.insert_resource(MapVertices(vertices.clone()));
         commands.insert_resource(FaceNormals(normals.clone()));
@@ -99,7 +116,7 @@ pub fn populate_darts(
     commands.insert_resource(DartMatHandle(dart_mat));
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[allow(clippy::needless_pass_by_value, unused)]
 pub fn populate_beta() {
     todo!()
 }
@@ -128,17 +145,26 @@ pub fn populate_vertices(
             };
         // insert vertices
         for vertex in &capture.vertices {
-            commands.spawn((
-                vertex.clone(),
-                PbrBundle {
-                    mesh: vertex_handle.clone(),
-                    material: vertex_mat.clone(),
-                    transform: Transform::from_translation(vertices[vertex.vertex.0]),
-                    visibility,
-                    ..Default::default()
-                },
-                PickableBundle::default(),
-            ));
+            commands
+                .spawn((
+                    vertex.clone(),
+                    PbrBundle {
+                        mesh: vertex_handle.clone(),
+                        material: vertex_mat.clone(),
+                        transform: Transform::from_translation(vertices[vertex.vertex.0]),
+                        visibility,
+                        ..Default::default()
+                    },
+                    PickableBundle::default(),
+                ))
+                .insert(OutlineBundle {
+                    outline: OutlineVolume {
+                        visible: false,
+                        colour: Color::WHITE,
+                        width: 1.0,
+                    },
+                    ..default()
+                });
         }
     }
     commands.insert_resource(VertexHandle(vertex_handle));
@@ -176,23 +202,32 @@ pub fn populate_edges(
             } else {
                 Quat::from_rotation_arc(dir, Vec3::Y)
             };
-            commands.spawn((
-                edge.clone(),
-                PbrBundle {
-                    mesh: meshes.add(Cylinder::new(edge_width.0 / 2., len)),
-                    material: edge_mat.clone(),
-                    transform,
-                    visibility,
-                    ..Default::default()
-                },
-                PickableBundle::default(),
-            ));
+            commands
+                .spawn((
+                    edge.clone(),
+                    PbrBundle {
+                        mesh: meshes.add(Cylinder::new(edge_width.0 / 2., len)),
+                        material: edge_mat.clone(),
+                        transform,
+                        visibility,
+                        ..Default::default()
+                    },
+                    PickableBundle::default(),
+                ))
+                .insert(OutlineBundle {
+                    outline: OutlineVolume {
+                        visible: false,
+                        colour: Color::WHITE,
+                        width: 1.0,
+                    },
+                    ..default()
+                });
         }
     }
     commands.insert_resource(EdgeMatHandle(edge_mat));
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[allow(clippy::needless_pass_by_value, unused)]
 pub fn populate_faces(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -221,9 +256,11 @@ pub fn populate_faces(
                 .iter()
                 .map(|id| vertices[*id])
                 .collect::<Vec<_>>();
-            let nv = ovs.len();
-            // commands.spawn((face.clone(),));
-            todo!()
+            let nvs: Vec<_> = loc_n
+                .iter()
+                .zip(ovs.iter())
+                .map(|(vertex, normal)| (*vertex + *normal * face_shrink.0).truncate())
+                .collect();
         }
     }
     commands.insert_resource(FaceMatHandle(face_mat));

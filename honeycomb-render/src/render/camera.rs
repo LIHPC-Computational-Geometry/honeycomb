@@ -47,7 +47,7 @@ pub fn update_camera(
     } else if input_mouse.pressed(pan_button) {
         // Pan only if we're not rotating at the moment
         for ev in ev_motion.read() {
-            pan += ev.delta;
+            pan += ev.delta * 2.;
         }
     }
 
@@ -57,7 +57,7 @@ pub fn update_camera(
         scroll /= if cfg!(target_arch = "wasm32") {
             100.0
         } else {
-            2.0
+            20.0
         };
     }
     if input_mouse.just_released(orbit_button) || input_mouse.just_pressed(orbit_button) {

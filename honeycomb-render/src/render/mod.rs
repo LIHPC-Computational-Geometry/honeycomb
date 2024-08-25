@@ -22,11 +22,13 @@ impl Plugin for ScenePlugin {
             Update,
             camera::update_camera.run_if(camera::cursor_in_render),
         );
+
         // picking
         app.add_plugins(DefaultPickingPlugins.build())
             .add_plugins(OutlinePlugin)
             .insert_resource(SelectionPluginSettings::default())
             .add_systems(Update, picking::update_picking);
+
         // update displayed content
 
         // FocusedCapture change

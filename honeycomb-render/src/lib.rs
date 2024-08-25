@@ -33,5 +33,6 @@ pub use app::App;
 
 use capture::{ecs_data::*, *};
 use gui::*;
+use inspector::tab::*;
 use options::{resource::*, tab::*, *};
 use render::{camera::*, ScenePlugin};

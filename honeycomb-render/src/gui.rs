@@ -1,3 +1,4 @@
+use crate::draw_inspected_data;
 use crate::draw_options;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
@@ -107,9 +108,7 @@ impl<'a> egui_dock::TabViewer for TabViewer<'a> {
     fn ui(&mut self, ui: &mut Ui, tab: &mut Self::Tab) {
         match tab {
             CustomTab::Render => *self.viewport_rect = ui.clip_rect(),
-            CustomTab::Inspector => {
-                // draw inspector
-            }
+            CustomTab::Inspector => draw_inspected_data(ui, self.world, self.selected_entities),
             CustomTab::Options => draw_options(ui, self.world),
         }
     }
