@@ -1,12 +1,13 @@
 pub mod camera;
-mod picking;
-mod scene;
+pub mod picking;
+pub mod scene;
 #[allow(clippy::needless_pass_by_value)]
-mod update;
+pub mod update;
 
-use crate::{
+use crate::capture::FocusedCapture;
+use crate::resources::{
     DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
-    FocusedCapture, VertexRenderColor, VertexWidth,
+    VertexRenderColor, VertexWidth,
 };
 use bevy::prelude::*;
 use bevy_mod_outline::OutlinePlugin;

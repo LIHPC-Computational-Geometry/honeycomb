@@ -1,11 +1,11 @@
-use crate::capture::{Capture, CapturePlugin};
-use crate::{CaptureList, GuiPlugin, OptionsPlugin, ScenePlugin};
+use crate::capture::{Capture, CaptureList};
+use crate::plugins::*;
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
 use honeycomb_core::{CMap2, CoordsFloat};
 
 pub struct App {
-    app: BevyApp,
+    pub app: BevyApp,
     capture_list: CaptureList,
 }
 

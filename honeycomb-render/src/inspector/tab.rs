@@ -1,5 +1,5 @@
 use crate::capture::ecs_data::{DartBody, DartId, EdgeId, FaceId, VertexId};
-use crate::{Beta, Edge, Face, Vertex, Volume};
+use crate::components::{Beta, Edge, Face, Vertex, Volume};
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy_egui::egui;

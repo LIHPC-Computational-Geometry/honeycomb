@@ -1,8 +1,8 @@
-use crate::{
-    CaptureList, DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink,
-    DartWidth, EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceNormals,
-    FaceRenderColor, FaceShrink, FocusedCapture, MapVertices, VertexHandle, VertexMatHandle,
-    VertexRenderColor, VertexWidth,
+use crate::capture::{CaptureList, FocusedCapture};
+use crate::resources::{
+    DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink, DartWidth,
+    EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceNormals, FaceRenderColor,
+    FaceShrink, MapVertices, VertexHandle, VertexMatHandle, VertexRenderColor, VertexWidth,
 };
 use bevy::color::Color;
 use bevy::prelude::*;

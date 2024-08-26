@@ -1,9 +1,9 @@
 pub mod ecs_data;
-mod system;
+pub mod system;
 
+use crate::bundles::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use crate::capture::ecs_data::CaptureId;
 use crate::capture::system::{populate_darts, populate_edges, populate_vertices};
-use crate::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use honeycomb_core::{

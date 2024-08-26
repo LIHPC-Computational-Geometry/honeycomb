@@ -1,4 +1,4 @@
-use crate::PanOrbitCamera;
+use crate::components::PanOrbitCamera;
 use bevy::prelude::*;
 
 pub fn setup_scene(mut commands: Commands) {

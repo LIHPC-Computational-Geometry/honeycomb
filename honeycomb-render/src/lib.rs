@@ -27,12 +27,46 @@ mod options;
 mod render;
 // ------ PUBLIC API
 
+// out of the box render tool
+
 pub use app::App;
 
-// ------ PRIVATE RE-EXPORTS
+// item for custom composition
 
-use capture::{ecs_data::*, *};
-use gui::*;
-use inspector::tab::*;
-use options::{resource::*, tab::*, *};
-use render::{camera::*, ScenePlugin};
+pub mod plugins {
+    pub use crate::capture::CapturePlugin;
+    pub use crate::gui::GuiPlugin;
+    pub use crate::options::OptionsPlugin;
+    pub use crate::render::ScenePlugin;
+}
+
+pub mod bundles {
+    pub use crate::capture::ecs_data::{
+        DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle,
+    };
+}
+
+pub mod components {
+    pub use crate::capture::ecs_data::{
+        Beta, CaptureId, DartBody, DartHead, DartId, Edge, EdgeId, Face, FaceId, Vertex, VertexId,
+        Volume, VolumeId,
+    };
+    pub use crate::render::camera::PanOrbitCamera;
+}
+
+pub mod resources {
+    pub use crate::capture::ecs_data::{FaceNormals, MapVertices};
+    pub use crate::options::resource::*;
+}
+
+pub mod systems {
+    pub use crate::capture::system::*;
+    pub use crate::inspector::tab::draw_inspected_data;
+    pub use crate::options::tab::draw_options;
+    pub use crate::render::{
+        camera::{cursor_in_render, update_camera},
+        picking::update_picking,
+        scene::setup_scene,
+        update::*,
+    };
+}
