@@ -8,8 +8,6 @@
 
 use std::collections::HashSet;
 
-use crate::GrisubalError;
-
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
     Vertex2,
@@ -21,9 +19,9 @@ use vtkio::{
 };
 
 use crate::grisubal::grid::GridCellId;
+use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::CMap2;
-
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -226,8 +224,7 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
 pub fn compute_overlapping_grid<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [len_cell_x, len_cell_y]: [T; 2],
-    allow_origin_offset: bool,
-) -> Result<([usize; 2], Option<Vertex2<T>>), GrisubalError> {
+) -> Result<([usize; 2], Vertex2<T>), GrisubalError> {
     // compute the minimum bounding box
     let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
         let Some(tmp) = geometry.vertices.first() else {
@@ -258,46 +255,31 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
     }
 
     // compute characteristics of the overlapping Cartesian grid
-    if allow_origin_offset {
-        // create a ~one-and-a-half cell buffer to contain the geometry
-        // this, along with the `+1` below, guarantees that
-        // dart at the boundary of the grid are not intersected by the geometry
-        let mut og_x = min_x - len_cell_x * T::from(1.5).unwrap();
-        let mut og_y = min_y - len_cell_y * T::from(1.5).unwrap();
-        let (mut on_corner, mut reflect) =
+
+    // create a ~one-and-a-half cell buffer to contain the geometry
+    // this, along with the `+1` below, guarantees that
+    // dart at the boundary of the grid are not intersected by the geometry
+    let mut og_x = min_x - len_cell_x * T::from(1.5).unwrap();
+    let mut og_y = min_y - len_cell_y * T::from(1.5).unwrap();
+    // we check for some extremely annoying cases here
+    // if some are detected, the origin is incrementally shifted
+    let (mut on_corner, mut reflect) =
+        detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+    let mut i = 1;
+
+    while on_corner | reflect {
+        println!("W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin");
+        og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+        og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+        (on_corner, reflect) =
             detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
-        let mut i = 1;
-
-        while on_corner | reflect {
-            println!(
-                "W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin"
-            );
-            og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
-            og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
-            (on_corner, reflect) =
-                detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
-            i += 1;
-        }
-
-        let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
-        let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
-
-        Ok(([n_cells_x, n_cells_y], Some(Vertex2(og_x, og_y))))
-    } else {
-        if min_x <= T::zero() {
-            return Err(GrisubalError::InvalidInput(format!(
-                "the geometry should be entirely defined in positive Xs - min_x = {min_x:?}"
-            )));
-        }
-        if min_y <= T::zero() {
-            return Err(GrisubalError::InvalidInput(format!(
-                "the geometry should be entirely defined in positive Ys - min_y = {min_y:?}"
-            )));
-        }
-        let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
-        let n_cells_y = (max_y / len_cell_y).ceil().to_usize().unwrap() + 1;
-        Ok(([n_cells_x, n_cells_y], None))
+        i += 1;
     }
+
+    let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
+    let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
+
+    Ok(([n_cells_x, n_cells_y], Vertex2(og_x, og_y)))
 }
 
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
