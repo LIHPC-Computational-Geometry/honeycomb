@@ -1,5 +1,4 @@
-use crate::draw_inspected_data;
-use crate::draw_options;
+use crate::systems::{draw_inspected_data, draw_options};
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy::window::PrimaryWindow;

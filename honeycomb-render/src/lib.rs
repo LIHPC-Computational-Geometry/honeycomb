@@ -16,6 +16,7 @@
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_sign_loss)]
 #![allow(clippy::cast_precision_loss)]
+#![allow(clippy::similar_names)]
 
 // ------ MODULE DECLARATIONS
 
@@ -33,6 +34,7 @@ pub use app::App;
 
 // item for custom composition
 
+/// plugins used to build the default [`App`]
 pub mod plugins {
     pub use crate::capture::CapturePlugin;
     pub use crate::gui::GuiPlugin;
@@ -40,12 +42,14 @@ pub mod plugins {
     pub use crate::render::ScenePlugin;
 }
 
+/// bundles used to build the default [`App`]
 pub mod bundles {
     pub use crate::capture::ecs_data::{
         DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle,
     };
 }
 
+/// components used to build the default [`App`]
 pub mod components {
     pub use crate::capture::ecs_data::{
         Beta, CaptureId, DartBody, DartHead, DartId, Edge, EdgeId, Face, FaceId, Vertex, VertexId,
@@ -54,11 +58,13 @@ pub mod components {
     pub use crate::render::camera::PanOrbitCamera;
 }
 
+/// resources used to build the default [`App`]
 pub mod resources {
     pub use crate::capture::ecs_data::{FaceNormals, MapVertices};
     pub use crate::options::resource::*;
 }
 
+/// systems used to build the default [`App`]
 pub mod systems {
     pub use crate::capture::system::*;
     pub use crate::inspector::tab::draw_inspected_data;
