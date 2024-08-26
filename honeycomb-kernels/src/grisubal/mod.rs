@@ -32,7 +32,7 @@
 //! 1. Compute intersection vertices between the geometry's segments and the grid.
 //! 2. Insert given intersections into the grid.
 //! 3. Build new edge data by searching through the original segments.
-//! 4. Insert the new edges into the map. Mark darts on each side of the edge with the [`Boundary`]
+//! 4. Insert the new edges into the map. Mark darts on each side of the edge with the `Boundary`
 //!    attribute.
 //!
 //! ## Post-processing clip
@@ -41,14 +41,14 @@
 //! This is specified using the [`Clip`] enum; The following steps describe the operation for
 //! [`Clip::Left`].
 //!
-//! 1. Fetch all darts marked as [`Boundary::Left`] at the last step of the main kernel.
+//! 1. Fetch all darts marked as `Boundary::Left` during the last step of the main kernel.
 //! 2. Use these darts' faces as starting point for a coloring algorithm. The search is done using
 //!    a BFS and only consider adjacent faces if the adjacent dart isn't marked as a boundary.
 //!    This step is also used to check for orientation inconsistencies, most importantly orientation
 //!    across distinct boundaries.
 //! 3. Delete all darts making up the marked faces.
 //!
-//! The [`Boundary`] attribute is then removed from the map before return.
+//! The `Boundary` attribute is then removed from the map before return.
 
 // ------ MODULE DECLARATIONS
 
@@ -57,11 +57,15 @@ pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
 
+// ------ RE-EXPORTS
+
+pub use model::Clip;
+
 // ------ IMPORTS
 
-use crate::{
-    clip_left, clip_right, compute_overlapping_grid, detect_orientation_issue,
-    remove_redundant_poi, Boundary, Clip, Geometry2,
+use crate::grisubal::clip::{clip_left, clip_right};
+use crate::grisubal::model::{
+    compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
 };
 use honeycomb_core::{CMap2, CoordsFloat};
 use vtkio::Vtk;
@@ -120,7 +124,7 @@ pub enum GrisubalError {
 ///
 /// ```no_run
 /// # use honeycomb_core::CMap2;
-/// # use honeycomb_kernels::{grisubal, Clip, GrisubalError};
+/// # use honeycomb_kernels::grisubal::*;
 /// # fn main() -> Result<(), GrisubalError>{
 /// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
 /// # Ok(())

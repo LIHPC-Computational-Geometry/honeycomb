@@ -3,12 +3,11 @@
 // ------ IMPORTS
 
 use crate::grisubal::model::Boundary;
-use crate::GrisubalError;
+use crate::grisubal::GrisubalError;
 use honeycomb_core::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};
-
 // ------ CONTENT
 
 /// Clip content on the left side of the boundary.

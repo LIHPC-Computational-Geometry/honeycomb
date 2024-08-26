@@ -11,12 +11,12 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
-use crate::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
+use crate::grisubal::grid::GridCellId;
+use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
 use honeycomb_core::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
 };
-
 // ------ CONTENT
 
 macro_rules! make_geometry_vertex {

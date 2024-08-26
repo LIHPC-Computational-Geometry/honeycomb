@@ -8,8 +8,6 @@
 
 use std::collections::HashSet;
 
-use crate::GrisubalError;
-
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
     Vertex2,
@@ -21,9 +19,9 @@ use vtkio::{
 };
 
 use crate::grisubal::grid::GridCellId;
+use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::CMap2;
-
 // ------ CONTENT
 
 /// Post-processing clip operation.
