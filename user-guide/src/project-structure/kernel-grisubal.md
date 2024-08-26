@@ -135,7 +135,7 @@ minimize orientation assumptions and avoid confusion.
 </figure>
 
 During the last step of the main algorithm, darts of the boundary are marked according to their respective side. From
-this, we can retrieve faces of a given side, and use them as a strating point for a coloring-like algorithm. 
+this, we can retrieve faces of a given side, and use them as a starting point for a coloring-like algorithm. 
 
 Faces are searched and marked using a BFS; only adjacent faces with an unmarked dart are considered. If, at any point, 
 a face with a dart of the other side of the boundary is reached it means that:
