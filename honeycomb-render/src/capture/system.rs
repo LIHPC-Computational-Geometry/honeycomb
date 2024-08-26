@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use bevy_mod_outline::{OutlineBundle, OutlineVolume};
 use bevy_mod_picking::PickableBundle;
 
+/// System used to generate dart entities in the ECS.
 #[allow(clippy::needless_pass_by_value, clippy::too_many_arguments)]
 pub fn populate_darts(
     mut commands: Commands,
@@ -116,11 +117,13 @@ pub fn populate_darts(
     commands.insert_resource(DartMatHandle(dart_mat));
 }
 
+/// System used to generate beta entities in the ECS.
 #[allow(clippy::needless_pass_by_value, unused)]
 pub fn populate_beta() {
     todo!()
 }
 
+/// System used to generate vertex entities in the ECS.
 #[allow(clippy::needless_pass_by_value)]
 pub fn populate_vertices(
     mut commands: Commands,
@@ -171,6 +174,7 @@ pub fn populate_vertices(
     commands.insert_resource(VertexMatHandle(vertex_mat));
 }
 
+/// System used to generate edge entities in the ECS.
 #[allow(clippy::needless_pass_by_value)]
 pub fn populate_edges(
     mut commands: Commands,
@@ -227,6 +231,9 @@ pub fn populate_edges(
     commands.insert_resource(EdgeMatHandle(edge_mat));
 }
 
+/// System used to generate face entities in the ECS.
+///
+/// NOT YET IMPLEMENTED
 #[allow(clippy::needless_pass_by_value, unused)]
 pub fn populate_faces(
     mut commands: Commands,

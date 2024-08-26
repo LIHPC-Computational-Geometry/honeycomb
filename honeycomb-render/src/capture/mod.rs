@@ -10,6 +10,7 @@ use honeycomb_core::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
 };
 
+/// Plugin handling capture data & entity generation from it.
 pub struct CapturePlugin;
 
 impl Plugin for CapturePlugin {
