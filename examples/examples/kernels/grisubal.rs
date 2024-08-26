@@ -1,4 +1,4 @@
-use honeycomb_kernels::{grisubal, Clip};
+use honeycomb_kernels::grisubal::*;
 use honeycomb_render::{RenderParameters, SmaaMode};
 
 use std::env;
