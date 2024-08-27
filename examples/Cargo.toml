@@ -8,6 +8,7 @@ repository.workspace = true
 description = "Usage examples"
 authors.workspace = true
 publish = false
+autoexamples = false
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils", "io"] }
@@ -21,17 +22,17 @@ rand = { workspace = true, features = ["small_rng"] }
 
 # I/O
 
-[[example]]
-name = "io_vtk_tri"
-path = "examples/io/tri.rs"
+# [[example]]
+# name = "io_vtk_tri"
+# path = "examples/io/tri.rs"
 
-[[example]]
-name = "io_vtk_quad"
-path = "examples/io/quad.rs"
+# [[example]]
+# name = "io_vtk_quad"
+# path = "examples/io/quad.rs"
 
-[[example]]
-name = "io_generate_vtk"
-path = "examples/io/write.rs"
+# [[example]]
+# name = "io_generate_vtk"
+# path = "examples/io/write.rs"
 
 # memory usage
 
@@ -69,6 +70,6 @@ path = "examples/render/default_no_aa.rs"
 # name = "render_squaremap_split_diff"
 # path = "examples/render/squaremap_split_diff.rs"
 
-[[example]]
-name = "render_squaremap_split_some"
-path = "examples/render/squaremap_split_some.rs"
+# [[example]]
+# name = "render_squaremap_split_some"
+# path = "examples/render/squaremap_split_some.rs"
