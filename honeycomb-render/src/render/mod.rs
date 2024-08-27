@@ -1,7 +1,6 @@
 pub mod camera;
 pub mod picking;
 pub mod scene;
-#[allow(clippy::needless_pass_by_value)]
 pub mod update;
 
 use crate::capture::FocusedCapture;

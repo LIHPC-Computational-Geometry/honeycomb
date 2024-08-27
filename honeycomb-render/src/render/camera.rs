@@ -24,7 +24,6 @@ impl Default for PanOrbitCamera {
 }
 
 /// Camera update routine.
-#[allow(clippy::needless_pass_by_value)] // this lint doesn't work well with the ECS logic
 pub fn update_camera(
     window_q: Query<&Window>,
     mut ev_motion: EventReader<MouseMotion>,
@@ -123,10 +122,10 @@ pub fn update_camera(
     ev_motion.clear();
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Detects if the cursor is positioned in the render tab.
 ///
 /// This is used to ignore camera related input when interacting with something other than the
-/// render tab.
 pub fn cursor_in_render(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     ui_state: Res<UiState>,
@@ -135,7 +134,7 @@ pub fn cursor_in_render(
     if let Some(position) = q_windows.single().cursor_position() {
         let tree = ui_state.tree();
         if let Some((node_idx, _)) = tree.find_tab(&CustomTab::Render) {
-            let rect = &tree[node_idx].rect().unwrap();
+            let rect = &tree[node_idx].rect().expect("unreachable");
             return rect.contains(position.to_array().into());
         }
         return false;

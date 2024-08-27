@@ -17,6 +17,8 @@
 #![allow(clippy::cast_sign_loss)]
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::similar_names)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::needless_pass_by_value)] // all ECS systems are flagged with this one
 
 // ------ MODULE DECLARATIONS
 

@@ -12,6 +12,7 @@ use bevy::prelude::*;
 
 // --- darts
 
+#[allow(clippy::missing_panics_doc)]
 /// Dart material handle update system.
 pub fn dart_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -39,6 +40,7 @@ pub fn dart_render(
         });
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Dart head mesh handle update system.
 pub fn dart_heads_handle(
     mut meshes: ResMut<Assets<Mesh>>,
@@ -81,6 +83,7 @@ pub fn dart_heads_transform(
         });
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Dart body mesh handles update system.
 pub fn dart_bodies_handles(
     mut meshes: ResMut<Assets<Mesh>>,
@@ -153,6 +156,7 @@ pub fn vertices_render(
     });
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Vertex mesh handle update system.
 pub fn vertices_handle(
     mut meshes: ResMut<Assets<Mesh>>,
@@ -163,6 +167,7 @@ pub fn vertices_handle(
     *mesh = Sphere::new(vertex_width.0 / 2.).into();
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Vertex material handle update system.
 pub fn vertices_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -190,6 +195,7 @@ pub fn edges_render(
     });
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Edge mesh handles update system.
 pub fn edges_handle(
     mut meshes: ResMut<Assets<Mesh>>,
@@ -206,6 +212,7 @@ pub fn edges_handle(
     });
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Edge material handle update system.
 pub fn edges_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
