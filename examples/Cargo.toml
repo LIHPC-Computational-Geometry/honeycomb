@@ -16,9 +16,9 @@ honeycomb-render = { workspace = true }
 honeycomb-kernels = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
 
-# [[example]]
-# name = "grisubal"
-# path = "examples/kernels/grisubal.rs"
+[[example]]
+name = "grisubal"
+path = "examples/kernels/grisubal.rs"
 
 # I/O
 
