@@ -8,8 +8,6 @@
 
 use std::collections::HashSet;
 
-use crate::GrisubalError;
-
 use honeycomb_core::{
     AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
     Vertex2,
@@ -20,9 +18,10 @@ use vtkio::{
     IOBuffer, Vtk,
 };
 
+use crate::grisubal::grid::GridCellId;
+use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::CMap2;
-
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -31,8 +30,6 @@ use honeycomb_core::CMap2;
 /// input.
 #[derive(Default)]
 pub enum Clip {
-    /// Clip all elements beside the captured boundary.
-    All,
     /// Clip elements located on the left side of the oriented boundary.
     Left,
     /// Clip elements located on the right side of the oriented boundary.
@@ -56,10 +53,11 @@ pub struct Geometry2<T: CoordsFloat> {
 
 macro_rules! build_vertices {
     ($v: ident) => {{
-        assert!(
-            ($v.len() % 3).is_zero(),
-            "E: failed to build vertices list - the point list contains an incomplete tuple"
-        );
+        if $v.len() % 3 != 0 {
+            return Err(GrisubalError::BadVtkData(
+                "vertex list contains an incomplete tuple",
+            ));
+        }
         $v.chunks_exact(3)
             .map(|slice| {
                 // WE IGNORE Z values
@@ -71,8 +69,10 @@ macro_rules! build_vertices {
 }
 
 /// For specification of the accepted VTK file format, see [`crate::grisubal`]'s documentation entry.
-impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
-    fn from(value: Vtk) -> Self {
+impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
+    type Error = GrisubalError;
+
+    fn try_from(value: Vtk) -> Result<Self, Self::Error> {
         // What we are reading / how we construct the geometry:
         // The input VTK file should describe boundaries (e.g. edges in 2D) & key vertices (e.g. sharp corners)
         // Those should be described by using simple
@@ -80,10 +80,12 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
             DataSet::ImageData { .. }
             | DataSet::StructuredGrid { .. }
             | DataSet::RectilinearGrid { .. }
-            | DataSet::Field { .. } => {
-                panic!("E: dataset not supported - only `UnstructuredGrid` is currently supported")
-            }
-            DataSet::PolyData { .. } => todo!("E: `PolyData` data set is not yet supported"),
+            | DataSet::Field { .. } => Err(GrisubalError::UnsupportedVtkData(
+                "dataset not supported - only `UnstructuredGrid` is currently supported",
+            )),
+            DataSet::PolyData { .. } => Err(GrisubalError::UnsupportedVtkData(
+                "dataset not supported - `PolyData` data set is not yet supported",
+            )),
             DataSet::UnstructuredGrid { pieces, .. } => {
                 let mut vertices = Vec::new();
                 let mut segments = Vec::new();
@@ -100,7 +102,11 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                     let vertices: Vec<Vertex2<T>> = match tmp.points {
                         IOBuffer::F64(v) => build_vertices!(v),
                         IOBuffer::F32(v) => build_vertices!(v),
-                        _ => panic!("E: unsupported coordinate representation type - please use float or double"),
+                        _ => {
+                            return Err(GrisubalError::UnsupportedVtkData(
+                                "unsupported coordinate representation type - please use float or double"
+                            ));
+                        }
                     };
                     let mut poi: Vec<usize> = Vec::new();
                     let mut segments: Vec<(usize, usize)> = Vec::new();
@@ -112,9 +118,9 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                             vertices: verts,
                         } => {
                             // check basic stuff
-                            assert_eq!(num_cells as usize, types.len(),
-                                "E: failed to build geometry - inconsistent number of cell between CELLS and CELL_TYPES"
-                            );
+                            if num_cells as usize != types.len() {
+                                return Err(GrisubalError::BadVtkData("inconsistent number of cell between CELLS and CELL_TYPES"));
+                            }
 
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
@@ -129,44 +135,53 @@ impl<T: CoordsFloat> From<Vtk> for Geometry2<T> {
                             });
                             assert_eq!(num_cells as usize, cell_components.len());
 
-                            types.iter().zip(cell_components.iter()).for_each(|(cell_type, vids)| match cell_type {
+                            if let Some(err) = types.iter().zip(cell_components.iter()).find_map(|(cell_type, vids)| match cell_type {
                                 CellType::Vertex => {
-                                    assert_eq!(vids.len(), 1,
-                                        "E: failed to build geoemtry - `Vertex` cell has incorrect # of vertices (!=1)"
-                                    );
+                                    if vids.len() != 1 {
+                                        return Some(GrisubalError::BadVtkData("`Vertex` cell has incorrect # of vertices (!=1)"));
+                                    }
                                     poi.push(vids[0]);
+                                    None
                                 }
                                 CellType::PolyVertex =>
-                                    panic!("E: failed to build geometry - `PolyVertex` cell type is not supported, use `Vertex`s instead"),
+                                    Some(GrisubalError::UnsupportedVtkData("`PolyVertex` cell type is not supported, use `Vertex`s instead")),
                                 CellType::Line => {
-                                    assert_eq!(vids.len(), 2,
-                                    "E: failed to build geometry - `Line` cell has incorrect # of vertices (!=2)"
-                                );
-                                    segments.push((vids[0],vids[1]));
+                                    if vids.len() != 2 {
+                                        return Some(GrisubalError::BadVtkData("`Line` cell has incorrect # of vertices (!=2)"));
+                                    }
+                                    segments.push((vids[0], vids[1]));
+                                    None
                                 }
                                 CellType::PolyLine =>
-                                    panic!("E: failed to build geometry - `PolyLine` cell type is not supported, use `Line`s instead"),
-                                _ => {}, // silent ignore all other cells that do not make up boundaries
-                            });
+                                    Some(GrisubalError::BadVtkData("`PolyLine` cell type is not supported, use `Line`s instead")),
+                                _ => None, // silent ignore all other cells that do not make up boundaries
+                            }) {
+                                return Err(err);
+                            };
                         }
                         VertexNumbers::XML { .. } => {
-                            panic!("E: XML Vtk files are not supported");
+                            return Err(GrisubalError::UnsupportedVtkData("XML Vtk files are not supported"));
                         }
                     }
-                    (vertices, segments, poi)
+                    Ok((vertices, segments, poi))
                 });
 
-                tmp.for_each(|(mut ver, mut seg, mut points)| {
-                    vertices.append(&mut ver);
-                    segments.append(&mut seg);
-                    poi.append(&mut points);
-                });
+                if let Some(e) = tmp.clone().find(Result::is_err) {
+                    return Err(e.unwrap_err());
+                }
 
-                Geometry2 {
+                tmp.filter_map(Result::ok)
+                    .for_each(|(mut ver, mut seg, mut points)| {
+                        vertices.append(&mut ver);
+                        segments.append(&mut seg);
+                        poi.append(&mut points);
+                    });
+
+                Ok(Geometry2 {
                     vertices,
                     segments,
                     poi,
-                }
+                })
             }
         }
     }
@@ -205,17 +220,19 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
     Ok(())
 }
 
+#[allow(clippy::cast_precision_loss)]
 pub fn compute_overlapping_grid<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [len_cell_x, len_cell_y]: [T; 2],
-    allow_origin_offset: bool,
-) -> ([usize; 2], Option<Vertex2<T>>) {
+) -> Result<([usize; 2], Vertex2<T>), GrisubalError> {
     // compute the minimum bounding box
     let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
-        let tmp = geometry
-            .vertices
-            .first()
-            .expect("E: specified geometry does not contain any vertex");
+        let Some(tmp) = geometry.vertices.first() else {
+            return Err(GrisubalError::InvalidInput(
+                "specified geometry does not contain any vertex".to_string(),
+            ));
+        };
+
         (tmp.x(), tmp.x(), tmp.y(), tmp.y())
     };
 
@@ -226,39 +243,142 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         max_y = max_y.max(v.y());
     });
 
-    // compute characteristics of the overlapping Cartesian grid
-    if allow_origin_offset {
-        todo!()
-    } else {
-        assert!(
-            min_x > T::zero(),
-            "E: the geometry should be entirely defined in positive Xs/Ys"
-        );
-        assert!(
-            min_y > T::zero(),
-            "E: the geometry should be entirely defined in positive Xs/Ys"
-        );
-        assert!(max_x > min_x);
-        assert!(max_y > min_y);
-        let n_cells_x = (max_x / len_cell_x).ceil().to_usize().unwrap() + 1;
-        let n_cells_y = (max_y / len_cell_y).ceil().to_usize().unwrap() + 1;
-        ([n_cells_x, n_cells_y], None)
+    if max_x <= min_x {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
+        )));
     }
+    if max_y <= min_y {
+        return Err(GrisubalError::InvalidInput(format!(
+            "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
+        )));
+    }
+
+    // compute characteristics of the overlapping Cartesian grid
+
+    // create a ~one-and-a-half cell buffer to contain the geometry
+    // this, along with the `+1` below, guarantees that
+    // dart at the boundary of the grid are not intersected by the geometry
+    let mut og_x = min_x - len_cell_x * T::from(1.5).unwrap();
+    let mut og_y = min_y - len_cell_y * T::from(1.5).unwrap();
+    // we check for some extremely annoying cases here
+    // if some are detected, the origin is incrementally shifted
+    let (mut on_corner, mut reflect) =
+        detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+    let mut i = 1;
+
+    while on_corner | reflect {
+        println!("W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin");
+        og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+        og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
+        (on_corner, reflect) =
+            detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+        i += 1;
+    }
+
+    let n_cells_x = ((max_x - og_x) / len_cell_x).ceil().to_usize().unwrap() + 1;
+    let n_cells_y = ((max_y - og_y) / len_cell_y).ceil().to_usize().unwrap() + 1;
+
+    Ok(([n_cells_x, n_cells_y], Vertex2(og_x, og_y)))
 }
 
 /// Remove from their geometry points of interest that intersect with a grid of specified dimension.
 ///
 /// This function works under the assumption that the grid is Cartesian & has its origin on `(0.0, 0.0)`.
-pub fn remove_redundant_poi<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) {
+pub fn remove_redundant_poi<T: CoordsFloat>(
+    geometry: &mut Geometry2<T>,
+    [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
+) {
     // PoI that land on the grid create a number of issues; removing them is ok since we're intersecting the grid
     // at their coordinates, so the shape will be captured via intersection anyway
     geometry.poi.retain(|idx| {
         let v = geometry.vertices[*idx];
         // origin is assumed to be (0.0, 0.0)
-        let on_x_axis = (v.x() % cx).is_zero();
-        let on_y_axis = (v.y() % cy).is_zero();
+        let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+        let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
         !(on_x_axis | on_y_axis)
     });
+}
+
+pub fn detect_overlaps<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+    [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
+) -> (bool, bool) {
+    let on_corner = geometry
+        .vertices
+        .iter()
+        .map(|v| {
+            let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+            let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
+            on_x_axis && on_y_axis
+        })
+        .any(|a| a);
+
+    let bad_reflection = geometry
+        .vertices
+        .iter()
+        .enumerate()
+        .filter_map(|(id, v)| {
+            let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
+            let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
+            if on_x_axis | on_y_axis {
+                return Some(id);
+            }
+            None
+        })
+        // skip vertices that do not belong to the boundary
+        .filter(|id| {
+            geometry
+                .segments
+                .iter()
+                .any(|(v1, v2)| (id == v1) || (id == v2))
+        })
+        .map(|id| {
+            // if a vertex appear in the boundary, there should be both a segment landing and a
+            // segment starting on the vertex; hence `.expect()`
+            let vid_in = geometry
+                .segments
+                .iter()
+                .find_map(|(vin, ref_id)| {
+                    if id == *ref_id {
+                        return Some(*vin);
+                    }
+                    None
+                })
+                .expect("E: open geometry?");
+            // same
+            let vid_out = geometry
+                .segments
+                .iter()
+                .find_map(|(ref_id, vout)| {
+                    if id == *ref_id {
+                        return Some(*vout);
+                    }
+                    None
+                })
+                .expect("E: open geometry?");
+            let v_in = geometry.vertices[vid_in];
+            let v_out = geometry.vertices[vid_out];
+            let Vertex2(ox, oy) = origin;
+            let (c_in, c_out) = (
+                GridCellId(
+                    ((v_in.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v_in.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+                GridCellId(
+                    ((v_out.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v_out.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+            );
+            // if v_in and v_out belong to the same grid cell, there was a "reflection" on one
+            // of the grid's axis
+            c_in == c_out
+        })
+        .any(|a| a);
+
+    (on_corner, bad_reflection)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -276,6 +396,7 @@ pub enum GeometryVertex {
     IntersecCorner(DartIdentifier),
 }
 
+#[derive(Debug)]
 pub struct MapEdge<T: CoordsFloat> {
     pub start: DartIdentifier,
     pub intermediates: Vec<Vertex2<T>>,

@@ -22,16 +22,3 @@
 // ------ MODULE DECLARATIONS
 
 pub mod grisubal;
-
-// ------ RE-EXPORTS
-
-// --- PUBLIC API
-
-pub use grisubal::{grisubal, model::Clip, GrisubalError};
-
-// --- INTERNALS
-
-pub(crate) use grisubal::grid::GridCellId;
-pub(crate) use grisubal::model::{
-    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex, MapEdge,
-};

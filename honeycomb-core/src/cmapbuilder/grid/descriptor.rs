@@ -4,7 +4,7 @@
 
 #[cfg(doc)]
 use crate::CMapBuilder;
-use crate::{BuilderError, CoordsFloat};
+use crate::{BuilderError, CoordsFloat, Vertex2};
 
 // ------ CONTENT
 
@@ -21,6 +21,7 @@ use crate::{BuilderError, CoordsFloat};
 /// - `T: CoordsFloat` -- Generic type of the future map object.
 #[derive(Default, Clone)]
 pub struct GridDescriptor<T: CoordsFloat> {
+    pub(crate) origin: Vertex2<T>,
     pub(crate) n_cells: Option<[usize; 3]>,
     pub(crate) len_per_cell: Option<[T; 3]>,
     pub(crate) lens: Option<[T; 3]>,
@@ -90,6 +91,13 @@ impl<T: CoordsFloat> GridDescriptor<T> {
     // lens
     setters!(lens, lens_x, lens_y, lens_z, T::zero(), T);
 
+    /// Set origin (most bottom-left vertex) of the grid
+    #[must_use = "unused builder object, consider removing this method call"]
+    pub fn origin(mut self, origin: Vertex2<T>) -> Self {
+        self.origin = origin;
+        self
+    }
+
     /// Indicate whether to split quads of the grid
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn split_quads(mut self, split: bool) -> Self {
@@ -110,7 +118,8 @@ macro_rules! check_parameters {
 
 impl<T: CoordsFloat> GridDescriptor<T> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
-    pub(crate) fn parse_2d(self) -> Result<([usize; 2], [T; 2]), BuilderError> {
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn parse_2d(self) -> Result<(Vertex2<T>, [usize; 2], [T; 2]), BuilderError> {
         match (self.n_cells, self.len_per_cell, self.lens) {
             // from # cells and lengths per cell
             (Some([nx, ny, _]), Some([lpx, lpy, _]), lens) => {
@@ -121,7 +130,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 check_parameters!(lpx, "Specified length per x cell is either null or negative");
                 #[rustfmt::skip]
                 check_parameters!(lpy, "Specified length per y cell is either null or negative");
-                Ok(([nx, ny], [lpx, lpy]))
+                Ok((self.origin, [nx, ny], [lpx, lpy]))
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
@@ -130,6 +139,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "Specified grid length along y is either null or negative");
                 Ok((
+                    self.origin,
                     [nx, ny],
                     [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
                 ))
@@ -145,6 +155,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "Specified grid length along y is either null or negative");
                 Ok((
+                    self.origin,
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
                         (ly / lpy).ceil().to_usize().unwrap(),

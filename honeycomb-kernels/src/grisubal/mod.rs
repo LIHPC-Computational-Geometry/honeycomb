@@ -10,74 +10,84 @@
 //!
 //! # Assumptions / Hypotheses
 //!
-//! - All components of the geometry are located in positive X/Y
-//! - Edges are consistently oriented (i.e. normals of edges making up a face all point
-//!   outward / inward, no mix)
+//! Boundaries are consistently oriented, i.e.:
+//! - normals of segments making up a boundary all point outward / inward, no mix
+//! - boundaries are closed
+//! - if there are nested boundaries, their orientation are consistent one with the other; this is
+//!   an extension of the first condition
 //!
-//! # Pseudo code
+//! # Algorithm
 //!
-//! ## Map generation
+//! The steps followed by the algorithm are detailed in the user guide. The following is a summary.
 //!
-//! **Input**:
-//! - Geometry of interest
-//! - Grid characteristics (length of cell along X/Y-axis)
+//! ## Pre-processing
 //!
-//! **Algorithm**:
+//! 1. Compute characteristics of a grid covering the entire geometry, avoiding exact intersection
+//!    between the grid's segments and the geometry's vertices.
+//! 2. Remove "redundant" Points of Interest to avoid duplicated vertices.
+//! 3. Check for obvious orientation issues (open geometry & orientation per boundary).
 //!
-//! Let `S` be the set of all segments making up the boundaries of the geometry.
-//! Let `PoI` be the set of points of interests of the boundaries (i.e. vertices that must be inserted into the final mesh)
-//! Let `DoI` be the corresponding set of darts of interests
+//! ## Main kernel
 //!
-//! For all segments `[A, B]` of `S`:
-//! - compute the Manhattan distance `d` between cell(A) and cell(B):
-//!     - if  `d == 0`: `A` and `B` belong to the same grid cell
-//!         - Do nothing
-//!     - if `d == 1`: `A` and `B` belong to neighbor cells
-//!         - Compute the intersection `C` between the segment and the grid's edge
-//!         - Split the grid's edge to add `C` on it, add relevant darts to `DoI`
-//!         - Replace segment `[A, B]` by segments `[A, C]`, `[C, B]`
-//!         - Add `C` to `PoI`
-//!     - if `d > 1`: `A` and `B` belong to different, non-neighbor cells
-//!         - Compute all intersections `Ci` between the segment and grid's edges
-//!         - Split grid's edges to add `Ci`s on them, add relevant darts to `DoI`
-//!         - Replace segment `[A, B]` by segments `[A, C1]`, `[C1, C2]`, ..., `[CX, B]`
-//!         - Add all `Ci`s to `PoI`
-//! - if `B` belongs to `PoI`:
-//!     - Insert `B` into the map
-//!     - Add relevant darts to `DoI`
-//!
-//! For all points `P` of `PoI`:
-//! - search `S` to find `P'`, the first "next" point to belong to `PoI`
-//! - use `DoI` to build the `[P, P']` segment into the map (this may need some refinement to avoid execution-path inconsistencies)
-//!
+//! 1. Compute intersection vertices between the geometry's segments and the grid.
+//! 2. Insert given intersections into the grid.
+//! 3. Build new edge data by searching through the original segments.
+//! 4. Insert the new edges into the map. Mark darts on each side of the edge with the `Boundary`
+//!    attribute.
 //!
 //! ## Post-processing clip
 //!
-//! TBD
+//! Depending on the specified argument, one side (or the other) of the boundary can be clipped.
+//! This is specified using the [`Clip`] enum; The following steps describe the operation for
+//! [`Clip::Left`].
+//!
+//! 1. Fetch all darts marked as `Boundary::Left` during the last step of the main kernel.
+//! 2. Use these darts' faces as starting point for a coloring algorithm. The search is done using
+//!    a BFS and only consider adjacent faces if the adjacent dart isn't marked as a boundary.
+//!    This step is also used to check for orientation inconsistencies, most importantly orientation
+//!    across distinct boundaries.
+//! 3. Delete all darts making up the marked faces.
+//!
+//! The `Boundary` attribute is then removed from the map before return.
 
 // ------ MODULE DECLARATIONS
 
+pub(crate) mod clip;
 pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
 
+// ------ RE-EXPORTS
+
+pub use model::Clip;
+
 // ------ IMPORTS
 
-use crate::{Clip, Geometry2};
+use crate::grisubal::clip::{clip_left, clip_right};
+use crate::grisubal::model::{
+    compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
+};
 use honeycomb_core::{CMap2, CoordsFloat};
-use model::detect_orientation_issue;
 use vtkio::Vtk;
-
 // ------ CONTENT
 
 #[derive(Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
+///
+/// Each variant has an associated message that details more precisely what was detected.
 pub enum GrisubalError {
-    /// An orientation issue has been detected in the input geometry; The associated message details more precisely
-    /// what was detected.
+    /// An orientation issue has been detected in the input geometry.
     InconsistentOrientation(String),
+    /// The specified geometry does not match one (or more) requirements of the algorithm.
+    InvalidInput(String),
+    /// The VTK file used to try to build a `Geometry2` object contains invalid data
+    /// (per VTK's specification).
+    BadVtkData(&'static str),
+    /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
+    UnsupportedVtkData(&'static str),
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Main algorithm call function.
 ///
 /// # Arguments
@@ -99,55 +109,63 @@ pub enum GrisubalError {
 ///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
 ///   geometry to match while vertices will be considered as points of interests.
 ///
+/// # Return / Errors
+///
+/// This function returns a `Result` taking the following values:
+/// - `Ok(CMap2)` -- Algorithm ran successfully.
+/// - `Err(GrisubalError)` -- Algorithm encountered an issue. See [`GrisubalError`] for more
+///   information about possible errors.
+///
 /// # Panics
 ///
-/// This function may panic if:
-/// - the specified file cannot be opened
-/// - an internal routine panics, i.e.:
-///     - TODO: complete
+/// This function may panic if the specified file cannot be opened.
 ///
 /// # Example
 ///
 /// ```no_run
-/// # fn main() {
-/// use honeycomb_core::CMap2;
-/// use honeycomb_kernels::{Clip, grisubal};
-/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Some(Clip::Left));
+/// # use honeycomb_core::CMap2;
+/// # use honeycomb_kernels::grisubal::*;
+/// # fn main() -> Result<(), GrisubalError>{
+/// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
+/// # Ok(())
 /// # }
 /// ```
+#[allow(clippy::needless_pass_by_value)]
 pub fn grisubal<T: CoordsFloat>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
-    clip: Option<Clip>,
-) -> CMap2<T> {
+    clip: Clip,
+) -> Result<CMap2<T>, GrisubalError> {
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
+
     // pre-processing
-    let mut geometry = Geometry2::from(geometry_vtk);
-    detect_orientation_issue(&geometry).unwrap();
+    let mut geometry = Geometry2::try_from(geometry_vtk)?;
+    detect_orientation_issue(&geometry)?;
+
+    // compute an overlapping grid & remove redundant PoIs
+    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
+
     // build the map
-    #[allow(unused)]
-    let mut cmap = kernel::build_mesh(&mut geometry, grid_cell_sizes);
+    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
+
     // optional post-processing
-    match clip.unwrap_or_default() {
-        Clip::All => {
-            todo!()
-        }
-        Clip::Left => {
-            todo!()
-        }
-        Clip::Right => {
-            todo!()
-        }
+    match clip {
+        Clip::Left => clip_left(&mut cmap)?,
+        Clip::Right => clip_right(&mut cmap)?,
         Clip::None => {}
     }
-    // return result
-    cmap
+    // remove attribute used for clipping
+    cmap.remove_attribute_storage::<Boundary>();
+
+    Ok(cmap)
 }
 
 // ------ TESTS
+
 #[cfg(test)]
 mod tests;

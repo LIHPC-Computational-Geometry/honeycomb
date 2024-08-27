@@ -11,14 +11,12 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
-use crate::{
-    compute_overlapping_grid, remove_redundant_poi, Boundary, Geometry2, GeometryVertex,
-    GridCellId, MapEdge,
-};
+use crate::grisubal::grid::GridCellId;
+use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
 use honeycomb_core::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
+    NULL_DART_ID,
 };
-
 // ------ CONTENT
 
 macro_rules! make_geometry_vertex {
@@ -72,15 +70,21 @@ macro_rules! up_intersec {
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Floating point type used for coordinate representation.
-pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2]) -> CMap2<T> {
+pub fn build_mesh<T: CoordsFloat>(
+    geometry: &Geometry2<T>,
+    [cx, cy]: [T; 2],
+    [nx, ny]: [usize; 2],
+    origin: Vertex2<T>,
+) -> CMap2<T> {
     // compute grid characteristics
-    let ([nx, ny], _) = compute_overlapping_grid(geometry, [cx, cy], false);
     // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
         .n_cells_y(ny)
         .len_per_cell_x(cx)
-        .len_per_cell_y(cy);
+        .len_per_cell_y(cy)
+        .origin(origin);
+
     // build initial map
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
@@ -90,19 +94,13 @@ pub fn build_mesh<T: CoordsFloat>(geometry: &mut Geometry2<T>, [cx, cy]: [T; 2])
 
     // process the geometry
 
-    // preparations
-
-    remove_redundant_poi(geometry, [cx, cy]);
-
-    // FIXME: WHAT'S THE BEHAVIOR WHEN INTERSECTING CORNERS? WHEN SEGMENTS ARE TANGENTS?
-
     // STEP 1
     // the aim of this step is to build an exhaustive list of the segments making up
     // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy]);
+        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy], origin);
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -142,6 +140,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
+    origin: Vertex2<T>,
 ) -> (
     HashMap<GeometryVertex, GeometryVertex>,
     Vec<(DartIdentifier, T)>,
@@ -150,17 +149,18 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
     geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
         // fetch vertices of the segment
+        let Vertex2(ox, oy) = origin;
         let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
         // compute their position in the grid
         // we assume that the origin of the grid is at (0., 0.)
         let (c1, c2) = (
             GridCellId(
-                (v1.x() / cx).floor().to_usize().unwrap(),
-                (v1.y() / cy).floor().to_usize().unwrap(),
+                ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
+                ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
             ),
             GridCellId(
-                (v2.x() / cx).floor().to_usize().unwrap(),
-                (v2.y() / cy).floor().to_usize().unwrap(),
+                ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
+                ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
             ),
         );
         // check neighbor status
@@ -259,7 +259,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
-                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
                             tmp.collect()
@@ -301,7 +301,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
-                        // because of how the the range is written, we need to reverse the iterator in one case
+                        // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if j > 0 {
                             tmp.collect()
@@ -323,8 +323,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         // the pair at respective relative positions 1 and 0 (or 0 and 1)
                         let i_base = c1.0 as isize;
                         let j_base = c1.1 as isize;
-                        let i_cell_range = min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1);
-                        let j_cell_range = min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1);
+                        let i_cell_range = min(i_base, i_base + i)..=max(i_base + i, i_base);
+                        let j_cell_range = min(j_base, j_base + j)..=max(j_base + j, j_base);
                         let subgrid_cells =
                             i_cell_range.flat_map(|x| j_cell_range.clone().map(move |y| (x, y)));
 
@@ -349,9 +349,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                     left_intersec!(v1, v2, v_vdart, cy)
                                 };
                                 let h_coeffs = if j.is_positive() {
-                                    right_intersec!(v1, v2, v_hdart, cx)
+                                    up_intersec!(v1, v2, v_hdart, cx)
                                 } else {
-                                    left_intersec!(v1, v2, v_hdart, cx)
+                                    down_intersec!(v1, v2, v_hdart, cx)
                                 };
 
                                 (hdart_id, vdart_id, v_coeffs, h_coeffs)
@@ -359,23 +359,39 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             .filter_map(|(hdart_id, vdart_id, (vs, vt), (hs, ht))| {
                                 let zero = T::zero();
                                 let one = T::one();
-                                // corner intersections correspond to cases where vt=0 & ht=1 or vt=1 & ht=0
-                                // in that case, we keep the data of the intersection at relative position 0;
-                                // this corresponds to the dart that should be linked to by the previous point
-                                // of the segment
-                                // we check those first to avoid intersecting segment extremely close to their vertices
-                                if (vt.abs() < T::epsilon()) & ((ht - one).abs() < T::epsilon()) {
-                                    return Some((vs, vt, vdart_id));
+                                // there is one corner intersection to check per (i, j) quadrant
+                                match (i.is_positive(), j.is_positive()) {
+                                    // check
+                                    (true, true) | (false, false) => {
+                                        if ((vt - one).abs() < T::epsilon())
+                                            && (ht.abs() < T::epsilon())
+                                        {
+                                            return Some((hs, zero, hdart_id));
+                                        }
+                                    }
+                                    (false, true) | (true, false) => {
+                                        if (vt.abs() < T::epsilon())
+                                            && ((ht - one).abs() < T::epsilon())
+                                        {
+                                            return Some((vs, zero, vdart_id));
+                                        }
+                                    }
                                 }
-                                if ((vt - one).abs() < T::epsilon()) & (ht.abs() < T::epsilon()) {
-                                    return Some((hs, zero, hdart_id));
-                                }
+
                                 // we can deduce if and which side is intersected using s and t values
                                 // these should be comprised strictly between 0 and 1 for regular intersections
-                                if (zero < vs) & (vs < one) & (zero < vt) & (vt < one) {
+                                if (T::epsilon() <= vs)
+                                    & (vs <= one - T::epsilon())
+                                    & (T::epsilon() <= vt)
+                                    & (vt <= one - T::epsilon())
+                                {
                                     return Some((vs, vt, vdart_id)); // intersect vertical side
                                 }
-                                if (zero < hs) & (hs < one) & (zero < ht) & (ht < one) {
+                                if (T::epsilon() < hs)
+                                    & (hs <= one - T::epsilon())
+                                    & (T::epsilon() <= ht)
+                                    & (ht <= one - T::epsilon())
+                                {
                                     return Some((hs, ht, hdart_id)); // intersect horizontal side
                                 }
 
@@ -385,7 +401,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             })
                             .collect();
                         // sort intersections from v1 to v2
+                        intersec_data.retain(|(s, _, _)| (T::zero() <= *s) && (*s <= T::one()));
                         intersec_data.sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
                         vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
@@ -581,22 +599,4 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             d_boundary = cmap.beta::<1>(d_boundary);
         }
     }
-}
-
-// --- clipping
-
-/// Clipping routine.
-///
-/// This function takes a map built by [`build_mesh`] and removes cells on the *normal* side of the boundary.
-#[allow(unused)]
-pub fn remove_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
-    todo!()
-}
-
-/// Clipping routine
-///
-/// This function takes a map built by [`build_mesh`] and removes cells on the *anti-normal* side of the boundary.
-#[allow(unused)]
-pub fn remove_anti_normal<T: CoordsFloat>(cmap2: &mut CMap2<T>, geometry: &Geometry2<T>) {
-    todo!()
 }
