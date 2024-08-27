@@ -134,7 +134,7 @@ pub fn dart_bodies_transform(
             transform.rotation = if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
-                Quat::from_rotation_arc(dir, Vec3::Y)
+                Quat::from_rotation_arc(Vec3::Y, dir)
             };
         });
 }

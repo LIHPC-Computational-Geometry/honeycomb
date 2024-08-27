@@ -56,7 +56,7 @@ pub fn populate_darts(
             transform.rotation = if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
-                Quat::from_rotation_arc(dir, Vec3::Y)
+                Quat::from_rotation_arc(Vec3::Y, dir)
             };
             // dart body
             commands
@@ -202,7 +202,7 @@ pub fn populate_edges(
             transform.rotation = if dir == Vec3::Y {
                 Quat::IDENTITY
             } else {
-                Quat::from_rotation_arc(dir, Vec3::Y)
+                Quat::from_rotation_arc(Vec3::Y, dir)
             };
             commands
                 .spawn((
