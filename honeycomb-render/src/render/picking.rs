@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_mod_outline::OutlineVolume;
 use bevy_mod_picking::prelude::PickSelection;
 
+/// Picking update routine.
 pub fn update_picking(
     mut targets: Query<(Entity, &PickSelection, &mut OutlineVolume)>,
     mut ui_state: ResMut<UiState>,

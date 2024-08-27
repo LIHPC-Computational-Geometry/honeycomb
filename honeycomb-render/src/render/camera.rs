@@ -3,13 +3,14 @@ use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::math::vec2;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-// https://bevy-cheatbook.github.io/cookbook/pan-orbit-camera.html
 
+/// Taken from the bevy
+/// [cheatbook](https://bevy-cheatbook.github.io/cookbook/pan-orbit-camera.html).
 #[derive(Component)]
 pub struct PanOrbitCamera {
-    pub focus: Vec3,
-    pub radius: f32,
-    pub upside_down: bool,
+    pub(crate) focus: Vec3,
+    pub(crate) radius: f32,
+    pub(crate) upside_down: bool,
 }
 
 impl Default for PanOrbitCamera {
@@ -22,6 +23,7 @@ impl Default for PanOrbitCamera {
     }
 }
 
+/// Camera update routine.
 #[allow(clippy::needless_pass_by_value)] // this lint doesn't work well with the ECS logic
 pub fn update_camera(
     window_q: Query<&Window>,
@@ -121,6 +123,10 @@ pub fn update_camera(
     ev_motion.clear();
 }
 
+/// Detects if the cursor is positioned in the render tab.
+///
+/// This is used to ignore camera related input when interacting with something other than the
+/// render tab.
 pub fn cursor_in_render(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     ui_state: Res<UiState>,

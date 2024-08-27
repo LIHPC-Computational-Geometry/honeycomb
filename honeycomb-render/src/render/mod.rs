@@ -14,6 +14,7 @@ use bevy_mod_outline::OutlinePlugin;
 use bevy_mod_picking::selection::SelectionPluginSettings;
 use bevy_mod_picking::DefaultPickingPlugins;
 
+/// Plugin handling scene setup and updates.
 pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {

@@ -1,6 +1,7 @@
 use crate::components::PanOrbitCamera;
 use bevy::prelude::*;
 
+/// Scene setup routine.
 pub fn setup_scene(mut commands: Commands) {
     let camera_transform = Transform::from_xyz(0.0, 0.0, 5.0);
 

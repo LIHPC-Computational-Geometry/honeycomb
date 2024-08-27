@@ -7,12 +7,14 @@ use bevy_egui::{EguiContext, EguiPlugin, EguiSet};
 use egui_dock::{DockArea, DockState, NodeIndex, Style, Tree};
 
 // --- plugin
+
+/// Plugin used to build the interface.
 pub struct GuiPlugin;
 
 impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(EguiPlugin)
-            .insert_resource(UiState::new())
+            .insert_resource(UiState::default())
             .add_systems(
                 PostUpdate,
                 show_ui
@@ -55,8 +57,8 @@ pub struct UiState {
     pub(crate) selected_entities: HashSet<Entity>,
 }
 
-impl UiState {
-    pub fn new() -> Self {
+impl Default for UiState {
+    fn default() -> Self {
         let mut state = DockState::new(vec![CustomTab::Render]);
         let tree = state.main_surface_mut();
         let [_render, options_and_inspector] =
@@ -70,7 +72,9 @@ impl UiState {
             selected_entities: HashSet::new(),
         }
     }
+}
 
+impl UiState {
     pub fn ui(&mut self, world: &mut World, ctx: &mut bevy_egui::egui::Context) {
         let mut tab_viewer = TabViewer {
             world,

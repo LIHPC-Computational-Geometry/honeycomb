@@ -12,6 +12,7 @@ use bevy::prelude::*;
 
 // --- darts
 
+/// Dart material handle update system.
 pub fn dart_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
     handle: Res<DartMatHandle>,
@@ -21,6 +22,7 @@ pub fn dart_mat_handle(
     *mat = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array())).into();
 }
 
+/// Dart render color and status update system.
 pub fn dart_render(
     mut dart_comps: Query<(&CaptureId, &mut Visibility), With<DartId>>, // with dart_id == heads & bodies
     focused_capture: Res<FocusedCapture>,
@@ -37,6 +39,7 @@ pub fn dart_render(
         });
 }
 
+/// Dart head mesh handle update system.
 pub fn dart_heads_handle(
     mut meshes: ResMut<Assets<Mesh>>,
     handle: Res<DartHeadHandle>,
@@ -51,6 +54,7 @@ pub fn dart_heads_handle(
     *mesh = new_shape.into();
 }
 
+/// Dart head transform update system.
 pub fn dart_heads_transform(
     mut heads: Query<(&mut Transform, &DartHead, &FaceId)>,
     vertices: Res<MapVertices>,
@@ -77,6 +81,7 @@ pub fn dart_heads_transform(
         });
 }
 
+/// Dart body mesh handles update system.
 pub fn dart_bodies_handles(
     mut meshes: ResMut<Assets<Mesh>>,
     mut bodies: Query<(&Handle<Mesh>, &DartBody, &FaceId)>,
@@ -104,6 +109,7 @@ pub fn dart_bodies_handles(
     });
 }
 
+/// Dart body transform update system.
 pub fn dart_bodies_transform(
     mut bodies: Query<(&mut Transform, &DartBody, &FaceId)>,
     vertices: Res<MapVertices>,
@@ -119,7 +125,7 @@ pub fn dart_bodies_transform(
             );
             let (ov1, ov2) = (&vertices.0[body.vertices.0], &vertices.0[body.vertices.1]);
             let (v1, v2) = (*ov1 + (*n1 * dart_shrink.0), *ov2 + (*n2 * dart_shrink.0));
-            let (dir, len) = ((v2 - v1).normalize(), (v2 - v1).length());
+            let dir = (v2 - v1).normalize();
 
             transform.translation = (v1 + v2) / 2.;
             transform.rotation = if dir == Vec3::Y {
@@ -132,6 +138,7 @@ pub fn dart_bodies_transform(
 
 // --- vertices
 
+/// Vertex render color and status update system.
 pub fn vertices_render(
     mut query: Query<(&CaptureId, &mut Visibility), With<Vertex>>,
     focused_capture: Res<FocusedCapture>,
@@ -146,6 +153,7 @@ pub fn vertices_render(
     });
 }
 
+/// Vertex mesh handle update system.
 pub fn vertices_handle(
     mut meshes: ResMut<Assets<Mesh>>,
     handle: Res<VertexHandle>,
@@ -155,6 +163,7 @@ pub fn vertices_handle(
     *mesh = Sphere::new(vertex_width.0 / 2.).into();
 }
 
+/// Vertex material handle update system.
 pub fn vertices_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
     handle: Res<VertexMatHandle>,
@@ -166,6 +175,7 @@ pub fn vertices_mat_handle(
 
 // --- edges
 
+/// Edge render color and status update system.
 pub fn edges_render(
     mut query: Query<(&CaptureId, &mut Visibility), With<Edge>>,
     focused_capture: Res<FocusedCapture>,
@@ -180,6 +190,7 @@ pub fn edges_render(
     });
 }
 
+/// Edge mesh handles update system.
 pub fn edges_handle(
     mut meshes: ResMut<Assets<Mesh>>,
     handles: Query<(&Handle<Mesh>, &Edge)>,
@@ -195,6 +206,7 @@ pub fn edges_handle(
     });
 }
 
+/// Edge material handle update system.
 pub fn edges_mat_handle(
     mut materials: ResMut<Assets<StandardMaterial>>,
     handle: Res<EdgeMatHandle>,
