@@ -3,10 +3,12 @@ use bevy_egui::egui::Color32;
 
 macro_rules! declare_newtype_resource {
     ($nam: ident, $inr: ty) => {
+        /// Rendering option as a resource.
         #[derive(Resource)]
         pub struct $nam(pub $inr);
     };
     ($nam: ident, $inr: ty, $def: expr) => {
+        /// Rendering option as a resource.
         #[derive(Resource)]
         pub struct $nam(pub $inr);
 
@@ -17,6 +19,7 @@ macro_rules! declare_newtype_resource {
         }
     };
     ($nam: ident, $inr1: ty, $inr2: ty, $def: expr) => {
+        /// Rendering option as a resource.
         #[derive(Resource)]
         pub struct $nam(pub $inr1, pub $inr2);
 

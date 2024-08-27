@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy_egui::egui;
 
+/// Inspection panel drawing function.
 pub fn draw_inspected_data(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -31,17 +32,19 @@ pub fn draw_inspected_data(
             let Some(fid) = world.get::<FaceId>(*entity) else {
                 unreachable!();
             };
-            egui::Grid::new("dart_grid").num_columns(4).show(ui, |ui| {
-                ui.label("i-cells");
-                ui.label("Vertex");
-                ui.label("Edge");
-                ui.label("Face");
-                ui.end_row();
-                ui.label("IDs");
-                ui.label(format!("{}", vid.0));
-                ui.label(format!("{}", eid.0));
-                ui.label(format!("{}", fid.0));
-            });
+            egui::Grid::new(format!("dart #{}", id.0)) // need a unique id
+                .num_columns(4)
+                .show(ui, |ui| {
+                    ui.label("i-cells");
+                    ui.label("Vertex");
+                    ui.label("Edge");
+                    ui.label("Face");
+                    ui.end_row();
+                    ui.label("IDs");
+                    ui.label(format!("{}", vid.0));
+                    ui.label(format!("{}", eid.0));
+                    ui.label(format!("{}", fid.0));
+                });
         } else if world.get::<Beta>(*entity).is_some() {
             ui.label("Beta");
         } else if world.get::<Vertex>(*entity).is_some() {

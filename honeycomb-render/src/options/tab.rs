@@ -9,6 +9,7 @@ use bevy_mod_picking::selection::SelectionPluginSettings;
 use egui_dock::egui;
 // --- main function
 
+/// rendering options drawing function.
 pub fn draw_options(ui: &mut egui::Ui, world: &mut World) {
     draw_map_options(ui, world);
 

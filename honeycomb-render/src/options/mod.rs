@@ -3,6 +3,7 @@ use bevy::prelude::*;
 pub mod resource;
 pub mod tab;
 
+/// Plugin handling rendering options.
 pub struct OptionsPlugin;
 
 impl Plugin for OptionsPlugin {
