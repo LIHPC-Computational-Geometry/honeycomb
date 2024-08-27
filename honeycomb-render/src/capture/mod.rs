@@ -117,7 +117,9 @@ impl Capture {
                         vertex_vals[*ver_out] - vertex_vals[*ver],
                     );
                     // vec_in/out belong to X/Y plane => .cross(Z) == normal in the plane
-                    (vec_in.cross(Vec3::Z) + vec_out.cross(Vec3::Z)).normalize()
+                    // a firts normalization is required because both edges should weight equally
+                    (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize())
+                        .normalize()
                 }];
                 loc_normals.extend(vertex_ids.windows(3).map(|wdw| {
                     let [ver_in, ver, ver_out] = wdw else {
@@ -127,7 +129,8 @@ impl Capture {
                         vertex_vals[*ver] - vertex_vals[*ver_in],
                         vertex_vals[*ver_out] - vertex_vals[*ver],
                     );
-                    (vec_in.cross(Vec3::Z) + vec_out.cross(Vec3::Z)).normalize()
+                    (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize())
+                        .normalize()
                 }));
                 loc_normals.push({
                     let (ver_in, ver, ver_out) =
@@ -136,7 +139,8 @@ impl Capture {
                         vertex_vals[*ver] - vertex_vals[*ver_in],
                         vertex_vals[*ver_out] - vertex_vals[*ver],
                     );
-                    (vec_in.cross(Vec3::Z) + vec_out.cross(Vec3::Z)).normalize()
+                    (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize())
+                        .normalize()
                 });
 
                 assert_eq!(loc_normals.len(), n_v);
