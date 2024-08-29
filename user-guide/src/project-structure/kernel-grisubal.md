@@ -25,7 +25,22 @@ described via segments & vertices; Segments should be *consistently oriented*.
 Some vertices can be explicitly listed as cells in order for the algorithm to interpret those as *Points of Interests*.
 This can be used to ensure irregular geometries are captured correctly by the algorithm, which uses a uniform grid size.
 
-## Algorithm
+## Geometry Pre-processing
+
+Before running the main algorithm, a few steps are followed to ensure correctness of later computations.
+
+First, we compute the characteristics of a grid overlapping the entire geometry. The origin is automatically computed 
+according to the input geometry and the desired cell sizes; It is then, if necessary, adjusted to avoid a few edge 
+cases that would create issues in the main algorithm.
+
+After grid characteristics are obtained, they're used along the geometry to detect and remove redundant Points of 
+Interest. These are defined as PoI that land exactly on the grid; Their removal is necessary to avoid creating duplicate
+vertices in the main algorithm (since there would be both an intersection and a PoI at this location).
+
+As a last step before calling the main kernel, we check for trivial orientation issues by ensuring no vertex is the 
+start (resp. the end) of two different segments. This detects inconsistencies per-boundary, not overall consistency.
+
+## Grid Submersion Algorithm
 
 ### Step 1 - Intersect Grid & Geometry
 
@@ -106,6 +121,29 @@ following this process recursively for intermediates, we can build the final map
     <figcaption><i>Captured geometry</i></figcaption>
 </figure>
 
+## Clipping
+
+Optionally, some cells of the resulting combinatorial map can be removed. These cell would correspond to the inside or
+the outside of the geometry. We choose to simply consider the *left* side and the *right* side of the boundary, to 
+minimize orientation assumptions and avoid confusion.
+
+<figure style="text-align:center">
+    <img src="../images/grisubal/left_right_darts.svg" alt="Boundary sides" />
+    <figcaption><i>
+        Boundary sides. The oriented geometry is in red, left side in purple, right side in blue.
+    </i></figcaption>
+</figure>
+
+During the last step of the main algorithm, darts of the boundary are marked according to their respective side. From
+this, we can retrieve faces of a given side, and use them as a starting point for a coloring-like algorithm. 
+
+Faces are searched and marked using a BFS; only adjacent faces with an unmarked dart are considered. If, at any point, 
+a face with a dart of the other side of the boundary is reached it means that:
+- the geometry was open, or
+- nested boundaries are inconsistently oriented.
+
+After this, all darts of the marked faces are deleted. The attribute used to mark boundary darts is then removed from 
+the map before it is returned.
 
 ## Appendices
 
