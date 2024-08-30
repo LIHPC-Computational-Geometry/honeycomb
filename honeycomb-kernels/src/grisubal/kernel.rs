@@ -100,7 +100,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // do not belong to the same cell, we break it into sub-segments until it is the case.
 
     let (new_segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, geometry, [nx, ny], [cx, cy], origin);
+        generate_intersection_data(&cmap, geometry, [nx, ny], [cx, cy], origin);
 
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
@@ -113,7 +113,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // will be inserted into the map. Intersections serve as anchor points for the new segments while PoI make up
     // "intermediate" points of segments.
 
-    let edges = generate_edge_data(&mut cmap, geometry, &new_segments, &intersection_darts);
+    let edges = generate_edge_data(&cmap, geometry, &new_segments, &intersection_darts);
 
     // STEP 4
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
@@ -136,7 +136,7 @@ pub fn build_mesh<T: CoordsFloat>(
     clippy::cast_sign_loss
 )]
 pub(super) fn generate_intersection_data<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    cmap: &CMap2<T>,
     geometry: &Geometry2<T>,
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
@@ -491,7 +491,7 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
 }
 
 pub(super) fn generate_edge_data<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    cmap: &CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &HashMap<GeometryVertex, GeometryVertex>,
     intersection_darts: &[DartIdentifier],
