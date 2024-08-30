@@ -2,7 +2,7 @@ use honeycomb_core::{CMapBuilder, GridDescriptor, Vertex2};
 use honeycomb_render::App;
 
 fn main() {
-    // build a simple grid 4 by 4 grid at origin (1.0, 1.0)
+    // build a simple 4 by 4 grid at origin (1.0, 1.0)
 
     let map = CMapBuilder::default()
         .grid_descriptor(

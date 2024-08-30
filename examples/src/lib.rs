@@ -17,4 +17,5 @@
 //!
 //! ### Rendering
 //!
-//! - `render` -- Render a map representing a simple orthogonal grid.
+//! - `render` -- Render a map representing a simple orthogonal grid. Note that you may *need* to
+//!   run this example in release mode if the input mesh is large.
