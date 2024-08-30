@@ -6,6 +6,105 @@
 
 ---
 
+## 0.5.0
+
+**This update contains breaking changes**
+
+### Workspace
+
+*fix:*
+
+- fix errors introduced by `rand` update by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/130
+- indent lists in doc correctly to comply with clippy by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/126
+
+*deps:*
+
+- bump codecov/codecov-action from 4.4.1 to 4.5.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/112
+- update iai-callgrind requirement from 0.11.0 to 0.12.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/133
+- bump `vtkio` version to `0.7.0-rc1` & disable its default features by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/142
+- update iai-callgrind requirement from 0.12.0 to 0.13.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/145
+
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+
+- add `splitn_edge` method to `CMap2` by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/127
+- add `remove_storage` method to `AttrStorageManager` by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/128
+- add origin offset directly to grid descriptor/builder by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/148
+
+*refactor:*
+
+- **rewrite `Vertex2` & `Vector2` as tuple structs** by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/124
+
+*fix:*
+
+- extend generic attribute storages when adding darts by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/122
+
+#### honeycomb-kernels (new member)
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+
+- add an overlay grid type algorithm: `grisubal`; it takes a 2D boundary as input and return a combinatorial map of 
+  the boundary, captured in an orthogonal grid; an optional clipping step is also implemented
+  - this was implemented in PRs #109, #111, #113, #115, #114, #116, #123, #119, #129, #131, #134, #135, #136, #137, #138, #140, #141, #143, #146, #147, #149, #151, and #152
+
+*test:*
+
+- add coverage using basic geometries by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/139
+
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*fix:*
+
+- add condition over shrink dir to prevent some crashes by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/121
+
+### Others
+
+#### honeycomb-examples
+
+<sup>project examples</sup>
+
+*new:*
+
+- add example for the `grisubal` kernel by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/120
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+*new:*
+
+- add `honeycomb-kernel` and `grisubal` pages by @imrn99 
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/117 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/153
+
+
+---
+
 ## 0.4.0
 
 **This update contains breaking changes**
