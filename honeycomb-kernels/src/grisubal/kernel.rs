@@ -113,7 +113,7 @@ pub fn build_mesh<T: CoordsFloat>(
     // will be inserted into the map. Intersections serve as anchor points for the new segments while PoI make up
     // "intermediate" points of segments.
 
-    let edges = generate_edge_data(&mut cmap, geometry, &new_segments, &intersection_darts);
+    let edges = generate_edge_data(&cmap, geometry, &new_segments, &intersection_darts);
 
     // STEP 4
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
