@@ -22,16 +22,12 @@ path = "examples/kernels/grisubal.rs"
 
 # I/O
 
-# [[example]]
-# name = "io_vtk_tri"
-# path = "examples/io/tri.rs"
+[[example]]
+name = "io_read"
+path = "examples/io/read.rs"
 
-# [[example]]
-# name = "io_vtk_quad"
-# path = "examples/io/quad.rs"
-
-# [[example]]
-# name = "io_generate_vtk"
+# [[example]]        # !! disabled because serialization has issues !!
+# name = "io_write"
 # path = "examples/io/write.rs"
 
 # memory usage
