@@ -26,9 +26,9 @@ path = "examples/kernels/grisubal.rs"
 name = "io_read"
 path = "examples/io/read.rs"
 
-# [[example]]        # !! disabled because serialization has issues !!
-# name = "io_write"
-# path = "examples/io/write.rs"
+[[example]]
+name = "io_write"
+path = "examples/io/write.rs"
 
 # memory usage
 
