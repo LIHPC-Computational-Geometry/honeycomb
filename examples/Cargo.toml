@@ -8,6 +8,7 @@ repository.workspace = true
 description = "Usage examples"
 authors.workspace = true
 publish = false
+autoexamples = false
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils", "io"] }
@@ -21,17 +22,17 @@ path = "examples/kernels/grisubal.rs"
 
 # I/O
 
-[[example]]
-name = "io_vtk_tri"
-path = "examples/io/tri.rs"
+# [[example]]
+# name = "io_vtk_tri"
+# path = "examples/io/tri.rs"
 
-[[example]]
-name = "io_vtk_quad"
-path = "examples/io/quad.rs"
+# [[example]]
+# name = "io_vtk_quad"
+# path = "examples/io/quad.rs"
 
-[[example]]
-name = "io_generate_vtk"
-path = "examples/io/write.rs"
+# [[example]]
+# name = "io_generate_vtk"
+# path = "examples/io/write.rs"
 
 # memory usage
 
@@ -45,30 +46,30 @@ path = "examples/memory_usage/compute.rs"
 name = "render_default_no_aa"
 path = "examples/render/default_no_aa.rs"
 
-[[example]]
-name = "render_default_smaa1x"
-path = "examples/render/default_smaa1x.rs"
+# [[example]]
+# name = "render_default_smaa1x"
+# path = "examples/render/default_smaa1x.rs"
 
-[[example]]
-name = "render_splitsquaremap"
-path = "examples/render/splitsquaremap.rs"
+# [[example]]
+# name = "render_splitsquaremap"
+# path = "examples/render/splitsquaremap.rs"
 
-[[example]]
-name = "render_squaremap"
-path = "examples/render/squaremap.rs"
+# [[example]]
+# name = "render_squaremap"
+# path = "examples/render/squaremap.rs"
 
-[[example]]
-name = "render_squaremap_parameterized"
-path = "examples/render/squaremap_parameterized.rs"
+# [[example]]
+# name = "render_squaremap_parameterized"
+# path = "examples/render/squaremap_parameterized.rs"
 
-[[example]]
-name = "render_squaremap_shift"
-path = "examples/render/squaremap_shift.rs"
+# [[example]]
+# name = "render_squaremap_shift"
+# path = "examples/render/squaremap_shift.rs"
 
-[[example]]
-name = "render_squaremap_split_diff"
-path = "examples/render/squaremap_split_diff.rs"
+# [[example]]
+# name = "render_squaremap_split_diff"
+# path = "examples/render/squaremap_split_diff.rs"
 
-[[example]]
-name = "render_squaremap_split_some"
-path = "examples/render/squaremap_split_some.rs"
+# [[example]]
+# name = "render_squaremap_split_some"
+# path = "examples/render/squaremap_split_some.rs"

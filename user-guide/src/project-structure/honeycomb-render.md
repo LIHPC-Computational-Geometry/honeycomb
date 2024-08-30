@@ -12,8 +12,7 @@ opposed to a binary that would read serialized data).
 
 ### Quickstart
 
-Because this crate is meant to be used in tandem with other members of the workspace, no quickstart example is provided
-in the documentation. Instead, standalone examples provided in the project cover basic usage and parameterization.
+WIP
 
 ### Examples
 

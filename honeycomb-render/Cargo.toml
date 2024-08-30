@@ -13,12 +13,9 @@ authors.workspace = true
 publish = true
 
 [dependencies]
-bytemuck = { workspace = true, features = ["derive"] }
-cfg-if.workspace = true
-cgmath.workspace = true
-env_logger.workspace = true
 honeycomb-core.workspace = true
-pollster.workspace = true
-smaa.workspace = true
-wgpu.workspace = true
-winit.workspace = true
+bevy = { workspace = true, features = ["bevy_render", "bevy_winit", "bevy_ui", "multi_threaded", "sysinfo_plugin", "tonemapping_luts", "x11"] }
+bevy_egui.workspace = true
+bevy_mod_picking.workspace = true
+bevy_mod_outline.workspace = true
+egui_dock.workspace = true
