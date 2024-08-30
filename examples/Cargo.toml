@@ -39,33 +39,5 @@ path = "examples/memory_usage/compute.rs"
 # rendering
 
 [[example]]
-name = "render_default_no_aa"
-path = "examples/render/default_no_aa.rs"
-
-# [[example]]
-# name = "render_default_smaa1x"
-# path = "examples/render/default_smaa1x.rs"
-
-# [[example]]
-# name = "render_splitsquaremap"
-# path = "examples/render/splitsquaremap.rs"
-
-# [[example]]
-# name = "render_squaremap"
-# path = "examples/render/squaremap.rs"
-
-# [[example]]
-# name = "render_squaremap_parameterized"
-# path = "examples/render/squaremap_parameterized.rs"
-
-# [[example]]
-# name = "render_squaremap_shift"
-# path = "examples/render/squaremap_shift.rs"
-
-# [[example]]
-# name = "render_squaremap_split_diff"
-# path = "examples/render/squaremap_split_diff.rs"
-
-# [[example]]
-# name = "render_squaremap_split_some"
-# path = "examples/render/squaremap_split_some.rs"
+name = "render"
+path = "examples/render.rs"
