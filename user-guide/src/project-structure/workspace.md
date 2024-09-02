@@ -10,6 +10,7 @@ These entries are members of the Cargo workspace.
 - [honeycomb-core](honeycomb-core.html) *Core definitions and tools for combinatorial map implementation*
 - [honeycomb-benches](honeycomb-benches.html) *Benchmarks of the main map structures and methods*
 - [honeycomb-examples](honeycomb-examples.html) *Examples of usage of the project's features*
+- [honeycomb-kernels](honeycomb-kernels.html) *Meshing kernel implementations using combinatorial maps*
 - [honeycomb-render](honeycomb-render.html) *Visualization tool for combinatorial maps*
 
 ## Others
