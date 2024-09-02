@@ -12,7 +12,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{CMap2, CMapBuilder, CMapError, DartIdentifier, Vertex2};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, CMapError, DartIdentifier, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
