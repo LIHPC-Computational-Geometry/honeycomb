@@ -10,6 +10,8 @@ fn main() {
     const N_SQUARE: usize = 16;
     const P_BERNOULLI: f64 = 0.6;
 
+    // GENERATE THE MAP
+
     println!("I: Start map initialization...");
     let now = Instant::now();
     let mut map: CMap2<f32> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
@@ -52,6 +54,8 @@ fn main() {
         });
     let elapsed = now.elapsed();
     println!("I: Finished splitting in {}μs", elapsed.as_micros());
+
+    // SERIALIZE THE MAP
 
     println!("I: Start VTK file generation...");
     let now = Instant::now();
