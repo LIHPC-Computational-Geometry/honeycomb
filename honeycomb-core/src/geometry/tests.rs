@@ -40,7 +40,7 @@ macro_rules! almost_equals {
 
 mod vector {
     use super::almost_equal;
-    use crate::{CoordsError, Vector2};
+    use crate::prelude::{CoordsError, Vector2};
     // tests
     macro_rules! generate_dot_prod_test {
         ($id: ident, $t: ty) => {
@@ -122,7 +122,7 @@ mod vector {
 // --- vertex
 
 mod vertex {
-    use crate::{Vector2, Vertex2};
+    use crate::prelude::{Vector2, Vertex2};
     // tests
     #[test]
     fn add_vertex_vector() {
