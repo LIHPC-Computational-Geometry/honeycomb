@@ -136,7 +136,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// ```
-    /// # use honeycomb_core::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+    /// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
     /// // before
     /// //    <--2---
     /// //  1         2
