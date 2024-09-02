@@ -67,7 +67,7 @@ use crate::grisubal::clip::{clip_left, clip_right};
 use crate::grisubal::model::{
     compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
 };
-use honeycomb_core::{CMap2, CoordsFloat};
+use honeycomb_core::prelude::{CMap2, CoordsFloat};
 use vtkio::Vtk;
 // ------ CONTENT
 
@@ -123,7 +123,7 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # use honeycomb_core::CMap2;
+/// # use honeycomb_core::prelude::CMap2;
 /// # use honeycomb_kernels::grisubal::*;
 /// # fn main() -> Result<(), GrisubalError>{
 /// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;

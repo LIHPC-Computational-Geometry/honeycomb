@@ -1,4 +1,4 @@
-use honeycomb_core::{CMapBuilder, GridDescriptor, Vertex2};
+use honeycomb_core::prelude::{CMapBuilder, GridDescriptor, Vertex2};
 use honeycomb_render::App;
 
 fn main() {

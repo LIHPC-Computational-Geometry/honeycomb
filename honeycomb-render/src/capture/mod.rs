@@ -6,7 +6,7 @@ use crate::capture::ecs_data::CaptureId;
 use crate::capture::system::{populate_darts, populate_edges, populate_vertices};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::{
+use honeycomb_core::prelude::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
 };
 
