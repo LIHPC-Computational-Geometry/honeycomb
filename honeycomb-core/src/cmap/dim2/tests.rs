@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
+use crate::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID};
 
 // ------ CONTENT
 

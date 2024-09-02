@@ -5,8 +5,10 @@
 
 // ------ IMPORTS
 
+use crate::prelude::{CMap2, DartIdentifier, NULL_DART_ID};
 use crate::{
-    AttributeStorage, CMap2, CoordsFloat, DartIdentifier, UnknownAttributeStorage, NULL_DART_ID,
+    attributes::{AttributeStorage, UnknownAttributeStorage},
+    spatial_repr::CoordsFloat,
 };
 
 // ------ CONTENT

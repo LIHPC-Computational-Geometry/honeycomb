@@ -6,9 +6,10 @@
 
 // ------ IMPORT
 
+use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, CMapError, Vertex2, VertexIdentifier};
 use crate::{
-    AttributeBind, AttributeStorage, AttributeUpdate, CMap2, CMapError, CoordsFloat,
-    UnknownAttributeStorage, Vertex2, VertexIdentifier,
+    attributes::{AttributeStorage, UnknownAttributeStorage},
+    spatial_repr::CoordsFloat,
 };
 
 // ------ CONTENT

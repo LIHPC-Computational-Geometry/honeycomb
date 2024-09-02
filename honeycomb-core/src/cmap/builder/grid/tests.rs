@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, CMapBuilder, GridDescriptor};
+use crate::prelude::{CMap2, CMapBuilder, GridDescriptor};
 
 // ------ CONTENT
 

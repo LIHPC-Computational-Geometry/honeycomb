@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::{DartIdentifier, OrbitPolicy};
+use crate::prelude::{DartIdentifier, OrbitPolicy};
 use cfg_if::cfg_if;
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
@@ -27,7 +27,7 @@ use dyn_clone::{clone_trait_object, DynClone};
 /// like this:
 ///
 /// ```rust
-/// use honeycomb_core::AttributeUpdate;
+/// use honeycomb_core::prelude::AttributeUpdate;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
@@ -90,7 +90,8 @@ pub trait AttributeUpdate: Sized {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy, AttrSparseVec};
+/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy};
+/// use honeycomb_core::attributes::AttrSparseVec;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {

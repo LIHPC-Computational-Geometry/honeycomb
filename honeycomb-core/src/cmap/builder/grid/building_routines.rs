@@ -2,7 +2,8 @@
 
 // ------ IMPORTS
 
-use crate::{AttrStorageManager, CMap2, CoordsFloat, DartIdentifier, Vector2, Vertex2};
+use crate::prelude::{CMap2, DartIdentifier, Vector2, Vertex2};
+use crate::{attributes::AttrStorageManager, spatial_repr::CoordsFloat};
 
 // ------ CONTENT
 

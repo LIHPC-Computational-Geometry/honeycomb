@@ -5,11 +5,9 @@
 
 // ------ IMPORTS
 
-use crate::{
-    AttributeBind, AttributeStorage, DartIdentifier, OrbitPolicy, UnknownAttributeStorage,
-};
-use std::any::TypeId;
-use std::collections::HashMap;
+use super::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
+use crate::prelude::{DartIdentifier, OrbitPolicy};
+use std::{any::TypeId, collections::HashMap};
 
 // ------ CONTENT
 
@@ -48,7 +46,7 @@ pub enum ManagerError {
 /// ```
 /// # use std::any::TypeId;
 /// # use std::collections::HashMap;
-/// # use honeycomb_core::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
+/// # use honeycomb_core::attributes::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
 /// pub struct Manager {
 ///     inner: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
 /// }

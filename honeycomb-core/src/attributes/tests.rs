@@ -1,9 +1,10 @@
 // ------ IMPORTS
 
-use crate::{
+use super::{
     AttrCompactVec, AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
-    AttributeUpdate, CMap2, CMapBuilder, UnknownAttributeStorage, Vertex2,
+    AttributeUpdate, UnknownAttributeStorage,
 };
+use crate::prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier};
 use std::any::Any;
 
 // ------ CONTENT
@@ -33,9 +34,9 @@ impl AttributeUpdate for Temperature {
 
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
-    type IdentifierType = crate::VertexIdentifier;
-    fn binds_to<'a>() -> crate::OrbitPolicy<'a> {
-        crate::OrbitPolicy::Vertex
+    type IdentifierType = VertexIdentifier;
+    fn binds_to<'a>() -> OrbitPolicy<'a> {
+        OrbitPolicy::Vertex
     }
 }
 
@@ -119,9 +120,9 @@ fn attribute_update() {
 
 #[test]
 fn attribute_bind() {
-    assert_eq!(Temperature::binds_to(), crate::OrbitPolicy::Vertex);
+    assert_eq!(Temperature::binds_to(), OrbitPolicy::Vertex);
     let inst: <Temperature as AttributeBind>::IdentifierType = 0;
-    let ref_inst: crate::FaceIdentifier = 0;
+    let ref_inst: FaceIdentifier = 0;
     let prim_inst: u32 = 0;
     assert_eq!(inst.type_id(), ref_inst.type_id());
     assert_eq!(inst.type_id(), prim_inst.type_id());

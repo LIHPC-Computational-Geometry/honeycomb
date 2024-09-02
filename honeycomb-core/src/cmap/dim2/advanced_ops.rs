@@ -5,7 +5,8 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_ID};
+use crate::prelude::{CMap2, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_ID};
+use crate::spatial_repr::CoordsFloat;
 
 // ------ CONTENT
 

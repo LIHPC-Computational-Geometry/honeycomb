@@ -4,10 +4,8 @@
 
 // ------ IMPORTS
 
-use crate::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, OrbitPolicy, Vector2,
-    VertexIdentifier,
-};
+use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vector2, VertexIdentifier};
+use crate::{attributes::AttrSparseVec, spatial_repr::CoordsFloat};
 
 // ------ CONTENT
 
@@ -20,9 +18,9 @@ use crate::{
 /// # Example
 ///
 /// ```
-/// # use honeycomb_core::CoordsError;
+/// # use honeycomb_core::prelude::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::{Vector2, Vertex2};
+/// use honeycomb_core::prelude::{Vector2, Vertex2};
 ///
 /// let v1 = Vertex2(1.0, 0.0);
 /// let v2 = Vertex2(1.0, 1.0);
@@ -96,7 +94,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// # Example
     ///
     /// ```rust
-    /// use honeycomb_core::Vertex2;
+    /// use honeycomb_core::prelude::Vertex2;
     ///
     /// let far_far_away: Vertex2<f64> = Vertex2(2.0, 2.0);
     /// let origin: Vertex2<f64> = Vertex2::default();

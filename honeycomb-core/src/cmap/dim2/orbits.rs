@@ -5,8 +5,9 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier, NULL_DART_ID};
-// use num::Zero;
+use crate::prelude::{CMap2, DartIdentifier, NULL_DART_ID};
+use crate::spatial_repr::CoordsFloat;
+
 use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
@@ -219,7 +220,7 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CMap2, DartIdentifier, Orbit2, OrbitPolicy};
+    use super::*;
 
     fn simple_map() -> CMap2<f64> {
         let mut map: CMap2<f64> = CMap2::new(6);

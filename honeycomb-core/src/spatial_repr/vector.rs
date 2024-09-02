@@ -4,7 +4,7 @@
 
 // ------ IMPORTS
 
-use crate::{CoordsError, CoordsFloat};
+use super::{CoordsError, CoordsFloat};
 
 // ------ CONTENT
 
@@ -17,9 +17,9 @@ use crate::{CoordsError, CoordsFloat};
 /// # Example
 ///
 /// ```
-/// # use honeycomb_core::CoordsError;
+/// # use honeycomb_core::prelude::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::Vector2;
+/// use honeycomb_core::prelude::Vector2;
 ///
 /// let unit_x = Vector2::unit_x();
 /// let unit_y = Vector2::unit_y();

@@ -2,7 +2,7 @@
 
 // ------ CONTENT
 
-use crate::CoordsFloat;
+use super::CoordsFloat;
 
 // --- common
 
