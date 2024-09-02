@@ -44,6 +44,8 @@ crates are published:
 
 - [![Core Version](https://img.shields.io/crates/v/honeycomb-core?label=honeycomb-core)][CIOHC] [![docs.rs](https://docs.rs/honeycomb-core/badge.svg)][DOCHC]
   basic structures
+- [![Kernels Version](https://img.shields.io/crates/v/honeycomb-kernels?label=honeycomb-kernels)][CIOHK] [![docs.rs](https://docs.rs/honeycomb-kernels/badge.svg)][DOCHK]
+  meshing kernels
 - [![Render Version](https://img.shields.io/crates/v/honeycomb-render?label=honeycomb-render)][CIOHR] [![docs.rs](https://docs.rs/honeycomb-render/badge.svg)][DOCHR]
   visualizing tool
 
@@ -57,6 +59,10 @@ The repository also hosts these members:
 [DOCHC]: https://docs.rs/honeycomb-core/
 
 [CIOHC]:https://crates.io/crates/honeycomb-core
+
+[DOCHK]: https://docs.rs/honeycomb-kernels/
+
+[CIOHK]: https://crates.io/crates/honeycomb-kernels
 
 [DOCHR]: https://docs.rs/honeycomb-render/
 
