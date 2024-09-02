@@ -10,8 +10,8 @@ pub mod descriptor;
 
 // ------ RE-EXPORTS
 
+use crate::geometry::CoordsFloat;
 use crate::prelude::{CMapBuilder, GridDescriptor};
-use crate::spatial_repr::CoordsFloat;
 
 // ------ CONTENT
 

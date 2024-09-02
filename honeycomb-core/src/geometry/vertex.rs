@@ -5,7 +5,7 @@
 // ------ IMPORTS
 
 use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vector2, VertexIdentifier};
-use crate::{attributes::AttrSparseVec, spatial_repr::CoordsFloat};
+use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
 // ------ CONTENT
 

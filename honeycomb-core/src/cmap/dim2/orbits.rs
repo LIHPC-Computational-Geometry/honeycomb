@@ -5,8 +5,8 @@
 
 // ------ IMPORTS
 
+use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdentifier, NULL_DART_ID};
-use crate::spatial_repr::CoordsFloat;
 
 use std::collections::{BTreeSet, VecDeque};
 

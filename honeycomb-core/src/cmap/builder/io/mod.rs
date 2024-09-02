@@ -7,7 +7,7 @@
 
 // ------ IMPORTS
 use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdentifier, Vertex2, VertexIdentifier};
-use crate::{attributes::AttrStorageManager, spatial_repr::CoordsFloat};
+use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 use num::Zero;
 use std::collections::BTreeMap;
 use vtkio::model::{CellType, DataSet, VertexNumbers};

@@ -9,7 +9,7 @@
 #[cfg(feature = "utils")]
 use super::GridDescriptor;
 use crate::prelude::{AttributeBind, CMap2};
-use crate::{attributes::AttrStorageManager, spatial_repr::CoordsFloat};
+use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 

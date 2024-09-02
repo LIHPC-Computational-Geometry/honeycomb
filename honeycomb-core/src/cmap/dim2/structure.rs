@@ -12,7 +12,7 @@ use super::CMAP2_BETA;
 use crate::prelude::{DartIdentifier, Vertex2};
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
-    spatial_repr::CoordsFloat,
+    geometry::CoordsFloat,
 };
 use std::collections::BTreeSet;
 

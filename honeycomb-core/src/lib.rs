@@ -35,6 +35,6 @@ pub mod attributes;
 
 pub mod cmap;
 
-pub mod spatial_repr;
+pub mod geometry;
 
 pub mod prelude;

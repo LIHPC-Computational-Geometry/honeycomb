@@ -5,8 +5,8 @@
 
 // ------ IMPORTS
 
+use crate::geometry::CoordsFloat;
 use crate::prelude::CMap2;
-use crate::spatial_repr::CoordsFloat;
 
 // ------ CONTENT
 

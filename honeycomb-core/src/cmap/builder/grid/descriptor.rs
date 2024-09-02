@@ -2,8 +2,8 @@
 
 // ------ IMPORTS
 
+use crate::geometry::CoordsFloat;
 use crate::prelude::{BuilderError, Vertex2};
-use crate::spatial_repr::CoordsFloat;
 
 #[cfg(doc)]
 use crate::prelude::CMapBuilder;

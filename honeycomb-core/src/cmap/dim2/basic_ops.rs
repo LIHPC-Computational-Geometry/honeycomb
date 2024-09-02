@@ -17,7 +17,7 @@ use crate::prelude::{
 use crate::{
     attributes::UnknownAttributeStorage,
     cmap::{EdgeCollection, FaceCollection, VertexCollection},
-    spatial_repr::CoordsFloat,
+    geometry::CoordsFloat,
 };
 
 use std::collections::BTreeSet;

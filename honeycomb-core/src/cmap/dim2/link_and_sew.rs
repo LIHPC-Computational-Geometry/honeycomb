@@ -8,7 +8,7 @@
 use crate::prelude::{CMap2, DartIdentifier, NULL_DART_ID};
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    spatial_repr::CoordsFloat,
+    geometry::CoordsFloat,
 };
 
 // ------ CONTENT
