@@ -4,6 +4,19 @@
 
 ## To be released
 
+**This update contains breaking changes**
+
+### Published crates
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*refactor:*
+
+- rewrite render tool using `bevy` instead of `wgpu` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/144
+
 ---
 
 ## 0.5.0
