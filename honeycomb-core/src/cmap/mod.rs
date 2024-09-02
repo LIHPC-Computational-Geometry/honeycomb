@@ -1,4 +1,4 @@
-//!
+//! combinatorial maps implementations
 
 mod builder;
 mod collections;

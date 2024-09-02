@@ -1,4 +1,4 @@
-//! Attribute modeling code
+//! attribute modeling code
 //!
 //! This module contains all code related to generic attribute modelling and handling.
 
