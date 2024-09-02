@@ -42,6 +42,8 @@ mod spatial_repr;
 
 // --- PUBLIC API
 
+pub mod prelude;
+
 // core
 pub use attributes::{
     collections::{AttrCompactVec, AttrSparseVec},
@@ -57,9 +59,6 @@ pub use cells::{
     orbits::{Orbit2, OrbitPolicy},
 };
 pub use cmap2::CMap2;
-pub use cmapbuilder::{BuilderError, CMapBuilder};
-pub use common::{CMapError, CoordsFloat, DartIdentifier, NULL_DART_ID};
-pub use spatial_repr::{vector::Vector2, vertex::Vertex2, CoordsError};
 // utils
 #[cfg(feature = "utils")]
 pub use cmapbuilder::GridDescriptor;
