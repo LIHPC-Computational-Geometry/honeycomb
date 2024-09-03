@@ -1,4 +1,30 @@
+//! # honeycomb
 //!
+//! Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps
+//! for meshing applications. More specifically, the goal is to converge towards a (or multiple)
+//! structure(s) adapted to algorithms exploiting GPU and many-core architectures.
+//!
+//! ## Structure
+//!
+//! This crate acts as the user-facing API, re-exporting components and items implemented in the
+//! following sub-crates:
+//!
+//! - `honeycomb_core` -- core structures implementations
+//! - `honeycomb_kernels` -- algorithm implementations
+//! - `honeycomb_render` -- visual debugging tool
+//!
+//! ## Features
+//!
+//! Two features can be enabled to control which implementations are exposed:
+//!
+//! - `kernels` -- content from the `honeycomb_kernels` crate
+//! - `render` -- content from the `honeycomb_render` crate
+//!
+//! Note that:
+//! - the `kernels` feature is enabled by default since it does not require any more dependencies
+//!   than the core crate.
+//! - the `render` feature is disabled by default; enabling it significantly lengthen the
+//!   dependency tree as well as the compilation time.
 
 pub use honeycomb_core as core;
 
@@ -8,6 +34,11 @@ pub use honeycomb_kernels as kernels;
 #[cfg(feature = "render")]
 pub use honeycomb_render as render;
 
+/// commonly used items
+///
+/// This module contains all items commonly used to write a program using combinatorial maps.
+/// These items are re-exported from their original crates for ease of use and should cover
+/// all basic use cases.
 pub mod prelude {
     // ------ CORE RE-EXPORTS
 
