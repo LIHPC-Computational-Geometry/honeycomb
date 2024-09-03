@@ -26,6 +26,10 @@
 //! - the `render` feature is disabled by default; enabling it significantly lengthen the
 //!   dependency tree as well as the compilation time.
 
+// --- enable doc_auto_cfg feature if compiling in nightly
+#![allow(unexpected_cfgs)]
+#![cfg_attr(nightly, feature(doc_auto_cfg))]
+
 pub use honeycomb_core as core;
 
 #[cfg(feature = "kernels")]
