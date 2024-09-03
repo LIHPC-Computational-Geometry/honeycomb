@@ -5,7 +5,8 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat};
+use crate::geometry::CoordsFloat;
+use crate::prelude::CMap2;
 
 // ------ CONTENT
 

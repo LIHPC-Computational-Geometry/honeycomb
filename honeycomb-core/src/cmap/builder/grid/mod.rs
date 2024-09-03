@@ -10,7 +10,8 @@ pub mod descriptor;
 
 // ------ RE-EXPORTS
 
-use crate::{CMapBuilder, CoordsFloat, GridDescriptor};
+use crate::geometry::CoordsFloat;
+use crate::prelude::{CMapBuilder, GridDescriptor};
 
 // ------ CONTENT
 
@@ -31,7 +32,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// This function is roughly equivalent to the following:
     ///
     /// ```rust
-    /// # use honeycomb_core::{CMapBuilder, GridDescriptor};
+    /// # use honeycomb_core::prelude::{CMapBuilder, GridDescriptor};
     /// // setup grid descriptor
     /// let gridd = GridDescriptor::default();
     /// // ...

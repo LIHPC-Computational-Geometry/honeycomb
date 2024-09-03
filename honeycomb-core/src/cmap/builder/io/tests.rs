@@ -1,6 +1,7 @@
 // ------ IMPORTS
 
-use crate::{AttrStorageManager, CMap2, DartIdentifier, Orbit2, OrbitPolicy};
+use crate::attributes::AttrStorageManager;
+use crate::prelude::{CMap2, DartIdentifier, Orbit2, OrbitPolicy};
 use vtkio::Vtk;
 
 // ------ CONTENT

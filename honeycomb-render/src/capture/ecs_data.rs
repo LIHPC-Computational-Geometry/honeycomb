@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::{
+use honeycomb_core::prelude::{
     DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
 };
 

@@ -4,7 +4,7 @@ use crate::grisubal::kernel::{
     generate_edge_data, generate_intersection_data, insert_edges_in_map, insert_intersections,
 };
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex};
-use honeycomb_core::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
+use honeycomb_core::prelude::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 // ------ CONTENT
 

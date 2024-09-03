@@ -24,7 +24,9 @@ use rand::{
 };
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier, Vector2, VertexIdentifier, NULL_DART_ID};
+use honeycomb_core::prelude::{
+    CMap2, CMapBuilder, DartIdentifier, Vector2, VertexIdentifier, NULL_DART_ID,
+};
 
 // ------ CONTENT
 

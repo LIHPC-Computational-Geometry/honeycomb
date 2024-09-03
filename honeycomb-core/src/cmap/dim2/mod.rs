@@ -7,21 +7,18 @@
 
 // ------ MODULE DECLARATIONS
 
-mod advanced_ops;
-mod basic_ops;
-mod embed;
-mod link_and_sew;
-mod structure;
+pub mod advanced_ops;
+pub mod basic_ops;
+pub mod embed;
+pub mod link_and_sew;
+pub mod orbits;
+pub mod structure;
 
 #[cfg(feature = "io")]
-mod io;
+pub mod io;
 
 #[cfg(feature = "utils")]
-mod utils;
-
-// ------ RE-EXPORTS
-
-pub use structure::CMap2;
+pub mod utils;
 
 // ------ CONTENT
 

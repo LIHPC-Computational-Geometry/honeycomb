@@ -5,7 +5,6 @@
 #[cfg(doc)]
 use std::any::TypeId;
 use std::fmt::Debug;
-use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 // ------ CONTENT
 
@@ -29,22 +28,4 @@ pub enum CMapError {
     /// Variant used when requesting a vertex using an ID that has no associated vertex
     /// in storage.
     UndefinedVertex,
-}
-
-// --- generic decimal trait
-
-/// Common trait implemented by types used for coordinate representation.
-///
-/// The static lifetime is a requirements induced by specific implementations that use [`TypeId`];
-/// This is used in order to identify types in two contexts:
-/// - Interacting with VTK files (`io` feature),
-/// - Coding vertices and generic attributes handling
-pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static
-{
-}
-
-impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static>
-    CoordsFloat for T
-{
 }

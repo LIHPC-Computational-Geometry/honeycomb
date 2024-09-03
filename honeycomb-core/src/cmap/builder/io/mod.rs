@@ -6,10 +6,8 @@
 //! are supported, because of orientation and dimension restriction.
 
 // ------ IMPORTS
-use crate::{
-    AttrStorageManager, BuilderError, CMap2, CMapBuilder, CoordsFloat, DartIdentifier, Vertex2,
-    VertexIdentifier,
-};
+use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdentifier, Vertex2, VertexIdentifier};
+use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 use num::Zero;
 use std::collections::BTreeMap;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
@@ -36,7 +34,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// This function is roughly equivalent to the following:
     ///
     /// ```rust,should_panic
-    /// # use honeycomb_core::CMapBuilder;
+    /// # use honeycomb_core::prelude::CMapBuilder;
     /// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
     /// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
     /// ```

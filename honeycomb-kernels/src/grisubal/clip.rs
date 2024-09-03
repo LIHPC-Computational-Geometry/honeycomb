@@ -4,7 +4,7 @@
 
 use crate::grisubal::model::Boundary;
 use crate::grisubal::GrisubalError;
-use honeycomb_core::{
+use honeycomb_core::prelude::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};

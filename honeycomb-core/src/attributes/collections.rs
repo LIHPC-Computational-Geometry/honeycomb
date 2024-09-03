@@ -5,8 +5,8 @@
 
 // ------ IMPORTS
 
-use crate::attributes::traits::AttributeStorage;
-use crate::{AttributeBind, AttributeUpdate, DartIdentifier, UnknownAttributeStorage};
+use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
+use crate::prelude::DartIdentifier;
 use num::ToPrimitive;
 
 // ------ CONTENT

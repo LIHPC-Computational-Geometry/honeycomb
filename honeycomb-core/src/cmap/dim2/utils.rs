@@ -12,7 +12,8 @@
 // ------ IMPORTS
 
 use super::CMAP2_BETA;
-use crate::{CMap2, CoordsFloat, DartIdentifier};
+use crate::geometry::CoordsFloat;
+use crate::prelude::{CMap2, DartIdentifier};
 use std::{fs::File, io::Write};
 
 // ------ CONTENT

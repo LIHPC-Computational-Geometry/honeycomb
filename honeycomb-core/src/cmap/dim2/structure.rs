@@ -6,12 +6,13 @@
 // ------ IMPORTS
 
 #[cfg(doc)]
-use crate::{CMapBuilder, NULL_DART_ID};
+use crate::prelude::{CMapBuilder, NULL_DART_ID};
 
 use super::CMAP2_BETA;
+use crate::prelude::{DartIdentifier, Vertex2};
 use crate::{
-    AttrSparseVec, AttrStorageManager, CoordsFloat, DartIdentifier, UnknownAttributeStorage,
-    Vertex2,
+    attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
+    geometry::CoordsFloat,
 };
 use std::collections::BTreeSet;
 
@@ -70,10 +71,10 @@ use std::collections::BTreeSet;
 ///   progressive changes applied to the structure.
 ///
 /// ```
-/// # use honeycomb_core::CMapError;
+/// # use honeycomb_core::prelude::CMapError;
 /// # fn main() -> Result<(), CMapError> {
 ///
-/// use honeycomb_core::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
+/// use honeycomb_core::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
 ///
 /// // build a triangle
 /// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts

@@ -29,37 +29,13 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::cast_possible_truncation)]
 
-// ------ MODULE DECLARATIONS
+// ------ PUBLIC API
 
-mod attributes;
-mod cells;
-mod cmap2;
-mod cmapbuilder;
-mod common;
-mod spatial_repr;
+pub mod attributes;
 
-// ------ RE-EXPORTS
+pub mod cmap;
 
-// --- PUBLIC API
+pub mod geometry;
 
-// core
-pub use attributes::{
-    collections::{AttrCompactVec, AttrSparseVec},
-    manager::{AttrStorageManager, ManagerError},
-    traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage},
-};
-pub use cells::{
-    collections::{
-        EdgeCollection, EdgeIdentifier, FaceCollection, FaceIdentifier, VertexCollection,
-        VertexIdentifier, VolumeIdentifier, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID,
-        NULL_VOLUME_ID,
-    },
-    orbits::{Orbit2, OrbitPolicy},
-};
-pub use cmap2::CMap2;
-pub use cmapbuilder::{BuilderError, CMapBuilder};
-pub use common::{CMapError, CoordsFloat, DartIdentifier, NULL_DART_ID};
-pub use spatial_repr::{vector::Vector2, vertex::Vertex2, CoordsError};
-// utils
-#[cfg(feature = "utils")]
-pub use cmapbuilder::GridDescriptor;
+/// commonly used items
+pub mod prelude;

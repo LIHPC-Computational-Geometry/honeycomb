@@ -10,11 +10,16 @@
 // ------ IMPORTS
 
 use super::CMAP2_BETA;
-use crate::{
-    CMap2, CoordsFloat, DartIdentifier, EdgeCollection, EdgeIdentifier, FaceCollection,
-    FaceIdentifier, Orbit2, OrbitPolicy, UnknownAttributeStorage, VertexCollection,
-    VertexIdentifier, NULL_DART_ID,
+use crate::prelude::{
+    CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
+    NULL_DART_ID,
 };
+use crate::{
+    attributes::UnknownAttributeStorage,
+    cmap::{EdgeCollection, FaceCollection, VertexCollection},
+    geometry::CoordsFloat,
+};
+
 use std::collections::BTreeSet;
 
 // ------ CONTENT

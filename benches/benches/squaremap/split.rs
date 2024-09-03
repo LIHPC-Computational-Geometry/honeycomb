@@ -20,7 +20,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use honeycomb_benches::FloatType;
-use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier};
 use rand::{
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,

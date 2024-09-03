@@ -13,7 +13,7 @@ use std::{
 
 use crate::grisubal::grid::GridCellId;
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
-use honeycomb_core::{
+use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
 };

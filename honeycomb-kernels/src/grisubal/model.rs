@@ -8,9 +8,9 @@
 
 use std::collections::HashSet;
 
-use honeycomb_core::{
-    AttrSparseVec, AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy,
-    Vertex2,
+use honeycomb_core::attributes::AttrSparseVec;
+use honeycomb_core::prelude::{
+    AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy, Vertex2,
 };
 use num::Zero;
 use vtkio::{
@@ -21,7 +21,7 @@ use vtkio::{
 use crate::grisubal::grid::GridCellId;
 use crate::grisubal::GrisubalError;
 #[cfg(doc)]
-use honeycomb_core::CMap2;
+use honeycomb_core::prelude::CMap2;
 // ------ CONTENT
 
 /// Post-processing clip operation.

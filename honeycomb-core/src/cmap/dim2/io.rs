@@ -7,9 +7,8 @@
 
 // ------ IMPORTS
 
-use crate::{
-    CMap2, CoordsFloat, DartIdentifier, Orbit2, OrbitPolicy, VertexIdentifier, NULL_DART_ID,
-};
+use crate::geometry::CoordsFloat;
+use crate::prelude::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, VertexIdentifier, NULL_DART_ID};
 
 use std::{any::TypeId, collections::BTreeMap};
 

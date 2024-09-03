@@ -1,12 +1,16 @@
-//! Attribute modeling code
+//! attribute modeling code
 //!
 //! This module contains all code related to generic attribute modelling and handling.
 
 // ------ MODULE DECLARATIONS
 
-pub mod collections;
-pub mod manager;
-pub mod traits;
+mod collections;
+mod manager;
+mod traits;
+
+pub use collections::{AttrCompactVec, AttrSparseVec};
+pub use manager::{AttrStorageManager, ManagerError};
+pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 
 // ------ TESTS
 #[cfg(test)]

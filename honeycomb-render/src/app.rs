@@ -2,7 +2,7 @@ use crate::capture::{Capture, CaptureList};
 use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
-use honeycomb_core::{CMap2, CoordsFloat};
+use honeycomb_core::prelude::{CMap2, CoordsFloat};
 
 /// Default render structure.
 ///

@@ -2,9 +2,11 @@
 
 // ------ IMPORTS
 
+use crate::geometry::CoordsFloat;
+use crate::prelude::{BuilderError, Vertex2};
+
 #[cfg(doc)]
-use crate::CMapBuilder;
-use crate::{BuilderError, CoordsFloat, Vertex2};
+use crate::prelude::CMapBuilder;
 
 // ------ CONTENT
 

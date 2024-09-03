@@ -17,9 +17,9 @@
 //!
 //! ### Iai-callgrind-based
 //!
-//! - `prof-cmap2-basic` - `CMap2` basic operations benchmarks
-//! - `prof-cmap2-build` - `CMap2` constructor & building functions benchmarks
-//! - `prof-cmap2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
+//! - `prof-dim2-basic` - `CMap2` basic operations benchmarks
+//! - `prof-dim2-build` - `CMap2` constructor & building functions benchmarks
+//! - `prof-dim2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "_single_precision")] {

@@ -1,4 +1,4 @@
-use honeycomb_core::{CMap2, CMapBuilder, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier};
 
 pub fn main() {
     // create a 3x3 grid & remove the central square

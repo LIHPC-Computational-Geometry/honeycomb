@@ -7,8 +7,9 @@
 // ------ IMPORTS
 
 #[cfg(feature = "utils")]
-use crate::GridDescriptor;
-use crate::{AttrStorageManager, AttributeBind, CMap2, CoordsFloat};
+use super::GridDescriptor;
+use crate::prelude::{AttributeBind, CMap2};
+use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
@@ -45,9 +46,9 @@ pub enum BuilderError {
 /// # Example
 ///
 /// ```rust
-/// # use honeycomb_core::BuilderError;
+/// # use honeycomb_core::prelude::BuilderError;
 /// # fn main() -> Result<(), BuilderError> {
-/// use honeycomb_core::{CMap2, CMapBuilder};
+/// use honeycomb_core::prelude::{CMap2, CMapBuilder};
 ///
 /// let builder = CMapBuilder::default().n_darts(10);
 /// let map: CMap2<f64> = builder.build()?;

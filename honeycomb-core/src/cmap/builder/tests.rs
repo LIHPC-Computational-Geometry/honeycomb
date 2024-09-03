@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use crate::{CMap2, CMapBuilder};
+use crate::prelude::{CMap2, CMapBuilder};
 
 // ------ CONTENT
 

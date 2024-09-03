@@ -5,7 +5,8 @@
 
 // ------ IMPORTS
 
-use crate::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_ID};
+use crate::geometry::CoordsFloat;
+use crate::prelude::{CMap2, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_ID};
 
 // ------ CONTENT
 
@@ -135,7 +136,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Example
     ///
     /// ```
-    /// # use honeycomb_core::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+    /// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
     /// // before
     /// //    <--2---
     /// //  1         2
