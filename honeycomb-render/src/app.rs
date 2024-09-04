@@ -16,7 +16,7 @@ pub struct App {
 }
 
 impl App {
-    /// Add a [`Capture`] to the collection of the app. The capture is created on-the-fly using the
+    /// Add a capture to the collection of the app. The capture is created on-the-fly using the
     /// specified reference to a combinatorial map.
     pub fn add_capture<T: CoordsFloat>(&mut self, cmap: &CMap2<T>) -> usize {
         let cap_id = self.capture_list.0.len();

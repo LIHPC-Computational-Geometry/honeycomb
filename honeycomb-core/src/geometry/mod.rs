@@ -13,6 +13,9 @@ mod vertex;
 use std::fmt::Debug;
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
+#[cfg(doc)]
+use std::any::TypeId;
+
 // ------ CONTENT
 
 // --- re-exports
@@ -27,7 +30,7 @@ pub use vertex::Vertex2;
 pub enum CoordsError {
     /// Error during the computation of the unit directional vector.
     ///
-    /// This is returned when trying to compute the unit vector of a null [`vector::Vector2`].
+    /// This is returned when trying to compute the unit vector of a null [`Vector2`].
     InvalidUnitDir,
 }
 
