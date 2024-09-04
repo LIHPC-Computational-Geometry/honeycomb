@@ -17,4 +17,4 @@ examples or this guide.
 
 - [honeycomb-benches](honeycomb-benches.md) *Benchmarks of the main map structures and methods*
 - [honeycomb-examples](honeycomb-examples.md) *Examples of usage of the project's features*
-- [honeycomb-guide](honeycomb-guide.md) *Source files of the user guide*
+- [user guide](honeycomb-guide.md) *Source files of the user guide*

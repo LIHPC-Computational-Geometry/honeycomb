@@ -1,8 +1,8 @@
-# honeycomb-guide
+# User guide
 
 ---
 
-**honeycomb-guide** is the mdbook project used to generate the documentation you are currently reading. Its content
+The **user guide** is the documentation you are currently reading right now. It is generated using mdbook. Its content
 mainly focuses on definition and feature-listing rather than technical details on implementation. The latter can be
 found in the code documentation.
 
