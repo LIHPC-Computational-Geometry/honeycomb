@@ -3,6 +3,7 @@
 resolver = "2"
 members = [
     "benches",
+    "honeycomb",
     "honeycomb-core",
     "honeycomb-kernels",
     "honeycomb-render",
@@ -26,6 +27,7 @@ authors = [
 
 [workspace.dependencies]
 # members
+honeycomb = { version = "0.5.0", path = "./honeycomb" }
 honeycomb-benches = { version = "0.5.0", path = "./benches" }
 honeycomb-core = { version = "0.5.0", path = "./honeycomb-core" }
 honeycomb-kernels = { version = "0.5.0", path = "./honeycomb-kernels" }
