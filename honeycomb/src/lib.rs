@@ -25,6 +25,15 @@
 //!   than the core crate.
 //! - the `render` feature is disabled by default; enabling it significantly lengthen the
 //!   dependency tree as well as the compilation time.
+//!
+//! ## Quickstart
+//!
+//! For usage examples, refer to examples hosted in the repository; there also are documentation
+//! examples for important items:
+//!
+//! - [`CMap2`][honeycomb_core::cmap::CMap2]
+//! - [`CMapBuilder`][honeycomb_core::cmap::CMapBuilder]
+//! - [`grisubal`][`honeycomb_kernels::grisubal`]
 
 // --- enable doc_auto_cfg feature if compiling in nightly
 #![allow(unexpected_cfgs)]
