@@ -43,7 +43,7 @@ jobs:
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       - name: Run tests
         run: |
-          cargo build --all-features --workspace \
+          cargo test --all-features --workspace \
             --exclude honeycomb \
             --exclude honeycomb-benches \
             --exclude honeycomb-examples \
