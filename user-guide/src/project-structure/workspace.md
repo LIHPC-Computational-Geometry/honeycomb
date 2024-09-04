@@ -3,19 +3,18 @@
 The project root is organized using Cargo workspaces at the moment. This may change when other languages are
 introduced to the project.
 
-## Members
+The repository hosts both published crates (usable content) as well as complementary content such as benchmarks,
+examples or this guide.
 
-These entries are members of the Cargo workspace.
+## Published crates
 
-- [honeycomb-core](honeycomb-core.html) *Core definitions and tools for combinatorial map implementation*
-- [honeycomb-benches](honeycomb-benches.html) *Benchmarks of the main map structures and methods*
-- [honeycomb-examples](honeycomb-examples.html) *Examples of usage of the project's features*
-- [honeycomb-kernels](honeycomb-kernels.html) *Meshing kernel implementations using combinatorial maps*
-- [honeycomb-render](honeycomb-render.html) *Visualization tool for combinatorial maps*
+- [honeycomb](honeycomb.md) *Main crate*
+- [honeycomb-core](honeycomb-core.md) *Core definitions and tools for combinatorial map implementation*
+- [honeycomb-kernels](honeycomb-kernels.md) *Meshing kernel implementations using combinatorial maps*
+- [honeycomb-render](honeycomb-render.md) *Visualization tool for combinatorial maps*
 
-## Others
+## Other content
 
-These entries are additional sections that are not linked to the project through Cargo, most likely because they
-require a different building process.
-
-- [honeycomb-guide](honeycomb-guide.html) *Source files of the user guide*
+- [honeycomb-benches](honeycomb-benches.md) *Benchmarks of the main map structures and methods*
+- [honeycomb-examples](honeycomb-examples.md) *Examples of usage of the project's features*
+- [honeycomb-guide](honeycomb-guide.md) *Source files of the user guide*
