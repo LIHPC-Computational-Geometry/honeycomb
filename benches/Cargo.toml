@@ -78,6 +78,11 @@ path = "benches/splitsquaremap/shift.rs"
 harness = false
 
 [[bench]]
+name = "grisubal"
+path = "benches/grisubal/time.rs"
+harness = false
+
+[[bench]]
 name = "grisubal_grid_size"
 path = "benches/grisubal/grid_size.rs"
 harness = false

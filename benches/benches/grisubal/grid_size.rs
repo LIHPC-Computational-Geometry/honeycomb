@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use honeycomb::prelude::{
     grisubal::{grisubal, Clip},
     CMap2,
@@ -21,7 +21,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     for multiplier in 1..11 {
         let size = base_size * multiplier as FloatType;
-        //group.throughput(Throughput::Elements(?));
+        group.throughput(Throughput::Elements((1. / size.powi(2)) as u64));
         group.bench_with_input(BenchmarkId::new("no-clip", ""), &size, |b, size| {
             b.iter(|| {
                 let mut map: CMap2<FloatType> = grisubal(path, [*size, *size], Clip::None).unwrap();
