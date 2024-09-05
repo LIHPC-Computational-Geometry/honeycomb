@@ -18,32 +18,57 @@ The current objective is to
 
 - ~write a first implementation in Rust~
 - ~improve the structure without having to deal with data races and similar issues, thanks to the Rust's guarantees~
-- implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
-  Rust's framework to streamline the refactoring and parallelization process
+- ~implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
+  Rust's framework to streamline the refactoring and parallelization process~
+- Ship a first stable version of the library (see this [issue](https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150))
+- Benchmark and/or profile and/or parallelize our first algorithm, **grisubal**
 
 ### Core Requirements
 
-- **Rust stable release** - *Development started on 1.75, but we might use newer features as the project progresses*
+- **Rust stable release** - The MSRV may not be the latest stable release, but we do not give any guarantees for older
+  versions compatibility
 
 ### Quickstart
 
 #### Rust
 
-The core and render crates are being published on crates.io. You can add those to your project by adding the following
-lines to the manifest of the project:
+To add the main crate to your project, you can add the following lines to its manifest:
 
 ```toml
 # Cargo.toml
-honeycomb-core = "0.3.0"
-honeycomb-render = "0.3.0"
+
+[dependencies]
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
+```
+
+Alternatively, you can use the sub-crates:
+
+```toml
+# Cargo.toml
+
+[dependencies]
+honeycomb-core = "0.5.0"
+honeycomb-render = "0.5.0"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
 version, and use the GitHub Pages documentation instead of the one hosted on docs.rs.
 
-#### Documentation
+## Documentation
 
-You can generate this documentation locally using **mdbook** and **cargo doc**:
+Published crates:
+
+- [honeycomb](honeycomb/) *Main crate*
+- [honeycomb-core](honeycomb_core/) *Core definitions and tools*
+- [honeycomb-kernels](honeycomb_kernels/) *Meshing kernel implementations*
+- [honeycomb-render](honeycomb_render/) *Visualization tool*
+
+Others:
+
+- [honeycomb-benches](honeycomb_benches/) *Rust code benchmarks*
+- [honeycomb-examples](honeycomb_examples/) *Rust code examples*
+
+You can also generate this documentation locally using **mdbook** and **cargo doc**:
 
 ```shell
 # Serve the doc on a local server
@@ -53,17 +78,6 @@ cargo +nightly doc --all --all-features --no-deps
 
 Note that generating the doc using a stable toolchain is possible,
 the features just won't be documented as clearly.
-
-## Links
-
-### Documentation
-
-- [honeycomb-core](honeycomb_core/) *Core definitions and tools*
-- [honeycomb-benches](honeycomb_benches/) *Rust code benchmarks*
-- [honeycomb-examples](honeycomb_examples/) *Rust code examples*
-- [honeycomb-render](honeycomb_render/) *Visualization tool*
-
-### References
 
 ## Contributing
 
@@ -110,4 +124,4 @@ defined in the Apache-2.0 license, shall be dual licensed as above, without any 
 ### Integration
 
 - The repository structure and workspace system is heavily inspired by
-  the [wgpu repository](https://github.com/gfx-rs/wgpu)
+  the [wgpu](https://github.com/gfx-rs/wgpu) and [bevy](https://github.com/bevyengine/bevy) repositories.
