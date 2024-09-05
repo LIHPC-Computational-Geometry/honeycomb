@@ -20,3 +20,7 @@ Cargo.lock
 # ignore coverage-related files
 *.profraw
 *.lcov
+
+# ignore perf files
+perf.data
+perf.data.old

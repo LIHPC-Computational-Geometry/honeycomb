@@ -1,9 +1,9 @@
-use honeycomb::prelude::*;
+use honeycomb::kernels::grisubal;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let path = args.get(1).expect(
-        "No input geometry specified - you can pass a path to a vtk input as command line argument",
+        "E: No input geometry specified - you can pass a path to a vtk input as command line argument",
     );
     let clip = args
         .get(2)
