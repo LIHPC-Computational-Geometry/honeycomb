@@ -16,12 +16,19 @@ _single_precision = []
 
 [dependencies]
 cfg-if.workspace = true
+honeycomb.workspace = true
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
 criterion = { workspace = true, features = ["html_reports"] }
 iai-callgrind.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
+
+# binaries
+
+[[bin]]
+name = "grisubal"
+path = "src/grisubal.rs"
 
 # benches
 
