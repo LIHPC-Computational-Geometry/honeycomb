@@ -69,10 +69,10 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/images/bg_grid.svg)
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn unit_grid(n_square: usize) -> Self {
-        let gridd = GridDescriptor::default()
+        GridDescriptor::default()
             .n_cells([n_square; 3])
-            .len_per_cell([T::one(); 3]);
-        CMapBuilder::from(gridd)
+            .len_per_cell([T::one(); 3])
+            .into()
     }
 
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
@@ -93,11 +93,11 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/images/bg_grid_tri.svg)
     #[must_use = "unused builder object, consider removing this function call"]
     pub fn unit_triangles(n_square: usize) -> Self {
-        let gridd = GridDescriptor::default()
+        GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3])
-            .split_quads(true);
-        CMapBuilder::from(gridd)
+            .split_quads(true)
+            .into()
     }
 }
 
