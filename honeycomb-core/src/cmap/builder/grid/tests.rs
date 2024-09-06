@@ -101,9 +101,7 @@ fn square_cmap2_correctness() {
     let descriptor = GridDescriptor::default()
         .n_cells([2, 2, 2])
         .len_per_cell([1., 1., 1.]);
-    let cmap: CMap2<f64> = CMapBuilder::from_grid_descriptor(descriptor)
-        .build()
-        .unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::from(descriptor).build().unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction
