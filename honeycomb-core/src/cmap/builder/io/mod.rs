@@ -28,24 +28,25 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         self.vtk_file = Some(vtk_file);
         self
     }
+}
 
-    /// Create a [`CMapBuilder`] from an imported VTK file.
-    ///
-    /// This function is roughly equivalent to the following:
-    ///
-    /// ```rust,no_run
-    /// # use honeycomb_core::prelude::CMapBuilder;
-    /// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
-    /// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if the file cannot be loaded.
-    #[must_use = "unused builder object, consider removing this function call"]
-    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+/// Create a [`CMapBuilder`] from an imported VTK file.
+///
+/// This implementation is roughly equivalent to the following:
+///
+/// ```rust,no_run
+/// # use honeycomb_core::prelude::CMapBuilder;
+/// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
+/// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
+/// ```
+///
+/// # Panics
+///
+/// This function may panic if the file cannot be loaded.
+impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CMapBuilder<T> {
+    fn from(value: P) -> Self {
         let vtk_file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
+            Vtk::import(value).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
         CMapBuilder {
             vtk_file: Some(vtk_file),
             ..Default::default()

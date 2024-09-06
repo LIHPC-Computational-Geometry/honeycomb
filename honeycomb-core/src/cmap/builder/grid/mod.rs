@@ -25,25 +25,25 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         self.grid_descriptor = Some(grid_descriptor);
         self
     }
-
-    #[cfg(feature = "utils")]
-    /// Create a [`CMapBuilder`] from a [`GridDescriptor`].
-    ///
-    /// This function is roughly equivalent to the following:
-    ///
-    /// ```rust
-    /// # use honeycomb_core::prelude::{CMapBuilder, GridDescriptor};
-    /// // setup grid descriptor
-    /// let gridd = GridDescriptor::default();
-    /// // ...
-    ///
-    /// // `CMapBuilder::from_grid_descriptor(gridd)`, or:
-    /// let builder = CMapBuilder::<f64>::default().grid_descriptor(gridd);
-    /// ```
-    #[must_use = "unused builder object, consider removing this function call"]
-    pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<T>) -> Self {
+}
+/// Create a [`CMapBuilder`] from a [`GridDescriptor`].
+///
+/// This implementation is roughly equivalent to the following:
+///
+/// ```rust
+/// # use honeycomb_core::prelude::{CMapBuilder, GridDescriptor};
+/// // setup grid descriptor
+/// let gridd = GridDescriptor::default();
+/// // ...
+///
+/// // `CMapBuilder::from(gridd)`, or:
+/// let builder = CMapBuilder::<f64>::default().grid_descriptor(gridd);
+/// ```
+#[cfg(feature = "utils")]
+impl<T: CoordsFloat> From<GridDescriptor<T>> for CMapBuilder<T> {
+    fn from(value: GridDescriptor<T>) -> Self {
         CMapBuilder {
-            grid_descriptor: Some(grid_descriptor),
+            grid_descriptor: Some(value),
             ..Default::default()
         }
     }
@@ -72,7 +72,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         let gridd = GridDescriptor::default()
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3]);
-        CMapBuilder::from_grid_descriptor(gridd)
+        CMapBuilder::from(gridd)
     }
 
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
@@ -97,7 +97,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             .n_cells([n_square; 3])
             .len_per_cell([T::one(); 3])
             .split_quads(true);
-        CMapBuilder::from_grid_descriptor(gridd)
+        CMapBuilder::from(gridd)
     }
 }
 
