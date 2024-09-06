@@ -5,13 +5,19 @@
 # Project Structure
 
 - [Workspace](./project-structure/workspace.md)
+- [Published crates](./project-structure/published.md) 
+    - [honeycomb](./project-structure/honeycomb.md)
     - [honeycomb-core](./project-structure/honeycomb-core.md)
-    - [honeycomb-benches](./project-structure/honeycomb-benches.md)
-    - [honeycomb-examples](./project-structure/honeycomb-examples.md)
-    - [honeycomb-guide](./project-structure/honeycomb-guide.md)
     - [honeycomb-kernels](./project-structure/honeycomb-kernels.md)
-        - [grisubal](./project-structure/kernel-grisubal.md)
     - [honeycomb-render](./project-structure/honeycomb-render.md)
+- [Other content](./project-structure/others.md)
+    - [Benchmarks](./project-structure/honeycomb-benches.md)
+    - [Examples](./project-structure/honeycomb-examples.md)
+    - [User guide](./project-structure/honeycomb-guide.md)
+
+# Kernels
+
+- [Grisubal](./kernels/grisubal.md)
 
 # Definitions
 

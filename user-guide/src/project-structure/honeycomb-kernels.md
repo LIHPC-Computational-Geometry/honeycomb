@@ -21,7 +21,7 @@ hypothesis are listed in the documentation of the crate.
 
 **Grisubal**, short for **GRId SUBmersion ALgorithm**, is a mesh generation algorithm inspired by [Morph][IMR-RN].
 The mesh is built by capturing the input geometry in an overlapping grid, by first computing intersection vertices and
-then rebuild new edges from the captured vertices. This is explained in more details [here](./kernel-grisubal.md).
+then rebuild new edges from the captured vertices. This is explained in more details [here](../kernels/grisubal.md).
 
 [IMR-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
 
