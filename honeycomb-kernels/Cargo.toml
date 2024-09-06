@@ -16,3 +16,6 @@ publish = true
 honeycomb-core = { workspace = true, features = ["io", "utils"] }
 vtkio.workspace = true
 num.workspace = true
+
+[features]
+profiling = []

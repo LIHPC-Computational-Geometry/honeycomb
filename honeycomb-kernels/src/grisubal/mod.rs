@@ -69,6 +69,7 @@ use crate::grisubal::model::{
 };
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
 use vtkio::Vtk;
+
 // ------ CONTENT
 
 #[derive(Debug)]
@@ -85,6 +86,38 @@ pub enum GrisubalError {
     BadVtkData(&'static str),
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
     UnsupportedVtkData(&'static str),
+}
+
+/// Global timers for execution times per-section.
+#[cfg(feature = "profiling")]
+static mut TIMERS: [Option<std::time::Duration>; 13] = [None; 13];
+
+/// Kernel section.
+#[cfg(feature = "profiling")]
+enum Section {
+    ImportVTK = 0,
+    BuildGeometry,
+    DetectOrientation,
+    ComputeOverlappingGrid,
+    RemoveRedundantPoi,
+    BuildMeshTot,
+    BuildMeshInit,
+    BuildMeshIntersecData,
+    BuildMeshInsertIntersec,
+    BuildMeshEdgeData,
+    BuildMeshInsertEdge,
+    Clip,
+    Cleanup,
+}
+
+#[cfg(feature = "profiling")]
+macro_rules! unsafe_time_section {
+    ($inst: ident, $sec: expr) => {
+        unsafe {
+            TIMERS[$sec as usize] = Some($inst.elapsed());
+            $inst = std::time::Instant::now();
+        }
+    };
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -136,22 +169,45 @@ pub fn grisubal<T: CoordsFloat>(
     grid_cell_sizes: [T; 2],
     clip: Clip,
 ) -> Result<CMap2<T>, GrisubalError> {
+    #[cfg(feature = "profiling")]
+    let mut instant = std::time::Instant::now();
+
     // load geometry from file
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
 
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::ImportVTK);
+
     // pre-processing
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildGeometry);
+
     detect_orientation_issue(&geometry)?;
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::DetectOrientation);
 
     // compute an overlapping grid & remove redundant PoIs
     let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::ComputeOverlappingGrid);
+
     remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::RemoveRedundantPoi);
 
     // build the map
     let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshTot);
 
     // optional post-processing
     match clip {
@@ -159,8 +215,18 @@ pub fn grisubal<T: CoordsFloat>(
         Clip::Right => clip_right(&mut cmap)?,
         Clip::None => {}
     }
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::Clip);
+
     // remove attribute used for clipping
     cmap.remove_attribute_storage::<Boundary>();
+
+    #[cfg(feature = "profiling")]
+    unsafe {
+        TIMERS[Section::Cleanup as usize] = Some(instant.elapsed());
+        println!("{TIMERS:#?}");
+    }
 
     Ok(cmap)
 }
