@@ -33,7 +33,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// This function is roughly equivalent to the following:
     ///
-    /// ```rust,should_panic
+    /// ```rust,no_run
     /// # use honeycomb_core::prelude::CMapBuilder;
     /// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
     /// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");

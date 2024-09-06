@@ -41,8 +41,6 @@ pub enum BuilderError {
 
 /// Combinatorial map builder structure.
 ///
-/// #
-///
 /// # Example
 ///
 /// ```rust
@@ -111,10 +109,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(map: CMap2)` -- Map generation was successful.
-    /// - `Err(BuilderError::MissingParameters)` -- The specified grid parameters are insufficient
-    ///   to build a map from it.
-    /// - `Err(BuilderError::InvalidParameters)` -- The specified grid parameters contain at least
-    ///   one invalid value (e.g. a negative length).
+    /// - `Err(BuilderError)` -- There was an error during construction. See [`BuilderError`] for
+    ///   details.
     ///
     /// # Panics
     ///

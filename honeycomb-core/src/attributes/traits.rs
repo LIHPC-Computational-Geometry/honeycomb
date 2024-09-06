@@ -112,7 +112,7 @@ pub trait AttributeUpdate: Sized {
 /// # }
 ///
 /// impl AttributeBind for Temperature {
-///     # type StorageType = AttrSparseVec<Self>;
+///     type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
 ///
 ///     fn binds_to<'a>() -> OrbitPolicy<'a> {

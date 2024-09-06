@@ -10,7 +10,7 @@ use crate::prelude::CMapBuilder;
 
 // ------ CONTENT
 
-/// Grid description used to generate maps via [`CMapBuilder`].
+/// Grid description used to generate maps via the map builder.
 ///
 /// The user must specify two out of these three characteristics:
 ///

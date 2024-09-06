@@ -18,13 +18,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// </div>
     ///
     /// This method takes all darts of an edge and rebuild connections in order to create a new
-    /// point on this edge. The position of the point default to the midway point, but it can
+    /// point on this edge. The position of the point defaults to the midway point, but it can
     /// optionally be specified.
     ///
     /// In order to minimize editing of embedded data, the original darts are kept to their
     /// original vertices while the new darts are used to model the new point.
     ///
-    /// For an illustration of both principles, refer to the example section.
+    /// For an illustration of both principles, refer to the example.
     ///
     /// # Arguments
     ///
@@ -41,7 +41,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
     /// `(0.0, 0.0)` and `(2.0, 0.0)`, calling `map.split_edge(1, Some(0.2))` would result in the
-    /// creation of two new darts, a new vertex (ID `3`) of value `(0.4, 0.0)` and the following
+    /// creation of two new darts, a new vertex (ID `3`) at position `(0.4, 0.0)` and the following
     /// topology:
     ///
     /// ```text
