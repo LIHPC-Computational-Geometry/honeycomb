@@ -6,7 +6,6 @@
 // ------ IMPORTS
 
 use crate::prelude::{DartIdentifier, OrbitPolicy};
-use cfg_if::cfg_if;
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -208,26 +207,24 @@ macro_rules! unknown_attribute_storage {
     };
 }
 
-cfg_if! {
-    if #[cfg(feature = "utils")] {
-        /// Common trait implemented by generic attribute storages.
-        ///
-        /// This trait contain attribute-agnostic function & methods.
-        ///
-        /// The documentation of this trait describe the behavior each function & method should have.
-        pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
-            unknown_attribute_storage!();
-        }
-    } else {
-        /// Common trait implemented by generic attribute storages.
-        ///
-        /// This trait contain attribute-agnostic function & methods.
-        ///
-        /// The documentation of this trait describe the behavior each function & method should have.
-        pub trait UnknownAttributeStorage: Any + Debug + Downcast {
-            unknown_attribute_storage!();
-        }
-    }
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-agnostic function & methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+#[cfg(feature = "utils")]
+pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
+    unknown_attribute_storage!();
+}
+
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-agnostic function & methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+#[cfg(not(feature = "utils"))]
+pub trait UnknownAttributeStorage: Any + Debug + Downcast {
+    unknown_attribute_storage!();
 }
 
 #[cfg(feature = "utils")]
