@@ -12,7 +12,7 @@ use honeycomb_core::attributes::AttrSparseVec;
 use honeycomb_core::prelude::{
     AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy, Vertex2,
 };
-use num::Zero;
+
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
@@ -22,6 +22,7 @@ use crate::grisubal::grid::GridCellId;
 use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::prelude::CMap2;
+
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -125,7 +126,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
                             let mut take_next = 0;
-                            verts.iter().for_each(|vertex_id| if take_next.is_zero() {
+                            verts.iter().for_each(|vertex_id| if take_next == 0 {
                                 // making it usize since it's a counter
                                 take_next = *vertex_id as usize;
                                 cell_components.push(Vec::with_capacity(take_next));

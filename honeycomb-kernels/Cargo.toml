@@ -15,4 +15,3 @@ publish = true
 [dependencies]
 honeycomb-core = { workspace = true, features = ["io", "utils"] }
 vtkio.workspace = true
-num.workspace = true
