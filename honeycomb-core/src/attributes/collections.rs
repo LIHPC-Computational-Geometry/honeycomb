@@ -7,7 +7,7 @@
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::prelude::DartIdentifier;
-use num::ToPrimitive;
+use num_traits::ToPrimitive;
 
 // ------ CONTENT
 

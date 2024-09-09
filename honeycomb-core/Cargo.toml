@@ -22,7 +22,7 @@ utils = ["dep:dyn-clone"]
 cfg-if.workspace = true
 downcast-rs.workspace = true
 dyn-clone = { workspace = true, optional = true }
-num.workspace = true
+num-traits.workspace = true
 vtkio = { workspace = true, optional = true }
 
 [build-dependencies]
