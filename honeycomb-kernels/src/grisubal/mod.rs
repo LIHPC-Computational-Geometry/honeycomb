@@ -225,7 +225,22 @@ pub fn grisubal<T: CoordsFloat>(
     #[cfg(feature = "profiling")]
     unsafe {
         TIMERS[Section::Cleanup as usize] = Some(instant.elapsed());
-        println!("{TIMERS:#?}");
+        println!(
+            "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+            TIMERS[0].unwrap().as_nanos(),
+            TIMERS[1].unwrap().as_nanos(),
+            TIMERS[2].unwrap().as_nanos(),
+            TIMERS[3].unwrap().as_nanos(),
+            TIMERS[4].unwrap().as_nanos(),
+            TIMERS[5].unwrap().as_nanos(),
+            TIMERS[6].unwrap().as_nanos(),
+            TIMERS[7].unwrap().as_nanos(),
+            TIMERS[8].unwrap().as_nanos(),
+            TIMERS[9].unwrap().as_nanos(),
+            TIMERS[10].unwrap().as_nanos(),
+            TIMERS[11].unwrap().as_nanos(),
+            TIMERS[12].unwrap().as_nanos(),
+        );
     }
 
     Ok(cmap)
