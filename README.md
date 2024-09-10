@@ -13,7 +13,8 @@ and many-core architectures.
 The current objective is to implement basic meshing algorithms to evaluate the viability of the implementation & improve
 our structure using Rust's framework to streamline the refactoring and parallelization process.
 
-## Usage
+
+## Quickstart
 
 You can add `honeycomb` as a dependency of your project by adding the following lines to its manifest:
 
@@ -30,9 +31,9 @@ Alternatively, you can add the sub-crates that are currently published on crates
 # Cargo.toml
 
 [dependencies]
-honeycomb-core = "0.6.0"
-honeycomb-kernels = "0.6.0"
-honeycomb-render = "0.6.0"
+honeycomb-core = "0.5.0"
+honeycomb-kernels = "0.5.0"
+honeycomb-render = "0.5.0"
 ```
 
 
