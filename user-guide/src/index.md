@@ -48,6 +48,7 @@ Alternatively, you can use the sub-crates:
 
 [dependencies]
 honeycomb-core = "0.5.0"
+honeycomb-kernels = "0.5.0"
 honeycomb-render = "0.5.0"
 ```
 
