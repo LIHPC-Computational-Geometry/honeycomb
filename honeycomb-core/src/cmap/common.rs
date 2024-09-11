@@ -2,8 +2,6 @@
 
 // ------ IMPORTS
 
-#[cfg(doc)]
-use std::any::TypeId;
 use std::fmt::Debug;
 
 // ------ CONTENT

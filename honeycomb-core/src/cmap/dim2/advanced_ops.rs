@@ -10,6 +10,7 @@ use crate::prelude::{CMap2, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_I
 
 // ------ CONTENT
 
+/// **Advanced operations: edge splitting**
 impl<T: CoordsFloat> CMap2<T> {
     /// Split an edge into two segments.
     ///

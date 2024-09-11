@@ -14,23 +14,7 @@ use crate::{
 
 // ------ CONTENT
 
-// --- big guns
-
-impl<T: CoordsFloat> CMap2<T> {
-    /// Remove an entire attribute storage from the map.
-    ///
-    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
-    /// before the final result is returned.
-    ///
-    /// # Generic
-    ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
-    pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
-        self.attributes.remove_storage::<A>();
-    }
-}
-
-// --- vertex attributes
+/// **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
     #[must_use = "returned value is not used, consider removing this method call"]
@@ -133,8 +117,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- generic attributes
-
+/// **Generic attribute-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     /// Setter
     ///
@@ -165,7 +148,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Setter
     ///
-    /// Insert an attribute value at a given undefined index. See [#Panics] section information
+    /// Insert an attribute value at a given undefined index. See the panics section information
     /// on behavior if the value is already defined.
     ///
     /// # Arguments
@@ -279,5 +262,19 @@ impl<T: CoordsFloat> CMap2<T> {
         id: A::IdentifierType,
     ) -> Option<A> {
         self.attributes.remove_attribute::<A>(id)
+    }
+
+    // --- big guns
+
+    /// Remove an entire attribute storage from the map.
+    ///
+    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
+    /// before the final result is returned.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
+    pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
+        self.attributes.remove_storage::<A>();
     }
 }

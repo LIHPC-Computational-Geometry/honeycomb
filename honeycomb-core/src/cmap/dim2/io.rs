@@ -21,6 +21,7 @@ use vtkio::{
 
 // ------ CONTENT
 
+/// **Serializing methods**
 impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Generate a legacy VTK file from the map.
     ///
