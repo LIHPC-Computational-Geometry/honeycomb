@@ -24,10 +24,7 @@ use num_traits::ToPrimitive;
 ///
 /// # Example
 ///
-/// **Currently, this type is not meant to be used directly** when operating on combinatorial maps,
-/// but it is kept public because it should eventually be part of the map building system where
-/// the user will add its own attributes and choose how they are stored. As such, no example
-/// is provided.
+/// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
@@ -135,11 +132,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
 ///
 /// # Example
 ///
-/// **Currently, this type is not meant to be used directly** when operating on combinatorial maps,
-/// but it is kept public because it should eventually be part of the map building system where
-/// the user will add its own attributes and choose how they are stored. As such, no example
-/// is provided.
-///
+/// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {

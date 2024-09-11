@@ -46,14 +46,14 @@ pub enum OrbitPolicy<'a> {
 /// # The search algorithm
 ///
 /// The search algorithm used to establish the list of dart included in the orbit is a
-/// [Breadth-first search algorithm][WIKIBFS]. This means that:
+/// [Breadth-First Search algorithm][WIKIBFS]. This means that:
 ///
 /// - we look at the images of the current dart through all beta functions,
 ///   adding those to a queue, before moving on to the next dart.
 /// - we apply the beta functions in their specified order (in the case of a
 ///   custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
 ///
-/// Both of these points allow the structure to be used for sewing operations at the cost of some
+/// Both of these points allow orbitd to be used for sewing operations at the cost of some
 /// performance (non-trivial parallelization & sequential consistency requirements).
 ///
 /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search

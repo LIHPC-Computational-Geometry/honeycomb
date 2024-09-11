@@ -13,7 +13,7 @@ use crate::{
 
 // ------ CONTENT
 
-// --- (un)sew operations
+/// **Sew and unsew operations**
 impl<T: CoordsFloat> CMap2<T> {
     /// 1-sew operation.
     ///
@@ -353,7 +353,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- (un)link operations
+/// **Link and unlink operations**
 impl<T: CoordsFloat> CMap2<T> {
     /// 1-link operation.
     ///

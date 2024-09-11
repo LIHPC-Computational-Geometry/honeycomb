@@ -235,7 +235,8 @@ impl_downcast!(UnknownAttributeStorage);
 ///
 /// This trait contain attribute-specific methods.
 ///
-/// The documentation of this trait describe the behavior each function & method should have.
+/// The documentation of this trait describe the behavior each function & method should have. "ID"
+/// and "index" are used interchangeably.
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// Setter
     ///

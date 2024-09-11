@@ -9,16 +9,16 @@
 //! This crate acts as the user-facing API, re-exporting components and items implemented in the
 //! following sub-crates:
 //!
-//! - `honeycomb_core` -- core structures implementations
-//! - `honeycomb_kernels` -- algorithm implementations
-//! - `honeycomb_render` -- visual debugging tool
+//! - `honeycomb-core` -- core structures implementations
+//! - `honeycomb-kernels` -- algorithm implementations
+//! - `honeycomb-render` -- visual debugging tool
 //!
 //! ## Features
 //!
 //! Two features can be enabled to control which implementations are exposed:
 //!
-//! - `kernels` -- content from the `honeycomb_kernels` crate
-//! - `render` -- content from the `honeycomb_render` crate
+//! - `kernels` -- content from the `honeycomb-kernels` crate
+//! - `render` -- content from the `honeycomb-render` crate
 //!
 //! Note that:
 //! - the `kernels` feature is enabled by default since it does not require any more dependencies
@@ -28,12 +28,14 @@
 //!
 //! ## Quickstart
 //!
-//! For usage examples, refer to examples hosted in the repository; there also are documentation
-//! examples for important items:
+//! For usage examples, refer to examples hosted in the [repository][EX]; there also are
+//! documentation examples for important items:
 //!
 //! - [`CMap2`][honeycomb_core::cmap::CMap2]
 //! - [`CMapBuilder`][honeycomb_core::cmap::CMapBuilder]
 //! - [`grisubal`][`honeycomb_kernels::grisubal`]
+//!
+//! [EX]: https://github.com/LIHPC-Computational-Geometry/honeycomb/tree/master/examples
 
 // --- enable doc_auto_cfg feature if compiling in nightly
 #![allow(unexpected_cfgs)]

@@ -1,6 +1,13 @@
 //! # honeycomb-render
 //!
-//! WIP
+//! This crate implements a graphical debugging tool using the `bevy` crate. The [`App`] structure
+//! can be used to render a given combinatorial map, using underlying ECS logic to render map
+//! items.
+//!
+//! All the ECS code used to render maps is left public, allowing advanced user to customize the
+//! rendering tool to account for user-defined attributes.
+//!
+//! Note that rendering large maps may require running the program in `release` mode.
 //!
 //! ## Quickstart
 //!
@@ -28,6 +35,7 @@ mod gui;
 mod inspector;
 mod options;
 mod render;
+
 // ------ PUBLIC API
 
 // out of the box render tool

@@ -18,15 +18,9 @@ use std::{fs::File, io::Write};
 
 // ------ CONTENT
 
-// --- fast overwrite method
+/// **Utilities**
 impl<T: CoordsFloat> CMap2<T> {
     /// Set the values of the beta functions of a dart.
-    ///
-    /// <div class="warning">
-    ///
-    /// **This method is only compiled if the `utils` feature is enabled.**
-    ///
-    /// </div>
     ///
     /// # Arguments
     ///
@@ -37,17 +31,8 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
         self.betas[dart_id as usize] = betas;
     }
-}
 
-// --- size methods
-impl<T: CoordsFloat> CMap2<T> {
     /// Computes the total allocated space dedicated to the map.
-    ///
-    /// <div class="warning">
-    ///
-    /// **This method is only compiled if the `utils` feature is enabled.**
-    ///
-    /// </div>
     ///
     /// # Arguments
     ///
@@ -121,12 +106,6 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Computes the total used space dedicated to the map.
     ///
-    /// <div class="warning">
-    ///
-    /// **This method is only compiled if the `utils` feature is enabled.**
-    ///
-    /// </div>
-    ///
     /// # Arguments
     ///
     /// - `rootname: &str` -- root of the filename used to save results.
@@ -199,14 +178,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Computes the actual used space dedicated to the map.
     ///
-    /// *Actual used space* refers to the total used space minus empty spots
-    /// in the structure.
-    ///
-    /// <div class="warning">
-    ///
-    /// **This method is only compiled if the `utils` feature is enabled.**
-    ///
-    /// </div>
+    /// *Actual used space* refers to the total used space minus empty spots in the structure.
     ///
     /// # Arguments
     ///

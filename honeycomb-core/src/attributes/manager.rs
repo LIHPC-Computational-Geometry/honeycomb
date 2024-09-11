@@ -29,8 +29,8 @@ pub enum ManagerError {
 /// is used is determined by the associated type [`AttributeBind::StorageType`].
 ///
 /// The key type used by the map is each attribute's [`TypeId`]. This implies that all attributes
-/// must have a different (unique) type, i.e. two decimal-valued attribute will need to be wrapped
-/// in respective dedicated structures.
+/// must have a different (unique) type. For example, two decimal-valued attribute will need to be
+/// wrapped in different dedicated structures.
 ///
 /// Using the [`TypeId`] as the key value for collections yields a cleaner API, where the only
 /// argument passed to access methods is the ID of the cell of which they want the attribute. The
@@ -39,9 +39,10 @@ pub enum ManagerError {
 ///
 /// Generics passed in access methods also have a secondary usage. To store heterogeneous
 /// collections, the internal hashmaps uses `Box<dyn UnknownAttributeStorage>` as their value type.
-/// Some cases require us to downcast the stored object (implementing `UnknownAttributeStorage`) to
-/// the correct collection type. This is achieved by using the `downcast-rs` crate and
-/// the associated storage type [`AttributeBind::StorageType`]. The code roughly looks like this:
+/// Some operations require us to downcast the stored object (implementing
+/// `UnknownAttributeStorage`) to the correct collection type. This is achieved by using the
+/// `downcast-rs` crate and the associated storage type [`AttributeBind::StorageType`]. What
+/// follows is a simplified version of that code:
 ///
 /// ```
 /// # use std::any::TypeId;
@@ -85,8 +86,7 @@ pub struct AttrStorageManager {
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
 
-// --- manager-wide methods
-
+/// **Manager-wide methods**
 impl AttrStorageManager {
     /// Extend the size of all storages in the manager.
     ///
@@ -315,8 +315,6 @@ impl AttrStorageManager {
     }
 }
 
-// --- attribute-specific methods
-
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
         let probably_storage = match A::binds_to() {
@@ -347,6 +345,7 @@ macro_rules! get_storage_mut {
     };
 }
 
+/// **Attribute-specific methods**
 impl AttrStorageManager {
     #[allow(clippy::missing_errors_doc)]
     /// Add a new storage to the manager.

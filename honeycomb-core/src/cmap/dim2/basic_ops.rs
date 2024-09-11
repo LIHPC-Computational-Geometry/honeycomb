@@ -24,7 +24,7 @@ use std::collections::BTreeSet;
 
 // ------ CONTENT
 
-// --- dart-related code
+/// **Dart-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
@@ -135,7 +135,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- beta-related code
+/// **Beta-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
@@ -233,7 +233,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- icell-related code
+/// **I-cell-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     #[allow(clippy::missing_panics_doc)]
     /// Fetch vertex identifier associated to a given dart.

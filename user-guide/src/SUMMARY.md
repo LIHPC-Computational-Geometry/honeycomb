@@ -5,11 +5,7 @@
 # Project Structure
 
 - [Workspace](./project-structure/workspace.md)
-- [Published crates](./project-structure/published.md) 
-    - [honeycomb](./project-structure/honeycomb.md)
-    - [honeycomb-core](./project-structure/honeycomb-core.md)
-    - [honeycomb-kernels](./project-structure/honeycomb-kernels.md)
-    - [honeycomb-render](./project-structure/honeycomb-render.md)
+- [Published crates](./project-structure/published.md)
 - [Other content](./project-structure/others.md)
     - [Benchmarks](./project-structure/honeycomb-benches.md)
     - [Examples](./project-structure/honeycomb-examples.md)
