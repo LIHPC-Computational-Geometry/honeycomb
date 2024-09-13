@@ -20,6 +20,21 @@ use std::{fs::File, io::Write};
 
 /// **Utilities**
 impl<T: CoordsFloat> CMap2<T> {
+    /// Set the value of the specified beta function of a dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
+    /// - `val: DartIdentifier` -- Value of the image of `dart_id` through the beta `I` function.
+    ///
+    /// ## Generic
+    ///
+    /// - `const I: u8` -- Beta function to edit.
+    ///
+    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, val: DartIdentifier) {
+        self.betas[dart_id as usize][I as usize] = val;
+    }
+
     /// Set the values of the beta functions of a dart.
     ///
     /// # Arguments
