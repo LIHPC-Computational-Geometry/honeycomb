@@ -141,7 +141,6 @@ use std::collections::BTreeSet;
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
 ///
-/// # Ok(())
 /// # }
 /// ```
 #[cfg_attr(feature = "utils", derive(Clone))]

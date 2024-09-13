@@ -1,9 +1,5 @@
 //! Crate-level common definitions
 
-// ------ IMPORTS
-
-use std::fmt::Debug;
-
 // ------ CONTENT
 
 // --- darts

@@ -192,19 +192,19 @@ fn regular_intersections() {
     // check new vertices at intersection
     assert_eq!(
         cmap.vertex(cmap.vertex_id(cmap.beta::<1>(2))),
-        Ok(Vertex2(1.0, 0.5))
+        Some(Vertex2(1.0, 0.5))
     );
     assert_eq!(
         cmap.vertex(cmap.vertex_id(cmap.beta::<1>(7))),
-        Ok(Vertex2(1.5, 1.0))
+        Some(Vertex2(1.5, 1.0))
     );
     assert_eq!(
         cmap.vertex(cmap.vertex_id(cmap.beta::<1>(10))),
-        Ok(Vertex2(1.0, 1.5))
+        Some(Vertex2(1.0, 1.5))
     );
     assert_eq!(
         cmap.vertex(cmap.vertex_id(cmap.beta::<1>(3))),
-        Ok(Vertex2(0.5, 1.0))
+        Some(Vertex2(0.5, 1.0))
     );
 
     let mut edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);

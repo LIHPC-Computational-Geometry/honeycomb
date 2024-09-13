@@ -85,7 +85,7 @@ fn temperature_map() {
         map.get_attribute::<Temperature>(map.vertex_id(4)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(4)), Ok(Vertex2::from((2., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(4)), Some(Vertex2::from((2., 0.))));
     // unsew another
     map.one_unsew(1);
     assert_ne!(map.vertex_id(2), map.vertex_id(3));
@@ -97,8 +97,8 @@ fn temperature_map() {
         map.get_attribute::<Temperature>(map.vertex_id(3)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(2)), Ok(Vertex2::from((1., 0.))));
-    assert_eq!(map.vertex(map.vertex_id(3)), Ok(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(2)), Some(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(3)), Some(Vertex2::from((1., 0.))));
 }
 
 // --- unit tests
