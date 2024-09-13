@@ -20,7 +20,7 @@ use std::{fs::File, io::Write};
 
 /// **Utilities**
 impl<T: CoordsFloat> CMap2<T> {
-    /// Set the values of the specified beta function of a dart.
+    /// Set the value of the specified beta function of a dart.
     ///
     /// # Arguments
     ///
