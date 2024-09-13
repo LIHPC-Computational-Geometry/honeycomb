@@ -25,10 +25,14 @@ pub use vertex::Vertex2;
 /// Coordinates-level error enum
 #[derive(Debug, PartialEq)]
 pub enum CoordsError {
-    /// Error during the computation of the unit directional vector.
+    /// Error during the computation of the unit direction vector.
     ///
     /// This is returned when trying to compute the unit vector of a null [`Vector2`].
     InvalidUnitDir,
+    /// Error during the computation of the normal direction vector.
+    ///
+    /// This is returned when trying to compute the normal to a null [`Vector2`].
+    InvalidNormDir,
 }
 
 // --- generic fp repersentation trait
