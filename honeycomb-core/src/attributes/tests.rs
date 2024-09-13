@@ -447,7 +447,7 @@ fn compact_vec_replace_already_removed() {
 macro_rules! generate_manager {
     ($name: ident) => {
         let mut $name = AttrStorageManager::default();
-        assert!($name.add_storage::<Temperature>(10).is_ok());
+        $name.add_storage::<Temperature>(10);
         $name.insert_attribute(0, Temperature::from(273.0));
         $name.insert_attribute(1, Temperature::from(275.0));
         $name.insert_attribute(2, Temperature::from(277.0));

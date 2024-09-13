@@ -9,7 +9,7 @@ mod manager;
 mod traits;
 
 pub use collections::{AttrCompactVec, AttrSparseVec};
-pub use manager::{AttrStorageManager, ManagerError};
+pub use manager::AttrStorageManager;
 pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 
 // ------ TESTS
