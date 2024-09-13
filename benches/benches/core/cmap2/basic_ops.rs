@@ -12,7 +12,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::prelude::{CMap2, CMapBuilder, CMapError, DartIdentifier, Vertex2};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -108,7 +108,7 @@ library_benchmark_group!(
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn read_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn read_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.vertex(1))
 }
 
@@ -116,7 +116,7 @@ fn read_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapErr
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
-fn read_missing_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn read_missing_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.vertex(1))
 }
 
@@ -133,7 +133,7 @@ fn insert_vertex(map: &mut CMap2<FloatType>) {
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn replace_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn replace_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.replace_vertex(1, (0.0, 0.0)))
 }
 
@@ -141,7 +141,7 @@ fn replace_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMap
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
-fn set_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn set_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.replace_vertex(1, (0.0, 0.0)))
 }
 
@@ -149,7 +149,7 @@ fn set_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapErro
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn remove_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn remove_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.remove_vertex(1))
 }
 
@@ -157,7 +157,7 @@ fn remove_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapE
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
-fn remove_missing_vertex(map: &mut CMap2<FloatType>) -> Result<Vertex2<FloatType>, CMapError> {
+fn remove_missing_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
     black_box(map.remove_vertex(1))
 }
 
