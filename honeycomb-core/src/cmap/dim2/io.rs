@@ -101,7 +101,7 @@ where
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
-        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Face, id as DartIdentifier)
+        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Custom(&[1]), id as DartIdentifier)
             .map(|dart_id| {
                 count += 1;
                 id_map[&map.vertex_id(dart_id)] as u32
