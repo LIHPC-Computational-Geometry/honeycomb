@@ -446,11 +446,7 @@ impl AttributeUpdate for Boundary {
 }
 
 impl AttributeBind for Boundary {
-    fn binds_to() -> OrbitPolicy {
-        OrbitPolicy::Custom(&[])
-    }
-
-    type IdentifierType = DartIdentifier;
-
     type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = DartIdentifier;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }

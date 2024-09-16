@@ -317,7 +317,7 @@ impl AttrStorageManager {
 
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => $slf.vertices.get(&TypeId::of::<A>()),
             OrbitPolicy::Edge => $slf.edges.get(&TypeId::of::<A>()),
             OrbitPolicy::Face => $slf.faces.get(&TypeId::of::<A>()),
@@ -332,7 +332,7 @@ macro_rules! get_storage {
 
 macro_rules! get_storage_mut {
     ($slf: ident, $id: ident) => {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => $slf.vertices.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Face => $slf.faces.get_mut(&TypeId::of::<A>()),
@@ -373,7 +373,7 @@ impl AttrStorageManager {
     ) -> Result<(), ManagerError> {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
-        if match A::binds_to() {
+        if match A::BIND_POLICY {
             OrbitPolicy::Vertex => self.vertices.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Edge => self.edges.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Face => self.faces.insert(typeid, Box::new(new_storage)),
@@ -414,7 +414,7 @@ impl AttrStorageManager {
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
             OrbitPolicy::Face => &self.faces[&TypeId::of::<A>()],
@@ -435,7 +435,7 @@ impl AttrStorageManager {
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     pub fn remove_storage<A: AttributeBind>(&mut self) {
         // we could return it ?
-        let _ = match A::binds_to() {
+        let _ = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices.remove(&TypeId::of::<A>()),
             OrbitPolicy::Edge => &self.edges.remove(&TypeId::of::<A>()),
             OrbitPolicy::Face => &self.faces.remove(&TypeId::of::<A>()),

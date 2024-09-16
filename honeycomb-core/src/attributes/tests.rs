@@ -35,9 +35,7 @@ impl AttributeUpdate for Temperature {
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
     type IdentifierType = VertexIdentifier;
-    fn binds_to() -> OrbitPolicy {
-        OrbitPolicy::Vertex
-    }
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
 
 impl From<f32> for Temperature {
@@ -120,7 +118,7 @@ fn attribute_update() {
 
 #[test]
 fn attribute_bind() {
-    assert_eq!(Temperature::binds_to(), OrbitPolicy::Vertex);
+    assert_eq!(Temperature::BIND_POLICY, OrbitPolicy::Vertex);
     let inst: <Temperature as AttributeBind>::IdentifierType = 0;
     let ref_inst: FaceIdentifier = 0;
     let prim_inst: u32 = 0;

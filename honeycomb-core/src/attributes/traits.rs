@@ -113,10 +113,7 @@ pub trait AttributeUpdate: Sized {
 /// impl AttributeBind for Temperature {
 ///     type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
-///
-///     fn binds_to() -> OrbitPolicy {
-///         OrbitPolicy::Face
-///     }
+///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 /// }
 /// ```
 pub trait AttributeBind: Debug + Sized + Any {
@@ -126,9 +123,9 @@ pub trait AttributeBind: Debug + Sized + Any {
     /// Identifier type of the entity the attribute is bound to.
     type IdentifierType: From<DartIdentifier> + num_traits::ToPrimitive + Clone;
 
-    /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
-    /// which the attribute is associated.
-    fn binds_to() -> OrbitPolicy;
+    /// [`OrbitPolicy`] determining the kind of topological entity to which the attribute
+    /// is associated.
+    const BIND_POLICY: OrbitPolicy;
 }
 
 macro_rules! unknown_attribute_storage {
