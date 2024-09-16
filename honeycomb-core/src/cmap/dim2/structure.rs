@@ -8,7 +8,7 @@
 use super::CMAP2_BETA;
 use crate::prelude::{DartIdentifier, Vertex2};
 use crate::{
-    attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
+    attributes::{AttrStorageManager, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
 use std::collections::BTreeSet;
@@ -150,7 +150,7 @@ pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     pub(super) attributes: AttrStorageManager,
     /// List of vertices making up the represented mesh
-    pub(super) vertices: AttrSparseVec<Vertex2<T>>,
+    pub(super) vertices: Vec<Option<Vertex2<T>>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
     pub(super) unused_darts: BTreeSet<DartIdentifier>,
@@ -182,7 +182,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
             attributes: AttrStorageManager::default(),
-            vertices: AttrSparseVec::init(n_darts + 1),
+            vertices: Vec::init(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,
@@ -217,7 +217,7 @@ impl<T: CoordsFloat> CMap2<T> {
         attr_storage_manager.extend_storages(n_darts + 1);
         Self {
             attributes: attr_storage_manager,
-            vertices: AttrSparseVec::init(n_darts + 1),
+            vertices: Vec::init(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,

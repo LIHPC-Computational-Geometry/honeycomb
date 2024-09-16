@@ -11,6 +11,67 @@ use num_traits::ToPrimitive;
 
 // ------ CONTENT
 
+impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Vec<Option<A>> {
+    fn init(length: usize) -> Self
+    where
+        Self: Sized,
+    {
+        (0..length).map(|_| None).collect()
+    }
+
+    fn extend_cap(&mut self, length: usize) {
+        self.extend((0..length).map(|_| None));
+    }
+
+    fn n_attributes(&self) -> usize {
+        self.iter().filter(|val| val.is_some()).count()
+    }
+
+    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        let new_val = match (self.remove_v(lhs_inp.into()), self.remove_v(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+            (None, None) => AttributeUpdate::merge_undefined(None),
+        };
+        self.set_v(out.into(), new_val);
+    }
+
+    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        let new_val = self
+            .remove_v(inp.into())
+            .expect("E: cannot split attribute value - value not found in storage");
+        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
+        self.set_v(lhs_out.into(), lhs_val);
+        self.set_v(rhs_out.into(), rhs_val);
+    }
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for Vec<Option<A>> {
+    fn set_v(&mut self, id: A::IdentifierType, val: A) {
+        self[id.to_usize().unwrap()] = Some(val);
+    }
+
+    fn insert_v(&mut self, id: A::IdentifierType, val: A) {
+        let tmp = &mut self[id.to_usize().unwrap()];
+        assert!(tmp.is_none());
+        *tmp = Some(val);
+    }
+
+    fn get_v(&self, id: A::IdentifierType) -> Option<A> {
+        self[id.to_usize().unwrap()]
+    }
+
+    fn replace_v(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+        self.push(Some(val));
+        self.swap_remove(id.to_usize().unwrap())
+    }
+
+    fn remove_v(&mut self, id: A::IdentifierType) -> Option<A> {
+        self.push(None);
+        self.swap_remove(id.to_usize().unwrap())
+    }
+}
+
 /// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using a vector of `Option<T>` items.
