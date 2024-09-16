@@ -462,7 +462,7 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
-        storage.set(id, val);
+        storage.set_v(id, val);
     }
 
     /// Set the value of an attribute.
@@ -485,7 +485,7 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
-        storage.insert(id, val);
+        storage.insert_v(id, val);
     }
 
     /// Get the value of an attribute.
@@ -512,7 +512,7 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn get_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
         get_storage!(self, storage);
-        storage.get(id)
+        storage.get_v(id)
     }
 
     /// Set the value of an attribute.
@@ -544,7 +544,7 @@ impl AttrStorageManager {
         val: A,
     ) -> Option<A> {
         get_storage_mut!(self, storage);
-        storage.replace(id, val)
+        storage.replace_v(id, val)
     }
 
     /// Remove the an item from an attribute storage.
@@ -571,7 +571,7 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
-        storage.remove(id)
+        storage.remove_v(id)
     }
 
     /// Merge given attribute values.

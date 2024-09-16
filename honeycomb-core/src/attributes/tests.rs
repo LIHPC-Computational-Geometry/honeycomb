@@ -133,16 +133,16 @@ fn attribute_bind() {
 macro_rules! generate_sparse {
     ($name: ident) => {
         let mut $name = AttrSparseVec::<Temperature>::init(10);
-        $name.insert(0, Temperature::from(273.0));
-        $name.insert(1, Temperature::from(275.0));
-        $name.insert(2, Temperature::from(277.0));
-        $name.insert(3, Temperature::from(279.0));
-        $name.insert(4, Temperature::from(281.0));
-        $name.insert(5, Temperature::from(283.0));
-        $name.insert(6, Temperature::from(285.0));
-        $name.insert(7, Temperature::from(287.0));
-        $name.insert(8, Temperature::from(289.0));
-        $name.insert(9, Temperature::from(291.0));
+        $name.insert_v(0, Temperature::from(273.0));
+        $name.insert_v(1, Temperature::from(275.0));
+        $name.insert_v(2, Temperature::from(277.0));
+        $name.insert_v(3, Temperature::from(279.0));
+        $name.insert_v(4, Temperature::from(281.0));
+        $name.insert_v(5, Temperature::from(283.0));
+        $name.insert_v(6, Temperature::from(285.0));
+        $name.insert_v(7, Temperature::from(287.0));
+        $name.insert_v(8, Temperature::from(289.0));
+        $name.insert_v(9, Temperature::from(291.0));
     };
 }
 
@@ -150,138 +150,138 @@ macro_rules! generate_sparse {
 fn sparse_vec_n_attributes() {
     generate_sparse!(storage);
     assert_eq!(storage.n_attributes(), 10);
-    let _ = storage.remove(3);
+    let _ = storage.remove_v(3);
     assert_eq!(storage.n_attributes(), 9);
     // extend does not affect the number of attributes
     storage.extend_cap(10);
-    assert!(storage.get(15).is_none());
+    assert!(storage.get_v(15).is_none());
     assert_eq!(storage.n_attributes(), 9);
 }
 
 #[test]
 fn sparse_vec_merge() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.get(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.get_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get_v(8), Some(Temperature::from(289.0)));
     storage.merge(8, 3, 6);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(6), None);
-    assert_eq!(storage.get(8), Some(Temperature::from(282.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(6), None);
+    assert_eq!(storage.get_v(8), Some(Temperature::from(282.0)));
 }
 
 #[test]
 fn sparse_vec_merge_undefined() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.remove(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.remove_v(8), Some(Temperature::from(289.0)));
     // merge from two undefined value
     storage.merge(8, 3, 6);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(6), None);
-    assert_eq!(storage.get(8), Some(Temperature::from(0.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(6), None);
+    assert_eq!(storage.get_v(8), Some(Temperature::from(0.0)));
     // merge from one undefined value
-    assert_eq!(storage.get(4), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get_v(4), Some(Temperature::from(281.0)));
     storage.merge(6, 3, 4);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(4), None);
+    assert_eq!(storage.get_v(6), Some(Temperature::from(281.0)));
 }
 
 #[test]
 fn sparse_vec_split() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get_v(8), Some(Temperature::from(289.0)));
     storage.split(3, 6, 8);
-    assert_eq!(storage.get(3), Some(Temperature::from(289.0)));
-    assert_eq!(storage.get(6), Some(Temperature::from(289.0)));
-    assert_eq!(storage.get(8), None);
+    assert_eq!(storage.get_v(3), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(6), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(8), None);
 }
 
 #[test]
 fn sparse_vec_get_set_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.set(3, Temperature::from(280.0));
-    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.set_v(3, Temperature::from(280.0));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 fn sparse_vec_get_replace_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0));
-    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.replace_v(3, Temperature::from(280.0));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 #[should_panic(expected = "assertion failed: tmp.is_none()")]
 fn sparse_vec_insert_already_existing() {
     generate_sparse!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.insert(3, Temperature::from(280.0)); // panic
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.insert_v(3, Temperature::from(280.0)); // panic
 }
 
 #[test]
 fn sparse_vec_remove() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
 }
 
 #[test]
 fn sparse_vec_remove_remove() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert!(storage.remove(3).is_none());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert!(storage.remove_v(3).is_none());
 }
 
 #[test]
 fn sparse_vec_remove_get() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert!(storage.get(3).is_none());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert!(storage.get_v(3).is_none());
 }
 
 #[test]
 fn sparse_vec_remove_set() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.set(3, Temperature::from(280.0));
-    assert!(storage.get(3).is_some());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.set_v(3, Temperature::from(280.0));
+    assert!(storage.get_v(3).is_some());
 }
 
 #[test]
 fn sparse_vec_remove_insert() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.insert(3, Temperature::from(280.0));
-    assert!(storage.get(3).is_some());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.insert_v(3, Temperature::from(280.0));
+    assert!(storage.get_v(3).is_some());
 }
 
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn sparse_vec_replace_already_removed() {
     generate_sparse!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.replace_v(3, Temperature::from(280.0)).unwrap(); // panic
 }
 
 macro_rules! generate_compact {
     ($name: ident) => {
         let mut $name = AttrCompactVec::<Temperature>::init(10);
-        $name.insert(0, Temperature::from(273.0));
-        $name.insert(1, Temperature::from(275.0));
-        $name.insert(2, Temperature::from(277.0));
-        $name.insert(3, Temperature::from(279.0));
-        $name.insert(4, Temperature::from(281.0));
-        $name.insert(5, Temperature::from(283.0));
-        $name.insert(6, Temperature::from(285.0));
-        $name.insert(7, Temperature::from(287.0));
-        $name.insert(8, Temperature::from(289.0));
-        $name.insert(9, Temperature::from(291.0));
+        $name.insert_v(0, Temperature::from(273.0));
+        $name.insert_v(1, Temperature::from(275.0));
+        $name.insert_v(2, Temperature::from(277.0));
+        $name.insert_v(3, Temperature::from(279.0));
+        $name.insert_v(4, Temperature::from(281.0));
+        $name.insert_v(5, Temperature::from(283.0));
+        $name.insert_v(6, Temperature::from(285.0));
+        $name.insert_v(7, Temperature::from(287.0));
+        $name.insert_v(8, Temperature::from(289.0));
+        $name.insert_v(9, Temperature::from(291.0));
     };
 }
 
@@ -289,12 +289,12 @@ macro_rules! generate_compact {
 fn compact_vec_n_attributes() {
     generate_compact!(storage);
     assert_eq!(storage.n_attributes(), 10);
-    let _ = storage.remove(3);
+    let _ = storage.remove_v(3);
     //assert_eq!(storage.n_attributes(), 10);
     assert_eq!(storage.n_attributes(), 9);
     // extend does not affect the number of attributes
     storage.extend_cap(10);
-    assert!(storage.get(15).is_none());
+    assert!(storage.get_v(15).is_none());
     assert_eq!(storage.n_attributes(), 9);
 }
 
@@ -316,44 +316,44 @@ fn compact_vec_n_used_attributes() {
 #[test]
 fn compact_vec_merge() {
     generate_compact!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.get(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.get_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get_v(8), Some(Temperature::from(289.0)));
     storage.merge(8, 3, 6);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(6), None);
-    assert_eq!(storage.get(8), Some(Temperature::from(282.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(6), None);
+    assert_eq!(storage.get_v(8), Some(Temperature::from(282.0)));
 }
 
 #[test]
 fn compact_vec_merge_undefined() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.remove(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.remove_v(8), Some(Temperature::from(289.0)));
     // merge from two undefined value
     storage.merge(8, 3, 6);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(6), None);
-    assert_eq!(storage.get(8), Some(Temperature::from(0.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(6), None);
+    assert_eq!(storage.get_v(8), Some(Temperature::from(0.0)));
     // merge from one undefined value
-    assert_eq!(storage.get(4), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get_v(4), Some(Temperature::from(281.0)));
     storage.merge(6, 3, 4);
-    assert_eq!(storage.get(3), None);
-    assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get_v(3), None);
+    assert_eq!(storage.get_v(4), None);
+    assert_eq!(storage.get_v(6), Some(Temperature::from(281.0)));
 }
 
 #[test]
 fn compact_vec_split() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
-    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get_v(8), Some(Temperature::from(289.0)));
     storage.split(3, 6, 8);
-    assert_eq!(storage.get(3), Some(Temperature::from(289.0)));
-    assert_eq!(storage.get(6), Some(Temperature::from(289.0)));
-    assert_eq!(storage.get(8), None);
+    assert_eq!(storage.get_v(3), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(6), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get_v(8), None);
 }
 
 #[test]
@@ -363,13 +363,13 @@ fn compact_vec_extend_through_set() {
     // extend does not affect the number of attributes
     storage.extend_cap(10);
     assert_eq!(storage.n_attributes(), 10);
-    storage.set(10, Temperature::from(293.0));
+    storage.set_v(10, Temperature::from(293.0));
     assert_eq!(storage.n_attributes(), 11);
-    storage.set(11, Temperature::from(295.0));
+    storage.set_v(11, Temperature::from(295.0));
     assert_eq!(storage.n_attributes(), 12);
-    storage.set(12, Temperature::from(297.0));
+    storage.set_v(12, Temperature::from(297.0));
     assert_eq!(storage.n_attributes(), 13);
-    let _ = storage.remove(3);
+    let _ = storage.remove_v(3);
     //assert_eq!(storage.n_attributes(), 13);
     assert_eq!(storage.n_attributes(), 12); // previously n_used_attributes
 }
@@ -377,69 +377,69 @@ fn compact_vec_extend_through_set() {
 #[test]
 fn compact_vec_get_set_get() {
     generate_compact!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.set(3, Temperature::from(280.0));
-    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.set_v(3, Temperature::from(280.0));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 fn compact_vec_get_replace_get() {
     generate_compact!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0));
-    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.replace_v(3, Temperature::from(280.0));
+    assert_eq!(storage.get_v(3), Some(Temperature::from(280.0)));
 }
 
 #[test]
 #[should_panic(expected = "assertion failed: idx.is_none()")]
 fn compact_vec_insert_already_existing() {
     generate_compact!(storage);
-    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
-    storage.insert(3, Temperature::from(280.0)); // panic
+    assert_eq!(storage.get_v(3), Some(Temperature::from(279.0)));
+    storage.insert_v(3, Temperature::from(280.0)); // panic
 }
 
 #[test]
 fn compact_vec_remove() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
 }
 
 #[test]
 fn compact_vec_remove_remove() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert!(storage.remove(3).is_none());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert!(storage.remove_v(3).is_none());
 }
 
 #[test]
 fn compact_vec_remove_get() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    assert!(storage.get(3).is_none());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    assert!(storage.get_v(3).is_none());
 }
 
 #[test]
 fn compact_vec_remove_set() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.set(3, Temperature::from(280.0));
-    assert!(storage.get(3).is_some());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.set_v(3, Temperature::from(280.0));
+    assert!(storage.get_v(3).is_some());
 }
 
 #[test]
 fn compact_vec_remove_insert() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.insert(3, Temperature::from(280.0));
-    assert!(storage.get(3).is_some());
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.insert_v(3, Temperature::from(280.0));
+    assert!(storage.get_v(3).is_some());
 }
 
 #[test]
 #[should_panic(expected = "assertion failed: idx.is_some()")]
 fn compact_vec_replace_already_removed() {
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0)); // panic
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
+    storage.replace_v(3, Temperature::from(280.0)); // panic
 }
 
 // storage manager
@@ -510,7 +510,7 @@ fn manager_vec_insert_already_existing() {
 fn manager_vec_remove() {
     generate_manager!(manager);
     generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove_v(3), Some(Temperature::from(279.0)));
 }
 
 #[test]

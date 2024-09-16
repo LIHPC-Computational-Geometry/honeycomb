@@ -51,45 +51,45 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+        let new_val = match (self.remove_v(lhs_inp.into()), self.remove_v(rhs_inp.into())) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
             (None, None) => AttributeUpdate::merge_undefined(None),
         };
-        self.set(out.into(), new_val);
+        self.set_v(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
         let new_val = self
-            .remove(inp.into())
+            .remove_v(inp.into())
             .expect("E: cannot split attribute value - value not found in storage");
         let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        self.set_v(lhs_out.into(), lhs_val);
+        self.set_v(rhs_out.into(), rhs_val);
     }
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
-    fn set(&mut self, id: A::IdentifierType, val: A) {
+    fn set_v(&mut self, id: A::IdentifierType, val: A) {
         self.data[id.to_usize().unwrap()] = Some(val);
     }
 
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
+    fn insert_v(&mut self, id: A::IdentifierType, val: A) {
         let tmp = &mut self.data[id.to_usize().unwrap()];
         assert!(tmp.is_none());
         *tmp = Some(val);
     }
 
-    fn get(&self, id: A::IdentifierType) -> Option<A> {
+    fn get_v(&self, id: A::IdentifierType) -> Option<A> {
         self.data[id.to_usize().unwrap()]
     }
 
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+    fn replace_v(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         self.data.push(Some(val));
         self.data.swap_remove(id.to_usize().unwrap())
     }
 
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
+    fn remove_v(&mut self, id: A::IdentifierType) -> Option<A> {
         self.data.push(None);
         self.data.swap_remove(id.to_usize().unwrap())
     }
@@ -165,26 +165,26 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+        let new_val = match (self.remove_v(lhs_inp.into()), self.remove_v(rhs_inp.into())) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
             (None, None) => AttributeUpdate::merge_undefined(None),
         };
-        self.set(out.into(), new_val);
+        self.set_v(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
         let new_val = self
-            .remove(inp.into())
+            .remove_v(inp.into())
             .expect("E: cannot split attribute value - value not found in storage");
         let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        self.set_v(lhs_out.into(), lhs_val);
+        self.set_v(rhs_out.into(), rhs_val);
     }
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrCompactVec<A> {
-    fn set(&mut self, id: A::IdentifierType, val: A) {
+    fn set_v(&mut self, id: A::IdentifierType, val: A) {
         if let Some(idx) = self.index_map[id.to_usize().unwrap()] {
             // internal index is defined => there should be associated data
             self.data[idx] = val;
@@ -199,7 +199,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
         }
     }
 
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
+    fn insert_v(&mut self, id: A::IdentifierType, val: A) {
         let idx = &mut self.index_map[id.to_usize().unwrap()];
         assert!(idx.is_none());
         *idx = if let Some(unused_idx) = self.unused_data_slots.pop() {
@@ -211,19 +211,19 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
         };
     }
 
-    fn get(&self, id: A::IdentifierType) -> Option<A> {
+    fn get_v(&self, id: A::IdentifierType) -> Option<A> {
         self.index_map[id.to_usize().unwrap()].map(|idx| self.data[idx])
     }
 
     // FIXME: panics instead of returning None
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+    fn replace_v(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         let idx = &self.index_map[id.to_usize().unwrap()];
         assert!(idx.is_some());
         self.data.push(val);
         Some(self.data.swap_remove(idx.unwrap()))
     }
 
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
+    fn remove_v(&mut self, id: A::IdentifierType) -> Option<A> {
         self.index_map.push(None);
         if let Some(tmp) = self.index_map.swap_remove(id.to_usize().unwrap()) {
             self.unused_data_slots.push(tmp);

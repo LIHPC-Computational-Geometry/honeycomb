@@ -253,7 +253,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn set(&mut self, id: A::IdentifierType, val: A);
+    fn set_v(&mut self, id: A::IdentifierType, val: A);
 
     /// Setter
     ///
@@ -271,9 +271,9 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
-        assert!(self.get(id.clone()).is_none());
-        self.set(id, val);
+    fn insert_v(&mut self, id: A::IdentifierType, val: A) {
+        assert!(self.get_v(id.clone()).is_none());
+        self.set_v(id, val);
     }
 
     /// Getter
@@ -293,7 +293,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn get(&self, id: A::IdentifierType) -> Option<A>;
+    fn get_v(&self, id: A::IdentifierType) -> Option<A>;
 
     /// Setter
     ///
@@ -317,7 +317,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
+    fn replace_v(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
 
     /// Remove an item from the storage and return it
     ///
@@ -336,5 +336,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
+    fn remove_v(&mut self, id: A::IdentifierType) -> Option<A>;
 }

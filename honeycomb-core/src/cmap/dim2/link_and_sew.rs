@@ -44,7 +44,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
             assert!(
-                self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
+                self.vertices.get_v(self.vertex_id(rhs_dart_id)).is_some(),
                 "{}",
                 format!(
                     "No vertex defined on dart {rhs_dart_id}, use `one_link` instead of `one_sew`"
@@ -100,7 +100,7 @@ impl<T: CoordsFloat> CMap2<T> {
             // trivial case, no update needed
             (true, true) => {
                 assert!(
-                    self.vertices.get(self.vertex_id(lhs_dart_id)).is_some() | self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
+                    self.vertices.get_v(self.vertex_id(lhs_dart_id)).is_some() | self.vertices.get_v(self.vertex_id(rhs_dart_id)).is_some(),
                     "{}",
                     format!("No vertices defined on either darts {lhs_dart_id}/{rhs_dart_id} , use `two_link` instead of `two_sew`")
                 );
@@ -174,8 +174,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
                     Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
                 ) = (
-                    self.vertices.get(lhs_vid_old), self.vertices.get(b1rhs_vid_old),// (lhs/b1rhs)
-                    self.vertices.get(b1lhs_vid_old), self.vertices.get(rhs_vid_old) // (b1lhs/rhs)
+                    self.vertices.get_v(lhs_vid_old), self.vertices.get_v(b1rhs_vid_old),// (lhs/b1rhs)
+                    self.vertices.get_v(b1lhs_vid_old), self.vertices.get_v(rhs_vid_old) // (b1lhs/rhs)
                 )
                 {
                     let lhs_vector = b1l_vertex - l_vertex;
