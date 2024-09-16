@@ -182,7 +182,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
             attributes: AttrStorageManager::default(),
-            vertices: AttrSparseVec::new(n_darts + 1),
+            vertices: AttrSparseVec::init(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,
@@ -217,7 +217,7 @@ impl<T: CoordsFloat> CMap2<T> {
         attr_storage_manager.extend_storages(n_darts + 1);
         Self {
             attributes: attr_storage_manager,
-            vertices: AttrSparseVec::new(n_darts + 1),
+            vertices: AttrSparseVec::init(n_darts + 1),
             unused_darts: BTreeSet::new(),
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,

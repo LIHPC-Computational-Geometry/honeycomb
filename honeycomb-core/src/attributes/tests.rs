@@ -132,7 +132,7 @@ fn attribute_bind() {
 
 macro_rules! generate_sparse {
     ($name: ident) => {
-        let mut $name = AttrSparseVec::<Temperature>::new(10);
+        let mut $name = AttrSparseVec::<Temperature>::init(10);
         $name.insert(0, Temperature::from(273.0));
         $name.insert(1, Temperature::from(275.0));
         $name.insert(2, Temperature::from(277.0));
@@ -153,7 +153,7 @@ fn sparse_vec_n_attributes() {
     let _ = storage.remove(3);
     assert_eq!(storage.n_attributes(), 9);
     // extend does not affect the number of attributes
-    storage.extend(10);
+    storage.extend_cap(10);
     assert!(storage.get(15).is_none());
     assert_eq!(storage.n_attributes(), 9);
 }
@@ -271,7 +271,7 @@ fn sparse_vec_replace_already_removed() {
 
 macro_rules! generate_compact {
     ($name: ident) => {
-        let mut $name = AttrCompactVec::<Temperature>::new(10);
+        let mut $name = AttrCompactVec::<Temperature>::init(10);
         $name.insert(0, Temperature::from(273.0));
         $name.insert(1, Temperature::from(275.0));
         $name.insert(2, Temperature::from(277.0));
@@ -293,7 +293,7 @@ fn compact_vec_n_attributes() {
     //assert_eq!(storage.n_attributes(), 10);
     assert_eq!(storage.n_attributes(), 9);
     // extend does not affect the number of attributes
-    storage.extend(10);
+    storage.extend_cap(10);
     assert!(storage.get(15).is_none());
     assert_eq!(storage.n_attributes(), 9);
 }
@@ -361,7 +361,7 @@ fn compact_vec_extend_through_set() {
     generate_compact!(storage);
     assert_eq!(storage.n_attributes(), 10);
     // extend does not affect the number of attributes
-    storage.extend(10);
+    storage.extend_cap(10);
     assert_eq!(storage.n_attributes(), 10);
     storage.set(10, Temperature::from(293.0));
     assert_eq!(storage.n_attributes(), 11);

@@ -145,7 +145,7 @@ macro_rules! unknown_attribute_storage {
         ///
         /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
         #[must_use = "constructed object is not used, consider removing this function call"]
-        fn new(length: usize) -> Self
+        fn init(length: usize) -> Self
         where
             Self: Sized;
 
@@ -154,10 +154,10 @@ macro_rules! unknown_attribute_storage {
         /// # Arguments
         ///
         /// - `length: usize` -- length of which the storage should be extended.
-        fn extend(&mut self, length: usize);
+        fn extend_cap(&mut self, length: usize);
 
-        /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
-        /// its length.
+        /// Return the number of stored attributes, i.e. the number of used slots in the storage,
+        /// not its length.
         #[must_use = "returned value is not used, consider removing this method call"]
         fn n_attributes(&self) -> usize;
 

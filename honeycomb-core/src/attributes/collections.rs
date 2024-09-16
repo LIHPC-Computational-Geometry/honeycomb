@@ -33,7 +33,7 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
-    fn new(length: usize) -> Self
+    fn init(length: usize) -> Self
     where
         Self: Sized,
     {
@@ -42,7 +42,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         }
     }
 
-    fn extend(&mut self, length: usize) {
+    fn extend_cap(&mut self, length: usize) {
         self.data.extend((0..length).map(|_| None));
     }
 
@@ -145,7 +145,7 @@ pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrCompactVec<A> {
-    fn new(length: usize) -> Self
+    fn init(length: usize) -> Self
     where
         Self: Sized,
     {
@@ -156,7 +156,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         }
     }
 
-    fn extend(&mut self, length: usize) {
+    fn extend_cap(&mut self, length: usize) {
         self.index_map.extend((0..length).map(|_| None));
     }
 

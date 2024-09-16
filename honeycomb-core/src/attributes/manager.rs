@@ -58,7 +58,7 @@ pub enum ManagerError {
 ///         size: usize,
 ///     ) {
 ///         let typeid = TypeId::of::<A>();
-///         let new_storage = <A as AttributeBind>::StorageType::new(size);
+///         let new_storage = <A as AttributeBind>::StorageType::init(size);
 ///         self.inner.insert(typeid, Box::new(new_storage));
 ///     }
 ///
@@ -95,16 +95,16 @@ impl AttrStorageManager {
     /// - `length: usize` -- Length by which storages should be extended.
     pub fn extend_storages(&mut self, length: usize) {
         for storage in self.vertices.values_mut() {
-            storage.extend(length);
+            storage.extend_cap(length);
         }
         for storage in self.edges.values_mut() {
-            storage.extend(length);
+            storage.extend_cap(length);
         }
         for storage in self.faces.values_mut() {
-            storage.extend(length);
+            storage.extend_cap(length);
         }
         for storage in self.others.values_mut() {
-            storage.extend(length);
+            storage.extend_cap(length);
         }
     }
 
@@ -372,7 +372,7 @@ impl AttrStorageManager {
         size: usize,
     ) -> Result<(), ManagerError> {
         let typeid = TypeId::of::<A>();
-        let new_storage = <A as AttributeBind>::StorageType::new(size);
+        let new_storage = <A as AttributeBind>::StorageType::init(size);
         if match A::binds_to() {
             OrbitPolicy::Vertex => self.vertices.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Edge => self.edges.insert(typeid, Box::new(new_storage)),
@@ -398,7 +398,7 @@ impl AttrStorageManager {
     /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
-        storage.extend(length);
+        storage.extend_cap(length);
     }
 
     /// Get a reference to the storage of a given attribute.
