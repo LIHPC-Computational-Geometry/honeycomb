@@ -114,7 +114,7 @@ pub trait AttributeUpdate: Sized {
 ///     type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
 ///
-///     fn binds_to<'a>() -> OrbitPolicy<'a> {
+///     fn binds_to() -> OrbitPolicy {
 ///         OrbitPolicy::Face
 ///     }
 /// }
@@ -128,7 +128,7 @@ pub trait AttributeBind: Debug + Sized + Any {
 
     /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
     /// which the attribute is associated.
-    fn binds_to<'a>() -> OrbitPolicy<'a>;
+    fn binds_to() -> OrbitPolicy;
 }
 
 macro_rules! unknown_attribute_storage {

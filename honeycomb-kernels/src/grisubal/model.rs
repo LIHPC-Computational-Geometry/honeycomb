@@ -446,7 +446,7 @@ impl AttributeUpdate for Boundary {
 }
 
 impl AttributeBind for Boundary {
-    fn binds_to<'a>() -> OrbitPolicy<'a> {
+    fn binds_to() -> OrbitPolicy {
         OrbitPolicy::Custom(&[])
     }
 

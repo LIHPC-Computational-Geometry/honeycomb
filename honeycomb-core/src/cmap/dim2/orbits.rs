@@ -17,7 +17,7 @@ use std::collections::{BTreeSet, VecDeque};
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to *i-cells*.
 #[derive(Debug, PartialEq)]
-pub enum OrbitPolicy<'a> {
+pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
     /// 1-cell orbit.
@@ -25,7 +25,7 @@ pub enum OrbitPolicy<'a> {
     /// 2-cell orbit.
     Face,
     /// Ordered array of beta functions that define the orbit.
-    Custom(&'a [u8]),
+    Custom(&'static [u8]),
 }
 
 /// Generic 2D orbit implementation
@@ -66,7 +66,7 @@ pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
     map_handle: &'a CMap2<T>,
     /// Policy used by the orbit for the BFS. It can be predetermined or custom.
-    orbit_policy: OrbitPolicy<'a>,
+    orbit_policy: OrbitPolicy,
     /// Set used to identify which dart is marked during the BFS.
     marked: BTreeSet<DartIdentifier>,
     /// Queue used to store which dart must be visited next during the BFS.
@@ -98,11 +98,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// See [`CMap2`] example.
     ///
     #[must_use = "orbits are lazy and do nothing unless consumed"]
-    pub fn new(
-        map_handle: &'a CMap2<T>,
-        orbit_policy: OrbitPolicy<'a>,
-        dart: DartIdentifier,
-    ) -> Self {
+    pub fn new(map_handle: &'a CMap2<T>, orbit_policy: OrbitPolicy, dart: DartIdentifier) -> Self {
         let mut marked = BTreeSet::<DartIdentifier>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
         marked.insert(dart); // we're starting here, so we mark it beforehand

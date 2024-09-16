@@ -220,7 +220,7 @@ impl<T: CoordsFloat> AttributeBind for Vertex2<T> {
     type StorageType = AttrSparseVec<Self>;
     type IdentifierType = VertexIdentifier;
 
-    fn binds_to<'a>() -> OrbitPolicy<'a> {
+    fn binds_to() -> OrbitPolicy {
         OrbitPolicy::Vertex
     }
 }

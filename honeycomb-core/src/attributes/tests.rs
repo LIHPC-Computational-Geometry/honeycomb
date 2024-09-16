@@ -35,7 +35,7 @@ impl AttributeUpdate for Temperature {
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
     type IdentifierType = VertexIdentifier;
-    fn binds_to<'a>() -> OrbitPolicy<'a> {
+    fn binds_to() -> OrbitPolicy {
         OrbitPolicy::Vertex
     }
 }
