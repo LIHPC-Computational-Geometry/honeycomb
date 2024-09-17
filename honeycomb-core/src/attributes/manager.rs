@@ -368,10 +368,11 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            panic!(
-                "E: Storage of attribute `{}` already exists in the attribute storage manager",
+            println!(
+                "W: Storage of attribute `{}` already exists in the attribute storage manager",
                 std::any::type_name::<A>()
             );
+            println!("   Continuing...");
         }
     }
 
