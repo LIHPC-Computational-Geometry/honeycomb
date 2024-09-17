@@ -65,8 +65,7 @@ use std::collections::BTreeSet;
 ///   progressive changes applied to the structure.
 ///
 /// ```
-/// # use honeycomb_core::prelude::CMapError;
-/// # fn main() -> Result<(), CMapError> {
+/// # fn main() {
 ///
 /// use honeycomb_core::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
 ///
@@ -111,11 +110,11 @@ use std::collections::BTreeSet;
 /// // the returned values were the average of the sewn vertices
 /// assert_eq!(
 ///     map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
-///     Ok(Vertex2::from((1.5, 0.0)))
+///     Some(Vertex2(1.5, 0.0))
 /// );
 /// assert_eq!(
 ///     map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
-///     Ok(Vertex2::from((0.0, 1.5)))
+///     Some(Vertex2(0.0, 1.5))
 /// );
 ///
 /// // separate the diagonal from the rest
@@ -142,7 +141,6 @@ use std::collections::BTreeSet;
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
 ///
-/// # Ok(())
 /// # }
 /// ```
 #[cfg_attr(feature = "utils", derive(Clone))]

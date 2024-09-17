@@ -156,9 +156,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// //  1 -3-4-5- 2
     /// //    >->->->
     /// assert_eq!(&new_darts, &[3, 4, 5]);
-    /// assert_eq!(map.vertex(3), Ok(Vertex2(0.25, 0.0)));
-    /// assert_eq!(map.vertex(4), Ok(Vertex2(0.50, 0.0)));
-    /// assert_eq!(map.vertex(5), Ok(Vertex2(0.75, 0.0)));
+    /// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
+    /// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
+    /// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
     ///
     /// assert_eq!(map.beta::<1>(1), 3);
     /// assert_eq!(map.beta::<1>(3), 4);
