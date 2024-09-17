@@ -73,7 +73,7 @@ macro_rules! build_vertices {
         $v.chunks_exact(3)
             .map(|slice| {
                 // WE IGNORE Z values
-                let &[x, y, _] = slice else { panic!() };
+                let &[x, y, _] = slice else { unreachable!() };
                 Vertex2(T::from(x).unwrap(), T::from(y).unwrap())
             })
             .collect()
