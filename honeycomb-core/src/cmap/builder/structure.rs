@@ -92,9 +92,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// and [here](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
-        if self.attributes.add_storage::<A>(0).is_err() {
-            println!("W: attribute already added to the builder - continuing...");
-        }
+        self.attributes.add_storage::<A>(self.n_darts);
         self
     }
 }

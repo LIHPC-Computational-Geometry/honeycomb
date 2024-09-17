@@ -11,13 +11,6 @@ use std::{any::TypeId, collections::HashMap};
 
 // ------ CONTENT
 
-/// Attribute manager error enum.
-#[derive(Debug)]
-pub enum ManagerError {
-    /// Storage of a given type already exists in the structure.
-    DuplicateStorage,
-}
-
 /// Main attribute storage structure.
 ///
 /// This structure is used to store all generic attributes that the user may add to the
@@ -361,16 +354,10 @@ impl AttrStorageManager {
     ///
     /// - `A: AttributeBind + 'static` -- Type of the attribute that will be stored.
     ///
-    /// # Return / Error
+    /// # Panics
     ///
-    /// The function may return:
-    /// - `Ok(())` if the storage was successfully added,
-    /// - `Err(ManagerError::DuplicateStorage)` if there was already a storage for the specified
-    ///   attribute.
-    pub fn add_storage<A: AttributeBind + 'static>(
-        &mut self,
-        size: usize,
-    ) -> Result<(), ManagerError> {
+    /// This function will panic if there is already a storage of attribute `A` in the manager.
+    pub fn add_storage<A: AttributeBind + 'static>(&mut self, size: usize) {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
         if match A::BIND_POLICY {
@@ -381,9 +368,11 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            Err(ManagerError::DuplicateStorage)
-        } else {
-            Ok(())
+            println!(
+                "W: Storage of attribute `{}` already exists in the attribute storage manager",
+                std::any::type_name::<A>()
+            );
+            println!("   Continuing...");
         }
     }
 

@@ -104,7 +104,7 @@ mod vector {
                     -Vector2::<$t>::unit_x()
                 )));
                 let origin: Vector2<$t> = Vector2::default();
-                assert_eq!(origin.normal_dir(), Err(CoordsError::InvalidUnitDir));
+                assert_eq!(origin.normal_dir(), Err(CoordsError::InvalidNormDir));
             }
         };
     }

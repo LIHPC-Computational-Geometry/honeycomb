@@ -25,7 +25,7 @@ use super::{CoordsError, CoordsFloat};
 /// let unit_y = Vector2::unit_y();
 ///
 /// assert_eq!(unit_x.dot(&unit_y), 0.0);
-/// assert_eq!(unit_x.normal_dir().unwrap(), unit_y);
+/// assert_eq!(unit_x.normal_dir()?, unit_y);
 ///
 /// let two: f64 = 2.0;
 /// let x_plus_y: Vector2<f64> = unit_x + unit_y;
@@ -149,7 +149,9 @@ impl<T: CoordsFloat> Vector2<T> {
     /// See [Vector2] example.
     ///
     pub fn normal_dir(&self) -> Result<Vector2<T>, CoordsError> {
-        Self(-self.1, self.0).unit_dir() // unit(-y, x)
+        Self(-self.1, self.0)
+            .unit_dir() // unit(-y, x)
+            .map_err(|_| CoordsError::InvalidNormDir)
     }
 
     /// Compute the dot product between two vectors
