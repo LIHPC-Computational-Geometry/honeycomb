@@ -182,7 +182,7 @@ fn two_sew_no_attributes() {
 }
 
 #[test]
-#[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+#[should_panic(expected = "E: attempt to merge two undefined vertices")]
 fn two_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(4);
     map.one_link(1, 2);
@@ -240,7 +240,7 @@ fn one_sew_no_attributes() {
 }
 
 #[test]
-#[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+#[should_panic(expected = "E: attempt to merge two undefined vertices")]
 fn one_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.two_link(1, 2);
