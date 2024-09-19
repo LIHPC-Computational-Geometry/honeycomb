@@ -90,7 +90,7 @@ pub fn build_mesh<T: CoordsFloat>(
         .grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
-        .expect("E: could not build overlapping grid map");
+        .expect("E: unreachable"); // urneachable because grid dims are valid
 
     // process the geometry
 

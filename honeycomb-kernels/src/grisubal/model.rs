@@ -348,7 +348,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             // same
             let vid_out = geometry
                 .segments
@@ -359,7 +359,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             let v_in = geometry.vertices[vid_in];
             let v_out = geometry.vertices[vid_out];
             let Vertex2(ox, oy) = origin;

@@ -127,20 +127,19 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
-            return if gridb.split_quads {
-                gridb.parse_2d().map(|(origin, ns, lens)| {
+            let split = gridb.split_quads;
+            return gridb.parse_2d().map(|(origin, ns, lens)| {
+                if split {
                     super::grid::building_routines::build_2d_splitgrid(
                         origin,
                         ns,
                         lens,
                         self.attributes,
                     )
-                })
-            } else {
-                gridb.parse_2d().map(|(origin, ns, lens)| {
+                } else {
                     super::grid::building_routines::build_2d_grid(origin, ns, lens, self.attributes)
-                })
-            };
+                }
+            });
         }
         Ok(CMap2::new_with_undefined_attributes(
             self.n_darts,

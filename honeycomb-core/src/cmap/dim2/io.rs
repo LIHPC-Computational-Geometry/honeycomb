@@ -46,7 +46,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         // write data to the created file
         vtk_struct
             .write_legacy(writer)
-            .expect("Could not write data to writer");
+            .expect("E: could not write data to writer");
     }
 
     /// Generate a legacy VTK file from the map.
@@ -72,7 +72,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         // write data to the created file
         vtk_struct
             .write_legacy_ascii(writer)
-            .expect("Could not write data to writer");
+            .expect("E: could not write data to writer");
     }
 }
 

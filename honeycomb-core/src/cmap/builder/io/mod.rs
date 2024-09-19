@@ -122,7 +122,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                 // assume inline data
                 let tmp = piece
                     .load_piece_data(None)
-                    .expect("failed to load piece data - is it not inlined?");
+                    .expect("E: failed to load piece data - is it not inlined?");
 
                 // build vertex list
                 // since we're expecting coordinates, we'll assume floating type
