@@ -87,7 +87,11 @@ fn delete_darts<T: CoordsFloat>(
         as DartIdentifier)
         .filter_map(|dart_id| {
             if cmap.get_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
-                return Some((dart_id, cmap.vertex(cmap.vertex_id(dart_id)).unwrap()));
+                return Some((
+                    dart_id,
+                    cmap.vertex(cmap.vertex_id(dart_id))
+                        .expect("E: found a topological vertex with no associated coordinates"),
+                ));
             }
             None
         })
