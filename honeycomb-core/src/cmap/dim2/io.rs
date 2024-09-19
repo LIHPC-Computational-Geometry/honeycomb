@@ -92,7 +92,10 @@ where
     // ------ points data
     let vertices = vertex_ids
         .iter()
-        .map(|vid| map.vertex(*vid).unwrap())
+        .map(|vid| {
+            map.vertex(*vid)
+                .expect("E: found a topological vertex with no associated coordinates")
+        })
         .flat_map(|v| [v.x(), v.y(), T::zero()].into_iter());
     // ------ cells data
     let mut n_cells = 0;
@@ -127,9 +130,6 @@ where
         });
 
     // --- corners
-    // FIXME: ?
-    // I'm not even sure corners can be detected without using additional attributes or metadata
-    // let corner_data = vertex_ids.into_iter().filter(||)
 
     // ------ build VTK data
     let mut cell_vertices: Vec<u32> = Vec::new();
@@ -155,12 +155,24 @@ where
 
     UnstructuredGridPiece {
         points: if TypeId::of::<T>() == TypeId::of::<f32>() {
-            IOBuffer::F32(vertices.map(|t| t.to_f32().unwrap()).collect())
+            IOBuffer::F32(
+                vertices
+                    .map(|t| t.to_f32().expect("E: unreachable"))
+                    .collect(),
+            )
         } else if TypeId::of::<T>() == TypeId::of::<f64>() {
-            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
+            IOBuffer::F64(
+                vertices
+                    .map(|t| t.to_f64().expect("E: unreachable"))
+                    .collect(),
+            )
         } else {
             println!("W: unrecognized coordinate type -- cast to f64 might fail");
-            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
+            IOBuffer::F64(
+                vertices
+                    .map(|t| t.to_f64().expect("E: unreachable"))
+                    .collect(),
+            )
         },
         cells: vtkio::model::Cells {
             cell_verts: VertexNumbers::Legacy {

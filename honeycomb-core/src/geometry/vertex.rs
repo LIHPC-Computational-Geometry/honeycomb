@@ -209,7 +209,7 @@ impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
     }
 
     fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap()
+        attr.expect("E: attempt to merge two undefined vertices")
     }
 }
 

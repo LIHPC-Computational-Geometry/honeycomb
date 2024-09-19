@@ -155,7 +155,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                             take_next = *vertex_id as usize;
                             cell_components.push(Vec::with_capacity(take_next));
                         } else {
-                            cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                            cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
                             take_next -= 1;
                         });
                         assert_eq!(num_cells as usize, cell_components.len());
@@ -202,9 +202,6 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                             }
                             CellType::TriangleStrip => Err(BuilderError::UnsupportedVtkData("failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements")),
                             CellType::Polygon => {
-                                // FIXME: NOT TESTED
-                                // operation order should still work, but it would be nice to have
-                                // an heterogeneous mesh to test on
                                 let n_vertices = vids.len();
                                 let d0 = cmap.add_free_darts(n_vertices);
                                 (0..n_vertices).for_each(|i| {
