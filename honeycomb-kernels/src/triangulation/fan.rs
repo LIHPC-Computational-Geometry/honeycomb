@@ -1,7 +1,7 @@
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
-fn process_cell<T: CoordsFloat>(
+pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
@@ -10,6 +10,12 @@ fn process_cell<T: CoordsFloat>(
     let darts: Vec<_> =
         Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
     let n = darts.len();
+
+    // early rets
+    if n == 3 {
+        println!("I: "); //TODO: complete
+        return;
+    }
     if (n - 3) * 2 != new_darts.len() {
         println!("W: "); //TODO: complete
         return;
