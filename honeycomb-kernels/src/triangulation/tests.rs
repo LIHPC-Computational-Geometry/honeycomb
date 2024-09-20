@@ -1,5 +1,5 @@
 use crate::triangulation::fan_cell;
-use honeycomb_core::cmap::{CMap2, FaceIdentifier};
+use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
 use honeycomb_core::prelude::CMapBuilder;
 
 // you can copy paste this function into the render example to see what the mesh looks like
@@ -87,21 +87,42 @@ fn fan_cell_convex() {
     let nop: FaceIdentifier = 17;
     let tri: FaceIdentifier = 26;
 
+    // the hex will be
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     fan_cell(&mut map, hex1, &new_darts);
 
+    assert_eq!(map.i_cell::<2>(hex1 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(3).count(), 3);
+    assert_eq!(map.i_cell::<2>(4).count(), 3);
+    assert_eq!(map.i_cell::<2>(5).count(), 3);
+
+    // the hex will be
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     fan_cell(&mut map, hex2, &new_darts);
 
+    assert_eq!(map.i_cell::<2>(hex2 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(8).count(), 3);
+    assert_eq!(map.i_cell::<2>(10).count(), 3);
+    assert_eq!(map.i_cell::<2>(11).count(), 3);
+
+    // the square will be split in two
     let nd = map.add_free_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
     fan_cell(&mut map, squ, &new_darts);
 
+    assert_eq!(map.i_cell::<2>(squ as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(15).count(), 3);
+
+    // this will be a no-op since the polygon isn't fannable
     let nd = map.add_free_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
     fan_cell(&mut map, nop, &new_darts);
 
+    assert_eq!(map.i_cell::<2>(nop as DartIdentifier).count(), 9); // unchanged
+
     fan_cell(&mut map, tri, &[]);
+
+    assert_eq!(map.i_cell::<2>(tri as DartIdentifier).count(), 3); // unchanged
 }
