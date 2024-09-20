@@ -12,7 +12,7 @@ pub fn process_cell<T: CoordsFloat>(
     let n = darts.len();
 
     // early rets
-    if n == 3 {
+    if n <= 3 {
         println!("I: "); //TODO: complete
         return;
     }
@@ -37,31 +37,29 @@ pub fn process_cell<T: CoordsFloat>(
         .find_map(|(id, (d0, v0))| {
             let mut tmp = vertices
                 .windows(2)
+                .enumerate()
                 // remove segments directly attached to v0
-                .filter(|_| !((n + id) % n == 0 || (n + id - 1) % n == 0))
-                .map(|val| {
+                .filter(|(i_seg, _)| !((n + i_seg) % n == id || (n + i_seg - 1) % n == id))
+                .map(|(_, val)| {
                     let [v1, v2] = val else { unreachable!() };
                     let vec_in = *v1 - *v0;
                     let vec_out = *v2 - *v1;
-                    let cosine = vec_in.dot(&vec_out) / (vec_in.norm() * vec_out.norm());
-                    cosine.acos() // angle in rad
+                    vec_in.x() * vec_out.y() - vec_out.x() * vec_in.y()
                 });
             let signum = tmp.next().map(|v| v.signum()).unwrap();
-            let mut diff = false;
-            tmp.for_each(|v| {
-                diff = v.signum() != signum;
-            });
-            if diff {
-                None
-            } else {
-                Some(d0)
+            for v in tmp {
+                if v.signum() != signum || v.abs() < T::epsilon() {
+                    return None;
+                }
             }
+            Some(d0)
         });
 
     if let Some(sdart) = star {
         // if we found a dart from the previous computations, it means the polygon is "fannable"
         // THIS CANNOT BE PARALLELIZED AS IS
         let b0_sdart = cmap.beta::<0>(*sdart);
+        let v0 = cmap.vertex(cmap.vertex_id(*sdart)).unwrap();
         cmap.one_unsew(b0_sdart);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
@@ -76,6 +74,7 @@ pub fn process_cell<T: CoordsFloat>(
             d0 = *d2;
         }
         cmap.one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
+        cmap.replace_vertex(cmap.vertex_id(*sdart), v0);
     } else {
         println!("W: "); //TODO: complete
     }

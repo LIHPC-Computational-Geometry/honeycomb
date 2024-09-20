@@ -1,4 +1,5 @@
-use honeycomb_core::cmap::CMap2;
+use crate::triangulation::fan_cell;
+use honeycomb_core::cmap::{CMap2, FaceIdentifier};
 use honeycomb_core::prelude::CMapBuilder;
 
 // you can copy paste this function into the render example to see what the mesh looks like
@@ -75,8 +76,32 @@ fn generate_map() -> CMap2<f64> {
     cmap
 }
 
-#[cfg(test)]
+#[test]
 fn fan_cell_convex() {
     // generate a map with all kinds of cell
-    let map = generate_map();
+    let mut map = generate_map();
+    // we know these by construction
+    let hex1: FaceIdentifier = 1;
+    let hex2: FaceIdentifier = 7;
+    let squ: FaceIdentifier = 13;
+    let nop: FaceIdentifier = 17;
+    let tri: FaceIdentifier = 26;
+
+    let nd = map.add_free_darts(6);
+    let new_darts = (nd..nd + 6).collect::<Vec<_>>();
+    fan_cell(&mut map, hex1, &new_darts);
+
+    let nd = map.add_free_darts(6);
+    let new_darts = (nd..nd + 6).collect::<Vec<_>>();
+    fan_cell(&mut map, hex2, &new_darts);
+
+    let nd = map.add_free_darts(2);
+    let new_darts = (nd..nd + 2).collect::<Vec<_>>();
+    fan_cell(&mut map, squ, &new_darts);
+
+    let nd = map.add_free_darts(12);
+    let new_darts = (nd..nd + 12).collect::<Vec<_>>();
+    fan_cell(&mut map, nop, &new_darts);
+
+    fan_cell(&mut map, tri, &[]);
 }
