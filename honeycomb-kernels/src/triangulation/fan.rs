@@ -1,6 +1,34 @@
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
+/// Triangulates a face using a fan triangulation method.
+///
+/// This function triangulates a cell (face) in a 2D combinatorial map by creating a fan of
+/// triangles from a chosen vertex to all other vertices of the polygon, if such a vertex exist.
+///
+/// Note that this function will not have any effect if the polygon isn't fannable.
+///
+/// # Arguments
+///
+/// - `cmap: &mut CMap2` - A mutable reference to the modified `CMap2`.
+/// - `face_id: FaceIdentifier` - Identifier of the face to triangulate within the map.
+/// - `new_darts: &[DartIdentifier]` - Identifiers of pre-allocated darts for the new edges;
+///   the slice length should match the expected number of edges created by the triangulation. For
+///   an `n`-sided polygon, the number of created edge is `n-3`, so the number of dart is `(n-3)*2`.
+///
+/// # Behavior
+///
+/// - The function begins by checking if the face has 3 or fewer vertices, in which case
+///   it's already triangulated or cannot be further processed.
+/// - It verifies if the number of new darts matches the expected number for triangulation.
+/// - The function then attempts to find a vertex from which all other vertices can be seen
+///   (a star vertex), using the orientation properties of N-maps.
+/// - If such a star vertex is found, the function proceeds to create triangles by linking
+///   new darts in a fan-like structure from this vertex. Otherwise, the cell is left unchanged
+///
+/// # Panics
+///
+/// The function will panic if a dart of the face does not have an associated vertex.
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
@@ -80,6 +108,33 @@ pub fn process_cell<T: CoordsFloat>(
     }
 }
 
+/// Triangulates a face using a fan triangulation method.
+///
+/// This function triangulates a cell (face) in a 2D combinatorial map by creating a fan of
+/// triangles from a the first vertex of
+///
+/// **Note that this function assumes the polygon is convex and may fail or produce incorrect
+/// results if called on a non-convex cell**.
+///
+/// # Arguments
+///
+/// - `cmap: &mut CMap2` - A mutable reference to the modified `CMap2`.
+/// - `face_id: FaceIdentifier` - Identifier of the face to triangulate within the map.
+/// - `new_darts: &[DartIdentifier]` - Identifiers of pre-allocated darts for the new edges;
+///   the slice length should match the expected number of edges created by the triangulation. For
+///   an `n`-sided polygon, the number of created edge is `n-3`, so the number of dart is `(n-3)*2`.
+///
+/// # Behavior
+///
+/// - The function begins by checking if the face has 3 or fewer vertices, in which case
+///   it's already triangulated or cannot be further processed.
+/// - It verifies if the number of new darts matches the expected number for triangulation.
+/// - The function creates triangles by linking new darts in a fan-like structure to the first
+///   vertex of the polygon. **This is done unconditionnally, whether the polygon is convex or not**.
+///
+/// # Panics
+///
+/// The function will panic if a dart of the face does not have an associated vertex.
 pub fn process_convex_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
@@ -97,9 +152,9 @@ pub fn process_convex_cell<T: CoordsFloat>(
         return;
     }
 
+    // we assume the polygon is convex (== starrable from any vertex)
     let sdart = face_id as DartIdentifier;
 
-    // if we found a dart from the previous computations, it means the polygon is "fannable"
     // THIS CANNOT BE PARALLELIZED AS IS
     let b0_sdart = cmap.beta::<0>(sdart);
     let v0 = cmap.vertex(cmap.vertex_id(sdart)).unwrap();
