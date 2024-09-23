@@ -90,7 +90,7 @@ pub fn build_mesh<T: CoordsFloat>(
         .grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
-        .expect("E: could not build overlapping grid map");
+        .expect("E: unreachable"); // urneachable because grid dims are valid
 
     // process the geometry
 
@@ -191,7 +191,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                     _ => unreachable!(),
                 };
                 // what's the vertex associated to the dart?
-                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                let v_dart = cmap
+                    .vertex(cmap.vertex_id(dart_id))
+                    .expect("E: found a topological vertex with no associated coordinates");
                 // compute relative position of the intersection on the interecting edges
                 // `s` is relative to the segment `v1v2`, `t` to the grid's segment (the origin being `v_dart`)
                 #[rustfmt::skip]
@@ -245,7 +247,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                     d_base + 3
                                 };
                                 // vertex associated to the intersected dart
-                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id))
+                                    .expect("E: found a topological vertex with no associated coordinates");
                                 // compute intersection
                                 let (_s, t) = if i.is_positive() {
                                     right_intersec!(v1, v2, v_dart, cy)
@@ -287,7 +290,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 // intersected dart
                                 let dart_id = if j.is_positive() { d_base + 2 } else { d_base };
                                 // vertex associated to the intersected dart
-                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id)).unwrap();
+                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id))
+                                    .expect("E: found a topological vertex with no associated coordinates");
                                 // compute intersection
                                 let (_s, t) = if j.is_positive() {
                                     up_intersec!(v1, v2, v_dart, cx)
@@ -340,8 +344,10 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 };
                                 let hdart_id = if j.is_positive() { d_base + 2 } else { d_base };
                                 // associated vertices
-                                let v_vdart = cmap.vertex(cmap.vertex_id(vdart_id)).unwrap();
-                                let v_hdart = cmap.vertex(cmap.vertex_id(hdart_id)).unwrap();
+                                let v_vdart = cmap.vertex(cmap.vertex_id(vdart_id))
+                                    .expect("E: found a topological vertex with no associated coordinates");
+                                let v_hdart = cmap.vertex(cmap.vertex_id(hdart_id))
+                                    .expect("E: found a topological vertex with no associated coordinates");
                                 // compute (potential) intersections
                                 let v_coeffs = if i.is_positive() {
                                     right_intersec!(v1, v2, v_vdart, cy)
@@ -402,7 +408,9 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             .collect();
                         // sort intersections from v1 to v2
                         intersec_data.retain(|(s, _, _)| (T::zero() <= *s) && (*s <= T::one()));
-                        intersec_data.sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2).unwrap());
+                        // panic unreachable because of the retain above; there's no s s.t. s == NaN
+                        intersec_data.sort_by(|(s1, _, _), (s2, _, _)| s1.partial_cmp(s2)
+                            .expect("E: unreachable"));
 
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
@@ -469,7 +477,8 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
     // b.
     for (edge_id, vs) in &mut edge_intersec {
         // sort ts
-        vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).unwrap());
+        // panic unreachable because t s.t. t == NaN have been filtered previously
+        vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
         let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
         // order should be consistent between collection because of the sort_by call
         vs.iter()

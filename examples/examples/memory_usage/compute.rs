@@ -26,7 +26,7 @@ pub fn main() {
     cmap.remove_free_dart(d3);
     cmap.remove_free_dart(d4);
     // dump memory usage
-    cmap.used_size("memusage_example");
-    cmap.allocated_size("memusage_example");
-    cmap.effective_size("memusage_example");
+    cmap.used_size("memusage_example").unwrap();
+    cmap.allocated_size("memusage_example").unwrap();
+    cmap.effective_size("memusage_example").unwrap();
 }

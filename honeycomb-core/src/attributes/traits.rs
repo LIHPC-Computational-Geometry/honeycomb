@@ -6,6 +6,7 @@
 // ------ IMPORTS
 
 use crate::prelude::{DartIdentifier, OrbitPolicy};
+use core::panic;
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -74,7 +75,12 @@ pub trait AttributeUpdate: Sized {
     /// operations, this panic seems reasonable: If the darts you are sewing have totally undefined
     /// attributes, you should most likely be linking them instead of sewing.
     fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap()
+        attr.unwrap_or_else(|| {
+            panic!(
+                "E: attempt to merge two undefined {} instances",
+                std::any::type_name::<Self>()
+            );
+        })
     }
 }
 

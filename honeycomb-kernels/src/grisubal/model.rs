@@ -131,7 +131,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                                 take_next = *vertex_id as usize;
                                 cell_components.push(Vec::with_capacity(take_next));
                             } else {
-                                cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                                cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
                                 take_next -= 1;
                             });
                             assert_eq!(num_cells as usize, cell_components.len());
@@ -348,7 +348,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             // same
             let vid_out = geometry
                 .segments
@@ -359,7 +359,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             let v_in = geometry.vertices[vid_in];
             let v_out = geometry.vertices[vid_out];
             let Vertex2(ox, oy) = origin;

@@ -86,37 +86,39 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The method may panic if, at any point, the program cannot write into the output file.
-    ///
-    pub fn allocated_size(&self, rootname: &str) {
-        let mut file = File::create(rootname.to_owned() + "_allocated.csv").unwrap();
-        writeln!(file, "key, memory (bytes)").unwrap();
+    /// The method will return an error if:
+    /// - the file cannot be created,
+    /// - at any point, the program cannot write into the output file.
+    pub fn allocated_size(&self, rootname: &str) -> Result<(), std::io::Error> {
+        let mut file = File::create(rootname.to_owned() + "_allocated.csv")?;
+        writeln!(file, "key, memory (bytes)")?;
 
         // beta
         let mut beta_total = 0;
-        (0..3).for_each(|beta_id| {
+        for beta_id in 0..3 {
             let mem = self.betas.capacity() * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
-        });
-        writeln!(file, "beta_total, {beta_total}").unwrap();
+        }
+        writeln!(file, "beta_total, {beta_total}")?;
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.vertices.allocated_size();
         let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
+        writeln!(file, "geometry_total, {geometry_total}")?;
 
         // others
         let others_freedarts = self.unused_darts.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
         let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_counters, {others_counters}").unwrap();
-        writeln!(file, "others_total, {others_total}").unwrap();
+        writeln!(file, "others_freedarts, {others_freedarts}")?;
+        writeln!(file, "others_counters, {others_counters}")?;
+        writeln!(file, "others_total, {others_total}")?;
+        Ok(())
     }
 
     /// Computes the total used space dedicated to the map.
@@ -158,37 +160,39 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The method may panic if, at any point, the program cannot write into the output file.
-    ///
-    pub fn effective_size(&self, rootname: &str) {
-        let mut file = File::create(rootname.to_owned() + "_effective.csv").unwrap();
-        writeln!(file, "key, memory (bytes)").unwrap();
+    /// The method will return an error if:
+    /// - the file cannot be created,
+    /// - at any point, the program cannot write into the output file.
+    pub fn effective_size(&self, rootname: &str) -> Result<(), std::io::Error> {
+        let mut file = File::create(rootname.to_owned() + "_effective.csv")?;
+        writeln!(file, "key, memory (bytes)")?;
 
         // beta
         let mut beta_total = 0;
-        (0..3).for_each(|beta_id| {
+        for beta_id in 0..3 {
             let mem = self.n_darts * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
-        });
-        writeln!(file, "beta_total, {beta_total}").unwrap();
+        }
+        writeln!(file, "beta_total, {beta_total}")?;
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.vertices.effective_size();
         let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
+        writeln!(file, "geometry_total, {geometry_total}")?;
 
         // others
         let others_freedarts = self.unused_darts.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
         let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_counters, {others_counters}").unwrap();
-        writeln!(file, "others_total, {others_total}").unwrap();
+        writeln!(file, "others_freedarts, {others_freedarts}")?;
+        writeln!(file, "others_counters, {others_counters}")?;
+        writeln!(file, "others_total, {others_total}")?;
+        Ok(())
     }
 
     /// Computes the actual used space dedicated to the map.
@@ -232,38 +236,40 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The output data can be visualized using the `memory_usage.py` script.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// The method may panic if, at any point, the program cannot write into the output file.
-    ///
-    pub fn used_size(&self, rootname: &str) {
-        let mut file = File::create(rootname.to_owned() + "_used.csv").unwrap();
+    /// The method will return an error if:
+    /// - the file cannot be created,
+    /// - at any point, the program cannot write into the output file.
+    pub fn used_size(&self, rootname: &str) -> Result<(), std::io::Error> {
+        let mut file = File::create(rootname.to_owned() + "_used.csv")?;
         writeln!(file, "key, memory (bytes)").unwrap();
 
         let n_used_darts = self.n_darts - self.unused_darts.len();
 
         // beta
         let mut beta_total = 0;
-        (0..3).for_each(|beta_id| {
+        for beta_id in 0..3 {
             let mem = n_used_darts * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}").unwrap();
+            writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
-        });
-        writeln!(file, "beta_total, {beta_total}").unwrap();
+        }
+        writeln!(file, "beta_total, {beta_total}")?;
 
         // cells
         // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
         let geometry_vertex = self.vertices.used_size();
         let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}").unwrap();
-        writeln!(file, "geometry_total, {geometry_total}").unwrap();
+        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
+        writeln!(file, "geometry_total, {geometry_total}")?;
 
         // others
         let others_freedarts = self.unused_darts.len();
         let others_counters = 2 * std::mem::size_of::<usize>();
         let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}").unwrap();
-        writeln!(file, "others_counters, {others_counters}").unwrap();
-        writeln!(file, "others_total, {others_total}").unwrap();
+        writeln!(file, "others_freedarts, {others_freedarts}")?;
+        writeln!(file, "others_counters, {others_counters}")?;
+        writeln!(file, "others_total, {others_total}")?;
+        Ok(())
     }
 }
