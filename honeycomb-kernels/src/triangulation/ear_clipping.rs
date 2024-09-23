@@ -43,11 +43,11 @@ pub fn process_cell<T: CoordsFloat>(
 
     // early rets
     if n <= 3 {
-        println!("I: "); //TODO: complete
+        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
         return;
     }
     if (n - 3) * 2 != new_darts.len() {
-        println!("W: "); //TODO: complete
+        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
         return;
     }
 

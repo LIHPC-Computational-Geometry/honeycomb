@@ -41,11 +41,11 @@ pub fn process_cell<T: CoordsFloat>(
 
     // early rets
     if n <= 3 {
-        println!("I: "); //TODO: complete
+        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
         return;
     }
     if (n - 3) * 2 != new_darts.len() {
-        println!("W: "); //TODO: complete
+        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
         return;
     }
 
@@ -104,7 +104,7 @@ pub fn process_cell<T: CoordsFloat>(
         cmap.one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
         cmap.replace_vertex(cmap.vertex_id(*sdart), v0);
     } else {
-        println!("W: "); //TODO: complete
+        println!("W: face {face_id} isn't fannable -- skipping triangulation");
     }
 }
 
@@ -144,11 +144,11 @@ pub fn process_convex_cell<T: CoordsFloat>(
 
     // early rets
     if n <= 3 {
-        println!("I: "); //TODO: complete
+        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
         return;
     }
     if (n - 3) * 2 != new_darts.len() {
-        println!("W: "); //TODO: complete
+        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
         return;
     }
 
