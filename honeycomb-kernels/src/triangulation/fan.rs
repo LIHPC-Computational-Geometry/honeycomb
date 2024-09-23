@@ -74,7 +74,7 @@ pub fn process_cell<T: CoordsFloat>(
                     let vec_out = *v2 - *v1;
                     vec_in.x() * vec_out.y() - vec_out.x() * vec_in.y()
                 });
-            let signum = tmp.next().map(|v| v.signum()).unwrap();
+            let signum = tmp.next().map(T::signum).unwrap();
             for v in tmp {
                 if v.signum() != signum || v.abs() < T::epsilon() {
                     return None;
