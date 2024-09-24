@@ -78,6 +78,7 @@ pub trait AttributeUpdate: Sized {
     /// value.
     ///
     /// The default implementation return `None`.
+    #[allow(clippy::must_use_candidate)]
     fn merge_default() -> Option<Self> {
         None
     }
