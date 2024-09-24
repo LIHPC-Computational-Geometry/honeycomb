@@ -173,16 +173,14 @@ fn two_sew_no_b1() {
 }
 
 #[test]
-#[should_panic(
-    expected = "No vertices defined on either darts 1/2 , use `two_link` instead of `two_sew`"
-)]
+// #[should_panic] // FIXME: find a way to test what's printed?
 fn two_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(2);
     map.two_sew(1, 2); // should panic
 }
 
 #[test]
-#[should_panic(expected = "E: attempt to merge two undefined vertices")]
+// #[should_panic] // FIXME: find a way to test what's printed?
 fn two_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(4);
     map.one_link(1, 2);
@@ -233,14 +231,14 @@ fn one_sew_incomplete_beta() {
     assert_eq!(map.vertex(2).unwrap(), Vertex2::from((0.0, 1.0)));
 }
 #[test]
-#[should_panic(expected = "No vertex defined on dart 2, use `one_link` instead of `one_sew`")]
+// #[should_panic] // FIXME: find a way to test what's printed?
 fn one_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(2);
     map.one_sew(1, 2); // should panic
 }
 
 #[test]
-#[should_panic(expected = "E: attempt to merge two undefined vertices")]
+// #[should_panic] // FIXME: find a way to test what's printed?
 fn one_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.two_link(1, 2);

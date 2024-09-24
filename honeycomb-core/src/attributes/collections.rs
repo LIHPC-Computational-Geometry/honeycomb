@@ -245,6 +245,9 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
 
     fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         let idx = &self.index_map[id.to_usize().unwrap()];
+        if idx.is_none() {
+            return None;
+        }
         self.data.push(val);
         Some(self.data.swap_remove(idx.unwrap()))
     }

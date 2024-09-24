@@ -43,11 +43,11 @@ use dyn_clone::{clone_trait_object, DynClone};
 ///     }
 ///
 ///     fn merge_incomplete(attr: Self) -> Self {
-///         Temperature::from(attr.val / 2.0)
+///         Temperature { val: attr.val / 2.0 }
 ///     }
 ///
 ///     fn merge_default() -> Option<Self> {
-///         Some(Temperature::from(0.0))
+///         Some(Temperature { val: 0.0 })
 ///     }
 /// }
 ///
@@ -111,11 +111,11 @@ pub trait AttributeUpdate: Sized {
 /// #     }
 /// #
 /// #     fn merge_incomplete(attr: Self) -> Self {
-/// #         Temperature::from(attr.val / 2.0)
+/// #         Temperature { val: attr.val / 2.0 }
 /// #     }
 /// #
 /// #     fn merge_default() -> Option<Self> {
-/// #         Some(Temperature::from(0.0))
+/// #         Some(Temperature { val: 0.0 })
 /// #     }
 /// # }
 ///

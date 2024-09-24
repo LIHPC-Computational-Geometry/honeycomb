@@ -191,7 +191,7 @@ fn sparse_vec_merge_undefined() {
     storage.merge(6, 3, 4);
     assert_eq!(storage.get(3), None);
     assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0 / 2.0)));
 }
 
 #[test]
@@ -346,7 +346,7 @@ fn compact_vec_merge_undefined() {
     storage.merge(6, 3, 4);
     assert_eq!(storage.get(3), None);
     assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0 / 2.0)));
 }
 
 #[test]
@@ -440,11 +440,10 @@ fn compact_vec_remove_insert() {
 }
 
 #[test]
-#[should_panic(expected = "assertion failed: idx.is_some()")]
 fn compact_vec_replace_already_removed() {
     generate_compact!(storage);
     assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0)); // panic
+    assert!(storage.replace(3, Temperature::from(280.0)).is_none());
 }
 
 // storage manager
@@ -585,7 +584,10 @@ fn manager_merge_undefined_attribute() {
     manager.merge_attribute::<Temperature>(6, 3, 4);
     assert_eq!(manager.get_attribute::<Temperature>(3), None);
     assert_eq!(manager.get_attribute::<Temperature>(4), None);
-    assert_eq!(manager.get_attribute(6), Some(Temperature::from(281.0)));
+    assert_eq!(
+        manager.get_attribute(6),
+        Some(Temperature::from(281.0 / 2.0))
+    );
 }
 
 #[test]

@@ -69,7 +69,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 .vertex(self.vertex_id(b1d1_old))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
             // unsew current dart
-            self.one_unlink(base_dart1);
+            // self.one_unlink(base_dart1);
+            self.betas[base_dart1 as usize][1] = 0;
+            self.betas[b1d1_old as usize][0] = 0;
             // rebuild the edge
             self.one_link(base_dart1, b1d1_new);
             self.one_link(b1d1_new, b1d1_old);
@@ -91,8 +93,12 @@ impl<T: CoordsFloat> CMap2<T> {
                 .vertex(self.vertex_id(base_dart2))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
             // unsew current darts
-            self.one_unlink(base_dart1);
-            self.one_unlink(base_dart2);
+            // self.one_unlink(base_dart1);
+            self.betas[base_dart1 as usize][1] = 0;
+            self.betas[b1d1_old as usize][0] = 0;
+            // self.one_unlink(base_dart2);
+            self.betas[base_dart2 as usize][1] = 0;
+            self.betas[b1d2_old as usize][0] = 0;
             self.two_unlink(base_dart1);
             // rebuild the edge
             self.one_link(base_dart1, b1d1_new);
@@ -200,7 +206,9 @@ impl<T: CoordsFloat> CMap2<T> {
         let seg = v2 - v1;
 
         // unsew current dart
-        self.one_unlink(base_dart1);
+        // self.one_unlink(base_dart1);
+        self.betas[base_dart1 as usize][1] = 0;
+        self.betas[b1d1_old as usize][0] = 0;
         if base_dart2 != NULL_DART_ID {
             self.two_unlink(base_dart1);
         }
@@ -227,7 +235,9 @@ impl<T: CoordsFloat> CMap2<T> {
         // if b2(base_dart1) is defined, insert vertices / darts on its side too
         if base_dart2 != NULL_DART_ID {
             let b1d2_old = self.beta::<1>(base_dart2);
-            self.one_unlink(base_dart2);
+            // self.one_unlink(base_dart2);
+            self.betas[base_dart2 as usize][1] = 0;
+            self.betas[b1d2_old as usize][0] = 0;
             let mut prev_d = base_dart2;
             darts.iter().rev().for_each(|d| {
                 self.two_link(prev_d, *d);
