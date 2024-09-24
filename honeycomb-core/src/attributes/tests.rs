@@ -27,8 +27,12 @@ impl AttributeUpdate for Temperature {
         (attr, attr)
     }
 
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap_or(Temperature { val: 0.0 })
+    fn merge_incomplete(attr: Self) -> Self {
+        Temperature::from(attr.val / 2.0)
+    }
+
+    fn merge_default() -> Option<Self> {
+        Some(Temperature::from(0.0))
     }
 }
 
@@ -112,8 +116,11 @@ fn attribute_update() {
     let t_ref = Temperature { val: 285.5 };
 
     assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
-    assert_eq!(Temperature::merge_undefined(Some(t_ref)), t_ref);
-    assert_eq!(Temperature::merge_undefined(None), Temperature::from(0.0));
+    assert_eq!(
+        Temperature::merge_incomplete(t_ref),
+        Temperature::from(t_ref.val / 2.0)
+    );
+    assert_eq!(Temperature::merge_default(), Some(Temperature::from(0.0)));
 }
 
 #[test]

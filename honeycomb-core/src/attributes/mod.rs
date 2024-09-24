@@ -13,5 +13,6 @@ pub use manager::AttrStorageManager;
 pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 
 // ------ TESTS
+
 #[cfg(test)]
 mod tests;

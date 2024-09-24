@@ -54,13 +54,16 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
             (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
             (Some(v), None) | (None, Some(v)) => {
-                self.set(out.into(), AttributeUpdate::merge_undefined(Some(v)));
+                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
             }
             (None, None) => {
-                // AttributeUpdate::merge_undefined(None)
-                println!("W: cannot merge two null attribute value");
-                println!("   setting new target value to `None`");
-                let _ = self.remove(out.into());
+                if let Some(v) = AttributeUpdate::merge_default() {
+                    self.set(out.into(), v);
+                } else {
+                    println!("W: cannot merge two null attribute value");
+                    println!("   setting new target value to `None`");
+                    let _ = self.remove(out.into());
+                }
             }
         };
     }
@@ -179,13 +182,16 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
             (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
             (Some(v), None) | (None, Some(v)) => {
-                self.set(out.into(), AttributeUpdate::merge_undefined(Some(v)));
+                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
             }
             (None, None) => {
-                // AttributeUpdate::merge_undefined(None)
-                println!("W: cannot merge two null attribute value");
-                println!("   setting new target value to `None`");
-                let _ = self.remove(out.into());
+                if let Some(v) = AttributeUpdate::merge_default() {
+                    self.set(out.into(), v);
+                } else {
+                    println!("W: cannot merge two null attribute value");
+                    println!("   setting new target value to `None`");
+                    let _ = self.remove(out.into());
+                }
             }
         };
     }
