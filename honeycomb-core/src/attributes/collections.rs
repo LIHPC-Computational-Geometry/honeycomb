@@ -51,12 +51,18 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-            (None, None) => AttributeUpdate::merge_undefined(None),
+        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => {
+                self.set(out.into(), AttributeUpdate::merge_undefined(Some(v)));
+            }
+            (None, None) => {
+                // AttributeUpdate::merge_undefined(None)
+                println!("W: cannot merge two null attribute value");
+                println!("   setting new target value to `None`");
+                let _ = self.remove(out.into());
+            }
         };
-        self.set(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
@@ -170,12 +176,18 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-            (None, None) => AttributeUpdate::merge_undefined(None),
+        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => {
+                self.set(out.into(), AttributeUpdate::merge_undefined(Some(v)));
+            }
+            (None, None) => {
+                // AttributeUpdate::merge_undefined(None)
+                println!("W: cannot merge two null attribute value");
+                println!("   setting new target value to `None`");
+                let _ = self.remove(out.into());
+            }
         };
-        self.set(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
@@ -225,10 +237,8 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
         self.index_map[id.to_usize().unwrap()].map(|idx| self.data[idx])
     }
 
-    // FIXME: panics instead of returning None
     fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         let idx = &self.index_map[id.to_usize().unwrap()];
-        assert!(idx.is_some());
         self.data.push(val);
         Some(self.data.swap_remove(idx.unwrap()))
     }
