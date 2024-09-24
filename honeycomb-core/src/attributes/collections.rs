@@ -60,12 +60,17 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self
-            .remove(inp.into())
-            .expect("E: cannot split attribute value - value not found in storage");
-        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        let new_val = self.remove(inp.into());
+        if let Some(val) = new_val {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.set(lhs_out.into(), lhs_val);
+            self.set(rhs_out.into(), rhs_val);
+        } else {
+            println!("W: cannot split attribute value (not found in storage)");
+            println!("   setting both new values to `None`");
+            let _ = self.remove(lhs_out.into());
+            let _ = self.remove(rhs_out.into());
+        }
     }
 }
 
@@ -174,12 +179,17 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self
-            .remove(inp.into())
-            .expect("E: cannot split attribute value - value not found in storage");
-        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        let new_val = self.remove(inp.into());
+        if let Some(val) = new_val {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.set(lhs_out.into(), lhs_val);
+            self.set(rhs_out.into(), rhs_val);
+        } else {
+            println!("W: cannot split attribute value (not found in storage)");
+            println!("   setting both new values to `None`");
+            let _ = self.remove(lhs_out.into());
+            let _ = self.remove(rhs_out.into());
+        }
     }
 }
 
