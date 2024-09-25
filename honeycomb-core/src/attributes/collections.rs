@@ -57,7 +57,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
                 self.set(out.into(), AttributeUpdate::merge_incomplete(v));
             }
             (None, None) => {
-                if let Some(v) = AttributeUpdate::merge_default() {
+                if let Some(v) = AttributeUpdate::merge_from_none() {
                     self.set(out.into(), v);
                 } else {
                     println!("W: cannot merge two null attribute value");
@@ -185,7 +185,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
                 self.set(out.into(), AttributeUpdate::merge_incomplete(v));
             }
             (None, None) => {
-                if let Some(v) = AttributeUpdate::merge_default() {
+                if let Some(v) = AttributeUpdate::merge_from_none() {
                     self.set(out.into(), v);
                 } else {
                     println!("W: cannot merge two null attribute value");

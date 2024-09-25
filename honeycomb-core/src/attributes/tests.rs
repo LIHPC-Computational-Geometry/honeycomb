@@ -31,7 +31,7 @@ impl AttributeUpdate for Temperature {
         Temperature::from(attr.val / 2.0)
     }
 
-    fn merge_default() -> Option<Self> {
+    fn merge_from_none() -> Option<Self> {
         Some(Temperature::from(0.0))
     }
 }
@@ -120,7 +120,7 @@ fn attribute_update() {
         Temperature::merge_incomplete(t_ref),
         Temperature::from(t_ref.val / 2.0)
     );
-    assert_eq!(Temperature::merge_default(), Some(Temperature::from(0.0)));
+    assert_eq!(Temperature::merge_from_none(), Some(Temperature::from(0.0)));
 }
 
 #[test]

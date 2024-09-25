@@ -46,7 +46,7 @@ use dyn_clone::{clone_trait_object, DynClone};
 ///         Temperature { val: attr.val / 2.0 }
 ///     }
 ///
-///     fn merge_default() -> Option<Self> {
+///     fn merge_from_none() -> Option<Self> {
 ///         Some(Temperature { val: 0.0 })
 ///     }
 /// }
@@ -79,7 +79,7 @@ pub trait AttributeUpdate: Sized {
     ///
     /// The default implementation return `None`.
     #[allow(clippy::must_use_candidate)]
-    fn merge_default() -> Option<Self> {
+    fn merge_from_none() -> Option<Self> {
         None
     }
 }
@@ -115,7 +115,7 @@ pub trait AttributeUpdate: Sized {
 /// #         Temperature { val: attr.val / 2.0 }
 /// #     }
 /// #
-/// #     fn merge_default() -> Option<Self> {
+/// #     fn merge_from_none() -> Option<Self> {
 /// #         Some(Temperature { val: 0.0 })
 /// #     }
 /// # }

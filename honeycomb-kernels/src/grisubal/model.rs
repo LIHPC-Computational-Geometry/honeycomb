@@ -440,7 +440,7 @@ impl AttributeUpdate for Boundary {
         unreachable!()
     }
 
-    fn merge_default() -> Option<Self> {
+    fn merge_from_none() -> Option<Self> {
         Some(Boundary::None)
     }
 }
