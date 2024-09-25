@@ -197,8 +197,7 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 ///
 /// - **MERGING POLICY** - The new vertex is placed at the midpoint between the two existing ones.
 /// - **SPLITTING POLICY** - The current vertex is duplicated.
-/// - **UNDEFINED ATTRIBUTES MERGING** - The new vertex takes the value of the one provided if it
-///   exists, otherwise the function panics.
+/// - **(PARTIALLY) UNDEFINED ATTRIBUTES MERGING** - The default implementations are used.
 impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
     fn merge(attr1: Self, attr2: Self) -> Self {
         Self::average(&attr1, &attr2)
@@ -206,10 +205,6 @@ impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
 
     fn split(attr: Self) -> (Self, Self) {
         (attr, attr)
-    }
-
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.expect("E: attempt to merge two undefined vertices")
     }
 }
 

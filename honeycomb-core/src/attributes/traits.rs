@@ -6,7 +6,6 @@
 // ------ IMPORTS
 
 use crate::prelude::{DartIdentifier, OrbitPolicy};
-use core::panic;
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -43,8 +42,12 @@ use dyn_clone::{clone_trait_object, DynClone};
 ///         (attr, attr)
 ///     }
 ///
-///     fn merge_undefined(attr: Option<Self>) -> Self {
-///         attr.unwrap_or(Temperature { val: 0.0 })
+///     fn merge_incomplete(attr: Self) -> Self {
+///         Temperature { val: attr.val / 2.0 }
+///     }
+///
+///     fn merge_from_none() -> Option<Self> {
+///         Some(Temperature { val: 0.0 })
 ///     }
 /// }
 ///
@@ -63,24 +66,21 @@ pub trait AttributeUpdate: Sized {
     /// Splitting routine, i.e. how to obtain the two attributes from a single one.
     fn split(attr: Self) -> (Self, Self);
 
-    /// Fallback merging routine, i.e. how to obtain the new attribute value from potentially
-    /// undefined instances.
+    /// Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
+    /// value.
     ///
-    /// The default implementation may panic if no attribute can be used to create a value. The
-    /// reason for that is as follows:
+    /// The default implementation simply returns the passed value.
+    fn merge_incomplete(attr: Self) -> Self {
+        attr
+    }
+
+    /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
+    /// value.
     ///
-    /// This trait and its methods were designed with the (un)sewing operation in mind. Their
-    /// purpose is to simplify the code needed to propagate updates of attributes affected by the
-    /// (un)sewing operation. Considering this context, as well as the definition of (un)linking
-    /// operations, this panic seems reasonable: If the darts you are sewing have totally undefined
-    /// attributes, you should most likely be linking them instead of sewing.
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap_or_else(|| {
-            panic!(
-                "E: attempt to merge two undefined {} instances",
-                std::any::type_name::<Self>()
-            );
-        })
+    /// The default implementation return `None`.
+    #[allow(clippy::must_use_candidate)]
+    fn merge_from_none() -> Option<Self> {
+        None
     }
 }
 
@@ -111,8 +111,12 @@ pub trait AttributeUpdate: Sized {
 /// #         (attr, attr)
 /// #     }
 /// #
-/// #     fn merge_undefined(attr: Option<Self>) -> Self {
-/// #         attr.unwrap_or(Temperature { val: 0.0 })
+/// #     fn merge_incomplete(attr: Self) -> Self {
+/// #         Temperature { val: attr.val / 2.0 }
+/// #     }
+/// #
+/// #     fn merge_from_none() -> Option<Self> {
+/// #         Some(Temperature { val: 0.0 })
 /// #     }
 /// # }
 ///

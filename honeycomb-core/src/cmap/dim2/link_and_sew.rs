@@ -43,13 +43,6 @@ impl<T: CoordsFloat> CMap2<T> {
         // if that is not the case, the sewing operation becomes a linking operation
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
-            assert!(
-                self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
-                "{}",
-                format!(
-                    "No vertex defined on dart {rhs_dart_id}, use `one_link` instead of `one_sew`"
-                )
-            );
             self.one_link(lhs_dart_id, rhs_dart_id);
         } else {
             // fetch vertices ID before topology update
@@ -99,11 +92,6 @@ impl<T: CoordsFloat> CMap2<T> {
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
             (true, true) => {
-                assert!(
-                    self.vertices.get(self.vertex_id(lhs_dart_id)).is_some() | self.vertices.get(self.vertex_id(rhs_dart_id)).is_some(),
-                    "{}",
-                    format!("No vertices defined on either darts {lhs_dart_id}/{rhs_dart_id} , use `two_link` instead of `two_sew`")
-                );
                 self.two_link(lhs_dart_id, rhs_dart_id);
             }
             // update vertex associated to b1rhs/lhs
@@ -183,6 +171,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     // dot product should be negative if the two darts have opposite direction
                     // we could also put restriction on the angle made by the two darts to prevent
                     // drastic deformation
+                    // FIXME: should we crash in case of inconsistent orientation?
                     assert!(
                         lhs_vector.dot(&rhs_vector) < T::zero(),
                         "{}",
@@ -393,7 +382,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
-    ///
     pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
@@ -414,9 +402,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
     ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` is already 1-free.
     pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
-        // FIXME: should panic if rhs is null
         let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
+        assert_ne!(rhs_dart_id, NULL_DART_ID);
         self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
         self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
     }
@@ -431,9 +422,12 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
     ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` is already 2-free.
     pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
-        // FIXME: should panic if rhs is null
         let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
+        assert_ne!(rhs_dart_id, NULL_DART_ID);
         self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
         self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
     }
