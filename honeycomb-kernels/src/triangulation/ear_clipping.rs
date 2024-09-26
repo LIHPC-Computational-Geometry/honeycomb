@@ -7,15 +7,6 @@ macro_rules! crossp_from_verts {
     };
 }
 
-macro_rules! is_vert_on_edge {
-    ($p: ident, $a: ident, $b: ident) => {{
-        let slope = ($b.y() - $a.y()) / ($b.x() - $a.x());
-        let expected_y = $a.y() * slope * ($p.x() - $a.x());
-        ($p.y() - expected_y).abs() / ($p.y().abs() + expected_y.abs()).min(T::max_value())
-            < T::epsilon()
-    }};
-}
-
 /// Triangulates a face using the ear clipping method.
 ///
 /// This function triangulates a cell (face) of a 2D combinatorial map by iteratively
