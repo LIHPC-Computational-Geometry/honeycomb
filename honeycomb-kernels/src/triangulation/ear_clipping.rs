@@ -1,13 +1,29 @@
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
+macro_rules! crossp_from_verts {
+    ($a: ident, $b: ident, $c: ident) => {
+        ($b.x() - $a.x()) * ($c.y() - $b.y()) - ($b.y() - $a.y()) * ($c.x() - $b.x())
+    };
+}
+
+macro_rules! is_vert_on_edge {
+    ($p: ident, $a: ident, $b: ident) => {{
+        let slope = ($b.y() - $a.y()) / ($b.x() - $a.x());
+        let expected_y = $a.y() * slope * ($p.x() - $a.x());
+        ($p.y() - expected_y).abs() / ($p.y().abs() + expected_y.abs()).min(T::max_value())
+            < T::epsilon()
+    }};
+}
+
 /// Triangulates a face using the ear clipping method.
 ///
 /// This function triangulates a cell (face) of a 2D combinatorial map by iteratively
 /// clipping ears (triangles) from the polygon until only a single triangle remains.
 ///
 /// Note that:
-/// - the function assumes that the polygon is simple (no self-intersections or holes).
+/// - the function assumes that the polygon is simple (no self-intersections or holes) and that the
+///   interior is lcoated on the LEFT SIDE of the cross-product.
 /// - the implementation might need adjustments for parallel operations or when working with
 ///   identifiers not greater than existing ones.
 ///
@@ -61,22 +77,40 @@ pub fn process_cell<T: CoordsFloat>(
         })
         .collect();
     let mut ndart_id = new_darts[0];
+
     while n > 3 {
-        let ear = (0..n)
-            .find(|idx| {
-                let v1 = vertices[*idx];
-                let v2 = vertices[(*idx + 1) % n];
-                let v3 = vertices[(*idx + 2) % n];
-                let v4 = vertices[(*idx + 3) % n];
-                // we can easily check if two edges make up an ear using orientation
-                let v_in = v3 - v2; // BC
-                let v_out = v4 - v3; // CD
-                let v_new = v1 - v3; // CA
-                let or1 = (v_in.x() * v_new.y() - v_new.x() * v_in.y()).signum(); // in ^ new
-                let or2 = (-v_new.x() * v_out.y() + v_out.x() * v_new.y()).signum(); // -new ^ out
-                or1 == or2
-            })
-            .unwrap(); // safe unwrap bc of the two ear theorem
+        let Some(ear) = (0..n).find(|idx| {
+            // we're checking whether ABC is an ear or not
+            let v1 = vertices[*idx]; // A
+            let v2 = vertices[(*idx + 1) % n]; // B
+            let v3 = vertices[(*idx + 2) % n]; // C
+
+            // we assume the interior of the polygon is on the left side
+            let is_inside = {
+                let tmp = crossp_from_verts!(v1, v2, v3);
+                tmp > T::epsilon()
+            };
+
+            let no_overlap = vertices
+                .iter()
+                .filter(|v| (**v != v1) && (**v != v2) && (**v != v3))
+                .all(|v| {
+                    let sig12v = crossp_from_verts!(v1, v2, v);
+                    let sig23v = crossp_from_verts!(v2, v3, v);
+                    let sig31v = crossp_from_verts!(v3, v1, v);
+
+                    let has_pos =
+                        (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());
+                    let has_neg =
+                        (sig12v < T::zero()) || (sig23v < T::zero()) || (sig31v < T::zero());
+
+                    has_pos && has_neg
+                });
+            is_inside && no_overlap
+        }) else {
+            println!("W: could not find ear to triangulate cell - skipping face {face_id}");
+            return;
+        };
 
         // edit cell; we use the nd1/nd2 edge to create a triangle from the ear
         // nd1 is on the side of the tri, nd2 on the side of the rest of the cell
@@ -98,10 +132,10 @@ pub fn process_cell<T: CoordsFloat>(
         cmap.two_link(nd1, nd2);
 
         // edit existing vectors
-        darts.remove(ear + 1);
+        darts.remove((ear + 1) % n);
         darts.push(nd2);
         darts.swap_remove(ear);
-        vertices.remove(ear + 1);
+        vertices.remove((ear + 1) % n);
 
         // update n
         n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), nd2).count();
