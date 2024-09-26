@@ -8,7 +8,7 @@
 // ------ IMPORTS
 use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdentifier, Vertex2, VertexIdentifier};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-use num::Zero;
+use num_traits::Zero;
 use std::collections::BTreeMap;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
@@ -28,24 +28,25 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         self.vtk_file = Some(vtk_file);
         self
     }
+}
 
-    /// Create a [`CMapBuilder`] from an imported VTK file.
-    ///
-    /// This function is roughly equivalent to the following:
-    ///
-    /// ```rust,should_panic
-    /// # use honeycomb_core::prelude::CMapBuilder;
-    /// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
-    /// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if the file cannot be loaded.
-    #[must_use = "unused builder object, consider removing this function call"]
-    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+/// Create a [`CMapBuilder`] from an imported VTK file.
+///
+/// This implementation is roughly equivalent to the following:
+///
+/// ```rust,no_run
+/// # use honeycomb_core::prelude::CMapBuilder;
+/// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
+/// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
+/// ```
+///
+/// # Panics
+///
+/// This function may panic if the file cannot be loaded.
+impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CMapBuilder<T> {
+    fn from(value: P) -> Self {
         let vtk_file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
+            Vtk::import(value).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
         CMapBuilder {
             vtk_file: Some(vtk_file),
             ..Default::default()
@@ -72,7 +73,7 @@ macro_rules! build_vertices {
         $v.chunks_exact(3)
             .map(|slice| {
                 // WE IGNORE Z values
-                let &[x, y, _] = slice else { panic!() };
+                let &[x, y, _] = slice else { unreachable!() };
                 Vertex2(T::from(x).unwrap(), T::from(y).unwrap())
             })
             .collect()
@@ -121,7 +122,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                 // assume inline data
                 let tmp = piece
                     .load_piece_data(None)
-                    .expect("failed to load piece data - is it not inlined?");
+                    .expect("E: failed to load piece data - is it not inlined?");
 
                 // build vertex list
                 // since we're expecting coordinates, we'll assume floating type
@@ -154,7 +155,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                             take_next = *vertex_id as usize;
                             cell_components.push(Vec::with_capacity(take_next));
                         } else {
-                            cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                            cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
                             take_next -= 1;
                         });
                         assert_eq!(num_cells as usize, cell_components.len());
@@ -201,9 +202,6 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                             }
                             CellType::TriangleStrip => Err(BuilderError::UnsupportedVtkData("failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements")),
                             CellType::Polygon => {
-                                // FIXME: NOT TESTED
-                                // operation order should still work, but it would be nice to have
-                                // an heterogeneous mesh to test on
                                 let n_vertices = vids.len();
                                 let d0 = cmap.add_free_darts(n_vertices);
                                 (0..n_vertices).for_each(|i| {

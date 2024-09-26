@@ -41,8 +41,6 @@ pub enum BuilderError {
 
 /// Combinatorial map builder structure.
 ///
-/// #
-///
 /// # Example
 ///
 /// ```rust
@@ -94,9 +92,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// and [here](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
-        if self.attributes.add_storage::<A>(0).is_err() {
-            println!("W: attribute already added to the builder - continuing...");
-        }
+        self.attributes.add_storage::<A>(self.n_darts);
         self
     }
 }
@@ -111,10 +107,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// This method return a `Result` taking the following values:
     /// - `Ok(map: CMap2)` -- Map generation was successful.
-    /// - `Err(BuilderError::MissingParameters)` -- The specified grid parameters are insufficient
-    ///   to build a map from it.
-    /// - `Err(BuilderError::InvalidParameters)` -- The specified grid parameters contain at least
-    ///   one invalid value (e.g. a negative length).
+    /// - `Err(BuilderError)` -- There was an error during construction. See [`BuilderError`] for
+    ///   details.
     ///
     /// # Panics
     ///
@@ -133,20 +127,19 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
-            return if gridb.split_quads {
-                gridb.parse_2d().map(|(origin, ns, lens)| {
+            let split = gridb.split_quads;
+            return gridb.parse_2d().map(|(origin, ns, lens)| {
+                if split {
                     super::grid::building_routines::build_2d_splitgrid(
                         origin,
                         ns,
                         lens,
                         self.attributes,
                     )
-                })
-            } else {
-                gridb.parse_2d().map(|(origin, ns, lens)| {
+                } else {
                     super::grid::building_routines::build_2d_grid(origin, ns, lens, self.attributes)
-                })
-            };
+                }
+            });
         }
         Ok(CMap2::new_with_undefined_attributes(
             self.n_darts,

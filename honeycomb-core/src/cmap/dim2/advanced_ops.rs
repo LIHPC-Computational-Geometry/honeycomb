@@ -10,6 +10,7 @@ use crate::prelude::{CMap2, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_I
 
 // ------ CONTENT
 
+/// **Advanced operations: edge splitting**
 impl<T: CoordsFloat> CMap2<T> {
     /// Split an edge into two segments.
     ///
@@ -18,13 +19,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// </div>
     ///
     /// This method takes all darts of an edge and rebuild connections in order to create a new
-    /// point on this edge. The position of the point default to the midway point, but it can
+    /// point on this edge. The position of the point defaults to the midway point, but it can
     /// optionally be specified.
     ///
     /// In order to minimize editing of embedded data, the original darts are kept to their
     /// original vertices while the new darts are used to model the new point.
     ///
-    /// For an illustration of both principles, refer to the example section.
+    /// For an illustration of both principles, refer to the example.
     ///
     /// # Arguments
     ///
@@ -41,7 +42,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
     /// `(0.0, 0.0)` and `(2.0, 0.0)`, calling `map.split_edge(1, Some(0.2))` would result in the
-    /// creation of two new darts, a new vertex (ID `3`) of value `(0.4, 0.0)` and the following
+    /// creation of two new darts, a new vertex (ID `3`) at position `(0.4, 0.0)` and the following
     /// topology:
     ///
     /// ```text
@@ -68,7 +69,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 .vertex(self.vertex_id(b1d1_old))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
             // unsew current dart
-            self.one_unlink(base_dart1);
+            // self.one_unlink(base_dart1);
+            self.betas[base_dart1 as usize][1] = 0;
+            self.betas[b1d1_old as usize][0] = 0;
             // rebuild the edge
             self.one_link(base_dart1, b1d1_new);
             self.one_link(b1d1_new, b1d1_old);
@@ -90,8 +93,12 @@ impl<T: CoordsFloat> CMap2<T> {
                 .vertex(self.vertex_id(base_dart2))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
             // unsew current darts
-            self.one_unlink(base_dart1);
-            self.one_unlink(base_dart2);
+            // self.one_unlink(base_dart1);
+            self.betas[base_dart1 as usize][1] = 0;
+            self.betas[b1d1_old as usize][0] = 0;
+            // self.one_unlink(base_dart2);
+            self.betas[base_dart2 as usize][1] = 0;
+            self.betas[b1d2_old as usize][0] = 0;
             self.two_unlink(base_dart1);
             // rebuild the edge
             self.one_link(base_dart1, b1d1_new);
@@ -155,9 +162,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// //  1 -3-4-5- 2
     /// //    >->->->
     /// assert_eq!(&new_darts, &[3, 4, 5]);
-    /// assert_eq!(map.vertex(3), Ok(Vertex2(0.25, 0.0)));
-    /// assert_eq!(map.vertex(4), Ok(Vertex2(0.50, 0.0)));
-    /// assert_eq!(map.vertex(5), Ok(Vertex2(0.75, 0.0)));
+    /// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
+    /// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
+    /// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
     ///
     /// assert_eq!(map.beta::<1>(1), 3);
     /// assert_eq!(map.beta::<1>(3), 4);
@@ -199,7 +206,9 @@ impl<T: CoordsFloat> CMap2<T> {
         let seg = v2 - v1;
 
         // unsew current dart
-        self.one_unlink(base_dart1);
+        // self.one_unlink(base_dart1);
+        self.betas[base_dart1 as usize][1] = 0;
+        self.betas[b1d1_old as usize][0] = 0;
         if base_dart2 != NULL_DART_ID {
             self.two_unlink(base_dart1);
         }
@@ -226,7 +235,9 @@ impl<T: CoordsFloat> CMap2<T> {
         // if b2(base_dart1) is defined, insert vertices / darts on its side too
         if base_dart2 != NULL_DART_ID {
             let b1d2_old = self.beta::<1>(base_dart2);
-            self.one_unlink(base_dart2);
+            // self.one_unlink(base_dart2);
+            self.betas[base_dart2 as usize][1] = 0;
+            self.betas[b1d2_old as usize][0] = 0;
             let mut prev_d = base_dart2;
             darts.iter().rev().for_each(|d| {
                 self.two_link(prev_d, *d);

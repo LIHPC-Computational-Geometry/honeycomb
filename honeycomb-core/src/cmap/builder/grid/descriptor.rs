@@ -10,13 +10,13 @@ use crate::prelude::CMapBuilder;
 
 // ------ CONTENT
 
-/// Grid description used to generate maps via [`CMapBuilder`].
+/// Grid description used to generate maps via the map builder.
 ///
 /// The user must specify two out of these three characteristics:
 ///
-/// - `n_cells: [usize; 3]` - The number of cells per axis
-/// - `len_per_cell: [T; 3]` - The dimensions of cells per axis
-/// - `lens: [T; 3]` -The dimensions of the grid per axis
+/// - `n_cells: [usize; 3]` -- The number of cells per axis
+/// - `len_per_cell: [T; 3]` -- The dimensions of cells per axis
+/// - `lens: [T; 3]` -- The dimensions of the grid per axis
 ///
 /// # Generics
 ///

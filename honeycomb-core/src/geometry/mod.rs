@@ -25,27 +25,40 @@ pub use vertex::Vertex2;
 /// Coordinates-level error enum
 #[derive(Debug, PartialEq)]
 pub enum CoordsError {
-    /// Error during the computation of the unit directional vector.
+    /// Error during the computation of the unit direction vector.
     ///
-    /// This is returned when trying to compute the unit vector of a null [`vector::Vector2`].
+    /// This is returned when trying to compute the unit vector of a null [`Vector2`].
     InvalidUnitDir,
+    /// Error during the computation of the normal direction vector.
+    ///
+    /// This is returned when trying to compute the normal to a null [`Vector2`].
+    InvalidNormDir,
 }
 
 // --- generic fp repersentation trait
 
 /// Common trait implemented by types used for coordinate representation.
 ///
-/// The static lifetime is a requirements induced by specific implementations that use [`TypeId`];
+/// The static lifetime is a requirements induced by specific implementations that use
+/// [`TypeId`][std::any::TypeId];
 /// This is used in order to identify types in two contexts:
 /// - Interacting with VTK files (`io` feature),
 /// - Coding vertices and generic attributes handling
 pub trait CoordsFloat:
-    num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static
+    num_traits::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static
 {
 }
 
-impl<T: num::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static>
-    CoordsFloat for T
+impl<
+        T: num_traits::Float
+            + Default
+            + AddAssign
+            + SubAssign
+            + MulAssign
+            + DivAssign
+            + Debug
+            + 'static,
+    > CoordsFloat for T
 {
 }
 

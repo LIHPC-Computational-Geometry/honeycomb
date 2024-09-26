@@ -6,7 +6,7 @@
 
 // ------ IMPORT
 
-use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, CMapError, Vertex2, VertexIdentifier};
+use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdentifier};
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     geometry::CoordsFloat,
@@ -14,23 +14,7 @@ use crate::{
 
 // ------ CONTENT
 
-// --- big guns
-
-impl<T: CoordsFloat> CMap2<T> {
-    /// Remove an entire attribute storage from the map.
-    ///
-    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
-    /// before the final result is returned.
-    ///
-    /// # Generic
-    ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
-    pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
-        self.attributes.remove_storage::<A>();
-    }
-}
-
-// --- vertex attributes
+/// **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
     #[must_use = "returned value is not used, consider removing this method call"]
@@ -38,30 +22,26 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.n_attributes()
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Fetch vertex value associated to a given identifier.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
-    /// # Return / Errors
+    /// # Return
     ///
-    /// This method return a `Result` taking the following values:
-    /// - `Ok(v: Vertex2)` if there is a vertex associated to this ID.
-    /// - `Err(CMapError::UndefinedVertexID)` -- otherwise
+    /// This method return a `Option` taking the following values:
+    /// - `Some(v: Vertex2)` if there is a vertex associated to this ID.
+    /// - `None` -- otherwise
     ///
     /// # Panics
     ///
     /// The method may panic if:
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    ///
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.get(vertex_id) {
-            return Ok(val);
-        }
-        Err(CMapError::UndefinedVertex)
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
+        self.vertices.get(vertex_id)
     }
 
     /// Insert a vertex in the combinatorial map.
@@ -81,32 +61,31 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - **there is already a vertex associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    ///
     pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
         self.vertices.insert(vertex_id, vertex.into());
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Remove a vertex from the combinatorial map.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
-    /// # Return / Errors
+    /// # Return
     ///
-    /// This method return a `Result` taking the following values:
-    /// - `Ok(v: Vertex2)` -- The vertex was successfully removed & its value was returned
-    /// - `Err(CMapError::UndefinedVertexID)` -- The vertex was not found in the internal storage
+    /// This method return a `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The vertex was successfully removed & its value was returned
+    /// - `None` -- The vertex was not found in the internal storage
     ///
-    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.remove(vertex_id) {
-            return Ok(val);
-        }
-        Err(CMapError::UndefinedVertex)
+    /// # Panics
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
+    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
+        self.vertices.remove(vertex_id)
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Try to overwrite the given vertex with a new value.
     ///
     /// # Arguments
@@ -114,27 +93,28 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
     /// - `vertex: impl<Into<Vertex2>>` -- New value for the vertex.
     ///
-    /// # Return / Errors
+    /// # Return
     ///
-    /// This method return a `Result` taking the following values:
-    /// - `Ok(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
+    /// This method return an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
     ///   returned
-    /// - `Err(CMapError::UnknownVertexID)` -- The vertex was not found in the internal storage
+    /// - `None` -- The vertex was set, but no value were overwritten
     ///
+    /// # Panics
+    ///
+    /// The method may panic if:
+    /// - the index lands out of bounds
+    /// - the index cannot be converted to `usize`
     pub fn replace_vertex(
         &mut self,
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
-    ) -> Result<Vertex2<T>, CMapError> {
-        if let Some(val) = self.vertices.replace(vertex_id, vertex.into()) {
-            return Ok(val);
-        };
-        Err(CMapError::UndefinedVertex)
+    ) -> Option<Vertex2<T>> {
+        self.vertices.replace(vertex_id, vertex.into())
     }
 }
 
-// --- generic attributes
-
+/// **Generic attribute-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     /// Setter
     ///
@@ -165,7 +145,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Setter
     ///
-    /// Insert an attribute value at a given undefined index. See [#Panics] section information
+    /// Insert an attribute value at a given undefined index. See the panics section information
     /// on behavior if the value is already defined.
     ///
     /// # Arguments
@@ -279,5 +259,19 @@ impl<T: CoordsFloat> CMap2<T> {
         id: A::IdentifierType,
     ) -> Option<A> {
         self.attributes.remove_attribute::<A>(id)
+    }
+
+    // --- big guns
+
+    /// Remove an entire attribute storage from the map.
+    ///
+    /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
+    /// before the final result is returned.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
+    pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
+        self.attributes.remove_storage::<A>();
     }
 }

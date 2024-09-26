@@ -1,10 +1,10 @@
 //! *GRISUBAL* algorithm description & implementation
 //!
-//! This module contain all code used to implement our grid submersion algorithm, or *grisubal*
+//! This module contain all code used to implement our grid submersion algorithm, or *GRISUBAL*
 //! for short.
 //!
-//! This algorithm builds the mesh of a geometry by overlapping a grid over it and making
-//! adjustment to fit the grid to the geometry. It is inspired by the approach described in
+//! This algorithm builds the mesh of a geometry by overlapping a grid over it and intersecting
+//! the grid with the geometry. It is inspired by the approach described in
 //! [this](https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf)
 //! research note.
 //!
@@ -127,6 +127,7 @@ macro_rules! unsafe_time_section {
 ///
 /// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry. See
 ///   [VTK Format] for more information about the expected formatting.
+/// - `grid_cell_sizes: [T; 2],` -- Desired grid cell size along the X/Y axes.
 /// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, if any, in
 ///   the post-processing phase. For more information on the clipping process, see [`Clip`].
 ///
@@ -139,8 +140,8 @@ macro_rules! unsafe_time_section {
 ///   given should form normals with a consistent direction (either pointing inward or outward the
 ///   geometry).
 /// - The geometry should be described using in an `UnstructuredGrid` data set, with supported
-///   cell types (`Vertex`, `PolyVertex`?, `Line`, `PolyLine`?). Lines will be interpreted as the
-///   geometry to match while vertices will be considered as points of interests.
+///   cell types (`Vertex`, `Line`). Lines will be interpreted as the boundary to match while
+///   vertices will be considered as points of interests.
 ///
 /// # Return / Errors
 ///

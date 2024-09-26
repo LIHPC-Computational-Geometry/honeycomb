@@ -6,7 +6,6 @@
 // ------ IMPORTS
 
 use crate::prelude::{DartIdentifier, OrbitPolicy};
-use cfg_if::cfg_if;
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -43,8 +42,12 @@ use dyn_clone::{clone_trait_object, DynClone};
 ///         (attr, attr)
 ///     }
 ///
-///     fn merge_undefined(attr: Option<Self>) -> Self {
-///         attr.unwrap_or(Temperature { val: 0.0 })
+///     fn merge_incomplete(attr: Self) -> Self {
+///         Temperature { val: attr.val / 2.0 }
+///     }
+///
+///     fn merge_from_none() -> Option<Self> {
+///         Some(Temperature { val: 0.0 })
 ///     }
 /// }
 ///
@@ -63,19 +66,21 @@ pub trait AttributeUpdate: Sized {
     /// Splitting routine, i.e. how to obtain the two attributes from a single one.
     fn split(attr: Self) -> (Self, Self);
 
-    /// Fallback merging routine, i.e. how to obtain the new attribute value from potentially
-    /// undefined instances.
+    /// Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
+    /// value.
     ///
-    /// The default implementation may panic if no attribute can be used to create a value. The
-    /// reason for that is as follows:
+    /// The default implementation simply returns the passed value.
+    fn merge_incomplete(attr: Self) -> Self {
+        attr
+    }
+
+    /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
+    /// value.
     ///
-    /// This trait and its methods were designed with the (un)sewing operation in mind. Their
-    /// purpose is to simplify the code needed to propagate updates of attributes affected by the
-    /// (un)sewing operation. Considering this context, as well as the definition of (un)linking
-    /// operations, this panic seems reasonable: If the darts you are sewing have totally undefined
-    /// attributes, you should most likely be linking them instead of sewing.
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap()
+    /// The default implementation return `None`.
+    #[allow(clippy::must_use_candidate)]
+    fn merge_from_none() -> Option<Self> {
+        None
     }
 }
 
@@ -106,18 +111,19 @@ pub trait AttributeUpdate: Sized {
 /// #         (attr, attr)
 /// #     }
 /// #
-/// #     fn merge_undefined(attr: Option<Self>) -> Self {
-/// #         attr.unwrap_or(Temperature { val: 0.0 })
+/// #     fn merge_incomplete(attr: Self) -> Self {
+/// #         Temperature { val: attr.val / 2.0 }
+/// #     }
+/// #
+/// #     fn merge_from_none() -> Option<Self> {
+/// #         Some(Temperature { val: 0.0 })
 /// #     }
 /// # }
 ///
 /// impl AttributeBind for Temperature {
-///     # type StorageType = AttrSparseVec<Self>;
+///     type StorageType = AttrSparseVec<Self>;
 ///     type IdentifierType = FaceIdentifier;
-///
-///     fn binds_to<'a>() -> OrbitPolicy<'a> {
-///         OrbitPolicy::Face
-///     }
+///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 /// }
 /// ```
 pub trait AttributeBind: Debug + Sized + Any {
@@ -125,11 +131,11 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: From<DartIdentifier> + num::ToPrimitive + Clone;
+    type IdentifierType: From<DartIdentifier> + num_traits::ToPrimitive + Clone;
 
-    /// Return an [`OrbitPolicy`] that can be used to identify the kind of topological entity to
-    /// which the attribute is associated.
-    fn binds_to<'a>() -> OrbitPolicy<'a>;
+    /// [`OrbitPolicy`] determining the kind of topological entity to which the attribute
+    /// is associated.
+    const BIND_POLICY: OrbitPolicy;
 }
 
 macro_rules! unknown_attribute_storage {
@@ -208,26 +214,24 @@ macro_rules! unknown_attribute_storage {
     };
 }
 
-cfg_if! {
-    if #[cfg(feature = "utils")] {
-        /// Common trait implemented by generic attribute storages.
-        ///
-        /// This trait contain attribute-agnostic function & methods.
-        ///
-        /// The documentation of this trait describe the behavior each function & method should have.
-        pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
-            unknown_attribute_storage!();
-        }
-    } else {
-        /// Common trait implemented by generic attribute storages.
-        ///
-        /// This trait contain attribute-agnostic function & methods.
-        ///
-        /// The documentation of this trait describe the behavior each function & method should have.
-        pub trait UnknownAttributeStorage: Any + Debug + Downcast {
-            unknown_attribute_storage!();
-        }
-    }
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-agnostic function & methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+#[cfg(feature = "utils")]
+pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
+    unknown_attribute_storage!();
+}
+
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-agnostic function & methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have.
+#[cfg(not(feature = "utils"))]
+pub trait UnknownAttributeStorage: Any + Debug + Downcast {
+    unknown_attribute_storage!();
 }
 
 #[cfg(feature = "utils")]
@@ -238,7 +242,8 @@ impl_downcast!(UnknownAttributeStorage);
 ///
 /// This trait contain attribute-specific methods.
 ///
-/// The documentation of this trait describe the behavior each function & method should have.
+/// The documentation of this trait describe the behavior each function & method should have. "ID"
+/// and "index" are used interchangeably.
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// Setter
     ///

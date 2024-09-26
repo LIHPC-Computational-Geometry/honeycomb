@@ -21,6 +21,7 @@ use vtkio::{
 
 // ------ CONTENT
 
+/// **Serializing methods**
 impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Generate a legacy VTK file from the map.
     ///
@@ -45,7 +46,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         // write data to the created file
         vtk_struct
             .write_legacy(writer)
-            .expect("Could not write data to writer");
+            .expect("E: could not write data to writer");
     }
 
     /// Generate a legacy VTK file from the map.
@@ -71,7 +72,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         // write data to the created file
         vtk_struct
             .write_legacy_ascii(writer)
-            .expect("Could not write data to writer");
+            .expect("E: could not write data to writer");
     }
 }
 
@@ -91,7 +92,10 @@ where
     // ------ points data
     let vertices = vertex_ids
         .iter()
-        .map(|vid| map.vertex(*vid).unwrap())
+        .map(|vid| {
+            map.vertex(*vid)
+                .expect("E: found a topological vertex with no associated coordinates")
+        })
         .flat_map(|v| [v.x(), v.y(), T::zero()].into_iter());
     // ------ cells data
     let mut n_cells = 0;
@@ -100,7 +104,7 @@ where
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
-        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Face, id as DartIdentifier)
+        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Custom(&[1]), id as DartIdentifier)
             .map(|dart_id| {
                 count += 1;
                 id_map[&map.vertex_id(dart_id)] as u32
@@ -126,9 +130,6 @@ where
         });
 
     // --- corners
-    // FIXME: ?
-    // I'm not even sure corners can be detected without using additional attributes or metadata
-    // let corner_data = vertex_ids.into_iter().filter(||)
 
     // ------ build VTK data
     let mut cell_vertices: Vec<u32> = Vec::new();
@@ -154,12 +155,24 @@ where
 
     UnstructuredGridPiece {
         points: if TypeId::of::<T>() == TypeId::of::<f32>() {
-            IOBuffer::F32(vertices.map(|t| t.to_f32().unwrap()).collect())
+            IOBuffer::F32(
+                vertices
+                    .map(|t| t.to_f32().expect("E: unreachable"))
+                    .collect(),
+            )
         } else if TypeId::of::<T>() == TypeId::of::<f64>() {
-            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
+            IOBuffer::F64(
+                vertices
+                    .map(|t| t.to_f64().expect("E: unreachable"))
+                    .collect(),
+            )
         } else {
             println!("W: unrecognized coordinate type -- cast to f64 might fail");
-            IOBuffer::F64(vertices.map(|t| t.to_f64().unwrap()).collect())
+            IOBuffer::F64(
+                vertices
+                    .map(|t| t.to_f64().expect("E: unreachable"))
+                    .collect(),
+            )
         },
         cells: vtkio::model::Cells {
             cell_verts: VertexNumbers::Legacy {

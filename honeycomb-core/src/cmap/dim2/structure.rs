@@ -5,9 +5,6 @@
 
 // ------ IMPORTS
 
-#[cfg(doc)]
-use crate::prelude::{CMapBuilder, NULL_DART_ID};
-
 use super::CMAP2_BETA;
 use crate::prelude::{DartIdentifier, Vertex2};
 use crate::{
@@ -20,11 +17,8 @@ use std::collections::BTreeSet;
 
 /// Main map object.
 ///
-/// Structure used to model 2D combinatorial map. The structure implements
-/// basic operations:
-///
-/// - free dart addition/insertion/removal
-/// - i-sewing/unsewing
+/// Structure used to model 2D combinatorial map. The structure implements basic operations as
+/// well as higher level abstractions that are useful to write meshing applications.
 ///
 /// Definition of the structure and its logic can be found in the [user guide][UG].
 /// This documentation focuses on the implementation and its API.
@@ -42,16 +36,16 @@ use std::collections::BTreeSet;
 /// Fields are kept private in order to better define interfaces. The structure
 /// contains the following data:
 ///
-/// - `vertices: AttrSparseVec<Vertex2>` -- List of vertices making up the represented mesh
-/// - `free_darts: BTreeSet<DartIdentifier>` -- Set of free darts identifiers, i.e. empty
-///   spots in the current dart list
-/// - `betas: Vec<[DartIdentifier; 3]>` -- Array representation of the beta functions
-/// - `n_darts: usize` -- Current number of darts (including the null dart and unused darts)
+/// - an array-based representation of the beta functions
+/// - a storage structure for vertices making up the represented mesh
+/// - a generic storage manager for user-defined attributes
 ///
-/// Note that we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*.
-/// This is extremely useful (read *required*) to implement correct and efficient
-/// i-cell computation. Additionally, while *β<sub>0</sub>* can be accessed using
-/// the [`Self::beta`] method, we do not define the 0-sew / 0-unsew operations.
+/// Note that:
+/// - we encode *β<sub>0</sub>* as the inverse function of *β<sub>1</sub>*. This is extremely
+///   useful (read *required*) to implement correct and efficient i-cell computation. Additionally,
+///   while *β<sub>0</sub>* can be accessed using the [`Self::beta`] method, we do not define
+///   the 0-sew / 0-unsew operations.
+/// - we chose a boundary-less representation of meshes (i.e. darts on the boundary are 2-free).
 ///
 /// # Generics
 ///
@@ -62,17 +56,16 @@ use std::collections::BTreeSet;
 /// The following example goes over multiple operations on the mesh in order
 /// to demonstrate general usage of the structure and its methods.
 ///
-/// ![`CMAP2_EXAMPLE`](https://lihpc-computational-geometry.github.io/honeycomb/images/bg_hsscmap_example.svg)
+/// ![`CMAP2_EXAMPLE`](https://lihpc-computational-geometry.github.io/honeycomb/images/bg_hcmap_example.svg)
 ///
 /// Note that:
-/// - we create the map using its builder structure: [`CMapBuilder`].
+/// - we create the map using its builder structure: [`CMapBuilder`][crate::prelude::CMapBuilder].
 /// - the map we operate on has no boundaries. In addition to the different
 ///   operations realized at each step, we insert a few assertions to demonstrate the
 ///   progressive changes applied to the structure.
 ///
 /// ```
-/// # use honeycomb_core::prelude::CMapError;
-/// # fn main() -> Result<(), CMapError> {
+/// # fn main() {
 ///
 /// use honeycomb_core::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
 ///
@@ -117,11 +110,11 @@ use std::collections::BTreeSet;
 /// // the returned values were the average of the sewn vertices
 /// assert_eq!(
 ///     map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
-///     Ok(Vertex2::from((1.5, 0.0)))
+///     Some(Vertex2(1.5, 0.0))
 /// );
 /// assert_eq!(
 ///     map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
-///     Ok(Vertex2::from((0.0, 1.5)))
+///     Some(Vertex2(0.0, 1.5))
 /// );
 ///
 /// // separate the diagonal from the rest
@@ -148,7 +141,6 @@ use std::collections::BTreeSet;
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
 ///
-/// # Ok(())
 /// # }
 /// ```
 #[cfg_attr(feature = "utils", derive(Clone))]
@@ -166,7 +158,8 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) n_darts: usize,
 }
 
-// --- constructor
+#[doc(hidden)]
+/// **Constructor convenience implementations**
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     ///
@@ -177,7 +170,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Return
     ///
     /// Returns a combinatorial map containing `n_darts + 1` darts, the amount of darts wanted plus
-    /// the null dart (at index [`NULL_DART_ID`] i.e. `0`).
+    /// the null dart (at index `NULL_DART_ID` i.e. `0`).
     ///
     /// # Example
     ///
@@ -206,7 +199,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Return
     ///
     /// Returns a combinatorial map containing `n_darts + 1` darts, the amount of darts wanted plus
-    /// the null dart (at index [`NULL_DART_ID`] i.e. `0`).
+    /// the null dart (at index `NULL_DART_ID` i.e. `0`).
     ///
     /// # Example
     ///

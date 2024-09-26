@@ -11,13 +11,6 @@ use std::{any::TypeId, collections::HashMap};
 
 // ------ CONTENT
 
-/// Attribute manager error enum.
-#[derive(Debug)]
-pub enum ManagerError {
-    /// Storage of a given type already exists in the structure.
-    DuplicateStorage,
-}
-
 /// Main attribute storage structure.
 ///
 /// This structure is used to store all generic attributes that the user may add to the
@@ -29,8 +22,8 @@ pub enum ManagerError {
 /// is used is determined by the associated type [`AttributeBind::StorageType`].
 ///
 /// The key type used by the map is each attribute's [`TypeId`]. This implies that all attributes
-/// must have a different (unique) type, i.e. two decimal-valued attribute will need to be wrapped
-/// in respective dedicated structures.
+/// must have a different (unique) type. For example, two decimal-valued attribute will need to be
+/// wrapped in different dedicated structures.
 ///
 /// Using the [`TypeId`] as the key value for collections yields a cleaner API, where the only
 /// argument passed to access methods is the ID of the cell of which they want the attribute. The
@@ -39,9 +32,10 @@ pub enum ManagerError {
 ///
 /// Generics passed in access methods also have a secondary usage. To store heterogeneous
 /// collections, the internal hashmaps uses `Box<dyn UnknownAttributeStorage>` as their value type.
-/// Some cases require us to downcast the stored object (implementing `UnknownAttributeStorage`) to
-/// the correct collection type. This is achieved by using the `downcast-rs` crate and
-/// the associated storage type [`AttributeBind::StorageType`]. The code roughly looks like this:
+/// Some operations require us to downcast the stored object (implementing
+/// `UnknownAttributeStorage`) to the correct collection type. This is achieved by using the
+/// `downcast-rs` crate and the associated storage type [`AttributeBind::StorageType`]. What
+/// follows is a simplified version of that code:
 ///
 /// ```
 /// # use std::any::TypeId;
@@ -85,8 +79,7 @@ pub struct AttrStorageManager {
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
 
-// --- manager-wide methods
-
+/// **Manager-wide methods**
 impl AttrStorageManager {
     /// Extend the size of all storages in the manager.
     ///
@@ -315,11 +308,9 @@ impl AttrStorageManager {
     }
 }
 
-// --- attribute-specific methods
-
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => $slf.vertices.get(&TypeId::of::<A>()),
             OrbitPolicy::Edge => $slf.edges.get(&TypeId::of::<A>()),
             OrbitPolicy::Face => $slf.faces.get(&TypeId::of::<A>()),
@@ -334,7 +325,7 @@ macro_rules! get_storage {
 
 macro_rules! get_storage_mut {
     ($slf: ident, $id: ident) => {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => $slf.vertices.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Face => $slf.faces.get_mut(&TypeId::of::<A>()),
@@ -347,6 +338,7 @@ macro_rules! get_storage_mut {
     };
 }
 
+/// **Attribute-specific methods**
 impl AttrStorageManager {
     #[allow(clippy::missing_errors_doc)]
     /// Add a new storage to the manager.
@@ -362,19 +354,13 @@ impl AttrStorageManager {
     ///
     /// - `A: AttributeBind + 'static` -- Type of the attribute that will be stored.
     ///
-    /// # Return / Error
+    /// # Panics
     ///
-    /// The function may return:
-    /// - `Ok(())` if the storage was successfully added,
-    /// - `Err(ManagerError::DuplicateStorage)` if there was already a storage for the specified
-    ///   attribute.
-    pub fn add_storage<A: AttributeBind + 'static>(
-        &mut self,
-        size: usize,
-    ) -> Result<(), ManagerError> {
+    /// This function will panic if there is already a storage of attribute `A` in the manager.
+    pub fn add_storage<A: AttributeBind + 'static>(&mut self, size: usize) {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
-        if match A::binds_to() {
+        if match A::BIND_POLICY {
             OrbitPolicy::Vertex => self.vertices.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Edge => self.edges.insert(typeid, Box::new(new_storage)),
             OrbitPolicy::Face => self.faces.insert(typeid, Box::new(new_storage)),
@@ -382,9 +368,11 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            Err(ManagerError::DuplicateStorage)
-        } else {
-            Ok(())
+            println!(
+                "W: Storage of attribute `{}` already exists in the attribute storage manager",
+                std::any::type_name::<A>()
+            );
+            println!("   Continuing...");
         }
     }
 
@@ -415,7 +403,7 @@ impl AttrStorageManager {
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
     pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
-        let probably_storage = match A::binds_to() {
+        let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
             OrbitPolicy::Face => &self.faces[&TypeId::of::<A>()],
@@ -436,7 +424,7 @@ impl AttrStorageManager {
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     pub fn remove_storage<A: AttributeBind>(&mut self) {
         // we could return it ?
-        let _ = match A::binds_to() {
+        let _ = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices.remove(&TypeId::of::<A>()),
             OrbitPolicy::Edge => &self.edges.remove(&TypeId::of::<A>()),
             OrbitPolicy::Face => &self.faces.remove(&TypeId::of::<A>()),

@@ -17,7 +17,7 @@ use std::collections::{BTreeSet, VecDeque};
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to *i-cells*.
 #[derive(Debug, PartialEq)]
-pub enum OrbitPolicy<'a> {
+pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
     /// 1-cell orbit.
@@ -25,7 +25,7 @@ pub enum OrbitPolicy<'a> {
     /// 2-cell orbit.
     Face,
     /// Ordered array of beta functions that define the orbit.
-    Custom(&'a [u8]),
+    Custom(&'static [u8]),
 }
 
 /// Generic 2D orbit implementation
@@ -46,14 +46,14 @@ pub enum OrbitPolicy<'a> {
 /// # The search algorithm
 ///
 /// The search algorithm used to establish the list of dart included in the orbit is a
-/// [Breadth-first search algorithm][WIKIBFS]. This means that:
+/// [Breadth-First Search algorithm][WIKIBFS]. This means that:
 ///
 /// - we look at the images of the current dart through all beta functions,
 ///   adding those to a queue, before moving on to the next dart.
 /// - we apply the beta functions in their specified order (in the case of a
 ///   custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
 ///
-/// Both of these points allow the structure to be used for sewing operations at the cost of some
+/// Both of these points allow orbitd to be used for sewing operations at the cost of some
 /// performance (non-trivial parallelization & sequential consistency requirements).
 ///
 /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
@@ -66,7 +66,7 @@ pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
     map_handle: &'a CMap2<T>,
     /// Policy used by the orbit for the BFS. It can be predetermined or custom.
-    orbit_policy: OrbitPolicy<'a>,
+    orbit_policy: OrbitPolicy,
     /// Set used to identify which dart is marked during the BFS.
     marked: BTreeSet<DartIdentifier>,
     /// Queue used to store which dart must be visited next during the BFS.
@@ -98,11 +98,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// See [`CMap2`] example.
     ///
     #[must_use = "orbits are lazy and do nothing unless consumed"]
-    pub fn new(
-        map_handle: &'a CMap2<T>,
-        orbit_policy: OrbitPolicy<'a>,
-        dart: DartIdentifier,
-    ) -> Self {
+    pub fn new(map_handle: &'a CMap2<T>, orbit_policy: OrbitPolicy, dart: DartIdentifier) -> Self {
         let mut marked = BTreeSet::<DartIdentifier>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
         marked.insert(dart); // we're starting here, so we mark it beforehand
@@ -117,42 +113,6 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
             orbit_policy,
             marked,
             pending,
-        }
-    }
-
-    /// Return a boolean indicating whether the starting dart is isolated or not
-    #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn is_isolated(&self) -> bool {
-        // this is boolean tells us if the orbit is either:
-        // a) unaltered (pending.len() == 1)
-        // b) iterated upon, but the dart is
-        let marked_unaltered = self.marked.len() == 2;
-        let pending_unaltered = self.pending.len() == 1;
-        match (marked_unaltered, pending_unaltered) {
-            // marked is altered, i.e. we found a dart that isn't null or the starting one
-            (false, _) => false,
-            // marked is unaltered but pending is altered
-            // we checked for neighbors but no new mark appeared
-            // => the dart is isolated or self-indident
-            (true, false) => true,
-            // both are unaltered, we need to check if neighbors exist
-            // we check manually to not invalidate an iterator call later
-            (true, true) => {
-                let dart = self.pending[0];
-                let image = match self.orbit_policy {
-                    OrbitPolicy::Vertex => {
-                        self.map_handle.beta::<1>(self.map_handle.beta::<2>(dart))
-                    }
-                    OrbitPolicy::Edge => self.map_handle.beta::<2>(dart),
-                    OrbitPolicy::Face => self.map_handle.beta::<1>(dart),
-                    OrbitPolicy::Custom(beta_slice) => beta_slice
-                        .iter()
-                        .map(|beta_id| self.map_handle.beta_runtime(*beta_id, dart))
-                        .find(|d| *d != NULL_DART_ID)
-                        .unwrap_or(NULL_DART_ID),
-                };
-                image == NULL_DART_ID
-            }
         }
     }
 }
@@ -231,10 +191,10 @@ mod tests {
         map.one_link(5, 6);
         map.one_link(6, 4);
         map.two_link(2, 4);
-        assert!(map.replace_vertex(1, (0.0, 0.0)).is_err());
-        assert!(map.replace_vertex(2, (1.0, 0.0)).is_err());
-        assert!(map.replace_vertex(6, (1.0, 1.0)).is_err());
-        assert!(map.replace_vertex(3, (0.0, 1.0)).is_err());
+        assert!(map.replace_vertex(1, (0.0, 0.0)).is_none());
+        assert!(map.replace_vertex(2, (1.0, 0.0)).is_none());
+        assert!(map.replace_vertex(6, (1.0, 1.0)).is_none());
+        assert!(map.replace_vertex(3, (0.0, 1.0)).is_none());
         map
     }
 

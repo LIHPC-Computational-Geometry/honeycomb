@@ -7,7 +7,7 @@
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::prelude::DartIdentifier;
-use num::ToPrimitive;
+use num_traits::ToPrimitive;
 
 // ------ CONTENT
 
@@ -24,10 +24,7 @@ use num::ToPrimitive;
 ///
 /// # Example
 ///
-/// **Currently, this type is not meant to be used directly** when operating on combinatorial maps,
-/// but it is kept public because it should eventually be part of the map building system where
-/// the user will add its own attributes and choose how they are stored. As such, no example
-/// is provided.
+/// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
@@ -54,21 +51,35 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-            (None, None) => AttributeUpdate::merge_undefined(None),
+        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => {
+                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
+            }
+            (None, None) => {
+                if let Some(v) = AttributeUpdate::merge_from_none() {
+                    self.set(out.into(), v);
+                } else {
+                    println!("W: cannot merge two null attribute value");
+                    println!("   setting new target value to `None`");
+                    let _ = self.remove(out.into());
+                }
+            }
         };
-        self.set(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self
-            .remove(inp.into())
-            .expect("E: cannot split attribute value - value not found in storage");
-        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        let new_val = self.remove(inp.into());
+        if let Some(val) = new_val {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.set(lhs_out.into(), lhs_val);
+            self.set(rhs_out.into(), rhs_val);
+        } else {
+            println!("W: cannot split attribute value (not found in storage)");
+            println!("   setting both new values to `None`");
+            let _ = self.remove(lhs_out.into());
+            let _ = self.remove(rhs_out.into());
+        }
     }
 }
 
@@ -135,11 +146,7 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
 ///
 /// # Example
 ///
-/// **Currently, this type is not meant to be used directly** when operating on combinatorial maps,
-/// but it is kept public because it should eventually be part of the map building system where
-/// the user will add its own attributes and choose how they are stored. As such, no example
-/// is provided.
-///
+/// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
@@ -172,21 +179,35 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        let new_val = match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-            (None, None) => AttributeUpdate::merge_undefined(None),
+        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
+            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => {
+                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
+            }
+            (None, None) => {
+                if let Some(v) = AttributeUpdate::merge_from_none() {
+                    self.set(out.into(), v);
+                } else {
+                    println!("W: cannot merge two null attribute value");
+                    println!("   setting new target value to `None`");
+                    let _ = self.remove(out.into());
+                }
+            }
         };
-        self.set(out.into(), new_val);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self
-            .remove(inp.into())
-            .expect("E: cannot split attribute value - value not found in storage");
-        let (lhs_val, rhs_val) = AttributeUpdate::split(new_val);
-        self.set(lhs_out.into(), lhs_val);
-        self.set(rhs_out.into(), rhs_val);
+        let new_val = self.remove(inp.into());
+        if let Some(val) = new_val {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.set(lhs_out.into(), lhs_val);
+            self.set(rhs_out.into(), rhs_val);
+        } else {
+            println!("W: cannot split attribute value (not found in storage)");
+            println!("   setting both new values to `None`");
+            let _ = self.remove(lhs_out.into());
+            let _ = self.remove(rhs_out.into());
+        }
     }
 }
 
@@ -222,10 +243,11 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrComp
         self.index_map[id.to_usize().unwrap()].map(|idx| self.data[idx])
     }
 
-    // FIXME: panics instead of returning None
     fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
         let idx = &self.index_map[id.to_usize().unwrap()];
-        assert!(idx.is_some());
+        if idx.is_none() {
+            return None;
+        }
         self.data.push(val);
         Some(self.data.swap_remove(idx.unwrap()))
     }

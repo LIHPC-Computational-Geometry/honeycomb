@@ -24,7 +24,7 @@ use std::collections::BTreeSet;
 
 // ------ CONTENT
 
-// --- dart-related code
+/// **Dart-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
@@ -135,7 +135,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- beta-related code
+/// **Beta-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
@@ -233,7 +233,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
-// --- icell-related code
+/// **I-cell-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     #[allow(clippy::missing_panics_doc)]
     /// Fetch vertex identifier associated to a given dart.
@@ -266,7 +266,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id)
             .min()
-            .unwrap() as VertexIdentifier
+            .expect("E: unreachable") as VertexIdentifier
     }
 
     #[allow(clippy::missing_panics_doc)]
@@ -300,7 +300,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id)
             .min()
-            .unwrap() as EdgeIdentifier
+            .expect("E: unreachable") as EdgeIdentifier
     }
 
     #[allow(clippy::missing_panics_doc)]
@@ -334,7 +334,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // unwraping the result is safe because the orbit is always non empty
         Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
             .min()
-            .unwrap() as FaceIdentifier
+            .expect("E: unreachable") as FaceIdentifier
     }
 
     /// Return an [`Orbit2`] object that can be used to iterate over darts of an i-cell.

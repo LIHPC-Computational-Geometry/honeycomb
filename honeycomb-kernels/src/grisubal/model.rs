@@ -12,7 +12,7 @@ use honeycomb_core::attributes::AttrSparseVec;
 use honeycomb_core::prelude::{
     AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy, Vertex2,
 };
-use num::Zero;
+
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
@@ -22,6 +22,7 @@ use crate::grisubal::grid::GridCellId;
 use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::prelude::CMap2;
+
 // ------ CONTENT
 
 /// Post-processing clip operation.
@@ -61,7 +62,7 @@ macro_rules! build_vertices {
         $v.chunks_exact(3)
             .map(|slice| {
                 // WE IGNORE Z values
-                let &[x, y, _] = slice else { panic!() };
+                let &[x, y, _] = slice else { unreachable!() };
                 Vertex2::from((T::from(x).unwrap(), T::from(y).unwrap()))
             })
             .collect()
@@ -125,12 +126,12 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
                             let mut take_next = 0;
-                            verts.iter().for_each(|vertex_id| if take_next.is_zero() {
+                            verts.iter().for_each(|vertex_id| if take_next == 0 {
                                 // making it usize since it's a counter
                                 take_next = *vertex_id as usize;
                                 cell_components.push(Vec::with_capacity(take_next));
                             } else {
-                                cell_components.last_mut().unwrap().push(*vertex_id as usize);
+                                cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
                                 take_next -= 1;
                             });
                             assert_eq!(num_cells as usize, cell_components.len());
@@ -347,7 +348,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             // same
             let vid_out = geometry
                 .segments
@@ -358,7 +359,7 @@ pub fn detect_overlaps<T: CoordsFloat>(
                     }
                     None
                 })
-                .expect("E: open geometry?");
+                .expect("E: found a vertex with no incident segment - is the geometry open?");
             let v_in = geometry.vertices[vid_in];
             let v_out = geometry.vertices[vid_out];
             let Vertex2(ox, oy) = origin;
@@ -439,17 +440,13 @@ impl AttributeUpdate for Boundary {
         unreachable!()
     }
 
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap_or(Boundary::None)
+    fn merge_from_none() -> Option<Self> {
+        Some(Boundary::None)
     }
 }
 
 impl AttributeBind for Boundary {
-    fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Custom(&[])
-    }
-
-    type IdentifierType = DartIdentifier;
-
     type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = DartIdentifier;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }

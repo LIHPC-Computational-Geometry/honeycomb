@@ -27,17 +27,19 @@ impl AttributeUpdate for Temperature {
         (attr, attr)
     }
 
-    fn merge_undefined(attr: Option<Self>) -> Self {
-        attr.unwrap_or(Temperature { val: 0.0 })
+    fn merge_incomplete(attr: Self) -> Self {
+        Temperature::from(attr.val / 2.0)
+    }
+
+    fn merge_from_none() -> Option<Self> {
+        Some(Temperature::from(0.0))
     }
 }
 
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
     type IdentifierType = VertexIdentifier;
-    fn binds_to<'a>() -> OrbitPolicy<'a> {
-        OrbitPolicy::Vertex
-    }
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
 
 impl From<f32> for Temperature {
@@ -85,7 +87,7 @@ fn temperature_map() {
         map.get_attribute::<Temperature>(map.vertex_id(4)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(4)), Ok(Vertex2::from((2., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(4)), Some(Vertex2::from((2., 0.))));
     // unsew another
     map.one_unsew(1);
     assert_ne!(map.vertex_id(2), map.vertex_id(3));
@@ -97,8 +99,8 @@ fn temperature_map() {
         map.get_attribute::<Temperature>(map.vertex_id(3)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(2)), Ok(Vertex2::from((1., 0.))));
-    assert_eq!(map.vertex(map.vertex_id(3)), Ok(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(2)), Some(Vertex2::from((1., 0.))));
+    assert_eq!(map.vertex(map.vertex_id(3)), Some(Vertex2::from((1., 0.))));
 }
 
 // --- unit tests
@@ -114,13 +116,16 @@ fn attribute_update() {
     let t_ref = Temperature { val: 285.5 };
 
     assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
-    assert_eq!(Temperature::merge_undefined(Some(t_ref)), t_ref);
-    assert_eq!(Temperature::merge_undefined(None), Temperature::from(0.0));
+    assert_eq!(
+        Temperature::merge_incomplete(t_ref),
+        Temperature::from(t_ref.val / 2.0)
+    );
+    assert_eq!(Temperature::merge_from_none(), Some(Temperature::from(0.0)));
 }
 
 #[test]
 fn attribute_bind() {
-    assert_eq!(Temperature::binds_to(), OrbitPolicy::Vertex);
+    assert_eq!(Temperature::BIND_POLICY, OrbitPolicy::Vertex);
     let inst: <Temperature as AttributeBind>::IdentifierType = 0;
     let ref_inst: FaceIdentifier = 0;
     let prim_inst: u32 = 0;
@@ -186,7 +191,7 @@ fn sparse_vec_merge_undefined() {
     storage.merge(6, 3, 4);
     assert_eq!(storage.get(3), None);
     assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0 / 2.0)));
 }
 
 #[test]
@@ -341,7 +346,7 @@ fn compact_vec_merge_undefined() {
     storage.merge(6, 3, 4);
     assert_eq!(storage.get(3), None);
     assert_eq!(storage.get(4), None);
-    assert_eq!(storage.get(6), Some(Temperature::from(281.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0 / 2.0)));
 }
 
 #[test]
@@ -435,11 +440,10 @@ fn compact_vec_remove_insert() {
 }
 
 #[test]
-#[should_panic(expected = "assertion failed: idx.is_some()")]
 fn compact_vec_replace_already_removed() {
     generate_compact!(storage);
     assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
-    storage.replace(3, Temperature::from(280.0)); // panic
+    assert!(storage.replace(3, Temperature::from(280.0)).is_none());
 }
 
 // storage manager
@@ -447,7 +451,7 @@ fn compact_vec_replace_already_removed() {
 macro_rules! generate_manager {
     ($name: ident) => {
         let mut $name = AttrStorageManager::default();
-        assert!($name.add_storage::<Temperature>(10).is_ok());
+        $name.add_storage::<Temperature>(10);
         $name.insert_attribute(0, Temperature::from(273.0));
         $name.insert_attribute(1, Temperature::from(275.0));
         $name.insert_attribute(2, Temperature::from(277.0));
@@ -580,7 +584,10 @@ fn manager_merge_undefined_attribute() {
     manager.merge_attribute::<Temperature>(6, 3, 4);
     assert_eq!(manager.get_attribute::<Temperature>(3), None);
     assert_eq!(manager.get_attribute::<Temperature>(4), None);
-    assert_eq!(manager.get_attribute(6), Some(Temperature::from(281.0)));
+    assert_eq!(
+        manager.get_attribute(6),
+        Some(Temperature::from(281.0 / 2.0))
+    );
 }
 
 #[test]
