@@ -479,10 +479,14 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         // sort ts
         // panic unreachable because t s.t. t == NaN have been filtered previously
         vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
-        let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
+        let n_v = vs.len();
+        let nds = cmap.add_free_darts(n_v * 2);
+        let new_darts = (nds..nds + (n_v * 2) as DartIdentifier).collect::<Vec<_>>();
+        let ts = vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>();
+        cmap.splitn_edge(*edge_id, &new_darts, &ts);
         // order should be consistent between collection because of the sort_by call
         vs.iter()
-            .zip(new_darts.iter())
+            .zip(new_darts[0..n_v].iter())
             // chaining this directly avoids an additional `.collect()`
             .for_each(|((id, _, old_dart_id), dart_id)| {
                 // c.
@@ -588,11 +592,15 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
 
         if !intermediates.is_empty() {
             // we can add intermediates after by using the splitn_edge method on a temporary start-to-end edge
-            let darts = cmap.splitn_edge(
+            let nds = cmap.add_free_darts(intermediates.len() * 2);
+            let new_darts =
+                (nds..nds + (intermediates.len() * 2) as DartIdentifier).collect::<Vec<_>>();
+            cmap.splitn_edge(
                 cmap.edge_id(d_new),
-                vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
+                &new_darts,
+                &vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
             );
-            darts
+            new_darts[0..intermediates.len()]
                 .iter()
                 .zip(intermediates.iter())
                 .for_each(|(dart_id, v)| {
