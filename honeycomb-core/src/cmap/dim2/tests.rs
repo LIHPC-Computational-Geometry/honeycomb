@@ -268,7 +268,8 @@ fn split_edge_complete() {
     map.insert_vertex(3, (2.0, 0.0));
     map.insert_vertex(4, (3.0, 0.0));
     // split
-    map.split_edge(2, None);
+    let nds = map.add_free_darts(2);
+    map.split_edge(2, (nds, nds + 1), None);
     // after
     //    <--6---   <8- <5-   <--4---
     //  1         2    7    3         4
@@ -302,7 +303,8 @@ fn split_edge_isolated() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    map.split_edge(1, Some(0.6));
+    let nds = map.add_free_darts(2);
+    map.split_edge(1, (nds, nds + 1), Some(0.6));
     // after
     //    <-4- <2-
     //  1     3    2
@@ -330,7 +332,8 @@ fn split_single_dart() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    map.split_edge(1, None);
+    let nd = map.add_free_dart(); // a single dart is enough in this case
+    map.split_edge(1, (nd, NULL_DART_ID), None);
     // after
     //  1 -> 3 -> 2 ->
     assert_eq!(map.beta::<1>(1), 3);
@@ -350,7 +353,8 @@ fn split_edge_missing_vertex() {
     map.insert_vertex(1, (0.0, 0.0));
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
-    map.split_edge(1, None);
+    let nds = map.add_free_darts(2);
+    map.split_edge(1, (nds, nds + 1), None);
 }
 
 // splitn_edge
