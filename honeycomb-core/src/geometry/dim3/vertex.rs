@@ -27,12 +27,12 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 /// assert_eq!(v1.y(), 0.0);
 /// assert_eq!(v1.z(), 0.0);
 ///
-/// let three: f64 = 3.0;
+/// let two: f64 = 2.0;
 /// // vectorAB = vertexB - vertexA
 /// let v2_minus_v1: Vector3<f64> = v2 - v1;
 ///
-/// assert_eq!(v2_minus_v1.norm(), three.sqrt());
-/// assert_eq!(v2_minus_v1.unit_dir()?, Vector3(0.0, 1.0 / three.sqrt(), 1.0 / three.sqrt()));
+/// assert_eq!(v2_minus_v1.norm(), two.sqrt());
+/// assert_eq!(v2_minus_v1.unit_dir()?, Vector3(0.0, 1.0 / two.sqrt(), 1.0 / two.sqrt()));
 ///
 /// let mut v3 = Vertex3(0.0, 1.0, 1.0);
 /// // vertexA + vectorB = vertexA'
