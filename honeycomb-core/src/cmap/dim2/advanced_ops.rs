@@ -50,10 +50,24 @@ impl<T: CoordsFloat> CMap2<T> {
     ///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
     ///    <----2----+              <-4-- <-2-+     |
     /// ```
-    pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<T>) {
+    pub fn split_edge(
+        &mut self,
+        edge_id: EdgeIdentifier,
+        new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
+        midpoint_vertex: Option<T>,
+    ) {
+        // midpoint check
         if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
             println!("W: vertex placement for split is not in ]0;1[ -- result may be incoherent");
         }
+        // new darts (minimal) check,
+        let (b1d1_new, b1d2_new) = new_darts;
+        if new_darts.0 == NULL_DART_ID || !self.is_free(new_darts.0) {
+            println!("W: dart {b1d1_new} cannot be used in split_edge -- passed darts should be non-null and free");
+            println!("   skipping split...");
+            return;
+        }
+
         // base darts making up the edge
         let base_dart1 = edge_id as DartIdentifier;
         let base_dart2 = self.beta::<2>(base_dart1);
@@ -61,7 +75,6 @@ impl<T: CoordsFloat> CMap2<T> {
         //      defined is undefined behavior, therefore panic
         if base_dart2 == NULL_DART_ID {
             let b1d1_old = self.beta::<1>(base_dart1);
-            let b1d1_new = self.add_free_dart();
             let v1 = self // (*)
                 .vertex(self.vertex_id(base_dart1))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
@@ -82,10 +95,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
             );
         } else {
+            // check the second new dart
+            if b1d2_new == NULL_DART_ID || !self.is_free(b1d2_new) {
+                println!("W: dart {b1d2_new} cannot be used in split_edge -- passed darts should be non-null and free");
+                println!("   skipping split...");
+                return;
+            }
+
             let b1d1_old = self.beta::<1>(base_dart1);
             let b1d2_old = self.beta::<1>(base_dart2);
-            let b1d1_new = self.add_free_darts(2);
-            let b1d2_new = b1d1_new + 1;
             let v1 = self // (*)
                 .vertex(self.vertex_id(base_dart1))
                 .expect("E: attempt to split an edge that is not fully defined in the first place");
