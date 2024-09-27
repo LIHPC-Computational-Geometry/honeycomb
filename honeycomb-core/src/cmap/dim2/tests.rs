@@ -378,12 +378,14 @@ fn splitn_edge_complete() {
     map.insert_vertex(3, (2.0, 0.0));
     map.insert_vertex(4, (3.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(2, [0.25, 0.50, 0.75]);
+    let nds = map.add_free_darts(6);
+    let new_darts = (nds..nds + 6).collect::<Vec<_>>();
+    map.splitn_edge(2, &new_darts, &[0.25, 0.50, 0.75]);
     // after
     //    <--6---             <--4---
     //  1         2 -7-8-9- 3         4
     //    ---1-->             ---3-->
-    assert_eq!(&new_darts, &[7, 8, 9]);
+    assert_eq!(&new_darts[0..3], &[7, 8, 9]);
     assert_eq!(map.vertex(7), Some(Vertex2(1.25, 0.0)));
     assert_eq!(map.vertex(8), Some(Vertex2(1.50, 0.0)));
     assert_eq!(map.vertex(9), Some(Vertex2(1.75, 0.0)));
@@ -415,12 +417,14 @@ fn splitn_edge_isolated() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    let nds = map.add_free_darts(6);
+    let new_darts = (nds..nds + 6).collect::<Vec<_>>();
+    map.splitn_edge(1, &new_darts, &[0.25, 0.50, 0.75]);
     // after
     //    <-<-<-<
     //  1 -3-4-5- 2
     //    >->->->
-    assert_eq!(&new_darts, &[3, 4, 5]);
+    assert_eq!(&new_darts[0..3], &[3, 4, 5]);
     assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
     assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
     assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
@@ -450,10 +454,22 @@ fn splitn_single_dart() {
     map.insert_vertex(1, (0.0, 0.0));
     map.insert_vertex(2, (1.0, 0.0));
     // split
-    let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    let nds = map.add_free_darts(3);
+    map.splitn_edge(
+        1,
+        &[
+            nds,
+            nds + 1,
+            nds + 2,
+            NULL_DART_ID,
+            NULL_DART_ID,
+            NULL_DART_ID,
+        ],
+        &[0.25, 0.50, 0.75],
+    );
     // after
     //  1 -> 3 -> 4 -> 5 -> 2 ->
-    assert_eq!(&new_darts, &[3, 4, 5]);
+    // assert_eq!(&new_darts, &[3, 4, 5]);
     assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
     assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
     assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
@@ -480,7 +496,19 @@ fn splitn_edge_missing_vertex() {
     map.insert_vertex(1, (0.0, 0.0));
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
-    map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    let nds = map.add_free_darts(3);
+    map.splitn_edge(
+        1,
+        &[
+            nds,
+            nds + 1,
+            nds + 2,
+            NULL_DART_ID,
+            NULL_DART_ID,
+            NULL_DART_ID,
+        ],
+        &[0.25, 0.50, 0.75],
+    );
 }
 
 // --- IO

@@ -210,8 +210,8 @@ impl<T: CoordsFloat> CMap2<T> {
         // check pre-allocated darts reqs
         let n_t = midpoint_vertices.len();
         let n_d = new_darts.len();
-        if n_d != 2 * (n_t + 1) {
-            println!("W: inconsistent number of darts ({n_d}) & number of midpoints ({n_t}) - the method expects `2 * (n_mid + 1)` darts");
+        if n_d != 2 * n_t {
+            println!("W: inconsistent number of darts ({n_d}) & number of midpoints ({n_t}) - the method expects `2 * n_mid` darts");
             println!("   skipping split...");
             return;
         }
@@ -249,7 +249,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
         // insert new vertices / darts on base_dart1's side
         let mut prev_d = base_dart1;
-        let darts = &new_darts[0..=n_t];
+        let darts = &new_darts[0..n_t];
         if darts.iter().any(|d| *d == NULL_DART_ID) {
             println!("W: the null dart cannot be used to split an existing edge");
             println!("   skipping split...");
@@ -273,7 +273,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // if b2(base_dart1) is defined, insert vertices / darts on its side too
         if base_dart2 != NULL_DART_ID {
-            let other_darts = &new_darts[n_t + 1..];
+            let other_darts = &new_darts[n_t..];
             if other_darts.iter().any(|d| *d == NULL_DART_ID) {
                 println!("W: the null dart cannot be used to split an existing edge");
                 println!("   skipping split...");
