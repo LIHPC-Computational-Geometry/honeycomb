@@ -38,8 +38,8 @@ macro_rules! almost_equals {
 // --- coords
 // --- vector
 mod vector {
-    use super::almost_equal;
-    use crate::prelude::{CoordsError, Vector3};
+    use super::*;
+    use crate::prelude::CoordsError;
 
     // tests
     macro_rules! generate_dot_prod_test {

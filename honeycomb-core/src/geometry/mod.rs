@@ -5,9 +5,8 @@
 
 // ------ MODULE DECLARATIONS
 
+mod dim2;
 mod dim3;
-mod vector;
-mod vertex;
 
 // ------ IMPORTS
 
@@ -18,9 +17,8 @@ use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 // --- re-exports
 
+pub use dim2::{vector::Vector2, vertex::Vertex2};
 pub use dim3::{vector::Vector3, vertex::Vertex3};
-pub use vector::Vector2;
-pub use vertex::Vertex2;
 
 // --- error enum
 
@@ -63,7 +61,3 @@ impl<
     > CoordsFloat for T
 {
 }
-
-// ------ TESTS
-#[cfg(test)]
-mod tests;
