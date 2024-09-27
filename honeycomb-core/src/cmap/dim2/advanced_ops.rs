@@ -174,12 +174,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// map.insert_vertex(1, (0.0, 0.0));
     /// map.insert_vertex(2, (1.0, 0.0));
     /// // split
-    /// let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    /// let nds = map.add_free_darts(6);
+    /// let new_darts: Vec<_> = (nds..nds+6).collect();
+    /// map.splitn_edge(1, &new_darts ,&[0.25, 0.50, 0.75]);
     /// // after
     /// //    <-<-<-<
     /// //  1 -3-4-5- 2
     /// //    >->->->
-    /// assert_eq!(&new_darts, &[3, 4, 5]);
+    /// assert_eq!(&new_darts[0..3], &[3, 4, 5]);
     /// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
     /// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
     /// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
@@ -202,8 +204,23 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn splitn_edge(
         &mut self,
         edge_id: EdgeIdentifier,
-        midpoint_vertices: impl IntoIterator<Item = T>,
-    ) -> Vec<DartIdentifier> {
+        new_darts: &[DartIdentifier],
+        midpoint_vertices: &[T],
+    ) {
+        // check pre-allocated darts reqs
+        let n_t = midpoint_vertices.len();
+        let n_d = new_darts.len();
+        if n_d != 2 * (n_t + 1) {
+            println!("W: inconsistent number of darts ({n_d}) & number of midpoints ({n_t}) - the method expects `2 * (n_mid + 1)` darts");
+            println!("   skipping split...");
+            return;
+        }
+        if new_darts.iter().any(|d| !self.is_free(*d)) {
+            println!("W: all pre-allocated darts should be free");
+            println!("   skipping split...");
+            return;
+        }
+
         // base darts making up the edge
         let base_dart1 = edge_id as DartIdentifier;
         let base_dart2 = self.beta::<2>(base_dart1);
@@ -232,41 +249,52 @@ impl<T: CoordsFloat> CMap2<T> {
         }
         // insert new vertices / darts on base_dart1's side
         let mut prev_d = base_dart1;
-        let darts: Vec<DartIdentifier> = midpoint_vertices
-            .into_iter()
-            .map(|t| {
+        let darts = &new_darts[0..=n_t];
+        if darts.iter().any(|d| *d == NULL_DART_ID) {
+            println!("W: the null dart cannot be used to split an existing edge");
+            println!("   skipping split...");
+            return;
+        }
+        midpoint_vertices
+            .iter()
+            .zip(darts.iter())
+            .for_each(|(&t, &new_d)| {
                 if (t >= T::one()) | (t <= T::zero()) {
                     println!(
                         "W: vertex placement for split is not in ]0;1[ -- result may be incoherent"
                     );
                 }
                 let new_v = v1 + seg * t;
-                let new_d = self.add_free_dart();
                 self.one_link(prev_d, new_d);
                 self.insert_vertex(new_d, new_v);
                 prev_d = new_d;
-                new_d
-            })
-            .collect();
+            });
         self.one_link(prev_d, b1d1_old);
 
         // if b2(base_dart1) is defined, insert vertices / darts on its side too
         if base_dart2 != NULL_DART_ID {
+            let other_darts = &new_darts[n_t + 1..];
+            if other_darts.iter().any(|d| *d == NULL_DART_ID) {
+                println!("W: the null dart cannot be used to split an existing edge");
+                println!("   skipping split...");
+                return;
+            }
             let b1d2_old = self.beta::<1>(base_dart2);
             // self.one_unlink(base_dart2);
             self.betas[base_dart2 as usize][1] = 0;
             self.betas[b1d2_old as usize][0] = 0;
             let mut prev_d = base_dart2;
-            darts.iter().rev().for_each(|d| {
-                self.two_link(prev_d, *d);
-                let new_d = self.add_free_dart();
-                self.one_link(prev_d, new_d);
-                prev_d = new_d;
-            });
+            darts
+                .iter()
+                .rev()
+                .zip(other_darts.iter())
+                .for_each(|(d, new_d)| {
+                    self.two_link(prev_d, *d);
+                    self.one_link(prev_d, *new_d);
+                    prev_d = *new_d;
+                });
             self.one_link(prev_d, b1d2_old);
             self.two_link(prev_d, base_dart1);
         }
-
-        darts
     }
 }
