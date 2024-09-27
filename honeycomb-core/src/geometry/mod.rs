@@ -5,6 +5,7 @@
 
 // ------ MODULE DECLARATIONS
 
+mod dim3;
 mod vector;
 mod vertex;
 
@@ -17,6 +18,7 @@ use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 // --- re-exports
 
+pub use dim3::vector::Vector3;
 pub use vector::Vector2;
 pub use vertex::Vertex2;
 
