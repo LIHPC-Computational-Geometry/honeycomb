@@ -18,7 +18,7 @@ use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 // --- re-exports
 
-pub use dim3::vector::Vector3;
+pub use dim3::{vector::Vector3, vertex::Vertex3};
 pub use vector::Vector2;
 pub use vertex::Vertex2;
 

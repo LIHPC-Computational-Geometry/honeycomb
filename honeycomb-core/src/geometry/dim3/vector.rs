@@ -177,6 +177,7 @@ impl<T: CoordsFloat> Vector3<T> {
     ///
     /// See [Vector3] example.
     ///
+    #[must_use = "result is not used, consider removing this method call"]
     pub fn cross(&self, other: &Vector3<T>) -> Self {
         Self(
             self.1 * other.2 - self.2 * other.1,
