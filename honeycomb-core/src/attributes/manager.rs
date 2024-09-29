@@ -317,9 +317,8 @@ macro_rules! get_storage {
             OrbitPolicy::Custom(_) => $slf.others.get(&TypeId::of::<A>()),
         };
         let $id = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_ref::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+            .map(|m| m.downcast_ref::<<A as AttributeBind>::StorageType>())
+            .flatten();
     };
 }
 
@@ -332,9 +331,8 @@ macro_rules! get_storage_mut {
             OrbitPolicy::Custom(_) => $slf.others.get_mut(&TypeId::of::<A>()),
         };
         let $id = probably_storage
-            .expect("E: could not find storage associated to the specified attribute type")
-            .downcast_mut::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type");
+            .map(|m| m.downcast_mut::<<A as AttributeBind>::StorageType>())
+            .flatten();
     };
 }
 
@@ -387,7 +385,14 @@ impl AttrStorageManager {
     /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
-        storage.extend(length);
+        if let Some(st) = storage {
+            st.extend(length);
+        } else {
+            println!(
+                "W: could not extend storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+        }
     }
 
     /// Get a reference to the storage of a given attribute.
@@ -402,16 +407,14 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
-    pub fn get_storage<A: AttributeBind>(&self) -> &<A as AttributeBind>::StorageType {
+    pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
             OrbitPolicy::Face => &self.faces[&TypeId::of::<A>()],
             OrbitPolicy::Custom(_) => &self.others[&TypeId::of::<A>()],
         };
-        probably_storage
-            .downcast_ref::<<A as AttributeBind>::StorageType>()
-            .expect("E: could not downcast generic storage to specified attribute type")
+        probably_storage.downcast_ref::<<A as AttributeBind>::StorageType>()
     }
 
     /// Remove an entire attribute storage from the manager.
@@ -451,7 +454,14 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
-        storage.set(id, val);
+        if let Some(st) = storage {
+            st.set(id, val);
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+        }
     }
 
     /// Set the value of an attribute.
@@ -474,7 +484,14 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
         get_storage_mut!(self, storage);
-        storage.insert(id, val);
+        if let Some(st) = storage {
+            st.insert(id, val);
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+        }
     }
 
     /// Get the value of an attribute.
@@ -501,7 +518,15 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn get_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
         get_storage!(self, storage);
-        storage.get(id)
+        if let Some(st) = storage {
+            st.get(id)
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
     }
 
     /// Set the value of an attribute.
@@ -533,7 +558,15 @@ impl AttrStorageManager {
         val: A,
     ) -> Option<A> {
         get_storage_mut!(self, storage);
-        storage.replace(id, val)
+        if let Some(st) = storage {
+            st.replace(id, val)
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
     }
 
     /// Remove the an item from an attribute storage.
@@ -560,7 +593,15 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
         get_storage_mut!(self, storage);
-        storage.remove(id)
+        if let Some(st) = storage {
+            st.remove(id)
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
     }
 
     /// Merge given attribute values.
@@ -577,7 +618,14 @@ impl AttrStorageManager {
         id_in_rhs: DartIdentifier,
     ) {
         get_storage_mut!(self, storage);
-        storage.merge(id_out, id_in_lhs, id_in_rhs);
+        if let Some(st) = storage {
+            st.merge(id_out, id_in_lhs, id_in_rhs);
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+        }
     }
 
     /// Split given attribute value.
@@ -594,6 +642,13 @@ impl AttrStorageManager {
         id_in: DartIdentifier,
     ) {
         get_storage_mut!(self, storage);
-        storage.split(id_out_lhs, id_out_rhs, id_in);
+        if let Some(st) = storage {
+            st.split(id_out_lhs, id_out_rhs, id_in);
+        } else {
+            println!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+        }
     }
 }

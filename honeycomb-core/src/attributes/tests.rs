@@ -469,19 +469,31 @@ macro_rules! generate_manager {
 #[test]
 fn manager_extend() {
     generate_manager!(manager);
-    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    assert_eq!(
+        manager.get_storage::<Temperature>().unwrap().n_attributes(),
+        10
+    );
     manager.extend_storage::<Temperature>(10);
-    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    assert_eq!(
+        manager.get_storage::<Temperature>().unwrap().n_attributes(),
+        10
+    );
     (10..20)
         .for_each(|id| manager.insert_attribute(id, Temperature::from(273.0 + 2.0 * id as f32)));
-    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 20);
+    assert_eq!(
+        manager.get_storage::<Temperature>().unwrap().n_attributes(),
+        20
+    );
 }
 
 #[test]
 #[should_panic(expected = "index out of bounds: the len is 10 but the index is 15")]
 fn manager_set_oob() {
     generate_manager!(manager);
-    assert_eq!(manager.get_storage::<Temperature>().n_attributes(), 10);
+    assert_eq!(
+        manager.get_storage::<Temperature>().unwrap().n_attributes(),
+        10
+    );
     manager.insert_attribute(15, Temperature::from(0.0)); // panic
 }
 
