@@ -261,7 +261,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This implementation is 2D specific.
     /// </div>
     ///
-    /// This method is a variant of [`split_edge`] where inline dart allocations are removed.
+    /// This method is a variant of [`split_edge`] where inline dart allocations are removed. The
+    /// aim of this variant is to enhance performance by enabling the user to pre-allocate a number
+    /// of darts.
     ///
     /// The method follows the same logic as the regular [`split_edge`], the only difference being
     /// that the new darts won't be added to the map on the fly. Instead, the method uses the two
@@ -277,7 +279,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Dart IDs Requirements & Usage
     ///
-    /// TODO
+    /// Because of the dimension, the number of dart needed to perform this operation is at most
+    /// two. These are the requirements for these two darts:
+    /// - identifiers are passed as a tuple.
+    /// - the first dart of the tuple will always be used if the operation is successful.
+    /// - the second dart of the tuple will only be used if the original edge is made of two darts;
+    ///   if that is not the case, the second dart ID can be `NULL_DART_ID`.
+    /// - both of these darts should be free
     ///
     /// # Panics
     ///
@@ -377,7 +385,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This implementation is 2D specific.
     /// </div>
     ///
-    /// This method is a variant of [`splitn_edge`] where inline dart allocations are removed.
+    /// This method is a variant of [`splitn_edge`] where inline dart allocations are removed. The
+    /// aim of this variant is to enhance performance by enabling the user to pre-allocate a number
+    /// of darts.
     ///
     /// The method follows the same logic as the regular [`splitn_edge`], the only difference being
     /// that the new darts won't be added to the map on the fly. Instead, the method uses darts
@@ -393,7 +403,14 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Dart IDs Requirements & Usage
     ///
-    /// TODO
+    /// Because of the dimension, we can easily compute the number of dart needed to perform this
+    /// operation. These are the requirements for the darts:
+    /// - identifiers are passed as a slice:
+    ///   - slice length should verify `new_darts.len() == 2 * midpoint_vertices.len()`
+    /// - the first half of the slice will always be used if the operation is successful.
+    /// - the second half of the slice will only be used if the original edge is made of two darts;
+    ///   if that is not the case, the second half IDs can all be `NULL_DART_ID`s.
+    /// - all of these darts should be free
     ///
     /// # Panics
     ///
