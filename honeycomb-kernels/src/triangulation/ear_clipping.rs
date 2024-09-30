@@ -8,6 +8,7 @@ macro_rules! crossp_from_verts {
     };
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
 ///
 /// This function triangulates a cell (face) of a 2D combinatorial map by iteratively
@@ -39,9 +40,23 @@ macro_rules! crossp_from_verts {
 /// - Updates the list of darts and vertices accordingly after each ear clip.
 /// - Continues until the polygon is reduced to a triangle.
 ///
-/// # Panics
+/// # Errors
 ///
-/// The function will panic if a dart of the face does not have an associated vertex.
+/// This function will return an error if the face wasn't triangulated. There can be multiple
+/// reason for this:
+/// - The face is incompatible with the operation (made of 1, 2 or 3 vertices)
+/// - The number of pre-allocated darts did not match the expected number (see [#arguments])
+/// - The face contains one or more undefined vertices
+/// - The face does not contain an ear
+///
+/// Note that in all cases except the last, the face will remain the same as it was before the
+/// function call.
+///
+/// Because the ear clipping algorithm works iteratively, the face may be modified a few times
+/// before reaching a state where no ear can be found. Note, however, that this cannot occur if
+/// the face satisfies requirements mentionned above because of the [Two ears theorem][TET].
+///
+/// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,

@@ -2,6 +2,7 @@ use crate::triangulation::{check_requirements, fetch_face_vertices, TriangulateE
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
+#[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using a fan triangulation method.
 ///
 /// This function triangulates a cell (face) in a 2D combinatorial map by creating a fan of
@@ -27,9 +28,17 @@ use honeycomb_core::geometry::CoordsFloat;
 /// - If such a star vertex is found, the function proceeds to create triangles by linking
 ///   new darts in a fan-like structure from this vertex. Otherwise, the cell is left unchanged
 ///
-/// # Panics
+/// # Errors
 ///
-/// The function will panic if a dart of the face does not have an associated vertex.
+/// This function will return an error if the face wasn't triangulated. There can be multiple
+/// reason for this:
+/// - The face is incompatible with the operation (made of 1, 2 or 3 vertices)
+/// - The number of pre-allocated darts did not match the expected number (see [#arguments])
+/// - The face contains one or more undefined vertices
+/// - The face isn't starrable
+///
+/// Note that in any of these cases, the face will remain the same as it was before the function
+/// call.
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
@@ -100,13 +109,15 @@ pub fn process_cell<T: CoordsFloat>(
     Ok(())
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using a fan triangulation method.
 ///
 /// This function triangulates a cell (face) in a 2D combinatorial map by creating a fan of
 /// triangles from a the first vertex of
 ///
-/// **Note that this function assumes the polygon is convex and may fail or produce incorrect
-/// results if called on a non-convex cell**.
+/// **Note that this function assumes the polygon is convex and correctly defined (i.e. all vertices
+/// are) and may fail or produce incorrect results if called on a cell that does not verify these
+/// requirements**.
 ///
 /// # Arguments
 ///
@@ -124,9 +135,15 @@ pub fn process_cell<T: CoordsFloat>(
 /// - The function creates triangles by linking new darts in a fan-like structure to the first
 ///   vertex of the polygon. **This is done unconditionnally, whether the polygon is convex or not**.
 ///
-/// # Panics
+/// # Errors
 ///
-/// The function will panic if a dart of the face does not have an associated vertex.
+/// This function will return an error if the face wasn't triangulated. There can be multiple
+/// reason for this:
+/// - The face is incompatible with the operation (made of 1, 2 or 3 vertices)
+/// - The number of pre-allocated darts did not match the expected number (see [#arguments])
+///
+/// Note that in any of these cases, the face will remain the same as it was before the function
+/// call.
 pub fn process_convex_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
