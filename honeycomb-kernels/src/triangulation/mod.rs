@@ -26,15 +26,49 @@ use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 // ------ CONTENT
 
+/// Error-modeling enum for triangulation routines.
 pub enum TriangulateError {
+    /// The face to triangulate is already a triangle.
     AlreadyTriangulated,
+    /// The face has no ear to use for triangulation using the ear clipping method.
     NoEar,
+    /// The face is not fannable, i.e. there is no "star" vertex.
     NonFannable,
+    /// The number of darts passed to create the new segments is too low. The `usize` value
+    /// is the number of missing darts.
     NotEnoughDarts(usize),
+    /// The number of darts passed to create the new segments is too high. The `usize` value
+    /// is the number of excess darts.
     TooManyDarts(usize),
+    /// The face is not fit for triangulation. The `String` contains information about the reason.
     UndefinedFace(String),
 }
 
+#[allow(clippy::missing_errors_doc)]
+/// Checks if a face meets the requirements for triangulation.
+///
+/// This function performs several checks on a face before it can be triangulated:
+/// 1. Ensures the face has at least 3 vertices.
+/// 2. Verifies that the face is not already triangulated.
+/// 3. Confirms that the correct number of darts have been allocated for triangulation.
+///
+/// # Arguments
+///
+/// * `n_darts_face` - The number of darts in the face to be triangulated.
+/// * `n_darts_allocated` - The number of darts allocated for the triangulation process.
+/// * `face_id` - The identifier of the face being checked.
+///
+/// # Return / Errors
+///
+/// This function can return:
+/// - `Ok(())` if all checks pass and the face is ready for triangulation.
+/// - `Err(TriangulateError)` if any check fails, with a specific error describing the issue.
+///
+/// A failed check can result in the following errors:
+/// - `TriangulateError::UndefinedFace` - If the face has fewer than 3 vertices.
+/// - `TriangulateError::AlreadyTriangulated` - If the face already has exactly 3 vertices.
+/// - `TriangulateError::NotEnoughDarts` - If there aren't enough darts allocated for triangulation.
+/// - `TriangulateError::TooManyDarts` - If there are too many darts allocated for triangulation.
 #[allow(
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
