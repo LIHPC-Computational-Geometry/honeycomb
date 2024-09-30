@@ -269,7 +269,7 @@ fn split_edge_complete() {
     map.insert_vertex(4, (3.0, 0.0));
     // split
     let nds = map.add_free_darts(2);
-    map.split_edge(2, (nds, nds + 1), None);
+    map.split_edge_noalloc(2, (nds, nds + 1), None);
     // after
     //    <--6---   <8- <5-   <--4---
     //  1         2    7    3         4
@@ -304,7 +304,7 @@ fn split_edge_isolated() {
     map.insert_vertex(2, (1.0, 0.0));
     // split
     let nds = map.add_free_darts(2);
-    map.split_edge(1, (nds, nds + 1), Some(0.6));
+    map.split_edge_noalloc(1, (nds, nds + 1), Some(0.6));
     // after
     //    <-4- <2-
     //  1     3    2
@@ -333,7 +333,7 @@ fn split_single_dart() {
     map.insert_vertex(2, (1.0, 0.0));
     // split
     let nd = map.add_free_dart(); // a single dart is enough in this case
-    map.split_edge(1, (nd, NULL_DART_ID), None);
+    map.split_edge_noalloc(1, (nd, NULL_DART_ID), None);
     // after
     //  1 -> 3 -> 2 ->
     assert_eq!(map.beta::<1>(1), 3);
@@ -354,7 +354,7 @@ fn split_edge_missing_vertex() {
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
     let nds = map.add_free_darts(2);
-    map.split_edge(1, (nds, nds + 1), None);
+    map.split_edge_noalloc(1, (nds, nds + 1), None);
 }
 
 // splitn_edge
@@ -380,7 +380,7 @@ fn splitn_edge_complete() {
     // split
     let nds = map.add_free_darts(6);
     let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-    map.splitn_edge(2, &new_darts, &[0.25, 0.50, 0.75]);
+    map.splitn_edge_no_alloc(2, &new_darts, &[0.25, 0.50, 0.75]);
     // after
     //    <--6---             <--4---
     //  1         2 -7-8-9- 3         4
@@ -419,7 +419,7 @@ fn splitn_edge_isolated() {
     // split
     let nds = map.add_free_darts(6);
     let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-    map.splitn_edge(1, &new_darts, &[0.25, 0.50, 0.75]);
+    map.splitn_edge_no_alloc(1, &new_darts, &[0.25, 0.50, 0.75]);
     // after
     //    <-<-<-<
     //  1 -3-4-5- 2
@@ -455,7 +455,7 @@ fn splitn_single_dart() {
     map.insert_vertex(2, (1.0, 0.0));
     // split
     let nds = map.add_free_darts(3);
-    map.splitn_edge(
+    map.splitn_edge_no_alloc(
         1,
         &[
             nds,
@@ -497,7 +497,7 @@ fn splitn_edge_missing_vertex() {
     // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
     // split
     let nds = map.add_free_darts(3);
-    map.splitn_edge(
+    map.splitn_edge_no_alloc(
         1,
         &[
             nds,

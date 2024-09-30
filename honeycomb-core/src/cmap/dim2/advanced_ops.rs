@@ -50,7 +50,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
     ///    <----2----+              <-4-- <-2-+     |
     /// ```
-    pub fn split_edge(
+    pub fn split_edge_noalloc(
         &mut self,
         edge_id: EdgeIdentifier,
         new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
@@ -176,7 +176,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// // split
     /// let nds = map.add_free_darts(6);
     /// let new_darts: Vec<_> = (nds..nds+6).collect();
-    /// map.splitn_edge(1, &new_darts ,&[0.25, 0.50, 0.75]);
+    /// map.splitn_edge_no_alloc(1, &new_darts ,&[0.25, 0.50, 0.75]);
     /// // after
     /// //    <-<-<-<
     /// //  1 -3-4-5- 2
@@ -201,7 +201,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// assert_eq!(map.beta::<2>(4), 6);
     /// assert_eq!(map.beta::<2>(5), 2);
     /// ```
-    pub fn splitn_edge(
+    pub fn splitn_edge_no_alloc(
         &mut self,
         edge_id: EdgeIdentifier,
         new_darts: &[DartIdentifier],

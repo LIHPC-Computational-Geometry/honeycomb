@@ -484,7 +484,7 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         #[allow(clippy::cast_possible_truncation)]
         let new_darts = (nds..nds + (n_v * 2) as DartIdentifier).collect::<Vec<_>>();
         let ts = vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>();
-        cmap.splitn_edge(*edge_id, &new_darts, &ts);
+        cmap.splitn_edge_no_alloc(*edge_id, &new_darts, &ts);
         // order should be consistent between collection because of the sort_by call
         vs.iter()
             .zip(new_darts[0..n_v].iter())
@@ -597,7 +597,7 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             #[allow(clippy::cast_possible_truncation)]
             let new_darts =
                 (nds..nds + (intermediates.len() * 2) as DartIdentifier).collect::<Vec<_>>();
-            cmap.splitn_edge(
+            cmap.splitn_edge_no_alloc(
                 cmap.edge_id(d_new),
                 &new_darts,
                 &vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
