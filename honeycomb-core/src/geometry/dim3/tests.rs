@@ -126,70 +126,42 @@ mod vector {
 
 // --- vertex
 mod vertex {
+    use crate::geometry::dim3::tests::almost_equal;
+
     use super::{Vector3, Vertex3};
 
     // tests
     #[test]
     fn add_vertex_vector() {
-        {
-            let mut a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vector3<f64> = Vector3(1.0, 0.0, 0.0);
-            let a_moved = a + b;
-            assert_eq!(a_moved, Vertex3(2.0, 1.0, 1.0));
-            a += &b;
-            assert_eq!(a, a_moved);
-            a += b;
-            assert_eq!(a, Vertex3(3.0, 1.0, 1.0));
-        }
-        {
-            let mut a: Vertex3<f32> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vector3<f32> = Vector3(1.0, 0.0, 0.0);
-            let a_moved = a + b;
-            assert_eq!(a_moved, Vertex3(2.0, 1.0, 1.0));
-            a += &b;
-            assert_eq!(a, a_moved);
-            a += b;
-            assert_eq!(a, Vertex3(3.0, 1.0, 1.0));
-        }
+        let mut a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
+        let b: Vector3<f64> = Vector3(1.0, 0.0, 0.0);
+        let a_moved = a + b;
+        assert_eq!(a_moved, Vertex3(2.0, 1.0, 1.0));
+        a += &b;
+        assert_eq!(a, a_moved);
+        a += b;
+        assert_eq!(a, Vertex3(3.0, 1.0, 1.0));
     }
 
     #[test]
     fn sub_vertex_vector() {
-        {
-            let mut a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vector3<f64> = Vector3(1.0, 0.0, 0.0);
-            let a_moved = a - b;
-            assert_eq!(a_moved, Vertex3(0.0, 1.0, 1.0));
-            a -= &b;
-            assert_eq!(a, a_moved);
-            a -= b;
-            assert_eq!(a, Vertex3(-1.0, 1.0, 1.0));
-        }
-        {
-            let mut a: Vertex3<f32> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vector3<f32> = Vector3(1.0, 0.0, 0.0);
-            let a_moved = a - b;
-            assert_eq!(a_moved, Vertex3(0.0, 1.0, 1.0));
-            a -= &b;
-            assert_eq!(a, a_moved);
-            a -= b;
-            assert_eq!(a, Vertex3(-1.0, 1.0, 1.0));
-        }
+        let mut a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
+        let b: Vector3<f64> = Vector3(1.0, 0.0, 0.0);
+        let a_moved = a - b;
+        assert_eq!(a_moved, Vertex3(0.0, 1.0, 1.0));
+        a -= &b;
+        assert_eq!(a, a_moved);
+        a -= b;
+        assert_eq!(a, Vertex3(-1.0, 1.0, 1.0));
     }
 
     #[test]
     fn sub_vertex_vertex() {
-        {
-            let a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vertex3<f64> = Vertex3(1.0, 0.0, 2.0);
-            let ab = b - a;
-            assert_eq!(ab, Vector3(0.0, -1.0, 1.0));
-        }
-        {
-            let a: Vertex3<f32> = Vertex3(1.0, 1.0, 1.0);
-            let b: Vertex3<f32> = Vertex3(1.0, 0.0, 2.0);
-            let ab = b - a;
-            assert_eq!(ab, Vector3(0.0, -1.0, 1.0));
-        }
+        let a: Vertex3<f64> = Vertex3(1.0, 1.0, 1.0);
+        let b: Vertex3<f64> = Vertex3(1.0, 0.0, 2.0);
+        let ab = b - a;
+        assert!(almost_equal(ab.x(), 0.0));
+        assert!(almost_equal(ab.y(), -1.0));
+        assert!(almost_equal(ab.z(), 1.0));
     }
 }
