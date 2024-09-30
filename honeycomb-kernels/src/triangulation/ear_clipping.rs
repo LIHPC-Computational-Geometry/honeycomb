@@ -1,12 +1,8 @@
-use crate::triangulation::{check_requirements, fetch_face_vertices, TriangulateError};
+use crate::triangulation::{
+    check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
+};
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
-
-macro_rules! crossp_from_verts {
-    ($a: ident, $b: ident, $c: ident) => {
-        ($b.x() - $a.x()) * ($c.y() - $b.y()) - ($b.y() - $a.y()) * ($c.x() - $b.x())
-    };
-}
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -77,23 +73,23 @@ pub fn process_cell<T: CoordsFloat>(
     while n > 3 {
         let Some(ear) = (0..n).find(|idx| {
             // we're checking whether ABC is an ear or not
-            let v1 = vertices[*idx]; // A
-            let v2 = vertices[(*idx + 1) % n]; // B
-            let v3 = vertices[(*idx + 2) % n]; // C
+            let v1 = &vertices[*idx]; // A
+            let v2 = &vertices[(*idx + 1) % n]; // B
+            let v3 = &vertices[(*idx + 2) % n]; // C
 
             // we assume the interior of the polygon is on the left side
             let is_inside = {
-                let tmp = crossp_from_verts!(v1, v2, v3);
+                let tmp = crossp_from_verts(v1, v2, v3);
                 tmp > T::epsilon()
             };
 
             let no_overlap = vertices
                 .iter()
-                .filter(|v| (**v != v1) && (**v != v2) && (**v != v3))
+                .filter(|v| (**v != *v1) && (**v != *v2) && (**v != *v3))
                 .all(|v| {
-                    let sig12v = crossp_from_verts!(v1, v2, v);
-                    let sig23v = crossp_from_verts!(v2, v3, v);
-                    let sig31v = crossp_from_verts!(v3, v1, v);
+                    let sig12v = crossp_from_verts(v1, v2, v);
+                    let sig23v = crossp_from_verts(v2, v3, v);
+                    let sig31v = crossp_from_verts(v3, v1, v);
 
                     let has_pos =
                         (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());

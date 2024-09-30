@@ -1,4 +1,6 @@
-use crate::triangulation::{check_requirements, fetch_face_vertices, TriangulateError};
+use crate::triangulation::{
+    check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
+};
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
@@ -68,9 +70,7 @@ pub fn process_cell<T: CoordsFloat>(
                 .filter(|(i_seg, _)| !((n + i_seg) % n == id || (n + i_seg - 1) % n == id))
                 .map(|(_, val)| {
                     let [v1, v2] = val else { unreachable!() };
-                    let vec_in = *v1 - *v0;
-                    let vec_out = *v2 - *v1;
-                    vec_in.x() * vec_out.y() - vec_out.x() * vec_in.y()
+                    crossp_from_verts(v0, v1, v2)
                 });
             let signum = tmp.next().map(T::signum).unwrap();
             for v in tmp {
