@@ -1,5 +1,4 @@
-use crate::triangulation::TriangulateError::UndefinedFace;
-use crate::triangulation::{check_requirements, TriangulateError};
+use crate::triangulation::{check_requirements, fetch_face_vertices, TriangulateError};
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
@@ -48,24 +47,15 @@ pub fn process_cell<T: CoordsFloat>(
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
 ) -> Result<(), TriangulateError> {
+    // early checks - check # of darts & face size
     let mut n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
-
     check_requirements(n, new_darts.len(), face_id)?;
 
     // get darts
     let mut darts: Vec<_> =
         Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
-    // get associated vertices
-    let tmp = darts
-        .iter()
-        .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
-    let mut vertices: Vec<_> = if tmp.clone().any(|v| v.is_none()) {
-        return Err(UndefinedFace(format!(
-            "face {face_id} has one or more undefined vertices"
-        )));
-    } else {
-        tmp.map(Option::unwrap).collect() // safe unwrap due to if
-    };
+    // get associated vertices - check for undefined vertices
+    let mut vertices = fetch_face_vertices(cmap, &darts, face_id)?;
 
     let mut ndart_id = new_darts[0];
     while n > 3 {
