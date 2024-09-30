@@ -1,3 +1,5 @@
+use crate::triangulation::TriangulateError::UndefinedFace;
+use crate::triangulation::{check_requirements, TriangulateError};
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
@@ -45,30 +47,27 @@ pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
-) {
+) -> Result<(), TriangulateError> {
     let mut n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
 
-    // early rets
-    if n <= 3 {
-        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
-        return;
-    }
-    if (n - 3) * 2 != new_darts.len() {
-        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
-        return;
-    }
+    check_requirements(n, new_darts.len(), face_id)?;
 
+    // get darts
     let mut darts: Vec<_> =
         Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
-    let mut vertices: Vec<_> = darts
+    // get associated vertices
+    let tmp = darts
         .iter()
-        .map(|dart_id| {
-            cmap.vertex(cmap.vertex_id(*dart_id))
-                .expect("E: found a topological vertex with no associated coordinates")
-        })
-        .collect();
-    let mut ndart_id = new_darts[0];
+        .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
+    let mut vertices: Vec<_> = if tmp.clone().any(|v| v.is_none()) {
+        return Err(UndefinedFace(format!(
+            "face {face_id} has one or more undefined vertices"
+        )));
+    } else {
+        tmp.map(Option::unwrap).collect() // safe unwrap due to if
+    };
 
+    let mut ndart_id = new_darts[0];
     while n > 3 {
         let Some(ear) = (0..n).find(|idx| {
             // we're checking whether ABC is an ear or not
@@ -99,8 +98,8 @@ pub fn process_cell<T: CoordsFloat>(
                 });
             is_inside && no_overlap
         }) else {
-            println!("W: could not find ear to triangulate cell - skipping face {face_id}");
-            return;
+            // println!("W: could not find ear to triangulate cell - skipping face {face_id}");
+            return Err(TriangulateError::NoEar);
         };
 
         // edit cell; we use the nd1/nd2 edge to create a triangle from the ear
@@ -131,4 +130,6 @@ pub fn process_cell<T: CoordsFloat>(
         // update n
         n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), nd2).count();
     }
+
+    Ok(())
 }
