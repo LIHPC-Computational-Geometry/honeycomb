@@ -18,13 +18,14 @@ mod fan;
 
 // ------ PUBLIC RE-EXPORTS
 
-use crate::triangulation::TriangulateError::UndefinedFace;
 pub use ear_clipping::process_cell as earclip_cell;
 pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
+
+// ------ CONTENT
+
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
-// ------ CONTENT
 
 /// Error-modeling enum for triangulation routines.
 pub enum TriangulateError {
@@ -114,7 +115,7 @@ fn fetch_face_vertices<T: CoordsFloat>(
         .iter()
         .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
     if tmp.clone().any(|v| v.is_none()) {
-        Err(UndefinedFace(format!(
+        Err(TriangulateError::UndefinedFace(format!(
             "face {face_id} has one or more undefined vertices"
         )))
     } else {
