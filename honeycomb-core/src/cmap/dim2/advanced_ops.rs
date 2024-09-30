@@ -261,38 +261,28 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This implementation is 2D specific.
     /// </div>
     ///
-    /// This method takes all darts of an edge and rebuild connections in order to create a new
-    /// point on this edge. The position of the point defaults to the midway point, but it can
-    /// optionally be specified.
+    /// This method is a variant of [`split_edge`] where inline dart allocations are removed.
     ///
-    /// In order to minimize editing of embedded data, the original darts are kept to their
-    /// original vertices while the new darts are used to model the new point.
-    ///
-    /// For an illustration of both principles, refer to the example.
+    /// The method follows the same logic as the regular [`split_edge`], the only difference being
+    /// that the new darts won't be added to the map on the fly. Instead, the method uses the two
+    /// darts passed as argument (`new_darts`) to build the new segments. Consequently, there is no
+    /// guarantee that IDs will be consistent between this and the regular method.
     ///
     /// # Arguments
     ///
     /// - `edge_id: EdgeIdentifier` -- Edge to split in two.
+    /// - `new_darts: (DartIdentifier, DartIdentifier)` -- Dart IDs used to build the new segments.
     /// - `midpoint_vertex: Option<T>` -- Relative position of the new vertex, starting from the
     ///   vertex of the dart sharing `edge_id` as its identifier.
+    ///
+    /// ## Dart IDs Requirements & Usage
+    ///
+    /// TODO
     ///
     /// # Panics
     ///
     /// This method may panic if the edge upon which the operation is performed does not have two
     /// defined vertices.
-    ///
-    /// # Example
-    ///
-    /// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
-    /// `(0.0, 0.0)` and `(2.0, 0.0)`, calling `map.split_edge(1, Some(0.2))` would result in the
-    /// creation of two new darts, a new vertex (ID `3`) at position `(0.4, 0.0)` and the following
-    /// topology:
-    ///
-    /// ```text
-    ///    +----1---->              +-1-> +-3->     |
-    ///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
-    ///    <----2----+              <-4-- <-2-+     |
-    /// ```
     pub fn split_edge_noalloc(
         &mut self,
         edge_id: EdgeIdentifier,
@@ -387,63 +377,27 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This implementation is 2D specific.
     /// </div>
     ///
+    /// This method is a variant of [`splitn_edge`] where inline dart allocations are removed.
+    ///
+    /// The method follows the same logic as the regular [`splitn_edge`], the only difference being
+    /// that the new darts won't be added to the map on the fly. Instead, the method uses darts
+    /// passed as argument (`new_darts`) to build the new segments. Consequently, there is no
+    /// guarantee that IDs will be consistent between this and the regular method.
+    ///
     /// # Arguments
     ///
     /// - `edge_id: EdgeIdentifier` -- Edge to split in two.
-    /// - `midpoint_vertices: I` -- Relative positions of new vertices, starting from the
+    /// - `new_darts: &[DartIdentifier]` -- Dart IDs used to build the new segments.
+    /// - `midpoint_vertices: &[T]` -- Relative positions of new vertices, starting from the
     ///   vertex of the dart sharing `edge_id` as its identifier.
     ///
-    /// ## Generics
+    /// ## Dart IDs Requirements & Usage
     ///
-    /// - `I: Iterator<Item = T>` -- Iterator over `T` values. These should be in the `]0; 1[` open range.
+    /// TODO
     ///
     /// # Panics
     ///
     /// This method may panic if the edge upon which the operation is performed does not have two defined vertices.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
-    /// // before
-    /// //    <--2---
-    /// //  1         2
-    /// //    ---1-->
-    /// let mut map: CMap2<f64> = CMapBuilder::default()
-    ///                             .n_darts(2)
-    ///                             .build()
-    ///                             .unwrap();
-    /// map.two_link(1, 2);
-    /// map.insert_vertex(1, (0.0, 0.0));
-    /// map.insert_vertex(2, (1.0, 0.0));
-    /// // split
-    /// let nds = map.add_free_darts(6);
-    /// let new_darts: Vec<_> = (nds..nds+6).collect();
-    /// map.splitn_edge_no_alloc(1, &new_darts ,&[0.25, 0.50, 0.75]);
-    /// // after
-    /// //    <-<-<-<
-    /// //  1 -3-4-5- 2
-    /// //    >->->->
-    /// assert_eq!(&new_darts[0..3], &[3, 4, 5]);
-    /// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-    /// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-    /// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
-    ///
-    /// assert_eq!(map.beta::<1>(1), 3);
-    /// assert_eq!(map.beta::<1>(3), 4);
-    /// assert_eq!(map.beta::<1>(4), 5);
-    /// assert_eq!(map.beta::<1>(5), NULL_DART_ID);
-    ///
-    /// assert_eq!(map.beta::<1>(2), 6);
-    /// assert_eq!(map.beta::<1>(6), 7);
-    /// assert_eq!(map.beta::<1>(7), 8);
-    /// assert_eq!(map.beta::<1>(8), NULL_DART_ID);
-    ///
-    /// assert_eq!(map.beta::<2>(1), 8);
-    /// assert_eq!(map.beta::<2>(3), 7);
-    /// assert_eq!(map.beta::<2>(4), 6);
-    /// assert_eq!(map.beta::<2>(5), 2);
-    /// ```
     pub fn splitn_edge_no_alloc(
         &mut self,
         edge_id: EdgeIdentifier,
