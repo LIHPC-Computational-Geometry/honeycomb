@@ -71,7 +71,7 @@ pub fn check_requirements(
     Ok(())
 }
 
-pub fn fetch_face_vertices<T: CoordsFloat>(
+fn fetch_face_vertices<T: CoordsFloat>(
     cmap: &CMap2<T>,
     darts: &[DartIdentifier],
     face_id: FaceIdentifier,

@@ -1,3 +1,4 @@
+use crate::triangulation::{check_requirements, fetch_face_vertices, TriangulateError};
 use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
@@ -33,29 +34,17 @@ pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
-) {
+) -> Result<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
     let darts: Vec<_> =
         Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
     let n = darts.len();
 
-    // early rets
-    if n <= 3 {
-        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
-        return;
-    }
-    if (n - 3) * 2 != new_darts.len() {
-        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
-        return;
-    }
+    // early checks - check # of darts & face size
+    check_requirements(n, new_darts.len(), face_id)?;
 
-    let vertices: Vec<_> = darts
-        .iter()
-        .map(|dart_id| {
-            cmap.vertex(cmap.vertex_id(*dart_id))
-                .expect("E: found a topological vertex with no associated coordinates")
-        })
-        .collect();
+    // get associated vertices - check for undefined vertices
+    let vertices = fetch_face_vertices(cmap, &darts, face_id)?;
 
     // iterating by ref so that we can still access the list
     let star = darts
@@ -104,8 +93,11 @@ pub fn process_cell<T: CoordsFloat>(
         cmap.one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
         cmap.replace_vertex(cmap.vertex_id(*sdart), v0);
     } else {
-        println!("W: face {face_id} isn't fannable -- skipping triangulation");
+        // println!("W: face {face_id} isn't fannable -- skipping triangulation");
+        return Err(TriangulateError::NonFannable);
     }
+
+    Ok(())
 }
 
 /// Triangulates a face using a fan triangulation method.
@@ -139,18 +131,11 @@ pub fn process_convex_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
-) {
+) -> Result<(), TriangulateError> {
     let n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
 
     // early rets
-    if n <= 3 {
-        println!("I: face {face_id} is an {n}-gon -- skipping triangulation");
-        return;
-    }
-    if (n - 3) * 2 != new_darts.len() {
-        println!("W: not enough pre-allocated darts to triangulate face {face_id} -- skipping triangulation");
-        return;
-    }
+    check_requirements(n, new_darts.len(), face_id)?;
 
     // we assume the polygon is convex (== starrable from any vertex)
     let sdart = face_id as DartIdentifier;
@@ -173,4 +158,6 @@ pub fn process_convex_cell<T: CoordsFloat>(
     }
     cmap.one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
     cmap.replace_vertex(cmap.vertex_id(sdart), v0);
+
+    Ok(())
 }

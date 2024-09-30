@@ -47,13 +47,14 @@ pub fn process_cell<T: CoordsFloat>(
     face_id: FaceIdentifier,
     new_darts: &[DartIdentifier],
 ) -> Result<(), TriangulateError> {
-    // early checks - check # of darts & face size
-    let mut n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
-    check_requirements(n, new_darts.len(), face_id)?;
-
-    // get darts
+    // fetch darts using a custom orbit so that they're ordered
     let mut darts: Vec<_> =
         Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
+    let mut n = darts.len();
+
+    // early checks - check # of darts & face size
+    check_requirements(n, new_darts.len(), face_id)?;
+
     // get associated vertices - check for undefined vertices
     let mut vertices = fetch_face_vertices(cmap, &darts, face_id)?;
 
