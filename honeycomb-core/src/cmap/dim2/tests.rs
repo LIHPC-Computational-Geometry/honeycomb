@@ -741,17 +741,10 @@ mod split_edge_noalloc {
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
-        let nds = map.add_free_darts(3);
+        let nds = map.add_free_darts(6);
         map.splitn_edge_no_alloc(
             1,
-            &[
-                nds,
-                nds + 1,
-                nds + 2,
-                NULL_DART_ID,
-                NULL_DART_ID,
-                NULL_DART_ID,
-            ],
+            &[nds, nds + 1, nds + 2, nds + 3, nds + 4, nds + 5],
             &[0.25, 0.50, 0.75],
         );
     }
