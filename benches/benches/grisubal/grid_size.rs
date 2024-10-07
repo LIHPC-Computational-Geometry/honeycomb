@@ -12,7 +12,7 @@ use honeycomb_benches::FloatType;
 pub fn criterion_benchmark(c: &mut Criterion) {
     // passing args to cargo bench filters bench instead of actually reading args;
     // the path to the file needs to be hardcoded (I think?)
-    let path = "path/to/file.vtk"; // REPLACE STR WITH A PATH TO AN ACTUAL VTK FILE
+    let path = "examples/shape.vtk"; // REPLACE STR WITH A PATH TO AN ACTUAL VTK FILE
 
     let mut group = c.benchmark_group("grisubal-grid-size");
 
