@@ -6,7 +6,81 @@
 
 **This update contains breaking changes**
 
+### Workspace
+
+*new:*
+
+- add a new Cargo profile dedicated to profiling (e.g. `perf`, flamegraphes, ...) by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/157
+
+*refactor:*
+- replace some explicit `panic!` and `unwrap` calls with cleaner alternatives by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/174 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/176
+
+*deps:*
+
+- bump codecov/codecov-action from 4.5.0 to 4.6.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/182
+- minimize dependency tree by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/165
+
+
 ### Published crates
+
+#### honeycomb (new member, not yet published)
+
+<sup>main crate</sup>
+
+This is a reexport-only crate used to provide a single, clean user-facing API
+
+added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
+
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+
+- add utility method `set_beta` to `CMap2` by @imrn99 in
+  https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/170
+- add no-allocation variants of `split_edge` & `splitn_edge` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/180
+
+*refactor:*
+
+- **reorganize crate content and add a `prelude` module** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/159
+- **replace `from_ *`function of `CMapBuilder` by trait impls** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/163
+- **remove `Orbit2::is_isolated`** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/167
+- **remove lifetime from `OrbitPolicy` & update `AttributeBind`** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/173
+- **remove `CMapError`** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/171
+- improve some error enums by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/169
+- replace attribute-related panics with warnings by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/178
+- **remove panics from manager storage accesses** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/179
+
+*fix:*
+
+- correct face computation in serializing code by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/168
+
+
+#### honeycomb-kernels (new member)
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+- implement polygon triangulation routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/177
+- setup grisubal benchmark framework by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/164
 
 #### honeycomb-render
 
@@ -16,6 +90,37 @@
 
 - rewrite render tool using `bevy` instead of `wgpu` by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/144
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+- setup grisubal benchmark framework by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/164
+
+
+#### honeycomb-examples
+
+<sup>project examples</sup>
+
+- **improve and filter-out examples** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/156
+
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+*refactor:*
+- update user guide structure & content by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/161
+- update rustdoc & user guide by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/166
+
 
 ---
 
