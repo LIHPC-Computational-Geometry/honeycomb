@@ -16,12 +16,19 @@ _single_precision = []
 
 [dependencies]
 cfg-if.workspace = true
+honeycomb.workspace = true
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
 criterion = { workspace = true, features = ["html_reports"] }
 iai-callgrind.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
+
+# binaries
+
+[[bin]]
+name = "grisubal"
+path = "src/grisubal.rs"
 
 # benches
 
@@ -68,4 +75,16 @@ harness = false
 [[bench]]
 name = "splitsquaremap-shift"
 path = "benches/splitsquaremap/shift.rs"
+harness = false
+
+## Kernels benchmarks
+
+[[bench]]
+name = "grisubal"
+path = "benches/grisubal/time.rs"
+harness = false
+
+[[bench]]
+name = "grisubal_grid_size"
+path = "benches/grisubal/grid_size.rs"
 harness = false

@@ -17,6 +17,10 @@ use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
 };
+
+#[cfg(feature = "profiling")]
+use super::{Section, TIMERS};
+
 // ------ CONTENT
 
 macro_rules! make_geometry_vertex {
@@ -57,6 +61,16 @@ macro_rules! up_intersec {
     }};
 }
 
+#[cfg(feature = "profiling")]
+macro_rules! unsafe_time_section {
+    ($inst: ident, $sec: expr) => {
+        unsafe {
+            TIMERS[$sec as usize] = Some($inst.elapsed());
+            $inst = std::time::Instant::now();
+        }
+    };
+}
+
 /// Inner building routine.
 ///
 /// This function builds a combinatorial map from the described geometry. The returned
@@ -76,6 +90,9 @@ pub fn build_mesh<T: CoordsFloat>(
     [nx, ny]: [usize; 2],
     origin: Vertex2<T>,
 ) -> CMap2<T> {
+    #[cfg(feature = "profiling")]
+    let mut instant = std::time::Instant::now();
+
     // compute grid characteristics
     // build grid descriptor
     let ogrid = GridDescriptor::default()
@@ -92,6 +109,9 @@ pub fn build_mesh<T: CoordsFloat>(
         .build()
         .expect("E: unreachable"); // urneachable because grid dims are valid
 
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshInit);
+
     // process the geometry
 
     // STEP 1
@@ -102,11 +122,17 @@ pub fn build_mesh<T: CoordsFloat>(
     let (new_segments, intersection_metadata) =
         generate_intersection_data(&cmap, geometry, [nx, ny], [cx, cy], origin);
 
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshIntersecData);
+
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
     // indexing with the input Vec, meaning that indices in GeometryVertex::Intersec instances are still valid.
 
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshInsertIntersec);
 
     // STEP 3
     // now that we have a list of "atomic" (non-dividable) segments, we can use it to build the actual segments that
@@ -115,6 +141,9 @@ pub fn build_mesh<T: CoordsFloat>(
 
     let edges = generate_edge_data(&cmap, geometry, &new_segments, &intersection_darts);
 
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshEdgeData);
+
     // STEP 4
     // now that we have some segments that are directly defined between intersections, we can use some N-maps'
     // properties to easily build the geometry into the map.
@@ -122,6 +151,11 @@ pub fn build_mesh<T: CoordsFloat>(
     // instances are very precisely set, and can therefore be used to create all the new connectivities.
 
     insert_edges_in_map(&mut cmap, &edges);
+
+    #[cfg(feature = "profiling")]
+    unsafe {
+        TIMERS[Section::BuildMeshInsertEdge as usize] = Some(instant.elapsed());
+    }
 
     // return result
     cmap
