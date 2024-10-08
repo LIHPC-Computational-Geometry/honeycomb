@@ -14,6 +14,7 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/157
 
 *refactor:*
+
 - replace some explicit `panic!` and `unwrap` calls with cleaner alternatives by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/174 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/176
 
@@ -23,6 +24,8 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/182
 - minimize dependency tree by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/165
+- bump `egui_dock` from 0.13.0 to 0.14.0 & `bevy_egui` from 0.29.0 to 0.30.0 by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/187
 
 
 ### Published crates
@@ -77,6 +80,7 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 <sup>implementations of meshing kernels using combinatorial maps</sup>
 
 *new:*
+
 - implement polygon triangulation routines by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/177
 - setup grisubal benchmark framework by @imrn99
@@ -98,6 +102,7 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 <sup>core structures & methods benchmarks</sup>
 
 *new:*
+
 - setup grisubal benchmark framework by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/164
 
@@ -116,6 +121,7 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 aspects of the project</sup>
 
 *refactor:*
+
 - update user guide structure & content by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/161
 - update rustdoc & user guide by @imrn99
