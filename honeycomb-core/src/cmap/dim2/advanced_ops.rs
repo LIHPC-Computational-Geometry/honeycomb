@@ -323,12 +323,22 @@ fn inner_split<T: CoordsFloat>(
     if base_dart2 == NULL_DART_ID {
         let b1d1_old = cmap.beta::<1>(base_dart1);
         let b1d1_new = new_darts.0;
-        let v1 = cmap // (*)
+        let (Some(v1), Some(v2)) = (
+            cmap.vertex(cmap.vertex_id(base_dart1)),
+            cmap.vertex(cmap.vertex_id(b1d1_old)),
+        ) else {
+            println!("W: attempt to split an edge that is not fully defined in the first place");
+            println!("   skipping split...");
+            return;
+        };
+        /*
+        let v1 = cmap
             .vertex(cmap.vertex_id(base_dart1))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
         let v2 = cmap // (*)
             .vertex(cmap.vertex_id(b1d1_old))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
+        */
         // unsew current dart
         // self.one_unlink(base_dart1);
         cmap.betas[base_dart1 as usize][1] = 0;
@@ -346,12 +356,22 @@ fn inner_split<T: CoordsFloat>(
         let b1d1_old = cmap.beta::<1>(base_dart1);
         let b1d2_old = cmap.beta::<1>(base_dart2);
         let (b1d1_new, b1d2_new) = new_darts;
+        let (Some(v1), Some(v2)) = (
+            cmap.vertex(cmap.vertex_id(base_dart1)),
+            cmap.vertex(cmap.vertex_id(base_dart2)),
+        ) else {
+            println!("W: attempt to split an edge that is not fully defined in the first place");
+            println!("   skipping split...");
+            return;
+        };
+        /*
         let v1 = cmap // (*)
             .vertex(cmap.vertex_id(base_dart1))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
         let v2 = cmap // (*)
             .vertex(cmap.vertex_id(base_dart2))
             .expect("E: attempt to split an edge that is not fully defined in the first place");
+        */
         // unsew current darts
         // self.one_unlink(base_dart1);
         cmap.betas[base_dart1 as usize][1] = 0;
@@ -392,6 +412,19 @@ fn inner_splitn<T: CoordsFloat>(
 
     // (*): unwrapping is ok since splitting an edge that does not have both its vertices
     //      defined is undefined behavior, therefore panic
+    let (Some(v1), Some(v2)) = (
+        cmap.vertex(cmap.vertex_id(base_dart1)),
+        cmap.vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
+            b1d1_old
+        } else {
+            base_dart2
+        })),
+    ) else {
+        println!("W: attempt to split an edge that is not fully defined in the first place");
+        println!("   skipping split...");
+        return;
+    };
+    /*
     let v1 = cmap // (*)
         .vertex(cmap.vertex_id(base_dart1))
         .expect("E: attempt to split an edge that is not fully defined in the first place");
@@ -402,6 +435,7 @@ fn inner_splitn<T: CoordsFloat>(
             base_dart2
         }))
         .expect("E: attempt to split an edge that is not fully defined in the first place");
+    */
     let seg = v2 - v1;
 
     // unsew current dart
