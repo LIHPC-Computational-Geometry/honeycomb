@@ -11,7 +11,7 @@ use crate::prelude::{CoordsError, CoordsFloat};
 /// ```
 /// # use honeycomb_core::prelude::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::prelude::Vector3;
+/// use honeycomb_core::geometry::Vector3;
 ///
 /// let unit_x = Vector3::unit_x();
 /// let unit_y = Vector3::unit_y();

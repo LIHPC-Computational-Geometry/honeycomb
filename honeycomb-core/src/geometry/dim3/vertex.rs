@@ -3,7 +3,8 @@
 //! This module contains all code used to model vertices.
 
 // ------ IMPORTS
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vector3, VertexIdentifier};
+use super::vector::Vector3;
+use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, VertexIdentifier};
 use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
 // ------ CONTENT
@@ -18,7 +19,7 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 /// ```
 /// # use honeycomb_core::prelude::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::prelude::{Vector3, Vertex3};
+/// use honeycomb_core::geometry::{Vector3, Vertex3};
 ///
 /// let v1 = Vertex3(1.0, 0.0, 0.0);
 /// let v2 = Vertex3(1.0, 1.0, 1.0);
@@ -104,7 +105,7 @@ impl<T: CoordsFloat> Vertex3<T> {
     /// # Example
     ///
     /// ```rust
-    /// use honeycomb_core::prelude::Vertex3;
+    /// use honeycomb_core::geometry::Vertex3;
     ///
     /// let far_far_away: Vertex3<f64> = Vertex3(2.0, 2.0, 2.0);
     /// let origin: Vertex3<f64> = Vertex3::default();

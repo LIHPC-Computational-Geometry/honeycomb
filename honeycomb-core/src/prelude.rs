@@ -6,7 +6,7 @@ pub use crate::cmap::{
     OrbitPolicy, VertexIdentifier, VolumeIdentifier, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID,
     NULL_VERTEX_ID, NULL_VOLUME_ID,
 };
-pub use crate::geometry::{CoordsError, CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
+pub use crate::geometry::{CoordsError, CoordsFloat, Vector2, Vertex2};
 
 // ------ FEATURE-GATED RE-EXPORTS
 
