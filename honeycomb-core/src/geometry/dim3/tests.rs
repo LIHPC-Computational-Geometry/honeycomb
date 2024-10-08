@@ -130,6 +130,47 @@ mod vertex {
 
     use super::{Vector3, Vertex3};
 
+    #[test]
+    fn test_getters() {
+        let vertex = Vertex3::from((1.0, 2.0, 3.0));
+        almost_equal(vertex.x(), 1.0);
+        almost_equal(vertex.y(), 2.0);
+        almost_equal(vertex.z(), 3.0);
+    }
+
+    #[test]
+    fn test_into_inner() {
+        let vertex = Vertex3(1.0_f32, 2.0, 3.0);
+        let (x, y, z) = vertex.into_inner();
+        almost_equal(x, 1.0);
+        almost_equal(y, 2.0);
+        almost_equal(z, 3.0);
+    }
+
+    #[test]
+    fn test_average() {
+        let v1 = Vertex3(0.0, 0.0, 0.0);
+        let v2 = Vertex3(2.0, 4.0, 6.0);
+        let avg = Vertex3::average(&v1, &v2);
+        assert_eq!(avg, Vertex3(1.0, 2.0, 3.0));
+    }
+
+    #[test]
+    fn test_average_with_negative_values() {
+        let v1 = Vertex3(-1.0, -2.0, -3.0);
+        let v2 = Vertex3(1.0, 2.0, 3.0);
+        let avg = Vertex3::average(&v1, &v2);
+        assert_eq!(avg, Vertex3(0.0_f32, 0.0_f32, 0.0_f32));
+    }
+
+    #[test]
+    fn test_average_with_different_types() {
+        let v1 = Vertex3(0.0, 1.0, 2.0);
+        let v2 = Vertex3(2.0, 3.0, 4.0);
+        let avg = Vertex3::average(&v1, &v2);
+        assert_eq!(avg, Vertex3(1.0_f32, 2.0_f32, 3.0_f32));
+    }
+
     // tests
     #[test]
     fn add_vertex_vector() {
