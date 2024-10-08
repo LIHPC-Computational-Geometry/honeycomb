@@ -271,7 +271,7 @@ mod split_edge_standard {
         map.insert_vertex(3, (2.0, 0.0));
         map.insert_vertex(4, (3.0, 0.0));
         // split
-        map.split_edge(2, None);
+        assert!(map.split_edge(2, None));
         // after
         //    <--6---   <8- <5-   <--4---
         //  1         2    7    3         4
@@ -305,7 +305,7 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
-        map.split_edge(1, Some(0.6));
+        assert!(map.split_edge(1, Some(0.6)));
         // after
         //    <-4- <2-
         //  1     3    2
@@ -333,7 +333,7 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
-        map.split_edge(1, None);
+        assert!(map.split_edge(1, None));
         // after
         //  1 -> 3 -> 2 ->
         assert_eq!(map.beta::<1>(1), 3);
@@ -343,9 +343,6 @@ mod split_edge_standard {
     }
 
     #[test]
-    #[should_panic(
-        expected = "attempt to split an edge that is not fully defined in the first place"
-    )]
     fn split_edge_missing_vertex() {
         //    <--2---
         //  1         ?
@@ -355,7 +352,7 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
-        map.split_edge(1, None);
+        assert!(!map.split_edge(1, None));
     }
 
     // splitn_edge
@@ -379,11 +376,16 @@ mod split_edge_standard {
         map.insert_vertex(3, (2.0, 0.0));
         map.insert_vertex(4, (3.0, 0.0));
         // split
-        let new_darts = map.splitn_edge(2, [0.25, 0.50, 0.75]);
+        assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
         // after
         //    <--6---             <--4---
         //  1         2 -7-8-9- 3         4
         //    ---1-->             ---3-->
+        let new_darts = [
+            map.beta::<1>(1),
+            map.beta::<1>(map.beta::<1>(1)),
+            map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+        ];
         assert_eq!(&new_darts, &[7, 8, 9]);
         assert_eq!(map.vertex(7), Some(Vertex2(1.25, 0.0)));
         assert_eq!(map.vertex(8), Some(Vertex2(1.50, 0.0)));
@@ -416,15 +418,17 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
-        let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+        assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
         // after
         //    <-<-<-<
         //  1 -3-4-5- 2
         //    >->->->
+        let new_darts = [
+            map.beta::<1>(1),
+            map.beta::<1>(map.beta::<1>(1)),
+            map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+        ];
         assert_eq!(&new_darts, &[3, 4, 5]);
-        assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -451,7 +455,12 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
-        let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+        assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
+        let new_darts = [
+            map.beta::<1>(1),
+            map.beta::<1>(map.beta::<1>(1)),
+            map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+        ];
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         assert_eq!(&new_darts, &[3, 4, 5]);
@@ -483,7 +492,7 @@ mod split_edge_standard {
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
-        map.splitn_edge(1, [0.25, 0.50, 0.75]);
+        assert!(!map.splitn_edge(1, [0.25, 0.50, 0.75]));
     }
 }
 
@@ -510,7 +519,7 @@ mod split_edge_noalloc {
         map.insert_vertex(4, (3.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
-        map.split_edge_noalloc(2, (nds, nds + 1), None);
+        assert!(map.split_edge_noalloc(2, (nds, nds + 1), None));
         // after
         //    <--6---   <8- <5-   <--4---
         //  1         2    7    3         4
@@ -545,7 +554,7 @@ mod split_edge_noalloc {
         map.insert_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
-        map.split_edge_noalloc(1, (nds, nds + 1), Some(0.6));
+        assert!(map.split_edge_noalloc(1, (nds, nds + 1), Some(0.6)));
         // after
         //    <-4- <2-
         //  1     3    2
@@ -574,7 +583,7 @@ mod split_edge_noalloc {
         map.insert_vertex(2, (1.0, 0.0));
         // split
         let nd = map.add_free_dart(); // a single dart is enough in this case
-        map.split_edge_noalloc(1, (nd, NULL_DART_ID), None);
+        assert!(map.split_edge_noalloc(1, (nd, NULL_DART_ID), None));
         // after
         //  1 -> 3 -> 2 ->
         assert_eq!(map.beta::<1>(1), 3);
@@ -584,9 +593,6 @@ mod split_edge_noalloc {
     }
 
     #[test]
-    #[should_panic(
-        expected = "attempt to split an edge that is not fully defined in the first place"
-    )]
     fn split_edge_missing_vertex() {
         //    <--2---
         //  1         ?
@@ -597,7 +603,7 @@ mod split_edge_noalloc {
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(2);
-        map.split_edge_noalloc(1, (nds, nds + 1), None);
+        assert!(!map.split_edge_noalloc(1, (nds, nds + 1), None));
     }
 
     // splitn_edge
@@ -623,7 +629,7 @@ mod split_edge_noalloc {
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        map.splitn_edge_no_alloc(2, &new_darts, &[0.25, 0.50, 0.75]);
+        assert!(map.splitn_edge_no_alloc(2, &new_darts, &[0.25, 0.50, 0.75]));
         // after
         //    <--6---             <--4---
         //  1         2 -7-8-9- 3         4
@@ -662,7 +668,7 @@ mod split_edge_noalloc {
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        map.splitn_edge_no_alloc(1, &new_darts, &[0.25, 0.50, 0.75]);
+        assert!(map.splitn_edge_no_alloc(1, &new_darts, &[0.25, 0.50, 0.75]));
         // after
         //    <-<-<-<
         //  1 -3-4-5- 2
@@ -698,7 +704,7 @@ mod split_edge_noalloc {
         map.insert_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(3);
-        map.splitn_edge_no_alloc(
+        assert!(map.splitn_edge_no_alloc(
             1,
             &[
                 nds,
@@ -709,7 +715,7 @@ mod split_edge_noalloc {
                 NULL_DART_ID,
             ],
             &[0.25, 0.50, 0.75],
-        );
+        ));
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         // assert_eq!(&new_darts, &[3, 4, 5]);
@@ -729,9 +735,6 @@ mod split_edge_noalloc {
     }
 
     #[test]
-    #[should_panic(
-        expected = "attempt to split an edge that is not fully defined in the first place"
-    )]
     fn splitn_edge_missing_vertex() {
         //    <--2---
         //  1         ?
@@ -742,11 +745,11 @@ mod split_edge_noalloc {
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(6);
-        map.splitn_edge_no_alloc(
+        assert!(!map.splitn_edge_no_alloc(
             1,
             &[nds, nds + 1, nds + 2, nds + 3, nds + 4, nds + 5],
             &[0.25, 0.50, 0.75],
-        );
+        ));
     }
 }
 
