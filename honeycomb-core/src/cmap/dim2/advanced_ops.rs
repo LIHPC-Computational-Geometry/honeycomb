@@ -97,11 +97,16 @@ impl<T: CoordsFloat> CMap2<T> {
     /// map.insert_vertex(1, (0.0, 0.0));
     /// map.insert_vertex(2, (1.0, 0.0));
     /// // split
-    /// let new_darts = map.splitn_edge(1, [0.25, 0.50, 0.75]);
+    /// assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
     /// // after
     /// //    <-<-<-<
     /// //  1 -3-4-5- 2
     /// //    >->->->
+    /// let new_darts = [
+    ///     map.beta::<1>(1),
+    ///     map.beta::<1>(map.beta::<1>(1)),
+    ///     map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+    /// ];
     /// assert_eq!(&new_darts, &[3, 4, 5]);
     /// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
     /// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));

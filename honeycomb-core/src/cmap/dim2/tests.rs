@@ -376,15 +376,15 @@ mod split_edge_standard {
         map.insert_vertex(3, (2.0, 0.0));
         map.insert_vertex(4, (3.0, 0.0));
         // split
-        assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
+        assert!(map.splitn_edge(2, [0.25, 0.50, 0.75]));
         // after
         //    <--6---             <--4---
         //  1         2 -7-8-9- 3         4
         //    ---1-->             ---3-->
         let new_darts = [
-            map.beta::<1>(1),
-            map.beta::<1>(map.beta::<1>(1)),
-            map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+            map.beta::<1>(2),
+            map.beta::<1>(map.beta::<1>(2)),
+            map.beta::<1>(map.beta::<1>(map.beta::<1>(2))),
         ];
         assert_eq!(&new_darts, &[7, 8, 9]);
         assert_eq!(map.vertex(7), Some(Vertex2(1.25, 0.0)));
@@ -480,9 +480,6 @@ mod split_edge_standard {
     }
 
     #[test]
-    #[should_panic(
-        expected = "attempt to split an edge that is not fully defined in the first place"
-    )]
     fn splitn_edge_missing_vertex() {
         //    <--2---
         //  1         ?
