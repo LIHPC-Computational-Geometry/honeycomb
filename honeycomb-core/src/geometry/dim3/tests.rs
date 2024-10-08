@@ -46,15 +46,18 @@ mod vector {
         ($id:ident, $t:ty) => {
             #[test]
             fn $id() {
-                let along_x = Vector3::<$t>::unit_x() * 15.0;
-                let along_y = Vector3::<$t>::unit_y() * 10.0;
-                let along_z = Vector3::<$t>::unit_z() * 5.0;
+                let mut along_x = Vector3::<$t>::unit_x() * 15.0;
+                let mut along_y = Vector3::<$t>::unit_y() * 10.0;
+                let mut along_z = Vector3::<$t>::unit_z() * 5.0;
                 assert!(almost_equal(along_x.dot(&along_y), 0.0));
                 assert!(almost_equal(along_x.dot(&along_z), 0.0));
                 assert!(almost_equal(along_y.dot(&along_z), 0.0));
-                assert!(almost_equal(along_x.dot(&Vector3::unit_x()), 15.0));
-                assert!(almost_equal(along_y.dot(&Vector3::unit_y()), 10.0));
-                assert!(almost_equal(along_z.dot(&Vector3::unit_z()), 5.0));
+                along_x /= 15.0;
+                along_y *= 10.0;
+                along_z -= Vector3::<$t>::unit_z();
+                assert!(almost_equal(along_x.dot(&Vector3::unit_x()), 1.0));
+                assert!(almost_equal(along_y.dot(&Vector3::unit_y()), 100.0));
+                assert!(almost_equal(along_z.dot(&Vector3::unit_z()), 4.0));
             }
         };
     }
@@ -122,6 +125,15 @@ mod vector {
     generate_unit_dir_test!(unit_dir_double, f64);
     generate_cross_product_test!(cross_product_simple, f32);
     generate_cross_product_test!(cross_product_double, f64);
+
+    #[test]
+    fn test_into_inner() {
+        let v = Vector3::from((1.0_f32, 2.0, 3.0));
+        let (x, y, z) = v.into_inner();
+        almost_equal(x, 1.0);
+        almost_equal(y, 2.0);
+        almost_equal(z, 3.0);
+    }
 }
 
 // --- vertex
