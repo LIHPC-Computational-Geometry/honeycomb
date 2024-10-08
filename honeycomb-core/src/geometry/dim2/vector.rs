@@ -4,7 +4,7 @@
 
 // ------ IMPORTS
 
-use super::{CoordsError, CoordsFloat};
+use super::super::{CoordsError, CoordsFloat};
 
 // ------ CONTENT
 
