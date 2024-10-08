@@ -46,7 +46,7 @@ vtkio = { version = "0.7.0-rc1", default-features = false }
 
 # benchmarks
 criterion = "0.5.1"
-iai-callgrind = "0.13.0"
+iai-callgrind = "0.14.0"
 rand = "0.9.0-alpha.2"
 
 # render
