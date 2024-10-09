@@ -33,6 +33,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `midpoint_vertex: Option<T>` -- Relative position of the new vertex, starting from the
     ///   vertex of the dart sharing `edge_id` as its identifier.
     ///
+    /// # Return
+    ///
+    /// This method will return:
+    /// - `true` if the operation is successful & the edge was split
+    /// - `false` if the operation fails & the edge is left unchanged. It can fail if:
+    ///   - one or both vertices of the edge is undefined
+    ///
     /// # Example
     ///
     /// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
@@ -80,6 +87,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ## Generics
     ///
     /// - `I: Iterator<Item = T>` -- Iterator over `T` values. These should be in the `]0; 1[` open range.
+    ///
+    /// # Return
+    ///
+    /// This method will return:
+    /// - `true` if the operation is successful & the edge was split
+    /// - `false` if the operation fails & the edge is left unchanged. It can fail if:
+    ///   - one or both vertices of the edge is undefined
     ///
     /// # Example
     ///
@@ -189,6 +203,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the second dart of the tuple will only be used if the original edge is made of two darts;
     ///   if that is not the case, the second dart ID can be `NULL_DART_ID`.
     /// - both of these darts should be free
+    ///
+    /// # Return
+    ///
+    /// This method will return:
+    /// - `true` if the operation is successful & the edge was split
+    /// - `false` if the operation fails & the edge is left unchanged. It can fail if:
+    ///   - one or both vertices of the edge is undefined
+    ///   - if darts passed as argument do not match the above requirements
     pub fn split_edge_noalloc(
         &mut self,
         edge_id: EdgeIdentifier,
@@ -251,6 +273,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the second half of the slice will only be used if the original edge is made of two darts;
     ///   if that is not the case, the second half IDs can all be `NULL_DART_ID`s.
     /// - all of these darts should be free
+    ///
+    /// # Return
+    ///
+    /// This method will return:
+    /// - `true` if the operation is successful & the edge was split
+    /// - `false` if the operation fails & the edge is left unchanged. It can fail if:
+    ///   - one or both vertices of the edge is undefined
+    ///   - if darts passed as argument do not match the above requirements
     pub fn splitn_edge_no_alloc(
         &mut self,
         edge_id: EdgeIdentifier,
