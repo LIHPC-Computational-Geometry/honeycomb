@@ -10,6 +10,18 @@ use crate::prelude::{CMap2, DartIdentifier, EdgeIdentifier, Vertex2, NULL_DART_I
 
 // ------ CONTENT
 
+const W_VERTEX_BOUND: &str =
+    "W: vertex placement for split is not in ]0;1[ -- result may be incoherent";
+
+const W_UNDEF_EDGE: &str =
+    "W: attempt to split an edge that is not fully defined in the first place";
+
+const W_PASSED_NONFREE: &str = "W: all pre-allocated darts should be free";
+
+const W_PASSED_NULL: &str = "W: the null dart cannot be used to split an existing edge";
+
+const SKIP: &str = "   skipping split...";
+
 /// **Advanced operations: edge splitting -- standard variants**
 impl<T: CoordsFloat> CMap2<T> {
     /// Split an edge into two segments.
@@ -55,7 +67,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn split_edge(&mut self, edge_id: EdgeIdentifier, midpoint_vertex: Option<T>) -> bool {
         // midpoint check
         if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
-            println!("W: vertex placement for split is not in ]0;1[ -- result may be incoherent");
+            println!("{W_VERTEX_BOUND}");
         }
 
         // base darts making up the edge
@@ -219,7 +231,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ) -> bool {
         // midpoint check
         if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
-            println!("W: vertex placement for split is not in ]0;1[ -- result may be incoherent");
+            println!("{W_VERTEX_BOUND}");
         }
 
         // base darts making up the edge
@@ -229,12 +241,12 @@ impl<T: CoordsFloat> CMap2<T> {
         let (b1d1_new, b1d2_new) = new_darts;
         if new_darts.0 == NULL_DART_ID || !self.is_free(new_darts.0) {
             println!("W: dart {b1d1_new} cannot be used in split_edge -- passed darts should be non-null and free");
-            println!("   skipping split...");
+            println!("{SKIP}");
             return false;
         }
         if base_dart2 != NULL_DART_ID && (b1d2_new == NULL_DART_ID || !self.is_free(b1d2_new)) {
             println!("W: dart {b1d2_new} cannot be used in split_edge -- passed darts should be non-null and free");
-            println!("   skipping split...");
+            println!("{SKIP}");
             return false;
         }
 
@@ -292,12 +304,12 @@ impl<T: CoordsFloat> CMap2<T> {
         let n_d = new_darts.len();
         if n_d != 2 * n_t {
             println!("W: inconsistent number of darts ({n_d}) & number of midpoints ({n_t}) - the method expects `2 * n_mid` darts");
-            println!("   skipping split...");
+            println!("{SKIP}");
             return false;
         }
         if new_darts.iter().any(|d| !self.is_free(*d)) {
-            println!("W: all pre-allocated darts should be free");
-            println!("   skipping split...");
+            println!("{W_PASSED_NONFREE}");
+            println!("{SKIP}");
             return false;
         }
         // get the first and second halves
@@ -309,13 +321,13 @@ impl<T: CoordsFloat> CMap2<T> {
         let base_dart2 = self.beta::<2>(base_dart1);
 
         if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
-            println!("W: the null dart cannot be used to split an existing edge");
-            println!("   skipping split...");
+            println!("{W_PASSED_NULL}");
+            println!("{SKIP}");
             return false;
         }
         if base_dart2 != NULL_DART_ID && darts_sh.iter().any(|d| *d == NULL_DART_ID) {
-            println!("W: the null dart cannot be used to split an existing edge");
-            println!("   skipping split...");
+            println!("{W_PASSED_NULL}");
+            println!("{SKIP}");
             return false;
         }
 
@@ -342,8 +354,8 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex(cmap.vertex_id(base_dart1)),
             cmap.vertex(cmap.vertex_id(b1d1_old)),
         ) else {
-            println!("W: attempt to split an edge that is not fully defined in the first place");
-            println!("   skipping split...");
+            println!("{W_UNDEF_EDGE}");
+            println!("{SKIP}");
             return false;
         };
         // unsew current dart
@@ -367,8 +379,8 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex(cmap.vertex_id(base_dart1)),
             cmap.vertex(cmap.vertex_id(base_dart2)),
         ) else {
-            println!("W: attempt to split an edge that is not fully defined in the first place");
-            println!("   skipping split...");
+            println!("{W_UNDEF_EDGE}");
+            println!("{SKIP}");
             return false;
         };
         // unsew current darts
@@ -418,8 +430,8 @@ fn inner_splitn<T: CoordsFloat>(
             base_dart2
         })),
     ) else {
-        println!("W: attempt to split an edge that is not fully defined in the first place");
-        println!("   skipping split...");
+        println!("{W_UNDEF_EDGE}");
+        println!("{SKIP}");
         return false;
     };
     let seg = v2 - v1;
@@ -438,9 +450,7 @@ fn inner_splitn<T: CoordsFloat>(
         .zip(darts_fh.iter())
         .for_each(|(&t, &new_d)| {
             if (t >= T::one()) | (t <= T::zero()) {
-                println!(
-                    "W: vertex placement for split is not in ]0;1[ -- result may be incoherent"
-                );
+                println!("{W_VERTEX_BOUND}");
             }
             let new_v = v1 + seg * t;
             cmap.one_link(prev_d, new_d);
