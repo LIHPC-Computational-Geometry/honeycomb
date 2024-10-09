@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AttrCompactVec","AttrSparseVec","AttrStorageManager"],"trait":["AttributeBind","AttributeStorage","AttributeUpdate","UnknownAttributeStorage"]};
