@@ -28,6 +28,7 @@ use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 /// Error-modeling enum for triangulation routines.
+#[derive(Debug, PartialEq, Eq)]
 pub enum TriangulateError {
     /// The face to triangulate is already a triangle.
     AlreadyTriangulated,
