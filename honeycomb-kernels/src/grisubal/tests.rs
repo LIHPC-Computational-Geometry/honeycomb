@@ -136,7 +136,7 @@ fn regular_intersections() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
+        generate_intersection_data(&cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
 
     assert_eq!(intersection_metadata.len(), 4);
     // FIXME: INDEX ACCESSES WON'T WORK IN PARALLEL
@@ -207,7 +207,7 @@ fn regular_intersections() {
         Some(Vertex2(0.5, 1.0))
     );
 
-    let mut edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+    let mut edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
     assert_eq!(edges.len(), 4);
     edges.retain(|edge| !edge.intermediates.is_empty());
@@ -273,7 +273,7 @@ fn corner_intersection() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
+        generate_intersection_data(&cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
 
     assert_eq!(intersection_metadata.len(), 2);
     assert_eq!(intersection_metadata[0], (2, 0.5));
@@ -317,7 +317,7 @@ fn corner_intersection() {
     // same as the one of the `regular_intersections`, so we won't repeat the assertions
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
 
-    let mut edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+    let mut edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
     assert_eq!(edges.len(), 3);
     edges.retain(|edge| !edge.intermediates.is_empty());
@@ -399,12 +399,12 @@ pub fn successive_straight_intersections() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
+        generate_intersection_data(&cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
 
     // same as the one of the `regular_intersections`, so we won't repeat the assertions
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
 
-    let edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+    let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
     assert_eq!(edges.len(), 8);
     assert_eq!(
@@ -623,12 +623,12 @@ pub fn successive_diag_intersections() {
     };
 
     let (segments, intersection_metadata) =
-        generate_intersection_data(&mut cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
+        generate_intersection_data(&cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
 
     // same as the one of the `regular_intersections`, so we won't repeat the assertions
     let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
 
-    let edges = generate_edge_data(&mut cmap, &geometry, &segments, &intersection_darts);
+    let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
     assert_eq!(edges.len(), 8);
     assert_eq!(
