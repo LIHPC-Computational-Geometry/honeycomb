@@ -64,7 +64,7 @@ pub fn process_cell<T: CoordsFloat>(
     let mut n = darts.len();
 
     // early checks - check # of darts & face size
-    check_requirements(n, new_darts.len(), face_id)?;
+    check_requirements(n, new_darts.len())?;
 
     // get associated vertices - check for undefined vertices
     let mut vertices = fetch_face_vertices(cmap, &darts, face_id)?;

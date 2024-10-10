@@ -49,8 +49,8 @@ pub enum TriangulateError {
     #[error("too many darts were passed to the triangulation function - missing `{0}`")]
     TooManyDarts(usize),
     /// The face is not fit for triangulation. The `String` contains information about the reason.
-    #[error("face {0} isn't defined correctly - {1}")]
-    UndefinedFace(FaceIdentifier, &'static str),
+    #[error("face isn't defined correctly - {0}")]
+    UndefinedFace(&'static str),
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -86,14 +86,10 @@ pub enum TriangulateError {
 pub fn check_requirements(
     n_darts_face: usize,
     n_darts_allocated: usize,
-    face_id: FaceIdentifier,
 ) -> Result<(), TriangulateError> {
     match n_darts_face {
         1 | 2 => {
-            return Err(TriangulateError::UndefinedFace(
-                face_id,
-                "less than 3 vertices",
-            ));
+            return Err(TriangulateError::UndefinedFace("less than 3 vertices"));
         }
         3 => {
             return Err(TriangulateError::AlreadyTriangulated);
@@ -125,7 +121,6 @@ fn fetch_face_vertices<T: CoordsFloat>(
         .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
     if tmp.clone().any(|v| v.is_none()) {
         Err(TriangulateError::UndefinedFace(
-            face_id,
             "one or more undefined vertices",
         ))
     } else {

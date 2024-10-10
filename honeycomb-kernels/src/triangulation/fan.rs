@@ -152,7 +152,7 @@ pub fn process_convex_cell<T: CoordsFloat>(
     let n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
 
     // early rets
-    check_requirements(n, new_darts.len(), face_id)?;
+    check_requirements(n, new_darts.len())?;
 
     // we assume the polygon is convex (== starrable from any vertex)
     let sdart = face_id as DartIdentifier;
