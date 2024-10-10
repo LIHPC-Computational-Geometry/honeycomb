@@ -81,21 +81,19 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
             DataSet::ImageData { .. }
             | DataSet::StructuredGrid { .. }
             | DataSet::RectilinearGrid { .. }
-            | DataSet::Field { .. } => Err(GrisubalError::UnsupportedVtkData(
-                "dataset not supported - only `UnstructuredGrid` is currently supported",
-            )),
-            DataSet::PolyData { .. } => Err(GrisubalError::UnsupportedVtkData(
-                "dataset not supported - `PolyData` data set is not yet supported",
-            )),
+            | DataSet::Field { .. }
+            | DataSet::PolyData { .. } => {
+                Err(GrisubalError::UnsupportedVtkData("dataset not supported"))
+            }
             DataSet::UnstructuredGrid { pieces, .. } => {
                 let mut vertices = Vec::new();
                 let mut segments = Vec::new();
                 let mut poi = Vec::new();
                 let tmp = pieces.iter().map(|piece| {
                     // assume inline data
-                    let tmp = piece
-                        .load_piece_data(None)
-                        .expect("E: failed to load piece data - is it not inlined?");
+                    let Ok(tmp) = piece.load_piece_data(None) else {
+                        return Err(GrisubalError::UnsupportedVtkData("not inlined data piece"));
+                    };
 
                     // build vertex list
                     // since we're expecting coordinates, we'll assume floating type
@@ -105,7 +103,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                         IOBuffer::F32(v) => build_vertices!(v),
                         _ => {
                             return Err(GrisubalError::UnsupportedVtkData(
-                                "unsupported coordinate representation type - please use float or double"
+                                "not float or double coordinate representation type",
                             ));
                         }
                     };
@@ -120,48 +118,63 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                         } => {
                             // check basic stuff
                             if num_cells as usize != types.len() {
-                                return Err(GrisubalError::BadVtkData("inconsistent number of cell between CELLS and CELL_TYPES"));
+                                return Err(GrisubalError::BadVtkData(
+                                    "different # of cells in CELLS and CELL_TYPES",
+                                ));
                             }
 
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
                             let mut take_next = 0;
-                            verts.iter().for_each(|vertex_id| if take_next == 0 {
-                                // making it usize since it's a counter
-                                take_next = *vertex_id as usize;
-                                cell_components.push(Vec::with_capacity(take_next));
-                            } else {
-                                cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
-                                take_next -= 1;
+                            verts.iter().for_each(|vertex_id| {
+                                if take_next == 0 {
+                                    // making it usize since it's a counter
+                                    take_next = *vertex_id as usize;
+                                    cell_components.push(Vec::with_capacity(take_next));
+                                } else {
+                                    cell_components
+                                        .last_mut()
+                                        .expect("E: unreachable")
+                                        .push(*vertex_id as usize);
+                                    take_next -= 1;
+                                }
                             });
                             assert_eq!(num_cells as usize, cell_components.len());
 
-                            if let Some(err) = types.iter().zip(cell_components.iter()).find_map(|(cell_type, vids)| match cell_type {
-                                CellType::Vertex => {
-                                    if vids.len() != 1 {
-                                        return Some(GrisubalError::BadVtkData("`Vertex` cell has incorrect # of vertices (!=1)"));
+                            if let Some(err) = types.iter().zip(cell_components.iter()).find_map(
+                                |(cell_type, vids)| match cell_type {
+                                    CellType::Vertex => {
+                                        if vids.len() != 1 {
+                                            return Some(GrisubalError::BadVtkData(
+                                                "`Vertex` with incorrect # of vertices (!=1)",
+                                            ));
+                                        }
+                                        poi.push(vids[0]);
+                                        None
                                     }
-                                    poi.push(vids[0]);
-                                    None
-                                }
-                                CellType::PolyVertex =>
-                                    Some(GrisubalError::UnsupportedVtkData("`PolyVertex` cell type is not supported, use `Vertex`s instead")),
-                                CellType::Line => {
-                                    if vids.len() != 2 {
-                                        return Some(GrisubalError::BadVtkData("`Line` cell has incorrect # of vertices (!=2)"));
+                                    CellType::PolyVertex => Some(
+                                        GrisubalError::UnsupportedVtkData("`PolyVertex` cell type"),
+                                    ),
+                                    CellType::Line => {
+                                        if vids.len() != 2 {
+                                            return Some(GrisubalError::BadVtkData(
+                                                "`Line` with incorrect # of vertices (!=2)",
+                                            ));
+                                        }
+                                        segments.push((vids[0], vids[1]));
+                                        None
                                     }
-                                    segments.push((vids[0], vids[1]));
-                                    None
-                                }
-                                CellType::PolyLine =>
-                                    Some(GrisubalError::BadVtkData("`PolyLine` cell type is not supported, use `Line`s instead")),
-                                _ => None, // silent ignore all other cells that do not make up boundaries
-                            }) {
+                                    CellType::PolyLine => {
+                                        Some(GrisubalError::BadVtkData("`PolyLine` cell type"))
+                                    }
+                                    _ => None, // silent ignore all other cells that do not make up boundaries
+                                },
+                            ) {
                                 return Err(err);
                             };
                         }
                         VertexNumbers::XML { .. } => {
-                            return Err(GrisubalError::UnsupportedVtkData("XML Vtk files are not supported"));
+                            return Err(GrisubalError::UnsupportedVtkData("XML format"));
                         }
                     }
                     Ok((vertices, segments, poi))
@@ -204,17 +217,10 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
     let mut endpoints = HashSet::new();
 
     for (orig, endp) in &geometry.segments {
-        if !origins.insert(orig) {
-            return Err(GrisubalError::InconsistentOrientation(format!(
-                "two segments have the same vertex as their respective origin: vertex #{}",
-                *orig
-            )));
-        }
-        if !endpoints.insert(endp) {
-            return Err(GrisubalError::InconsistentOrientation(format!(
-                "two segments have the same vertex as their respective end-point: vertex #{}",
-                *endp
-            )));
+        if !origins.insert(orig) || !endpoints.insert(endp) {
+            return Err(GrisubalError::InconsistentOrientation(
+                "in-boundary inconsistency",
+            ));
         }
     }
 
@@ -229,9 +235,7 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
     // compute the minimum bounding box
     let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
         let Some(tmp) = geometry.vertices.first() else {
-            return Err(GrisubalError::InvalidInput(
-                "specified geometry does not contain any vertex".to_string(),
-            ));
+            return Err(GrisubalError::InvalidShape("no vertex in shape"));
         };
 
         (tmp.x(), tmp.x(), tmp.y(), tmp.y())
@@ -245,14 +249,14 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
     });
 
     if max_x <= min_x {
-        return Err(GrisubalError::InvalidInput(format!(
-            "bounding values along X axis are equal - min_x == max_x == {min_x:?}"
-        )));
+        return Err(GrisubalError::InvalidShape(
+            "bounding values along X axis are equal",
+        ));
     }
     if max_y <= min_y {
-        return Err(GrisubalError::InvalidInput(format!(
-            "bounding values along Y axis are equal - min_y == max_y == {min_y:?}"
-        )));
+        return Err(GrisubalError::InvalidShape(
+            "bounding values along Y axis are equal",
+        ));
     }
 
     // compute characteristics of the overlapping Cartesian grid
