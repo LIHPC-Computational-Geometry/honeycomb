@@ -67,7 +67,7 @@ pub fn process_cell<T: CoordsFloat>(
     check_requirements(n, new_darts.len())?;
 
     // get associated vertices - check for undefined vertices
-    let mut vertices = fetch_face_vertices(cmap, &darts, face_id)?;
+    let mut vertices = fetch_face_vertices(cmap, &darts)?;
 
     let mut ndart_id = new_darts[0];
     while n > 3 {

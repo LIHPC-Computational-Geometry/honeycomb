@@ -24,7 +24,7 @@ pub use fan::process_convex_cell as fan_convex_cell;
 
 // ------ CONTENT
 
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
+use honeycomb_core::cmap::{CMap2, DartIdentifier};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use thiserror::Error;
 
@@ -114,7 +114,6 @@ pub fn check_requirements(
 fn fetch_face_vertices<T: CoordsFloat>(
     cmap: &CMap2<T>,
     darts: &[DartIdentifier],
-    face_id: FaceIdentifier,
 ) -> Result<Vec<Vertex2<T>>, TriangulateError> {
     let tmp = darts
         .iter()
