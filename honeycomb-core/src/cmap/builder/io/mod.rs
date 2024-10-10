@@ -148,7 +148,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                         // build a collection of vertex lists corresponding of each cell
                         let mut cell_components: Vec<Vec<usize>> = Vec::new();
                         let mut take_next = 0;
-                        verts.iter().for_each(|vertex_id| {
+                        for vertex_id in &verts {
                             if take_next.is_zero() {
                                 // making it usize since it's a counter
                                 take_next = *vertex_id as usize;
@@ -160,7 +160,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                     .push(*vertex_id as usize);
                                 take_next -= 1;
                             }
-                        });
+                        }
                         assert_eq!(num_cells as usize, cell_components.len());
 
                         let mut errs =

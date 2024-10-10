@@ -73,6 +73,7 @@ macro_rules! build_vertices {
 impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
     type Error = GrisubalError;
 
+    #[allow(clippy::too_many_lines)]
     fn try_from(value: Vtk) -> Result<Self, Self::Error> {
         // What we are reading / how we construct the geometry:
         // The input VTK file should describe boundaries (e.g. edges in 2D) & key vertices (e.g. sharp corners)
@@ -126,7 +127,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                             // build a collection of vertex lists corresponding of each cell
                             let mut cell_components: Vec<Vec<usize>> = Vec::new();
                             let mut take_next = 0;
-                            verts.iter().for_each(|vertex_id| {
+                            for vertex_id in &verts {
                                 if take_next == 0 {
                                     // making it usize since it's a counter
                                     take_next = *vertex_id as usize;
@@ -138,7 +139,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                                         .push(*vertex_id as usize);
                                     take_next -= 1;
                                 }
-                            });
+                            }
                             assert_eq!(num_cells as usize, cell_components.len());
 
                             if let Some(err) = types.iter().zip(cell_components.iter()).find_map(
