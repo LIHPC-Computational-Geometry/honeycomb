@@ -57,7 +57,7 @@ fn mark_faces<T: CoordsFloat>(
             let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier);
             if darts.any(|did| cmap.get_attribute::<Boundary>(did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
-                    "reached other side of the boundary without crossing it".to_string(),
+                    "between-boundary inconsistency",
                 ));
             }
             // find neighbor faces where entry darts aren't tagged

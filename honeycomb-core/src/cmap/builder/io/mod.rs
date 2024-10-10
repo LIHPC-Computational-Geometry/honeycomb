@@ -66,9 +66,7 @@ macro_rules! build_vertices {
     ($v: ident) => {{
         if_predicate_return_err!(
             !($v.len() % 3).is_zero(),
-            BuilderError::InvalidVtkFile(
-                "failed to build vertices list - the point list contains an incomplete tuple",
-            )
+            BuilderError::BadVtkData("vertex list contains an incomplete tuple")
         );
         $v.chunks_exact(3)
             .map(|slice| {
@@ -113,16 +111,14 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
         | DataSet::RectilinearGrid { .. }
         | DataSet::PolyData { .. }
         | DataSet::Field { .. } => {
-            return Err(BuilderError::UnsupportedVtkData(
-                "dataset not supported - only UnstructuredGrid is currently supported",
-            ))
+            return Err(BuilderError::UnsupportedVtkData("dataset not supported"))
         }
         DataSet::UnstructuredGrid { pieces, .. } => {
             let mut tmp = pieces.iter().map(|piece| {
                 // assume inline data
-                let tmp = piece
-                    .load_piece_data(None)
-                    .expect("E: failed to load piece data - is it not inlined?");
+                let Ok(tmp) = piece.load_piece_data(None) else {
+                    return Err(BuilderError::UnsupportedVtkData("not inlined data piece"));
+                };
 
                 // build vertex list
                 // since we're expecting coordinates, we'll assume floating type
@@ -130,7 +126,11 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                 let vertices: Vec<Vertex2<T>> = match tmp.points {
                     IOBuffer::F64(v) => build_vertices!(v),
                     IOBuffer::F32(v) => build_vertices!(v),
-                    _ => return Err(BuilderError::UnsupportedVtkData("unsupported coordinate representation type - please use float or double")),
+                    _ => {
+                        return Err(BuilderError::UnsupportedVtkData(
+                            "unsupported coordinate type",
+                        ))
+                    }
                 };
 
                 let vtkio::model::Cells { cell_verts, types } = tmp.cells;
@@ -142,113 +142,162 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                         // check basic stuff
                         if_predicate_return_err!(
                             num_cells as usize != types.len(),
-                            BuilderError::InvalidVtkFile(
-                                "failed to build cells - inconsistent number of cell between CELLS and CELL_TYPES"
-                            )
+                            BuilderError::BadVtkData("different # of cell in CELLS and CELL_TYPES")
                         );
 
                         // build a collection of vertex lists corresponding of each cell
                         let mut cell_components: Vec<Vec<usize>> = Vec::new();
                         let mut take_next = 0;
-                        verts.iter().for_each(|vertex_id| if take_next.is_zero() {
-                            // making it usize since it's a counter
-                            take_next = *vertex_id as usize;
-                            cell_components.push(Vec::with_capacity(take_next));
-                        } else {
-                            cell_components.last_mut().expect("E: unreachable").push(*vertex_id as usize);
-                            take_next -= 1;
-                        });
+                        for vertex_id in &verts {
+                            if take_next.is_zero() {
+                                // making it usize since it's a counter
+                                take_next = *vertex_id as usize;
+                                cell_components.push(Vec::with_capacity(take_next));
+                            } else {
+                                cell_components
+                                    .last_mut()
+                                    .expect("E: unreachable")
+                                    .push(*vertex_id as usize);
+                                take_next -= 1;
+                            }
+                        }
                         assert_eq!(num_cells as usize, cell_components.len());
 
-                        let mut errs = types.iter().zip(cell_components.iter()).map(|(cell_type, vids)| match cell_type {
-                            CellType::Vertex => {
-                                if_predicate_return_err!(
-                                    vids.len() != 1,
-                                    BuilderError::InvalidVtkFile("failed to build cell - `Vertex` cell has incorrect # of vertices (!=1)")
-                                );
-                                // silent ignore
-                                Ok(())
-                            }
-                            CellType::PolyVertex => Err(BuilderError::UnsupportedVtkData("failed to build cell - `PolyVertex` cell type is not supported because for consistency")),
-                            CellType::Line => {
-                                if_predicate_return_err!(
-                                    vids.len() != 2,
-                                    BuilderError::InvalidVtkFile("failed to build cell - `Line` cell has incorrect # of vertices (!=2)")
-                                );
-                                // silent ignore
-                                Ok(())
-                            }
-                            CellType::PolyLine => Err(BuilderError::UnsupportedVtkData("failed to build cell - `PolyLine` cell type is not supported because for consistency")),
-                            CellType::Triangle => {
-                                // check validity
-                                if_predicate_return_err!(
-                                    vids.len() != 3,
-                                    BuilderError::InvalidVtkFile("failed to build cell - `Triangle` cell has incorrect # of vertices (!=3)")
-                                );
-                                // build the triangle
-                                let d0 = cmap.add_free_darts(3);
-                                let (d1, d2) = (d0 + 1, d0 + 2);
-                                cmap.insert_vertex(d0 as VertexIdentifier, vertices[vids[0]]);
-                                cmap.insert_vertex(d1 as VertexIdentifier, vertices[vids[1]]);
-                                cmap.insert_vertex(d2 as VertexIdentifier, vertices[vids[2]]);
-                                cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
-                                cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
-                                cmap.one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
-                                // record a trace of the built cell for future 2-sew
-                                sew_buffer.insert((vids[0], vids[1]), d0);
-                                sew_buffer.insert((vids[1], vids[2]), d1);
-                                sew_buffer.insert((vids[2], vids[0]), d2);
-                                Ok(())
-                            }
-                            CellType::TriangleStrip => Err(BuilderError::UnsupportedVtkData("failed to build cell - `TriangleStrip` cell type is not supported because of orientation requirements")),
-                            CellType::Polygon => {
-                                let n_vertices = vids.len();
-                                let d0 = cmap.add_free_darts(n_vertices);
-                                (0..n_vertices).for_each(|i| {
-                                    let di = d0 + i as DartIdentifier;
-                                    let dip1 = if i == n_vertices - 1 {
-                                        d0
-                                    } else {
-                                        di + 1
-                                    };
-                                    cmap.insert_vertex(di as VertexIdentifier, vertices[vids[i]]);
-                                    cmap.one_link(di, dip1);
-                                    sew_buffer.insert((vids[i], vids[(i + 1) % n_vertices]), di);
+                        let mut errs =
+                            types
+                                .iter()
+                                .zip(cell_components.iter())
+                                .map(|(cell_type, vids)| match cell_type {
+                                    CellType::Vertex => {
+                                        if_predicate_return_err!(
+                                            vids.len() != 1,
+                                            BuilderError::BadVtkData(
+                                                "`Vertex` with incorrect # of vertices (!=1)"
+                                            )
+                                        );
+                                        // silent ignore
+                                        Ok(())
+                                    }
+                                    CellType::PolyVertex => Err(BuilderError::UnsupportedVtkData(
+                                        "`PolyVertex` cell type",
+                                    )),
+                                    CellType::Line => {
+                                        if_predicate_return_err!(
+                                            vids.len() != 2,
+                                            BuilderError::BadVtkData(
+                                                "`Line` with incorrect # of vertices (!=2)"
+                                            )
+                                        );
+                                        // silent ignore
+                                        Ok(())
+                                    }
+                                    CellType::PolyLine => Err(BuilderError::UnsupportedVtkData(
+                                        "`PolyLine` cell type",
+                                    )),
+                                    CellType::Triangle => {
+                                        // check validity
+                                        if_predicate_return_err!(
+                                            vids.len() != 3,
+                                            BuilderError::BadVtkData(
+                                                "`Triangle` with incorrect # of vertices (!=3)"
+                                            )
+                                        );
+                                        // build the triangle
+                                        let d0 = cmap.add_free_darts(3);
+                                        let (d1, d2) = (d0 + 1, d0 + 2);
+                                        cmap.insert_vertex(
+                                            d0 as VertexIdentifier,
+                                            vertices[vids[0]],
+                                        );
+                                        cmap.insert_vertex(
+                                            d1 as VertexIdentifier,
+                                            vertices[vids[1]],
+                                        );
+                                        cmap.insert_vertex(
+                                            d2 as VertexIdentifier,
+                                            vertices[vids[2]],
+                                        );
+                                        cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                                        cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                                        cmap.one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
+                                                               // record a trace of the built cell for future 2-sew
+                                        sew_buffer.insert((vids[0], vids[1]), d0);
+                                        sew_buffer.insert((vids[1], vids[2]), d1);
+                                        sew_buffer.insert((vids[2], vids[0]), d2);
+                                        Ok(())
+                                    }
+                                    CellType::TriangleStrip => {
+                                        Err(BuilderError::UnsupportedVtkData(
+                                            "`TriangleStrip` cell type",
+                                        ))
+                                    }
+                                    CellType::Polygon => {
+                                        let n_vertices = vids.len();
+                                        let d0 = cmap.add_free_darts(n_vertices);
+                                        (0..n_vertices).for_each(|i| {
+                                            let di = d0 + i as DartIdentifier;
+                                            let dip1 =
+                                                if i == n_vertices - 1 { d0 } else { di + 1 };
+                                            cmap.insert_vertex(
+                                                di as VertexIdentifier,
+                                                vertices[vids[i]],
+                                            );
+                                            cmap.one_link(di, dip1);
+                                            sew_buffer
+                                                .insert((vids[i], vids[(i + 1) % n_vertices]), di);
+                                        });
+                                        Ok(())
+                                    }
+                                    CellType::Pixel => {
+                                        Err(BuilderError::UnsupportedVtkData("`Pixel` cell type"))
+                                    }
+                                    CellType::Quad => {
+                                        if_predicate_return_err!(
+                                            vids.len() != 4,
+                                            BuilderError::BadVtkData(
+                                                "`Quad` with incorrect # of vertices (!=4)"
+                                            )
+                                        );
+                                        // build the quad
+                                        let d0 = cmap.add_free_darts(4);
+                                        let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
+                                        cmap.insert_vertex(
+                                            d0 as VertexIdentifier,
+                                            vertices[vids[0]],
+                                        );
+                                        cmap.insert_vertex(
+                                            d1 as VertexIdentifier,
+                                            vertices[vids[1]],
+                                        );
+                                        cmap.insert_vertex(
+                                            d2 as VertexIdentifier,
+                                            vertices[vids[2]],
+                                        );
+                                        cmap.insert_vertex(
+                                            d3 as VertexIdentifier,
+                                            vertices[vids[3]],
+                                        );
+                                        cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                                        cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                                        cmap.one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
+                                        cmap.one_link(d3, d0); // edge d3 links vertices vids[3] & vids[0]
+                                                               // record a trace of the built cell for future 2-sew
+                                        sew_buffer.insert((vids[0], vids[1]), d0);
+                                        sew_buffer.insert((vids[1], vids[2]), d1);
+                                        sew_buffer.insert((vids[2], vids[3]), d2);
+                                        sew_buffer.insert((vids[3], vids[0]), d3);
+                                        Ok(())
+                                    }
+                                    _ => Err(BuilderError::UnsupportedVtkData(
+                                        "CellType not supported in 2-maps",
+                                    )),
                                 });
-                                Ok(())
-                            }
-                            CellType::Pixel => Err(BuilderError::UnsupportedVtkData("failed to build cell - `Pixel` cell type is not supported because of orientation requirements")),
-                            CellType::Quad => {
-                                if_predicate_return_err!(
-                                    vids.len() != 4,
-                                    BuilderError::InvalidVtkFile("failed to build cell - `Quad` cell has incorrect # of vertices (!=4)")
-                                );
-                                // build the quad
-                                let d0 = cmap.add_free_darts(4);
-                                let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
-                                cmap.insert_vertex(d0 as VertexIdentifier, vertices[vids[0]]);
-                                cmap.insert_vertex(d1 as VertexIdentifier, vertices[vids[1]]);
-                                cmap.insert_vertex(d2 as VertexIdentifier, vertices[vids[2]]);
-                                cmap.insert_vertex(d3 as VertexIdentifier, vertices[vids[3]]);
-                                cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
-                                cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
-                                cmap.one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
-                                cmap.one_link(d3, d0); // edge d3 links vertices vids[3] & vids[0]
-                                // record a trace of the built cell for future 2-sew
-                                sew_buffer.insert((vids[0], vids[1]), d0);
-                                sew_buffer.insert((vids[1], vids[2]), d1);
-                                sew_buffer.insert((vids[2], vids[3]), d2);
-                                sew_buffer.insert((vids[3], vids[0]), d3);
-                                Ok(())
-                            }
-                            _ => Err(BuilderError::UnsupportedVtkData("failed to build cell - found a CellType that is not supported in 2-maps")),
-                        });
                         if let Some(is_err) = errs.find(Result::is_err) {
                             return Err(is_err.unwrap_err()); // unwrap & wrap because type inference is clunky
                         }
                     }
                     VertexNumbers::XML { .. } => {
-                        return Err(BuilderError::UnsupportedVtkData("XML Vtk files are not supported"));
+                        return Err(BuilderError::UnsupportedVtkData("XML format"));
                     }
                 }
                 Ok(())

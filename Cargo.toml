@@ -37,6 +37,7 @@ honeycomb-render = { version = "0.5.0", path = "./honeycomb-render" }
 # common
 cfg-if = "1"
 rustversion = "1.0.15"
+thiserror = "1.0.64"
 
 # core
 downcast-rs = "1.2.1"

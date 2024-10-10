@@ -129,17 +129,17 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                     println!("W: All three grid parameters were specified, total lengths will be ignored");
                 }
                 #[rustfmt::skip]
-                check_parameters!(lpx, "Specified length per x cell is either null or negative");
+                check_parameters!(lpx, "length per x cell is null or negative");
                 #[rustfmt::skip]
-                check_parameters!(lpy, "Specified length per y cell is either null or negative");
+                check_parameters!(lpy, "length per y cell is null or negative");
                 Ok((self.origin, [nx, ny], [lpx, lpy]))
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
                 #[rustfmt::skip]
-                check_parameters!(lx, "Specified grid length along x is either null or negative");
+                check_parameters!(lx, "grid length along x is null or negative");
                 #[rustfmt::skip]
-                check_parameters!(ly, "Specified grid length along y is either null or negative");
+                check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
                     self.origin,
                     [nx, ny],
@@ -149,13 +149,13 @@ impl<T: CoordsFloat> GridDescriptor<T> {
             // from lengths per cell and total lengths
             (None, Some([lpx, lpy, _]), Some([lx, ly, _])) => {
                 #[rustfmt::skip]
-                check_parameters!(lpx, "Specified length per x cell is either null or negative");
+                check_parameters!(lpx, "length per x cell is null or negative");
                 #[rustfmt::skip]
-                check_parameters!(lpy, "Specified length per y cell is either null or negative");
+                check_parameters!(lpy, "length per y cell is null or negative");
                 #[rustfmt::skip]
-                check_parameters!(lx, "Specified grid length along x is either null or negative");
+                check_parameters!(lx, "grid length along x is null or negative");
                 #[rustfmt::skip]
-                check_parameters!(ly, "Specified grid length along y is either null or negative");
+                check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
                     self.origin,
                     [
@@ -165,9 +165,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                     [lpx, lpy],
                 ))
             }
-            (_, _, _) => Err(BuilderError::MissingGridParameters(
-                "GridBuilder: insufficient building parameters",
-            )),
+            (_, _, _) => Err(BuilderError::MissingGridParameters),
         }
     }
 }

@@ -12,6 +12,7 @@ mod vertex;
 
 use std::fmt::Debug;
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
+use thiserror::Error;
 
 // ------ CONTENT
 
@@ -23,15 +24,17 @@ pub use vertex::Vertex2;
 // --- error enum
 
 /// Coordinates-level error enum
-#[derive(Debug, PartialEq)]
+#[derive(Error, Debug, PartialEq)]
 pub enum CoordsError {
     /// Error during the computation of the unit direction vector.
     ///
     /// This is returned when trying to compute the unit vector of a null [`Vector2`].
+    #[error("cannot compute unit direction of a null vector")]
     InvalidUnitDir,
     /// Error during the computation of the normal direction vector.
     ///
     /// This is returned when trying to compute the normal to a null [`Vector2`].
+    #[error("cannot compute normal direction to a null vector")]
     InvalidNormDir,
 }
 

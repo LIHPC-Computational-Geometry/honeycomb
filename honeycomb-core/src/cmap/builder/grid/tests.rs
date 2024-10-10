@@ -63,7 +63,7 @@ fn build_incomplete() {
 }
 
 #[test]
-#[should_panic(expected = "Specified length per y cell is either null or negative")]
+#[should_panic(expected = "length per y cell is null or negative")]
 fn build_neg_lpc() {
     let tmp = GridDescriptor::default()
         .n_cells([4, 4, 0])
@@ -73,7 +73,7 @@ fn build_neg_lpc() {
 }
 
 #[test]
-#[should_panic(expected = "Specified grid length along x is either null or negative")]
+#[should_panic(expected = "grid length along x is null or negative")]
 fn build_null_l() {
     let tmp = GridDescriptor::default()
         .n_cells([4, 4, 0])
@@ -83,7 +83,7 @@ fn build_null_l() {
 }
 
 #[test]
-#[should_panic(expected = "Specified length per x cell is either null or negative")]
+#[should_panic(expected = "length per x cell is null or negative")]
 fn build_neg_lpc_neg_l() {
     // lpc are parsed first so their panic msg should be the one to pop
     // x val is parsed first so ...
