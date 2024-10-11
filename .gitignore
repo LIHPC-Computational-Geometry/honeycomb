@@ -32,3 +32,8 @@ perf.data.old
 
 # ignore heaptrack files
 *.zst
+
+# ignore bench result directories
+/fixed
+/grid
+/thread
