@@ -21,7 +21,9 @@ def fixed():
         with open("fixed.csv", "a") as f:
             subprocess.run([GRISUBAL, FILE_PATH, FIXED_SIZE, FIXED_SIZE], stdout=f)
     # perf + flamegraph
+
     # heaptrack
+    subprocess.run(["heaptrack", "-o", "fixed", GRISUBAL_PROF, FILE_PATH, FIXED_SIZE, FIXED_SIZE])
 
 
 def grid():
@@ -36,7 +38,8 @@ def grid():
     # for i in [x / 10 for x in range(1, 11)]:
 
     # heaptrack
-    # for i in [x / 10 for x in range(1, 11)]:
+    for i in SIZE_RANGE:
+        subprocess.run(["heaptrack", "-o", f"size{i:.1f}", GRISUBAL, FILE_PATH, str(i), str(i)])
 
 
 def thread():

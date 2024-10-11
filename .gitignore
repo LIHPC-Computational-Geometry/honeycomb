@@ -9,9 +9,10 @@ Cargo.lock
 /.idea
 /.vscode
 
-# ignore csv & svg files in root directory
+# ignore csv, svg, txt files in root directory
 /*.csv
 /*.svg
+/*.txt
 
 # ignore wild vtk files
 *.vtk
@@ -25,3 +26,6 @@ Cargo.lock
 # ignore perf files
 perf.data
 perf.data.old
+
+# ignore heaptrack files
+*.zst
