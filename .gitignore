@@ -9,6 +9,9 @@ Cargo.lock
 /.idea
 /.vscode
 
+# Python
+/venv
+
 # ignore csv, svg, txt files in root directory
 /*.csv
 /*.svg

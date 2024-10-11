@@ -10,40 +10,53 @@ FILE_PATH = "./examples/shape.vtk"
 FIXED_SIZE = "1."
 SIZE_RANGE = [x / 10 for x in range(1, 11)]
 
+PERF_FREQ = "997"
+
 
 # Benchmarks suite
 
 def fixed():
     # avg runtime using criterion
-    subprocess.run(["cargo", "bench", "--bench", "grisubal"], stdout=open("fixed_criterion.txt", "w"))
+    subprocess.run(["mkdir", "fixed"])
+    subprocess.run(["cargo", "bench", "--bench", "grisubal"], stdout=open("fixed/criterion.txt", "w"))
     # avg runtime per section (50 samples)
     for _ in range(50):
-        with open("fixed.csv", "a") as f:
+        with open("fixed/sections.csv", "a") as f:
             subprocess.run([GRISUBAL, FILE_PATH, FIXED_SIZE, FIXED_SIZE], stdout=f)
     # perf + flamegraph
-
+    subprocess.run(
+        ["perf", "record", "-o", "fixed/perf.data", "-F", PERF_FREQ, "--call-graph", "dwarf", GRISUBAL_PROF, FILE_PATH,
+         FIXED_SIZE, FIXED_SIZE])
+    subprocess.run(["flamegraph", "--flamechart", "--perfdata", "fixed/perf.data", "-o", "fixed/fg.svg"])
     # heaptrack
-    subprocess.run(["heaptrack", "-o", "fixed", GRISUBAL_PROF, FILE_PATH, FIXED_SIZE, FIXED_SIZE])
+    subprocess.run(["heaptrack", "-o", "fixed/ht", GRISUBAL_PROF, FILE_PATH, FIXED_SIZE, FIXED_SIZE])
+    return
 
 
 def grid():
     # avg runtimes using criterion
-    subprocess.run(["cargo", "bench", "--bench", "grisubal_grid_size"], stdout=open("grid_criterion.txt", "w"))
-    # avg runtimes per section (50 samples per grid size)
+    subprocess.run(["mkdir", "grid"])
+    subprocess.run(["cargo", "bench", "--bench", "grisubal_grid_size"], stdout=open("grid/criterion.txt", "w"))
     for i in SIZE_RANGE:
+        # avg runtimes per section (50 samples per grid size)
         for _ in range(50):
-            with open(f"size{i:.1f}.csv", "a") as f:
+            with open(f"grid/{i:.1f}.csv", "a") as f:
                 subprocess.run([GRISUBAL, FILE_PATH, str(i), str(i)], stdout=f)
-    # perf + flamegraph
-    # for i in [x / 10 for x in range(1, 11)]:
-
-    # heaptrack
-    for i in SIZE_RANGE:
-        subprocess.run(["heaptrack", "-o", f"size{i:.1f}", GRISUBAL, FILE_PATH, str(i), str(i)])
+        # perf + flamegraph
+        subprocess.run(
+            ["perf", "record", "-o", f"grid/{i:.1f}.perf.data", "-F", PERF_FREQ, "--call-graph", "dwarf", GRISUBAL_PROF,
+             FILE_PATH,
+             FIXED_SIZE, FIXED_SIZE])
+        subprocess.run(
+            ["flamegraph", "--flamechart", "--perfdata", f"grid/{i:.1f}.perf.data", "-o", f"grid/{i:.1f}.svg"])
+        # heaptrack
+        subprocess.run(["heaptrack", "-o", f"grid/{i:.1f}", GRISUBAL, FILE_PATH, str(i), str(i)])
+    return
 
 
 def thread():
     print("Not yet implemented")
+    return
 
 
 # Main
