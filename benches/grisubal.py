@@ -7,6 +7,8 @@ GRISUBAL = "./target/release/grisubal"
 GRISUBAL_PROF = "./target/profiling/grisubal"
 FILE_PATH = "./examples/shape.vtk"
 
+CSV_HEADER = "ImportVTK, BuildGeometry, DetectOrientation, ComputeOverlappingGrid, RemoveRedundantPoi, BuildMeshTot, BuildMeshInit, BuildMeshIntersecData, BuildMeshInsertIntersec, BuildMeshEdgeData, BuildMeshInsertEdge, Clip, Cleanup"
+
 FIXED_SIZE = "1."
 SIZE_RANGE = [x / 10 for x in range(1, 11)]
 
@@ -20,6 +22,9 @@ def fixed():
     subprocess.run(["mkdir", "fixed"])
     subprocess.run(["cargo", "bench", "--bench", "grisubal"], stdout=open("fixed/criterion.txt", "w"))
     # avg runtime per section (50 samples)
+    subprocess.run(["cargo", "build", "--release", "--features=profiling", "--bin=grisubal"])
+    with open("fixed/sections.csv", "w") as f:
+        subprocess.run(["echo", CSV_HEADER], stdout=f)
     for _ in range(50):
         with open("fixed/sections.csv", "a") as f:
             subprocess.run([GRISUBAL, FILE_PATH, FIXED_SIZE, FIXED_SIZE], stdout=f)
@@ -37,8 +42,11 @@ def grid():
     # avg runtimes using criterion
     subprocess.run(["mkdir", "grid"])
     subprocess.run(["cargo", "bench", "--bench", "grisubal_grid_size"], stdout=open("grid/criterion.txt", "w"))
+    subprocess.run(["cargo", "build", "--release", "--features=profiling", "--bin=grisubal"])
     for i in SIZE_RANGE:
         # avg runtimes per section (50 samples per grid size)
+        with open(f"grid/{i:.1f}.csv", "w") as f:
+            subprocess.run(["echo", CSV_HEADER], stdout=f)
         for _ in range(50):
             with open(f"grid/{i:.1f}.csv", "a") as f:
                 subprocess.run([GRISUBAL, FILE_PATH, str(i), str(i)], stdout=f)
@@ -91,6 +99,8 @@ def main():
     else:
         print("Invalid option; Exiting.")
         sys.exit(1)
+    print("Finished")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
