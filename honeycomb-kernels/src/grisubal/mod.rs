@@ -227,7 +227,7 @@ pub fn grisubal<T: CoordsFloat>(
     unsafe {
         TIMERS[Section::Cleanup as usize] = Some(instant.elapsed());
         println!(
-            "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+            "{},{},{},{},{},{},{},{},{},{},{},{},{}",
             TIMERS[0].unwrap().as_nanos(),
             TIMERS[1].unwrap().as_nanos(),
             TIMERS[2].unwrap().as_nanos(),
