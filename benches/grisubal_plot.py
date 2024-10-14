@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import font_manager
 
 # Read the CSV file
 df = pd.read_csv('fixed/sections.csv')
@@ -56,19 +57,24 @@ plt.setp(autotexts, size=9, weight="bold")
 # Format time values for legend
 def format_time(ns):
     if ns >= 1e6:
-        return f'{ns / 1e6:.2f} ms'
+        return f'{ns / 1e6:.2f}'.rjust(6) + ' ms'
     elif ns >= 1e3:
-        return f'{ns / 1e3:.2f} µs'
+        return f'{ns / 1e3:.2f}'.rjust(6) + ' µs'
     else:
-        return f'{ns:.2f} ns'
+        return f'{ns:.2f}'.rjust(6) + ' ns'
 
 
-# Create legend labels with section names and time values
-legend_labels = [f'{name} ({format_time(time)})' for name, time in sorted_times.items()]
+max_name_length = max(len(name) for name in sorted_times.index)
+
+# Create legend labels with section names and time values, using tab for alignment
+legend_labels = [f'{name.ljust(max_name_length)} : {format_time(time)}' for name, time in sorted_times.items()]
+
+# Find a monospace font
+monospace_font = font_manager.FontProperties(family='monospace')
 
 # Add a legend with formatted time values
-plt.legend(wedges, legend_labels, title="Sections", loc="center left",
-           bbox_to_anchor=(1, 0, 0.5, 1), fontsize=9)
+legend = plt.legend(wedges, legend_labels, title="Sections", loc="center left",
+                    bbox_to_anchor=(1, 0, 0.5, 1), fontsize=9, prop=monospace_font)
 
 # Adjust layout and save the plot
 plt.tight_layout()
