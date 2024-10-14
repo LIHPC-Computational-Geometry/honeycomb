@@ -26,12 +26,8 @@ pub enum SplitEdgeError {
     InvalidDarts(&'static str),
     /// The number of darts passed to create the new segments is too low. The `usize` value
     /// is the number of missing darts.
-    #[error("not enough darts passed to the split function - missing `{0}`")]
-    NotEnoughDarts(usize),
-    /// The number of darts passed to create the new segments is too high. The `usize` value
-    /// is the number of excess darts.
-    #[error("too many darts passed to the split function - `{0}` too many")]
-    TooManyDarts(usize),
+    #[error("wrong # of darts - expected `{0}`, got {1}")]
+    WrongAmountDarts(usize, usize),
 }
 
 // ------ TESTS

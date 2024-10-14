@@ -2,9 +2,9 @@
 
 // ------ IMPORTS
 
+use crate::splits::SplitEdgeError;
 use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
-
 // ------ CONTENT
 
 /// Split an edge into `n` segments.
@@ -48,7 +48,7 @@ use honeycomb_core::geometry::CoordsFloat;
 /// map.insert_vertex(1, (0.0, 0.0));
 /// map.insert_vertex(2, (1.0, 0.0));
 /// // split
-/// assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]));
+/// assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
 /// // after
 /// //    <-<-<-<
 /// //  1 -3-4-5- 2
@@ -82,7 +82,7 @@ pub fn splitn_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     edge_id: EdgeIdentifier,
     midpoint_vertices: impl IntoIterator<Item = T>,
-) -> bool {
+) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
     let midpoint_vertices = midpoint_vertices.into_iter().collect::<Vec<_>>();
     let n_t = midpoint_vertices.len();
@@ -152,19 +152,15 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     edge_id: EdgeIdentifier,
     new_darts: &[DartIdentifier],
     midpoint_vertices: &[T],
-) -> bool {
+) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
     let n_t = midpoint_vertices.len();
     let n_d = new_darts.len();
     if n_d != 2 * n_t {
-        // println!("W: inconsistent number of darts ({n_d}) & number of midpoints ({n_t}) - the method expects `2 * n_mid` darts");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::WrongAmountDarts(2 * n_t, n_d));
     }
     if new_darts.iter().any(|d| !cmap.is_free(*d)) {
-        // println!("{W_PASSED_NONFREE}");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::InvalidDarts("one dart is not free"));
     }
     // get the first and second halves
     let darts_fh = &new_darts[..n_t];
@@ -175,14 +171,14 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
-        // println!("{W_PASSED_NULL}");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::InvalidDarts(
+            "one dart of the first half is null",
+        ));
     }
     if base_dart2 != NULL_DART_ID && darts_sh.iter().any(|d| *d == NULL_DART_ID) {
-        // println!("{W_PASSED_NULL}");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::InvalidDarts(
+            "one dart of the second half is null",
+        ));
     }
 
     inner_splitn(cmap, base_dart1, darts_fh, darts_sh, midpoint_vertices)
@@ -196,12 +192,17 @@ fn inner_splitn<T: CoordsFloat>(
     darts_fh: &[DartIdentifier], //first half
     darts_sh: &[DartIdentifier], //second half
     midpoint_vertices: &[T],
-) -> bool {
+) -> Result<(), SplitEdgeError> {
+    if midpoint_vertices
+        .iter()
+        .any(|t| (*t >= T::one()) | (*t <= T::zero()))
+    {
+        return Err(SplitEdgeError::VertexBound);
+    }
+
     let base_dart2 = cmap.beta::<2>(base_dart1);
     let b1d1_old = cmap.beta::<1>(base_dart1);
 
-    // (*): unwrapping is ok since splitting an edge that does not have both its vertices
-    //      defined is undefined behavior, therefore panic
     let (Some(v1), Some(v2)) = (
         cmap.vertex(cmap.vertex_id(base_dart1)),
         cmap.vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
@@ -210,9 +211,7 @@ fn inner_splitn<T: CoordsFloat>(
             base_dart2
         })),
     ) else {
-        // println!("{W_UNDEF_EDGE}");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::UndefinedEdge);
     };
     let seg = v2 - v1;
 
@@ -259,5 +258,5 @@ fn inner_splitn<T: CoordsFloat>(
         cmap.two_link(prev_d, base_dart1);
     }
 
-    true
+    Ok(())
 }

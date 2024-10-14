@@ -2,6 +2,7 @@
 
 // ------ IMPORTS
 
+use crate::splits::SplitEdgeError;
 use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
@@ -52,10 +53,10 @@ pub fn split_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     edge_id: EdgeIdentifier,
     midpoint_vertex: Option<T>,
-) -> bool {
+) -> Result<(), SplitEdgeError> {
     // midpoint check
     if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
-        // println!("{W_VERTEX_BOUND}");
+        return Err(SplitEdgeError::VertexBound);
     }
 
     // base darts making up the edge
@@ -117,26 +118,25 @@ pub fn split_edge_noalloc<T: CoordsFloat>(
     edge_id: EdgeIdentifier,
     new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
-) -> bool {
+) -> Result<(), SplitEdgeError> {
     // midpoint check
     if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
-        // println!("{W_VERTEX_BOUND}");
+        return Err(SplitEdgeError::VertexBound);
     }
 
     // base darts making up the edge
     let base_dart1 = edge_id as DartIdentifier;
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
-    let (b1d1_new, b1d2_new) = new_darts;
     if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
-        // println!("W: dart {b1d1_new} cannot be used in split_edge -- passed darts should be non-null and free");
-        // println!("{SKIP}");
-        return false;
+        return Err(SplitEdgeError::InvalidDarts(
+            "first dart is null or not free",
+        ));
     }
-    if base_dart2 != NULL_DART_ID && (b1d2_new == NULL_DART_ID || !cmap.is_free(b1d2_new)) {
-        // println!("W: dart {b1d2_new} cannot be used in split_edge -- passed darts should be non-null and free");
-        // println!("{SKIP}");
-        return false;
+    if base_dart2 != NULL_DART_ID && (new_darts.1 == NULL_DART_ID || !cmap.is_free(new_darts.1)) {
+        return Err(SplitEdgeError::InvalidDarts(
+            "second dart is null or not free",
+        ));
     }
 
     inner_split(cmap, base_dart1, new_darts, midpoint_vertex)
@@ -149,11 +149,9 @@ fn inner_split<T: CoordsFloat>(
     base_dart1: DartIdentifier,
     new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
-) -> bool {
+) -> Result<(), SplitEdgeError> {
     // base darts making up the edge
     let base_dart2 = cmap.beta::<2>(base_dart1);
-    // (*): unwrapping is ok since splitting an edge that does not have both its vertices
-    //      defined is undefined behavior, therefore panic
     if base_dart2 == NULL_DART_ID {
         let b1d1_old = cmap.beta::<1>(base_dart1);
         let b1d1_new = new_darts.0;
@@ -161,8 +159,7 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex(cmap.vertex_id(base_dart1)),
             cmap.vertex(cmap.vertex_id(b1d1_old)),
         ) else {
-            // println!("{W_UNDEF_EDGE}");
-            return false;
+            return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current dart
         cmap.set_beta::<1>(base_dart1, 0);
@@ -176,7 +173,7 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex_id(b1d1_new),
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
         );
-        true
+        Ok(())
     } else {
         let b1d1_old = cmap.beta::<1>(base_dart1);
         let b1d2_old = cmap.beta::<1>(base_dart2);
@@ -185,8 +182,7 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex(cmap.vertex_id(base_dart1)),
             cmap.vertex(cmap.vertex_id(base_dart2)),
         ) else {
-            // println!("{W_UNDEF_EDGE}");
-            return false;
+            return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current darts
         cmap.set_beta::<1>(base_dart1, 0);
@@ -211,6 +207,6 @@ fn inner_split<T: CoordsFloat>(
             cmap.vertex_id(b1d1_new),
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
         );
-        true
+        Ok(())
     }
 }
