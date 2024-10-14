@@ -35,6 +35,7 @@ use honeycomb_core::geometry::CoordsFloat;
 ///
 /// ```
 /// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+/// # use honeycomb_kernels::splits::splitn_edge;
 /// // before
 /// //    <--2---
 /// //  1         2
@@ -47,7 +48,7 @@ use honeycomb_core::geometry::CoordsFloat;
 /// map.insert_vertex(1, (0.0, 0.0));
 /// map.insert_vertex(2, (1.0, 0.0));
 /// // split
-/// assert!(map.splitn_edge(1, [0.25, 0.50, 0.75]));
+/// assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]));
 /// // after
 /// //    <-<-<-<
 /// //  1 -3-4-5- 2
