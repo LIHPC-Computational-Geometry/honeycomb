@@ -23,14 +23,22 @@ sorted_others = mean_times[other_columns].sort_values(ascending=False)
 # Combine sorted BuildMesh and other sections
 sorted_times = pd.concat([sorted_buildmesh, sorted_others])
 
-# Create a color map: shades of blue for BuildMesh, other colors for the rest
-num_buildmesh = len(buildmesh_columns)
-num_others = len(other_columns)
+# Define a color mapping
+color_map = {
+    'BuildMesh': plt.cm.Blues(np.linspace(0.6, 1, len(buildmesh_columns))),
+    'Other': plt.cm.Dark2(np.linspace(0, 1, len(other_columns)))
+}
 
-blues = plt.cm.Blues(np.linspace(0.6, 1, num_buildmesh))
-other_colors = plt.cm.Set3(np.linspace(0, 0.6, num_others))
 
-colors = list(blues) + list(other_colors)
+# Function to get color for a column
+def get_color(column):
+    if column.startswith('BuildMesh'):
+        return color_map['BuildMesh'][list(buildmesh_columns).index(column)]
+    return color_map['Other'][list(other_columns).index(column)]
+
+
+# Create colors list
+colors = [get_color(col) for col in sorted_times.index]
 
 # Create a pie chart
 plt.figure(figsize=(16, 12))
@@ -56,6 +64,8 @@ plt.setp(autotexts, size=9, weight="bold")
 
 # Format time values for legend
 def format_time(ns):
+    if ns >= 1e9:
+        return f'{ns / 1e9:.2f}'.rjust(6) + ' s '
     if ns >= 1e6:
         return f'{ns / 1e6:.2f}'.rjust(6) + ' ms'
     elif ns >= 1e3:
