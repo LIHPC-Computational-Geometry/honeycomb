@@ -60,8 +60,8 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
                 if let Some(v) = AttributeUpdate::merge_from_none() {
                     self.set(out.into(), v);
                 } else {
-                    println!("W: cannot merge two null attribute value");
-                    println!("   setting new target value to `None`");
+                    eprintln!("W: cannot merge two null attribute value");
+                    eprintln!("   setting new target value to `None`");
                     let _ = self.remove(out.into());
                 }
             }
@@ -75,8 +75,8 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             self.set(lhs_out.into(), lhs_val);
             self.set(rhs_out.into(), rhs_val);
         } else {
-            println!("W: cannot split attribute value (not found in storage)");
-            println!("   setting both new values to `None`");
+            eprintln!("W: cannot split attribute value (not found in storage)");
+            eprintln!("   setting both new values to `None`");
             let _ = self.remove(lhs_out.into());
             let _ = self.remove(rhs_out.into());
         }
@@ -188,8 +188,8 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
                 if let Some(v) = AttributeUpdate::merge_from_none() {
                     self.set(out.into(), v);
                 } else {
-                    println!("W: cannot merge two null attribute value");
-                    println!("   setting new target value to `None`");
+                    eprintln!("W: cannot merge two null attribute value");
+                    eprintln!("   setting new target value to `None`");
                     let _ = self.remove(out.into());
                 }
             }
@@ -203,8 +203,8 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             self.set(lhs_out.into(), lhs_val);
             self.set(rhs_out.into(), rhs_val);
         } else {
-            println!("W: cannot split attribute value (not found in storage)");
-            println!("   setting both new values to `None`");
+            eprintln!("W: cannot split attribute value (not found in storage)");
+            eprintln!("   setting both new values to `None`");
             let _ = self.remove(lhs_out.into());
             let _ = self.remove(rhs_out.into());
         }
