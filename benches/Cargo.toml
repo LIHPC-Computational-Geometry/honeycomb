@@ -27,6 +27,10 @@ rand = { workspace = true, features = ["small_rng"] }
 # binaries
 
 [[bin]]
+name = "builder"
+path = "src/builder.rs"
+
+[[bin]]
 name = "grisubal"
 path = "src/grisubal.rs"
 
