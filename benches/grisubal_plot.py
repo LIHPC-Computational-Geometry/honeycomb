@@ -5,15 +5,15 @@ import pandas as pd
 # Read the CSV file
 df = pd.read_csv('fixed/sections.csv')
 
-if ' BuildMeshTot' in df.columns:
-    df = df.drop(' BuildMeshTot', axis=1)
+if 'BuildMeshTot' in df.columns:
+    df = df.drop('BuildMeshTot', axis=1)
 
 # Calculate the mean time for each section
 mean_times = df.mean()
 
 # Separate BuildMesh sections and other sections
-buildmesh_columns = [col for col in mean_times.index if col.startswith(' BuildMesh')]
-other_columns = [col for col in mean_times.index if not col.startswith(' BuildMesh')]
+buildmesh_columns = [col for col in mean_times.index if col.startswith('BuildMesh')]
+other_columns = [col for col in mean_times.index if not col.startswith('BuildMesh')]
 
 # Sort BuildMesh sections and other sections separately
 sorted_buildmesh = mean_times[buildmesh_columns].sort_values(ascending=False)
@@ -52,8 +52,22 @@ plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle
 # Adjust percentage text size and make them bold
 plt.setp(autotexts, size=9, weight="bold")
 
-# Add a legend
-plt.legend(wedges, sorted_times.index, title="Sections", loc="center left",
+
+# Format time values for legend
+def format_time(ns):
+    if ns >= 1e6:
+        return f'{ns / 1e6:.2f} ms'
+    elif ns >= 1e3:
+        return f'{ns / 1e3:.2f} µs'
+    else:
+        return f'{ns:.2f} ns'
+
+
+# Create legend labels with section names and time values
+legend_labels = [f'{name} ({format_time(time)})' for name, time in sorted_times.items()]
+
+# Add a legend with formatted time values
+plt.legend(wedges, legend_labels, title="Sections", loc="center left",
            bbox_to_anchor=(1, 0, 0.5, 1), fontsize=9)
 
 # Adjust layout and save the plot

@@ -7,7 +7,7 @@ GRISUBAL = "./target/release/grisubal"
 GRISUBAL_PROF = "./target/profiling/grisubal"
 FILE_PATH = "./examples/shape.vtk"
 
-CSV_HEADER = "ImportVTK, BuildGeometry, DetectOrientation, ComputeOverlappingGrid, RemoveRedundantPoi, BuildMeshTot, BuildMeshInit, BuildMeshIntersecData, BuildMeshInsertIntersec, BuildMeshEdgeData, BuildMeshInsertEdge, Clip, Cleanup"
+CSV_HEADER = "ImportVTK,BuildGeometry,DetectOrientation,ComputeOverlappingGrid,RemoveRedundantPoi,BuildMeshTot,BuildMeshInit,BuildMeshIntersecData,BuildMeshInsertIntersec,BuildMeshEdgeData,BuildMeshInsertEdge,Clip,Cleanup"
 
 FIXED_SIZE = "1."
 SIZE_RANGE = [x / 10 for x in range(1, 11)]
@@ -58,7 +58,7 @@ def grid():
         subprocess.run(
             ["flamegraph", "--flamechart", "--perfdata", f"grid/{i:.1f}.perf.data", "-o", f"grid/{i:.1f}.svg"])
         # heaptrack
-        subprocess.run(["heaptrack", "-o", f"grid/{i:.1f}", GRISUBAL, FILE_PATH, str(i), str(i)])
+        subprocess.run(["heaptrack", "-o", f"grid/{i:.1f}", GRISUBAL_PROF, FILE_PATH, str(i), str(i)])
     return
 
 
