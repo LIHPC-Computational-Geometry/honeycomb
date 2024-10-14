@@ -2,7 +2,13 @@
 
 // ------ MODULE DECLARATIONS
 
+mod edge_multiple;
+mod edge_single;
+
 // ------ PUBLIC RE-EXPORTS
+
+pub use edge_multiple::{splitn_edge, splitn_edge_no_alloc};
+pub use edge_single::{split_edge, split_edge_noalloc};
 
 // ------ CONTENT
 
