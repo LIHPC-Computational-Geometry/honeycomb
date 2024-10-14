@@ -1,4 +1,9 @@
+//! Cell splitting functions
 //!
+//! This module contains implementations of cell splitting methods. We currently define
+//! two edge-splitting methods, depending on the number of splits done. Both functions
+//! have "no-alloc" variants: these take additional darts as argument in order not to
+//! allocate darts during the process.
 
 // ------ MODULE DECLARATIONS
 

@@ -8,6 +8,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 // ------ CONTENT
 
+#[allow(clippy::missing_errors_doc)]
 /// Split an edge into two segments.
 ///
 /// <div class="warning">
@@ -30,12 +31,12 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 /// - `midpoint_vertex: Option<T>` -- Relative position of the new vertex, starting from the
 ///   vertex of the dart sharing `edge_id` as its identifier.
 ///
-/// # Return
+/// # Return / Errors
 ///
 /// This method will return:
-/// - `true` if the operation is successful & the edge was split
-/// - `false` if the operation fails & the edge is left unchanged. It can fail if:
-///   - one or both vertices of the edge is undefined
+/// - `Ok(())` if the operation is successful & the edge was split
+/// - `Err(SplitEdgeError)` if the operation fails & the edge is left unchanged. Causes of failure
+///   are described in [`SplitEdgeError`]'s documentation.
 ///
 /// # Example
 ///
@@ -73,6 +74,7 @@ pub fn split_edge<T: CoordsFloat>(
     inner_split(cmap, base_dart1, new_darts, midpoint_vertex)
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Split an edge into two segments.
 ///
 /// <div class="warning">
@@ -106,13 +108,12 @@ pub fn split_edge<T: CoordsFloat>(
 ///   if that is not the case, the second dart ID can be `NULL_DART_ID`.
 /// - both of these darts should be free
 ///
-/// # Return
+/// # Return / Errors
 ///
 /// This method will return:
-/// - `true` if the operation is successful & the edge was split
-/// - `false` if the operation fails & the edge is left unchanged. It can fail if:
-///   - one or both vertices of the edge is undefined
-///   - if darts passed as argument do not match the above requirements
+/// - `Ok(())` if the operation is successful & the edge was split
+/// - `Err(SplitEdgeError)` if the operation fails & the edge is left unchanged. Causes of failure
+///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn split_edge_noalloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     edge_id: EdgeIdentifier,

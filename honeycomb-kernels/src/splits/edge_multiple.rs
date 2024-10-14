@@ -7,6 +7,7 @@ use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 // ------ CONTENT
 
+#[allow(clippy::missing_errors_doc)]
 /// Split an edge into `n` segments.
 ///
 /// <div class="warning">
@@ -24,12 +25,12 @@ use honeycomb_core::geometry::CoordsFloat;
 ///
 /// - `I: Iterator<Item = T>` -- Iterator over `T` values. These should be in the `]0; 1[` open range.
 ///
-/// # Return
+/// # Return / Errors
 ///
 /// This method will return:
-/// - `true` if the operation is successful & the edge was split
-/// - `false` if the operation fails & the edge is left unchanged. It can fail if:
-///   - one or both vertices of the edge is undefined
+/// - `Ok(())` if the operation is successful & the edge was split
+/// - `Err(SplitEdgeError)` if the operation fails & the edge is left unchanged. Causes of failure
+///   are described in [`SplitEdgeError`]'s documentation.
 ///
 /// # Example
 ///
@@ -106,6 +107,7 @@ pub fn splitn_edge<T: CoordsFloat>(
     inner_splitn(cmap, base_dart1, darts_fh, darts_sh, &midpoint_vertices)
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Split an edge into `n` segments.
 ///
 /// <div class="warning">
@@ -140,13 +142,12 @@ pub fn splitn_edge<T: CoordsFloat>(
 ///   if that is not the case, the second half IDs can all be `NULL_DART_ID`s.
 /// - all of these darts should be free
 ///
-/// # Return
+/// # Return / Errors
 ///
 /// This method will return:
-/// - `true` if the operation is successful & the edge was split
-/// - `false` if the operation fails & the edge is left unchanged. It can fail if:
-///   - one or both vertices of the edge is undefined
-///   - if darts passed as argument do not match the above requirements
+/// - `Ok(())` if the operation is successful & the edge was split
+/// - `Err(SplitEdgeError)` if the operation fails & the edge is left unchanged. Causes of failure
+///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     edge_id: EdgeIdentifier,
