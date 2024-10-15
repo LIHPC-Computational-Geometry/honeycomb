@@ -27,6 +27,10 @@ rand = { workspace = true, features = ["small_rng"] }
 # binaries
 
 [[bin]]
+name = "builder"
+path = "src/builder.rs"
+
+[[bin]]
 name = "grisubal"
 path = "src/grisubal.rs"
 
@@ -75,6 +79,17 @@ harness = false
 [[bench]]
 name = "splitsquaremap-shift"
 path = "benches/splitsquaremap/shift.rs"
+harness = false
+
+
+[[bench]]
+name = "builder"
+path = "benches/builder/time.rs"
+harness = false
+
+[[bench]]
+name = "builder-grid-size"
+path = "benches/builder/grid_size.rs"
 harness = false
 
 ## Kernels benchmarks
