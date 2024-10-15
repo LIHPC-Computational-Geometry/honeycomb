@@ -16,24 +16,20 @@ our structure using Rust's framework to streamline the refactoring and paralleli
 
 ## Quickstart
 
-You can add `honeycomb` as a dependency of your project by adding the following lines to its manifest:
+You can add `honeycomb` as a dependency of your project by adding the following lines to its `Cargo.toml`:
 
 ```toml
-# Cargo.toml
-
-[dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
+# [dependencies]
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.6.0"} # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
-# Cargo.toml
-
-[dependencies]
-honeycomb-core = "0.5.0"
-honeycomb-kernels = "0.5.0"
-honeycomb-render = "0.5.0"
+# [dependencies]
+honeycomb-core = "0.6.0"
+honeycomb-kernels = "0.6.0"
+honeycomb-render = "0.6.0"
 ```
 
 
