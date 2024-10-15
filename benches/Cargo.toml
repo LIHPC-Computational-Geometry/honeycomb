@@ -81,6 +81,17 @@ name = "splitsquaremap-shift"
 path = "benches/splitsquaremap/shift.rs"
 harness = false
 
+
+[[bench]]
+name = "builder"
+path = "benches/builder/time.rs"
+harness = false
+
+[[bench]]
+name = "builder-grid-size"
+path = "benches/builder/grid_size.rs"
+harness = false
+
 ## Kernels benchmarks
 
 [[bench]]
