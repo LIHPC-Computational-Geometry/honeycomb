@@ -12,7 +12,7 @@ fn main() {
                 "left" => Clip::Left,
                 "right" => Clip::Right,
                 _ => {
-                    println!("W: unrecognised clip argument - running kernel without clipping");
+                    eprintln!("W: unrecognised clip argument - running kernel without clipping");
                     Clip::None
                 }
             }

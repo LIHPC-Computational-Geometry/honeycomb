@@ -274,7 +274,9 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
     let mut i = 1;
 
     while on_corner | reflect {
-        println!("W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin");
+        eprintln!(
+            "W: land on corner: {on_corner} - reflect on an axis: {reflect}, shifting origin"
+        );
         og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
         og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
         (on_corner, reflect) =
