@@ -4,6 +4,10 @@
 
 ## To be released
 
+---
+
+## 0.6.0
+
 **This update contains breaking changes**
 
 ### Workspace
@@ -17,6 +21,12 @@
 
 - replace some explicit `panic!` and `unwrap` calls with cleaner alternatives by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/174 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/176
+- **cleanup error enums** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/190
+- replace regular prints with prints to stderr for warnings by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/192
+- **turn edge-splitting methods into kernel-crate functions** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/193
 
 *deps:*
 
@@ -75,7 +85,7 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/168
 
 
-#### honeycomb-kernels (new member)
+#### honeycomb-kernels
 
 <sup>implementations of meshing kernels using combinatorial maps</sup>
 
@@ -105,6 +115,15 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 
 - setup grisubal benchmark framework by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/164
+- add scripts to streamline the benchmarking process by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/191
+- add benchmarking tools for the grid building routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/194
+
+*refactor:*
+
+- **remove irrelevant benchmarks** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/195
 
 
 #### honeycomb-examples
