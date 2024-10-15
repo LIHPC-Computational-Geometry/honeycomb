@@ -52,30 +52,7 @@ harness = false
 
 ## Criterion benchmarks
 
-[[bench]]
-name = "squaremap-init"
-path = "benches/squaremap/init.rs"
-harness = false
 
-[[bench]]
-name = "squaremap-shift"
-path = "benches/squaremap/shift.rs"
-harness = false
-
-[[bench]]
-name = "squaremap-splitquads"
-path = "benches/squaremap/split.rs"
-harness = false
-
-[[bench]]
-name = "splitsquaremap-init"
-path = "benches/splitsquaremap/init.rs"
-harness = false
-
-[[bench]]
-name = "splitsquaremap-shift"
-path = "benches/splitsquaremap/shift.rs"
-harness = false
 
 ## Kernels benchmarks
 
