@@ -79,6 +79,7 @@ use honeycomb_core::geometry::CoordsFloat;
 /// assert_eq!(map.beta::<2>(4), 6);
 /// assert_eq!(map.beta::<2>(5), 2);
 /// ```
+#[allow(clippy::cast_possible_truncation)]
 pub fn splitn_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     edge_id: EdgeIdentifier,
