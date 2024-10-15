@@ -36,6 +36,10 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/165
 - bump `egui_dock` from 0.13.0 to 0.14.0 & `bevy_egui` from 0.29.0 to 0.30.0 by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/187
+- bump:
+  - `rustversion` from 1.0.15 to 1.0.18
+  - `bevy` from 0.14.1 to 0.14.2
+  - `bevy_mod_outline` from 0.8.1 to 0.8.3
 
 
 ### Published crates
