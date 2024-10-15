@@ -513,21 +513,21 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         // sort ts
         // panic unreachable because t s.t. t == NaN have been filtered previously
         vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
-        let new_darts = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
+        let _ = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
         // order should be consistent between collection because of the sort_by call
-        vs.iter()
-            .zip(new_darts.iter())
-            // chaining this directly avoids an additional `.collect()`
-            .for_each(|((id, _, old_dart_id), dart_id)| {
-                // c.
-                // reajust according to intersection side
-                res[*id] = if *old_dart_id == *edge_id {
-                    *dart_id
-                } else {
-                    // ! not sure how generalized this operation can be !
-                    cmap.beta::<1>(cmap.beta::<2>(*dart_id))
-                };
-            });
+        let mut dart_id = cmap.beta::<1>(*edge_id as DartIdentifier);
+        // chaining this directly avoids an additional `.collect()`
+        for (id, _, old_dart_id) in vs {
+            // c.
+            // reajust according to intersection side
+            res[*id] = if *old_dart_id == *edge_id {
+                dart_id
+            } else {
+                // ! not sure how generalized this operation can be !
+                cmap.beta::<1>(cmap.beta::<2>(dart_id))
+            };
+            dart_id = cmap.beta::<1>(dart_id);
+        }
     }
 
     res
@@ -622,17 +622,17 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
 
         if !intermediates.is_empty() {
             // we can add intermediates after by using the splitn_edge method on a temporary start-to-end edge
-            let darts = cmap.splitn_edge(
-                cmap.edge_id(d_new),
+            let edge_id = cmap.edge_id(d_new);
+            let _ = cmap.splitn_edge(
+                edge_id,
                 vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
             );
-            darts
-                .iter()
-                .zip(intermediates.iter())
-                .for_each(|(dart_id, v)| {
-                    let vid = cmap.vertex_id(*dart_id);
-                    let _ = cmap.replace_vertex(vid, *v);
-                });
+            let mut dart_id = cmap.beta::<1>(edge_id as DartIdentifier);
+            for v in intermediates {
+                let vid = cmap.vertex_id(dart_id);
+                let _ = cmap.replace_vertex(vid, *v);
+                dart_id = cmap.beta::<1>(dart_id);
+            }
         }
 
         let mut d_boundary = cmap.beta::<1>(*start);

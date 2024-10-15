@@ -10,6 +10,7 @@
 use super::GridDescriptor;
 use crate::prelude::{AttributeBind, CMap2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
+use thiserror::Error;
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
@@ -21,19 +22,21 @@ use vtkio::Vtk;
 ///
 /// This enum is used to describe all non-panic errors that can occur when using a builder
 /// structure.
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum BuilderError {
     // grid-related variants
     /// One or multiple of the specified grid characteristics are invalid.
+    #[error("invalid grid parameters - {0}")]
     InvalidGridParameters(&'static str),
     /// The builder is missing one or multiple parameters to generate the grid.
-    MissingGridParameters(&'static str),
+    #[error("insufficient parameters - please specifiy at least 2")]
+    MissingGridParameters,
     // vtk-related variants
     /// Specified VTK file contains inconsistent data.
-    InvalidVtkFile(&'static str),
-    /// Specified VTK file could not be found.
-    MissingVtkFile(&'static str),
+    #[error("invalid/corrupted data in the vtk file - {0}")]
+    BadVtkData(&'static str),
     /// Specified VTK file contains unsupported data.
+    #[error("unsupported data in the vtk file - {0}")]
     UnsupportedVtkData(&'static str),
 }
 

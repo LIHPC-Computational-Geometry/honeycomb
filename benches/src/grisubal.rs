@@ -14,7 +14,7 @@ fn main() {
                         "left" => grisubal::Clip::Left,
                         "right" => grisubal::Clip::Right,
                         _ => {
-                            println!("W: unrecognised clip argument - running kernel without clipping");
+                            eprintln!("W: unrecognised clip argument - running kernel without clipping");
                             grisubal::Clip::None
                         }
                     }).unwrap_or_default(),

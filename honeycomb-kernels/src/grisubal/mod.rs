@@ -68,23 +68,28 @@ use crate::grisubal::model::{
     compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
 };
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use thiserror::Error;
 use vtkio::Vtk;
 
 // ------ CONTENT
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
 ///
 /// Each variant has an associated message that details more precisely what was detected.
 pub enum GrisubalError {
     /// An orientation issue has been detected in the input geometry.
-    InconsistentOrientation(String),
+    #[error("boundary isn't consistently oriented - {0}")]
+    InconsistentOrientation(&'static str),
     /// The specified geometry does not match one (or more) requirements of the algorithm.
-    InvalidInput(String),
+    #[error("input shape isn't conform to requirements - {0}")]
+    InvalidShape(&'static str),
     /// The VTK file used to try to build a `Geometry2` object contains invalid data
     /// (per VTK's specification).
+    #[error("invalid/corrupted data in the vtk file - {0}")]
     BadVtkData(&'static str),
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
+    #[error("unsupported data in the vtk file - {0}")]
     UnsupportedVtkData(&'static str),
 }
 

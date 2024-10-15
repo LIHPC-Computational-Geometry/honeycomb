@@ -24,26 +24,33 @@ pub use fan::process_convex_cell as fan_convex_cell;
 
 // ------ CONTENT
 
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
+use honeycomb_core::cmap::{CMap2, DartIdentifier};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+use thiserror::Error;
 
 /// Error-modeling enum for triangulation routines.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum TriangulateError {
     /// The face to triangulate is already a triangle.
+    #[error("face is already a triangle")]
     AlreadyTriangulated,
     /// The face has no ear to use for triangulation using the ear clipping method.
+    #[error("no ear found in the polygon to triangulate")]
     NoEar,
     /// The face is not fannable, i.e. there is no "star" vertex.
+    #[error("no star in the polygon to triangulate")]
     NonFannable,
     /// The number of darts passed to create the new segments is too low. The `usize` value
     /// is the number of missing darts.
+    #[error("not enough darts were passed to the triangulation function - missing `{0}`")]
     NotEnoughDarts(usize),
     /// The number of darts passed to create the new segments is too high. The `usize` value
     /// is the number of excess darts.
+    #[error("too many darts were passed to the triangulation function - missing `{0}`")]
     TooManyDarts(usize),
     /// The face is not fit for triangulation. The `String` contains information about the reason.
-    UndefinedFace(String),
+    #[error("face isn't defined correctly - {0}")]
+    UndefinedFace(&'static str),
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -79,13 +86,10 @@ pub enum TriangulateError {
 pub fn check_requirements(
     n_darts_face: usize,
     n_darts_allocated: usize,
-    face_id: FaceIdentifier,
 ) -> Result<(), TriangulateError> {
     match n_darts_face {
         1 | 2 => {
-            return Err(TriangulateError::UndefinedFace(format!(
-                "face {face_id} has less than three vertices"
-            )));
+            return Err(TriangulateError::UndefinedFace("less than 3 vertices"));
         }
         3 => {
             return Err(TriangulateError::AlreadyTriangulated);
@@ -110,15 +114,14 @@ pub fn check_requirements(
 fn fetch_face_vertices<T: CoordsFloat>(
     cmap: &CMap2<T>,
     darts: &[DartIdentifier],
-    face_id: FaceIdentifier,
 ) -> Result<Vec<Vertex2<T>>, TriangulateError> {
     let tmp = darts
         .iter()
         .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
     if tmp.clone().any(|v| v.is_none()) {
-        Err(TriangulateError::UndefinedFace(format!(
-            "face {face_id} has one or more undefined vertices"
-        )))
+        Err(TriangulateError::UndefinedFace(
+            "one or more undefined vertices",
+        ))
     } else {
         Ok(tmp.map(Option::unwrap).collect()) // safe unwrap due to if
     }

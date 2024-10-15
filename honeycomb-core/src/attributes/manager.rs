@@ -366,11 +366,11 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            println!(
+            eprintln!(
                 "W: Storage of attribute `{}` already exists in the attribute storage manager",
                 std::any::type_name::<A>()
             );
-            println!("   Continuing...");
+            eprintln!("   Continuing...");
         }
     }
 
@@ -388,7 +388,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.extend(length);
         } else {
-            println!(
+            eprintln!(
                 "W: could not extend storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -457,7 +457,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.set(id, val);
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -487,7 +487,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.insert(id, val);
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -521,7 +521,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.get(id)
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -561,7 +561,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.replace(id, val)
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -596,7 +596,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.remove(id)
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -621,7 +621,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.merge(id_out, id_in_lhs, id_in_rhs);
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
@@ -645,7 +645,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.split(id_out_lhs, id_out_rhs, id_in);
         } else {
-            println!(
+            eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
