@@ -5,7 +5,20 @@ use crate::pmap::common::PDartIdentifier;
 use crate::pmap::dim2::PMAP2_BETA;
 use std::sync::atomic::{AtomicBool, AtomicU32};
 
-// #[cfg_attr(feature = "utils", derive(Clone))]
+/// Main map object.
+///
+/// Structure used to model 2D combinatorial map. This is a parallel-friendly variant of [`CMap2`].
+///
+/// **Note that Undefined Behavior resulting from different execution path are currently not
+/// accounted for.**
+///
+/// # Generics
+///
+/// - `T: CoordsFloat` -- Generic type for coordinates representation.
+///
+/// # Example
+///
+/// TODO
 pub struct PMap2<T: CoordsFloat> {
     // /// List of vertices making up the represented mesh
     // pub(super) attributes: AttrStorageManager,

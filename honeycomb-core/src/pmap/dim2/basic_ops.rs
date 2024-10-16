@@ -10,8 +10,7 @@
 // ------ IMPORTS
 
 use crate::prelude::{
-    DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
-    NULL_DART_ID,
+    DartIdentifier, EdgeIdentifier, FaceIdentifier, OrbitPolicy, VertexIdentifier, NULL_DART_ID,
 };
 use crate::{
     attributes::UnknownAttributeStorage,
