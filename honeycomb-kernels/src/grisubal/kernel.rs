@@ -11,15 +11,15 @@ use std::{
     collections::{HashMap, VecDeque},
 };
 
+#[cfg(feature = "profiling")]
+use super::{Section, TIMERS};
 use crate::grisubal::grid::GridCellId;
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
+use crate::splits::splitn_edge;
 use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
 };
-
-#[cfg(feature = "profiling")]
-use super::{Section, TIMERS};
 
 // ------ CONTENT
 
@@ -513,7 +513,7 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         // sort ts
         // panic unreachable because t s.t. t == NaN have been filtered previously
         vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
-        let _ = cmap.splitn_edge(*edge_id, vs.iter().map(|(_, t, _)| *t));
+        let _ = splitn_edge(cmap, *edge_id, vs.iter().map(|(_, t, _)| *t));
         // order should be consistent between collection because of the sort_by call
         let mut dart_id = cmap.beta::<1>(*edge_id as DartIdentifier);
         // chaining this directly avoids an additional `.collect()`
@@ -623,7 +623,8 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         if !intermediates.is_empty() {
             // we can add intermediates after by using the splitn_edge method on a temporary start-to-end edge
             let edge_id = cmap.edge_id(d_new);
-            let _ = cmap.splitn_edge(
+            let _ = splitn_edge(
+                cmap,
                 edge_id,
                 vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
             );

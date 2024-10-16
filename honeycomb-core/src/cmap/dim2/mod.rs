@@ -7,7 +7,6 @@
 
 // ------ MODULE DECLARATIONS
 
-pub mod advanced_ops;
 pub mod basic_ops;
 pub mod embed;
 pub mod link_and_sew;
