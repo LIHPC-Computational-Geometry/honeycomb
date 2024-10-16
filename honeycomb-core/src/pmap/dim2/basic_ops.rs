@@ -22,7 +22,7 @@ use crate::{
 use crate::pmap::dim2::orbits::POrbit2;
 use crate::pmap::dim2::structure::PMap2;
 use std::collections::BTreeSet;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 // ------ CONTENT
 
 /// **Dart-related methods**
@@ -38,7 +38,10 @@ impl<T: CoordsFloat> PMap2<T> {
     /// Return information about the current number of unused darts.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts.len()
+        self.unused_darts
+            .iter()
+            .filter(|v| v.load(Ordering::Relaxed))
+            .count()
     }
 
     // --- edit
@@ -66,6 +69,8 @@ impl<T: CoordsFloat> PMap2<T> {
                 AtomicU32::default(),
             ]
         }));
+        self.unused_darts
+            .extend((0..n_darts).map(|_| AtomicBool::new(false)));
         self.vertices.extend(n_darts);
         // self.attributes.extend_storages(n_darts);
         new_id

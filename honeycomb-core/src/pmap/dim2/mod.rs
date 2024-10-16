@@ -18,3 +18,6 @@ pub mod io;
 pub mod utils;
 
 const PMAP2_BETA: usize = 3;
+
+#[cfg(test)]
+mod tests;

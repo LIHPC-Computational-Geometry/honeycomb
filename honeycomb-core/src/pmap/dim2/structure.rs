@@ -67,14 +67,14 @@ impl<T: CoordsFloat> From<CMap2<T>> for PMap2<T> {
             vertices,
             unused_darts,
             betas,
-            n_darts,
+            n_darts, // THIS ALREADY COUNTS THE NULL DART; NO INCLUSIVE RANGE NEEDED LATER
         } = cmap;
         Self {
             vertices,
-            unused_darts: (0..=n_darts as DartIdentifier) // n_darts + 1
+            unused_darts: (0..n_darts as DartIdentifier)
                 .map(|id| AtomicBool::new(unused_darts.contains(&id)))
                 .collect(),
-            betas: (0..=n_darts) // n_darts + 1
+            betas: (0..n_darts)
                 .map(|i| {
                     let [b0, b1, b2] = betas[i];
                     [AtomicU32::new(b0), AtomicU32::new(b1), AtomicU32::new(b2)]
