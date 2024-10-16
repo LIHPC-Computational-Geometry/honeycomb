@@ -37,5 +37,7 @@ pub mod cmap;
 
 pub mod geometry;
 
+pub mod pmap;
+
 /// commonly used items
 pub mod prelude;
