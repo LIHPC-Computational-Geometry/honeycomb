@@ -19,6 +19,7 @@ use crate::{
     geometry::CoordsFloat,
 };
 
+use crate::pmap::dim2::orbits::POrbit2;
 use crate::pmap::dim2::structure::PMap2;
 use std::collections::BTreeSet;
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -236,7 +237,7 @@ impl<T: CoordsFloat> PMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdentifier) -> VertexIdentifier {
         // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id)
+        POrbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id)
             .min()
             .expect("E: unreachable") as VertexIdentifier
     }
@@ -270,7 +271,7 @@ impl<T: CoordsFloat> PMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdentifier) -> EdgeIdentifier {
         // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id)
+        POrbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id)
             .min()
             .expect("E: unreachable") as EdgeIdentifier
     }
@@ -304,7 +305,7 @@ impl<T: CoordsFloat> PMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdentifier) -> FaceIdentifier {
         // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
+        POrbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
             .min()
             .expect("E: unreachable") as FaceIdentifier
     }
@@ -331,12 +332,12 @@ impl<T: CoordsFloat> PMap2<T> {
     /// The method will panic if *I* is not 0, 1 or 2.
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> Orbit2<T> {
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdentifier) -> POrbit2<T> {
         assert!(I < 3);
         match I {
-            0 => Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id),
+            0 => POrbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id),
+            1 => POrbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id),
+            2 => POrbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id),
             _ => unreachable!(),
         }
     }
@@ -363,12 +364,12 @@ impl<T: CoordsFloat> PMap2<T> {
                     // the first dart we encounter is the min of its orbit
                     vertex_ids.insert(dart_id as VertexIdentifier);
                     // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id).for_each(|did| {
+                    POrbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id).for_each(|did| {
                         marked.insert(did);
                     });
                 }
             });
-        VertexCollection::<'_, T>::new(self, vertex_ids)
+        VertexCollection::<'_, T>::newp(self, vertex_ids)
     }
 
     /// Return a collection of all the map's edges.
@@ -394,12 +395,12 @@ impl<T: CoordsFloat> PMap2<T> {
                     // the first dart we encounter is the min of its orbit
                     edge_ids.insert(dart_id as EdgeIdentifier);
                     // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id).for_each(|did| {
+                    POrbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id).for_each(|did| {
                         marked.insert(did);
                     });
                 }
             });
-        EdgeCollection::<'_, T>::new(self, edge_ids)
+        EdgeCollection::<'_, T>::newp(self, edge_ids)
     }
 
     /// Return a collection of all the map's faces.
@@ -424,11 +425,11 @@ impl<T: CoordsFloat> PMap2<T> {
                     // the first dart we encounter is the min of its orbit
                     face_ids.insert(dart_id as FaceIdentifier);
                     // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id).for_each(|did| {
+                    POrbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id).for_each(|did| {
                         marked.insert(did);
                     });
                 }
             });
-        FaceCollection::<'_, T>::new(self, face_ids)
+        FaceCollection::<'_, T>::newp(self, face_ids)
     }
 }

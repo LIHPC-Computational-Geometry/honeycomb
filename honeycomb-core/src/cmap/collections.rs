@@ -6,6 +6,7 @@
 // ------ IMPORTS
 
 use crate::geometry::CoordsFloat;
+use crate::pmap::PMap2;
 use crate::prelude::CMap2;
 
 // ------ CONTENT
@@ -15,6 +16,14 @@ macro_rules! collection_constructor {
         impl<'a, T: CoordsFloat> $coll<'a, T> {
             /// Constructor
             pub(crate) fn new(_: &'a CMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
+                Self {
+                    lifetime_indicator: std::marker::PhantomData::default(),
+                    identifiers: ids.into_iter().collect(),
+                }
+            }
+
+            /// Constructor
+            pub(crate) fn newp(_: &'a PMap2<T>, ids: impl IntoIterator<Item = $idty>) -> Self {
                 Self {
                     lifetime_indicator: std::marker::PhantomData::default(),
                     identifiers: ids.into_iter().collect(),
@@ -50,7 +59,7 @@ pub struct VertexCollection<'a, T: CoordsFloat> {
     ///
     /// This is used to ensure that the collection is only used while valid, i.e. it is invalidated
     /// if the original map is used in a mutable context.
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    lifetime_indicator: std::marker::PhantomData<&'a T>,
     /// Collection of vertex identifiers.
     pub identifiers: Vec<VertexIdentifier>,
 }
@@ -83,7 +92,7 @@ pub struct EdgeCollection<'a, T: CoordsFloat> {
     ///
     /// This is used to ensure that the collection is only used while valid, i.e. it is invalidated
     /// if the original map is used in a mutable context.
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    lifetime_indicator: std::marker::PhantomData<&'a T>,
     /// Collection of vertex identifiers.
     pub identifiers: Vec<EdgeIdentifier>,
 }
@@ -116,7 +125,7 @@ pub struct FaceCollection<'a, T: CoordsFloat> {
     ///
     /// This is used to ensure that the collection is only used while valid, i.e. it is invalidated
     /// if the original map is used in a mutable context.
-    lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
+    lifetime_indicator: std::marker::PhantomData<&'a T>,
     /// Collection of vertex identifiers.
     pub identifiers: Vec<FaceIdentifier>,
 }

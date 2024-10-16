@@ -5,16 +5,16 @@
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
 
-mod basic_ops;
-mod embed;
-mod link_and_sew;
-mod orbits;
-mod structure;
+pub mod basic_ops;
+pub mod embed;
+pub mod link_and_sew;
+pub mod orbits;
+pub mod structure;
 
 #[cfg(feature = "io")]
-mod io;
+pub mod io;
 
 #[cfg(feature = "utils")]
-mod utils;
+pub mod utils;
 
 const PMAP2_BETA: usize = 3;
