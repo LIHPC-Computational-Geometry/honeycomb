@@ -1,0 +1,777 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Main map object."><title>CMap2 in honeycomb_core::cmap - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (e7c0d2750 2024-10-15)" data-channel="nightly" data-search-js="search-e056c65ede92db13.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_core/index.html">honeycomb_<wbr>core</a><span class="version">0.6.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">CMap2</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#fields-1" title="Fields">Fields</a></li><li><a href="#generics" title="Generics">Generics</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.add_free_dart" title="add_free_dart">add_free_dart</a></li><li><a href="#method.add_free_darts" title="add_free_darts">add_free_darts</a></li><li><a href="#method.allocated_size" title="allocated_size">allocated_size</a></li><li><a href="#method.beta" title="beta">beta</a></li><li><a href="#method.beta_runtime" title="beta_runtime">beta_runtime</a></li><li><a href="#method.edge_id" title="edge_id">edge_id</a></li><li><a href="#method.effective_size" title="effective_size">effective_size</a></li><li><a href="#method.face_id" title="face_id">face_id</a></li><li><a href="#method.fetch_edges" title="fetch_edges">fetch_edges</a></li><li><a href="#method.fetch_faces" title="fetch_faces">fetch_faces</a></li><li><a href="#method.fetch_vertices" title="fetch_vertices">fetch_vertices</a></li><li><a href="#method.get_attribute" title="get_attribute">get_attribute</a></li><li><a href="#method.i_cell" title="i_cell">i_cell</a></li><li><a href="#method.insert_attribute" title="insert_attribute">insert_attribute</a></li><li><a href="#method.insert_free_dart" title="insert_free_dart">insert_free_dart</a></li><li><a href="#method.insert_vertex" title="insert_vertex">insert_vertex</a></li><li><a href="#method.is_free" title="is_free">is_free</a></li><li><a href="#method.is_i_free" title="is_i_free">is_i_free</a></li><li><a href="#method.n_darts" title="n_darts">n_darts</a></li><li><a href="#method.n_unused_darts" title="n_unused_darts">n_unused_darts</a></li><li><a href="#method.n_vertices" title="n_vertices">n_vertices</a></li><li><a href="#method.one_link" title="one_link">one_link</a></li><li><a href="#method.one_sew" title="one_sew">one_sew</a></li><li><a href="#method.one_unlink" title="one_unlink">one_unlink</a></li><li><a href="#method.one_unsew" title="one_unsew">one_unsew</a></li><li><a href="#method.remove_attribute" title="remove_attribute">remove_attribute</a></li><li><a href="#method.remove_attribute_storage" title="remove_attribute_storage">remove_attribute_storage</a></li><li><a href="#method.remove_free_dart" title="remove_free_dart">remove_free_dart</a></li><li><a href="#method.remove_vertex" title="remove_vertex">remove_vertex</a></li><li><a href="#method.replace_attribute" title="replace_attribute">replace_attribute</a></li><li><a href="#method.replace_vertex" title="replace_vertex">replace_vertex</a></li><li><a href="#method.set_attribute" title="set_attribute">set_attribute</a></li><li><a href="#method.set_beta" title="set_beta">set_beta</a></li><li><a href="#method.set_betas" title="set_betas">set_betas</a></li><li><a href="#method.to_vtk_ascii" title="to_vtk_ascii">to_vtk_ascii</a></li><li><a href="#method.to_vtk_binary" title="to_vtk_binary">to_vtk_binary</a></li><li><a href="#method.two_link" title="two_link">two_link</a></li><li><a href="#method.two_sew" title="two_sew">two_sew</a></li><li><a href="#method.two_unlink" title="two_unlink">two_unlink</a></li><li><a href="#method.two_unsew" title="two_unsew">two_unsew</a></li><li><a href="#method.used_size" title="used_size">used_size</a></li><li><a href="#method.vertex" title="vertex">vertex</a></li><li><a href="#method.vertex_id" title="vertex_id">vertex_id</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Clone-for-CMap2%3CT%3E" title="Clone">Clone</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-RefUnwindSafe-for-CMap2%3CT%3E" title="!RefUnwindSafe">!RefUnwindSafe</a></li><li><a href="#impl-Send-for-CMap2%3CT%3E" title="!Send">!Send</a></li><li><a href="#impl-Sync-for-CMap2%3CT%3E" title="!Sync">!Sync</a></li><li><a href="#impl-UnwindSafe-for-CMap2%3CT%3E" title="!UnwindSafe">!UnwindSafe</a></li><li><a href="#impl-Freeze-for-CMap2%3CT%3E" title="Freeze">Freeze</a></li><li><a href="#impl-Unpin-for-CMap2%3CT%3E" title="Unpin">Unpin</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-CloneToUninit-for-T" title="CloneToUninit">CloneToUninit</a></li><li><a href="#impl-Downcast-for-T" title="Downcast">Downcast</a></li><li><a href="#impl-DynClone-for-T" title="DynClone">DynClone</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-ToOwned-for-T" title="ToOwned">ToOwned</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb_<wbr>core::<wbr>cmap</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb_core</a>::<wbr><a href="index.html">cmap</a></span><h1>Struct <span class="struct">CMap2</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_core/cmap/dim2/structure.rs.html#147-159">source</a> </span></div><pre class="rust item-decl"><code>pub struct CMap2&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Main map object.</p>
+<p>Structure used to model 2D combinatorial map. The structure implements basic operations as
+well as higher level abstractions that are useful to write meshing applications.</p>
+<p>Definition of the structure and its logic can be found in the <a href="https://lihpc-computational-geometry.github.io/honeycomb/definitions/cmaps">user guide</a>.
+This documentation focuses on the implementation and its API.</p>
+<div class="warning">
+<p><strong>This structure only implements <code>Clone</code> if the <code>utils</code> feature is enabled.</strong></p>
+</div>
+<h2 id="fields-1"><a class="doc-anchor" href="#fields-1">§</a>Fields</h2>
+<p>Fields are kept private in order to better define interfaces. The structure
+contains the following data:</p>
+<ul>
+<li>an array-based representation of the beta functions</li>
+<li>a storage structure for vertices making up the represented mesh</li>
+<li>a generic storage manager for user-defined attributes</li>
+</ul>
+<p>Note that:</p>
+<ul>
+<li>we encode <em>β<sub>0</sub></em> as the inverse function of <em>β<sub>1</sub></em>. This is extremely
+useful (read <em>required</em>) to implement correct and efficient i-cell computation. Additionally,
+while <em>β<sub>0</sub></em> can be accessed using the <a href="struct.CMap2.html#method.beta" title="method honeycomb_core::cmap::CMap2::beta"><code>Self::beta</code></a> method, we do not define
+the 0-sew / 0-unsew operations.</li>
+<li>we chose a boundary-less representation of meshes (i.e. darts on the boundary are 2-free).</li>
+</ul>
+<h2 id="generics"><a class="doc-anchor" href="#generics">§</a>Generics</h2>
+<ul>
+<li><code>T: CoordsFloat</code> – Generic type for coordinates representation.</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>The following example goes over multiple operations on the mesh in order
+to demonstrate general usage of the structure and its methods.</p>
+<p><img src="https://lihpc-computational-geometry.github.io/honeycomb/images/bg_hcmap_example.svg" alt="CMAP2_EXAMPLE" /></p>
+<p>Note that:</p>
+<ul>
+<li>we create the map using its builder structure: <a href="struct.CMapBuilder.html" title="struct honeycomb_core::cmap::CMapBuilder"><code>CMapBuilder</code></a>.</li>
+<li>the map we operate on has no boundaries. In addition to the different
+operations realized at each step, we insert a few assertions to demonstrate the
+progressive changes applied to the structure.</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>honeycomb_core::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
+
+<span class="comment">// build a triangle
+</span><span class="kw">let </span><span class="kw-2">mut </span>map: CMap2&lt;f64&gt; = CMapBuilder::default().n_darts(<span class="number">3</span>).build().unwrap(); <span class="comment">// three darts
+</span>map.one_link(<span class="number">1</span>, <span class="number">2</span>); <span class="comment">// beta1(1) = 2 &amp; beta0(2) = 1
+</span>map.one_link(<span class="number">2</span>, <span class="number">3</span>); <span class="comment">// beta1(2) = 3 &amp; beta0(3) = 2
+</span>map.one_link(<span class="number">3</span>, <span class="number">1</span>); <span class="comment">// beta1(3) = 1 &amp; beta0(1) = 3
+</span>map.insert_vertex(<span class="number">1</span>, (<span class="number">0.0</span>, <span class="number">0.0</span>));
+map.insert_vertex(<span class="number">2</span>, (<span class="number">1.0</span>, <span class="number">0.0</span>));
+map.insert_vertex(<span class="number">3</span>, (<span class="number">0.0</span>, <span class="number">1.0</span>));
+
+<span class="comment">// we can go through the face using an orbit
+</span><span class="kw">let </span><span class="kw-2">mut </span>face = Orbit2::new(<span class="kw-2">&amp;</span>map, OrbitPolicy::Face, <span class="number">1</span>);
+<span class="macro">assert_eq!</span>(face.next(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+<span class="macro">assert_eq!</span>(face.next(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+<span class="macro">assert_eq!</span>(face.next(), <span class="prelude-val">Some</span>(<span class="number">3</span>));
+<span class="macro">assert_eq!</span>(face.next(), <span class="prelude-val">None</span>);
+
+<span class="comment">// build a second triangle
+</span><span class="kw">let </span>first_added_dart_id = map.add_free_darts(<span class="number">3</span>);
+<span class="macro">assert_eq!</span>(first_added_dart_id, <span class="number">4</span>);
+map.one_link(<span class="number">4</span>, <span class="number">5</span>);
+map.one_link(<span class="number">5</span>, <span class="number">6</span>);
+map.one_link(<span class="number">6</span>, <span class="number">4</span>);
+map.insert_vertex(<span class="number">4</span>, (<span class="number">0.0</span>, <span class="number">2.0</span>));
+map.insert_vertex(<span class="number">5</span>, (<span class="number">2.0</span>, <span class="number">0.0</span>));
+map.insert_vertex(<span class="number">6</span>, (<span class="number">1.0</span>, <span class="number">1.0</span>));
+
+<span class="comment">// there should be two faces now
+</span><span class="kw">let </span>faces = map.fetch_faces();
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>faces.identifiers, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">4</span>]);
+
+<span class="comment">// sew both triangles
+</span>map.two_sew(<span class="number">2</span>, <span class="number">4</span>);
+
+<span class="comment">// there are 5 edges now, making up a square &amp; its diagonal
+</span><span class="kw">let </span>edges = map.fetch_edges();
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>edges.identifiers, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">6</span>]);
+
+<span class="comment">// adjust bottom-right &amp; top-left vertex position
+// the returned values were the average of the sewn vertices
+</span><span class="macro">assert_eq!</span>(
+    map.replace_vertex(<span class="number">2</span>, Vertex2::from((<span class="number">1.0</span>, <span class="number">0.0</span>))),
+    <span class="prelude-val">Some</span>(Vertex2(<span class="number">1.5</span>, <span class="number">0.0</span>))
+);
+<span class="macro">assert_eq!</span>(
+    map.replace_vertex(<span class="number">3</span>, Vertex2::from((<span class="number">0.0</span>, <span class="number">1.0</span>))),
+    <span class="prelude-val">Some</span>(Vertex2(<span class="number">0.0</span>, <span class="number">1.5</span>))
+);
+
+<span class="comment">// separate the diagonal from the rest
+</span>map.one_unsew(<span class="number">1</span>);
+map.one_unsew(<span class="number">2</span>);
+map.one_unsew(<span class="number">6</span>);
+map.one_unsew(<span class="number">4</span>);
+<span class="comment">// break up &amp; remove the diagonal
+</span>map.two_unsew(<span class="number">2</span>); <span class="comment">// this makes dart 2 and 4 free
+</span>map.remove_free_dart(<span class="number">2</span>);
+map.remove_free_dart(<span class="number">4</span>);
+<span class="comment">// sew the square back up
+</span>map.one_sew(<span class="number">1</span>, <span class="number">5</span>);
+map.one_sew(<span class="number">6</span>, <span class="number">3</span>);
+
+<span class="comment">// there's only the square face left
+</span><span class="kw">let </span>faces = map.fetch_faces();
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>faces.identifiers, <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
+<span class="comment">// we can check the vertices
+</span><span class="kw">let </span>vertices = map.fetch_vertices();
+<span class="kw">let </span><span class="kw-2">mut </span>value_iterator = vertices.identifiers.iter().map(|vertex_id| map.vertex(<span class="kw-2">*</span>vertex_id).unwrap());
+<span class="macro">assert_eq!</span>(value_iterator.next(), <span class="prelude-val">Some</span>(Vertex2::from((<span class="number">0.0</span>, <span class="number">0.0</span>)))); <span class="comment">// vertex ID 1
+</span><span class="macro">assert_eq!</span>(value_iterator.next(), <span class="prelude-val">Some</span>(Vertex2::from((<span class="number">0.0</span>, <span class="number">1.0</span>)))); <span class="comment">// vertex ID 3
+</span><span class="macro">assert_eq!</span>(value_iterator.next(), <span class="prelude-val">Some</span>(Vertex2::from((<span class="number">1.0</span>, <span class="number">0.0</span>)))); <span class="comment">// vertex ID 5
+</span><span class="macro">assert_eq!</span>(value_iterator.next(), <span class="prelude-val">Some</span>(Vertex2::from((<span class="number">1.0</span>, <span class="number">1.0</span>)))); <span class="comment">// vertex ID 6
+</span></code></pre></div>
+</div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#28-136">source</a><a href="#impl-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Dart-related methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.n_darts" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#33-35">source</a><h4 class="code-header">pub fn <a href="#method.n_darts" class="fn">n_darts</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Return information about the current number of darts.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.n_unused_darts" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#39-41">source</a><h4 class="code-header">pub fn <a href="#method.n_unused_darts" class="fn">n_unused_darts</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Return information about the current number of unused darts.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.add_free_dart" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#54-61">source</a><h4 class="code-header">pub fn <a href="#method.add_free_dart" class="fn">add_free_dart</a>(&amp;mut self) -&gt; <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a></h4></section></summary><div class="docblock"><p>Add a new free dart to the combinatorial map.</p>
+<p>The dart is i-free for all i and is pushed to the list of existing darts, effectively
+making its identifier equal to the total number of darts (post-push).</p>
+<h5 id="return"><a class="doc-anchor" href="#return">§</a>Return</h5>
+<p>Return the ID of the created dart to allow for direct operations.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.add_free_darts" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#76-83">source</a><h4 class="code-header">pub fn <a href="#method.add_free_darts" class="fn">add_free_darts</a>(&amp;mut self, n_darts: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a></h4></section></summary><div class="docblock"><p>Add multiple new free darts to the combinatorial map.</p>
+<p>All darts are i-free for all i and are pushed to the end of the list of existing darts.</p>
+<h5 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h5>
+<ul>
+<li><code>n_darts: usize</code> – Number of darts to have.</li>
+</ul>
+<h5 id="return-1"><a class="doc-anchor" href="#return-1">§</a>Return</h5>
+<p>Return the <code>ID</code> of the first created dart to allow for direct operations. Darts are
+positioned on range <code>ID..ID+n_darts</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.insert_free_dart" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#94-101">source</a><h4 class="code-header">pub fn <a href="#method.insert_free_dart" class="fn">insert_free_dart</a>(&amp;mut self) -&gt; <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a></h4></section></summary><div class="docblock"><p>Insert a new free dart to the combinatorial map.</p>
+<p>The dart is i-free for all i and may be inserted into an unused spot in the existing dart
+list. If no free spots exist, it will be pushed to the end of the list.</p>
+<h5 id="return-2"><a class="doc-anchor" href="#return-2">§</a>Return</h5>
+<p>Return the ID of the created dart to allow for direct operations.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.remove_free_dart" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#124-135">source</a><h4 class="code-header">pub fn <a href="#method.remove_free_dart" class="fn">remove_free_dart</a>(&amp;mut self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>)</h4></section></summary><div class="docblock"><p>Remove a free dart from the combinatorial map.</p>
+<p>The removed dart identifier is added to the list of free dart. This way of proceeding is
+necessary as the structure relies on darts indexing for encoding data, making reordering of
+any sort extremely costly.</p>
+<p>By keeping track of free spots in the dart arrays, we can prevent too much memory waste,
+although at the cost of locality of reference.</p>
+<h5 id="arguments-1"><a class="doc-anchor" href="#arguments-1">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of the dart to remove.</li>
+</ul>
+<h5 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h5>
+<p>This method may panic if:</p>
+<ul>
+<li>The dart is not <em>i</em>-free for all <em>i</em>.</li>
+<li>The dart is already marked as unused (Refer to <a href="struct.CMap2.html#method.remove_vertex" title="method honeycomb_core::cmap::CMap2::remove_vertex"><code>Self::remove_vertex</code></a> documentation for
+a detailed breakdown of this choice).</li>
+</ul>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-1" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#139-234">source</a><a href="#impl-CMap2%3CT%3E-1" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Beta-related methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.beta" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#162-165">source</a><h4 class="code-header">pub fn <a href="#method.beta" class="fn">beta</a>&lt;const I: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a></h4></section></summary><div class="docblock"><p>Compute the value of the i-th beta function of a given dart.</p>
+<h5 id="arguments-2"><a class="doc-anchor" href="#arguments-2">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h6 id="generics-1"><a class="doc-anchor" href="#generics-1">§</a>Generics</h6>
+<ul>
+<li><code>const I: u8</code> – Index of the beta function. <em>I</em> should be 0, 1 or 2 for a 2D map.</li>
+</ul>
+<h5 id="return-3"><a class="doc-anchor" href="#return-3">§</a>Return</h5>
+<p>Return the identifier of the dart <em>d</em> such that <em>d = β<sub>i</sub>(dart)</em>. If the returned
+value is the null dart (i.e. a dart ID equal to 0), this means that the dart is i-free.</p>
+<h5 id="panics-1"><a class="doc-anchor" href="#panics-1">§</a>Panics</h5>
+<p>The method will panic if <em>I</em> is not 0, 1 or 2.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.beta_runtime" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#184-192">source</a><h4 class="code-header">pub fn <a href="#method.beta_runtime" class="fn">beta_runtime</a>(&amp;self, i: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a></h4></section></summary><div class="docblock"><p>Compute the value of the i-th beta function of a given dart.</p>
+<h5 id="arguments-3"><a class="doc-anchor" href="#arguments-3">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+<li><code>i: u8</code> – Index of the beta function. <em>i</em> should be 0, 1 or 2 for a 2D map.</li>
+</ul>
+<h5 id="return-4"><a class="doc-anchor" href="#return-4">§</a>Return</h5>
+<p>Return the identifier of the dart <em>d</em> such that <em>d = β<sub>i</sub>(dart)</em>. If the returned
+value is the null dart (i.e. a dart ID equal to 0), this means that the dart is i-free.</p>
+<h5 id="panics-2"><a class="doc-anchor" href="#panics-2">§</a>Panics</h5>
+<p>The method will panic if <em>i</em> is not 0, 1 or 2.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.is_i_free" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#214-216">source</a><h4 class="code-header">pub fn <a href="#method.is_i_free" class="fn">is_i_free</a>&lt;const I: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Check if a given dart is i-free.</p>
+<h5 id="arguments-4"><a class="doc-anchor" href="#arguments-4">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h6 id="generics-2"><a class="doc-anchor" href="#generics-2">§</a>Generics</h6>
+<ul>
+<li><code>const I: u8</code> – Index of the beta function. <em>I</em> should be 0, 1 or 2 for a 2D map.</li>
+</ul>
+<h5 id="return-5"><a class="doc-anchor" href="#return-5">§</a>Return</h5>
+<p>Return a boolean indicating if the dart is i-free, i.e.
+<em>β<sub>i</sub>(dart) = <code>NULL_DART_ID</code></em>.</p>
+<h5 id="panics-3"><a class="doc-anchor" href="#panics-3">§</a>Panics</h5>
+<p>The function will panic if <em>I</em> is not 0, 1 or 2.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.is_free" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#229-233">source</a><h4 class="code-header">pub fn <a href="#method.is_free" class="fn">is_free</a>(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Check if a given dart is i-free, for all i.</p>
+<h5 id="arguments-5"><a class="doc-anchor" href="#arguments-5">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h5 id="return-6"><a class="doc-anchor" href="#return-6">§</a>Return</h5>
+<p>Return a boolean indicating if the dart is 0-free, 1-free <strong>and</strong> 2-free.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-2" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#237-462">source</a><a href="#impl-CMap2%3CT%3E-2" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>I-cell-related methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.vertex_id" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#265-270">source</a><h4 class="code-header">pub fn <a href="#method.vertex_id" class="fn">vertex_id</a>(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="type" href="type.VertexIdentifier.html" title="type honeycomb_core::cmap::VertexIdentifier">VertexIdentifier</a></h4></section></summary><div class="docblock"><p>Fetch vertex identifier associated to a given dart.</p>
+<h5 id="arguments-6"><a class="doc-anchor" href="#arguments-6">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h5 id="return-7"><a class="doc-anchor" href="#return-7">§</a>Return</h5>
+<p>Return the identifier of the associated vertex.</p>
+<h6 id="note-on-cell-identifiers"><a class="doc-anchor" href="#note-on-cell-identifiers">§</a>Note on cell identifiers</h6>
+<p>Cells identifiers are defined as the smallest identifier among the darts that make up the
+cell. This definition has three interesting properties:</p>
+<ul>
+<li>A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+associated cell ID.</li>
+<li>Cell IDs are not affected by the order of traversal of the map.</li>
+<li>Because the ID is computed in real time, there is no need to store cell IDs and ensure
+that the storage is consistent / up to date.</li>
+</ul>
+<p>These properties come at the literal cost of the computation routine, which is:</p>
+<ol>
+<li>a BFS to compute a given orbit</li>
+<li>a minimum computation on the IDs composing the orbit</li>
+</ol>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.edge_id" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#299-304">source</a><h4 class="code-header">pub fn <a href="#method.edge_id" class="fn">edge_id</a>(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="type" href="type.EdgeIdentifier.html" title="type honeycomb_core::cmap::EdgeIdentifier">EdgeIdentifier</a></h4></section></summary><div class="docblock"><p>Fetch edge associated to a given dart.</p>
+<h5 id="arguments-7"><a class="doc-anchor" href="#arguments-7">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h5 id="return-8"><a class="doc-anchor" href="#return-8">§</a>Return</h5>
+<p>Return the identifier of the associated edge.</p>
+<h6 id="note-on-cell-identifiers-1"><a class="doc-anchor" href="#note-on-cell-identifiers-1">§</a>Note on cell identifiers</h6>
+<p>Cells identifiers are defined as the smallest identifier among the darts that make up the
+cell. This definition has three interesting properties:</p>
+<ul>
+<li>A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+associated cell ID.</li>
+<li>Cell IDs are not affected by the order of traversal of the map.</li>
+<li>Because the ID is computed in real time, there is no need to store cell IDs and ensure
+that the storage is consistent / up to date.</li>
+</ul>
+<p>These properties come at the literal cost of the computation routine, which is:</p>
+<ol>
+<li>a BFS to compute a given orbit</li>
+<li>a minimum computation on the IDs composing the orbit</li>
+</ol>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.face_id" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#333-338">source</a><h4 class="code-header">pub fn <a href="#method.face_id" class="fn">face_id</a>(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="type" href="type.FaceIdentifier.html" title="type honeycomb_core::cmap::FaceIdentifier">FaceIdentifier</a></h4></section></summary><div class="docblock"><p>Fetch face associated to a given dart.</p>
+<h5 id="arguments-8"><a class="doc-anchor" href="#arguments-8">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h5 id="return-9"><a class="doc-anchor" href="#return-9">§</a>Return</h5>
+<p>Return the identifier of the associated face.</p>
+<h6 id="note-on-cell-identifiers-2"><a class="doc-anchor" href="#note-on-cell-identifiers-2">§</a>Note on cell identifiers</h6>
+<p>Cells identifiers are defined as the smallest identifier among the darts that make up the
+cell. This definition has three interesting properties:</p>
+<ul>
+<li>A given cell ID can be computed from any dart of the cell, i.e. all darts have an
+associated cell ID.</li>
+<li>Cell IDs are not affected by the order of traversal of the map.</li>
+<li>Because the ID is computed in real time, there is no need to store cell IDs and ensure
+that the storage is consistent / up to date.</li>
+</ul>
+<p>These properties come at the literal cost of the computation routine, which is:</p>
+<ol>
+<li>a BFS to compute a given orbit</li>
+<li>a minimum computation on the IDs composing the orbit</li>
+</ol>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.i_cell" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#362-370">source</a><h4 class="code-header">pub fn <a href="#method.i_cell" class="fn">i_cell</a>&lt;const I: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(&amp;self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>) -&gt; <a class="struct" href="struct.Orbit2.html" title="struct honeycomb_core::cmap::Orbit2">Orbit2</a>&lt;'_, T&gt; <a href="#" class="tooltip" data-notable-ty="Orbit2&lt;&#39;_, T&gt;">ⓘ</a></h4></section></summary><div class="docblock"><p>Return an <a href="struct.Orbit2.html" title="struct honeycomb_core::cmap::Orbit2"><code>Orbit2</code></a> object that can be used to iterate over darts of an i-cell.</p>
+<h5 id="arguments-9"><a class="doc-anchor" href="#arguments-9">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – Identifier of a given dart.</li>
+</ul>
+<h6 id="generics-3"><a class="doc-anchor" href="#generics-3">§</a>Generics</h6>
+<ul>
+<li><code>const I: u8</code> – Dimension of the cell of interest. <em>I</em> should be 0 (vertex), 1 (edge) or
+2 (face) for a 2D map.</li>
+</ul>
+<h5 id="return-10"><a class="doc-anchor" href="#return-10">§</a>Return</h5>
+<p>Returns an <a href="struct.Orbit2.html" title="struct honeycomb_core::cmap::Orbit2"><code>Orbit2</code></a> that can be iterated upon to retrieve all dart member of the cell. Note
+that <strong>the dart passed as an argument is included as the first element of the returned
+orbit</strong>.</p>
+<h5 id="panics-4"><a class="doc-anchor" href="#panics-4">§</a>Panics</h5>
+<p>The method will panic if <em>I</em> is not 0, 1 or 2.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fetch_vertices" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#380-400">source</a><h4 class="code-header">pub fn <a href="#method.fetch_vertices" class="fn">fetch_vertices</a>(&amp;self) -&gt; <a class="struct" href="struct.VertexCollection.html" title="struct honeycomb_core::cmap::VertexCollection">VertexCollection</a>&lt;'_, T&gt;</h4></section></summary><div class="docblock"><p>Return a collection of all the map’s vertices.</p>
+<h5 id="return-11"><a class="doc-anchor" href="#return-11">§</a>Return</h5>
+<p>Return a <a href="struct.VertexCollection.html" title="struct honeycomb_core::cmap::VertexCollection"><code>VertexCollection</code></a> object containing a list of vertex identifiers, whose validity
+is ensured through an implicit lifetime condition on the structure and original map.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fetch_edges" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#410-431">source</a><h4 class="code-header">pub fn <a href="#method.fetch_edges" class="fn">fetch_edges</a>(&amp;self) -&gt; <a class="struct" href="struct.EdgeCollection.html" title="struct honeycomb_core::cmap::EdgeCollection">EdgeCollection</a>&lt;'_, T&gt;</h4></section></summary><div class="docblock"><p>Return a collection of all the map’s edges.</p>
+<h5 id="return-12"><a class="doc-anchor" href="#return-12">§</a>Return</h5>
+<p>Return an <a href="struct.EdgeCollection.html" title="struct honeycomb_core::cmap::EdgeCollection"><code>EdgeCollection</code></a> object containing a list of edge identifiers, whose validity
+is ensured through an implicit lifetime condition on the structure and original map.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fetch_faces" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/basic_ops.rs.html#441-461">source</a><h4 class="code-header">pub fn <a href="#method.fetch_faces" class="fn">fetch_faces</a>(&amp;self) -&gt; <a class="struct" href="struct.FaceCollection.html" title="struct honeycomb_core::cmap::FaceCollection">FaceCollection</a>&lt;'_, T&gt;</h4></section></summary><div class="docblock"><p>Return a collection of all the map’s faces.</p>
+<h5 id="return-13"><a class="doc-anchor" href="#return-13">§</a>Return</h5>
+<p>Return a <a href="struct.FaceCollection.html" title="struct honeycomb_core::cmap::FaceCollection"><code>FaceCollection</code></a> object containing a list of face identifiers, whose validity
+is ensured through an implicit lifetime condition on the structure and original map.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-3" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#18-115">source</a><a href="#impl-CMap2%3CT%3E-3" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Built-in vertex-related methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.n_vertices" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#21-23">source</a><h4 class="code-header">pub fn <a href="#method.n_vertices" class="fn">n_vertices</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Return the current number of vertices.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.vertex" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#43-45">source</a><h4 class="code-header">pub fn <a href="#method.vertex" class="fn">vertex</a>(&amp;self, vertex_id: <a class="type" href="type.VertexIdentifier.html" title="type honeycomb_core::cmap::VertexIdentifier">VertexIdentifier</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a>&lt;T&gt;&gt;</h4></section></summary><div class="docblock"><p>Fetch vertex value associated to a given identifier.</p>
+<h5 id="arguments-10"><a class="doc-anchor" href="#arguments-10">§</a>Arguments</h5>
+<ul>
+<li><code>vertex_id: VertexIdentifier</code> – Identifier of the given vertex.</li>
+</ul>
+<h5 id="return-14"><a class="doc-anchor" href="#return-14">§</a>Return</h5>
+<p>This method return a <code>Option</code> taking the following values:</p>
+<ul>
+<li><code>Some(v: Vertex2)</code> if there is a vertex associated to this ID.</li>
+<li><code>None</code> – otherwise</li>
+</ul>
+<h5 id="panics-5"><a class="doc-anchor" href="#panics-5">§</a>Panics</h5>
+<p>The method may panic if:</p>
+<ul>
+<li>the index lands out of bounds</li>
+<li>the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.insert_vertex" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#64-66">source</a><h4 class="code-header">pub fn <a href="#method.insert_vertex" class="fn">insert_vertex</a>(
+    &amp;mut self,
+    vertex_id: <a class="type" href="type.VertexIdentifier.html" title="type honeycomb_core::cmap::VertexIdentifier">VertexIdentifier</a>,
+    vertex: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a>&lt;T&gt;&gt;,
+)</h4></section></summary><div class="docblock"><p>Insert a vertex in the combinatorial map.</p>
+<p>This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
+implicitly exist through topology, but their spatial representation is not automatically
+created at first.</p>
+<h5 id="arguments-11"><a class="doc-anchor" href="#arguments-11">§</a>Arguments</h5>
+<ul>
+<li><code>vertex_id: VertexIdentifier</code> – Vertex identifier to attribute a value to.</li>
+<li><code>vertex: impl Into&lt;Vertex2&gt;</code> – Value used to create a <a href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a> value.</li>
+</ul>
+<h5 id="panics-6"><a class="doc-anchor" href="#panics-6">§</a>Panics</h5>
+<p>The method may panic if:</p>
+<ul>
+<li><strong>there is already a vertex associated to the specified index</strong></li>
+<li>the index lands out of bounds</li>
+<li>the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.remove_vertex" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#85-87">source</a><h4 class="code-header">pub fn <a href="#method.remove_vertex" class="fn">remove_vertex</a>(
+    &amp;mut self,
+    vertex_id: <a class="type" href="type.VertexIdentifier.html" title="type honeycomb_core::cmap::VertexIdentifier">VertexIdentifier</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a>&lt;T&gt;&gt;</h4></section></summary><div class="docblock"><p>Remove a vertex from the combinatorial map.</p>
+<h5 id="arguments-12"><a class="doc-anchor" href="#arguments-12">§</a>Arguments</h5>
+<ul>
+<li><code>vertex_id: VertexIdentifier</code> – Identifier of the vertex to remove.</li>
+</ul>
+<h5 id="return-15"><a class="doc-anchor" href="#return-15">§</a>Return</h5>
+<p>This method return a <code>Option</code> taking the following values:</p>
+<ul>
+<li><code>Some(v: Vertex2)</code> – The vertex was successfully removed &amp; its value was returned</li>
+<li><code>None</code> – The vertex was not found in the internal storage</li>
+</ul>
+<h5 id="panics-7"><a class="doc-anchor" href="#panics-7">§</a>Panics</h5>
+<p>The method may panic if:</p>
+<ul>
+<li>the index lands out of bounds</li>
+<li>the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_vertex" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#108-114">source</a><h4 class="code-header">pub fn <a href="#method.replace_vertex" class="fn">replace_vertex</a>(
+    &amp;mut self,
+    vertex_id: <a class="type" href="type.VertexIdentifier.html" title="type honeycomb_core::cmap::VertexIdentifier">VertexIdentifier</a>,
+    vertex: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="struct" href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a>&lt;T&gt;&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../geometry/struct.Vertex2.html" title="struct honeycomb_core::geometry::Vertex2">Vertex2</a>&lt;T&gt;&gt;</h4></section></summary><div class="docblock"><p>Try to overwrite the given vertex with a new value.</p>
+<h5 id="arguments-13"><a class="doc-anchor" href="#arguments-13">§</a>Arguments</h5>
+<ul>
+<li><code>vertex_id: VertexIdentifier</code> – Identifier of the vertex to replace.</li>
+<li><code>vertex: impl&lt;Into&lt;Vertex2&gt;&gt;</code> – New value for the vertex.</li>
+</ul>
+<h5 id="return-16"><a class="doc-anchor" href="#return-16">§</a>Return</h5>
+<p>This method return an <code>Option</code> taking the following values:</p>
+<ul>
+<li><code>Some(v: Vertex2)</code> – The vertex was successfully overwritten &amp; its previous value was
+returned</li>
+<li><code>None</code> – The vertex was set, but no value were overwritten</li>
+</ul>
+<h5 id="panics-8"><a class="doc-anchor" href="#panics-8">§</a>Panics</h5>
+<p>The method may panic if:</p>
+<ul>
+<li>the index lands out of bounds</li>
+<li>the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-4" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#118-277">source</a><a href="#impl-CMap2%3CT%3E-4" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Generic attribute-related methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.set_attribute" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#138-144">source</a><h4 class="code-header">pub fn <a href="#method.set_attribute" class="fn">set_attribute</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(
+    &amp;mut self,
+    id: A::<a class="associatedtype" href="../attributes/trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    val: A,
+)</h4></section></summary><div class="docblock"><p>Setter</p>
+<p>Set the value of an attribute for a given index. This operation is not affected by
+the initial state of the edited entry.</p>
+<h5 id="arguments-14"><a class="doc-anchor" href="#arguments-14">§</a>Arguments</h5>
+<ul>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+<li><code>val: A</code> – Attribute value.</li>
+</ul>
+<h6 id="generic"><a class="doc-anchor" href="#generic">§</a>Generic</h6>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute kind to edit.</li>
+</ul>
+<h5 id="panics-9"><a class="doc-anchor" href="#panics-9">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.insert_attribute" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#166-172">source</a><h4 class="code-header">pub fn <a href="#method.insert_attribute" class="fn">insert_attribute</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(
+    &amp;mut self,
+    id: A::<a class="associatedtype" href="../attributes/trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    val: A,
+)</h4></section></summary><div class="docblock"><p>Setter</p>
+<p>Insert an attribute value at a given undefined index. See the panics section information
+on behavior if the value is already defined.</p>
+<h5 id="arguments-15"><a class="doc-anchor" href="#arguments-15">§</a>Arguments</h5>
+<ul>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+<li><code>val: A</code> – Attribute value.</li>
+</ul>
+<h6 id="generic-1"><a class="doc-anchor" href="#generic-1">§</a>Generic</h6>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute kind to edit.</li>
+</ul>
+<h5 id="panics-10"><a class="doc-anchor" href="#panics-10">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li><strong>should panic if there is already a value associated to the specified index</strong></li>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_attribute" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#195-200">source</a><h4 class="code-header">pub fn <a href="#method.get_attribute" class="fn">get_attribute</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(
+    &amp;self,
+    id: A::<a class="associatedtype" href="../attributes/trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;</h4></section></summary><div class="docblock"><p>Getter</p>
+<h5 id="arguments-16"><a class="doc-anchor" href="#arguments-16">§</a>Arguments</h5>
+<ul>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+</ul>
+<h6 id="generic-2"><a class="doc-anchor" href="#generic-2">§</a>Generic</h6>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute kind to edit.</li>
+</ul>
+<h5 id="return-17"><a class="doc-anchor" href="#return-17">§</a>Return</h5>
+<p>The method should return:</p>
+<ul>
+<li><code>Some(val: A)</code> if there is an attribute associated with the specified index,</li>
+<li><code>None</code> if there is not.</li>
+</ul>
+<h5 id="panics-11"><a class="doc-anchor" href="#panics-11">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_attribute" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#228-234">source</a><h4 class="code-header">pub fn <a href="#method.replace_attribute" class="fn">replace_attribute</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(
+    &amp;mut self,
+    id: A::<a class="associatedtype" href="../attributes/trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    val: A,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;</h4></section></summary><div class="docblock"><p>Setter</p>
+<p>Replace the value of the attribute for a given index.</p>
+<h5 id="arguments-17"><a class="doc-anchor" href="#arguments-17">§</a>Arguments</h5>
+<ul>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+<li><code>val: A</code> – Attribute value.</li>
+</ul>
+<h6 id="generic-3"><a class="doc-anchor" href="#generic-3">§</a>Generic</h6>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute kind to edit.</li>
+</ul>
+<h5 id="return-18"><a class="doc-anchor" href="#return-18">§</a>Return</h5>
+<p>The method should return:</p>
+<ul>
+<li><code>Some(val_old: A)</code> if there was an attribute associated with the specified index,</li>
+<li><code>None</code> if there is not.</li>
+</ul>
+<p>In both cases, the new value should be set to the one specified as argument.</p>
+<h5 id="panics-12"><a class="doc-anchor" href="#panics-12">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.remove_attribute" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#257-262">source</a><h4 class="code-header">pub fn <a href="#method.remove_attribute" class="fn">remove_attribute</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(
+    &amp;mut self,
+    id: A::<a class="associatedtype" href="../attributes/trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;</h4></section></summary><div class="docblock"><p>Remove an attribute value from the storage and return it</p>
+<h5 id="arguments-18"><a class="doc-anchor" href="#arguments-18">§</a>Arguments</h5>
+<ul>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+</ul>
+<h6 id="generic-4"><a class="doc-anchor" href="#generic-4">§</a>Generic</h6>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute kind to edit.</li>
+</ul>
+<h5 id="return-19"><a class="doc-anchor" href="#return-19">§</a>Return</h5>
+<p>The method should return:</p>
+<ul>
+<li><code>Some(val: A)</code> if there was an attribute associated with the specified index,</li>
+<li><code>None</code> if there is not.</li>
+</ul>
+<h5 id="panics-13"><a class="doc-anchor" href="#panics-13">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>may panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.remove_attribute_storage" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/embed.rs.html#274-276">source</a><h4 class="code-header">pub fn <a href="#method.remove_attribute_storage" class="fn">remove_attribute_storage</a>&lt;A: <a class="trait" href="../attributes/trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="../attributes/trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt;(&amp;mut self)</h4></section></summary><div class="docblock"><p>Remove an entire attribute storage from the map.</p>
+<p>This method is useful when implementing routines that uses attributes to run; Those can then be removed
+before the final result is returned.</p>
+<h5 id="generic-5"><a class="doc-anchor" href="#generic-5">§</a>Generic</h5>
+<ul>
+<li><code>A: AttributeBind + AttributeUpdate</code> – Attribute stored by the fetched storage.</li>
+</ul>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-5" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#17-343">source</a><a href="#impl-CMap2%3CT%3E-5" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Sew and unsew operations</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.one_sew" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#39-63">source</a><h4 class="code-header">pub fn <a href="#method.one_sew" class="fn">one_sew</a>(
+    &amp;mut self,
+    lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+    rhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+)</h4></section></summary><div class="docblock"><p>1-sew operation.</p>
+<p>This operation corresponds to <em>coherently linking</em> two darts via the <em>β<sub>1</sub></em>
+function. For a thorough explanation of this operation (and implied hypothesis &amp;
+consequences), refer to the <a href="https://lihpc-computational-geometry.github.io/honeycomb/">user guide</a>.</p>
+<h5 id="arguments-19"><a class="doc-anchor" href="#arguments-19">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the first dart to be linked.</li>
+<li><code>rhs_dart_id: DartIdentifier</code> – ID of the second dart to be linked.</li>
+<li><code>policy: SewPolicy</code> – Geometrical sewing policy to follow.</li>
+</ul>
+<p>After the sewing operation, these darts will verify
+<em>β<sub>1</sub>(<code>lhs_dart</code>) = <code>rhs_dart</code></em>. The <em>β<sub>0</sub></em> function is also updated.</p>
+<h5 id="panics-14"><a class="doc-anchor" href="#panics-14">§</a>Panics</h5>
+<p>The method may panic if the two darts are not 1-sewable.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.two_sew" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#88-202">source</a><h4 class="code-header">pub fn <a href="#method.two_sew" class="fn">two_sew</a>(
+    &amp;mut self,
+    lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+    rhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+)</h4></section></summary><div class="docblock"><p>2-sew operation.</p>
+<p>This operation corresponds to <em>coherently linking</em> two darts via the <em>β<sub>2</sub></em>
+function. For a thorough explanation of this operation (and implied hypothesis &amp;
+consequences), refer to the <a href="https://lihpc-computational-geometry.github.io/honeycomb/">user guide</a>.</p>
+<h5 id="arguments-20"><a class="doc-anchor" href="#arguments-20">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the first dart to be linked.</li>
+<li><code>rhs_dart_id: DartIdentifier</code> – ID of the second dart to be linked.</li>
+<li><code>policy: SewPolicy</code> – Geometrical sewing policy to follow.</li>
+</ul>
+<p>After the sewing operation, these darts will verify
+<em>β<sub>2</sub>(<code>lhs_dart</code>) = <code>rhs_dart</code></em> and <em>β<sub>2</sub>(<code>rhs_dart</code>) = <code>lhs_dart</code></em>.</p>
+<h5 id="panics-15"><a class="doc-anchor" href="#panics-15">§</a>Panics</h5>
+<p>The method may panic if:</p>
+<ul>
+<li>the two darts are not 2-sewable,</li>
+<li>the method cannot resolve orientation issues.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.one_unsew" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#225-248">source</a><h4 class="code-header">pub fn <a href="#method.one_unsew" class="fn">one_unsew</a>(&amp;mut self, lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>)</h4></section></summary><div class="docblock"><p>1-unsew operation.</p>
+<p>This operation corresponds to <em>coherently separating</em> two darts linked via the
+<em>β<sub>1</sub></em> function. For a thorough explanation of this operation (and implied
+hypothesis &amp; consequences), refer to the <a href="https://lihpc-computational-geometry.github.io/honeycomb/">user guide</a>.</p>
+<h5 id="arguments-21"><a class="doc-anchor" href="#arguments-21">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the dart to separate.</li>
+<li><code>policy: UnsewPolicy</code> – Geometrical unsewing policy to follow.</li>
+</ul>
+<p>Note that we do not need to take two darts as arguments since the second dart can be
+obtained through the <em>β<sub>1</sub></em> function. The <em>β<sub>0</sub></em> function is also updated.</p>
+<h5 id="panics-16"><a class="doc-anchor" href="#panics-16">§</a>Panics</h5>
+<p>The method may panic if there’s a missing attribute at the splitting step. While the
+implementation could fall back to a simple unlink operation, it probably should have been
+called by the user, instead of unsew, in the first place.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.two_unsew" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#271-342">source</a><h4 class="code-header">pub fn <a href="#method.two_unsew" class="fn">two_unsew</a>(&amp;mut self, lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>)</h4></section></summary><div class="docblock"><p>2-unsew operation.</p>
+<p>This operation corresponds to <em>coherently separating</em> two darts linked via the
+<em>β<sub>2</sub></em> function. For a thorough explanation of this operation (and implied
+hypothesis &amp; consequences), refer to the <a href="https://lihpc-computational-geometry.github.io/honeycomb/">user guide</a>.</p>
+<h5 id="arguments-22"><a class="doc-anchor" href="#arguments-22">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the dart to separate.</li>
+<li><code>policy: UnsewPolicy</code> – Geometrical unsewing policy to follow.</li>
+</ul>
+<p>Note that we do not need to take two darts as arguments since the second dart can be
+obtained through the <em>β<sub>2</sub></em> function.</p>
+<h5 id="panics-17"><a class="doc-anchor" href="#panics-17">§</a>Panics</h5>
+<p>The method may panic if there’s a missing attribute at the splitting step. While the
+implementation could fall back to a simple unlink operation, it probably should have been
+called by the user, instead of unsew, in the first place.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-6" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#346-434">source</a><a href="#impl-CMap2%3CT%3E-6" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Link and unlink operations</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.one_link" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#362-369">source</a><h4 class="code-header">pub fn <a href="#method.one_link" class="fn">one_link</a>(
+    &amp;mut self,
+    lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+    rhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+)</h4></section></summary><div class="docblock"><p>1-link operation.</p>
+<p>This operation corresponds to linking two darts via the <em>β<sub>1</sub></em> function. Unlike
+its sewing counterpart, this method does not contain any code to update the attributes or
+geometrical data of the affected cell(s). The <em>β<sub>0</sub></em> function is also updated.</p>
+<h5 id="arguments-23"><a class="doc-anchor" href="#arguments-23">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the first dart to be linked.</li>
+<li><code>rhs_dart_id: DartIdentifier</code> – ID of the second dart to be linked.</li>
+</ul>
+<h5 id="panics-18"><a class="doc-anchor" href="#panics-18">§</a>Panics</h5>
+<p>This method may panic if <code>lhs_dart_id</code> isn’t 1-free or <code>rhs_dart_id</code> isn’t 0-free.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.two_link" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#385-392">source</a><h4 class="code-header">pub fn <a href="#method.two_link" class="fn">two_link</a>(
+    &amp;mut self,
+    lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+    rhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+)</h4></section></summary><div class="docblock"><p>2-link operation.</p>
+<p>This operation corresponds to linking two darts via the <em>β<sub>2</sub></em> function. Unlike
+its sewing counterpart, this method does not contain any code to update the attributes or
+geometrical data of the affected cell(s).</p>
+<h5 id="arguments-24"><a class="doc-anchor" href="#arguments-24">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the first dart to be linked.</li>
+<li><code>rhs_dart_id: DartIdentifier</code> – ID of the second dart to be linked.</li>
+</ul>
+<h5 id="panics-19"><a class="doc-anchor" href="#panics-19">§</a>Panics</h5>
+<p>This method may panic if one of <code>lhs_dart_id</code> or <code>rhs_dart_id</code> isn’t 2-free.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.one_unlink" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#408-413">source</a><h4 class="code-header">pub fn <a href="#method.one_unlink" class="fn">one_unlink</a>(&amp;mut self, lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>)</h4></section></summary><div class="docblock"><p>1-unlink operation.</p>
+<p>This operation corresponds to unlinking two darts that are linked via the <em>β<sub>1</sub></em>
+function. Unlike its sewing counterpart, this method does not contain any code to update
+the attributes or geometrical data of the affected cell(s). The <em>β<sub>0</sub></em> function is
+also updated.</p>
+<h5 id="arguments-25"><a class="doc-anchor" href="#arguments-25">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the dart to unlink.</li>
+</ul>
+<h5 id="panics-20"><a class="doc-anchor" href="#panics-20">§</a>Panics</h5>
+<p>This method may panic if one of <code>lhs_dart_id</code> is already 1-free.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.two_unlink" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/link_and_sew.rs.html#428-433">source</a><h4 class="code-header">pub fn <a href="#method.two_unlink" class="fn">two_unlink</a>(&amp;mut self, lhs_dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>)</h4></section></summary><div class="docblock"><p>2-unlink operation.</p>
+<p>This operation corresponds to unlinking two darts that are linked via the <em>β<sub>2</sub></em>
+function. Unlike its sewing counterpart, this method does not contain any code to update
+the attributes or geometrical data of the affected cell(s).</p>
+<h5 id="arguments-26"><a class="doc-anchor" href="#arguments-26">§</a>Arguments</h5>
+<ul>
+<li><code>lhs_dart_id: DartIdentifier</code> – ID of the dart to unlink.</li>
+</ul>
+<h5 id="panics-21"><a class="doc-anchor" href="#panics-21">§</a>Panics</h5>
+<p>This method may panic if one of <code>lhs_dart_id</code> is already 2-free.</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-7" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/io.rs.html#25-77">source</a><a href="#impl-CMap2%3CT%3E-7" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a> + 'static&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Serializing methods</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.to_vtk_binary" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/io.rs.html#33-50">source</a><h4 class="code-header">pub fn <a href="#method.to_vtk_binary" class="fn">to_vtk_binary</a>(&amp;self, writer: impl <a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html" title="trait std::io::Write">Write</a>)</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>io</code></strong> only.</div></span></summary><div class="docblock"><p>Generate a legacy VTK file from the map.</p>
+<h5 id="panics-22"><a class="doc-anchor" href="#panics-22">§</a>Panics</h5>
+<p>This function may panic if the internal writing routine fails, i.e.:
+- Vertex coordinates cannot be cast to <code>f32</code> or <code>f64</code>
+- A vertex cannot be found</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_vtk_ascii" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/io.rs.html#59-76">source</a><h4 class="code-header">pub fn <a href="#method.to_vtk_ascii" class="fn">to_vtk_ascii</a>(&amp;self, writer: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html" title="trait core::fmt::Write">Write</a>)</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>io</code></strong> only.</div></span></summary><div class="docblock"><p>Generate a legacy VTK file from the map.</p>
+<h5 id="panics-23"><a class="doc-anchor" href="#panics-23">§</a>Panics</h5>
+<p>This function may panic if the internal writing routine fails, i.e.:
+- Vertex coordinates cannot be cast to <code>f32</code> or <code>f64</code>
+- A vertex cannot be found</p>
+</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-CMap2%3CT%3E-8" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#22-275">source</a><a href="#impl-CMap2%3CT%3E-8" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="docblock"><p><strong>Utilities</strong></p>
+</div><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.set_beta" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#34-36">source</a><h4 class="code-header">pub fn <a href="#method.set_beta" class="fn">set_beta</a>&lt;const I: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(
+    &amp;mut self,
+    dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+    val: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>,
+)</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>utils</code></strong> only.</div></span></summary><div class="docblock"><p>Set the value of the specified beta function of a dart.</p>
+<h5 id="arguments-27"><a class="doc-anchor" href="#arguments-27">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – ID of the dart of interest.</li>
+<li><code>val: DartIdentifier</code> – Value of the image of <code>dart_id</code> through the beta <code>I</code> function.</li>
+</ul>
+<h6 id="generic-6"><a class="doc-anchor" href="#generic-6">§</a>Generic</h6>
+<ul>
+<li><code>const I: u8</code> – Beta function to edit.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set_betas" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#46-48">source</a><h4 class="code-header">pub fn <a href="#method.set_betas" class="fn">set_betas</a>(&amp;mut self, dart_id: <a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>, betas: [<a class="type" href="type.DartIdentifier.html" title="type honeycomb_core::cmap::DartIdentifier">DartIdentifier</a>; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.array.html">3</a>])</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>utils</code></strong> only.</div></span></summary><div class="docblock"><p>Set the values of the beta functions of a dart.</p>
+<h5 id="arguments-28"><a class="doc-anchor" href="#arguments-28">§</a>Arguments</h5>
+<ul>
+<li><code>dart_id: DartIdentifier</code> – ID of the dart of interest.</li>
+<li><code>betas: [DartIdentifier; 3]</code> – Value of the images as
+<em>[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]</em></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.allocated_size" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#94-122">source</a><h4 class="code-header">pub fn <a href="#method.allocated_size" class="fn">allocated_size</a>(&amp;self, rootname: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>&gt;</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>utils</code></strong> only.</div></span></summary><div class="docblock"><p>Computes the total allocated space dedicated to the map.</p>
+<h5 id="arguments-29"><a class="doc-anchor" href="#arguments-29">§</a>Arguments</h5>
+<ul>
+<li><code>rootname: &amp;str</code> – root of the filename used to save results.</li>
+</ul>
+<h5 id="return--panic"><a class="doc-anchor" href="#return--panic">§</a>Return / Panic</h5>
+<p>The results of this method is saved as a csv file named <code>&lt;rootname&gt;_allocated.csv</code>.
+The csv file is structured as follows:</p>
+<div class="example-wrap"><pre class="language-text"><code>key, memory (bytes)
+cat1_member1, val
+cat1_member2, val
+cat1_total, val
+cat2_member1, val
+cat2_member2, val
+cat2_member3, val
+cat2_total, val
+cat3_member1, val
+cat3_total, val</code></pre></div>
+<p>It is mainly designed to be used in dedicated scripts for plotting &amp; analysis.</p>
+<p>The metod may panic if, for any reason, it is unable to write to the file.</p>
+<h5 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h5>
+<p>An example going over all three <code>size</code> methods is provided in the <code>honeycomb-utils</code>
+crate. You can run it using the following command:</p>
+<div class="example-wrap"><pre class="language-shell"><code>cargo run --example memory_usage</code></pre></div>
+<p>The output data can be visualized using the <code>memory_usage.py</code> script.</p>
+<h5 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h5>
+<p>The method will return an error if:</p>
+<ul>
+<li>the file cannot be created,</li>
+<li>at any point, the program cannot write into the output file.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.effective_size" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#168-196">source</a><h4 class="code-header">pub fn <a href="#method.effective_size" class="fn">effective_size</a>(&amp;self, rootname: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>&gt;</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>utils</code></strong> only.</div></span></summary><div class="docblock"><p>Computes the total used space dedicated to the map.</p>
+<h5 id="arguments-30"><a class="doc-anchor" href="#arguments-30">§</a>Arguments</h5>
+<ul>
+<li><code>rootname: &amp;str</code> – root of the filename used to save results.</li>
+</ul>
+<h5 id="return--panic-1"><a class="doc-anchor" href="#return--panic-1">§</a>Return / Panic</h5>
+<p>The results of this method is saved as a csv file named <code>&lt;rootname&gt;_allocated.csv</code>.
+The csv file is structured as follows:</p>
+<div class="example-wrap"><pre class="language-text"><code>key, memory (bytes)
+cat1_member1, val
+cat1_member2, val
+cat1_total, val
+cat2_member1, val
+cat2_member2, val
+cat2_member3, val
+cat2_total, val
+cat3_member1, val
+cat3_total, val</code></pre></div>
+<p>It is mainly designed to be used in dedicated scripts for plotting &amp; analysis.</p>
+<p>The metod may panic if, for any reason, it is unable to write to the file.</p>
+<h5 id="example-2"><a class="doc-anchor" href="#example-2">§</a>Example</h5>
+<p>An example going over all three <code>size</code> methods is provided in the <code>honeycomb-utils</code>
+crate. You can run it using the following command:</p>
+<div class="example-wrap"><pre class="language-shell"><code>cargo run --example memory_usage</code></pre></div>
+<p>The output data can be visualized using the <code>memory_usage.py</code> script.</p>
+<h5 id="errors-1"><a class="doc-anchor" href="#errors-1">§</a>Errors</h5>
+<p>The method will return an error if:</p>
+<ul>
+<li>the file cannot be created,</li>
+<li>at any point, the program cannot write into the output file.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.used_size" class="method"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/utils.rs.html#244-274">source</a><h4 class="code-header">pub fn <a href="#method.used_size" class="fn">used_size</a>(&amp;self, rootname: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>&gt;</h4></section><span class="item-info"><div class="stab portability">Available on <strong>crate feature <code>utils</code></strong> only.</div></span></summary><div class="docblock"><p>Computes the actual used space dedicated to the map.</p>
+<p><em>Actual used space</em> refers to the total used space minus empty spots in the structure.</p>
+<h5 id="arguments-31"><a class="doc-anchor" href="#arguments-31">§</a>Arguments</h5>
+<ul>
+<li><code>rootname: &amp;str</code> – root of the filename used to save results.</li>
+</ul>
+<h5 id="return--panic-2"><a class="doc-anchor" href="#return--panic-2">§</a>Return / Panic</h5>
+<p>The results of this method is saved as a csv file named <code>&lt;rootname&gt;_allocated.csv</code>.
+The csv file is structured as follows:</p>
+<div class="example-wrap"><pre class="language-text"><code>key, memory (bytes)
+cat1_member1, val
+cat1_member2, val
+cat1_total, val
+cat2_member1, val
+cat2_member2, val
+cat2_member3, val
+cat2_total, val
+cat3_member1, val
+cat3_total, val</code></pre></div>
+<p>It is mainly designed to be used in dedicated scripts for plotting &amp; analysis.</p>
+<p>The metod may panic if, for any reason, it is unable to write to the file.</p>
+<h5 id="example-3"><a class="doc-anchor" href="#example-3">§</a>Example</h5>
+<p>An example going over all three <code>size</code> methods is provided in the <code>honeycomb-utils</code>
+crate. You can run it using the following command:</p>
+<div class="example-wrap"><pre class="language-shell"><code>cargo run --example memory_usage</code></pre></div>
+<p>The output data can be visualized using the <code>memory_usage.py</code> script.</p>
+<h5 id="errors-2"><a class="doc-anchor" href="#errors-2">§</a>Errors</h5>
+<p>The method will return an error if:</p>
+<ul>
+<li>the file cannot be created,</li>
+<li>at any point, the program cannot write into the output file.</li>
+</ul>
+</div></details></div></details></div><h2 id="trait-implementations" class="section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Clone-for-CMap2%3CT%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/structure.rs.html#146">source</a><a href="#impl-Clone-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="../geometry/trait.CoordsFloat.html" title="trait honeycomb_core::geometry::CoordsFloat">CoordsFloat</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone" class="method trait-impl"><a class="src rightside" href="../../src/honeycomb_core/cmap/dim2/structure.rs.html#146">source</a><a href="#method.clone" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone" class="fn">clone</a>(&amp;self) -&gt; <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h4></section></summary><div class='docblock'>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clone_from" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/core/clone.rs.html#174">source</a></span><a href="#method.clone_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from" class="fn">clone_from</a>(&amp;mut self, source: &amp;Self)</h4></section></summary><div class='docblock'>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></div></details></div></details></div><h2 id="synthetic-implementations" class="section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-Freeze-for-CMap2%3CT%3E" class="impl"><a href="#impl-Freeze-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section><section id="impl-RefUnwindSafe-for-CMap2%3CT%3E" class="impl"><a href="#impl-RefUnwindSafe-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section><section id="impl-Send-for-CMap2%3CT%3E" class="impl"><a href="#impl-Send-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section><section id="impl-Sync-for-CMap2%3CT%3E" class="impl"><a href="#impl-Sync-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section><section id="impl-Unpin-for-CMap2%3CT%3E" class="impl"><a href="#impl-Unpin-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a>,</div></h3></section><section id="impl-UnwindSafe-for-CMap2%3CT%3E" class="impl"><a href="#impl-UnwindSafe-for-CMap2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.UnwindSafe.html" title="trait core::panic::unwind_safe::UnwindSafe">UnwindSafe</a> for <a class="struct" href="struct.CMap2.html" title="struct honeycomb_core::cmap::CMap2">CMap2</a>&lt;T&gt;</h3></section></div><h2 id="blanket-implementations" class="section-header">Blanket Implementations<a href="#blanket-implementations" class="anchor">§</a></h2><div id="blanket-implementations-list"><details class="toggle implementors-toggle"><summary><section id="impl-Any-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/any.rs.html#138">source</a><a href="#impl-Any-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a> for T<div class="where">where
+    T: 'static + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.type_id" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/any.rs.html#139">source</a><a href="#method.type_id" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html#tymethod.type_id" class="fn">type_id</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html" title="struct core::any::TypeId">TypeId</a></h4></section></summary><div class='docblock'>Gets the <code>TypeId</code> of <code>self</code>. <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html#tymethod.type_id">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Borrow%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/borrow.rs.html#209">source</a><a href="#impl-Borrow%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html" title="trait core::borrow::Borrow">Borrow</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/borrow.rs.html#211">source</a><a href="#method.borrow" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow" class="fn">borrow</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;T</a></h4></section></summary><div class='docblock'>Immutably borrows from an owned value. <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html#tymethod.borrow">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-BorrowMut%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/borrow.rs.html#217">source</a><a href="#impl-BorrowMut%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html" title="trait core::borrow::BorrowMut">BorrowMut</a>&lt;T&gt; for T<div class="where">where
+    T: ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.borrow_mut" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/borrow.rs.html#218">source</a><a href="#method.borrow_mut" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut" class="fn">borrow_mut</a>(&amp;mut self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut T</a></h4></section></summary><div class='docblock'>Mutably borrows from an owned value. <a href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html#tymethod.borrow_mut">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-CloneToUninit-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/clone.rs.html#273">source</a><a href="#impl-CloneToUninit-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.CloneToUninit.html" title="trait core::clone::CloneToUninit">CloneToUninit</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone_to_uninit" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/clone.rs.html#275">source</a><a href="#method.clone_to_uninit" class="anchor">§</a><h4 class="code-header">unsafe fn <a href="https://doc.rust-lang.org/nightly/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit" class="fn">clone_to_uninit</a>(&amp;self, dst: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.pointer.html">*mut T</a>)</h4></section></summary><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>clone_to_uninit</code>)</span></div></span><div class='docblock'>Performs copy-assignment from <code>self</code> to <code>dst</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.CloneToUninit.html#tymethod.clone_to_uninit">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Downcast-for-T" class="impl"><a href="#impl-Downcast-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; Downcast for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.into_any" class="method trait-impl"><a href="#method.into_any" class="anchor">§</a><h4 class="code-header">fn <a class="fn">into_any</a>(self: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;T&gt;) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a>&gt;</h4></section></summary><div class='docblock'>Convert <code>Box&lt;dyn Trait&gt;</code> (where <code>Trait: Downcast</code>) to <code>Box&lt;dyn Any&gt;</code>. <code>Box&lt;dyn Any&gt;</code> can
+then be further <code>downcast</code> into <code>Box&lt;ConcreteType&gt;</code> where <code>ConcreteType</code> implements <code>Trait</code>.</div></details><details class="toggle method-toggle" open><summary><section id="method.into_any_rc" class="method trait-impl"><a href="#method.into_any_rc" class="anchor">§</a><h4 class="code-header">fn <a class="fn">into_any_rc</a>(self: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;T&gt;) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a>&gt;</h4></section></summary><div class='docblock'>Convert <code>Rc&lt;Trait&gt;</code> (where <code>Trait: Downcast</code>) to <code>Rc&lt;Any&gt;</code>. <code>Rc&lt;Any&gt;</code> can then be
+further <code>downcast</code> into <code>Rc&lt;ConcreteType&gt;</code> where <code>ConcreteType</code> implements <code>Trait</code>.</div></details><details class="toggle method-toggle" open><summary><section id="method.as_any" class="method trait-impl"><a href="#method.as_any" class="anchor">§</a><h4 class="code-header">fn <a class="fn">as_any</a>(&amp;self) -&gt; &amp;(dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a> + 'static)</h4></section></summary><div class='docblock'>Convert <code>&amp;Trait</code> (where <code>Trait: Downcast</code>) to <code>&amp;Any</code>. This is needed since Rust cannot
+generate <code>&amp;Any</code>’s vtable from <code>&amp;Trait</code>’s.</div></details><details class="toggle method-toggle" open><summary><section id="method.as_any_mut" class="method trait-impl"><a href="#method.as_any_mut" class="anchor">§</a><h4 class="code-header">fn <a class="fn">as_any_mut</a>(&amp;mut self) -&gt; &amp;mut (dyn <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a> + 'static)</h4></section></summary><div class='docblock'>Convert <code>&amp;mut Trait</code> (where <code>Trait: Downcast</code>) to <code>&amp;Any</code>. This is needed since Rust cannot
+generate <code>&amp;mut Any</code>’s vtable from <code>&amp;mut Trait</code>’s.</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-DynClone-for-T" class="impl"><a class="src rightside" href="https://docs.rs/dyn-clone/1.0.17/src/dyn_clone/lib.rs.html#193-195">source</a><a href="#impl-DynClone-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://docs.rs/dyn-clone/1.0.17/dyn_clone/trait.DynClone.html" title="trait dyn_clone::DynClone">DynClone</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h3></section></summary><div class="impl-items"><section id="method.__clone_box" class="method trait-impl"><a class="src rightside" href="https://docs.rs/dyn-clone/1.0.17/src/dyn_clone/lib.rs.html#197">source</a><a href="#method.__clone_box" class="anchor">§</a><h4 class="code-header">fn <a href="https://docs.rs/dyn-clone/1.0.17/dyn_clone/trait.DynClone.html#tymethod.__clone_box" class="fn">__clone_box</a>(&amp;self, _: Private) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a></h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-From%3CT%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#765">source</a><a href="#impl-From%3CT%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for T</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#768">source</a><a href="#method.from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from" class="fn">from</a>(t: T) -&gt; T</h4></section></summary><div class="docblock"><p>Returns the argument unchanged.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Into%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#748-750">source</a><a href="#impl-Into%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#758">source</a><a href="#method.into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into" class="fn">into</a>(self) -&gt; U</h4></section></summary><div class="docblock"><p>Calls <code>U::from(self)</code>.</p>
+<p>That is, this conversion is whatever the implementation of
+<code><a href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;T&gt; for U</code> chooses to do.</p>
+</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-ToOwned-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/borrow.rs.html#82-84">source</a><a href="#impl-ToOwned-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html" title="trait alloc::borrow::ToOwned">ToOwned</a> for T<div class="where">where
+    T: <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Owned" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/borrow.rs.html#86">source</a><a href="#associatedtype.Owned" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html#associatedtype.Owned" class="associatedtype">Owned</a> = T</h4></section></summary><div class='docblock'>The resulting type after obtaining ownership.</div></details><details class="toggle method-toggle" open><summary><section id="method.to_owned" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/borrow.rs.html#87">source</a><a href="#method.to_owned" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html#tymethod.to_owned" class="fn">to_owned</a>(&amp;self) -&gt; T</h4></section></summary><div class='docblock'>Creates owned data from borrowed data, usually by cloning. <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html#tymethod.to_owned">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clone_into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/borrow.rs.html#91">source</a><a href="#method.clone_into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html#method.clone_into" class="fn">clone_into</a>(&amp;self, target: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut T</a>)</h4></section></summary><div class='docblock'>Uses borrowed data to replace owned data, usually by cloning. <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html#method.clone_into">Read more</a></div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryFrom%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#805-807">source</a><a href="#impl-TryFrom%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error-1" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#809">source</a><a href="#associatedtype.Error-1" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error" class="associatedtype">Error</a> = <a class="enum" href="https://doc.rust-lang.org/nightly/core/convert/enum.Infallible.html" title="enum core::convert::Infallible">Infallible</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_from" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#812">source</a><a href="#method.try_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from" class="fn">try_from</a>(value: U) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, &lt;T as <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;U&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details><details class="toggle implementors-toggle"><summary><section id="impl-TryInto%3CU%3E-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#790-792">source</a><a href="#impl-TryInto%3CU%3E-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T, U&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html" title="trait core::convert::TryInto">TryInto</a>&lt;U&gt; for T<div class="where">where
+    U: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;,</div></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Error" class="associatedtype trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#794">source</a><a href="#associatedtype.Error" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html#associatedtype.Error" class="associatedtype">Error</a> = &lt;U as <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a></h4></section></summary><div class='docblock'>The type returned in the event of a conversion error.</div></details><details class="toggle method-toggle" open><summary><section id="method.try_into" class="method trait-impl"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/core/convert/mod.rs.html#797">source</a><a href="#method.try_into" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html#tymethod.try_into" class="fn">try_into</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;U, &lt;U as <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;T&gt;&gt;::<a class="associatedtype" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error" title="type core::convert::TryFrom::Error">Error</a>&gt;</h4></section></summary><div class='docblock'>Performs the conversion.</div></details></div></details></div><script type="text/json" id="notable-traits-data">{"Orbit2<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.Orbit2.html\" title=\"struct honeycomb_core::cmap::Orbit2\">Orbit2</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T: <a class=\"trait\" href=\"../geometry/trait.CoordsFloat.html\" title=\"trait honeycomb_core::geometry::CoordsFloat\">CoordsFloat</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.Orbit2.html\" title=\"struct honeycomb_core::cmap::Orbit2\">Orbit2</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"type\" href=\"type.DartIdentifier.html\" title=\"type honeycomb_core::cmap::DartIdentifier\">DartIdentifier</a>;</div>"}</script></section></div></main></body></html>

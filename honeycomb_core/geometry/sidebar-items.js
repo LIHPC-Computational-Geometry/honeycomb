@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CoordsError"],"struct":["Vector2","Vertex2"],"trait":["CoordsFloat"]};
