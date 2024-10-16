@@ -6,34 +6,30 @@
 [![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
 [![codecov](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb/graph/badge.svg?token=QSN0TWFXO1)](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb)
 
-Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps for meshing applications. 
-More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting GPUs 
+Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps for meshing applications.
+More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting GPUs
 and many-core architectures.
 
-The current objective is to implement basic meshing algorithms to evaluate the viability of the implementation & improve
-our structure using Rust's framework to streamline the refactoring and parallelization process.
+The current objective is to profile and benchmark performance of our structure in the context of our
+kernels' implementations, and start introducing concurrency into our code.
 
 
 ## Quickstart
 
-You can add `honeycomb` as a dependency of your project by adding the following lines to its manifest:
+You can add `honeycomb` as a dependency of your project by adding the following lines to its `Cargo.toml`:
 
 ```toml
-# Cargo.toml
-
-[dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
+# [dependencies]
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.6.0"} # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
-# Cargo.toml
-
-[dependencies]
-honeycomb-core = "0.5.0"
-honeycomb-kernels = "0.5.0"
-honeycomb-render = "0.5.0"
+# [dependencies]
+honeycomb-core = "0.6.0"
+honeycomb-kernels = "0.6.0"
+honeycomb-render = "0.6.0"
 ```
 
 

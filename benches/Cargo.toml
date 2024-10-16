@@ -53,11 +53,7 @@ name = "prof-cmap2-sewing-unsewing"
 path = "benches/core/cmap2/link_and_sew.rs"
 harness = false
 
-
-## Criterion benchmarks
-
-
-
+## Builder benchmarks
 
 [[bench]]
 name = "builder"
