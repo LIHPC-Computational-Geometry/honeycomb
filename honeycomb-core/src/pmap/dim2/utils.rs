@@ -13,7 +13,6 @@
 
 use super::PMAP2_BETA;
 use crate::geometry::CoordsFloat;
-use crate::pmap::common::PDartIdentifier;
 use crate::pmap::dim2::structure::PMap2;
 use crate::prelude::DartIdentifier;
 use std::sync::atomic::Ordering;
@@ -33,7 +32,7 @@ impl<T: CoordsFloat> PMap2<T> {
     ///
     /// - `const I: u8` -- Beta function to edit.
     ///
-    pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, val: DartIdentifier) {
+    pub fn set_beta<const I: u8>(&self, dart_id: DartIdentifier, val: DartIdentifier) {
         self.betas[dart_id as usize][I as usize].store(val, Ordering::Relaxed);
     }
 
@@ -45,15 +44,10 @@ impl<T: CoordsFloat> PMap2<T> {
     /// - `[b0, b1, b2]: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
-    pub fn set_betas(
-        &mut self,
-        dart_id: DartIdentifier,
-        [b0, b1, b2]: [DartIdentifier; PMAP2_BETA],
-    ) {
-        self.betas[dart_id as usize] = [
-            PDartIdentifier::new(b0),
-            PDartIdentifier::new(b1),
-            PDartIdentifier::new(b2),
-        ];
+    pub fn set_betas(&self, dart_id: DartIdentifier, [b0, b1, b2]: [DartIdentifier; PMAP2_BETA]) {
+        // using individual stores to keep a non-mutable sig
+        self.betas[dart_id as usize][0].store(b0, Ordering::Relaxed);
+        self.betas[dart_id as usize][1].store(b1, Ordering::Relaxed);
+        self.betas[dart_id as usize][2].store(b2, Ordering::Relaxed);
     }
 }
