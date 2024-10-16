@@ -176,13 +176,12 @@ mod tests {
         map.one_link(5, 6);
         map.one_link(6, 4);
         map.two_link(2, 4);
-        /*
+
         assert!(map.replace_vertex(1, (0.0, 0.0)).is_none());
         assert!(map.replace_vertex(2, (1.0, 0.0)).is_none());
         assert!(map.replace_vertex(6, (1.0, 1.0)).is_none());
         assert!(map.replace_vertex(3, (0.0, 1.0)).is_none());
 
-         */
         map
     }
 
