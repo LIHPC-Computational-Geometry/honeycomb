@@ -1,10 +1,8 @@
 use crate::attributes::{AttrSparseVec, UnknownAttributeStorage};
 use crate::geometry::{CoordsFloat, Vertex2};
 use crate::pmap::common::PDartIdentifier;
-use std::collections::BTreeSet;
-use std::sync::atomic::AtomicU32;
-
-const PMAP2_BETA: usize = 3;
+use crate::pmap::dim2::PMAP2_BETA;
+use std::sync::atomic::{AtomicBool, AtomicU32};
 
 // #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct PMap2<T: CoordsFloat> {
@@ -14,7 +12,7 @@ pub struct PMap2<T: CoordsFloat> {
     pub(super) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    pub(super) unused_darts: BTreeSet<PDartIdentifier>,
+    pub(super) unused_darts: Vec<AtomicBool>,
     /// Array representation of the beta functions
     pub(super) betas: Vec<[PDartIdentifier; PMAP2_BETA]>,
     /// Current number of darts
@@ -44,7 +42,9 @@ impl<T: CoordsFloat> PMap2<T> {
         Self {
             // attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: BTreeSet::new(),
+            unused_darts: (0..=n_darts) // n_darts + 1
+                .map(|_| AtomicBool::new(false))
+                .collect(),
             betas: (0..=n_darts) // n_darts + 1
                 .map(|_| {
                     [
