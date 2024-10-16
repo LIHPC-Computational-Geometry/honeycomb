@@ -11,6 +11,7 @@ use crate::prelude::{DartIdentifier, NULL_DART_ID};
 use crate::cmap::OrbitPolicy;
 use crate::pmap::dim2::structure::PMap2;
 use std::collections::{BTreeSet, VecDeque};
+
 // ------ CONTENT
 
 /// Generic 2D orbit implementation

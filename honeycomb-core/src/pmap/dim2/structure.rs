@@ -1,4 +1,5 @@
 use crate::attributes::{AttrSparseVec, UnknownAttributeStorage};
+use crate::cmap::{CMap2, DartIdentifier};
 use crate::geometry::{CoordsFloat, Vertex2};
 use crate::pmap::common::PDartIdentifier;
 use crate::pmap::dim2::PMAP2_BETA;
@@ -55,6 +56,31 @@ impl<T: CoordsFloat> PMap2<T> {
                 })
                 .collect(),
             n_darts: n_darts + 1,
+        }
+    }
+}
+
+impl<T: CoordsFloat> From<CMap2<T>> for PMap2<T> {
+    fn from(cmap: CMap2<T>) -> Self {
+        let CMap2 {
+            attributes: _, // ignore attributes for now
+            vertices,
+            unused_darts,
+            betas,
+            n_darts,
+        } = cmap;
+        Self {
+            vertices,
+            unused_darts: (0..=n_darts as DartIdentifier) // n_darts + 1
+                .map(|id| AtomicBool::new(unused_darts.contains(&id)))
+                .collect(),
+            betas: (0..=n_darts) // n_darts + 1
+                .map(|i| {
+                    let [b0, b1, b2] = betas[i];
+                    [AtomicU32::new(b0), AtomicU32::new(b1), AtomicU32::new(b2)]
+                })
+                .collect(),
+            n_darts,
         }
     }
 }

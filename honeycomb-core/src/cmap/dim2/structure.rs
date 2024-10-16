@@ -146,16 +146,16 @@ use std::collections::BTreeSet;
 #[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
-    pub(super) attributes: AttrStorageManager,
+    pub(crate) attributes: AttrStorageManager,
     /// List of vertices making up the represented mesh
-    pub(super) vertices: AttrSparseVec<Vertex2<T>>,
+    pub(crate) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    pub(super) unused_darts: BTreeSet<DartIdentifier>,
+    pub(crate) unused_darts: BTreeSet<DartIdentifier>,
     /// Array representation of the beta functions
-    pub(super) betas: Vec<[DartIdentifier; CMAP2_BETA]>,
+    pub(crate) betas: Vec<[DartIdentifier; CMAP2_BETA]>,
     /// Current number of darts
-    pub(super) n_darts: usize,
+    pub(crate) n_darts: usize,
 }
 
 #[doc(hidden)]
