@@ -143,7 +143,6 @@ use std::collections::BTreeSet;
 ///
 /// # }
 /// ```
-#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     pub(super) attributes: AttrStorageManager,
@@ -220,5 +219,12 @@ impl<T: CoordsFloat> CMap2<T> {
             betas: vec![[0; CMAP2_BETA]; n_darts + 1],
             n_darts: n_darts + 1,
         }
+    }
+}
+
+#[cfg(feature = "utils")]
+impl<T: CoordsFloat> Clone for CMap2<T> {
+    fn clone(&self) -> Self {
+        todo!()
     }
 }
