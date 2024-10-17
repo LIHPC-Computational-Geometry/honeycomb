@@ -14,8 +14,8 @@
 use super::CMAP2_BETA;
 use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdentifier};
+use std::sync::atomic::Ordering;
 use std::{fs::File, io::Write};
-
 // ------ CONTENT
 
 /// **Utilities**
@@ -32,7 +32,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `const I: u8` -- Beta function to edit.
     ///
     pub fn set_beta<const I: u8>(&mut self, dart_id: DartIdentifier, val: DartIdentifier) {
-        self.betas[dart_id as usize][I as usize] = val;
+        self.betas[dart_id as usize][I as usize].store(val, Ordering::Relaxed);
     }
 
     /// Set the values of the beta functions of a dart.
@@ -43,8 +43,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
-    pub fn set_betas(&mut self, dart_id: DartIdentifier, betas: [DartIdentifier; CMAP2_BETA]) {
-        self.betas[dart_id as usize] = betas;
+    pub fn set_betas(
+        &mut self,
+        dart_id: DartIdentifier,
+        [b0, b1, b2]: [DartIdentifier; CMAP2_BETA],
+    ) {
+        // store separately to use non-mutable methods
+        self.betas[dart_id as usize][0].store(b0, Ordering::Relaxed);
+        self.betas[dart_id as usize][1].store(b1, Ordering::Relaxed);
+        self.betas[dart_id as usize][2].store(b2, Ordering::Relaxed);
     }
 
     /// Computes the total allocated space dedicated to the map.
