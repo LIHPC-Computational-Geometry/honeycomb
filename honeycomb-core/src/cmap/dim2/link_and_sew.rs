@@ -360,7 +360,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
     ///
-    pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn one_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
         assert!(self.is_i_free::<1>(lhs_dart_id));
@@ -385,7 +385,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
-    pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn two_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
         assert!(self.is_i_free::<2>(lhs_dart_id));
@@ -410,7 +410,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn one_unlink(&self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
         assert_ne!(rhs_dart_id, NULL_DART_ID);
         // set beta_1(lhs_dart) to NullDart
@@ -432,7 +432,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
-    pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn two_unlink(&self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
         assert_ne!(rhs_dart_id, NULL_DART_ID);
         // set beta_2(dart) to NullDart
