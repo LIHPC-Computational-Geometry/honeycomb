@@ -354,7 +354,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
 ///
 /// The documentation of this trait describe the behavior each function & method should have. "ID"
 /// and "index" are used interchangeably.
-pub trait ParAttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
+pub trait ParAttributeStorage<A: AttributeBind>: ParUnknownAttributeStorage {
     /// Setter
     ///
     /// Set the value of an element at a given index. This operation is not affected by the initial

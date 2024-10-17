@@ -6,9 +6,10 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
+use crate::attributes::traits::{ParAttributeStorage, ParUnknownAttributeStorage};
 use crate::prelude::DartIdentifier;
 use num_traits::ToPrimitive;
-
+use std::sync::RwLock;
 // ------ CONTENT
 
 /// Custom storage structure for attributes
@@ -287,5 +288,116 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
             + self.index_map.iter().filter(|val| val.is_some()).count()
                 * std::mem::size_of::<Option<usize>>()
             + self.data.len() * std::mem::size_of::<T>()
+    }
+}
+
+// --- parallel items
+
+#[derive(Debug)]
+pub struct ParSparseVec<A: AttributeBind + AttributeUpdate> {
+    /// Inner storage.
+    data: Vec<RwLock<Option<A>>>,
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> ParUnknownAttributeStorage for ParSparseVec<A> {
+    fn new(length: usize) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            data: (0..length).map(|_| RwLock::new(None)).collect(),
+        }
+    }
+
+    fn extend(&mut self, length: usize) {
+        self.data.extend((0..length).map(|_| RwLock::new(None)));
+    }
+
+    fn n_attributes(&self) -> usize {
+        self.data
+            .iter()
+            .filter(|r| r.read().unwrap().is_some())
+            .count()
+    }
+
+    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        loop {
+            // try to lock all three values
+            match (
+                self.data[out as usize].try_write(),
+                self.data[lhs_inp as usize].try_write(),
+                self.data[rhs_inp as usize].try_write(),
+            ) {
+                (Ok(mut out), Ok(mut lhs), Ok(mut rhs)) => {
+                    // if success, do op
+                    let new_v = match (*lhs, *rhs) {
+                        (Some(l), Some(r)) => AttributeUpdate::merge(l, r),
+                        (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
+                        (None, None) => AttributeUpdate::merge_from_none().unwrap(),
+                    };
+                    *lhs = None;
+                    *rhs = None;
+                    *out = Some(new_v);
+                    break;
+                }
+                _ => continue, // else retry
+            }
+        }
+    }
+
+    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        loop {
+            // try to lock all three values
+            match (
+                self.data[lhs_out as usize].try_write(),
+                self.data[rhs_out as usize].try_write(),
+                self.data[inp as usize].try_write(),
+            ) {
+                (Ok(mut lhs), Ok(mut rhs), Ok(mut inp)) => {
+                    // if success, do op
+                    if let Some(v) = *inp {
+                        let (new_l, new_r) = AttributeUpdate::split(v);
+                        *lhs = Some(new_l);
+                        *rhs = Some(new_r);
+                        *inp = None;
+                    } else {
+                        eprintln!("W: cannot split attribute value (not found in storage)");
+                        eprintln!("   setting both new values to `None`");
+                        *lhs = None;
+                        *rhs = None;
+                    }
+                    break;
+                }
+                _ => continue, // else retry
+            }
+        }
+    }
+}
+
+impl<A: AttributeBind + AttributeUpdate + Copy> ParAttributeStorage<A> for ParSparseVec<A> {
+    fn set(&self, id: A::IdentifierType, val: A) {
+        *self.data[id.to_usize().unwrap()].write().unwrap() = Some(val);
+    }
+
+    fn insert(&self, id: A::IdentifierType, val: A) {
+        let mut tmp = self.data[id.to_usize().unwrap()].write().unwrap();
+        assert!(tmp.is_none());
+        *tmp = Some(val);
+    }
+
+    fn get(&self, id: A::IdentifierType) -> Option<A> {
+        *self.data[id.to_usize().unwrap()].read().unwrap()
+    }
+
+    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
+        let tmp = *self.data[id.to_usize().unwrap()].read().unwrap();
+        *self.data[id.to_usize().unwrap()].write().unwrap() = Some(val);
+        tmp
+    }
+
+    fn remove(&self, id: A::IdentifierType) -> Option<A> {
+        let tmp = *self.data[id.to_usize().unwrap()].read().unwrap();
+        *self.data[id.to_usize().unwrap()].write().unwrap() = None;
+        tmp
     }
 }
