@@ -24,7 +24,8 @@ pub use fan::process_convex_cell as fan_convex_cell;
 
 // ------ CONTENT
 
-use honeycomb_core::cmap::{CMap2, DartIdentifier};
+use honeycomb_core::cmap::CMap2;
+use honeycomb_core::common::DartIdentifier;
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use thiserror::Error;
 

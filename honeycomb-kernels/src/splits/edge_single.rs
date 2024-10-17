@@ -3,7 +3,8 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, EdgeIdentifier};
+use honeycomb_core::common::{DartIdentifier, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 // ------ CONTENT

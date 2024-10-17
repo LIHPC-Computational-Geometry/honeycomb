@@ -1,7 +1,8 @@
 // split_edge
 
 use super::*;
-use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
+use honeycomb_core::cmap::CMap2;
+use honeycomb_core::common::{CMapBuilder, NULL_DART_ID};
 use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::prelude::CoordsFloat;
 

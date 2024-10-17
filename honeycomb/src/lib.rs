@@ -59,9 +59,11 @@ pub mod prelude {
 
     pub use honeycomb_core::attributes::{AttributeBind, AttributeUpdate};
     pub use honeycomb_core::cmap::{
-        BuilderError, CMap2, CMapBuilder, DartIdentifier, EdgeIdentifier, FaceIdentifier,
-        GridDescriptor, Orbit2, OrbitPolicy, VertexIdentifier, VolumeIdentifier, NULL_DART_ID,
-        NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
+        CMap2, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
+        VolumeIdentifier, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
+    };
+    pub use honeycomb_core::common::{
+        BuilderError, CMapBuilder, DartIdentifier, GridDescriptor, NULL_DART_ID,
     };
     pub use honeycomb_core::geometry::{CoordsError, CoordsFloat, Vector2, Vertex2};
 
