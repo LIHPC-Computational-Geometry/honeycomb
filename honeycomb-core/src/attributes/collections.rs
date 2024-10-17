@@ -26,7 +26,6 @@ use num_traits::ToPrimitive;
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     /// Inner storage.
     data: Vec<Option<T>>,
@@ -148,7 +147,6 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
     /// Tracker of unused internal slots.
     unused_data_slots: Vec<usize>,

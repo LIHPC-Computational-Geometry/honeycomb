@@ -66,7 +66,6 @@ use std::{any::TypeId, collections::HashMap};
 ///     }
 /// }
 /// ```
-#[cfg_attr(feature = "utils", derive(Clone))]
 #[derive(Default)]
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
