@@ -3,7 +3,8 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use honeycomb::prelude::CMap2;
 use honeycomb_benches::FloatType;
-use honeycomb_core::cmap::CMapBuilder;
+use honeycomb_core::common::CMapBuilder;
+
 // ------ CONTENT
 
 pub fn criterion_benchmark(c: &mut Criterion) {
