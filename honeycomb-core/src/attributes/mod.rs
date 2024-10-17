@@ -8,9 +8,12 @@ mod collections;
 mod manager;
 mod traits;
 
-pub use collections::{AttrCompactVec, AttrSparseVec};
+pub use collections::{AttrCompactVec, AttrSparseVec, PAttrSparseVec};
 pub use manager::AttrStorageManager;
-pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
+pub use traits::{
+    AttributeBind, AttributeStorage, AttributeUpdate, ParAttributeStorage,
+    ParUnknownAttributeStorage, UnknownAttributeStorage,
+};
 
 // ------ TESTS
 

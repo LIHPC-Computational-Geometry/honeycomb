@@ -294,12 +294,12 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 // --- parallel items
 
 #[derive(Debug)]
-pub struct ParSparseVec<A: AttributeBind + AttributeUpdate> {
+pub struct PAttrSparseVec<A: AttributeBind + AttributeUpdate> {
     /// Inner storage.
     data: Vec<RwLock<Option<A>>>,
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> ParUnknownAttributeStorage for ParSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> ParUnknownAttributeStorage for PAttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -374,7 +374,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> ParUnknownAttributeStorage for P
     }
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> ParAttributeStorage<A> for ParSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate + Copy> ParAttributeStorage<A> for PAttrSparseVec<A> {
     fn set(&self, id: A::IdentifierType, val: A) {
         *self.data[id.to_usize().unwrap()].write().unwrap() = Some(val);
     }
