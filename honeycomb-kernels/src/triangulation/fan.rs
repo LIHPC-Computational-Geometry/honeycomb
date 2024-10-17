@@ -1,7 +1,8 @@
 use crate::triangulation::{
     check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
 };
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, FaceIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::common::DartIdentifier;
 use honeycomb_core::geometry::CoordsFloat;
 
 #[allow(clippy::missing_panics_doc)]

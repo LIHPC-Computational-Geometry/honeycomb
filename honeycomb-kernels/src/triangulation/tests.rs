@@ -1,5 +1,6 @@
 use crate::triangulation::{earclip_cell, fan_cell, TriangulateError};
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
+use honeycomb_core::cmap::{CMap2, FaceIdentifier};
+use honeycomb_core::common::DartIdentifier;
 use honeycomb_core::prelude::CMapBuilder;
 
 // you can copy paste this function into the render example to see what the mesh looks like

@@ -3,7 +3,8 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, EdgeIdentifier};
+use honeycomb_core::common::{DartIdentifier, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 // ------ CONTENT
 
@@ -35,7 +36,8 @@ use honeycomb_core::geometry::CoordsFloat;
 /// # Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+/// # use honeycomb_core::prelude::{CMap2, CMapBuilder, Vertex2};
+/// # use honeycomb_core::common::{NULL_DART_ID};
 /// # use honeycomb_kernels::splits::splitn_edge;
 /// // before
 /// //    <--2---

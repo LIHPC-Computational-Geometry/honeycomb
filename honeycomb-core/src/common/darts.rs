@@ -1,8 +1,4 @@
-//! Crate-level common definitions
-
-// ------ CONTENT
-
-// --- darts
+//! Dart related definitions
 
 /// Type definition for dart identifiers
 ///
