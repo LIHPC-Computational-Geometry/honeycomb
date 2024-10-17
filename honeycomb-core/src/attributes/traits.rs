@@ -456,6 +456,12 @@ pub trait ParAttributeStorage<A: AttributeBind>: ParUnknownAttributeStorage {
     fn remove(&self, id: A::IdentifierType) -> Option<A>;
 }
 
+/// Common trait implemented by generic attribute storages.
+///
+/// This trait contain attribute-specific methods.
+///
+/// The documentation of this trait describe the behavior each function & method should have. "ID"
+/// and "index" are used interchangeably.
 pub trait ParUnknownAttributeStorage: Any + Debug + Downcast {
     /// Constructor
     ///

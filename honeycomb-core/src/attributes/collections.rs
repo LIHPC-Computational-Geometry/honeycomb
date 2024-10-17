@@ -293,6 +293,21 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
 
 // --- parallel items
 
+/// Custom storage structure for attributes
+///
+/// This structured is used to store user-defined attributes using a vector of `Option<T>` items.
+/// This means that valid attributes value may be separated by an arbitrary number of `None`.
+///
+/// Synchronization is implemented using `RwLock`s over items in the storage. All methods are
+/// blocking implemented are blocking.
+///
+/// # Generics
+///
+/// - `T: AttributeBind + AttributeUpdate` -- Type of the stored attributes.
+///
+/// # Example
+///
+/// **This struct is not meant to be used directly**, but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 pub struct PAttrSparseVec<A: AttributeBind + AttributeUpdate> {
     /// Inner storage.
