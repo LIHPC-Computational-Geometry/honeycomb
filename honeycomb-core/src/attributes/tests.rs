@@ -2,7 +2,8 @@
 
 use super::{
     AttrCompactVec, AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
-    AttributeUpdate, UnknownAttributeStorage,
+    AttributeUpdate, PAttrSparseVec, ParAttributeStorage, ParUnknownAttributeStorage,
+    UnknownAttributeStorage,
 };
 use crate::prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier};
 use std::any::Any;
@@ -612,4 +613,144 @@ fn manager_split_attribute() {
     assert_eq!(manager.get_attribute(3), Some(Temperature::from(289.0)));
     assert_eq!(manager.get_attribute(6), Some(Temperature::from(289.0)));
     assert_eq!(manager.get_attribute::<Temperature>(8), None);
+}
+
+macro_rules! generate_psparse {
+    ($name: ident) => {
+        #[allow(unused_mut)]
+        let mut $name = PAttrSparseVec::<Temperature>::new(10);
+        $name.insert(0, Temperature::from(273.0));
+        $name.insert(1, Temperature::from(275.0));
+        $name.insert(2, Temperature::from(277.0));
+        $name.insert(3, Temperature::from(279.0));
+        $name.insert(4, Temperature::from(281.0));
+        $name.insert(5, Temperature::from(283.0));
+        $name.insert(6, Temperature::from(285.0));
+        $name.insert(7, Temperature::from(287.0));
+        $name.insert(8, Temperature::from(289.0));
+        $name.insert(9, Temperature::from(291.0));
+    };
+}
+
+#[test]
+fn psparse_vec_n_attributes() {
+    generate_psparse!(storage);
+    assert_eq!(storage.n_attributes(), 10);
+    let _ = storage.remove(3);
+    assert_eq!(storage.n_attributes(), 9);
+    // extend does not affect the number of attributes
+    storage.extend(10);
+    assert!(storage.get(15).is_none());
+    assert_eq!(storage.n_attributes(), 9);
+}
+
+#[test]
+fn psparse_vec_merge() {
+    generate_psparse!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(282.0)));
+}
+
+#[test]
+fn psparse_vec_merge_undefined() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.remove(8), Some(Temperature::from(289.0)));
+    // merge from two undefined value
+    storage.merge(8, 3, 6);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(6), None);
+    assert_eq!(storage.get(8), Some(Temperature::from(0.0)));
+    // merge from one undefined value
+    assert_eq!(storage.get(4), Some(Temperature::from(281.0)));
+    storage.merge(6, 3, 4);
+    assert_eq!(storage.get(3), None);
+    assert_eq!(storage.get(4), None);
+    assert_eq!(storage.get(6), Some(Temperature::from(281.0 / 2.0)));
+}
+
+#[test]
+fn psparse_vec_split() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert_eq!(storage.remove(6), Some(Temperature::from(285.0)));
+    assert_eq!(storage.get(8), Some(Temperature::from(289.0)));
+    storage.split(3, 6, 8);
+    assert_eq!(storage.get(3), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(6), Some(Temperature::from(289.0)));
+    assert_eq!(storage.get(8), None);
+}
+
+#[test]
+fn psparse_vec_get_set_get() {
+    generate_psparse!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.set(3, Temperature::from(280.0));
+    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+}
+
+#[test]
+fn psparse_vec_get_replace_get() {
+    generate_psparse!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.replace(3, Temperature::from(280.0));
+    assert_eq!(storage.get(3), Some(Temperature::from(280.0)));
+}
+
+#[test]
+#[should_panic(expected = "assertion failed: tmp.is_none()")]
+fn psparse_vec_insert_already_existing() {
+    generate_psparse!(storage);
+    assert_eq!(storage.get(3), Some(Temperature::from(279.0)));
+    storage.insert(3, Temperature::from(280.0)); // panic
+}
+
+#[test]
+fn psparse_vec_remove() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+}
+
+#[test]
+fn psparse_vec_remove_remove() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert!(storage.remove(3).is_none());
+}
+
+#[test]
+fn psparse_vec_remove_get() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    assert!(storage.get(3).is_none());
+}
+
+#[test]
+fn psparse_vec_remove_set() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.set(3, Temperature::from(280.0));
+    assert!(storage.get(3).is_some());
+}
+
+#[test]
+fn psparse_vec_remove_insert() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.insert(3, Temperature::from(280.0));
+    assert!(storage.get(3).is_some());
+}
+
+#[test]
+#[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+fn psparse_vec_replace_already_removed() {
+    generate_psparse!(storage);
+    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
 }
