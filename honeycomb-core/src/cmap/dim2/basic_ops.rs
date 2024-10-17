@@ -21,7 +21,7 @@ use crate::{
 };
 
 use std::collections::BTreeSet;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 // ------ CONTENT
 
 /// **Dart-related methods**
@@ -37,7 +37,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return information about the current number of unused darts.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts.len()
+        self.unused_darts
+            .iter()
+            .filter(|v| v.load(Ordering::Relaxed))
+            .count()
     }
 
     // --- edit
@@ -55,6 +58,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
         self.betas.push(CMAP2_NULL_ENTRY);
+        self.unused_darts.push(AtomicBool::new(false));
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -77,6 +81,8 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
         self.betas.extend((0..n_darts).map(|_| CMAP2_NULL_ENTRY));
+        self.unused_darts
+            .extend((0..n_darts).map(|_| AtomicBool::new(false)));
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
@@ -92,9 +98,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return the ID of the created dart to allow for direct operations.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
-        if let Some(new_id) = self.unused_darts.pop_first() {
-            self.betas[new_id as usize] = CMAP2_NULL_ENTRY;
-            new_id
+        if let Some((new_id, _)) = self
+            .unused_darts
+            .iter()
+            .enumerate()
+            .find(|(_, u)| u.load(Ordering::Relaxed))
+        {
+            self.betas[new_id] = CMAP2_NULL_ENTRY;
+            new_id as DartIdentifier
         } else {
             self.add_free_dart()
         }
@@ -123,7 +134,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
-        assert!(self.unused_darts.insert(dart_id));
+        assert!(self.unused_darts[dart_id as usize]
+            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .is_ok());
         // this should not be required if the map is not corrupt
         // or in the middle of a more complex operation
         let b0d = self.beta::<0>(dart_id);
@@ -383,7 +396,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // from incomplete cells until they are correctly supported by Orbit2
         let mut vertex_ids: BTreeSet<DartIdentifier> = BTreeSet::new();
         (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .filter(|dart_id| !self.unused_darts[*dart_id as usize].load(Ordering::Relaxed)) // only used darts
             .for_each(|dart_id| {
                 // if we haven't seen this dart yet
                 if marked.insert(dart_id) {
@@ -414,7 +427,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // from incomplete cells until they are correctly supported by Orbit2
         let mut edge_ids: BTreeSet<EdgeIdentifier> = BTreeSet::new();
         (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .filter(|dart_id| !self.unused_darts[*dart_id as usize].load(Ordering::Relaxed)) // only used darts
             .for_each(|dart_id| {
                 // if we haven't seen this dart yet
                 if marked.insert(dart_id) {
@@ -444,7 +457,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // from incomplete cells until they are correctly supported by Orbit2
         let mut face_ids: BTreeSet<FaceIdentifier> = BTreeSet::new();
         (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
+            .filter(|dart_id| !self.unused_darts[*dart_id as usize].load(Ordering::Relaxed)) // only used darts
             .for_each(|dart_id| {
                 // if we haven't seen this dart yet
                 if marked.insert(dart_id) {

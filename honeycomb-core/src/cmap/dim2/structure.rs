@@ -6,13 +6,12 @@
 // ------ IMPORTS
 
 use super::{CMAP2_BETA, CMAP2_NULL_ENTRY};
-use crate::prelude::{DartIdentifier, Vertex2};
+use crate::prelude::Vertex2;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
-use std::collections::BTreeSet;
-use std::sync::atomic::AtomicU32;
+use std::sync::atomic::{AtomicBool, AtomicU32};
 // ------ CONTENT
 
 /// Main map object.
@@ -150,7 +149,7 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    pub(super) unused_darts: BTreeSet<DartIdentifier>,
+    pub(super) unused_darts: Vec<AtomicBool>,
     /// Array representation of the beta functions
     pub(super) betas: Vec<[AtomicU32; CMAP2_BETA]>,
     /// Current number of darts
@@ -180,7 +179,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: BTreeSet::new(),
+            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
             betas: (0..=n_darts).map(|_| CMAP2_NULL_ENTRY).collect(),
             n_darts: n_darts + 1,
         }
@@ -215,7 +214,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: BTreeSet::new(),
+            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
             betas: (0..=n_darts).map(|_| CMAP2_NULL_ENTRY).collect(),
             n_darts: n_darts + 1,
         }
