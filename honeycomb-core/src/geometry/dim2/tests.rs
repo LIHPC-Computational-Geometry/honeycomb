@@ -2,7 +2,7 @@
 
 // ------ CONTENT
 
-use super::CoordsFloat;
+use super::super::{CoordsFloat, Vector2};
 
 // --- common
 
@@ -39,8 +39,8 @@ macro_rules! almost_equals {
 // --- vector
 
 mod vector {
-    use super::almost_equal;
-    use crate::prelude::{CoordsError, Vector2};
+    use super::*;
+    use crate::prelude::CoordsError;
     // tests
     macro_rules! generate_dot_prod_test {
         ($id: ident, $t: ty) => {
