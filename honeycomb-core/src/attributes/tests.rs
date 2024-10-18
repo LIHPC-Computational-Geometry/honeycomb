@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
 use super::{
-    AttrCompactVec, AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
+    /*AttrCompactVec,*/ AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
     AttributeUpdate, UnknownAttributeStorage,
 };
 use crate::prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier};
@@ -290,6 +290,7 @@ macro_rules! generate_compact {
     };
 }
 
+/*
 #[test]
 fn compact_vec_n_attributes() {
     generate_compact!(storage);
@@ -445,6 +446,7 @@ fn compact_vec_replace_already_removed() {
     assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
     assert!(storage.replace(3, Temperature::from(280.0)).is_none());
 }
+ */
 
 // storage manager
 
@@ -525,8 +527,9 @@ fn manager_vec_insert_already_existing() {
 #[test]
 fn manager_vec_remove() {
     generate_manager!(manager);
-    generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    // what was this ?
+    // generate_compact!(storage);
+    // assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
 }
 
 #[test]

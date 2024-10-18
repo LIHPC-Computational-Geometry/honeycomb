@@ -54,7 +54,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             .count()
     }
 
-    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
         let _ = self.data[out as usize].load(Ordering::Acquire);
         let new_v = match (
             self.data[lhs_inp as usize].load(Ordering::Acquire),
@@ -73,7 +73,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         self.data[out as usize].store(new_v, Ordering::Release);
     }
 
-    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
         let _ = self.data[lhs_out as usize].load(Ordering::Acquire);
         let _ = self.data[rhs_out as usize].load(Ordering::Acquire);
         if let Some(val) = self.data[inp as usize].load(Ordering::Acquire) {
@@ -92,11 +92,11 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
-    fn set(&mut self, id: A::IdentifierType, val: A) {
+    fn set(&self, id: A::IdentifierType, val: A) {
         self.data[id.to_usize().unwrap()].store(Some(val), Ordering::Release);
     }
 
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
+    fn insert(&self, id: A::IdentifierType, val: A) {
         let tmp = self.data[id.to_usize().unwrap()].load(Ordering::Acquire);
         assert!(tmp.is_none());
         self.data[id.to_usize().unwrap()].store(Some(val), Ordering::Release);
@@ -106,11 +106,11 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
         self.data[id.to_usize().unwrap()].load(Ordering::Acquire)
     }
 
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
+    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
         self.data[id.to_usize().unwrap()].swap(Some(val), Ordering::AcqRel)
     }
 
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
+    fn remove(&self, id: A::IdentifierType) -> Option<A> {
         self.data[id.to_usize().unwrap()].swap(None, Ordering::AcqRel)
     }
 }
@@ -140,6 +140,7 @@ impl<T: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<T> {
     }
 }
 
+/*
 /// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using two internal collections:
@@ -298,3 +299,4 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
             + self.data.len() * std::mem::size_of::<T>()
     }
 }
+ */

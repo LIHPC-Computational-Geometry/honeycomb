@@ -191,7 +191,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// }
     /// attributes.set(out, new_val);
     /// ```
-    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
 
     /// Split attribute to specified indices
     ///
@@ -211,7 +211,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
     /// ```
-    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
 }
 
 impl_downcast!(UnknownAttributeStorage);
@@ -238,7 +238,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn set(&mut self, id: A::IdentifierType, val: A);
+    fn set(&self, id: A::IdentifierType, val: A);
 
     /// Setter
     ///
@@ -256,7 +256,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
+    fn insert(&self, id: A::IdentifierType, val: A) {
         assert!(self.get(id.clone()).is_none());
         self.set(id, val);
     }
@@ -302,7 +302,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
+    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
 
     /// Remove an item from the storage and return it
     ///
@@ -321,5 +321,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
+    fn remove(&self, id: A::IdentifierType) -> Option<A>;
 }
