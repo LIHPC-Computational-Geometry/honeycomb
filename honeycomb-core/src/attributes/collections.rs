@@ -7,7 +7,9 @@
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::prelude::DartIdentifier;
+use atomic::Atomic;
 use num_traits::ToPrimitive;
+use std::sync::atomic::Ordering;
 
 // ------ CONTENT
 
@@ -26,9 +28,9 @@ use num_traits::ToPrimitive;
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
+pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
     /// Inner storage.
-    data: Vec<Option<T>>,
+    data: Vec<Atomic<Option<T>>>,
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
@@ -37,79 +39,84 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         Self: Sized,
     {
         Self {
-            data: (0..length).map(|_| None).collect(),
+            data: (0..length).map(|_| Atomic::new(None)).collect(),
         }
     }
 
     fn extend(&mut self, length: usize) {
-        self.data.extend((0..length).map(|_| None));
+        self.data.extend((0..length).map(|_| Atomic::new(None)));
     }
 
     fn n_attributes(&self) -> usize {
-        self.data.iter().filter(|val| val.is_some()).count()
+        self.data
+            .iter()
+            .filter(|val| val.load(Ordering::Relaxed).is_some())
+            .count()
     }
 
     fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
-            (Some(v), None) | (None, Some(v)) => {
-                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
-            }
-            (None, None) => {
-                if let Some(v) = AttributeUpdate::merge_from_none() {
-                    self.set(out.into(), v);
-                } else {
-                    eprintln!("W: cannot merge two null attribute value");
-                    eprintln!("   setting new target value to `None`");
-                    let _ = self.remove(out.into());
-                }
-            }
+        let _ = self.data[out as usize].load(Ordering::Acquire);
+        let new_v = match (
+            self.data[lhs_inp as usize].load(Ordering::Acquire),
+            self.data[rhs_inp as usize].load(Ordering::Acquire),
+        ) {
+            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
+            (None, None) => AttributeUpdate::merge_from_none(),
         };
+        if new_v.is_none() {
+            eprintln!("W: cannot merge two null attribute value");
+            eprintln!("   setting new target value to `None`");
+        }
+        self.data[lhs_inp as usize].store(None, Ordering::Release);
+        self.data[rhs_inp as usize].store(None, Ordering::Release);
+        self.data[out as usize].store(new_v, Ordering::Release);
     }
 
     fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self.remove(inp.into());
-        if let Some(val) = new_val {
+        let _ = self.data[lhs_out as usize].load(Ordering::Acquire);
+        let _ = self.data[rhs_out as usize].load(Ordering::Acquire);
+        if let Some(val) = self.data[inp as usize].load(Ordering::Acquire) {
             let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.set(lhs_out.into(), lhs_val);
-            self.set(rhs_out.into(), rhs_val);
+            self.data[inp as usize].store(None, Ordering::Release);
+            self.data[lhs_out as usize].store(Some(lhs_val), Ordering::Release);
+            self.data[rhs_out as usize].store(Some(rhs_val), Ordering::Release);
         } else {
             eprintln!("W: cannot split attribute value (not found in storage)");
             eprintln!("   setting both new values to `None`");
-            let _ = self.remove(lhs_out.into());
-            let _ = self.remove(rhs_out.into());
+            self.data[lhs_out as usize].store(None, Ordering::Release);
+            self.data[rhs_out as usize].store(None, Ordering::Release);
+            // self.data[inp as usize].store(None, Ordering::Release); // is a release store needed?
         }
     }
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
     fn set(&mut self, id: A::IdentifierType, val: A) {
-        self.data[id.to_usize().unwrap()] = Some(val);
+        self.data[id.to_usize().unwrap()].store(Some(val), Ordering::Release);
     }
 
     fn insert(&mut self, id: A::IdentifierType, val: A) {
-        let tmp = &mut self.data[id.to_usize().unwrap()];
+        let tmp = self.data[id.to_usize().unwrap()].load(Ordering::Acquire);
         assert!(tmp.is_none());
-        *tmp = Some(val);
+        self.data[id.to_usize().unwrap()].store(Some(val), Ordering::Release);
     }
 
     fn get(&self, id: A::IdentifierType) -> Option<A> {
-        self.data[id.to_usize().unwrap()]
+        self.data[id.to_usize().unwrap()].load(Ordering::Acquire)
     }
 
     fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
-        self.data.push(Some(val));
-        self.data.swap_remove(id.to_usize().unwrap())
+        self.data[id.to_usize().unwrap()].swap(Some(val), Ordering::AcqRel)
     }
 
     fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
-        self.data.push(None);
-        self.data.swap_remove(id.to_usize().unwrap())
+        self.data[id.to_usize().unwrap()].swap(None, Ordering::AcqRel)
     }
 }
 
 #[cfg(feature = "utils")]
-impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {
@@ -125,7 +132,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     /// Return the amount of space used by valid entries of the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn used_size(&self) -> usize {
-        self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
+        self.data
+            .iter()
+            .filter(|val| val.load(Ordering::Relaxed).is_some())
+            .count()
+            * size_of::<Option<T>>()
     }
 }
 
