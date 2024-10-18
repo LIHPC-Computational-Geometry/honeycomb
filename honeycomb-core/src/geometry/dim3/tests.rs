@@ -44,14 +44,15 @@ mod vector {
     // tests
     macro_rules! generate_dot_prod_test {
         ($id:ident, $t:ty) => {
+            #[allow(clippy::float_cmp)]
             #[test]
             fn $id() {
                 let mut along_x = Vector3::<$t>::unit_x() * 15.0;
                 let mut along_y = Vector3::<$t>::unit_y() * 10.0;
                 let mut along_z = Vector3::<$t>::unit_z() * 5.0;
-                assert!(almost_equal(along_x.dot(&along_y), 0.0));
-                assert!(almost_equal(along_x.dot(&along_z), 0.0));
-                assert!(almost_equal(along_y.dot(&along_z), 0.0));
+                assert_eq!(along_x.dot(&along_y), 0.0);
+                assert_eq!(along_x.dot(&along_z), 0.0);
+                assert_eq!(along_y.dot(&along_z), 0.0);
                 along_x /= 15.0;
                 along_y *= 10.0;
                 along_z -= Vector3::<$t>::unit_z();
