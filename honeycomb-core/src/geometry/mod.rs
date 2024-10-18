@@ -5,8 +5,8 @@
 
 // ------ MODULE DECLARATIONS
 
-mod vector;
-mod vertex;
+mod dim2;
+mod dim3;
 
 // ------ IMPORTS
 
@@ -18,8 +18,8 @@ use thiserror::Error;
 
 // --- re-exports
 
-pub use vector::Vector2;
-pub use vertex::Vertex2;
+pub use dim2::{vector::Vector2, vertex::Vertex2};
+pub use dim3::{vector::Vector3, vertex::Vertex3};
 
 // --- error enum
 
@@ -64,7 +64,3 @@ impl<
     > CoordsFloat for T
 {
 }
-
-// ------ TESTS
-#[cfg(test)]
-mod tests;
