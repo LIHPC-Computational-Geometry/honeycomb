@@ -61,7 +61,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - **there is already a vertex associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn insert_vertex(&mut self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
+    pub fn insert_vertex(&self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
         self.vertices.insert(vertex_id, vertex.into());
     }
 
@@ -82,7 +82,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn remove_vertex(&mut self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
+    pub fn remove_vertex(&self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
         self.vertices.remove(vertex_id)
     }
 
@@ -106,7 +106,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     pub fn replace_vertex(
-        &mut self,
+        &self,
         vertex_id: VertexIdentifier,
         vertex: impl Into<Vertex2<T>>,
     ) -> Option<Vertex2<T>> {
@@ -135,11 +135,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    pub fn set_attribute<A: AttributeBind + AttributeUpdate>(
-        &mut self,
-        id: A::IdentifierType,
-        val: A,
-    ) {
+    pub fn set_attribute<A: AttributeBind + AttributeUpdate>(&self, id: A::IdentifierType, val: A) {
         self.attributes.set_attribute::<A>(id, val);
     }
 
@@ -164,7 +160,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     pub fn insert_attribute<A: AttributeBind + AttributeUpdate>(
-        &mut self,
+        &self,
         id: A::IdentifierType,
         val: A,
     ) {
@@ -226,7 +222,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     pub fn replace_attribute<A: AttributeBind + AttributeUpdate>(
-        &mut self,
+        &self,
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
@@ -255,7 +251,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - may panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
-        &mut self,
+        &self,
         id: A::IdentifierType,
     ) -> Option<A> {
         self.attributes.remove_attribute::<A>(id)
