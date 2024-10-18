@@ -66,7 +66,6 @@ use std::{any::TypeId, collections::HashMap};
 ///     }
 /// }
 /// ```
-#[cfg_attr(feature = "utils", derive(Clone))]
 #[derive(Default)]
 pub struct AttrStorageManager {
     /// Vertex attributes' storages.
@@ -78,6 +77,9 @@ pub struct AttrStorageManager {
     /// Other storages.
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
+
+unsafe impl Send for AttrStorageManager {}
+unsafe impl Sync for AttrStorageManager {}
 
 /// **Manager-wide methods**
 impl AttrStorageManager {
@@ -113,7 +115,7 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_attributes(
-        &mut self,
+        &self,
         orbit_policy: &OrbitPolicy,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
@@ -137,12 +139,12 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_vertex_attributes(
-        &mut self,
+        &self,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        for storage in self.vertices.values_mut() {
+        for storage in self.vertices.values() {
             storage.merge(id_out, id_in_lhs, id_in_rhs);
         }
     }
@@ -155,12 +157,12 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_edge_attributes(
-        &mut self,
+        &self,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        for storage in self.edges.values_mut() {
+        for storage in self.edges.values() {
             storage.merge(id_out, id_in_lhs, id_in_rhs);
         }
     }
@@ -173,12 +175,12 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_face_attributes(
-        &mut self,
+        &self,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        for storage in self.faces.values_mut() {
+        for storage in self.faces.values() {
             storage.merge(id_out, id_in_lhs, id_in_rhs);
         }
     }
@@ -193,7 +195,7 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_other_attributes(
-        &mut self,
+        &self,
         _orbit_policy: &OrbitPolicy,
         _id_out: DartIdentifier,
         _id_in_lhs: DartIdentifier,
@@ -214,7 +216,7 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_attributes(
-        &mut self,
+        &self,
         orbit_policy: &OrbitPolicy,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
@@ -240,12 +242,12 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_vertex_attributes(
-        &mut self,
+        &self,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
-        for storage in self.vertices.values_mut() {
+        for storage in self.vertices.values() {
             storage.split(id_out_lhs, id_out_rhs, id_in);
         }
     }
@@ -259,12 +261,12 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_edge_attributes(
-        &mut self,
+        &self,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
-        for storage in self.edges.values_mut() {
+        for storage in self.edges.values() {
             storage.split(id_out_lhs, id_out_rhs, id_in);
         }
     }
@@ -278,12 +280,12 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_face_attributes(
-        &mut self,
+        &self,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
-        for storage in self.faces.values_mut() {
+        for storage in self.faces.values() {
             storage.split(id_out_lhs, id_out_rhs, id_in);
         }
     }
@@ -298,7 +300,7 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_other_attributes(
-        &mut self,
+        &self,
         _orbit_policy: &OrbitPolicy,
         _id_out_lhs: DartIdentifier,
         _id_out_rhs: DartIdentifier,
@@ -452,8 +454,8 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
-    pub fn set_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
-        get_storage_mut!(self, storage);
+    pub fn set_attribute<A: AttributeBind>(&self, id: A::IdentifierType, val: A) {
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.set(id, val);
         } else {
@@ -482,8 +484,8 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
-    pub fn insert_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType, val: A) {
-        get_storage_mut!(self, storage);
+    pub fn insert_attribute<A: AttributeBind>(&self, id: A::IdentifierType, val: A) {
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.insert(id, val);
         } else {
@@ -552,12 +554,8 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
-    pub fn replace_attribute<A: AttributeBind>(
-        &mut self,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Option<A> {
-        get_storage_mut!(self, storage);
+    pub fn replace_attribute<A: AttributeBind>(&self, id: A::IdentifierType, val: A) -> Option<A> {
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.replace(id, val)
         } else {
@@ -591,8 +589,8 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     /// - the index lands out of bounds
-    pub fn remove_attribute<A: AttributeBind>(&mut self, id: A::IdentifierType) -> Option<A> {
-        get_storage_mut!(self, storage);
+    pub fn remove_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.remove(id)
         } else {
@@ -612,12 +610,12 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     pub fn merge_attribute<A: AttributeBind>(
-        &mut self,
+        &self,
         id_out: DartIdentifier,
         id_in_lhs: DartIdentifier,
         id_in_rhs: DartIdentifier,
     ) {
-        get_storage_mut!(self, storage);
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.merge(id_out, id_in_lhs, id_in_rhs);
         } else {
@@ -636,12 +634,12 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     pub fn split_attribute<A: AttributeBind>(
-        &mut self,
+        &self,
         id_out_lhs: DartIdentifier,
         id_out_rhs: DartIdentifier,
         id_in: DartIdentifier,
     ) {
-        get_storage_mut!(self, storage);
+        get_storage!(self, storage);
         if let Some(st) = storage {
             st.split(id_out_lhs, id_out_rhs, id_in);
         } else {

@@ -5,14 +5,13 @@
 
 // ------ IMPORTS
 
-use super::CMAP2_BETA;
-use crate::prelude::{DartIdentifier, Vertex2};
+use super::{CMAP2_BETA, CMAP2_NULL_ENTRY};
+use crate::prelude::Vertex2;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
-use std::collections::BTreeSet;
-
+use std::sync::atomic::{AtomicBool, AtomicU32};
 // ------ CONTENT
 
 /// Main map object.
@@ -143,7 +142,6 @@ use std::collections::BTreeSet;
 ///
 /// # }
 /// ```
-#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct CMap2<T: CoordsFloat> {
     /// List of vertices making up the represented mesh
     pub(super) attributes: AttrStorageManager,
@@ -151,12 +149,15 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    pub(super) unused_darts: BTreeSet<DartIdentifier>,
+    pub(super) unused_darts: Vec<AtomicBool>,
     /// Array representation of the beta functions
-    pub(super) betas: Vec<[DartIdentifier; CMAP2_BETA]>,
+    pub(super) betas: Vec<[AtomicU32; CMAP2_BETA]>,
     /// Current number of darts
     pub(super) n_darts: usize,
 }
+
+unsafe impl<T: CoordsFloat> Send for CMap2<T> {}
+unsafe impl<T: CoordsFloat> Sync for CMap2<T> {}
 
 #[doc(hidden)]
 /// **Constructor convenience implementations**
@@ -181,8 +182,8 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: BTreeSet::new(),
-            betas: vec![[0; CMAP2_BETA]; n_darts + 1],
+            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
+            betas: (0..=n_darts).map(|_| CMAP2_NULL_ENTRY).collect(),
             n_darts: n_darts + 1,
         }
     }
@@ -216,9 +217,16 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: BTreeSet::new(),
-            betas: vec![[0; CMAP2_BETA]; n_darts + 1],
+            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
+            betas: (0..=n_darts).map(|_| CMAP2_NULL_ENTRY).collect(),
             n_darts: n_darts + 1,
         }
+    }
+}
+
+#[cfg(feature = "utils")]
+impl<T: CoordsFloat> Clone for CMap2<T> {
+    fn clone(&self) -> Self {
+        todo!()
     }
 }

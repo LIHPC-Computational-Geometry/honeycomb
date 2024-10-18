@@ -10,6 +10,7 @@ use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
+use std::sync::atomic::Ordering;
 
 // ------ CONTENT
 
@@ -36,7 +37,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method may panic if the two darts are not 1-sewable.
     ///
-    pub fn one_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn one_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
         // its image through beta2 is defined & has a valid associated vertex (we assume the second
         // condition is valid if the first one is)
@@ -85,7 +86,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
     ///
-    pub fn two_sew(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn two_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
         // match (is lhs 1-free, is rhs 1-free)
@@ -222,7 +223,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn one_unsew(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn one_unsew(&self, lhs_dart_id: DartIdentifier) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
             self.one_unlink(lhs_dart_id);
@@ -268,7 +269,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn two_unsew(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn two_unsew(&self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
@@ -359,13 +360,15 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
     ///
-    pub fn one_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn one_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
         assert!(self.is_i_free::<1>(lhs_dart_id));
         assert!(self.is_i_free::<0>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][1] = rhs_dart_id; // set beta_1(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][0] = lhs_dart_id; // set beta_0(rhs_dart) to lhs_dart
+        // set beta_1(lhs_dart) to rhs_dart
+        self.betas[lhs_dart_id as usize][1].store(rhs_dart_id, Ordering::Relaxed);
+        // set beta_0(rhs_dart) to lhs_dart
+        self.betas[rhs_dart_id as usize][0].store(lhs_dart_id, Ordering::Relaxed);
     }
 
     /// 2-link operation.
@@ -382,13 +385,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
-    pub fn two_link(&mut self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn two_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
         assert!(self.is_i_free::<2>(lhs_dart_id));
         assert!(self.is_i_free::<2>(rhs_dart_id));
-        self.betas[lhs_dart_id as usize][2] = rhs_dart_id; // set beta_2(lhs_dart) to rhs_dart
-        self.betas[rhs_dart_id as usize][2] = lhs_dart_id; // set beta_2(rhs_dart) to lhs_dart
+        // set beta_2(lhs_dart) to rhs_dart
+        self.betas[lhs_dart_id as usize][2].store(rhs_dart_id, Ordering::Relaxed);
+        // set beta_2(rhs_dart) to lhs_dart
+        self.betas[rhs_dart_id as usize][2].store(lhs_dart_id, Ordering::Relaxed);
     }
 
     /// 1-unlink operation.
@@ -405,11 +410,13 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn one_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn one_unlink(&self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<1>(lhs_dart_id); // fetch id of beta_1(lhs_dart)
         assert_ne!(rhs_dart_id, NULL_DART_ID);
-        self.betas[lhs_dart_id as usize][1] = 0; // set beta_1(lhs_dart) to NullDart
-        self.betas[rhs_dart_id as usize][0] = 0; // set beta_0(rhs_dart) to NullDart
+        // set beta_1(lhs_dart) to NullDart
+        self.betas[lhs_dart_id as usize][1].store(NULL_DART_ID, Ordering::Relaxed);
+        // set beta_0(rhs_dart) to NullDart
+        self.betas[rhs_dart_id as usize][0].store(NULL_DART_ID, Ordering::Relaxed);
     }
 
     /// 2-unlink operation.
@@ -425,10 +432,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
-    pub fn two_unlink(&mut self, lhs_dart_id: DartIdentifier) {
+    pub fn two_unlink(&self, lhs_dart_id: DartIdentifier) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id); // fetch id of beta_2(lhs_dart)
         assert_ne!(rhs_dart_id, NULL_DART_ID);
-        self.betas[lhs_dart_id as usize][2] = 0; // set beta_2(dart) to NullDart
-        self.betas[rhs_dart_id as usize][2] = 0; // set beta_2(beta_2(dart)) to NullDart
+        // set beta_2(dart) to NullDart
+        self.betas[lhs_dart_id as usize][2].store(NULL_DART_ID, Ordering::Relaxed);
+        // set beta_2(beta_2(dart)) to NullDart
+        self.betas[rhs_dart_id as usize][2].store(NULL_DART_ID, Ordering::Relaxed);
     }
 }
