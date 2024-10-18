@@ -156,6 +156,9 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) n_darts: usize,
 }
 
+unsafe impl<T: CoordsFloat> Send for CMap2<T> {}
+unsafe impl<T: CoordsFloat> Sync for CMap2<T> {}
+
 #[doc(hidden)]
 /// **Constructor convenience implementations**
 impl<T: CoordsFloat> CMap2<T> {

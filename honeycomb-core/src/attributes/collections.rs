@@ -33,6 +33,9 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
     data: Vec<Atomic<Option<T>>>,
 }
 
+unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Send for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Sync for AttrSparseVec<A> {}
+
 impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where

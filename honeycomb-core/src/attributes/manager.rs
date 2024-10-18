@@ -78,6 +78,9 @@ pub struct AttrStorageManager {
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
 
+unsafe impl Send for AttrStorageManager {}
+unsafe impl Sync for AttrStorageManager {}
+
 /// **Manager-wide methods**
 impl AttrStorageManager {
     /// Extend the size of all storages in the manager.
