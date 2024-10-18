@@ -65,6 +65,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.insert(vertex_id, vertex.into());
     }
 
+    #[allow(clippy::must_use_candidate)]
     /// Remove a vertex from the combinatorial map.
     ///
     /// # Arguments

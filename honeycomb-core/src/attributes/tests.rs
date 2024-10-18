@@ -137,6 +137,7 @@ fn attribute_bind() {
 
 macro_rules! generate_sparse {
     ($name: ident) => {
+        #[allow(unused_mut)]
         let mut $name = AttrSparseVec::<Temperature>::new(10);
         $name.insert(0, Temperature::from(273.0));
         $name.insert(1, Temperature::from(275.0));
@@ -274,6 +275,7 @@ fn sparse_vec_replace_already_removed() {
     storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
 }
 
+/*
 macro_rules! generate_compact {
     ($name: ident) => {
         let mut $name = AttrCompactVec::<Temperature>::new(10);
@@ -290,7 +292,6 @@ macro_rules! generate_compact {
     };
 }
 
-/*
 #[test]
 fn compact_vec_n_attributes() {
     generate_compact!(storage);
