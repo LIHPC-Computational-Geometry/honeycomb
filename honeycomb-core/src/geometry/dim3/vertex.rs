@@ -3,8 +3,9 @@
 //! This module contains all code used to model vertices.
 
 // ------ IMPORTS
-use super::vector::Vector3;
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, VertexIdentifier};
+
+use super::super::Vector3;
+use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdentifier};
 use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
 // ------ CONTENT
@@ -123,14 +124,23 @@ impl<T: CoordsFloat> Vertex3<T> {
 }
 
 // Building trait
+
 impl<T: CoordsFloat> From<(T, T, T)> for Vertex3<T> {
     fn from((x, y, z): (T, T, T)) -> Self {
         Self(x, y, z)
     }
 }
 
+impl<T: CoordsFloat> From<Vertex2<T>> for Vertex3<T> {
+    fn from(v: Vertex2<T>) -> Self {
+        Self(v.0, v.1, T::zero())
+    }
+}
+
 // Basic operations
+
 // -- add flavors
+
 impl<T: CoordsFloat> std::ops::Add<Vector3<T>> for Vertex3<T> {
     // Vertex + Vector = Vertex
     type Output = Self;

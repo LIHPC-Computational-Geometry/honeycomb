@@ -1,4 +1,4 @@
-use crate::prelude::{CoordsError, CoordsFloat};
+use crate::prelude::{CoordsError, CoordsFloat, Vector2};
 
 /// 3D vector representation
 ///
@@ -188,13 +188,21 @@ impl<T: CoordsFloat> Vector3<T> {
 }
 
 // Building trait
+
 impl<T: CoordsFloat> From<(T, T, T)> for Vector3<T> {
     fn from((x, y, z): (T, T, T)) -> Self {
         Self(x, y, z)
     }
 }
 
+impl<T: CoordsFloat> From<Vector2<T>> for Vector3<T> {
+    fn from(v: Vector2<T>) -> Self {
+        Self(v.0, v.1, T::zero())
+    }
+}
+
 // Basic operations
+
 impl<T: CoordsFloat> std::ops::Add<Vector3<T>> for Vector3<T> {
     type Output = Self;
     fn add(self, rhs: Vector3<T>) -> Self::Output {
