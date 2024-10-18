@@ -51,6 +51,9 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vertex3<T: CoordsFloat>(pub T, pub T, pub T);
 
+unsafe impl<T: CoordsFloat> Send for Vertex3<T> {}
+unsafe impl<T: CoordsFloat> Sync for Vertex3<T> {}
+
 impl<T: CoordsFloat> Vertex3<T> {
     /// Consume `self` to return inner value
     ///

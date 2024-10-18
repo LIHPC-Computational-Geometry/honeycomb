@@ -31,6 +31,9 @@ use crate::prelude::{CoordsError, CoordsFloat, Vector2};
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vector3<T: CoordsFloat>(pub T, pub T, pub T);
 
+unsafe impl<T: CoordsFloat> Send for Vector3<T> {}
+unsafe impl<T: CoordsFloat> Sync for Vector3<T> {}
+
 impl<T: CoordsFloat> Vector3<T> {
     /// Base vector
     ///
