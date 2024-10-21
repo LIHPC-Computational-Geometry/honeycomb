@@ -14,7 +14,6 @@ use std::{
 #[cfg(feature = "profiling")]
 use super::{Section, TIMERS};
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
-use crate::splits::splitn_edge;
 use crate::{grisubal::grid::GridCellId, splits::splitn_edge_no_alloc};
 use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
@@ -509,11 +508,36 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         });
 
     // b.
-    for (edge_id, vs) in &mut edge_intersec {
+    // FIXME: minimize allocs & redundant operations
+    // prealloc all darts needed
+    let ns_darts: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
+    let n_tot: usize = ns_darts.iter().sum();
+    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let prefix_sum: Vec<usize> = ns_darts
+        .iter()
+        .enumerate()
+        .map(|(i, _)| (0..i).map(|idx| ns_darts[idx]).sum())
+        .collect();
+    #[allow(clippy::cast_possible_truncation)]
+    let dart_slices: Vec<Vec<DartIdentifier>> = ns_darts
+        .iter()
+        .zip(prefix_sum.iter())
+        .map(|(n_d, start)| {
+            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    for ((edge_id, vs), new_darts) in edge_intersec.iter_mut().zip(dart_slices.iter()) {
         // sort ts
         // panic unreachable because t s.t. t == NaN have been filtered previously
         vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
-        let _ = splitn_edge(cmap, *edge_id, vs.iter().map(|(_, t, _)| *t));
+        let _ = splitn_edge_no_alloc(
+            cmap,
+            *edge_id,
+            new_darts,
+            &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),
+        );
         // order should be consistent between collection because of the sort_by call
         let mut dart_id = cmap.beta::<1>(*edge_id as DartIdentifier);
         // chaining this directly avoids an additional `.collect()`
