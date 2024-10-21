@@ -13,9 +13,9 @@ use std::{
 
 #[cfg(feature = "profiling")]
 use super::{Section, TIMERS};
-use crate::grisubal::grid::GridCellId;
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
 use crate::splits::splitn_edge;
+use crate::{grisubal::grid::GridCellId, splits::splitn_edge_no_alloc};
 use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
@@ -599,19 +599,48 @@ pub(super) fn generate_edge_data<T: CoordsFloat>(
 }
 
 pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
-    for MapEdge {
-        start,
-        intermediates,
-        end,
-    } in edges
+    // FIXME: minimize allocs & redundant operations
+    // prealloc all darts needed
+    let ns_darts: Vec<_> = edges
+        .iter()
+        .map(|e| 2 + 2 * e.intermediates.len())
+        .collect();
+    let n_tot: usize = ns_darts.iter().sum();
+    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let prefix_sum: Vec<usize> = ns_darts
+        .iter()
+        .enumerate()
+        .map(|(i, _)| (0..i).map(|idx| ns_darts[idx]).sum())
+        .collect();
+    #[allow(clippy::cast_possible_truncation)]
+    let dart_slices: Vec<Vec<DartIdentifier>> = ns_darts
+        .iter()
+        .zip(prefix_sum.iter())
+        .map(|(n_d, start)| {
+            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    // insert new edges
+    for (
+        MapEdge {
+            start,
+            intermediates,
+            end,
+        },
+        dslice,
+    ) in edges.iter().zip(dart_slices.iter())
     {
         // remove deprecated connectivities & save what data is necessary
         let b1_start_old = cmap.beta::<1>(*start);
         let b0_end_old = cmap.beta::<0>(*end);
         cmap.one_unlink(*start);
         cmap.one_unlink(b0_end_old);
-        let d_new = cmap.add_free_darts(2);
-        let b2_d_new = d_new + 1;
+
+        let &[d_new, b2_d_new] = &dslice[0..2] else {
+            unreachable!()
+        };
         cmap.two_link(d_new, b2_d_new);
 
         // rebuild - this is the final construct if there are no intermediates
@@ -621,13 +650,16 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         cmap.one_link(b0_end_old, b2_d_new);
 
         if !intermediates.is_empty() {
-            // we can add intermediates after by using the splitn_edge method on a temporary start-to-end edge
+            // create the topology components
             let edge_id = cmap.edge_id(d_new);
-            let _ = splitn_edge(
+            let new_darts = &dslice[2..];
+            let _ = splitn_edge_no_alloc(
                 cmap,
                 edge_id,
-                vec![T::from(0.5).unwrap(); intermediates.len()], // 0.5 is a dummy value
+                new_darts,
+                &vec![T::from(0.5).unwrap(); intermediates.len()],
             );
+            // replace placeholder vertices
             let mut dart_id = cmap.beta::<1>(edge_id as DartIdentifier);
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
