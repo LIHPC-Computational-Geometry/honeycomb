@@ -510,16 +510,19 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
     // b.
     // FIXME: minimize allocs & redundant operations
     // prealloc all darts needed
-    let ns_darts: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
-    let n_tot: usize = ns_darts.iter().sum();
+    let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
+    let n_tot: usize = n_darts_per_seg.iter().sum();
     let tmp = cmap.add_free_darts(n_tot) as usize;
-    let prefix_sum: Vec<usize> = ns_darts
+    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
+    // the location of the allocated dart block (given by `tmp`)
+    // end of the slice is deduced using these values and the number of darts the current seg needs
+    let prefix_sum: Vec<usize> = n_darts_per_seg
         .iter()
         .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| ns_darts[idx]).sum())
+        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
         .collect();
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = ns_darts
+    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
@@ -625,19 +628,22 @@ pub(super) fn generate_edge_data<T: CoordsFloat>(
 pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     // FIXME: minimize allocs & redundant operations
     // prealloc all darts needed
-    let ns_darts: Vec<_> = edges
+    let n_darts_per_seg: Vec<_> = edges
         .iter()
         .map(|e| 2 + 2 * e.intermediates.len())
         .collect();
-    let n_tot: usize = ns_darts.iter().sum();
+    let n_tot: usize = n_darts_per_seg.iter().sum();
     let tmp = cmap.add_free_darts(n_tot) as usize;
-    let prefix_sum: Vec<usize> = ns_darts
+    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
+    // the location of the allocated dart block (given by `tmp`)
+    // end of the slice is deduced using these values and the number of darts the current seg needs
+    let prefix_sum: Vec<usize> = n_darts_per_seg
         .iter()
         .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| ns_darts[idx]).sum())
+        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
         .collect();
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = ns_darts
+    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
