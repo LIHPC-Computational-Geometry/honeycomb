@@ -36,7 +36,7 @@ path = "src/grisubal.rs"
 
 # benches
 
-## Iai-callgrind benchmarks
+## Core benchmarks
 
 [[bench]]
 name = "prof-cmap2-build"
@@ -51,6 +51,11 @@ harness = false
 [[bench]]
 name = "prof-cmap2-sewing-unsewing"
 path = "benches/core/cmap2/link_and_sew.rs"
+harness = false
+
+[[bench]]
+name = "fetch-icells"
+path = "benches/core/cmap2/fetch_icells.rs"
 harness = false
 
 ## Builder benchmarks
