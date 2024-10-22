@@ -386,7 +386,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.vertex_id(d))
                 }
             })
-            .collect();
+            .collect(); // duplicates are automatically handled when colelcting into a set
         VertexCollection::<'_, T>::new(self, vids)
     }
 
@@ -407,7 +407,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.edge_id(d))
                 }
             })
-            .collect();
+            .collect(); // duplicates are automatically handled when colelcting into a set
         EdgeCollection::<'_, T>::new(self, eids)
     }
 
@@ -428,7 +428,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.face_id(d))
                 }
             })
-            .collect();
+            .collect(); // duplicates are automatically handled when colelcting into a set
         FaceCollection::<'_, T>::new(self, fids)
     }
 }
