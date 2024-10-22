@@ -378,25 +378,16 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
-        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
-        // using a set for cells & converting it later to avoid duplicated values
-        // from incomplete cells until they are correctly supported by Orbit2
-        let mut vertex_ids: BTreeSet<DartIdentifier> = BTreeSet::new();
-        (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
-            .for_each(|dart_id| {
-                // if we haven't seen this dart yet
-                if marked.insert(dart_id) {
-                    // because we iterate from dart 1 to n_darts,
-                    // the first dart we encounter is the min of its orbit
-                    vertex_ids.insert(dart_id as VertexIdentifier);
-                    // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id).for_each(|did| {
-                        marked.insert(did);
-                    });
+        let vids: BTreeSet<VertexIdentifier> = (1..self.n_darts as DartIdentifier)
+            .filter_map(|d| {
+                if self.unused_darts.contains(&d) {
+                    None
+                } else {
+                    Some(self.vertex_id(d))
                 }
-            });
-        VertexCollection::<'_, T>::new(self, vertex_ids)
+            })
+            .collect(); // duplicates are automatically handled when colelcting into a set
+        VertexCollection::<'_, T>::new(self, vids)
     }
 
     /// Return a collection of all the map's edges.
@@ -408,26 +399,16 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
-        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
-        marked.insert(NULL_DART_ID);
-        // using a set for cells & converting it later to avoid duplicated values
-        // from incomplete cells until they are correctly supported by Orbit2
-        let mut edge_ids: BTreeSet<EdgeIdentifier> = BTreeSet::new();
-        (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
-            .for_each(|dart_id| {
-                // if we haven't seen this dart yet
-                if marked.insert(dart_id) {
-                    // because we iterate from dart 1 to n_darts,
-                    // the first dart we encounter is the min of its orbit
-                    edge_ids.insert(dart_id as EdgeIdentifier);
-                    // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id).for_each(|did| {
-                        marked.insert(did);
-                    });
+        let eids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
+            .filter_map(|d| {
+                if self.unused_darts.contains(&d) {
+                    None
+                } else {
+                    Some(self.edge_id(d))
                 }
-            });
-        EdgeCollection::<'_, T>::new(self, edge_ids)
+            })
+            .collect(); // duplicates are automatically handled when colelcting into a set
+        EdgeCollection::<'_, T>::new(self, eids)
     }
 
     /// Return a collection of all the map's faces.
@@ -439,24 +420,15 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
-        let mut marked: BTreeSet<DartIdentifier> = BTreeSet::new();
-        // using a set for cells & converting it later to avoid duplicated values
-        // from incomplete cells until they are correctly supported by Orbit2
-        let mut face_ids: BTreeSet<FaceIdentifier> = BTreeSet::new();
-        (1..self.n_darts as DartIdentifier)
-            .filter(|dart_id| !self.unused_darts.contains(dart_id)) // only used darts
-            .for_each(|dart_id| {
-                // if we haven't seen this dart yet
-                if marked.insert(dart_id) {
-                    // because we iterate from dart 1 to n_darts,
-                    // the first dart we encounter is the min of its orbit
-                    face_ids.insert(dart_id as FaceIdentifier);
-                    // mark its orbit
-                    Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id).for_each(|did| {
-                        marked.insert(did);
-                    });
+        let fids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
+            .filter_map(|d| {
+                if self.unused_darts.contains(&d) {
+                    None
+                } else {
+                    Some(self.face_id(d))
                 }
-            });
-        FaceCollection::<'_, T>::new(self, face_ids)
+            })
+            .collect(); // duplicates are automatically handled when colelcting into a set
+        FaceCollection::<'_, T>::new(self, fids)
     }
 }
