@@ -35,14 +35,12 @@ honeycomb-examples = { version = "0.6.0", path = "./examples" }
 honeycomb-render = { version = "0.6.0", path = "./honeycomb-render" }
 
 # common
-atomic = "0.5.3"
 cfg-if = "1"
 rustversion = "1.0.18"
 thiserror = "1.0.64"
 
 # core
 downcast-rs = "1.2.1"
-dyn-clone = "1.0.17"
 num-traits = "0.2.19"
 stm = "0.4.0"
 vtkio = { version = "0.7.0-rc1", default-features = false }
