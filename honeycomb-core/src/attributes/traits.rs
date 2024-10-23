@@ -56,7 +56,7 @@ use std::fmt::Debug;
 ///
 /// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
 /// ```
-pub trait AttributeUpdate: Sized {
+pub trait AttributeUpdate: Sized + Send + Sync {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
     fn merge(attr1: Self, attr2: Self) -> Self;
 
