@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Beta","CaptureId","DartBody","DartHead","DartId","Edge","EdgeId","Face","FaceId","PanOrbitCamera","Vertex","VertexId","Volume","VolumeId"]};

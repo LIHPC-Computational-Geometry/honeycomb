@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Split an edge into `n` segments."><title>splitn_edge in honeycomb_kernels::splits - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-a5dc3bae.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_kernels" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (4f2f477fd 2024-10-23)" data-channel="nightly" data-search-js="search-c5a66128.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_kernels/index.html">honeycomb_<wbr>kernels</a><span class="version">0.6.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">splitn_<wbr>edge</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#arguments" title="Arguments">Arguments</a><ul><li><a href="#generics" title="Generics">Generics</a></li></ul></li><li><a href="#return--errors" title="Return / Errors">Return / Errors</a></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb_<wbr>kernels::<wbr>splits</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb_kernels</a>::<wbr><a href="index.html">splits</a></span><h1>Function <span class="fn">splitn_edge</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_kernels/splits/edge_multiple.rs.html#83-109">source</a> </span></div><pre class="rust item-decl"><code>pub fn splitn_edge&lt;T: CoordsFloat&gt;(
+    cmap: &amp;mut CMap2&lt;T&gt;,
+    edge_id: EdgeIdentifier,
+    midpoint_vertices: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator">IntoIterator</a>&lt;Item = T&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.SplitEdgeError.html" title="enum honeycomb_kernels::splits::SplitEdgeError">SplitEdgeError</a>&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Split an edge into <code>n</code> segments.</p>
+<div class="warning">
+This implementation is 2D specific.
+</div>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>cmap: &amp;mut CMap2&lt;T&gt;</code> – Reference to the modified map.</li>
+<li><code>edge_id: EdgeIdentifier</code> – Edge to split in two.</li>
+<li><code>midpoint_vertices: I</code> – Relative positions of new vertices, starting from the
+vertex of the dart sharing <code>edge_id</code> as its identifier.</li>
+</ul>
+<h3 id="generics"><a class="doc-anchor" href="#generics">§</a>Generics</h3>
+<ul>
+<li><code>I: Iterator&lt;Item = T&gt;</code> – Iterator over <code>T</code> values. These should be in the <code>]0; 1[</code> open range.</li>
+</ul>
+<h2 id="return--errors"><a class="doc-anchor" href="#return--errors">§</a>Return / Errors</h2>
+<p>This method will return:</p>
+<ul>
+<li><code>Ok(())</code> if the operation is successful &amp; the edge was split</li>
+<li><code>Err(SplitEdgeError)</code> if the operation fails &amp; the edge is left unchanged. Causes of failure
+are described in <a href="enum.SplitEdgeError.html" title="enum honeycomb_kernels::splits::SplitEdgeError"><code>SplitEdgeError</code></a>’s documentation.</li>
+</ul>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// before
+//    &lt;--2---
+//  1         2
+//    ---1--&gt;
+</span><span class="kw">let </span><span class="kw-2">mut </span>map: CMap2&lt;f64&gt; = CMapBuilder::default()
+                            .n_darts(<span class="number">2</span>)
+                            .build()
+                            .unwrap();
+map.two_link(<span class="number">1</span>, <span class="number">2</span>);
+map.insert_vertex(<span class="number">1</span>, (<span class="number">0.0</span>, <span class="number">0.0</span>));
+map.insert_vertex(<span class="number">2</span>, (<span class="number">1.0</span>, <span class="number">0.0</span>));
+<span class="comment">// split
+</span><span class="macro">assert!</span>(splitn_edge(<span class="kw-2">&amp;mut </span>map, <span class="number">1</span>, [<span class="number">0.25</span>, <span class="number">0.50</span>, <span class="number">0.75</span>]).is_ok());
+<span class="comment">// after
+//    &lt;-&lt;-&lt;-&lt;
+//  1 -3-4-5- 2
+//    &gt;-&gt;-&gt;-&gt;
+</span><span class="kw">let </span>new_darts = [
+    map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">1</span>),
+    map.beta::&lt;<span class="number">1</span>&gt;(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">1</span>)),
+    map.beta::&lt;<span class="number">1</span>&gt;(map.beta::&lt;<span class="number">1</span>&gt;(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">1</span>))),
+];
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>new_darts, <span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+<span class="macro">assert_eq!</span>(map.vertex(<span class="number">3</span>), <span class="prelude-val">Some</span>(Vertex2(<span class="number">0.25</span>, <span class="number">0.0</span>)));
+<span class="macro">assert_eq!</span>(map.vertex(<span class="number">4</span>), <span class="prelude-val">Some</span>(Vertex2(<span class="number">0.50</span>, <span class="number">0.0</span>)));
+<span class="macro">assert_eq!</span>(map.vertex(<span class="number">5</span>), <span class="prelude-val">Some</span>(Vertex2(<span class="number">0.75</span>, <span class="number">0.0</span>)));
+
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">1</span>), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">3</span>), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">4</span>), <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">5</span>), NULL_DART_ID);
+
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">2</span>), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">6</span>), <span class="number">7</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">7</span>), <span class="number">8</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">1</span>&gt;(<span class="number">8</span>), NULL_DART_ID);
+
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">2</span>&gt;(<span class="number">1</span>), <span class="number">8</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">2</span>&gt;(<span class="number">3</span>), <span class="number">7</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">2</span>&gt;(<span class="number">4</span>), <span class="number">6</span>);
+<span class="macro">assert_eq!</span>(map.beta::&lt;<span class="number">2</span>&gt;(<span class="number">5</span>), <span class="number">2</span>);</code></pre></div>
+</div></details></section></div></main></body></html>
