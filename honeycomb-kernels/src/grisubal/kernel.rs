@@ -542,18 +542,21 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
             &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),
         );
         // order should be consistent between collection because of the sort_by call
-        let mut dart_id = cmap.beta::<1>(*edge_id as DartIdentifier);
+        let hl = new_darts.len() / 2; // half-length; also equal to n_intermediate
+        let fh = &new_darts[..hl];
+        let sh = &new_darts[hl..];
+
         // chaining this directly avoids an additional `.collect()`
-        for (id, _, old_dart_id) in vs {
+        for (i, (id, _, old_dart_id)) in vs.iter().enumerate() {
             // c.
             // reajust according to intersection side
             res[*id] = if *old_dart_id == *edge_id {
-                dart_id
+                fh[i]
             } else {
                 // ! not sure how generalized this operation can be !
-                cmap.beta::<1>(cmap.beta::<2>(dart_id))
+                sh[hl - 1 - i]
             };
-            dart_id = cmap.beta::<1>(dart_id);
+            //dart_id = cmap.beta::<1>(dart_id);
         }
     }
 
