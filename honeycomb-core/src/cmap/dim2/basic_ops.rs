@@ -9,7 +9,7 @@
 
 // ------ IMPORTS
 
-use super::CMAP2_BETA;
+use super::CMAP2_NULL_ENTRY;
 use crate::prelude::{
     CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
     NULL_DART_ID,
@@ -21,7 +21,7 @@ use crate::{
 };
 
 use std::collections::BTreeSet;
-
+use std::sync::atomic::{AtomicBool, Ordering};
 // ------ CONTENT
 
 /// **Dart-related methods**
@@ -37,7 +37,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return information about the current number of unused darts.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts.len()
+        self.unused_darts
+            .iter()
+            .filter(|v| v.load(Ordering::Relaxed))
+            .count()
     }
 
     // --- edit
@@ -54,7 +57,8 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
-        self.betas.push([0; CMAP2_BETA]);
+        self.betas.push(CMAP2_NULL_ENTRY);
+        self.unused_darts.push(AtomicBool::new(false));
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -76,7 +80,9 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
-        self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
+        self.betas.extend((0..n_darts).map(|_| CMAP2_NULL_ENTRY));
+        self.unused_darts
+            .extend((0..n_darts).map(|_| AtomicBool::new(false)));
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
@@ -92,9 +98,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return the ID of the created dart to allow for direct operations.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
-        if let Some(new_id) = self.unused_darts.pop_first() {
-            self.betas[new_id as usize] = [0; CMAP2_BETA];
-            new_id
+        if let Some((new_id, _)) = self
+            .unused_darts
+            .iter()
+            .enumerate()
+            .find(|(_, u)| u.load(Ordering::Relaxed))
+        {
+            self.betas[new_id] = CMAP2_NULL_ENTRY;
+            new_id as DartIdentifier
         } else {
             self.add_free_dart()
         }
@@ -123,15 +134,17 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         assert!(self.is_free(dart_id));
-        assert!(self.unused_darts.insert(dart_id));
+        assert!(self.unused_darts[dart_id as usize]
+            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .is_ok());
         // this should not be required if the map is not corrupt
         // or in the middle of a more complex operation
         let b0d = self.beta::<0>(dart_id);
         let b1d = self.beta::<1>(dart_id);
         let b2d = self.beta::<2>(dart_id);
-        self.betas[b0d as usize][1] = 0 as DartIdentifier;
-        self.betas[b1d as usize][0] = 0 as DartIdentifier;
-        self.betas[b2d as usize][2] = 0 as DartIdentifier;
+        self.betas[b0d as usize][1].store(NULL_DART_ID, Ordering::Relaxed);
+        self.betas[b1d as usize][0].store(NULL_DART_ID, Ordering::Relaxed);
+        self.betas[b2d as usize][2].store(NULL_DART_ID, Ordering::Relaxed);
     }
 }
 
@@ -161,7 +174,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
-        self.betas[dart_id as usize][I as usize]
+        self.betas[dart_id as usize][I as usize].load(Ordering::Relaxed)
     }
 
     /// Compute the value of the i-th beta function of a given dart.
@@ -379,8 +392,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let vids: BTreeSet<VertexIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.load(Ordering::Relaxed) {
                     None
                 } else {
                     Some(self.vertex_id(d))
@@ -400,8 +414,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let eids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.load(Ordering::Relaxed) {
                     None
                 } else {
                     Some(self.edge_id(d))
@@ -421,8 +436,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let fids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.load(Ordering::Relaxed) {
                     None
                 } else {
                     Some(self.face_id(d))

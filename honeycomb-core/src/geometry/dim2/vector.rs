@@ -39,6 +39,9 @@ use super::super::{CoordsError, CoordsFloat};
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vector2<T: CoordsFloat>(pub T, pub T);
 
+unsafe impl<T: CoordsFloat> Send for Vector2<T> {}
+unsafe impl<T: CoordsFloat> Sync for Vector2<T> {}
+
 impl<T: CoordsFloat> Vector2<T> {
     /// Base vector
     ///

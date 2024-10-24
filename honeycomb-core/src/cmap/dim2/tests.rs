@@ -115,7 +115,7 @@ fn remove_vertex_twice() {
 }
 
 #[test]
-#[should_panic(expected = "assertion failed: self.unused_darts.insert(dart_id)")]
+#[should_panic(expected = "assertion failed")]
 fn remove_dart_twice() {
     // in its default state, all darts/vertices of a map are considered to be used
     // darts are also free

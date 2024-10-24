@@ -8,6 +8,7 @@
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::prelude::DartIdentifier;
 use num_traits::ToPrimitive;
+use stm::{atomically, TVar};
 
 // ------ CONTENT
 
@@ -26,11 +27,13 @@ use num_traits::ToPrimitive;
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-#[cfg_attr(feature = "utils", derive(Clone))]
-pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
+pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
     /// Inner storage.
-    data: Vec<Option<T>>,
+    data: Vec<TVar<Option<T>>>,
 }
+
+unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Send for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Sync for AttrSparseVec<A> {}
 
 impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
@@ -38,79 +41,93 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         Self: Sized,
     {
         Self {
-            data: (0..length).map(|_| None).collect(),
+            data: (0..length).map(|_| TVar::new(None)).collect(),
         }
     }
 
     fn extend(&mut self, length: usize) {
-        self.data.extend((0..length).map(|_| None));
+        self.data.extend((0..length).map(|_| TVar::new(None)));
     }
 
     fn n_attributes(&self) -> usize {
-        self.data.iter().filter(|val| val.is_some()).count()
+        self.data
+            .iter()
+            .filter(|v| v.read_atomic().is_some())
+            .count()
     }
 
-    fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
-        match (self.remove(lhs_inp.into()), self.remove(rhs_inp.into())) {
-            (Some(v1), Some(v2)) => self.set(out.into(), AttributeUpdate::merge(v1, v2)),
-            (Some(v), None) | (None, Some(v)) => {
-                self.set(out.into(), AttributeUpdate::merge_incomplete(v));
+    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+        atomically(|trans| {
+            let new_v = match (
+                self.data[lhs_inp as usize].read(trans)?,
+                self.data[rhs_inp as usize].read(trans)?,
+            ) {
+                (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+                (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
+                (None, None) => AttributeUpdate::merge_from_none(),
+            };
+            if new_v.is_none() {
+                eprintln!("W: cannot merge two null attribute value");
+                eprintln!("   setting new target value to `None`");
             }
-            (None, None) => {
-                if let Some(v) = AttributeUpdate::merge_from_none() {
-                    self.set(out.into(), v);
-                } else {
-                    eprintln!("W: cannot merge two null attribute value");
-                    eprintln!("   setting new target value to `None`");
-                    let _ = self.remove(out.into());
-                }
-            }
-        };
+            self.data[rhs_inp as usize].write(trans, None)?;
+            self.data[lhs_inp as usize].write(trans, None)?;
+            self.data[out as usize].write(trans, new_v)?;
+            Ok(())
+        });
     }
 
-    fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
-        let new_val = self.remove(inp.into());
-        if let Some(val) = new_val {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.set(lhs_out.into(), lhs_val);
-            self.set(rhs_out.into(), rhs_val);
-        } else {
-            eprintln!("W: cannot split attribute value (not found in storage)");
-            eprintln!("   setting both new values to `None`");
-            let _ = self.remove(lhs_out.into());
-            let _ = self.remove(rhs_out.into());
-        }
+    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+        atomically(|trans| {
+            if let Some(val) = self.data[inp as usize].read(trans)? {
+                let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+                self.data[inp as usize].write(trans, None)?;
+                self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+                self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+            } else {
+                eprintln!("W: cannot split attribute value (not found in storage)");
+                eprintln!("   setting both new values to `None`");
+                self.data[lhs_out as usize].write(trans, None)?;
+                self.data[rhs_out as usize].write(trans, None)?;
+                //self.data[inp as usize].store(None, Ordering::Release);
+            }
+            Ok(())
+        });
     }
 }
 
 impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
-    fn set(&mut self, id: A::IdentifierType, val: A) {
-        self.data[id.to_usize().unwrap()] = Some(val);
+    fn set(&self, id: A::IdentifierType, val: A) {
+        atomically(|trans| {
+            self.data[id.to_usize().unwrap()].write(trans, Some(val))?;
+            Ok(())
+        });
     }
 
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
-        let tmp = &mut self.data[id.to_usize().unwrap()];
-        assert!(tmp.is_none());
-        *tmp = Some(val);
+    fn insert(&self, id: A::IdentifierType, val: A) {
+        atomically(|trans| {
+            let tmp = self.data[id.to_usize().unwrap()].read(trans)?;
+            assert!(tmp.is_none());
+            self.data[id.to_usize().unwrap()].write(trans, Some(val))?;
+            Ok(())
+        });
     }
 
     fn get(&self, id: A::IdentifierType) -> Option<A> {
-        self.data[id.to_usize().unwrap()]
+        atomically(|trans| self.data[id.to_usize().unwrap()].read(trans))
     }
 
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A> {
-        self.data.push(Some(val));
-        self.data.swap_remove(id.to_usize().unwrap())
+    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
+        atomically(|trans| self.data[id.to_usize().unwrap()].replace(trans, Some(val)))
     }
 
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A> {
-        self.data.push(None);
-        self.data.swap_remove(id.to_usize().unwrap())
+    fn remove(&self, id: A::IdentifierType) -> Option<A> {
+        atomically(|trans| self.data[id.to_usize().unwrap()].replace(trans, None))
     }
 }
 
 #[cfg(feature = "utils")]
-impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
+impl<T: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {
@@ -126,10 +143,11 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
     /// Return the amount of space used by valid entries of the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn used_size(&self) -> usize {
-        self.data.iter().filter(|val| val.is_some()).count() * std::mem::size_of::<Option<T>>()
+        self.n_attributes() * size_of::<TVar<Option<T>>>()
     }
 }
 
+/*
 /// Custom storage structure for attributes
 ///
 /// This structured is used to store user-defined attributes using two internal collections:
@@ -148,7 +166,6 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrSparseVec<T> {
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-#[cfg_attr(feature = "utils", derive(Clone))]
 pub struct AttrCompactVec<A: AttributeBind + AttributeUpdate + Clone> {
     /// Tracker of unused internal slots.
     unused_data_slots: Vec<usize>,
@@ -289,3 +306,4 @@ impl<T: AttributeBind + AttributeUpdate + Clone> AttrCompactVec<T> {
             + self.data.len() * std::mem::size_of::<T>()
     }
 }
+ */

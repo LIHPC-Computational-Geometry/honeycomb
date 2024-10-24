@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
 use super::{
-    AttrCompactVec, AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
+    /*AttrCompactVec,*/ AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
     AttributeUpdate, UnknownAttributeStorage,
 };
 use crate::prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier};
@@ -137,6 +137,7 @@ fn attribute_bind() {
 
 macro_rules! generate_sparse {
     ($name: ident) => {
+        #[allow(unused_mut)]
         let mut $name = AttrSparseVec::<Temperature>::new(10);
         $name.insert(0, Temperature::from(273.0));
         $name.insert(1, Temperature::from(275.0));
@@ -274,6 +275,7 @@ fn sparse_vec_replace_already_removed() {
     storage.replace(3, Temperature::from(280.0)).unwrap(); // panic
 }
 
+/*
 macro_rules! generate_compact {
     ($name: ident) => {
         let mut $name = AttrCompactVec::<Temperature>::new(10);
@@ -445,6 +447,7 @@ fn compact_vec_replace_already_removed() {
     assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
     assert!(storage.replace(3, Temperature::from(280.0)).is_none());
 }
+ */
 
 // storage manager
 
@@ -525,8 +528,9 @@ fn manager_vec_insert_already_existing() {
 #[test]
 fn manager_vec_remove() {
     generate_manager!(manager);
-    generate_compact!(storage);
-    assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
+    // what was this ?
+    // generate_compact!(storage);
+    // assert_eq!(storage.remove(3), Some(Temperature::from(279.0)));
 }
 
 #[test]

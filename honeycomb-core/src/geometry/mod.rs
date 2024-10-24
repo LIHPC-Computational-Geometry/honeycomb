@@ -48,7 +48,16 @@ pub enum CoordsError {
 /// - Interacting with VTK files (`io` feature),
 /// - Coding vertices and generic attributes handling
 pub trait CoordsFloat:
-    num_traits::Float + Default + AddAssign + SubAssign + MulAssign + DivAssign + Debug + 'static
+    num_traits::Float
+    + Default
+    + AddAssign
+    + SubAssign
+    + MulAssign
+    + DivAssign
+    + Debug
+    + Send
+    + Sync
+    + 'static
 {
 }
 
@@ -60,6 +69,8 @@ impl<
             + MulAssign
             + DivAssign
             + Debug
+            + Send
+            + Sync
             + 'static,
     > CoordsFloat for T
 {
