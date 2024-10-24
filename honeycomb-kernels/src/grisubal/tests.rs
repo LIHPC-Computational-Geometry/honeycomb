@@ -1,7 +1,8 @@
 // ------ IMPORTS
 
 use crate::grisubal::kernel::{
-    generate_edge_data, generate_intersection_data, insert_edges_in_map, insert_intersections,
+    compute_intersection_ids, generate_edge_data, generate_intersection_data,
+    group_intersections_per_edge, insert_edges_in_map, insert_intersections,
 };
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex};
 use honeycomb_core::prelude::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
@@ -186,9 +187,13 @@ fn regular_intersections() {
         GeometryVertex::PoI(0)
     );
 
-    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
 
-    assert_eq!(intersection_darts.len(), 4);
+    assert_eq!(n_intersec, 4);
     // check new vertices at intersection
     assert_eq!(
         cmap.vertex(cmap.vertex_id(cmap.beta::<1>(2))),
@@ -314,8 +319,11 @@ fn corner_intersection() {
         GeometryVertex::PoI(0)
     );
 
-    // same as the one of the `regular_intersections`, so we won't repeat the assertions
-    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
 
     let mut edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
@@ -401,8 +409,11 @@ pub fn successive_straight_intersections() {
     let (segments, intersection_metadata) =
         generate_intersection_data(&cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
 
-    // same as the one of the `regular_intersections`, so we won't repeat the assertions
-    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
 
     let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
@@ -625,8 +636,11 @@ pub fn successive_diag_intersections() {
     let (segments, intersection_metadata) =
         generate_intersection_data(&cmap, &geometry, [3, 3], [1.0, 1.0], Vertex2::default());
 
-    // same as the one of the `regular_intersections`, so we won't repeat the assertions
-    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
 
     let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 

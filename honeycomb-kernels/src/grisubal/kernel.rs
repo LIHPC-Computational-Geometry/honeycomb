@@ -124,11 +124,21 @@ pub fn build_mesh<T: CoordsFloat>(
     #[cfg(feature = "profiling")]
     unsafe_time_section!(instant, Section::BuildMeshIntersecData);
 
+    // STEP 1.5
+    // precompute stuff to
+    // - parallelize step 2
+    // - make step 2 and step 3 independent from each other
+
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+
     // STEP 2
     // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
     // indexing with the input Vec, meaning that indices in GeometryVertex::Intersec instances are still valid.
 
-    let intersection_darts = insert_intersections(&mut cmap, intersection_metadata);
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
 
     #[cfg(feature = "profiling")]
     unsafe_time_section!(instant, Section::BuildMeshInsertIntersec);
@@ -534,90 +544,19 @@ pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
 
 pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    intersection_metadata: Vec<(DartIdentifier, T)>,
-) -> Vec<DartIdentifier> {
-    let mut res = vec![NULL_DART_ID; intersection_metadata.len()];
-    // we need to:
-    // a. group intersection per edge
-    // b. proceed with insertion
-    // c. map back inserted darts / vertices to the initial vector layout in order for usage with segment data
-
-    // a.
-    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
-        HashMap::new();
-    intersection_metadata
-        .into_iter()
-        .enumerate()
-        .for_each(|(idx, (dart_id, mut t))| {
-            // classify intersections per edge_id & adjust t if  needed
-            let edge_id = cmap.edge_id(dart_id);
-            // condition works in 2D because edges are 2 darts at most
-            if edge_id != dart_id {
-                t = T::one() - t;
-            }
-            if let Some(storage) = edge_intersec.get_mut(&edge_id) {
-                // not the first intersction with this given edge
-                storage.push((idx, t, dart_id));
-            } else {
-                // first intersction with this given edge
-                edge_intersec.insert(edge_id, vec![(idx, t, dart_id)]);
-            }
-        });
-
-    // b.
-    // FIXME: minimize allocs & redundant operations
-    // prealloc all darts needed
-    let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
-    let n_tot: usize = n_darts_per_seg.iter().sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
-    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
-    // the location of the allocated dart block (given by `tmp`)
-    // end of the slice is deduced using these values and the number of darts the current seg needs
-    let prefix_sum: Vec<usize> = n_darts_per_seg
-        .iter()
-        .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
-        .collect();
-    #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
-        .iter()
-        .zip(prefix_sum.iter())
-        .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
-                .collect::<Vec<_>>()
-        })
-        .collect();
-
-    for ((edge_id, vs), new_darts) in edge_intersec.iter_mut().zip(dart_slices.iter()) {
+    edge_intersec: &HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
+    dart_slices: &[Vec<DartIdentifier>],
+) {
+    for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
         // sort ts
         // panic unreachable because t s.t. t == NaN have been filtered previously
-        vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
         let _ = splitn_edge_no_alloc(
             cmap,
             *edge_id,
             new_darts,
             &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),
         );
-        // order should be consistent between collection because of the sort_by call
-        let hl = new_darts.len() / 2; // half-length; also equal to n_intermediate
-        let fh = &new_darts[..hl];
-        let sh = &new_darts[hl..];
-
-        // chaining this directly avoids an additional `.collect()`
-        for (i, (id, _, old_dart_id)) in vs.iter().enumerate() {
-            // c.
-            // reajust according to intersection side
-            res[*id] = if *old_dart_id == *edge_id {
-                fh[i]
-            } else {
-                // ! not sure how generalized this operation can be !
-                sh[hl - 1 - i]
-            };
-            //dart_id = cmap.beta::<1>(dart_id);
-        }
     }
-
-    res
 }
 
 pub(super) fn compute_intersection_ids<T: CoordsFloat>(
