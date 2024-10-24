@@ -475,6 +475,63 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     (new_segments, intersection_metadata)
 }
 
+pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
+    cmap: &mut CMap2<T>,
+    intersection_metadata: Vec<(DartIdentifier, T)>,
+) -> (
+    HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
+    Vec<Vec<DartIdentifier>>,
+) {
+    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
+        HashMap::new();
+    intersection_metadata
+        .into_iter()
+        .enumerate()
+        .for_each(|(idx, (dart_id, mut t))| {
+            // classify intersections per edge_id & adjust t if  needed
+            let edge_id = cmap.edge_id(dart_id);
+            // condition works in 2D because edges are 2 darts at most
+            if edge_id != dart_id {
+                t = T::one() - t;
+            }
+            if let Some(storage) = edge_intersec.get_mut(&edge_id) {
+                // not the first intersction with this given edge
+                storage.push((idx, t, dart_id));
+            } else {
+                // first intersction with this given edge
+                edge_intersec.insert(edge_id, vec![(idx, t, dart_id)]);
+            }
+        });
+
+    for vs in edge_intersec.values_mut() {
+        // panic unreachable because t s.t. t == NaN have been filtered previously
+        vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
+    }
+
+    let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
+    let n_tot: usize = n_darts_per_seg.iter().sum();
+    let tmp = cmap.add_free_darts(n_tot) as usize;
+    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
+    // the location of the allocated dart block (given by `tmp`)
+    // end of the slice is deduced using these values and the number of darts the current seg needs
+    let prefix_sum: Vec<usize> = n_darts_per_seg
+        .iter()
+        .enumerate()
+        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
+        .collect();
+    #[allow(clippy::cast_possible_truncation)]
+    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
+        .iter()
+        .zip(prefix_sum.iter())
+        .map(|(n_d, start)| {
+            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    (edge_intersec, dart_slices)
+}
+
 pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     intersection_metadata: Vec<(DartIdentifier, T)>,
@@ -560,6 +617,29 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
         }
     }
 
+    res
+}
+
+pub(super) fn compute_intersection_ids<T: CoordsFloat>(
+    n_intersec: usize,
+    edge_intersec: &HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
+    dart_slices: &[Vec<DartIdentifier>],
+) -> Vec<DartIdentifier> {
+    let mut res = vec![NULL_DART_ID; n_intersec];
+    for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
+        // order should be consistent between collection because of the sort_by call
+        let hl = new_darts.len() / 2; // half-length; also equal to n_intermediate
+        let fh = &new_darts[..hl];
+        let sh = &new_darts[hl..];
+        for (i, (id, _, old_dart_id)) in vs.iter().enumerate() {
+            // readjust according to intersection side
+            res[*id] = if *old_dart_id == *edge_id {
+                fh[i]
+            } else {
+                sh[hl - 1 - i]
+            };
+        }
+    }
     res
 }
 
