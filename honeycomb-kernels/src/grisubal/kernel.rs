@@ -571,8 +571,8 @@ pub(super) fn compute_intersection_ids<T: CoordsFloat>(
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
         // order should be consistent between collection because of the sort_by call
         let hl = new_darts.len() / 2; // half-length; also equal to n_intermediate
-        let fh = &new_darts[..hl];
-        let sh = &new_darts[hl..];
+        let fh = &new_darts[..hl]; // first half;  used for the side of edge id
+        let sh = &new_darts[hl..]; // second half; used for the opposite side
         for (i, (id, _, old_dart_id)) in vs.iter().enumerate() {
             // readjust according to intersection side
             res[*id] = if *old_dart_id == *edge_id {
