@@ -81,3 +81,8 @@ harness = false
 name = "grisubal_grid_size"
 path = "benches/grisubal/grid_size.rs"
 harness = false
+
+[[bench]]
+name = "triangulate_quads"
+path = "benches/triangulate/quads.rs"
+harness = false
