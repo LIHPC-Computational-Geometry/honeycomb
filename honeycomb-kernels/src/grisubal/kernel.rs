@@ -170,6 +170,14 @@ pub fn build_mesh<T: CoordsFloat>(
     cmap
 }
 
+// --- type aliases for clarity
+
+pub type Segments = HashMap<GeometryVertex, GeometryVertex>;
+
+pub type IntersectionsPerEdge<T> = HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>;
+
+pub type DartSlices = Vec<Vec<DartIdentifier>>;
+
 // --- main kernels steps
 
 #[allow(
@@ -184,10 +192,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
     origin: Vertex2<T>,
-) -> (
-    HashMap<GeometryVertex, GeometryVertex>,
-    Vec<(DartIdentifier, T)>,
-) {
+) -> (Segments, Vec<(DartIdentifier, T)>) {
     let mut intersection_metadata = Vec::new();
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
     geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
@@ -488,10 +493,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
     intersection_metadata: Vec<(DartIdentifier, T)>,
-) -> (
-    HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
-    Vec<Vec<DartIdentifier>>,
-) {
+) -> (IntersectionsPerEdge<T>, DartSlices) {
+    // group intersection data per edge, and associate an ID to each
     let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
         HashMap::new();
     intersection_metadata
@@ -513,11 +516,13 @@ pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
             }
         });
 
+    // sort per t for later
     for vs in edge_intersec.values_mut() {
         // panic unreachable because t s.t. t == NaN have been filtered previously
         vs.sort_by(|(_, t1, _), (_, t2, _)| t1.partial_cmp(t2).expect("E: unreachable"));
     }
 
+    // prealloc darts that will be used for vertex insertion
     let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
     let n_tot: usize = n_darts_per_seg.iter().sum();
     let tmp = cmap.add_free_darts(n_tot) as usize;
@@ -544,12 +549,10 @@ pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
 
 pub(super) fn insert_intersections<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_intersec: &HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
-    dart_slices: &[Vec<DartIdentifier>],
+    edge_intersec: &IntersectionsPerEdge<T>,
+    dart_slices: &DartSlices,
 ) {
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
-        // sort ts
-        // panic unreachable because t s.t. t == NaN have been filtered previously
         let _ = splitn_edge_no_alloc(
             cmap,
             *edge_id,
@@ -561,8 +564,8 @@ pub(super) fn insert_intersections<T: CoordsFloat>(
 
 pub(super) fn compute_intersection_ids<T: CoordsFloat>(
     n_intersec: usize,
-    edge_intersec: &HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>,
-    dart_slices: &[Vec<DartIdentifier>],
+    edge_intersec: &IntersectionsPerEdge<T>,
+    dart_slices: &DartSlices,
 ) -> Vec<DartIdentifier> {
     let mut res = vec![NULL_DART_ID; n_intersec];
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
@@ -585,7 +588,7 @@ pub(super) fn compute_intersection_ids<T: CoordsFloat>(
 pub(super) fn generate_edge_data<T: CoordsFloat>(
     cmap: &CMap2<T>,
     geometry: &Geometry2<T>,
-    new_segments: &HashMap<GeometryVertex, GeometryVertex>,
+    new_segments: &Segments,
     intersection_darts: &[DartIdentifier],
 ) -> Vec<MapEdge<T>> {
     new_segments
