@@ -5,28 +5,37 @@ use std::{
     sync::atomic::{AtomicBool, AtomicU32},
 };
 
+use stm::TVar;
+
 use crate::cmap::{DartIdentifier, NULL_DART_ID};
 
 // ------ CONTENT
 
 // --- beta functions storage
 
-pub struct BetaFunctions<const N: usize>(Vec<[AtomicU32; N]>);
+/// Beta functions storage.
+///
+/// `N` is the number of beta function stored, including `B0`.
+pub struct BetaFunctions<const N: usize>(Vec<[TVar<DartIdentifier>; N]>);
+
+/// Generate beta functions default value for a new dart.
+fn new_beta_entry<const N: usize>() -> [TVar<DartIdentifier>; N] {
+    (0..N)
+        .map(|_| TVar::new(NULL_DART_ID))
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap()
+}
 
 impl<const N: usize> BetaFunctions<N> {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
-        Self(
-            (0..=n_darts)
-                .map(|_| [const { AtomicU32::new(NULL_DART_ID) }; N])
-                .collect(),
-        )
+        Self((0..=n_darts).map(|_| new_beta_entry()).collect())
     }
 
     /// Extend internal storage capacity
     pub fn extend(&mut self, len: usize) {
-        self.0
-            .extend((0..len).map(|_| [const { AtomicU32::new(NULL_DART_ID) }; N]));
+        self.0.extend((0..len).map(|_| new_beta_entry()));
     }
 
     /// Return internal storage length
@@ -36,7 +45,7 @@ impl<const N: usize> BetaFunctions<N> {
 }
 
 impl<const N: usize> Index<(u8, DartIdentifier)> for BetaFunctions<N> {
-    type Output = AtomicU32;
+    type Output = TVar<DartIdentifier>;
 
     fn index(&self, (beta_id, dart_id): (u8, DartIdentifier)) -> &Self::Output {
         &self.0[dart_id as usize][beta_id as usize]
