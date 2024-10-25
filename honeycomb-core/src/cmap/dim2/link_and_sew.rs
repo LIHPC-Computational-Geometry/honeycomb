@@ -10,7 +10,7 @@ use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
-use stm::atomically;
+use stm::{atomically, StmError, Transaction};
 
 // ------ CONTENT
 
@@ -361,17 +361,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
     ///
     pub fn one_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
-        atomically(|trans| {
-            // we could technically overwrite the value, but these assertions
-            // makes it easier to assert algorithm correctness
-            assert!(self.is_i_free::<1>(lhs_dart_id));
-            assert!(self.is_i_free::<0>(rhs_dart_id));
-            // set beta_1(lhs_dart) to rhs_dart
-            self.betas[lhs_dart_id as usize][1].write(trans, rhs_dart_id)?;
-            // set beta_0(rhs_dart) to lhs_dart
-            self.betas[rhs_dart_id as usize][0].write(trans, lhs_dart_id)?;
-            Ok(())
-        });
+        atomically(|trans| self.one_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 
     /// 2-link operation.
@@ -389,17 +379,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
     pub fn two_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
-        atomically(|trans| {
-            // we could technically overwrite the value, but these assertions
-            // make it easier to assert algorithm correctness
-            assert!(self.is_i_free::<2>(lhs_dart_id));
-            assert!(self.is_i_free::<2>(rhs_dart_id));
-            // set beta_2(lhs_dart) to rhs_dart
-            self.betas[lhs_dart_id as usize][2].write(trans, rhs_dart_id)?;
-            // set beta_2(rhs_dart) to lhs_dart
-            self.betas[rhs_dart_id as usize][2].write(trans, lhs_dart_id)?;
-            Ok(())
-        });
+        atomically(|trans| self.two_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 
     /// 1-unlink operation.
@@ -417,14 +397,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
     pub fn one_unlink(&self, lhs_dart_id: DartIdentifier) {
-        atomically(|trans| {
-            // set beta_1(lhs_dart) to NullDart
-            let rhs_dart_id = self.betas[lhs_dart_id as usize][1].replace(trans, NULL_DART_ID)?;
-            assert_ne!(rhs_dart_id, NULL_DART_ID);
-            // set beta_0(rhs_dart) to NullDart
-            self.betas[rhs_dart_id as usize][0].write(trans, NULL_DART_ID)?;
-            Ok(())
-        });
+        atomically(|trans| self.one_unlink_core(trans, lhs_dart_id));
     }
 
     /// 2-unlink operation.
@@ -441,13 +414,126 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
     pub fn two_unlink(&self, lhs_dart_id: DartIdentifier) {
-        atomically(|trans| {
-            // set beta_2(dart) to NullDart
-            let rhs_dart_id = self.betas[lhs_dart_id as usize][2].replace(trans, NULL_DART_ID)?;
-            assert_ne!(rhs_dart_id, NULL_DART_ID);
-            // set beta_2(beta_2(dart)) to NullDart
-            self.betas[rhs_dart_id as usize][2].write(trans, NULL_DART_ID)?;
-            Ok(())
-        });
+        atomically(|trans| self.two_unlink_core(trans, lhs_dart_id));
+    }
+}
+
+#[doc(hidden)]
+/// **Link and unlink core operations**
+impl<T: CoordsFloat> CMap2<T> {
+    /// 1-link operation.
+    ///
+    /// This operation corresponds to linking two darts via the *β<sub>1</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s). The *β<sub>0</sub>* function is also updated.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
+    ///
+    pub(crate) fn one_link_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdentifier,
+        rhs_dart_id: DartIdentifier,
+    ) -> Result<(), StmError> {
+        // we could technically overwrite the value, but these assertions
+        // makes it easier to assert algorithm correctness
+        assert!(self.is_i_free::<1>(lhs_dart_id));
+        assert!(self.is_i_free::<0>(rhs_dart_id));
+        // set beta_1(lhs_dart) to rhs_dart
+        self.betas[lhs_dart_id as usize][1].write(trans, rhs_dart_id)?;
+        // set beta_0(rhs_dart) to lhs_dart
+        self.betas[rhs_dart_id as usize][0].write(trans, lhs_dart_id)?;
+        Ok(())
+    }
+
+    /// 2-link operation.
+    ///
+    /// This operation corresponds to linking two darts via the *β<sub>2</sub>* function. Unlike
+    /// its sewing counterpart, this method does not contain any code to update the attributes or
+    /// geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
+    pub(crate) fn two_link_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdentifier,
+        rhs_dart_id: DartIdentifier,
+    ) -> Result<(), StmError> {
+        // we could technically overwrite the value, but these assertions
+        // make it easier to assert algorithm correctness
+        assert!(self.is_i_free::<2>(lhs_dart_id));
+        assert!(self.is_i_free::<2>(rhs_dart_id));
+        // set beta_2(lhs_dart) to rhs_dart
+        self.betas[lhs_dart_id as usize][2].write(trans, rhs_dart_id)?;
+        // set beta_2(rhs_dart) to lhs_dart
+        self.betas[rhs_dart_id as usize][2].write(trans, lhs_dart_id)?;
+        Ok(())
+    }
+
+    /// 1-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>1</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s). The *β<sub>0</sub>* function is
+    /// also updated.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` is already 1-free.
+    pub(crate) fn one_unlink_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdentifier,
+    ) -> Result<(), StmError> {
+        // set beta_1(lhs_dart) to NullDart
+        let rhs_dart_id = self.betas[lhs_dart_id as usize][1].replace(trans, NULL_DART_ID)?;
+        assert_ne!(rhs_dart_id, NULL_DART_ID);
+        // set beta_0(rhs_dart) to NullDart
+        self.betas[rhs_dart_id as usize][0].write(trans, NULL_DART_ID)?;
+        Ok(())
+    }
+
+    /// 2-unlink operation.
+    ///
+    /// This operation corresponds to unlinking two darts that are linked via the *β<sub>2</sub>*
+    /// function. Unlike its sewing counterpart, this method does not contain any code to update
+    /// the attributes or geometrical data of the affected cell(s).
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if one of `lhs_dart_id` is already 2-free.
+    pub(crate) fn two_unlink_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdentifier,
+    ) -> Result<(), StmError> {
+        // set beta_2(dart) to NullDart
+        let rhs_dart_id = self.betas[lhs_dart_id as usize][2].replace(trans, NULL_DART_ID)?;
+        assert_ne!(rhs_dart_id, NULL_DART_ID);
+        // set beta_2(beta_2(dart)) to NullDart
+        self.betas[rhs_dart_id as usize][2].write(trans, NULL_DART_ID)?;
+        Ok(())
     }
 }
