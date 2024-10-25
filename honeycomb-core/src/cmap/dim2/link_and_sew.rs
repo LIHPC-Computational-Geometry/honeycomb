@@ -63,6 +63,34 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    /// Atomically 1-sew two darts.
+    pub fn atomically_one_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        atomically(|trans| {
+            let b2lhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
+            if b2lhs_dart_id == NULL_DART_ID {
+                self.one_link_core(trans, lhs_dart_id, rhs_dart_id)
+            } else {
+                let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+
+                self.one_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+
+                let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
+
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.vertices
+                    .merge_core(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+                self.attributes.merge_vertex_attributes_transac(
+                    trans,
+                    new_vid,
+                    b2lhs_vid_old,
+                    rhs_vid_old,
+                )?;
+                Ok(())
+            }
+        });
+    }
+
     /// 2-sew operation.
     ///
     /// This operation corresponds to *coherently linking* two darts via the *β<sub>2</sub>*
@@ -189,6 +217,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.vertices
                     .merge(self.vertex_id(rhs_dart_id), b1lhs_vid_old, rhs_vid_old);
                 self.attributes.merge_vertex_attributes(
+                    self.vertex_id(lhs_dart_id),
+                    lhs_vid_old,
+                    b1rhs_vid_old,
+                );
+                self.attributes.merge_vertex_attributes(
                     self.vertex_id(rhs_dart_id),
                     b1lhs_vid_old,
                     rhs_vid_old,
@@ -200,6 +233,153 @@ impl<T: CoordsFloat> CMap2<T> {
                 );
             }
         }
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    /// Atomically 2-sew two darts.
+    #[allow(clippy::too_many_lines)]
+    pub fn atomically_two_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+        atomically(|trans| {
+            let b1lhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
+            let b1rhs_dart_id = self.betas[rhs_dart_id as usize][1].read(trans)?;
+            // match (is lhs 1-free, is rhs 1-free)
+            match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+                // trivial case, no update needed
+                (true, true) => {
+                    self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                }
+                // update vertex associated to b1rhs/lhs
+                (true, false) => {
+                    // fetch vertices ID before topology update
+                    let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                    let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
+                    // update the topology
+                    self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                    // merge vertices & attributes from the old IDs to the new one
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.vertices.merge_core(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_old,
+                        b1rhs_vid_old,
+                    )?;
+                    self.attributes.merge_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_old,
+                        b1rhs_vid_old,
+                    )?;
+                    self.attributes.merge_edge_attributes_transac(
+                        trans,
+                        self.edge_id(lhs_dart_id),
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    )?;
+                }
+                // update vertex associated to b1lhs/rhs
+                (false, true) => {
+                    // fetch vertices ID before topology update
+                    let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                    let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
+                    let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                    // update the topology
+                    self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                    // merge vertices & attributes from the old IDs to the new one
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.vertices.merge_core(
+                        trans,
+                        self.vertex_id(rhs_dart_id),
+                        b1lhs_vid_old,
+                        rhs_vid_old,
+                    )?;
+                    self.attributes.merge_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(rhs_dart_id),
+                        b1lhs_vid_old,
+                        rhs_vid_old,
+                    )?;
+                    self.attributes.merge_edge_attributes_transac(
+                        trans,
+                        self.edge_id(lhs_dart_id),
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    )?;
+                }
+                // update both vertices making up the edge
+                (false, false) => {
+                    // fetch vertices ID before topology update
+                    let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                    // (lhs/b1rhs) vertex
+                    let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
+                    // (b1lhs/rhs) vertex
+                    let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
+                    let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+
+                    // check orientation
+                    #[rustfmt::skip]
+                    if let (
+                        Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
+                        Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
+                    ) = (
+                        self.vertices.get(lhs_vid_old), self.vertices.get(b1rhs_vid_old),// (lhs/b1rhs)
+                        self.vertices.get(b1lhs_vid_old), self.vertices.get(rhs_vid_old) // (b1lhs/rhs)
+                    )
+                    {
+                        let lhs_vector = b1l_vertex - l_vertex;
+                        let rhs_vector = b1r_vertex - r_vertex;
+                        // dot product should be negative if the two darts have opposite direction
+                        // we could also put restriction on the angle made by the two darts to prevent
+                        // drastic deformation
+                        assert!(
+                            lhs_vector.dot(&rhs_vector) < T::zero(),
+                            "{}",
+                            format!("Dart {lhs_dart_id} and {rhs_dart_id} do not have consistent orientation for 2-sewing"),
+                        );
+                    };
+
+                    // update the topology
+                    self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                    // merge vertices & attributes from the old IDs to the new one
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.vertices.merge_core(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_old,
+                        b1rhs_vid_old,
+                    )?;
+                    self.vertices.merge_core(
+                        trans,
+                        self.vertex_id(rhs_dart_id),
+                        b1lhs_vid_old,
+                        rhs_vid_old,
+                    )?;
+                    self.attributes.merge_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_old,
+                        b1rhs_vid_old,
+                    )?;
+                    self.attributes.merge_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(rhs_dart_id),
+                        b1lhs_vid_old,
+                        rhs_vid_old,
+                    )?;
+                    self.attributes.merge_edge_attributes_transac(
+                        trans,
+                        self.edge_id(lhs_dart_id),
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    )?;
+                }
+            }
+            Ok(())
+        });
     }
 
     /// 1-unsew operation.
@@ -246,6 +426,37 @@ impl<T: CoordsFloat> CMap2<T> {
                 vid_old,
             );
         }
+    }
+
+    /// Atomically 1-unsew two darts.
+    pub fn atomically_one_unsew(&self, lhs_dart_id: DartIdentifier) {
+        atomically(|trans| {
+            let b2lhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
+            if b2lhs_dart_id == NULL_DART_ID {
+                self.one_unlink_core(trans, lhs_dart_id)?;
+            } else {
+                // fetch IDs before topology update
+                let rhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
+                let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                // update the topology
+                self.one_unlink_core(trans, lhs_dart_id)?;
+                // split vertices & attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                self.vertices.split_core(
+                    trans,
+                    self.vertex_id(b2lhs_dart_id),
+                    self.vertex_id(rhs_dart_id),
+                    vid_old,
+                )?;
+                self.attributes.split_vertex_attributes_transac(
+                    trans,
+                    self.vertex_id(b2lhs_dart_id),
+                    self.vertex_id(rhs_dart_id),
+                    vid_old,
+                )?;
+            }
+            Ok(())
+        });
     }
 
     /// 2-unsew operation.
@@ -340,6 +551,103 @@ impl<T: CoordsFloat> CMap2<T> {
                 );
             }
         }
+    }
+
+    /// Atomically 2-unsew two darts.
+    pub fn atomically_two_unsew(&self, lhs_dart_id: DartIdentifier) {
+        atomically(|trans| {
+            let rhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
+            let b1lhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
+            let b1rhs_dart_id = self.betas[rhs_dart_id as usize][1].read(trans)?;
+            // match (is lhs 1-free, is rhs 1-free)
+            match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
+                (true, true) => {
+                    // fetch IDs before topology update
+                    let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    // update the topology
+                    self.two_unlink_core(trans, lhs_dart_id)?;
+                    // split attributes from the old ID to the new ones
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.attributes.split_edge_attributes_transac(
+                        trans,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    )?;
+                }
+                (true, false) => {
+                    // fetch IDs before topology update
+                    let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                    // update the topology
+                    self.two_unlink_core(trans, lhs_dart_id)?;
+                    // split vertex & attributes from the old ID to the new ones
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.attributes.split_edge_attributes_transac(
+                        trans,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    )?;
+                    self.attributes.split_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(b1lhs_dart_id),
+                        self.vertex_id(rhs_dart_id),
+                        rhs_vid_old,
+                    )?;
+                }
+                (false, true) => {
+                    // fetch IDs before topology update
+                    let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    // update the topology
+                    self.two_unlink_core(trans, lhs_dart_id)?;
+                    // split vertex & attributes from the old ID to the new ones
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.attributes.split_edge_attributes_transac(
+                        trans,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    )?;
+                    self.attributes.split_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        self.vertex_id(b1rhs_dart_id),
+                        lhs_vid_old,
+                    )?;
+                }
+                (false, false) => {
+                    // fetch IDs before topology update
+                    let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                    let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                    // update the topology
+                    self.two_unlink_core(trans, lhs_dart_id)?;
+                    // split vertices & attributes from the old ID to the new ones
+                    // FIXME: VertexIdentifier should be cast to DartIdentifier
+                    self.attributes.split_edge_attributes_transac(
+                        trans,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    )?;
+                    self.attributes.split_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(b1lhs_dart_id),
+                        self.vertex_id(rhs_dart_id),
+                        rhs_vid_old,
+                    )?;
+                    self.attributes.split_vertex_attributes_transac(
+                        trans,
+                        self.vertex_id(lhs_dart_id),
+                        self.vertex_id(b1rhs_dart_id),
+                        lhs_vid_old,
+                    )?;
+                }
+            }
+            Ok(())
+        });
     }
 }
 

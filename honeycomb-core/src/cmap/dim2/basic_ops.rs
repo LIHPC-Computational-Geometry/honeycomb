@@ -9,7 +9,7 @@
 
 // ------ IMPORTS
 
-use stm::TVar;
+use stm::{StmError, TVar, Transaction};
 
 use crate::prelude::{
     CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
@@ -21,7 +21,7 @@ use crate::{
     geometry::CoordsFloat,
 };
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 use std::sync::atomic::{AtomicBool, Ordering};
 // ------ CONTENT
 
@@ -289,6 +289,36 @@ impl<T: CoordsFloat> CMap2<T> {
             .expect("E: unreachable") as VertexIdentifier
     }
 
+    /// Atomically compute the associated vertex ID.
+    pub(crate) fn vertex_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<VertexIdentifier, StmError> {
+        let mut marked = BTreeSet::<DartIdentifier>::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
+        while let Some(d) = pending.pop_front() {
+            let image1 =
+                self.betas[self.betas[d as usize][2].read(trans)? as usize][1].read(trans)?;
+            if marked.insert(image1) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image1);
+            }
+            let image2 =
+                self.betas[self.betas[d as usize][0].read(trans)? as usize][2].read(trans)?;
+            if marked.insert(image2) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image2);
+            }
+        }
+        marked.remove(&NULL_DART_ID);
+        Ok(marked.into_iter().min().unwrap() as VertexIdentifier)
+    }
+
     #[allow(clippy::missing_panics_doc)]
     /// Fetch edge associated to a given dart.
     ///
@@ -323,6 +353,21 @@ impl<T: CoordsFloat> CMap2<T> {
             .expect("E: unreachable") as EdgeIdentifier
     }
 
+    /// Atomically compute the associated edge ID.
+    pub(crate) fn edge_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<EdgeIdentifier, StmError> {
+        // optimizing this one bc I'm tired
+        let b2 = self.betas[dart_id as usize][2].read(trans)?;
+        if b2 == NULL_DART_ID {
+            Ok(dart_id as EdgeIdentifier)
+        } else {
+            Ok(b2.min(dart_id) as EdgeIdentifier)
+        }
+    }
+
     #[allow(clippy::missing_panics_doc)]
     /// Fetch face associated to a given dart.
     ///
@@ -355,6 +400,30 @@ impl<T: CoordsFloat> CMap2<T> {
         Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
             .min()
             .expect("E: unreachable") as FaceIdentifier
+    }
+
+    #[allow(unused)]
+    /// Atomically compute the associated face ID.
+    pub(crate) fn face_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<FaceIdentifier, StmError> {
+        let mut marked = BTreeSet::<DartIdentifier>::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
+        while let Some(d) = pending.pop_front() {
+            // WE ASSUME THAT THE FACE IS COMPLETE
+            let image = self.betas[d as usize][1].read(trans)?;
+            if marked.insert(image) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image);
+            }
+        }
+        marked.remove(&NULL_DART_ID);
+        Ok(marked.into_iter().min().unwrap() as FaceIdentifier)
     }
 
     /// Return an [`Orbit2`] object that can be used to iterate over darts of an i-cell.
