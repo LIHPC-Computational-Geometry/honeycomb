@@ -8,8 +8,6 @@
 // ------ MODULE DECLARATIONS
 
 pub mod basic_ops;
-#[allow(dead_code)]
-pub mod components;
 pub mod embed;
 pub mod link_and_sew;
 pub mod orbits;
