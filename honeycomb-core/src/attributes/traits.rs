@@ -194,6 +194,13 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// ```
     fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `merge`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn merge_transac(
         &self,
         trans: &mut Transaction,
@@ -222,6 +229,13 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// ```
     fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `split`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn split_transac(
         &self,
         trans: &mut Transaction,
@@ -257,6 +271,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn set(&self, id: A::IdentifierType, val: A);
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `set`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn set_transac(
         &self,
         trans: &mut Transaction,
@@ -285,6 +306,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
         self.set(id, val);
     }
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `insert`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn insert_transac(
         &self,
         trans: &mut Transaction,
@@ -314,6 +342,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn get(&self, id: A::IdentifierType) -> Option<A>;
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `get`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn get_transac(
         &self,
         trans: &mut Transaction,
@@ -344,6 +379,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `replace`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn replace_transac(
         &self,
         trans: &mut Transaction,
@@ -370,6 +412,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, id: A::IdentifierType) -> Option<A>;
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `remove`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
     fn remove_transac(
         &self,
         trans: &mut Transaction,
