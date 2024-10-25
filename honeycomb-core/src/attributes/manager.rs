@@ -5,6 +5,8 @@
 
 // ------ IMPORTS
 
+use stm::{StmError, Transaction};
+
 use super::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
 use crate::prelude::{DartIdentifier, OrbitPolicy};
 use std::{any::TypeId, collections::HashMap};
@@ -647,6 +649,296 @@ impl AttrStorageManager {
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
+        }
+    }
+}
+
+/// Transactional methods
+#[doc(hidden)]
+impl AttrStorageManager {
+    // merges
+
+    pub(crate) fn merge_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        orbit_policy: &OrbitPolicy,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        match orbit_policy {
+            OrbitPolicy::Vertex => {
+                self.merge_vertex_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+            }
+            OrbitPolicy::Edge => {
+                self.merge_edge_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+            }
+            OrbitPolicy::Face => {
+                self.merge_face_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+            }
+            OrbitPolicy::Custom(_) => self.merge_other_attributes_transac(
+                trans,
+                orbit_policy,
+                id_out,
+                id_in_lhs,
+                id_in_rhs,
+            ),
+        }
+    }
+
+    pub(crate) fn merge_vertex_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.vertices.values() {
+            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn merge_edge_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.edges.values() {
+            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn merge_face_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.faces.values() {
+            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn merge_other_attributes_transac(
+        &self,
+        _trans: &mut Transaction,
+        _orbit_policy: &OrbitPolicy,
+        _id_out: DartIdentifier,
+        _id_in_lhs: DartIdentifier,
+        _id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        todo!("custom orbit binding is a special case that will be treated later")
+    }
+
+    // splits
+
+    pub(crate) fn split_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        orbit_policy: &OrbitPolicy,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        match orbit_policy {
+            OrbitPolicy::Vertex => {
+                self.split_vertex_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+            }
+            OrbitPolicy::Edge => {
+                self.split_edge_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+            }
+            OrbitPolicy::Face => {
+                self.split_face_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+            }
+            OrbitPolicy::Custom(_) => self.split_other_attributes_transac(
+                trans,
+                orbit_policy,
+                id_out_lhs,
+                id_out_rhs,
+                id_in,
+            ),
+        }
+    }
+
+    pub(crate) fn split_vertex_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.vertices.values() {
+            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn split_edge_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.edges.values() {
+            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn split_face_attributes_transac(
+        &self,
+        trans: &mut Transaction,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        for storage in self.faces.values() {
+            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn split_other_attributes_transac(
+        &self,
+        _trans: &mut Transaction,
+        _orbit_policy: &OrbitPolicy,
+        _id_out_lhs: DartIdentifier,
+        _id_out_rhs: DartIdentifier,
+        _id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        todo!("custom orbit binding is a special case that will be treated later")
+    }
+
+    pub(crate) fn set_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.set_transac(trans, id, val)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(())
+        }
+    }
+
+    pub(crate) fn insert_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.insert_transac(trans, id, val)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(())
+        }
+    }
+
+    pub(crate) fn get_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.get_transac(trans, id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(None)
+        }
+    }
+
+    pub(crate) fn replace_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<Option<A>, StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.replace_transac(trans, id, val)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(None)
+        }
+    }
+
+    pub(crate) fn remove_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.remove_transac(trans, id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(None)
+        }
+    }
+
+    pub(crate) fn merge_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id_out: DartIdentifier,
+        id_in_lhs: DartIdentifier,
+        id_in_rhs: DartIdentifier,
+    ) -> Result<(), StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(())
+        }
+    }
+
+    pub(crate) fn split_attribute_transac<A: AttributeBind>(
+        &self,
+        trans: &mut Transaction,
+        id_out_lhs: DartIdentifier,
+        id_out_rhs: DartIdentifier,
+        id_in: DartIdentifier,
+    ) -> Result<(), StmError> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.split_transac(trans, id_out_lhs, id_out_rhs, id_in)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            Ok(())
         }
     }
 }

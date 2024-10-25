@@ -158,8 +158,28 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
         atomically(|trans| self.merge_core(trans, out, lhs_inp, rhs_inp));
     }
 
+    fn merge_transac(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdentifier,
+        lhs_inp: DartIdentifier,
+        rhs_inp: DartIdentifier,
+    ) -> Result<(), StmError> {
+        self.merge_core(trans, out, lhs_inp, rhs_inp)
+    }
+
     fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
         atomically(|trans| self.split_core(trans, lhs_out, rhs_out, inp));
+    }
+
+    fn split_transac(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdentifier,
+        rhs_out: DartIdentifier,
+        inp: DartIdentifier,
+    ) -> Result<(), StmError> {
+        self.split_core(trans, lhs_out, rhs_out, inp)
     }
 }
 
@@ -168,20 +188,63 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
         atomically(|trans| self.set_core(trans, &id, val));
     }
 
+    fn set_transac(
+        &self,
+        trans: &mut Transaction,
+        id: <A as AttributeBind>::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        self.set_core(trans, &id, val)
+    }
+
     fn insert(&self, id: A::IdentifierType, val: A) {
         atomically(|trans| self.insert_core(trans, &id, val));
+    }
+
+    fn insert_transac(
+        &self,
+        trans: &mut Transaction,
+        id: <A as AttributeBind>::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        self.insert_core(trans, &id, val)
     }
 
     fn get(&self, id: A::IdentifierType) -> Option<A> {
         atomically(|trans| self.get_core(trans, &id))
     }
 
+    fn get_transac(
+        &self,
+        trans: &mut Transaction,
+        id: <A as AttributeBind>::IdentifierType,
+    ) -> Result<Option<A>, StmError> {
+        self.get_core(trans, &id)
+    }
+
     fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
         atomically(|trans| self.replace_core(trans, &id, val))
     }
 
+    fn replace_transac(
+        &self,
+        trans: &mut Transaction,
+        id: <A as AttributeBind>::IdentifierType,
+        val: A,
+    ) -> Result<Option<A>, StmError> {
+        self.replace_core(trans, &id, val)
+    }
+
     fn remove(&self, id: A::IdentifierType) -> Option<A> {
         atomically(|trans| self.remove_core(trans, &id))
+    }
+
+    fn remove_transac(
+        &self,
+        trans: &mut Transaction,
+        id: <A as AttributeBind>::IdentifierType,
+    ) -> Result<Option<A>, StmError> {
+        self.remove_core(trans, &id)
     }
 }
 

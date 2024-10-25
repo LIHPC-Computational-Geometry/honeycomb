@@ -9,6 +9,7 @@ use crate::prelude::{DartIdentifier, OrbitPolicy};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
+use stm::{StmError, Transaction};
 
 // ------ CONTENT
 
@@ -193,6 +194,14 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// ```
     fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
 
+    fn merge_transac(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdentifier,
+        lhs_inp: DartIdentifier,
+        rhs_inp: DartIdentifier,
+    ) -> Result<(), StmError>;
+
     /// Split attribute to specified indices
     ///
     /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
@@ -212,6 +221,14 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[rhs_out] = val_rhs;
     /// ```
     fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+
+    fn split_transac(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdentifier,
+        rhs_out: DartIdentifier,
+        inp: DartIdentifier,
+    ) -> Result<(), StmError>;
 }
 
 impl_downcast!(UnknownAttributeStorage);
@@ -240,6 +257,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn set(&self, id: A::IdentifierType, val: A);
 
+    fn set_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError>;
+
     /// Setter
     ///
     /// Insert a value at a given empty index.
@@ -261,6 +285,16 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
         self.set(id, val);
     }
 
+    fn insert_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        assert!(self.get(id.clone()).is_none());
+        self.set_transac(trans, id, val)
+    }
+
     /// Getter
     ///
     /// # Arguments
@@ -279,6 +313,12 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn get(&self, id: A::IdentifierType) -> Option<A>;
+
+    fn get_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError>;
 
     /// Setter
     ///
@@ -304,6 +344,13 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
 
+    fn replace_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<Option<A>, StmError>;
+
     /// Remove an item from the storage and return it
     ///
     /// # Arguments
@@ -322,4 +369,10 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, id: A::IdentifierType) -> Option<A>;
+
+    fn remove_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError>;
 }
