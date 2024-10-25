@@ -25,5 +25,7 @@ pub mod utils;
 const CMAP2_BETA: usize = 3;
 
 // ------ TESTS
+
+#[allow(unused_mut)]
 #[cfg(test)]
 mod tests;
