@@ -18,6 +18,8 @@ pub fn build_2d_grid<T: CoordsFloat>(
         CMap2::new_with_undefined_attributes(4 * n_square_x * n_square_y, manager);
 
     (0..n_square_y)
+        // flatten the loop to expose more parallelism
+        // this is not a quantified/benchmarked upgrade, just a seemingly good change
         .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
         .for_each(|(y_idx, x_idx)| {
             // compute dart IDs of the cell
@@ -102,7 +104,9 @@ pub fn build_2d_grid<T: CoordsFloat>(
             }
         });
 
-    // and then build faces
+    // check the number of built faces
+    // this is set as debug only because the operation cost scales with map size
+    // this can quickly overshadow the exectime of all previous code
     debug_assert_eq!(map.fetch_faces().identifiers.len(), n_square_x * n_square_y);
 
     map
@@ -119,6 +123,8 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         CMap2::new_with_undefined_attributes(6 * n_square_x * n_square_y, manager);
 
     (0..n_square_y)
+        // flatten the loop to expose more parallelism
+        // this is not a quantified/benchmarked upgrade, just a seemingly good change
         .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
         .for_each(|(y_idx, x_idx)| {
             // compute dart IDs of the cell
@@ -213,7 +219,9 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
             }
         });
 
-    // rebuild faces
+    // check the number of built faces
+    // this is set as debug only because the operation cost scales with map size
+    // this can quickly overshadow the exectime of all previous code
     debug_assert_eq!(
         map.fetch_faces().identifiers.len(),
         n_square_x * n_square_y * 2
