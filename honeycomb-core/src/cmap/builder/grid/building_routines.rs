@@ -17,28 +17,44 @@ pub fn build_2d_grid<T: CoordsFloat>(
     let mut map: CMap2<T> =
         CMap2::new_with_undefined_attributes(4 * n_square_x * n_square_y, manager);
 
-    // first, topology
-    (0..n_square_y).for_each(|y_idx| {
-        (0..n_square_x).for_each(|x_idx| {
+    (0..n_square_y)
+        .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
+        .for_each(|(y_idx, x_idx)| {
+            // compute dart IDs of the cell
             let d1 = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
             let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
-            map.one_link(d1, d2);
-            map.one_link(d2, d3);
-            map.one_link(d3, d4);
-            map.one_link(d4, d1);
+            // are we on the last col / row / both?
+            let last_column = x_idx == n_square_x - 1;
+            let last_row = y_idx == n_square_y - 1;
+
+            // edit topology
+            // d1
+            map.set_beta::<0>(d1, d4);
+            map.set_beta::<1>(d1, d2);
+            // d2
+            map.set_beta::<0>(d2, d1);
+            map.set_beta::<1>(d2, d3);
+            // d3
+            map.set_beta::<0>(d3, d2);
+            map.set_beta::<1>(d3, d4);
+            // d4
+            map.set_beta::<0>(d4, d3);
+            map.set_beta::<1>(d4, d1);
             // if there is a right neighbor, sew sew
-            if x_idx != n_square_x - 1 {
+            if !last_column {
                 let right_neighbor = d2 + 6;
-                map.two_link(d2, right_neighbor);
+                map.set_beta::<2>(d2, right_neighbor);
+                map.set_beta::<2>(right_neighbor, d2);
             }
             // if there is an up neighbor, sew sew
-            if y_idx != n_square_y - 1 {
+            if !last_row {
                 let up_neighbor = d1 + (4 * n_square_x) as DartIdentifier;
-                map.two_link(d3, up_neighbor);
+                map.set_beta::<2>(d3, up_neighbor);
+                map.set_beta::<2>(up_neighbor, d3);
             }
-            // update the associated 0-cell
-            let base_dart = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
-            let vertex_id = map.vertex_id(base_dart);
+
+            // edit geometry
+            let vertex_id = map.vertex_id(d1);
             map.insert_vertex(
                 vertex_id,
                 origin
@@ -47,12 +63,10 @@ pub fn build_2d_grid<T: CoordsFloat>(
                         T::from(y_idx).unwrap() * len_per_y,
                     ),
             );
-            let last_column = x_idx == n_square_x - 1;
-            let last_row = y_idx == n_square_y - 1;
             if last_column {
                 // that last column of 0-cell needs special treatment
                 // bc there are no "horizontal" associated dart
-                let vertex_id = map.vertex_id(base_dart + 1);
+                let vertex_id = map.vertex_id(d2);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -64,7 +78,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
             }
             if last_row {
                 // same as the case on x
-                let vertex_id = map.vertex_id(base_dart + 3);
+                let vertex_id = map.vertex_id(d4);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -76,7 +90,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
             }
             if last_row & last_column {
                 // need to do the upper right corner
-                let vertex_id = map.vertex_id(base_dart + 2);
+                let vertex_id = map.vertex_id(d3);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -87,7 +101,6 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 );
             }
         });
-    });
 
     // and then build faces
     assert_eq!(map.fetch_faces().identifiers.len(), n_square_x * n_square_y);
@@ -105,36 +118,54 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     let mut map: CMap2<T> =
         CMap2::new_with_undefined_attributes(6 * n_square_x * n_square_y, manager);
 
-    // first, topology
-    (0..n_square_y).for_each(|y_idx| {
-        (0..n_square_x).for_each(|x_idx| {
+    (0..n_square_y)
+        .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
+        .for_each(|(y_idx, x_idx)| {
+            // compute dart IDs of the cell
             let d1 = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
             let (d2, d3, d4, d5, d6) = (d1 + 1, d1 + 2, d1 + 3, d1 + 4, d1 + 5);
-            // bottom left triangle
-            map.one_link(d1, d2);
-            map.one_link(d2, d3);
-            map.one_link(d3, d1);
-            // top right triangle
-            map.one_link(d4, d5);
-            map.one_link(d5, d6);
-            map.one_link(d6, d4);
+            // are we on the last col / row / both?
+            let last_column = x_idx == n_square_x - 1;
+            let last_row = y_idx == n_square_y - 1;
+
+            // edit topology
+            // d1
+            map.set_beta::<0>(d1, d3);
+            map.set_beta::<1>(d1, d2);
+            // d2
+            map.set_beta::<0>(d2, d1);
+            map.set_beta::<1>(d2, d3);
+            // d3
+            map.set_beta::<0>(d3, d2);
+            map.set_beta::<1>(d3, d1);
+            // d4
+            map.set_beta::<0>(d4, d6);
+            map.set_beta::<1>(d4, d5);
+            // d5
+            map.set_beta::<0>(d5, d4);
+            map.set_beta::<1>(d5, d6);
+            // d6
+            map.set_beta::<0>(d6, d5);
+            map.set_beta::<1>(d6, d4);
             // diagonal
-            map.two_link(d2, d4);
+            map.set_beta::<2>(d2, d4);
+            map.set_beta::<2>(d4, d2);
 
             // if there is a right neighbor, sew sew
-            if x_idx != n_square_x - 1 {
+            if !last_column {
                 let right_neighbor = d1 + 8;
-                map.two_link(d5, right_neighbor);
+                map.set_beta::<2>(d5, right_neighbor);
+                map.set_beta::<2>(right_neighbor, d5);
             }
             // if there is an up neighbor, sew sew
-            if y_idx != n_square_x - 1 {
+            if !last_row {
                 let up_neighbor = d1 + (6 * n_square_x) as DartIdentifier;
-                map.two_link(d6, up_neighbor);
+                map.set_beta::<2>(d6, up_neighbor);
+                map.set_beta::<2>(up_neighbor, d6);
             }
 
-            // update the associated 0-cell
-            let base_dart = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
-            let vertex_id = map.vertex_id(base_dart);
+            // edit geometry
+            let vertex_id = map.vertex_id(d1);
             map.insert_vertex(
                 vertex_id,
                 origin
@@ -143,12 +174,10 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                         T::from(y_idx).unwrap() * len_per_y,
                     ),
             );
-            let last_column = x_idx == n_square_x - 1;
-            let last_row = y_idx == n_square_y - 1;
             if last_column {
                 // that last column of 0-cell needs special treatment
                 // bc there are no "horizontal" associated dart
-                let vertex_id = map.vertex_id(base_dart + 4);
+                let vertex_id = map.vertex_id(d5);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -160,7 +189,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
             }
             if last_row {
                 // same as the case on x
-                let vertex_id = map.vertex_id(base_dart + 2);
+                let vertex_id = map.vertex_id(d3);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -172,7 +201,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
             }
             if last_row & last_column {
                 // need to do the upper right corner
-                let vertex_id = map.vertex_id(base_dart + 5);
+                let vertex_id = map.vertex_id(d6);
                 map.insert_vertex(
                     vertex_id,
                     origin
@@ -183,7 +212,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 );
             }
         });
-    });
+
     // rebuild faces
     assert_eq!(
         map.fetch_faces().identifiers.len(),
