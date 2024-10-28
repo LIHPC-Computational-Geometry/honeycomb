@@ -234,17 +234,25 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
         .map(|(&n_i, &start)| start..start + n_i)
         .collect();
     let mut intersection_metadata = vec![(NULL_DART_ID, T::nan()); n_intersec];
-    let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
-    tmp.iter().zip(intersec_ids).for_each(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), i_ids)| {
+    let new_segments: Segments = tmp.iter().zip(intersec_ids).flat_map(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), i_ids)| {
+        let transform = Box::new(|seg: &[GeometryVertex]| {
+            assert_eq!(seg.len(), 2);
+            (seg[0].clone(), seg[1].clone())
+        });
         // check neighbor status
         match dist {
             // trivial case:
             // v1 & v2 belong to the same cell
             0 => {
-                new_segments.insert(
+                //new_segments.insert(
+                //    make_geometry_vertex!(geometry, v1_id),
+                //    make_geometry_vertex!(geometry, v2_id),
+                //);
+                [
                     make_geometry_vertex!(geometry, v1_id),
-                    make_geometry_vertex!(geometry, v2_id),
-                );
+                    make_geometry_vertex!(geometry, v2_id)
+                ].windows(2).map(transform
+                    ).collect::<Vec<_>>()
             }
             // ok case:
             // v1 & v2 belong to neighboring cells
@@ -280,14 +288,11 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 let id = i_ids.start;
                 intersection_metadata[id] = (dart_id, t);
 
-                new_segments.insert(
+                [
                     make_geometry_vertex!(geometry, v1_id),
                     GeometryVertex::Intersec(id),
-                );
-                new_segments.insert(
-                    GeometryVertex::Intersec(id),
-                    make_geometry_vertex!(geometry, v2_id),
-                );
+                    make_geometry_vertex!(geometry, v2_id)
+                ].windows(2).map(transform).collect::<Vec<_>>()
             }
             // highly annoying case:
             // v1 & v2 do not belong to neighboring cell
@@ -337,9 +342,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         };
                         vs.push_front(make_geometry_vertex!(geometry, v1_id));
                         vs.push_back(make_geometry_vertex!(geometry, v2_id));
-                        vs.make_contiguous().windows(2).for_each(|seg| {
-                            new_segments.insert(seg[0].clone(), seg[1].clone());
-                        });
+                        vs.make_contiguous().windows(2).map(transform
+                        ).collect::<Vec<_>>()
                     }
                     (0, j) => {
                         // we can solve the intersection equation
@@ -379,10 +383,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         // complete the vertex list
                         vs.push_front(make_geometry_vertex!(geometry, v1_id));
                         vs.push_back(make_geometry_vertex!(geometry, v2_id));
-                        // insert new segments
-                        vs.make_contiguous().windows(2).for_each(|seg| {
-                            new_segments.insert(seg[0].clone(), seg[1].clone());
-                        });
+                        vs.make_contiguous().windows(2).map(transform
+                        ).collect::<Vec<_>>()
                     }
                     (i, j) => {
                         // in order to process this, we'll consider a "sub-grid" & use the direction of the segment to
@@ -496,15 +498,13 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             }
                         }));
                         vs.push(make_geometry_vertex!(geometry, v2_id));
-                        // insert segments
-                        vs.windows(2).for_each(|seg| {
-                            new_segments.insert(seg[0].clone(), seg[1].clone());
-                        });
+                        vs.windows(2).map(transform
+                        ).collect::<Vec<_>>()
                     }
                 }
             }
-        };
-    });
+        }
+    }).collect();
     (new_segments, intersection_metadata)
 }
 
