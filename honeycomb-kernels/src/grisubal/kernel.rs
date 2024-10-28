@@ -244,15 +244,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
             // trivial case:
             // v1 & v2 belong to the same cell
             0 => {
-                //new_segments.insert(
-                //    make_geometry_vertex!(geometry, v1_id),
-                //    make_geometry_vertex!(geometry, v2_id),
-                //);
-                [
-                    make_geometry_vertex!(geometry, v1_id),
-                    make_geometry_vertex!(geometry, v2_id)
-                ].windows(2).map(transform
-                    ).collect::<Vec<_>>()
+                vec![(make_geometry_vertex!(geometry, v1_id), make_geometry_vertex!(geometry, v2_id))]
             }
             // ok case:
             // v1 & v2 belong to neighboring cells
@@ -288,11 +280,10 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 let id = i_ids.start;
                 intersection_metadata[id] = (dart_id, t);
 
-                [
-                    make_geometry_vertex!(geometry, v1_id),
-                    GeometryVertex::Intersec(id),
-                    make_geometry_vertex!(geometry, v2_id)
-                ].windows(2).map(transform).collect::<Vec<_>>()
+                vec![
+                    (make_geometry_vertex!(geometry, v1_id), GeometryVertex::Intersec(id)),
+                    (GeometryVertex::Intersec(id), make_geometry_vertex!(geometry, v2_id)),
+                ]
             }
             // highly annoying case:
             // v1 & v2 do not belong to neighboring cell
@@ -333,6 +324,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
+
                         // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if i > 0 {
@@ -340,10 +332,15 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         } else {
                             tmp.rev().collect()
                         };
+
+                        // complete the vertex list
                         vs.push_front(make_geometry_vertex!(geometry, v1_id));
                         vs.push_back(make_geometry_vertex!(geometry, v2_id));
-                        vs.make_contiguous().windows(2).map(transform
-                        ).collect::<Vec<_>>()
+
+                        vs.make_contiguous()
+                            .windows(2)
+                            .map(transform)
+                            .collect::<Vec<_>>()
                     }
                     (0, j) => {
                         // we can solve the intersection equation
@@ -373,6 +370,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                                 GeometryVertex::Intersec(id)
                             });
+
                         // because of how the range is written, we need to reverse the iterator in one case
                         // to keep intersection ordered from v1 to v2 (i.e. ensure the segments we build are correct)
                         let mut vs: VecDeque<GeometryVertex> = if j > 0 {
@@ -380,11 +378,15 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                         } else {
                             tmp.rev().collect()
                         };
+
                         // complete the vertex list
                         vs.push_front(make_geometry_vertex!(geometry, v1_id));
                         vs.push_back(make_geometry_vertex!(geometry, v2_id));
-                        vs.make_contiguous().windows(2).map(transform
-                        ).collect::<Vec<_>>()
+
+                        vs.make_contiguous()
+                            .windows(2)
+                            .map(transform)
+                            .collect::<Vec<_>>()
                     }
                     (i, j) => {
                         // in order to process this, we'll consider a "sub-grid" & use the direction of the segment to
@@ -472,6 +474,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 None
                             })
                             .collect();
+
                         // sort intersections from v1 to v2
                         intersec_data.retain(|(s, _, _)| (T::zero() <= *s) && (*s <= T::one()));
                         // panic unreachable because of the retain above; there's no s s.t. s == NaN
@@ -497,9 +500,12 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 GeometryVertex::Intersec(id)
                             }
                         }));
+
                         vs.push(make_geometry_vertex!(geometry, v2_id));
-                        vs.windows(2).map(transform
-                        ).collect::<Vec<_>>()
+
+                        vs.windows(2)
+                            .map(transform)
+                            .collect::<Vec<_>>()
                     }
                 }
             }
