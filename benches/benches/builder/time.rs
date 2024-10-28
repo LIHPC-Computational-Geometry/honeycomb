@@ -13,7 +13,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("builder-time");
 
-    let n_square = 512;
+    let n_square = 128;
 
     group.bench_with_input(BenchmarkId::new("unit-squares", ""), &(), |b, _| {
         b.iter(|| {
