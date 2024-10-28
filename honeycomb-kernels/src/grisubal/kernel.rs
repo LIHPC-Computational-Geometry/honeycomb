@@ -219,39 +219,25 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 v2,
                 v1_id,
                 v2_id,
+                c1,
             )
         })
         .collect();
-    let n_intersec: usize = tmp.iter().map(|(dist, _, _, _, _, _)| dist).sum();
+    let n_intersec: usize = tmp.iter().map(|(dist, _, _, _, _, _, _)| dist).sum();
     let prefix_sum: Vec<usize> = (0..tmp.len())
         .map(|i| (0..i).map(|idx| tmp[idx].0).sum())
         .collect();
     let intersec_ids: Vec<_> = tmp
         .iter()
-        .map(|(dist, _, _, _, _, _)| dist)
+        .map(|(dist, _, _, _, _, _, _)| dist)
         .zip(prefix_sum.iter())
         .map(|(&n_i, &start)| start..start + n_i)
         .collect();
     let mut intersection_metadata = vec![(NULL_DART_ID, T::nan()); n_intersec];
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
-    geometry.segments.iter().zip(intersec_ids).for_each(|(&(v1_id, v2_id), i_ids)| {
-        // fetch vertices of the segment
-        let Vertex2(ox, oy) = origin;
-        let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
-        // compute their position in the grid
-        // we assume that the origin of the grid is at (0., 0.)
-        let (c1, c2) = (
-            GridCellId(
-                ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
-                ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
-            ),
-            GridCellId(
-                ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
-                ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
-            ),
-        );
+    tmp.iter().zip(intersec_ids).for_each(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), i_ids)| {
         // check neighbor status
-        match GridCellId::man_dist(&c1, &c2) {
+        match dist {
             // trivial case:
             // v1 & v2 belong to the same cell
             0 => {
@@ -266,8 +252,6 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 // fetch base dart of the cell of v1
                 #[allow(clippy::cast_possible_truncation)]
                 let d_base = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
-                // which edge of the cell are we intersecting?
-                let diff = GridCellId::diff(&c1, &c2);
                 // which dart does this correspond to?
                 #[rustfmt::skip]
                 let dart_id = match diff {
@@ -308,9 +292,6 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
             // highly annoying case:
             // v1 & v2 do not belong to neighboring cell
             _ => {
-                // because we're using strait segments (not curves), the manhattan distance gives us
-                // the number of cell we're going through to reach v2 from v1
-                let diff = GridCellId::diff(&c1, &c2);
                 // pure vertical / horizontal traversal are treated separately because it ensures we're not trying
                 // to compute intersections of parallel segments (which results at best in a division by 0)
                 match diff {
