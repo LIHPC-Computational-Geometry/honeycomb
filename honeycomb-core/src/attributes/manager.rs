@@ -655,6 +655,7 @@ impl AttrStorageManager {
 
 /// Transactional methods
 #[doc(hidden)]
+#[allow(unused)]
 impl AttrStorageManager {
     // merges
 
