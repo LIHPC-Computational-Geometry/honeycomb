@@ -36,12 +36,6 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 let up_neighbor = d1 + (4 * n_square_x) as DartIdentifier;
                 map.two_link(d3, up_neighbor);
             }
-        });
-    });
-
-    // then cells
-    (0..n_square_y).for_each(|y_idx| {
-        (0..n_square_x).for_each(|x_idx| {
             // update the associated 0-cell
             let base_dart = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
             let vertex_id = map.vertex_id(base_dart);
@@ -137,12 +131,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 let up_neighbor = d1 + (6 * n_square_x) as DartIdentifier;
                 map.two_link(d6, up_neighbor);
             }
-        });
-    });
 
-    // then cells
-    (0..n_square_y).for_each(|y_idx| {
-        (0..n_square_x).for_each(|x_idx| {
             // update the associated 0-cell
             let base_dart = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
             let vertex_id = map.vertex_id(base_dart);
