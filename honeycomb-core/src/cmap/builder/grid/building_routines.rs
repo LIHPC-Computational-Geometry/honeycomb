@@ -40,59 +40,57 @@ pub fn build_2d_grid<T: CoordsFloat>(
     });
 
     // then cells
-    (0..=n_square_y).for_each(|y_idx| {
-        (0..=n_square_x).for_each(|x_idx| {
+    (0..n_square_y).for_each(|y_idx| {
+        (0..n_square_x).for_each(|x_idx| {
             // update the associated 0-cell
-            if (y_idx < n_square_y) & (x_idx < n_square_x) {
-                let base_dart = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
-                let vertex_id = map.vertex_id(base_dart);
+            let base_dart = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
+            let vertex_id = map.vertex_id(base_dart);
+            map.insert_vertex(
+                vertex_id,
+                origin
+                    + Vector2(
+                        T::from(x_idx).unwrap() * len_per_x,
+                        T::from(y_idx).unwrap() * len_per_y,
+                    ),
+            );
+            let last_column = x_idx == n_square_x - 1;
+            let last_row = y_idx == n_square_y - 1;
+            if last_column {
+                // that last column of 0-cell needs special treatment
+                // bc there are no "horizontal" associated dart
+                let vertex_id = map.vertex_id(base_dart + 1);
+                map.insert_vertex(
+                    vertex_id,
+                    origin
+                        + Vector2(
+                            T::from(x_idx + 1).unwrap() * len_per_x,
+                            T::from(y_idx).unwrap() * len_per_y,
+                        ),
+                );
+            }
+            if last_row {
+                // same as the case on x
+                let vertex_id = map.vertex_id(base_dart + 3);
                 map.insert_vertex(
                     vertex_id,
                     origin
                         + Vector2(
                             T::from(x_idx).unwrap() * len_per_x,
-                            T::from(y_idx).unwrap() * len_per_y,
+                            T::from(y_idx + 1).unwrap() * len_per_y,
                         ),
                 );
-                let last_column = x_idx == n_square_x - 1;
-                let last_row = y_idx == n_square_y - 1;
-                if last_column {
-                    // that last column of 0-cell needs special treatment
-                    // bc there are no "horizontal" associated dart
-                    let vertex_id = map.vertex_id(base_dart + 1);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx + 1).unwrap() * len_per_x,
-                                T::from(y_idx).unwrap() * len_per_y,
-                            ),
-                    );
-                }
-                if last_row {
-                    // same as the case on x
-                    let vertex_id = map.vertex_id(base_dart + 3);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx).unwrap() * len_per_x,
-                                T::from(y_idx + 1).unwrap() * len_per_y,
-                            ),
-                    );
-                }
-                if last_row & last_column {
-                    // need to do the upper right corner
-                    let vertex_id = map.vertex_id(base_dart + 2);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx + 1).unwrap() * len_per_x,
-                                T::from(y_idx + 1).unwrap() * len_per_y,
-                            ),
-                    );
-                }
+            }
+            if last_row & last_column {
+                // need to do the upper right corner
+                let vertex_id = map.vertex_id(base_dart + 2);
+                map.insert_vertex(
+                    vertex_id,
+                    origin
+                        + Vector2(
+                            T::from(x_idx + 1).unwrap() * len_per_x,
+                            T::from(y_idx + 1).unwrap() * len_per_y,
+                        ),
+                );
             }
         });
     });
@@ -143,59 +141,57 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     });
 
     // then cells
-    (0..=n_square_y).for_each(|y_idx| {
-        (0..=n_square_x).for_each(|x_idx| {
+    (0..n_square_y).for_each(|y_idx| {
+        (0..n_square_x).for_each(|x_idx| {
             // update the associated 0-cell
-            if (y_idx < n_square_y) & (x_idx < n_square_x) {
-                let base_dart = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
-                let vertex_id = map.vertex_id(base_dart);
+            let base_dart = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
+            let vertex_id = map.vertex_id(base_dart);
+            map.insert_vertex(
+                vertex_id,
+                origin
+                    + Vector2(
+                        T::from(x_idx).unwrap() * len_per_x,
+                        T::from(y_idx).unwrap() * len_per_y,
+                    ),
+            );
+            let last_column = x_idx == n_square_x - 1;
+            let last_row = y_idx == n_square_y - 1;
+            if last_column {
+                // that last column of 0-cell needs special treatment
+                // bc there are no "horizontal" associated dart
+                let vertex_id = map.vertex_id(base_dart + 4);
+                map.insert_vertex(
+                    vertex_id,
+                    origin
+                        + Vector2(
+                            T::from(x_idx + 1).unwrap() * len_per_x,
+                            T::from(y_idx).unwrap() * len_per_y,
+                        ),
+                );
+            }
+            if last_row {
+                // same as the case on x
+                let vertex_id = map.vertex_id(base_dart + 2);
                 map.insert_vertex(
                     vertex_id,
                     origin
                         + Vector2(
                             T::from(x_idx).unwrap() * len_per_x,
-                            T::from(y_idx).unwrap() * len_per_y,
+                            T::from(y_idx + 1).unwrap() * len_per_y,
                         ),
                 );
-                let last_column = x_idx == n_square_x - 1;
-                let last_row = y_idx == n_square_y - 1;
-                if last_column {
-                    // that last column of 0-cell needs special treatment
-                    // bc there are no "horizontal" associated dart
-                    let vertex_id = map.vertex_id(base_dart + 4);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx + 1).unwrap() * len_per_x,
-                                T::from(y_idx).unwrap() * len_per_y,
-                            ),
-                    );
-                }
-                if last_row {
-                    // same as the case on x
-                    let vertex_id = map.vertex_id(base_dart + 2);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx).unwrap() * len_per_x,
-                                T::from(y_idx + 1).unwrap() * len_per_y,
-                            ),
-                    );
-                }
-                if last_row & last_column {
-                    // need to do the upper right corner
-                    let vertex_id = map.vertex_id(base_dart + 5);
-                    map.insert_vertex(
-                        vertex_id,
-                        origin
-                            + Vector2(
-                                T::from(x_idx + 1).unwrap() * len_per_x,
-                                T::from(y_idx + 1).unwrap() * len_per_y,
-                            ),
-                    );
-                }
+            }
+            if last_row & last_column {
+                // need to do the upper right corner
+                let vertex_id = map.vertex_id(base_dart + 5);
+                map.insert_vertex(
+                    vertex_id,
+                    origin
+                        + Vector2(
+                            T::from(x_idx + 1).unwrap() * len_per_x,
+                            T::from(y_idx + 1).unwrap() * len_per_y,
+                        ),
+                );
             }
         });
     });
