@@ -140,7 +140,6 @@ fn regular_intersections() {
         generate_intersection_data(&cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
 
     assert_eq!(intersection_metadata.len(), 4);
-    // FIXME: INDEX ACCESSES WON'T WORK IN PARALLEL
     assert_eq!(intersection_metadata[0], (2, 0.5));
     assert_eq!(intersection_metadata[1], (7, 0.5));
     assert_eq!(intersection_metadata[2], (16, 0.5));
@@ -261,6 +260,8 @@ fn regular_intersections() {
 
 #[test]
 fn corner_intersection() {
+    use num_traits::Float;
+
     let mut cmap = CMapBuilder::from(
         GridDescriptor::default()
             .len_per_cell([1.0; 3])
@@ -280,7 +281,15 @@ fn corner_intersection() {
     let (segments, intersection_metadata) =
         generate_intersection_data(&cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
 
-    assert_eq!(intersection_metadata.len(), 2);
+    // because we intersec a corner, some entries were preallocated but not needed.
+    // entries were initialized with (0, Nan), so they're easy to filter
+    assert_eq!(
+        intersection_metadata
+            .iter()
+            .filter(|(_, t)| !t.is_nan())
+            .count(),
+        2
+    );
     assert_eq!(intersection_metadata[0], (2, 0.5));
     assert_eq!(intersection_metadata[1], (7, 0.5));
 

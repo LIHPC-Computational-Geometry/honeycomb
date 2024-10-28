@@ -292,10 +292,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                     _ => unreachable!(),
                 };
 
-                // FIXME: these two lines should be atomic
                 debug_assert_eq!(i_ids.len(), 1);
                 let id = i_ids.start;
-                //let id = intersection_metadata.len();
                 intersection_metadata[id] = (dart_id, t);
 
                 new_segments.insert(
@@ -345,8 +343,6 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                     left_intersec!(v1, v2, v_dart, cy)
                                 };
 
-                                // FIXME: these two lines should be atomic
-                                // let id = intersection_metadata.len();
                                 intersection_metadata[id] = (dart_id, t);
 
                                 GeometryVertex::Intersec(id)
@@ -388,8 +384,6 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                     down_intersec!(v1, v2, v_dart, cx)
                                 };
 
-                                // FIXME: these two lines should be atomic
-                                // let id = intersection_metadata.len();
                                 intersection_metadata[id] = (dart_id, t);
 
                                 GeometryVertex::Intersec(id)
@@ -510,13 +504,11 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 // should start: the one incident to the vertex in the opposite quadrant
 
                                 // in that case, the preallocated intersection metadata slot will stay as (0, Nan)
-                                // this is ok, we can simply ignore the entry when computing edge processing the data
+                                // this is ok, we can simply ignore the entry when processing the data later
 
                                 let dart_in = *dart_id;
                                 GeometryVertex::IntersecCorner(dart_in)
                             } else {
-                                // FIXME: these two lines should be atomic
-                                // let id = intersection_metadata.len();
                                 intersection_metadata[id] = (*dart_id, *t);
 
                                 GeometryVertex::Intersec(id)
