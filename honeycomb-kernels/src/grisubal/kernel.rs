@@ -193,9 +193,48 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     [cx, cy]: [T; 2],
     origin: Vertex2<T>,
 ) -> (Segments, Vec<(DartIdentifier, T)>) {
-    let mut intersection_metadata = Vec::new();
+    let tmp: Vec<_> = geometry
+        .segments
+        .iter()
+        .map(|&(v1_id, v2_id)| {
+            // fetch vertices of the segment
+            let Vertex2(ox, oy) = origin;
+            let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
+            // compute their position in the grid
+            // we assume that the origin of the grid is at (0., 0.)
+            let (c1, c2) = (
+                GridCellId(
+                    ((v1.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v1.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+                GridCellId(
+                    ((v2.x() - ox) / cx).floor().to_usize().unwrap(),
+                    ((v2.y() - oy) / cy).floor().to_usize().unwrap(),
+                ),
+            );
+            (
+                GridCellId::man_dist(&c1, &c2),
+                GridCellId::diff(&c1, &c2),
+                v1,
+                v2,
+                v1_id,
+                v2_id,
+            )
+        })
+        .collect();
+    let n_intersec: usize = tmp.iter().map(|(dist, _, _, _, _, _)| dist).sum();
+    let prefix_sum: Vec<usize> = (0..tmp.len())
+        .map(|i| (0..i).map(|idx| tmp[idx].0).sum())
+        .collect();
+    let intersec_ids: Vec<_> = tmp
+        .iter()
+        .map(|(dist, _, _, _, _, _)| dist)
+        .zip(prefix_sum.iter())
+        .map(|(&n_i, &start)| start..start + n_i)
+        .collect();
+    let mut intersection_metadata = vec![(NULL_DART_ID, T::nan()); n_intersec];
     let mut new_segments = HashMap::with_capacity(geometry.poi.len() * 2); // that *2 has no basis
-    geometry.segments.iter().for_each(|&(v1_id, v2_id)| {
+    geometry.segments.iter().zip(intersec_ids).for_each(|(&(v1_id, v2_id), i_ids)| {
         // fetch vertices of the segment
         let Vertex2(ox, oy) = origin;
         let (v1, v2) = (&geometry.vertices[v1_id], &geometry.vertices[v2_id]);
@@ -254,8 +293,10 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                 };
 
                 // FIXME: these two lines should be atomic
-                let id = intersection_metadata.len();
-                intersection_metadata.push((dart_id, t));
+                debug_assert_eq!(i_ids.len(), 1);
+                let id = i_ids.start;
+                //let id = intersection_metadata.len();
+                intersection_metadata[id] = (dart_id, t);
 
                 new_segments.insert(
                     make_geometry_vertex!(geometry, v1_id),
@@ -284,7 +325,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             // i > 0: i_base..i_base + i
                             // or
                             // i < 0: i_base + 1 + i..i_base + 1
-                            (min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1)).map(|x| {
+                            (min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1)).zip(i_ids).map(|(x, id)| {
                                 // cell base dart
                                 let d_base =
                                     (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
@@ -305,8 +346,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 };
 
                                 // FIXME: these two lines should be atomic
-                                let id = intersection_metadata.len();
-                                intersection_metadata.push((dart_id, t));
+                                // let id = intersection_metadata.len();
+                                intersection_metadata[id] = (dart_id, t);
 
                                 GeometryVertex::Intersec(id)
                             });
@@ -332,7 +373,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                             // j > 0: j_base..j_base + j
                             // or
                             // j < 0: j_base + 1 + j..j_base + 1
-                            (min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1)).map(|y| {
+                            (min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1)).zip(i_ids).map(|(y, id)| {
                                 // cell base dart
                                 let d_base = (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
                                 // intersected dart
@@ -348,8 +389,8 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                                 };
 
                                 // FIXME: these two lines should be atomic
-                                let id = intersection_metadata.len();
-                                intersection_metadata.push((dart_id, t));
+                                // let id = intersection_metadata.len();
+                                intersection_metadata[id] = (dart_id, t);
 
                                 GeometryVertex::Intersec(id)
                             });
@@ -462,17 +503,21 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
 
                         // collect geometry vertices
                         let mut vs = vec![make_geometry_vertex!(geometry, v1_id)];
-                        vs.extend(intersec_data.iter_mut().map(|(_, t, dart_id)| {
+                        vs.extend(intersec_data.iter_mut().zip(i_ids).map(|((_, t, dart_id), id)| {
                             if t.is_zero() {
                                 // we assume that the segment fully goes through the corner and does not land exactly
                                 // on it, this allows us to compute directly the dart from which the next segment
                                 // should start: the one incident to the vertex in the opposite quadrant
+
+                                // in that case, the preallocated intersection metadata slot will stay as (0, Nan)
+                                // this is ok, we can simply ignore the entry when computing edge processing the data
+
                                 let dart_in = *dart_id;
                                 GeometryVertex::IntersecCorner(dart_in)
                             } else {
                                 // FIXME: these two lines should be atomic
-                                let id = intersection_metadata.len();
-                                intersection_metadata.push((*dart_id, *t));
+                                // let id = intersection_metadata.len();
+                                intersection_metadata[id] = (*dart_id, *t);
 
                                 GeometryVertex::Intersec(id)
                             }
@@ -499,6 +544,7 @@ pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
         HashMap::new();
     intersection_metadata
         .into_iter()
+        .filter(|(_, t)| !t.is_nan())
         .enumerate()
         .for_each(|(idx, (dart_id, mut t))| {
             // classify intersections per edge_id & adjust t if  needed
