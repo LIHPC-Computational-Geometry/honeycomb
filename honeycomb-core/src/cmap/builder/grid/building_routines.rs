@@ -103,7 +103,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
         });
 
     // and then build faces
-    assert_eq!(map.fetch_faces().identifiers.len(), n_square_x * n_square_y);
+    debug_assert_eq!(map.fetch_faces().identifiers.len(), n_square_x * n_square_y);
 
     map
 }
@@ -214,7 +214,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         });
 
     // rebuild faces
-    assert_eq!(
+    debug_assert_eq!(
         map.fetch_faces().identifiers.len(),
         n_square_x * n_square_y * 2
     );
