@@ -25,15 +25,14 @@ fn fan_bench() -> Result<(), TriangulateError> {
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs
-    let prefix_sum: Vec<usize> = n_darts_per_face
-        .iter()
-        .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| n_darts_per_face[idx]).sum())
-        .collect();
+    let prefix_sum = n_darts_per_face.iter().scan(0, |state, &n_d| {
+        *state += n_d;
+        Some(*state - n_d) // we want an offset, not the actual sum
+    });
     #[allow(clippy::cast_possible_truncation)]
     let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_face
         .iter()
-        .zip(prefix_sum.iter())
+        .zip(prefix_sum)
         .map(|(n_d, start)| {
             ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
                 .collect::<Vec<_>>()
@@ -61,15 +60,14 @@ fn earclip_bench() -> Result<(), TriangulateError> {
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs
-    let prefix_sum: Vec<usize> = n_darts_per_face
-        .iter()
-        .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| n_darts_per_face[idx]).sum())
-        .collect();
+    let prefix_sum = n_darts_per_face.iter().scan(0, |state, &n_d| {
+        *state += n_d;
+        Some(*state - n_d) // we want an offset, not the actual sum
+    });
     #[allow(clippy::cast_possible_truncation)]
     let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_face
         .iter()
-        .zip(prefix_sum.iter())
+        .zip(prefix_sum)
         .map(|(n_d, start)| {
             ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
                 .collect::<Vec<_>>()
