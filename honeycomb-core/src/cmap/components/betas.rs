@@ -7,17 +7,17 @@ use std::{
 
 use stm::TVar;
 
-use crate::cmap::{DartIdentifier, NULL_DART_ID};
+use super::identifiers::{DartId, NULL_DART_ID};
 
 // ------ CONTENT
 
 /// Beta functions storage.
 ///
 /// `N` is the number of beta function stored, including `B0`.
-pub struct BetaFunctions<const N: usize>(Vec<[TVar<DartIdentifier>; N]>);
+pub struct BetaFunctions<const N: usize>(Vec<[TVar<DartId>; N]>);
 
 /// Generate beta functions default value for a new dart.
-fn new_beta_entry<const N: usize>() -> [TVar<DartIdentifier>; N] {
+fn new_beta_entry<const N: usize>() -> [TVar<DartId>; N] {
     (0..N)
         .map(|_| TVar::new(NULL_DART_ID))
         .collect::<Vec<_>>()
@@ -42,16 +42,16 @@ impl<const N: usize> BetaFunctions<N> {
     }
 }
 
-impl<const N: usize> Index<(u8, DartIdentifier)> for BetaFunctions<N> {
-    type Output = TVar<DartIdentifier>;
+impl<const N: usize> Index<(u8, DartId)> for BetaFunctions<N> {
+    type Output = TVar<DartId>;
 
-    fn index(&self, (beta_id, dart_id): (u8, DartIdentifier)) -> &Self::Output {
-        &self.0[dart_id as usize][beta_id as usize]
+    fn index(&self, (beta_id, dart_id): (u8, DartId)) -> &Self::Output {
+        &self.0[dart_id.0 as usize][beta_id as usize]
     }
 }
 
-impl<const N: usize> IndexMut<(u8, DartIdentifier)> for BetaFunctions<N> {
-    fn index_mut(&mut self, (beta_id, dart_id): (u8, DartIdentifier)) -> &mut Self::Output {
-        &mut self.0[dart_id as usize][beta_id as usize]
+impl<const N: usize> IndexMut<(u8, DartId)> for BetaFunctions<N> {
+    fn index_mut(&mut self, (beta_id, dart_id): (u8, DartId)) -> &mut Self::Output {
+        &mut self.0[dart_id.0 as usize][beta_id as usize]
     }
 }
