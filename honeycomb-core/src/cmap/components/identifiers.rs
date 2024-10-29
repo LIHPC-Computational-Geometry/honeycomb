@@ -26,7 +26,10 @@ macro_rules! impl_from_for_dartid {
 
 pub type DartIdType = u32;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DartId(pub DartIdType);
+
+const NULL_DART_ID: DartId = DartId(0);
 
 impl_from_for_dartid!(VertexId);
 impl_from_for_dartid!(EdgeId);
@@ -37,7 +40,10 @@ impl_from_for_dartid!(VolumeId);
 
 pub type VertexIdType = u32;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct VertexId(pub VertexIdType);
+
+const NULL_VERTEX_ID: VertexId = VertexId(0);
 
 impl_from_dartid!(VertexId);
 
@@ -45,7 +51,10 @@ impl_from_dartid!(VertexId);
 
 pub type EdgeIdType = u32;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct EdgeId(pub EdgeIdType);
+
+const NULL_EDGE_ID: EdgeId = EdgeId(0);
 
 impl_from_dartid!(EdgeId);
 
@@ -53,7 +62,10 @@ impl_from_dartid!(EdgeId);
 
 pub type FaceIdType = u32;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FaceId(pub FaceIdType);
+
+const NULL_FACE_ID: FaceId = FaceId(0);
 
 impl_from_dartid!(FaceId);
 
@@ -61,6 +73,9 @@ impl_from_dartid!(FaceId);
 
 pub type VolumeIdType = u32;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct VolumeId(pub VolumeIdType);
+
+const NULL_VOLUME_ID: VolumeId = VolumeId(0);
 
 impl_from_dartid!(VolumeId);
