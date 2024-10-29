@@ -223,18 +223,22 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
             )
         })
         .collect();
+    // total number of intersection
     let n_intersec: usize = tmp.iter().map(|(dist, _, _, _, _, _, _)| dist).sum();
-    let prefix_sum: Vec<usize> = (0..tmp.len())
-        .map(|i| (0..i).map(|idx| tmp[idx].0).sum())
-        .collect();
-    let intersec_ids: Vec<_> = tmp
+    // we're using the prefix sum to compute an offset from the start. that's why we need a 0 at the front
+    // we'll cut off the last element later
+    let prefix_sum: Vec<usize> = [0]
         .iter()
-        .map(|(dist, _, _, _, _, _, _)| dist)
-        .zip(prefix_sum.iter())
-        .map(|(&n_i, &start)| start..start + n_i)
+        .chain(tmp.iter().map(|(dist, _, _, _, _, _, _)| dist))
+        .scan(0, |state, &dist| {
+            *state += dist;
+            Some(*state)
+        })
         .collect();
+    // preallocate the intersection vector
     let mut intersection_metadata = vec![(NULL_DART_ID, T::nan()); n_intersec];
-    let new_segments: Segments = tmp.iter().zip(intersec_ids).flat_map(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), i_ids)| {
+
+    let new_segments: Segments = tmp.iter().zip(prefix_sum[..prefix_sum.len()-1].iter()).flat_map(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), start)| {
         let transform = Box::new(|seg: &[GeometryVertex]| {
             assert_eq!(seg.len(), 2);
             (seg[0].clone(), seg[1].clone())
@@ -276,8 +280,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
                     _ => unreachable!(),
                 };
 
-                debug_assert_eq!(i_ids.len(), 1);
-                let id = i_ids.start;
+                let id = *start;
                 intersection_metadata[id] = (dart_id, t);
 
                 vec![
@@ -290,6 +293,7 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
             _ => {
                 // pure vertical / horizontal traversal are treated separately because it ensures we're not trying
                 // to compute intersections of parallel segments (which results at best in a division by 0)
+                let i_ids = *start..*start+dist;
                 match diff {
                     (i, 0) => {
                         // we can solve the intersection equation
