@@ -21,6 +21,7 @@
 
 // ------ MODULE DECLARATIONS
 
+pub mod dvr;
 pub mod grisubal;
 pub mod splits;
 pub mod triangulation;
