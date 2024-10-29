@@ -531,9 +531,12 @@ pub(super) fn group_intersections_per_edge<T: CoordsFloat>(
     // end of the slice is deduced using these values and the number of darts the current seg needs
     let prefix_sum: Vec<usize> = n_darts_per_seg
         .iter()
-        .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
+        .scan(0, |state, &n_d| {
+            *state += n_d;
+            Some(*state - n_d) // we want an offset, not the actual sum
+        })
         .collect();
+
     #[allow(clippy::cast_possible_truncation)]
     let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
         .iter()
@@ -664,8 +667,10 @@ pub(super) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
     // end of the slice is deduced using these values and the number of darts the current seg needs
     let prefix_sum: Vec<usize> = n_darts_per_seg
         .iter()
-        .enumerate()
-        .map(|(i, _)| (0..i).map(|idx| n_darts_per_seg[idx]).sum())
+        .scan(0, |state, &n_d| {
+            *state += n_d;
+            Some(*state - n_d) // we want an offset, not the actual sum
+        })
         .collect();
     #[allow(clippy::cast_possible_truncation)]
     let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
