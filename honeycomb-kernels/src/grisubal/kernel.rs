@@ -227,18 +227,18 @@ pub(super) fn generate_intersection_data<T: CoordsFloat>(
     let n_intersec: usize = tmp.iter().map(|(dist, _, _, _, _, _, _)| dist).sum();
     // we're using the prefix sum to compute an offset from the start. that's why we need a 0 at the front
     // we'll cut off the last element later
-    let prefix_sum: Vec<usize> = [0]
+    let prefix_sum: Vec<usize> = tmp
         .iter()
-        .chain(tmp.iter().map(|(dist, _, _, _, _, _, _)| dist))
+        .map(|(dist, _, _, _, _, _, _)| dist)
         .scan(0, |state, &dist| {
             *state += dist;
-            Some(*state)
+            Some(*state - dist) // we want an offset, not the actual sum
         })
         .collect();
     // preallocate the intersection vector
     let mut intersection_metadata = vec![(NULL_DART_ID, T::nan()); n_intersec];
 
-    let new_segments: Segments = tmp.iter().zip(prefix_sum[..prefix_sum.len()-1].iter()).flat_map(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), start)| {
+    let new_segments: Segments = tmp.iter().zip(prefix_sum.iter()).flat_map(|(&(dist, diff, v1, v2, v1_id, v2_id, c1), start)| {
         let transform = Box::new(|seg: &[GeometryVertex]| {
             assert_eq!(seg.len(), 2);
             (seg[0].clone(), seg[1].clone())
