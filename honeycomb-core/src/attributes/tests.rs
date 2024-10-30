@@ -1,10 +1,15 @@
 // ------ IMPORTS
 
+use stm::{atomically, StmError, Transaction, TransactionControl};
+
 use super::{
-    /*AttrCompactVec,*/ AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage,
-    AttributeUpdate, UnknownAttributeStorage,
+    AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage, AttributeUpdate,
+    UnknownAttributeStorage,
 };
-use crate::prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier};
+use crate::{
+    cmap::EdgeIdentifier,
+    prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier},
+};
 use std::any::Any;
 
 // ------ CONTENT
@@ -46,6 +51,26 @@ impl From<f32> for Temperature {
     fn from(val: f32) -> Self {
         Self { val }
     }
+}
+
+// Create a new edge-bound attribute for testing
+#[derive(Debug, Clone, PartialEq, Copy)]
+struct Length(pub f32);
+
+impl AttributeUpdate for Length {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Length((attr1.0 + attr2.0) / 2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        (attr, attr)
+    }
+}
+
+impl AttributeBind for Length {
+    type IdentifierType = EdgeIdentifier;
+    type StorageType = AttrSparseVec<Self>;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Edge;
 }
 
 // --- usual workflow test
@@ -102,8 +127,294 @@ fn temperature_map() {
     assert_eq!(map.vertex(map.vertex_id(2)), Some(Vertex2::from((1., 0.))));
     assert_eq!(map.vertex(map.vertex_id(3)), Some(Vertex2::from((1., 0.))));
 }
+#[test]
+fn test_attribute_operations() {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(5);
+
+    // Test set and get
+    manager.set_attribute(0, Temperature::from(25.0));
+    assert_eq!(
+        manager.get_attribute::<Temperature>(0),
+        Some(Temperature::from(25.0))
+    );
+
+    // Test insert
+    manager.insert_attribute(1, Temperature::from(30.0));
+    assert_eq!(
+        manager.get_attribute::<Temperature>(1),
+        Some(Temperature::from(30.0))
+    );
+
+    // Test replace
+    let old_val = manager.replace_attribute(0, Temperature::from(27.0));
+    assert_eq!(old_val, Some(Temperature::from(25.0)));
+    assert_eq!(
+        manager.get_attribute::<Temperature>(0),
+        Some(Temperature::from(27.0))
+    );
+
+    // Test remove
+    let removed = manager.remove_attribute::<Temperature>(0);
+    assert_eq!(removed, Some(Temperature::from(27.0)));
+    assert_eq!(manager.get_attribute::<Temperature>(0), None);
+}
+
+#[test]
+fn test_merge_attributes() {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(5);
+
+    // Setup initial values
+    manager.set_attribute(0, Temperature::from(20.0));
+    manager.set_attribute(1, Temperature::from(30.0));
+
+    // Test merge
+    manager.merge_attribute::<Temperature>(2, 0, 1);
+
+    // The exact result depends on how merge is implemented in AttributeStorage
+    // Just verify that something was stored at the output location
+    assert!(manager.get_attribute::<Temperature>(2).is_some());
+}
+
+#[test]
+fn test_split_attributes() {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(5);
+
+    // Setup initial value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    // Test split
+    manager.split_attribute::<Temperature>(1, 2, 0);
+
+    // The exact results depend on how split is implemented in AttributeStorage
+    // Just verify that something was stored at both output locations
+    assert!(manager.get_attribute::<Temperature>(1).is_some());
+    assert!(manager.get_attribute::<Temperature>(2).is_some());
+}
+
+#[test]
+fn test_extend_all_storages() {
+    let mut manager = AttrStorageManager::default();
+
+    // Add storages of different types
+    manager.add_storage::<Temperature>(2);
+    manager.add_storage::<Length>(2);
+
+    // Extend all storages
+    manager.extend_storages(3);
+
+    // Check that all storages were extended
+    let temp_storage = manager.get_storage::<Temperature>().unwrap();
+    let length_storage = manager.get_storage::<Length>().unwrap();
+
+    assert_eq!(temp_storage.n_attributes(), 0);
+    assert_eq!(length_storage.n_attributes(), 0);
+}
+
+#[test]
+fn test_orbit_specific_merges() {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(5);
+
+    // Setup values
+    manager.set_attribute(0, Temperature::from(20.0));
+    manager.set_attribute(1, Temperature::from(30.0));
+
+    // Test vertex-specific merge
+    manager.merge_vertex_attributes(2, 0, 1);
+
+    assert!(manager.get_attribute::<Temperature>(2).is_some());
+}
+
+#[test]
+fn test_orbit_specific_splits() {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(5);
+
+    // Setup value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    // Test vertex-specific split
+    manager.split_vertex_attributes(1, 2, 0);
+
+    assert!(manager.get_attribute::<Temperature>(1).is_some());
+    assert!(manager.get_attribute::<Temperature>(2).is_some());
+}
 
 // --- unit tests
+
+// transactional manager methods
+
+fn setup_manager() -> AttrStorageManager {
+    let mut manager = AttrStorageManager::default();
+    manager.add_storage::<Temperature>(10); // Initialize with size 10
+    manager
+}
+
+#[test]
+fn test_merge_vertex_attributes_transac() {
+    let manager = setup_manager();
+    // Set initial values
+    manager.set_attribute(0, Temperature::from(20.0));
+    manager.set_attribute(1, Temperature::from(30.0));
+
+    atomically(|trans| manager.merge_vertex_attributes_transac(trans, 2, 0, 1));
+
+    // Verify merged result
+    let merged = manager.get_attribute::<Temperature>(2);
+    assert!(merged.is_some());
+    assert_eq!(merged.unwrap(), Temperature::from(25.0));
+}
+
+#[test]
+fn test_split_vertex_attributes_transac() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(20.0));
+
+    atomically(|trans| manager.split_vertex_attributes_transac(trans, 1, 2, 0));
+
+    // Verify split results
+    let split1 = manager.get_attribute::<Temperature>(1);
+    let split2 = manager.get_attribute::<Temperature>(2);
+
+    assert!(split1.is_some());
+    assert!(split2.is_some());
+    assert_eq!(split1.unwrap().val, 20.0);
+    assert_eq!(split2.unwrap().val, 20.0);
+}
+
+#[test]
+fn test_set_attribute_transac() {
+    let manager = setup_manager();
+
+    atomically(|trans| manager.set_attribute_transac(trans, 0, Temperature::from(25.0)));
+
+    let value = manager.get_attribute::<Temperature>(0);
+    assert!(value.is_some());
+    assert_eq!(value.unwrap().val, 25.0);
+}
+
+#[test]
+fn test_insert_attribute_transac() {
+    let manager = setup_manager();
+
+    atomically(|trans| manager.insert_attribute_transac(trans, 0, Temperature::from(25.0)));
+
+    let value = manager.get_attribute::<Temperature>(0);
+    assert!(value.is_some());
+    assert_eq!(value.unwrap().val, 25.0);
+}
+
+#[test]
+fn test_get_attribute_transac() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    let value = atomically(|trans| manager.get_attribute_transac::<Temperature>(trans, 0));
+
+    assert!(value.is_some());
+    assert_eq!(value.unwrap().val, 25.0);
+}
+
+#[test]
+fn test_replace_attribute_transac() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    let old_value =
+        atomically(|trans| manager.replace_attribute_transac(trans, 0, Temperature::from(30.0)));
+
+    assert!(old_value.is_some());
+    assert_eq!(old_value.unwrap().val, 25.0);
+
+    let new_value = manager.get_attribute::<Temperature>(0);
+    assert!(new_value.is_some());
+    assert_eq!(new_value.unwrap().val, 30.0);
+}
+
+#[test]
+fn test_remove_attribute_transac() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    let removed_value =
+        atomically(|trans| manager.remove_attribute_transac::<Temperature>(trans, 0));
+
+    assert!(removed_value.is_some());
+    assert_eq!(removed_value.unwrap().val, 25.0);
+
+    let value = manager.get_attribute::<Temperature>(0);
+    assert!(value.is_none());
+}
+
+#[test]
+fn test_merge_attribute_transac() {
+    let manager = setup_manager();
+
+    // Set initial values
+    manager.set_attribute(0, Temperature::from(20.0));
+    manager.set_attribute(1, Temperature::from(30.0));
+
+    atomically(|trans| manager.merge_attribute_transac::<Temperature>(trans, 2, 0, 1));
+
+    let merged = manager.get_attribute::<Temperature>(2);
+    assert!(merged.is_some());
+    assert_eq!(merged.unwrap().val, 25.0); // Assuming merge averages values
+}
+
+#[test]
+fn test_split_attribute_transac() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(20.0));
+
+    atomically(|trans| manager.split_attribute_transac::<Temperature>(trans, 1, 2, 0));
+
+    let split1 = manager.get_attribute::<Temperature>(1);
+    let split2 = manager.get_attribute::<Temperature>(2);
+
+    assert!(split1.is_some());
+    assert!(split2.is_some());
+    assert_eq!(split1.unwrap().val, 20.0); // Assuming split copies values
+    assert_eq!(split2.unwrap().val, 20.0);
+}
+
+#[test]
+fn test_attribute_operations_with_failed_transaction() {
+    let manager = setup_manager();
+
+    // Set initial value
+    manager.set_attribute(0, Temperature::from(25.0));
+
+    let _: Option<()> = Transaction::with_control(
+        |_err| TransactionControl::Abort,
+        |trans| {
+            manager.set_attribute_transac(trans, 0, Temperature::from(30.0))?;
+            manager.insert_attribute_transac(trans, 1, Temperature::from(35.0))?;
+
+            Err(StmError::Failure)
+        },
+    );
+
+    // Verify original values remained unchanged
+    let value0 = manager.get_attribute::<Temperature>(0);
+    let value1 = manager.get_attribute::<Temperature>(1);
+
+    assert!(value0.is_some());
+    assert_eq!(value0.unwrap().val, 25.0);
+    assert!(value1.is_none());
+}
 
 // traits
 

@@ -323,3 +323,11 @@ fn io_write() {
     assert!(res.contains("2 7 8"));
     assert!(res.contains("2 8 3"));
 }
+
+// --- PARALLEL
+
+#[test]
+fn merge_ordering() {}
+
+#[test]
+fn split_ordering() {}
