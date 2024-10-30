@@ -23,11 +23,11 @@ pub fn build_2d_grid<T: CoordsFloat>(
         .flat_map(|y_idx| (0..n_square_x - 1).map(move |x_idx| (y_idx, x_idx)))
         .for_each(|(y_idx, x_idx)| {
             // build basic topology & fetch dart IDs of the cell
-            let [d1, d2, d3, _] = build_square_core(&mut map, n_square_x, [x_idx, y_idx]);
+            let [d1, d2, d3, _] = build_square_core(&map, n_square_x, [x_idx, y_idx]);
 
             // sew to right & up neighbors
-            build_square_sew_right(&mut map, d2);
-            build_square_sew_up(&mut map, d3, n_square_x);
+            build_square_sew_right(&map, d2);
+            build_square_sew_up(&map, d3, n_square_x);
 
             // edit geometry
             let vertex_id = map.vertex_id(d1); // bottom left
@@ -46,10 +46,10 @@ pub fn build_2d_grid<T: CoordsFloat>(
         let y_idx = n_square_y - 1;
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, d2, _, d4] = build_square_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, d2, _, d4] = build_square_core(&map, n_square_x, [x_idx, y_idx]);
 
         // sew to right neighbor only
-        build_square_sew_right(&mut map, d2);
+        build_square_sew_right(&map, d2);
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
@@ -77,10 +77,10 @@ pub fn build_2d_grid<T: CoordsFloat>(
         let x_idx = n_square_x - 1;
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, d2, d3, _] = build_square_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, d2, d3, _] = build_square_core(&map, n_square_x, [x_idx, y_idx]);
 
         // sew to up neighbor only
-        build_square_sew_up(&mut map, d3, n_square_x);
+        build_square_sew_up(&map, d3, n_square_x);
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
@@ -108,7 +108,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
         let (x_idx, y_idx) = (n_square_x - 1, n_square_y - 1);
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, d2, d3, d4] = build_square_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, d2, d3, d4] = build_square_core(&map, n_square_x, [x_idx, y_idx]);
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
@@ -160,7 +160,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
 fn build_square_core<T: CoordsFloat>(
-    map: &mut CMap2<T>,
+    map: &CMap2<T>,
     n_square_x: usize,
     [x_idx, y_idx]: [usize; 2],
 ) -> [DartIdentifier; 4] {
@@ -186,7 +186,7 @@ fn build_square_core<T: CoordsFloat>(
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_square_sew_right<T: CoordsFloat>(map: &mut CMap2<T>, dart: DartIdentifier) {
+fn build_square_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier) {
     let right_neighbor = dart + 6;
     map.set_beta::<2>(dart, right_neighbor);
     map.set_beta::<2>(right_neighbor, dart);
@@ -194,11 +194,7 @@ fn build_square_sew_right<T: CoordsFloat>(map: &mut CMap2<T>, dart: DartIdentifi
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_square_sew_up<T: CoordsFloat>(
-    map: &mut CMap2<T>,
-    dart: DartIdentifier,
-    n_square_x: usize,
-) {
+fn build_square_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier, n_square_x: usize) {
     let up_neighbor = dart - 2 + 4 * n_square_x as DartIdentifier; // d1 + 4*nx
     map.set_beta::<2>(dart, up_neighbor);
     map.set_beta::<2>(up_neighbor, dart);
@@ -220,12 +216,12 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         .flat_map(|y_idx| (0..n_square_x - 1).map(move |x_idx| (y_idx, x_idx)))
         .for_each(|(y_idx, x_idx)| {
             // build basic topology & fetch dart IDs of the cell
-            let [d1, _, _, _, d5, d6] = build_tris_core(&mut map, n_square_x, [x_idx, y_idx]);
+            let [d1, _, _, _, d5, d6] = build_tris_core(&map, n_square_x, [x_idx, y_idx]);
 
             // if there is a right neighbor, sew sew
-            build_tris_sew_right(&mut map, d5);
+            build_tris_sew_right(&map, d5);
             // if there is an up neighbor, sew sew
-            build_tris_sew_up(&mut map, d6, n_square_x);
+            build_tris_sew_up(&map, d6, n_square_x);
 
             // edit geometry
             let vertex_id = map.vertex_id(d1);
@@ -244,10 +240,10 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         let y_idx = n_square_y - 1;
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, _, d3, _, d5, _] = build_tris_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, _, d3, _, d5, _] = build_tris_core(&map, n_square_x, [x_idx, y_idx]);
 
         // sew right neighbor
-        build_tris_sew_right(&mut map, d5);
+        build_tris_sew_right(&map, d5);
 
         // edit geometry
         let vertex_id = map.vertex_id(d1);
@@ -275,10 +271,10 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         let x_idx = n_square_x - 1;
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, _, _, _, d5, d6] = build_tris_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, _, _, _, d5, d6] = build_tris_core(&map, n_square_x, [x_idx, y_idx]);
 
         // sew up neighbor
-        build_tris_sew_up(&mut map, d6, n_square_x);
+        build_tris_sew_up(&map, d6, n_square_x);
 
         // edit geometry
         let vertex_id = map.vertex_id(d1);
@@ -306,7 +302,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         let (x_idx, y_idx) = (n_square_x - 1, n_square_y - 1);
 
         // build basic topology & fetch dart IDs of the cell
-        let [d1, _, d3, _, d5, d6] = build_tris_core(&mut map, n_square_x, [x_idx, y_idx]);
+        let [d1, _, d3, _, d5, d6] = build_tris_core(&map, n_square_x, [x_idx, y_idx]);
 
         let vertex_id = map.vertex_id(d1);
         map.insert_vertex(
@@ -360,7 +356,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
 fn build_tris_core<T: CoordsFloat>(
-    map: &mut CMap2<T>,
+    map: &CMap2<T>,
     n_square_x: usize,
     [x_idx, y_idx]: [usize; 2],
 ) -> [DartIdentifier; 6] {
@@ -395,7 +391,7 @@ fn build_tris_core<T: CoordsFloat>(
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_tris_sew_right<T: CoordsFloat>(map: &mut CMap2<T>, dart: DartIdentifier) {
+fn build_tris_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier) {
     let right_neighbor = dart + 4;
     map.set_beta::<2>(dart, right_neighbor);
     map.set_beta::<2>(right_neighbor, dart);
@@ -403,7 +399,7 @@ fn build_tris_sew_right<T: CoordsFloat>(map: &mut CMap2<T>, dart: DartIdentifier
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_tris_sew_up<T: CoordsFloat>(map: &mut CMap2<T>, dart: DartIdentifier, n_square_x: usize) {
+fn build_tris_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier, n_square_x: usize) {
     let up_neighbor = dart - 5 + 6 * n_square_x as DartIdentifier; // d1 + 6*nx
     map.set_beta::<2>(dart, up_neighbor);
     map.set_beta::<2>(up_neighbor, dart);
