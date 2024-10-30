@@ -14,7 +14,6 @@ use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     geometry::CoordsFloat,
 };
-use std::sync::atomic::AtomicBool;
 
 // ------ CONTENT
 
@@ -153,7 +152,7 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) vertices: AttrSparseVec<Vertex2<T>>,
     /// List of free darts identifiers, i.e. empty spots
     /// in the current dart list
-    pub(super) unused_darts: Vec<AtomicBool>,
+    pub(super) unused_darts: Vec<TVar<bool>>,
     /// Array representation of the beta functions
     pub(super) betas: Vec<[TVar<DartIdentifier>; CMAP2_BETA]>,
     /// Current number of darts
@@ -186,7 +185,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
+            unused_darts: (0..=n_darts).map(|_| TVar::new(false)).collect(),
             betas: (0..=n_darts)
                 .map(|_| {
                     [
@@ -229,7 +228,7 @@ impl<T: CoordsFloat> CMap2<T> {
         Self {
             attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),
-            unused_darts: (0..=n_darts).map(|_| AtomicBool::new(false)).collect(),
+            unused_darts: (0..=n_darts).map(|_| TVar::new(false)).collect(),
             betas: (0..=n_darts)
                 .map(|_| {
                     [

@@ -9,8 +9,6 @@
 
 // ------ IMPORTS
 
-use stm::{StmError, TVar, Transaction};
-
 use crate::prelude::{
     CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
     NULL_DART_ID,
@@ -20,9 +18,9 @@ use crate::{
     cmap::{EdgeCollection, FaceCollection, VertexCollection},
     geometry::CoordsFloat,
 };
-
 use std::collections::{BTreeSet, VecDeque};
-use std::sync::atomic::{AtomicBool, Ordering};
+use stm::{atomically, StmError, TVar, Transaction};
+
 // ------ CONTENT
 
 /// **Dart-related methods**
@@ -38,10 +36,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return information about the current number of unused darts.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts
-            .iter()
-            .filter(|v| v.load(Ordering::Relaxed))
-            .count()
+        self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
     // --- edit
@@ -63,7 +58,7 @@ impl<T: CoordsFloat> CMap2<T> {
             TVar::new(NULL_DART_ID),
             TVar::new(NULL_DART_ID),
         ]);
-        self.unused_darts.push(AtomicBool::new(false));
+        self.unused_darts.push(TVar::new(false));
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -93,7 +88,7 @@ impl<T: CoordsFloat> CMap2<T> {
             ]
         }));
         self.unused_darts
-            .extend((0..n_darts).map(|_| AtomicBool::new(false)));
+            .extend((0..n_darts).map(|_| TVar::new(false)));
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
@@ -113,7 +108,7 @@ impl<T: CoordsFloat> CMap2<T> {
             .unused_darts
             .iter()
             .enumerate()
-            .find(|(_, u)| u.load(Ordering::Relaxed))
+            .find(|(_, u)| u.read_atomic())
         {
             self.betas[new_id] = [
                 TVar::new(NULL_DART_ID),
@@ -148,10 +143,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///   a detailed breakdown of this choice).
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
-        assert!(self.is_free(dart_id)); // all beta images are 0
-        assert!(self.unused_darts[dart_id as usize]
-            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
-            .is_ok());
+        atomically(|trans| {
+            assert!(self.is_free(dart_id)); // all beta images are 0
+            assert!(!self.unused_darts[dart_id as usize].replace(trans, true)?);
+            Ok(())
+        });
     }
 }
 
@@ -470,7 +466,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let vids: BTreeSet<VertexIdentifier> = (1..self.n_darts as DartIdentifier)
             .zip(self.unused_darts[1..].iter())
             .filter_map(|(d, unused)| {
-                if unused.load(Ordering::Relaxed) {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.vertex_id(d))
@@ -492,7 +488,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let eids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
             .zip(self.unused_darts[1..].iter())
             .filter_map(|(d, unused)| {
-                if unused.load(Ordering::Relaxed) {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.edge_id(d))
@@ -514,7 +510,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let fids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
             .zip(self.unused_darts[1..].iter())
             .filter_map(|(d, unused)| {
-                if unused.load(Ordering::Relaxed) {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.face_id(d))
