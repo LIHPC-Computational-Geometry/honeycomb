@@ -10,7 +10,7 @@
 ///
 /// Cells `(X, Y)` take value in range `(0, 0)` to `(N, M)`,
 /// from left to right (X), from bottom to top (Y).
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct GridCellId(pub usize, pub usize);
 
 impl GridCellId {
