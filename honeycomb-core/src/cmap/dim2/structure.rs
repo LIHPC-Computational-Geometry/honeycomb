@@ -242,10 +242,3 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 }
-
-#[cfg(feature = "utils")]
-impl<T: CoordsFloat> Clone for CMap2<T> {
-    fn clone(&self) -> Self {
-        todo!()
-    }
-}
