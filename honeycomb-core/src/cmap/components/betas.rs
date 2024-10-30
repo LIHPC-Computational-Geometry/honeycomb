@@ -13,7 +13,8 @@ use super::identifiers::{DartId, NULL_DART_ID};
 
 /// Beta functions storage.
 ///
-/// `N` is the number of beta function stored, including `B0`.
+/// `N` is the number of beta function stored, including `B0`. This means that, for example,
+/// a 2-map will have a `BetaFunctions<3>` object field.
 pub struct BetaFunctions<const N: usize>(Vec<[TVar<DartId>; N]>);
 
 /// Generate beta functions default value for a new dart.
