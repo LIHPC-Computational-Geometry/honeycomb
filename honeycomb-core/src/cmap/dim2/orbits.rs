@@ -178,6 +178,7 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
 
 // ------ TESTS
 
+#[allow(unused_mut)]
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -9,7 +9,6 @@
 
 // ------ IMPORTS
 
-use super::CMAP2_BETA;
 use crate::prelude::{
     CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
     NULL_DART_ID,
@@ -19,8 +18,8 @@ use crate::{
     cmap::{EdgeCollection, FaceCollection, VertexCollection},
     geometry::CoordsFloat,
 };
-
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
+use stm::{atomically, StmError, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -37,7 +36,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return information about the current number of unused darts.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts.len()
+        self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
     // --- edit
@@ -54,7 +53,12 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
-        self.betas.push([0; CMAP2_BETA]);
+        self.betas.push([
+            TVar::new(NULL_DART_ID),
+            TVar::new(NULL_DART_ID),
+            TVar::new(NULL_DART_ID),
+        ]);
+        self.unused_darts.push(TVar::new(false));
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -76,7 +80,15 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
-        self.betas.extend((0..n_darts).map(|_| [0; CMAP2_BETA]));
+        self.betas.extend((0..n_darts).map(|_| {
+            [
+                TVar::new(NULL_DART_ID),
+                TVar::new(NULL_DART_ID),
+                TVar::new(NULL_DART_ID),
+            ]
+        }));
+        self.unused_darts
+            .extend((0..n_darts).map(|_| TVar::new(false)));
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
@@ -92,9 +104,18 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return the ID of the created dart to allow for direct operations.
     ///
     pub fn insert_free_dart(&mut self) -> DartIdentifier {
-        if let Some(new_id) = self.unused_darts.pop_first() {
-            self.betas[new_id as usize] = [0; CMAP2_BETA];
-            new_id
+        if let Some((new_id, _)) = self
+            .unused_darts
+            .iter()
+            .enumerate()
+            .find(|(_, u)| u.read_atomic())
+        {
+            self.betas[new_id] = [
+                TVar::new(NULL_DART_ID),
+                TVar::new(NULL_DART_ID),
+                TVar::new(NULL_DART_ID),
+            ];
+            new_id as DartIdentifier
         } else {
             self.add_free_dart()
         }
@@ -122,16 +143,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///   a detailed breakdown of this choice).
     ///
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
-        assert!(self.is_free(dart_id));
-        assert!(self.unused_darts.insert(dart_id));
-        // this should not be required if the map is not corrupt
-        // or in the middle of a more complex operation
-        let b0d = self.beta::<0>(dart_id);
-        let b1d = self.beta::<1>(dart_id);
-        let b2d = self.beta::<2>(dart_id);
-        self.betas[b0d as usize][1] = 0 as DartIdentifier;
-        self.betas[b1d as usize][0] = 0 as DartIdentifier;
-        self.betas[b2d as usize][2] = 0 as DartIdentifier;
+        atomically(|trans| {
+            assert!(self.is_free(dart_id)); // all beta images are 0
+            assert!(!self.unused_darts[dart_id as usize].replace(trans, true)?);
+            Ok(())
+        });
     }
 }
 
@@ -161,7 +177,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
-        self.betas[dart_id as usize][I as usize]
+        self.betas[dart_id as usize][I as usize].read_atomic()
     }
 
     /// Compute the value of the i-th beta function of a given dart.
@@ -269,6 +285,36 @@ impl<T: CoordsFloat> CMap2<T> {
             .expect("E: unreachable") as VertexIdentifier
     }
 
+    /// Atomically compute the associated vertex ID.
+    pub(crate) fn vertex_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<VertexIdentifier, StmError> {
+        let mut marked = BTreeSet::<DartIdentifier>::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
+        while let Some(d) = pending.pop_front() {
+            let image1 =
+                self.betas[self.betas[d as usize][2].read(trans)? as usize][1].read(trans)?;
+            if marked.insert(image1) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image1);
+            }
+            let image2 =
+                self.betas[self.betas[d as usize][0].read(trans)? as usize][2].read(trans)?;
+            if marked.insert(image2) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image2);
+            }
+        }
+        marked.remove(&NULL_DART_ID);
+        Ok(marked.into_iter().min().unwrap() as VertexIdentifier)
+    }
+
     #[allow(clippy::missing_panics_doc)]
     /// Fetch edge associated to a given dart.
     ///
@@ -303,6 +349,21 @@ impl<T: CoordsFloat> CMap2<T> {
             .expect("E: unreachable") as EdgeIdentifier
     }
 
+    /// Atomically compute the associated edge ID.
+    pub(crate) fn edge_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<EdgeIdentifier, StmError> {
+        // optimizing this one bc I'm tired
+        let b2 = self.betas[dart_id as usize][2].read(trans)?;
+        if b2 == NULL_DART_ID {
+            Ok(dart_id as EdgeIdentifier)
+        } else {
+            Ok(b2.min(dart_id) as EdgeIdentifier)
+        }
+    }
+
     #[allow(clippy::missing_panics_doc)]
     /// Fetch face associated to a given dart.
     ///
@@ -335,6 +396,30 @@ impl<T: CoordsFloat> CMap2<T> {
         Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
             .min()
             .expect("E: unreachable") as FaceIdentifier
+    }
+
+    #[allow(unused)]
+    /// Atomically compute the associated face ID.
+    pub(crate) fn face_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdentifier,
+    ) -> Result<FaceIdentifier, StmError> {
+        let mut marked = BTreeSet::<DartIdentifier>::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
+        while let Some(d) = pending.pop_front() {
+            // WE ASSUME THAT THE FACE IS COMPLETE
+            let image = self.betas[d as usize][1].read(trans)?;
+            if marked.insert(image) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                pending.push_back(image);
+            }
+        }
+        marked.remove(&NULL_DART_ID);
+        Ok(marked.into_iter().min().unwrap() as FaceIdentifier)
     }
 
     /// Return an [`Orbit2`] object that can be used to iterate over darts of an i-cell.
@@ -379,8 +464,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let vids: BTreeSet<VertexIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.vertex_id(d))
@@ -400,8 +486,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let eids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.edge_id(d))
@@ -421,8 +508,9 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let fids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .filter_map(|d| {
-                if self.unused_darts.contains(&d) {
+            .zip(self.unused_darts[1..].iter())
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
                     None
                 } else {
                     Some(self.face_id(d))

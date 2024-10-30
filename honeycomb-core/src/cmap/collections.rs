@@ -55,6 +55,9 @@ pub struct VertexCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<VertexIdentifier>,
 }
 
+unsafe impl<'a, T: CoordsFloat> Send for VertexCollection<'a, T> {}
+unsafe impl<'a, T: CoordsFloat> Sync for VertexCollection<'a, T> {}
+
 collection_constructor!(VertexCollection, VertexIdentifier);
 
 // --- edges
@@ -88,6 +91,9 @@ pub struct EdgeCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<EdgeIdentifier>,
 }
 
+unsafe impl<'a, T: CoordsFloat> Send for EdgeCollection<'a, T> {}
+unsafe impl<'a, T: CoordsFloat> Sync for EdgeCollection<'a, T> {}
+
 collection_constructor!(EdgeCollection, EdgeIdentifier);
 
 // --- faces
@@ -120,6 +126,9 @@ pub struct FaceCollection<'a, T: CoordsFloat> {
     /// Collection of vertex identifiers.
     pub identifiers: Vec<FaceIdentifier>,
 }
+
+unsafe impl<'a, T: CoordsFloat> Send for FaceCollection<'a, T> {}
+unsafe impl<'a, T: CoordsFloat> Sync for FaceCollection<'a, T> {}
 
 collection_constructor!(FaceCollection, FaceIdentifier);
 

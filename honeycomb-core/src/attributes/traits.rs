@@ -9,9 +9,7 @@ use crate::prelude::{DartIdentifier, OrbitPolicy};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
-
-#[cfg(feature = "utils")]
-use dyn_clone::{clone_trait_object, DynClone};
+use stm::{StmError, Transaction};
 
 // ------ CONTENT
 
@@ -59,7 +57,7 @@ use dyn_clone::{clone_trait_object, DynClone};
 ///
 /// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
 /// ```
-pub trait AttributeUpdate: Sized {
+pub trait AttributeUpdate: Sized + Send + Sync {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
     fn merge(attr1: Self, attr2: Self) -> Self;
 
@@ -138,104 +136,115 @@ pub trait AttributeBind: Debug + Sized + Any {
     const BIND_POLICY: OrbitPolicy;
 }
 
-macro_rules! unknown_attribute_storage {
-    () => {
-        /// Constructor
-        ///
-        /// # Arguments
-        ///
-        /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
-        ///   the upper bound of IDs used to index the attribute's values, i.e. the number of darts
-        ///   including the null dart.
-        ///
-        /// # Return
-        ///
-        /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
-        #[must_use = "constructed object is not used, consider removing this function call"]
-        fn new(length: usize) -> Self
-        where
-            Self: Sized;
-
-        /// Extend the storage's length
-        ///
-        /// # Arguments
-        ///
-        /// - `length: usize` -- length of which the storage should be extended.
-        fn extend(&mut self, length: usize);
-
-        /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
-        /// its length.
-        #[must_use = "returned value is not used, consider removing this method call"]
-        fn n_attributes(&self) -> usize;
-
-        /// Merge attributes at specified index
-        ///
-        /// This method should serve as a wire to either `AttributeUpdate::merge`
-        /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
-        /// the storage.
-        ///
-        /// # Arguments
-        ///
-        /// - `out: DartIdentifier` -- Identifier to associate the result with.
-        /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
-        /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
-        ///
-        /// # Behavior pseudo-code
-        ///
-        /// ```text
-        /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
-        ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-        ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
-        ///     None, None => AttributeUpdate::merge_undefined(None),
-        /// }
-        /// attributes.set(out, new_val);
-        /// ```
-        fn merge(&mut self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
-
-        /// Split attribute to specified indices
-        ///
-        /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
-        /// we want to split from the storage.
-        ///
-        /// # Arguments
-        ///
-        /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
-        /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
-        /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
-        ///
-        /// # Behavior pseudo-code
-        ///
-        /// ```text
-        /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
-        /// attributes[lhs_out] = val_lhs;
-        /// attributes[rhs_out] = val_rhs;
-        /// ```
-        fn split(&mut self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
-    };
-}
-
 /// Common trait implemented by generic attribute storages.
 ///
 /// This trait contain attribute-agnostic function & methods.
 ///
 /// The documentation of this trait describe the behavior each function & method should have.
-#[cfg(feature = "utils")]
-pub trait UnknownAttributeStorage: Any + Debug + Downcast + DynClone {
-    unknown_attribute_storage!();
-}
-
-/// Common trait implemented by generic attribute storages.
-///
-/// This trait contain attribute-agnostic function & methods.
-///
-/// The documentation of this trait describe the behavior each function & method should have.
-#[cfg(not(feature = "utils"))]
 pub trait UnknownAttributeStorage: Any + Debug + Downcast {
-    unknown_attribute_storage!();
+    /// Constructor
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- Initial length/capacity of the storage. It should correspond to
+    ///   the upper bound of IDs used to index the attribute's values, i.e. the number of darts
+    ///   including the null dart.
+    ///
+    /// # Return
+    ///
+    /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
+    #[must_use = "constructed object is not used, consider removing this function call"]
+    fn new(length: usize) -> Self
+    where
+        Self: Sized;
+
+    /// Extend the storage's length
+    ///
+    /// # Arguments
+    ///
+    /// - `length: usize` -- length of which the storage should be extended.
+    fn extend(&mut self, length: usize);
+
+    /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
+    /// its length.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    fn n_attributes(&self) -> usize;
+
+    /// Merge attributes at specified index
+    ///
+    /// This method should serve as a wire to either `AttributeUpdate::merge`
+    /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
+    /// the storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Behavior pseudo-code
+    ///
+    /// ```text
+    /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
+    ///     (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+    ///     (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_undefined(Some(v)),
+    ///     None, None => AttributeUpdate::merge_undefined(None),
+    /// }
+    /// attributes.set(out, new_val);
+    /// ```
+    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `merge`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn merge_transac(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdentifier,
+        lhs_inp: DartIdentifier,
+        rhs_inp: DartIdentifier,
+    ) -> Result<(), StmError>;
+
+    /// Split attribute to specified indices
+    ///
+    /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
+    /// we want to split from the storage.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Behavior pseudo-code
+    ///
+    /// ```text
+    /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
+    /// attributes[lhs_out] = val_lhs;
+    /// attributes[rhs_out] = val_rhs;
+    /// ```
+    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `split`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn split_transac(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdentifier,
+        rhs_out: DartIdentifier,
+        inp: DartIdentifier,
+    ) -> Result<(), StmError>;
 }
 
-#[cfg(feature = "utils")]
-clone_trait_object!(UnknownAttributeStorage);
 impl_downcast!(UnknownAttributeStorage);
 
 /// Common trait implemented by generic attribute storages.
@@ -260,7 +269,21 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn set(&mut self, id: A::IdentifierType, val: A);
+    fn set(&self, id: A::IdentifierType, val: A);
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `set`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn set_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError>;
 
     /// Setter
     ///
@@ -278,9 +301,26 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert(&mut self, id: A::IdentifierType, val: A) {
+    fn insert(&self, id: A::IdentifierType, val: A) {
         assert!(self.get(id.clone()).is_none());
         self.set(id, val);
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `insert`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn insert_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<(), StmError> {
+        assert!(self.get(id.clone()).is_none());
+        self.set_transac(trans, id, val)
     }
 
     /// Getter
@@ -301,6 +341,19 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn get(&self, id: A::IdentifierType) -> Option<A>;
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `get`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn get_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError>;
 
     /// Setter
     ///
@@ -324,7 +377,21 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn replace(&mut self, id: A::IdentifierType, val: A) -> Option<A>;
+    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `replace`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn replace_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Result<Option<A>, StmError>;
 
     /// Remove an item from the storage and return it
     ///
@@ -343,5 +410,18 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&mut self, id: A::IdentifierType) -> Option<A>;
+    fn remove(&self, id: A::IdentifierType) -> Option<A>;
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Transactional `remove`
+    ///
+    /// # Result / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transacction passed as argument. The result should not be processed manually.
+    fn remove_transac(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> Result<Option<A>, StmError>;
 }
