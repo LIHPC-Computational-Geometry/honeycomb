@@ -1,5 +1,6 @@
 // ------ IMPORTS
 
+use loom::sync::Arc;
 use stm::{atomically, StmError, Transaction, TransactionControl};
 
 use super::{
@@ -15,6 +16,8 @@ use std::any::Any;
 // ------ CONTENT
 
 // --- basic structure implementation
+
+// vertex bound
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 struct Temperature {
@@ -53,7 +56,28 @@ impl From<f32> for Temperature {
     }
 }
 
-// Create a new edge-bound attribute for testing
+#[derive(Debug, Clone, Copy, Default)]
+struct Weight(pub u32);
+
+impl AttributeUpdate for Weight {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self(attr1.0 + attr2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        // adding the % to keep things conservative
+        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
+    }
+}
+
+impl AttributeBind for Weight {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = VertexIdentifier;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
+}
+
+// edge bound
+
 #[derive(Debug, Clone, PartialEq, Copy)]
 struct Length(pub f32);
 
@@ -71,6 +95,35 @@ impl AttributeBind for Length {
     type IdentifierType = EdgeIdentifier;
     type StorageType = AttrSparseVec<Self>;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Edge;
+}
+
+// face bound
+
+fn mean(a: u8, b: u8) -> u8 {
+    ((u16::from(a) + u16::from(b)) / 2) as u8
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct Color(pub u8, pub u8, pub u8);
+
+impl AttributeUpdate for Color {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self(
+            mean(attr1.0, attr2.0),
+            mean(attr1.1, attr2.1),
+            mean(attr1.2, attr2.2),
+        )
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        (attr, attr)
+    }
+}
+
+impl AttributeBind for Color {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = FaceIdentifier;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 }
 
 // --- usual workflow test
@@ -745,4 +798,78 @@ fn manager_split_attribute() {
     assert_eq!(manager.get_attribute(3), Some(Temperature::from(289.0)));
     assert_eq!(manager.get_attribute(6), Some(Temperature::from(289.0)));
     assert_eq!(manager.get_attribute::<Temperature>(8), None);
+}
+
+// --- parallel
+//
+#[test]
+fn manager_ordering() {
+    loom::model(|| {
+        // setup manager
+        let mut manager = AttrStorageManager::default();
+        manager.add_storage::<Temperature>(3);
+        manager.add_storage::<Length>(3);
+        manager.add_storage::<Weight>(3);
+        manager.add_storage::<Color>(3);
+
+        manager.set_attribute(1, Temperature::from(20.0));
+        manager.set_attribute(3, Temperature::from(30.0));
+
+        manager.set_attribute(1, Length(3.0));
+        manager.set_attribute(3, Length(2.0));
+
+        manager.set_attribute(1, Weight(10));
+        manager.set_attribute(3, Weight(15));
+
+        manager.set_attribute(1, Color(255, 0, 0));
+        manager.set_attribute(3, Color(0, 0, 255));
+
+        let arc = Arc::new(manager);
+        let c1 = arc.clone();
+        let c2 = arc.clone();
+
+        // we're going to do 2 ops:
+        // - merge (1, 3) => 2
+        // - split 2 =< (2, 3)
+        // depending on the execution path, attribute values on slots 2 and 3 will vary
+        // attribute value of slot 1 should be None in any case
+
+        let t1 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                c1.merge_vertex_attributes_transac(trans, 2, 1, 3)?;
+                c1.merge_edge_attributes_transac(trans, 2, 1, 3)?;
+                c1.merge_face_attributes_transac(trans, 2, 1, 3)?;
+                Ok(())
+            });
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                c2.split_vertex_attributes_transac(trans, 2, 3, 2)?;
+                c2.split_edge_attributes_transac(trans, 2, 3, 2)?;
+                c2.split_face_attributes_transac(trans, 2, 3, 2)?;
+                Ok(())
+            });
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // in both cases
+        let slot_1_is_empty = arc.get_attribute::<Temperature>(1).is_none()
+            && arc.get_attribute::<Weight>(1).is_none()
+            && arc.get_attribute::<Temperature>(1).is_none()
+            && arc.get_attribute::<Color>(1).is_none();
+        assert!(slot_1_is_empty);
+
+        // path 1: merge before split
+        let p1_2_temp = arc
+            .get_attribute::<Temperature>(2)
+            .is_some_and(|val| val == Temperature::from(25.0));
+        let p1_3_temp = arc
+            .get_attribute::<Temperature>(3)
+            .is_some_and(|val| val == Temperature::from(25.0));
+
+        // path 2: split before merge
+    });
 }

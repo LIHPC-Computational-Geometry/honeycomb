@@ -2,7 +2,7 @@
 
 use crate::{
     attributes::AttrSparseVec,
-    cmap::{EdgeIdentifier, VertexIdentifier},
+    cmap::VertexIdentifier,
     prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
 };
 
@@ -349,12 +349,6 @@ impl AttributeBind for Weight {
     type IdentifierType = VertexIdentifier;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
-
-#[test]
-fn merge_ordering() {}
-
-#[test]
-fn split_ordering() {}
 
 #[test]
 fn sew_ordering() {
