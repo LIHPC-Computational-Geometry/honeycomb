@@ -56,7 +56,7 @@ impl From<f32> for Temperature {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 struct Weight(pub u32);
 
 impl AttributeUpdate for Weight {
@@ -103,7 +103,7 @@ fn mean(a: u8, b: u8) -> u8 {
     ((u16::from(a) + u16::from(b)) / 2) as u8
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 struct Color(pub u8, pub u8, pub u8);
 
 impl AttributeUpdate for Color {
@@ -801,16 +801,17 @@ fn manager_split_attribute() {
 }
 
 // --- parallel
-//
+
+#[allow(clippy::too_many_lines)]
 #[test]
 fn manager_ordering() {
     loom::model(|| {
-        // setup manager
+        // setup manager; slot 0, 1, 2, 3
         let mut manager = AttrStorageManager::default();
-        manager.add_storage::<Temperature>(3);
-        manager.add_storage::<Length>(3);
-        manager.add_storage::<Weight>(3);
-        manager.add_storage::<Color>(3);
+        manager.add_storage::<Temperature>(4);
+        manager.add_storage::<Length>(4);
+        manager.add_storage::<Weight>(4);
+        manager.add_storage::<Color>(4);
 
         manager.set_attribute(1, Temperature::from(20.0));
         manager.set_attribute(3, Temperature::from(30.0));
@@ -858,7 +859,7 @@ fn manager_ordering() {
         // in both cases
         let slot_1_is_empty = arc.get_attribute::<Temperature>(1).is_none()
             && arc.get_attribute::<Weight>(1).is_none()
-            && arc.get_attribute::<Temperature>(1).is_none()
+            && arc.get_attribute::<Length>(1).is_none()
             && arc.get_attribute::<Color>(1).is_none();
         assert!(slot_1_is_empty);
 
@@ -870,6 +871,68 @@ fn manager_ordering() {
             .get_attribute::<Temperature>(3)
             .is_some_and(|val| val == Temperature::from(25.0));
 
+        let p1_2_weight = arc
+            .get_attribute::<Weight>(2)
+            .is_some_and(|v| v == Weight(13));
+        let p1_3_weight = arc
+            .get_attribute::<Weight>(3)
+            .is_some_and(|v| v == Weight(12));
+
+        let p1_2_len = arc
+            .get_attribute::<Length>(2)
+            .is_some_and(|v| v == Length(2.5));
+        let p1_3_len = arc
+            .get_attribute::<Length>(3)
+            .is_some_and(|v| v == Length(2.5));
+
+        let p1_2_col = arc
+            .get_attribute::<Color>(2)
+            .is_some_and(|v| v == Color(127, 0, 127));
+        let p1_3_col = arc
+            .get_attribute::<Color>(3)
+            .is_some_and(|v| v == Color(127, 0, 127));
+
+        let p1 = slot_1_is_empty
+            && p1_2_temp
+            && p1_3_temp
+            && p1_2_weight
+            && p1_3_weight
+            && p1_2_len
+            && p1_3_len
+            && p1_2_col
+            && p1_3_col;
+
         // path 2: split before merge
+        let p2_2_temp = arc
+            .get_attribute::<Temperature>(2)
+            .is_some_and(|val| val == Temperature::from(5.0));
+        let p2_3_temp = arc.get_attribute::<Temperature>(3).is_none();
+
+        let p2_2_weight = arc
+            .get_attribute::<Weight>(2)
+            .is_some_and(|v| v == Weight(10));
+        let p2_3_weight = arc.get_attribute::<Weight>(3).is_none();
+
+        let p2_2_len = arc
+            .get_attribute::<Length>(2)
+            .is_some_and(|v| v == Length(3.0));
+        let p2_3_len = arc.get_attribute::<Length>(3).is_none();
+
+        let p2_2_col = arc
+            .get_attribute::<Color>(2)
+            .is_some_and(|v| v == Color(255, 0, 0));
+        let p2_3_col = arc.get_attribute::<Color>(3).is_none();
+
+        let p2 = slot_1_is_empty
+            && p2_2_temp
+            && p2_3_temp
+            && p2_2_weight
+            && p2_3_weight
+            && p2_2_len
+            && p2_3_len
+            && p2_2_col
+            && p2_3_col;
+
+        assert!(p1 || p2);
     });
 }
