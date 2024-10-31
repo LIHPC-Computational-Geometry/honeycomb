@@ -66,7 +66,12 @@ use crate::grisubal::clip::{clip_left, clip_right};
 use crate::grisubal::model::{
     compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
 };
+use honeycomb_core::cmap::{CMapBuilder, GridDescriptor};
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use kernel::{
+    compute_intersection_ids, generate_edge_data, generate_intersection_data,
+    group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+};
 use thiserror::Error;
 use vtkio::Vtk;
 
@@ -184,7 +189,8 @@ pub fn grisubal<T: CoordsFloat>(
     unsafe_time_section!(instant, Section::DetectOrientation);
 
     // compute an overlapping grid & remove redundant PoIs
-    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    let [cx, cy] = grid_cell_sizes;
 
     #[cfg(feature = "profiling")]
     unsafe_time_section!(instant, Section::ComputeOverlappingGrid);
@@ -194,11 +200,85 @@ pub fn grisubal<T: CoordsFloat>(
     #[cfg(feature = "profiling")]
     unsafe_time_section!(instant, Section::RemoveRedundantPoi);
 
-    // build the map
-    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
+    // compute grid characteristics
+    // build grid descriptor
+    let ogrid = GridDescriptor::default()
+        .n_cells_x(nx)
+        .n_cells_y(ny)
+        .len_per_cell_x(cx)
+        .len_per_cell_y(cy)
+        .origin(origin);
 
     #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::BuildMeshTot);
+    let mut kernel = std::time::Instant::now();
+
+    // build initial map
+    let mut cmap = CMapBuilder::default()
+        .grid_descriptor(ogrid)
+        .add_attribute::<Boundary>() // will be used for clipping
+        .build()
+        .expect("E: unreachable"); // urneachable because grid dims are valid
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshInit);
+
+    // process the geometry
+
+    // STEP 1
+    // the aim of this step is to build an exhaustive list of the segments making up
+    // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
+    // do not belong to the same cell, we break it into sub-segments until it is the case.
+
+    let (new_segments, intersection_metadata) =
+        generate_intersection_data(&cmap, &geometry, [nx, ny], [cx, cy], origin);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshIntersecData);
+
+    // STEP 1.5
+    // precompute stuff to
+    // - parallelize step 2
+    // - make step 2 and step 3 independent from each other
+
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+
+    // STEP 2
+    // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
+    // indexing with the input Vec, meaning that indices in GeometryVertex::Intersec instances are still valid.
+
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshInsertIntersec);
+
+    // STEP 3
+    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build the actual segments that
+    // will be inserted into the map. Intersections serve as anchor points for the new segments while PoI make up
+    // "intermediate" points of segments.
+
+    let edges = generate_edge_data(&cmap, &geometry, &new_segments, &intersection_darts);
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(instant, Section::BuildMeshEdgeData);
+
+    // STEP 4
+    // now that we have some segments that are directly defined between intersections, we can use some N-maps'
+    // properties to easily build the geometry into the map.
+    // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
+    // instances are very precisely set, and can therefore be used to create all the new connectivities.
+
+    insert_edges_in_map(&mut cmap, &edges);
+
+    #[cfg(feature = "profiling")]
+    unsafe {
+        TIMERS[Section::BuildMeshInsertEdge as usize] = Some(instant.elapsed());
+    }
+
+    #[cfg(feature = "profiling")]
+    unsafe_time_section!(kernel, Section::BuildMeshTot);
 
     // optional post-processing
     match clip {
