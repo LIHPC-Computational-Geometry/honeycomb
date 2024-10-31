@@ -6,19 +6,19 @@
 
 // ------ IMPORTS
 
-use std::{
-    cmp::{max, min},
-    collections::{HashMap, VecDeque},
-};
-
-#[cfg(feature = "profiling")]
-use super::{Section, TIMERS};
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
 use crate::{grisubal::grid::GridCellId, splits::splitn_edge_no_alloc};
 use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,
 };
+use std::{
+    cmp::{max, min},
+    collections::{HashMap, VecDeque},
+};
+
+#[cfg(feature = "profiling")]
+use super::timers::{unsafe_time_section, Section, TIMERS};
 
 // ------ CONTENT
 
@@ -58,16 +58,6 @@ macro_rules! up_intersec {
         let s = ($vdart.y() - $va.y()) / ($vb.y() - $va.y());
         (s, (($vdart.x() - $va.x()) - ($vb.x() - $va.x()) * s) / $cx)
     }};
-}
-
-#[cfg(feature = "profiling")]
-macro_rules! unsafe_time_section {
-    ($inst: ident, $sec: expr) => {
-        unsafe {
-            TIMERS[$sec as usize] = Some($inst.elapsed());
-            $inst = std::time::Instant::now();
-        }
-    };
 }
 
 /// Inner building routine.

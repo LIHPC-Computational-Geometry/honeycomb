@@ -56,6 +56,8 @@ pub(crate) mod clip;
 pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
+#[cfg(feature = "profiling")]
+pub(crate) mod timers;
 
 // ------ RE-EXPORTS
 
@@ -70,6 +72,9 @@ use crate::grisubal::model::{
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
 use thiserror::Error;
 use vtkio::Vtk;
+
+#[cfg(feature = "profiling")]
+use timers::{unsafe_time_section, Section, TIMERS};
 
 // ------ CONTENT
 
@@ -91,38 +96,6 @@ pub enum GrisubalError {
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
     #[error("unsupported data in the vtk file - {0}")]
     UnsupportedVtkData(&'static str),
-}
-
-/// Global timers for execution times per-section.
-#[cfg(feature = "profiling")]
-static mut TIMERS: [Option<std::time::Duration>; 13] = [None; 13];
-
-/// Kernel section.
-#[cfg(feature = "profiling")]
-enum Section {
-    ImportVTK = 0,
-    BuildGeometry,
-    DetectOrientation,
-    ComputeOverlappingGrid,
-    RemoveRedundantPoi,
-    BuildMeshTot,
-    BuildMeshInit,
-    BuildMeshIntersecData,
-    BuildMeshInsertIntersec,
-    BuildMeshEdgeData,
-    BuildMeshInsertEdge,
-    Clip,
-    Cleanup,
-}
-
-#[cfg(feature = "profiling")]
-macro_rules! unsafe_time_section {
-    ($inst: ident, $sec: expr) => {
-        unsafe {
-            TIMERS[$sec as usize] = Some($inst.elapsed());
-            $inst = std::time::Instant::now();
-        }
-    };
 }
 
 #[allow(clippy::missing_errors_doc)]
