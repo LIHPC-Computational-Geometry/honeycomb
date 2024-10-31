@@ -1,0 +1,124 @@
+:root {
+    /* Light mode colors */
+    --background-color: #f5f5f5;
+    --body-background: white;
+    --text-color: #34495e;
+    --heading-color: #2c3e50;
+    --link-color: #3498db;
+    --border-color: #eee;
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode colors */
+.dark-mode {
+    --background-color: #1a1a1a;
+    --body-background: #121212;
+    --text-color: #c0c0c0;
+    --heading-color: #e0e0e0;
+    --link-color: #4da6ff;
+    --border-color: #333;
+    --box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+html {
+    background-color: var(--background-color);
+    height: 100%;
+    transition: background-color 0.3s;
+}
+
+body {
+    max-width: 65ch;
+    margin: 1rem auto;
+    padding: 1.5rem;
+    line-height: 1.6;
+    background-color: var(--body-background);
+    height: auto;
+    box-shadow: var(--box-shadow);
+    border-radius: 8px;
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    position: relative; /* Added to help with positioning */
+}
+
+h1, h2, h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--heading-color);
+    margin-bottom: 1rem;
+    transition: color 0.3s;
+}
+
+h1 {
+    font-size: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    margin-top: 0.1rem;
+    padding-bottom: 0.5rem;
+    transition: border-color 0.3s;
+    position: relative; /* Added to help with positioning */
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+}
+
+p, li {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    transition: color 0.3s;
+}
+
+a:link, a:visited {
+    color: var(--link-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease, color 0.3s;
+}
+
+a:hover {
+    border-bottom-color: var(--link-color);
+}
+
+/* Theme toggle styles */
+.theme-switch {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.theme-switch-label {
+    cursor: pointer;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    background-color: var(--border-color);
+    border-radius: 12px;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.theme-switch-label::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--text-color);
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+
+.theme-switch input:checked + .theme-switch-label {
+    background-color: var(--link-color);
+}
+
+.theme-switch input:checked + .theme-switch-label::after {
+    transform: translateX(26px);
+}
