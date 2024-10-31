@@ -273,12 +273,10 @@ pub fn grisubal<T: CoordsFloat>(
     insert_edges_in_map(&mut cmap, &edges);
 
     #[cfg(feature = "profiling")]
-    unsafe {
-        TIMERS[Section::BuildMeshInsertEdge as usize] = Some(instant.elapsed());
+    {
+        unsafe_time_section!(instant, Section::BuildMeshInsertEdge);
+        unsafe_time_section!(kernel, Section::BuildMeshTot);
     }
-
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(kernel, Section::BuildMeshTot);
 
     // optional post-processing
     match clip {
