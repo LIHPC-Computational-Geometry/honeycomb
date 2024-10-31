@@ -87,15 +87,10 @@ found in the code documentation.
 You can generate this documentation locally using **mdbook** and **cargo doc**:
 
 ```shell
-mdbook serve --open -d ../target/doc/ user-guide/ &
-cargo doc --all --no-deps
+mdbook serve --open user-guide/
 ```
 
 ### Additional Information
-
-Note that a most of the code possess documentation, including private modules / items / sections. You can generate
-the complete documentation by using the instructions above and passing the option `--document-private-items`
-to `cargo doc`.
 
 A few observations on writing documentation using **mdbook**:
 

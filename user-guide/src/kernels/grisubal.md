@@ -6,7 +6,7 @@
 the input geometry in an overlapping grid, by first computing intersection vertices and then rebuilding
 boundaries from the captured vertices.
 
-The algorithm can be called using [this](../honeycomb_kernels/grisubal/fn.grisubal.html) function.
+The algorithm can be called using [this](../../honeycomb_kernels/grisubal/fn.grisubal.html) function.
 
 [IMR-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
 
@@ -70,7 +70,7 @@ made up of a dart identifier (the intersected dart) as well as the relative posi
 At the same time, vertices are labeled as one of three types: `Regular`, `PoI`, or `Intersec`. This is used by the
 processing logic of the next steps.
 
-### Step 2 - Insert Intersection Vertices
+### Step 3 - Insert Intersection Vertices
 
 Intersection information is sorted **per intersected edge** for processing and mapped back to its initial storage.
 
@@ -89,7 +89,7 @@ There are two main reasons for this step to exist as its own:
   intersecting one of the grid's original dart, we can't insert vertices on the fly without creating issues related to
   execution path.
 
-### Step 3 - Filter & Rebuild Segment Data
+### Step 4 - Filter & Rebuild Segment Data
 
 Given the list of segments computed during the previous step, we must rebuild new segments where both ends are either
 points of interest or intersections. This corresponds to building segments using the following vertices:
@@ -108,7 +108,7 @@ This can be done in two substeps:
 Using a set of data made up of starting intersection, ending intersection, and (optional) intermediates, we can build
 edges into the final 2-map.
 
-### Step 4 - Insert Segments
+### Step 5 - Insert Segments
 
 Given the data built up at the last step, we can proceed with insertion into the map. At this point, only darts linking
 the first intersection to the following vertex need to be added to the map.

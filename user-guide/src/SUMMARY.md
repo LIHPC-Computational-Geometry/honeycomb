@@ -9,7 +9,6 @@
 - [Other content](./project-structure/others.md)
     - [Benchmarks](./project-structure/honeycomb-benches.md)
     - [Examples](./project-structure/honeycomb-examples.md)
-    - [User guide](./project-structure/honeycomb-guide.md)
 
 # Kernels
 
