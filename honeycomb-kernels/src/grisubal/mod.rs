@@ -63,14 +63,13 @@ pub(crate) mod timers;
 // ------ IMPORTS
 
 use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::{
-    compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
-};
+use crate::grisubal::model::{Boundary, Geometry2};
 use honeycomb_core::cmap::{CMapBuilder, GridDescriptor};
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
 use kernel::{
-    compute_intersection_ids, generate_edge_data, generate_intersection_data,
-    group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+    compute_intersection_ids, compute_overlapping_grid, detect_orientation_issue,
+    generate_edge_data, generate_intersection_data, group_intersections_per_edge,
+    insert_edges_in_map, insert_intersections, remove_redundant_poi,
 };
 use thiserror::Error;
 use vtkio::Vtk;
