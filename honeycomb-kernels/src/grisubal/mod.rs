@@ -53,15 +53,12 @@
 // ------ MODULE DECLARATIONS
 
 pub(crate) mod clip;
-pub(crate) mod grid;
 pub(crate) mod kernel;
 pub(crate) mod model;
 #[cfg(feature = "profiling")]
 pub(crate) mod timers;
 
 // ------ RE-EXPORTS
-
-pub use model::Clip;
 
 // ------ IMPORTS
 
@@ -77,6 +74,21 @@ use vtkio::Vtk;
 use timers::{unsafe_time_section, Section, TIMERS};
 
 // ------ CONTENT
+
+/// Post-processing clip operation.
+///
+/// Note that the part of the map that is clipped depends on the orientation of the original geometry provided as
+/// input.
+#[derive(Default)]
+pub enum Clip {
+    /// Clip elements located on the left side of the oriented boundary.
+    Left,
+    /// Clip elements located on the right side of the oriented boundary.
+    Right,
+    /// Keep all elements. Default value.
+    #[default]
+    None,
+}
 
 #[derive(Error, Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.

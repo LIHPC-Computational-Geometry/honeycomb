@@ -6,8 +6,8 @@
 
 // ------ IMPORTS
 
-use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, MapEdge};
-use crate::{grisubal::grid::GridCellId, splits::splitn_edge_no_alloc};
+use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex, GridCellId, MapEdge};
+use crate::splits::splitn_edge_no_alloc;
 use honeycomb_core::prelude::{
     CMap2, CMapBuilder, CoordsFloat, DartIdentifier, EdgeIdentifier, GridDescriptor, Vertex2,
     NULL_DART_ID,

@@ -6,38 +6,43 @@
 
 // ------ IMPORTS
 
-use std::collections::HashSet;
-
+use crate::grisubal::GrisubalError;
 use honeycomb_core::attributes::AttrSparseVec;
 use honeycomb_core::prelude::{
     AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy, Vertex2,
 };
-
+use std::collections::HashSet;
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
 };
 
-use crate::grisubal::grid::GridCellId;
-use crate::grisubal::GrisubalError;
 #[cfg(doc)]
 use honeycomb_core::prelude::CMap2;
 
 // ------ CONTENT
 
-/// Post-processing clip operation.
+/// Structure used to index the overlapping grid's cases.
 ///
-/// Note that the part of the map that is clipped depends on the orientation of the original geometry provided as
-/// input.
-#[derive(Default)]
-pub enum Clip {
-    /// Clip elements located on the left side of the oriented boundary.
-    Left,
-    /// Clip elements located on the right side of the oriented boundary.
-    Right,
-    /// Keep all elements. Default value.
-    #[default]
-    None,
+/// Cells `(X, Y)` take value in range `(0, 0)` to `(N, M)`,
+/// from left to right (X), from bottom to top (Y).
+#[derive(PartialEq, Clone, Copy)]
+pub struct GridCellId(pub usize, pub usize);
+
+impl GridCellId {
+    /// Compute the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
+    /// two cells.
+    pub fn man_dist(lhs: &Self, rhs: &Self) -> usize {
+        lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
+    }
+
+    #[allow(clippy::cast_possible_wrap)]
+    pub fn diff(lhs: &Self, rhs: &Self) -> (isize, isize) {
+        (
+            rhs.0 as isize - lhs.0 as isize,
+            rhs.1 as isize - lhs.1 as isize,
+        )
+    }
 }
 
 /// Geometry representation structure.
