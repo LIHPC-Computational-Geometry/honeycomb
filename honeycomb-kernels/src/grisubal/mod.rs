@@ -52,22 +52,25 @@
 
 // ------ MODULE DECLARATIONS
 
-pub(crate) mod clip;
 pub(crate) mod kernel;
 pub(crate) mod model;
 pub(crate) mod timers;
 
 // ------ IMPORTS
 
-use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::{Boundary, Geometry2};
-use crate::grisubal::timers::{finish, start_timer, unsafe_time_section};
-use honeycomb_core::cmap::{CMapBuilder, GridDescriptor};
-use honeycomb_core::prelude::{CMap2, CoordsFloat};
-use kernel::{
-    compute_intersection_ids, compute_overlapping_grid, detect_orientation_issue,
-    generate_edge_data, generate_intersection_data, group_intersections_per_edge,
-    insert_edges_in_map, insert_intersections, remove_redundant_poi,
+use crate::grisubal::{
+    kernel::{
+        clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
+        detect_orientation_issue, generate_edge_data, generate_intersection_data,
+        group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+        remove_redundant_poi,
+    },
+    model::{Boundary, Geometry2},
+    timers::{finish, start_timer, unsafe_time_section},
+};
+use honeycomb_core::{
+    cmap::{CMapBuilder, GridDescriptor},
+    prelude::{CMap2, CoordsFloat},
 };
 use thiserror::Error;
 use vtkio::Vtk;

@@ -6,6 +6,7 @@
 
 // ------ MODULES
 
+mod clip;
 mod step0;
 mod step1;
 mod step2;
@@ -15,6 +16,7 @@ mod step5;
 
 // ------ RE-EXPORTS
 
+pub(crate) use clip::{clip_left, clip_right};
 pub(crate) use step0::*;
 pub(crate) use step1::*;
 pub(crate) use step2::*;
