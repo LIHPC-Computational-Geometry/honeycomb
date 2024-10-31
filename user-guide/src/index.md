@@ -20,8 +20,9 @@ The current objective is to
 - ~improve the structure without having to deal with data races and similar issues, thanks to the Rust's guarantees~
 - ~implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
   Rust's framework to streamline the refactoring and parallelization process~
+- ~Benchmark and/or profile and/or parallelize our first algorithm, **grisubal**~
 - Ship a first stable version of the library (see this [issue](https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150))
-- Benchmark and/or profile and/or parallelize our first algorithm, **grisubal**
+- Work on efficient parallelism
 
 ### Core Requirements
 
@@ -53,28 +54,16 @@ version, and use the GitHub Pages documentation instead of the one hosted on doc
 
 ## Documentation
 
-Published crates:
-
-- [honeycomb](honeycomb/) *Main crate*
-- [honeycomb-core](honeycomb_core/) *Core definitions and tools*
-- [honeycomb-kernels](honeycomb_kernels/) *Meshing kernel implementations*
-- [honeycomb-render](honeycomb_render/) *Visualization tool*
-
-Others:
-
-- [honeycomb-benches](honeycomb_benches/) *Rust code benchmarks*
-- [honeycomb-examples](honeycomb_examples/) *Rust code examples*
-
-You can also generate this documentation locally using **mdbook** and **cargo doc**:
+You can generate this book and the Rust documentation locally using respectively **mdbook** and **cargo doc**:
 
 ```shell
-# Serve the doc on a local server
-mdbook serve --open -d ../target/doc/ user-guide/ &
+mdbook serve --open user-guide/
+```
+```shell
 cargo +nightly doc --all --all-features --no-deps
 ```
 
-Note that generating the doc using a stable toolchain is possible,
-the features just won't be documented as clearly.
+Note that generating the doc using a stable toolchain is possible, the features just won't be documented as clearly.
 
 ## Contributing
 
@@ -109,7 +98,7 @@ defined in the Apache-2.0 license, shall be dual licensed as above, without any 
 
 ### Combinatorial Maps
 
-- Damiand, Guillaume, and Pascal Lienhardt. *Combinatorial Maps: Efficient Data Structures for Computer Graphics and
+- Damiand and Lienhardt. *Combinatorial Maps: Efficient Data Structures for Computer Graphics and
   Image Processing*. Chapman&Hall/CRC, 2015.
     - Provides an in-depth presentation of the structure and its variants
     - [Link](https://hal.science/hal-01090890v1)
@@ -117,6 +106,15 @@ defined in the Apache-2.0 license, shall be dual licensed as above, without any 
     - Provides concrete examples as well as code snippets of the CGAL implementation of the structure. The CGAL
       implementation uses a different approach than ours, & support N-dimensionnal map.
     - [Link](https://doc.cgal.org/latest/Combinatorial_map/)
+
+### Algorithms
+
+- Staten, Noble, and Wilson. *Constructing Tetrahedral Meshes No Matter How Ugly*. SIAM, 2024
+    - Describes the logic behind an overlay grid algorithm.
+    - [Link](https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf)
+- Rangarajan and Lew. *Provably Robust Directional Vertex Relaxation for geometric mesh optimization*. SIAM, 2017
+    - usage TBD
+    - [Link](https://epubs.siam.org/doi/abs/10.1137/16M1089101)
 
 ### Integration
 
