@@ -1,6 +1,8 @@
 //! Step 1 implementation
 //!
-//!
+//! The aim of this step is to build an exhaustive list of the segments making up
+//! the geometry intersected with the grid: For each segment, if both vertices
+//! do not belong to the same cell, we break it into sub-segments until it is the case.
 
 // ------ IMPORTS
 

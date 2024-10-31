@@ -1,4 +1,8 @@
 //! Step 4 implementation
+//!
+//! Rebuild information about the edge that will be inserted into the map. This is done by using
+//! the list of "atomic" segments to search for connections between intersections, discarding
+//! regular points and registering points of interests.
 
 // ------ IMPORTS
 

@@ -1,5 +1,6 @@
 //! Step 3 implementation
 //!
+//! Insert the intersections into the map.
 
 // ------ IMPORTS
 

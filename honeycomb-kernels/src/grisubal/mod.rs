@@ -162,118 +162,101 @@ pub fn grisubal<T: CoordsFloat>(
     grid_cell_sizes: [T; 2],
     clip: Clip,
 ) -> Result<CMap2<T>, GrisubalError> {
+    // INIT TIMER
     start_timer!(instant);
 
-    // load geometry from file
+    // --- IMPORT VTK INPUT
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
-
     unsafe_time_section!(instant, timers::Section::ImportVTK);
+    //----/
 
-    // pre-processing
+    // --- BUILD OUR MODEL FROM THE VTK IMPORT
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
-
     unsafe_time_section!(instant, timers::Section::BuildGeometry);
+    //----/
 
+    // --- FIRST DETECTION OF ORIENTATION ISSUES
     detect_orientation_issue(&geometry)?;
-
     unsafe_time_section!(instant, timers::Section::DetectOrientation);
+    //----/
 
-    // compute an overlapping grid & remove redundant PoIs
+    // --- FIND AN OVERLAPPING GRID
     let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
     let [cx, cy] = grid_cell_sizes;
-
-    unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
-
-    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
-
-    unsafe_time_section!(instant, timers::Section::RemoveRedundantPoi);
-
-    // compute grid characteristics
-    // build grid descriptor
     let ogrid = GridDescriptor::default()
         .n_cells_x(nx)
         .n_cells_y(ny)
         .len_per_cell_x(cx)
         .len_per_cell_y(cy)
         .origin(origin);
+    unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
+    //----/
 
+    // --- REMOVE REDUNDANT PoIs
+    remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
+    unsafe_time_section!(instant, timers::Section::RemoveRedundantPoi);
+    //----/
+
+    // ------ START MAIN KERNEL TIMER
     start_timer!(kernel);
 
-    // build initial map
+    // --- BUILD THE GRID
     let mut cmap = CMapBuilder::default()
         .grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
-        .expect("E: unreachable"); // urneachable because grid dims are valid
-
+        .expect("E: unreachable"); // unreachable because grid dims are valid
     unsafe_time_section!(instant, timers::Section::BuildMeshInit);
+    //----/
 
     // process the geometry
 
-    // STEP 1
-    // the aim of this step is to build an exhaustive list of the segments making up
-    // the GEOMETRY INTERSECTED WITH THE GRID, i.e. for each segment, if both vertices
-    // do not belong to the same cell, we break it into sub-segments until it is the case.
-
+    // --- STEP 1 & 2
+    // (1)
     let (new_segments, intersection_metadata) =
         generate_intersection_data(&cmap, &geometry, [nx, ny], [cx, cy], origin);
-
-    unsafe_time_section!(instant, timers::Section::BuildMeshIntersecData);
-
-    // STEP 1.5
-    // precompute stuff to
-    // - parallelize step 2
-    // - make step 2 and step 3 independent from each other
-
+    // (2)
     let n_intersec = intersection_metadata.len();
     let (edge_intersec, dart_slices) =
         group_intersections_per_edge(&mut cmap, intersection_metadata);
     let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    unsafe_time_section!(instant, timers::Section::BuildMeshIntersecData);
+    //----/
 
-    // STEP 2
-    // insert the intersection vertices into the map & recover their encoding dart. The output Vec has consistent
-    // indexing with the input Vec, meaning that indices in GeometryVertex::Intersec instances are still valid.
-
+    // --- STEP 3
     insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
-
     unsafe_time_section!(instant, timers::Section::BuildMeshInsertIntersec);
+    //----/
 
-    // STEP 3
-    // now that we have a list of "atomic" (non-dividable) segments, we can use it to build the actual segments that
-    // will be inserted into the map. Intersections serve as anchor points for the new segments while PoI make up
-    // "intermediate" points of segments.
-
+    // --- STEP 4
     let edges = generate_edge_data(&cmap, &geometry, &new_segments, &intersection_darts);
-
     unsafe_time_section!(instant, timers::Section::BuildMeshEdgeData);
+    //----/
 
-    // STEP 4
-    // now that we have some segments that are directly defined between intersections, we can use some N-maps'
-    // properties to easily build the geometry into the map.
-    // This part relies heavily on "conventions"; the most important thing to note is that the darts in `MapEdge`
-    // instances are very precisely set, and can therefore be used to create all the new connectivities.
-
+    // --- STEP 5
     insert_edges_in_map(&mut cmap, &edges);
-
     unsafe_time_section!(instant, timers::Section::BuildMeshInsertEdge);
-    unsafe_time_section!(kernel, timers::Section::BuildMeshTot);
+    //----/
 
-    // optional post-processing
+    unsafe_time_section!(kernel, timers::Section::BuildMeshTot);
+    //-------/
+
+    // --- CLIP
     match clip {
         Clip::Left => clip_left(&mut cmap)?,
         Clip::Right => clip_right(&mut cmap)?,
         Clip::None => {}
     }
-
     unsafe_time_section!(instant, timers::Section::Clip);
+    //----/
 
-    // remove attribute used for clipping
+    // CLEANUP
     cmap.remove_attribute_storage::<Boundary>();
-
     finish!(instant);
+    //-/
 
     Ok(cmap)
 }

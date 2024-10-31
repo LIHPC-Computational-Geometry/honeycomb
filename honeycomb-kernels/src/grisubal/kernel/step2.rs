@@ -1,4 +1,8 @@
 //! Step 2 implementation
+//!
+//! The main goal of this step is tp precompute information to:
+//! - parallelize step 3
+//! - make step 3 and step 4 independent from each other
 
 // ------ IMPORTS
 

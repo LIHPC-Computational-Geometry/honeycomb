@@ -1,4 +1,6 @@
 //! Step 5 implementation
+//
+//! Use the information computed at step 4 and insert all new edges into the map.
 
 // ------ IMPORTS
 
