@@ -9,7 +9,7 @@ published), as well as specialized crates **honeycomb-core**, **honeycomb-kernel
 
 ## honeycomb
 
-**honeycomb** is the main crate provided to user and serve as the entrypoint for combinatorial map usage. It is
+**honeycomb** is the main crate provided to users and serve as the entrypoint for combinatorial map usage. It is
 exclusively made up of re-exports from the core, kernels and render crate to provide a clean, all-in-one dependency.
 
 ### Usage
@@ -22,6 +22,7 @@ the dependency using the git repository:
 honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
 ```
 
+
 ---
 
 ## honeycomb-core
@@ -29,9 +30,22 @@ honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" 
 **honeycomb-core** is a Rust crate that provides basic structures and operations for combinatorial map manipulation.
 This includes map structures, methods implementation, type aliases and geometric modeling for mesh representation.
 
-### Implemented data structures
+### Implemented features
 
-TODO
+- a builder structure to handle map creation: `CMapBuilder`.
+- 2D combinatorial maps, usable in concurrent contexts: `CMap2`. this includes:
+    - all regular operations (sew, unsew, beta images, ...),
+    - a custom embedding logic to associate vertices and attributes to darts.
+- 2D orbit computation: `Orbit2`.
+- abstractions over attributes, to allow arbitrary items binding to the map using the
+  same embedding logic as vertices:
+    - `AttributeBind` & `AttributeUpdate` traits,
+    - `AttrSparseVec` as a predefined collection for attributes,
+    - additional traits to describe custom collection structures.
+- geometry primitives:
+    - `Vector2` / `Vertex2`,
+    - `Vector3` / `Vertex3`.
+
 
 ---
 
@@ -45,7 +59,7 @@ combinatorial maps. These implementations have multiple purposes:
 3. Stressing the data structure, to identify its advantages and its pitfalls in a meshing context
 4. Testing for more unwanted behaviors / bugs
 
-Explanations provided on this page focus on the overall workflow of algorithms; Implementation-specific details and
+Explanations provided in this guide focus on the overall workflow of algorithms; Implementation-specific details and
 hypothesis are listed in the documentation of the crate.
 
 ### Implemented algorithms
@@ -67,7 +81,7 @@ significantly easier way than reading internal data would.
 
 ### Usage
 
-Use the [App](../honeycomb_render/struct.App.html) structure to render a given combinatorial map. **You may need to run
+Use the [App](../../honeycomb_render/struct.App.html) structure to render a given combinatorial map. **You may need to run
 the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow users
 to customize the render logic (e.g. to render a specific attribute).
 
