@@ -29,5 +29,4 @@
     - [Add / Remove a dimension](./definitions/changeNdim.md)
     - [Add / Remove a free dart](./definitions/changeNdart.md)
     - [Sewing / Unsewing operation](./definitions/sew.md)
-- [Advanced Operations](./definitions/advancedops.md)
 
