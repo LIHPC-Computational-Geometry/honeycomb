@@ -8,13 +8,13 @@ examples or this guide.
 
 ## Published crates
 
-- [honeycomb](honeycomb.md) *Main crate*
-- [honeycomb-core](honeycomb-core.md) *Core definitions and tools for combinatorial map implementation*
-- [honeycomb-kernels](honeycomb-kernels.md) *Meshing kernel implementations using combinatorial maps*
-- [honeycomb-render](honeycomb-render.md) *Visualization tool for combinatorial maps*
+- [honeycomb](../../honeycomb/index.html) *Main crate*
+- [honeycomb-core](../../honeycomb_core/index.html) *Core definitions and tools for combinatorial map implementation*
+- [honeycomb-kernels](../../honeycomb_kernels/index.html) *Meshing kernel implementations using combinatorial maps*
+- [honeycomb-render](../../honeycomb_render/index.html) *Visualization tool for combinatorial maps*
 
 ## Other content
 
-- [honeycomb-benches](honeycomb-benches.md) *Benchmarks of the main map structures and methods*
-- [honeycomb-examples](honeycomb-examples.md) *Examples of usage of the project's features*
-- [user guide](honeycomb-guide.md) *Source files of the user guide*
+- [honeycomb-benches](../../honeycomb_benches/index.html) *Benchmarks of the main map structures and methods*
+- [honeycomb-examples](../../honeycomb_examples/index.html) *Examples of usage of the project's features*
+- [user guide](../index.md) *Source files of the user guide*

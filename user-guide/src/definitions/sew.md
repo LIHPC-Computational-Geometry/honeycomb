@@ -35,9 +35,9 @@ Exact properties of the link operation directly depends on the property of the m
 
 The *i-sew* operation corresponds to an *i-link* operation, coupled with an update of the affected attributes. *How*
 the attributes are updated is defined through trait implementation in the Rust crate (see
-[AttributeUpdate](../honeycomb_core/trait.AttributeUpdate.html),
-[AttributeBind](../honeycomb_core/trait.AttributeBind.html)). *Which* attributes are updated can be deduced from the
-dimension *i* of the sewing operation. This is summarized in the following table:
+[AttributeUpdate](../../honeycomb_core/attributes/trait.AttributeUpdate.html),
+[AttributeBind](../../honeycomb_core/attributes/trait.AttributeBind.html)). *Which* attributes are updated can be
+deduced from the dimension *i* of the sewing operation. This is summarized in the following table:
 
 | Dimension | Geometrical operation | 0-cell / Vertex Attributes | 1-cell / Edge Attributes | 2-cell / Face Attributes | 3-cell / Volume Attributes |
 |-----------|-----------------------|----------------------------|--------------------------|--------------------------|----------------------------|

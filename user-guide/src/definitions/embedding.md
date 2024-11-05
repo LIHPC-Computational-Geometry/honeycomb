@@ -10,10 +10,9 @@ dedicated sections.
 
 ## Implementation
 
-Because embedding is defined per-application or per-needs, our combinatorial map
-implementation uses a generic system to handle this; The storage follows our
-own specific logic, which is detailed in [this](../honeycomb_core/struct.CMap2.html#note-on-cell-identifiers)
-documentation entry.
+Because embedding is defined per-application or per-needs, our combinatorial map implementation uses
+a generic system to handle this; The storage follows our own specific logic, which is detailed in
+[this](../../honeycomb_core/cmap/struct.CMap2.html#note-on-cell-identifiers) documentation entry.
 
 ## Examples
 

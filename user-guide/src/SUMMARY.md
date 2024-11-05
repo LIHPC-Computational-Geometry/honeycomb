@@ -9,11 +9,13 @@
 - [Other content](./project-structure/others.md)
     - [Benchmarks](./project-structure/honeycomb-benches.md)
     - [Examples](./project-structure/honeycomb-examples.md)
-    - [User guide](./project-structure/honeycomb-guide.md)
 
 # Kernels
 
+- [DVR](./kernels/dvr.md)
 - [Grisubal](./kernels/grisubal.md)
+- [Polygon triangulation](./kernels/triangulations.md)
+- [Splits](./kernels/splits.md)
 
 # Definitions
 
@@ -27,5 +29,4 @@
     - [Add / Remove a dimension](./definitions/changeNdim.md)
     - [Add / Remove a free dart](./definitions/changeNdart.md)
     - [Sewing / Unsewing operation](./definitions/sew.md)
-- [Advanced Operations](./definitions/advancedops.md)
 

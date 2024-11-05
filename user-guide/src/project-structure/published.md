@@ -9,7 +9,7 @@ published), as well as specialized crates **honeycomb-core**, **honeycomb-kernel
 
 ## honeycomb
 
-**honeycomb** is the main crate provided to user and serve as the entrypoint for combinatorial map usage. It is
+**honeycomb** is the main crate provided to users and serve as the entrypoint for combinatorial map usage. It is
 exclusively made up of re-exports from the core, kernels and render crate to provide a clean, all-in-one dependency.
 
 ### Usage
@@ -18,13 +18,10 @@ At the moment, the `honeycomb` name is not available on crates.io; this means th
 the dependency using the git repository:
 
 ```toml
-# Cargo.toml
-
-[dependencies]
+# [dependencies]
 honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
 ```
 
-The documentation is available [here](../honeycomb/).
 
 ---
 
@@ -33,21 +30,22 @@ The documentation is available [here](../honeycomb/).
 **honeycomb-core** is a Rust crate that provides basic structures and operations for combinatorial map manipulation.
 This includes map structures, methods implementation, type aliases and geometric modeling for mesh representation.
 
-### Usage 
+### Implemented features
 
-A quickstart example encompassing most features is provided for the following structures:
+- a builder structure to handle map creation: `CMapBuilder`.
+- 2D combinatorial maps, usable in concurrent contexts: `CMap2`. this includes:
+    - all regular operations (sew, unsew, beta images, ...),
+    - a custom embedding logic to associate vertices and attributes to darts.
+- 2D orbit computation: `Orbit2`.
+- abstractions over attributes, to allow arbitrary items binding to the map using the
+  same embedding logic as vertices:
+    - `AttributeBind` & `AttributeUpdate` traits,
+    - `AttrSparseVec` as a predefined collection for attributes,
+    - additional traits to describe custom collection structures.
+- geometry primitives:
+    - `Vector2` / `Vertex2`,
+    - `Vector3` / `Vertex3`.
 
-- [CMap2](../honeycomb_core/struct.CMap2.html)
-- [Vector2](../honeycomb_core/struct.Vector2.html)
-- [Vertex2](../honeycomb_core/struct.Vertex2.html)
-- [CMapBuilder](../honeycomb_core/cmap/struct.CMapBuilder.html)
-
-Optional features can be enabled when using this crate:
-
-- `utils` -- provides additionnal implementations for map generation, benchmarking & debugging
-- `io` -- provides a function and a method for building maps from VTK meshes and vice versa
-
-Both of these are enabled by default in the **honeycomb** crate.
 
 ---
 
@@ -61,20 +59,16 @@ combinatorial maps. These implementations have multiple purposes:
 3. Stressing the data structure, to identify its advantages and its pitfalls in a meshing context
 4. Testing for more unwanted behaviors / bugs
 
-Explanations provided on this page focus on the overall workflow of algorithms; Implementation-specific details and
+Explanations provided in this guide focus on the overall workflow of algorithms; Implementation-specific details and
 hypothesis are listed in the documentation of the crate.
 
-### Usage
+### Implemented algorithms
 
-The documentation is available [here](../honeycomb_kernels/).
+- [Directional Vertex Relaxation](../kernels/dvr.md)
+- [Grisubal](../kernels/grisubal.md)
+- [Polygon triangulations](../kernels/triangulations.md)
+- [Cell splits](../kernels/splits.md)
 
-### Algorithms
-
-**Grisubal**, short for **GRId SUBmersion ALgorithm**, is a mesh generation algorithm inspired by [Morph][IMR-RN].
-The mesh is built by capturing the input geometry in an overlapping grid, by first computing intersection vertices and
-then rebuild new edges from the captured vertices. This is explained in more details [here](../kernels/grisubal.md).
-
-[IMR-RN]: https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf
 
 ---
 
@@ -87,8 +81,7 @@ significantly easier way than reading internal data would.
 
 ### Usage
 
-Use the [App](../honeycomb_render/struct.App.html) structure to render a given combinatorial map. You may need to run
-the program in `release` mode to render large maps. All items used to build that tool are kept public to allow users
+Use the [App](../../honeycomb_render/struct.App.html) structure to render a given combinatorial map. **You may need to run
+the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow users
 to customize the render logic (e.g. to render a specific attribute).
 
-The documentation is available [here](../honeycomb_render/).

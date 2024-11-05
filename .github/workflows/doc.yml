@@ -20,18 +20,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      # Need to refine this by specifying components required for doc
+      # Deps
       - uses: dtolnay/rust-toolchain@nightly
       - uses: peaceiris/actions-mdbook@v2
         with:
           mdbook-version: "0.4.36"
-      # Generate user guide first because it removes all existing files
-      # from the target directory
-      - name: Generate User Guide
-        run: mdbook build -d ../target/doc/ user-guide/
-      - name: Generate Rust Docs
-        run: cargo +nightly doc --all --no-deps --all-features
-
+      # Generate / using sudo before I'm forced to retry this 83491 times due to CI constraints
+      - name: Generate documentation
+        run: |
+          sudo chmod +x docs/build.sh
+          sudo ./docs/build.sh
+      # Deploy
       - name: Deploy Docs
         uses: peaceiris/actions-gh-pages@v4
         with:
