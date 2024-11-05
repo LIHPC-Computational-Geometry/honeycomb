@@ -43,11 +43,11 @@ The following benchmarks are available:
 | `builder-grid-size`          | Criterion     | `benches/builder∕grid_size.rs`       |
 | `fetch-icells`               | Criterion     | `benches/core/cmap2/fetch_icells.rs` |
 | `grisubal`                   | Criterion     | `benches/grisubal/time.rs`           |
-| `grisubal_grid_size`         | Criterion     | `benches/grisubal/grid_size.rs`      |
+| `grisubal-grid-size`         | Criterion     | `benches/grisubal/grid_size.rs`      |
 | `prof-cmap2-basic`           | Iai-callgrind | `benches/core/cmap2/basic_ops.rs`    |
 | `prof-cmap2-build`           | Iai-callgrind | `benches/core/cmap2/constructors.rs` |
 | `prof-cmap2-sewing-unsewing` | Iai-callgrind | `benches/core/cmap2/link_and_sew.rs` |
-| `triangulate_quads`          | Criterion     | `benches/triangulate/quads.rs`       |
+| `triangulate-quads`          | Criterion     | `benches/triangulate/quads.rs`       |
 
 A detailed explanation about the purpose of each benchmark is provided at the beginning of their respective source
 files.

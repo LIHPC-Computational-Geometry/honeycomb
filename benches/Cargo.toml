@@ -78,11 +78,11 @@ path = "benches/grisubal/time.rs"
 harness = false
 
 [[bench]]
-name = "grisubal_grid_size"
+name = "grisubal-grid-size"
 path = "benches/grisubal/grid_size.rs"
 harness = false
 
 [[bench]]
-name = "triangulate_quads"
+name = "triangulate-quads"
 path = "benches/triangulate/quads.rs"
 harness = false

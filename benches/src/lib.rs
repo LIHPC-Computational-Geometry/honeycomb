@@ -9,11 +9,12 @@
 //!
 //! ### Criterion-based
 //!
-//! - `splitsquaremap-init` - measures construction speed of the CMap2 structure
-//! - `splitsquaremap-shift` - measures coordinate shifting speed in the CMap2 structure
-//! - `squaremap-init` - construction speed of the CMap2 structure
-//! - `squaremap-shift` - measures coordinate shifting speed in the CMap2 structure
-//! - `squaremap-splitquads` - measures operation speed for quad to triangle transformation
+//! - `builder` - grid building routines at fixed size
+//! - `builder-grid-size` - grid building routines over a range of grid sizes
+//! - `fetch_icells` - `CMap2::fetch_<CELL>` methods
+//! - `grisubal` - grisubal kernel with a fixed size grid
+//! - `grisubal-grid-size` - grisubal kernel over a range of grid granularity
+//! - `triangulate-quads` - triangulate all cells of a mixed-mesh
 //!
 //! ### Iai-callgrind-based
 //!
