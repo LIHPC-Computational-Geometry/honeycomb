@@ -1,6 +1,10 @@
 // ------ IMPORTS
 
-use crate::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
+use crate::{
+    attributes::AttrSparseVec,
+    cmap::VertexIdentifier,
+    prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
+};
 
 // ------ CONTENT
 
@@ -322,4 +326,123 @@ fn io_write() {
     assert!(res.contains("2 6 7"));
     assert!(res.contains("2 7 8"));
     assert!(res.contains("2 8 3"));
+}
+
+// --- PARALLEL
+
+#[derive(Debug, Clone, Copy, Default)]
+struct Weight(pub u32);
+
+impl AttributeUpdate for Weight {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self(attr1.0 + attr2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        // adding the % to keep things conservative
+        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
+    }
+}
+
+impl AttributeBind for Weight {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = VertexIdentifier;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
+}
+
+#[test]
+fn sew_ordering() {
+    loom::model(|| {
+        // setup the map
+        let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
+        map.two_link(1, 2);
+        map.one_link(4, 5);
+        map.insert_vertex(2, Vertex2(1.0, 1.0));
+        map.insert_vertex(3, Vertex2(1.0, 2.0));
+        map.insert_vertex(5, Vertex2(2.0, 2.0));
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to sew ops:
+        // - 1-sew 1 to 3 (t1)
+        // - 2-sew 3 to 4 (t2)
+        // this will result in a single vertex being define, of ID 2
+        // depending on the order of execution of the sews, the value may change
+        // 1-sew before 2-sew: (1.5, 1.75)
+        // 2-sew before 1-sew: (1.25, 1.5)
+
+        let t1 = loom::thread::spawn(move || {
+            m1.atomically_one_sew(1, 3);
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            m2.atomically_two_sew(3, 4);
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all path should result in the same topological result here
+        assert!(arc.vertex(2).is_some());
+        assert!(arc.vertex(3).is_none());
+        assert!(arc.vertex(5).is_none());
+        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+
+        // the v2 can have two values though
+        let path1 = arc.vertex(2) == Some(Vertex2(1.5, 1.75));
+        let path2 = arc.vertex(2) == Some(Vertex2(1.25, 1.5));
+        assert!(path1 || path2);
+    });
+}
+
+#[test]
+fn unsew_ordering() {
+    loom::model(|| {
+        // setup the map
+        let map: CMap2<f64> = CMapBuilder::default()
+            .n_darts(5)
+            .add_attribute::<Weight>()
+            .build()
+            .unwrap();
+        map.two_link(1, 2);
+        map.two_link(3, 4);
+        map.one_link(1, 3);
+        map.one_link(4, 5);
+        map.insert_vertex(2, Vertex2(0.0, 0.0));
+        map.insert_attribute(2, Weight(33));
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to sew ops:
+        // - 1-unsew 1 and 3 (t1)
+        // - 2-unsew 3 and 4 (t2)
+        // this will result in 3 different weights, defined on IDs 2, 3 and 5
+        // depending on the order of execution, the final weights will take the following values:
+        // 1-unsew before 2-unsew: (W2, W3, W5) = (17, 8, 8)
+        // 2-unsew before 1-unsew: (W2, W3, W5) = (9, 8, 16)
+
+        let t1 = loom::thread::spawn(move || {
+            m1.atomically_one_unsew(1);
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            m2.atomically_two_unsew(3);
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all path should result in the same topological result here
+        assert!(arc.get_attribute::<Weight>(2).is_some());
+        assert!(arc.get_attribute::<Weight>(3).is_some());
+        assert!(arc.get_attribute::<Weight>(5).is_some());
+        let w2 = arc.get_attribute::<Weight>(2).unwrap();
+        let w3 = arc.get_attribute::<Weight>(3).unwrap();
+        let w5 = arc.get_attribute::<Weight>(5).unwrap();
+
+        // check scenarios
+        let path1 = w2.0 == 17 && w3.0 == 8 && w5.0 == 8;
+        let path2 = w2.0 == 9 && w3.0 == 8 && w5.0 == 16;
+        assert!(path1 || path2);
+    });
 }

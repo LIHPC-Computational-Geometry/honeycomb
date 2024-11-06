@@ -14,5 +14,6 @@ pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttrib
 
 // ------ TESTS
 
+#[allow(clippy::float_cmp)]
 #[cfg(test)]
 mod tests;

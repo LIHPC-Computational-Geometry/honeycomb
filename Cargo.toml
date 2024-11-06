@@ -41,6 +41,7 @@ thiserror = "1.0.64"
 
 # core
 downcast-rs = "1.2.1"
+loom = "0.7.2"
 num-traits = "0.2.19"
 stm = "0.4.0"
 vtkio = { version = "0.7.0-rc1", default-features = false }
