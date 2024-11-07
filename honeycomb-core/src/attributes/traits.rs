@@ -124,7 +124,7 @@ pub trait AttributeUpdate: Sized + Send + Sync {
 ///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 /// }
 /// ```
-pub trait AttributeBind: Debug + Sized + Any {
+pub trait AttributeBind: Debug + Sized + Any + Clone + Copy {
     /// Storage type used for the attribute.
     type StorageType: AttributeStorage<Self>;
 
