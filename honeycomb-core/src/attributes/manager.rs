@@ -8,7 +8,10 @@
 use stm::{StmError, Transaction};
 
 use super::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
-use crate::prelude::{DartIdentifier, OrbitPolicy};
+use crate::{
+    cmap::{EdgeId, FaceId, VertexId},
+    prelude::{DartId, OrbitPolicy},
+};
 use std::{any::TypeId, collections::HashMap};
 
 // ------ CONTENT
@@ -113,20 +116,32 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
     pub fn merge_attributes(
         &self,
         orbit_policy: &OrbitPolicy,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: DartId,
+        id_in_lhs: DartId,
+        id_in_rhs: DartId,
     ) {
         match orbit_policy {
-            OrbitPolicy::Vertex => self.merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Edge => self.merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Face => self.merge_face_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Vertex => {
+                for storage in self.vertices.values() {
+                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                }
+            }
+            OrbitPolicy::Edge => {
+                for storage in self.edges.values() {
+                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                }
+            }
+            OrbitPolicy::Face => {
+                for storage in self.faces.values() {
+                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                }
+            }
             OrbitPolicy::Custom(_) => {
                 self.merge_other_attributes(orbit_policy, id_out, id_in_lhs, id_in_rhs);
             }
@@ -137,17 +152,17 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
     pub fn merge_vertex_attributes(
         &self,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: VertexId,
+        id_in_lhs: VertexId,
+        id_in_rhs: VertexId,
     ) {
         for storage in self.vertices.values() {
-            storage.merge(id_out, id_in_lhs, id_in_rhs);
+            storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
         }
     }
 
@@ -155,17 +170,12 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    pub fn merge_edge_attributes(
-        &self,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
-    ) {
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
+    pub fn merge_edge_attributes(&self, id_out: EdgeId, id_in_lhs: EdgeId, id_in_rhs: EdgeId) {
         for storage in self.edges.values() {
-            storage.merge(id_out, id_in_lhs, id_in_rhs);
+            storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
         }
     }
 
@@ -173,17 +183,12 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    pub fn merge_face_attributes(
-        &self,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
-    ) {
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
+    pub fn merge_face_attributes(&self, id_out: FaceId, id_in_lhs: FaceId, id_in_rhs: FaceId) {
         for storage in self.faces.values() {
-            storage.merge(id_out, id_in_lhs, id_in_rhs);
+            storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
         }
     }
 
@@ -193,15 +198,15 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
     pub fn merge_other_attributes(
         &self,
         _orbit_policy: &OrbitPolicy,
-        _id_out: DartIdentifier,
-        _id_in_lhs: DartIdentifier,
-        _id_in_rhs: DartIdentifier,
+        _id_out: DartId,
+        _id_in_lhs: DartId,
+        _id_in_rhs: DartId,
     ) {
         todo!("custom orbit binding is a special case that will be treated later")
     }
@@ -214,20 +219,32 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
     pub fn split_attributes(
         &self,
         orbit_policy: &OrbitPolicy,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: DartId,
+        id_out_rhs: DartId,
+        id_in: DartId,
     ) {
         match orbit_policy {
-            OrbitPolicy::Vertex => self.split_vertex_attributes(id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Edge => self.split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Face => self.split_face_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Vertex => {
+                for storage in self.vertices.values() {
+                    storage.split(id_out_lhs, id_out_rhs, id_in);
+                }
+            }
+            OrbitPolicy::Edge => {
+                for storage in self.edges.values() {
+                    storage.split(id_out_lhs, id_out_rhs, id_in);
+                }
+            }
+            OrbitPolicy::Face => {
+                for storage in self.faces.values() {
+                    storage.split(id_out_lhs, id_out_rhs, id_in);
+                }
+            }
             OrbitPolicy::Custom(_) => {
                 self.split_other_attributes(orbit_policy, id_out_lhs, id_out_rhs, id_in);
             }
@@ -240,17 +257,17 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
     pub fn split_vertex_attributes(
         &self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: VertexId,
+        id_out_rhs: VertexId,
+        id_in: VertexId,
     ) {
         for storage in self.vertices.values() {
-            storage.split(id_out_lhs, id_out_rhs, id_in);
+            storage.split(id_out_lhs.into(), id_out_rhs.into(), id_in.into());
         }
     }
 
@@ -259,17 +276,12 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    pub fn split_edge_attributes(
-        &self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
+    pub fn split_edge_attributes(&self, id_out_lhs: EdgeId, id_out_rhs: EdgeId, id_in: EdgeId) {
         for storage in self.edges.values() {
-            storage.split(id_out_lhs, id_out_rhs, id_in);
+            storage.split(id_out_lhs.into(), id_out_rhs.into(), id_in.into());
         }
     }
 
@@ -278,17 +290,12 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    pub fn split_face_attributes(
-        &self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
-    ) {
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
+    pub fn split_face_attributes(&self, id_out_lhs: FaceId, id_out_rhs: FaceId, id_in: FaceId) {
         for storage in self.faces.values() {
-            storage.split(id_out_lhs, id_out_rhs, id_in);
+            storage.split(id_out_lhs.into(), id_out_rhs.into(), id_in.into());
         }
     }
 
@@ -298,15 +305,15 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
     pub fn split_other_attributes(
         &self,
         _orbit_policy: &OrbitPolicy,
-        _id_out_lhs: DartIdentifier,
-        _id_out_rhs: DartIdentifier,
-        _id_in: DartIdentifier,
+        _id_out_lhs: DartId,
+        _id_out_rhs: DartId,
+        _id_in: DartId,
     ) {
         todo!("custom orbit binding is a special case that will be treated later")
     }
@@ -608,14 +615,14 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    /// - `id_out: DartId` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartId` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartId` -- Identifier of the other attribute value to merge.
     pub fn merge_attribute<A: AttributeBind>(
         &self,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: DartId,
+        id_in_lhs: DartId,
+        id_in_rhs: DartId,
     ) {
         get_storage!(self, storage);
         if let Some(st) = storage {
@@ -632,14 +639,14 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    /// - `id_out_lhs: DartId` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartId` -- Identifier to write the result to.
+    /// - `id_in: DartId` -- Identifier of the attribute value to split.
     pub fn split_attribute<A: AttributeBind>(
         &self,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: DartId,
+        id_out_rhs: DartId,
+        id_in: DartId,
     ) {
         get_storage!(self, storage);
         if let Some(st) = storage {
@@ -663,19 +670,43 @@ impl AttrStorageManager {
         &self,
         trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: DartId,
+        id_in_lhs: DartId,
+        id_in_rhs: DartId,
     ) -> Result<(), StmError> {
         match orbit_policy {
             OrbitPolicy::Vertex => {
-                self.merge_vertex_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+                for storage in self.vertices.values() {
+                    storage.merge_transac(
+                        trans,
+                        id_out.into(),
+                        id_in_lhs.into(),
+                        id_in_rhs.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Edge => {
-                self.merge_edge_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+                for storage in self.edges.values() {
+                    storage.merge_transac(
+                        trans,
+                        id_out.into(),
+                        id_in_lhs.into(),
+                        id_in_rhs.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Face => {
-                self.merge_face_attributes_transac(trans, id_out, id_in_lhs, id_in_rhs)
+                for storage in self.faces.values() {
+                    storage.merge_transac(
+                        trans,
+                        id_out.into(),
+                        id_in_lhs.into(),
+                        id_in_rhs.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Custom(_) => self.merge_other_attributes_transac(
                 trans,
@@ -690,12 +721,12 @@ impl AttrStorageManager {
     pub(crate) fn merge_vertex_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: VertexId,
+        id_in_lhs: VertexId,
+        id_in_rhs: VertexId,
     ) -> Result<(), StmError> {
         for storage in self.vertices.values() {
-            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge_transac(trans, id_out.into(), id_in_lhs.into(), id_in_rhs.into())?;
         }
         Ok(())
     }
@@ -703,12 +734,12 @@ impl AttrStorageManager {
     pub(crate) fn merge_edge_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: EdgeId,
+        id_in_lhs: EdgeId,
+        id_in_rhs: EdgeId,
     ) -> Result<(), StmError> {
         for storage in self.edges.values() {
-            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge_transac(trans, id_out.into(), id_in_lhs.into(), id_in_rhs.into())?;
         }
         Ok(())
     }
@@ -716,12 +747,12 @@ impl AttrStorageManager {
     pub(crate) fn merge_face_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: FaceId,
+        id_in_lhs: FaceId,
+        id_in_rhs: FaceId,
     ) -> Result<(), StmError> {
         for storage in self.faces.values() {
-            storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge_transac(trans, id_out.into(), id_in_lhs.into(), id_in_rhs.into())?;
         }
         Ok(())
     }
@@ -730,9 +761,9 @@ impl AttrStorageManager {
         &self,
         _trans: &mut Transaction,
         _orbit_policy: &OrbitPolicy,
-        _id_out: DartIdentifier,
-        _id_in_lhs: DartIdentifier,
-        _id_in_rhs: DartIdentifier,
+        _id_out: DartId,
+        _id_in_lhs: DartId,
+        _id_in_rhs: DartId,
     ) -> Result<(), StmError> {
         todo!("custom orbit binding is a special case that will be treated later")
     }
@@ -743,19 +774,43 @@ impl AttrStorageManager {
         &self,
         trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: DartId,
+        id_out_rhs: DartId,
+        id_in: DartId,
     ) -> Result<(), StmError> {
         match orbit_policy {
             OrbitPolicy::Vertex => {
-                self.split_vertex_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+                for storage in self.vertices.values() {
+                    storage.split_transac(
+                        trans,
+                        id_out_lhs.into(),
+                        id_out_rhs.into(),
+                        id_in.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Edge => {
-                self.split_edge_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+                for storage in self.edges.values() {
+                    storage.split_transac(
+                        trans,
+                        id_out_lhs.into(),
+                        id_out_rhs.into(),
+                        id_in.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Face => {
-                self.split_face_attributes_transac(trans, id_out_lhs, id_out_rhs, id_in)
+                for storage in self.faces.values() {
+                    storage.split_transac(
+                        trans,
+                        id_out_lhs.into(),
+                        id_out_rhs.into(),
+                        id_in.into(),
+                    )?;
+                }
+                Ok(())
             }
             OrbitPolicy::Custom(_) => self.split_other_attributes_transac(
                 trans,
@@ -770,12 +825,12 @@ impl AttrStorageManager {
     pub(crate) fn split_vertex_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: VertexId,
+        id_out_rhs: VertexId,
+        id_in: VertexId,
     ) -> Result<(), StmError> {
         for storage in self.vertices.values() {
-            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split_transac(trans, id_out_lhs.into(), id_out_rhs.into(), id_in.into())?;
         }
         Ok(())
     }
@@ -783,12 +838,12 @@ impl AttrStorageManager {
     pub(crate) fn split_edge_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: EdgeId,
+        id_out_rhs: EdgeId,
+        id_in: EdgeId,
     ) -> Result<(), StmError> {
         for storage in self.edges.values() {
-            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split_transac(trans, id_out_lhs.into(), id_out_rhs.into(), id_in.into())?;
         }
         Ok(())
     }
@@ -796,12 +851,12 @@ impl AttrStorageManager {
     pub(crate) fn split_face_attributes_transac(
         &self,
         trans: &mut Transaction,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: FaceId,
+        id_out_rhs: FaceId,
+        id_in: FaceId,
     ) -> Result<(), StmError> {
         for storage in self.faces.values() {
-            storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split_transac(trans, id_out_lhs.into(), id_out_rhs.into(), id_in.into())?;
         }
         Ok(())
     }
@@ -810,9 +865,9 @@ impl AttrStorageManager {
         &self,
         _trans: &mut Transaction,
         _orbit_policy: &OrbitPolicy,
-        _id_out_lhs: DartIdentifier,
-        _id_out_rhs: DartIdentifier,
-        _id_in: DartIdentifier,
+        _id_out_lhs: DartId,
+        _id_out_rhs: DartId,
+        _id_in: DartId,
     ) -> Result<(), StmError> {
         todo!("custom orbit binding is a special case that will be treated later")
     }
@@ -908,9 +963,9 @@ impl AttrStorageManager {
     pub(crate) fn merge_attribute_transac<A: AttributeBind>(
         &self,
         trans: &mut Transaction,
-        id_out: DartIdentifier,
-        id_in_lhs: DartIdentifier,
-        id_in_rhs: DartIdentifier,
+        id_out: DartId,
+        id_in_lhs: DartId,
+        id_in_rhs: DartId,
     ) -> Result<(), StmError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
@@ -927,9 +982,9 @@ impl AttrStorageManager {
     pub(crate) fn split_attribute_transac<A: AttributeBind>(
         &self,
         trans: &mut Transaction,
-        id_out_lhs: DartIdentifier,
-        id_out_rhs: DartIdentifier,
-        id_in: DartIdentifier,
+        id_out_lhs: DartId,
+        id_out_rhs: DartId,
+        id_in: DartId,
     ) -> Result<(), StmError> {
         get_storage!(self, storage);
         if let Some(st) = storage {

@@ -2,7 +2,8 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{CMap2, DartIdentifier, Vector2, Vertex2};
+use crate::cmap::DartIdType;
+use crate::prelude::{CMap2, DartId, Vector2, Vertex2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
 // ------ CONTENT
@@ -163,9 +164,9 @@ fn build_square_core<T: CoordsFloat>(
     map: &CMap2<T>,
     n_square_x: usize,
     [x_idx, y_idx]: [usize; 2],
-) -> [DartIdentifier; 4] {
-    let d1 = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdentifier;
-    let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+) -> [DartId; 4] {
+    let d1 = (1 + 4 * x_idx + n_square_x * 4 * y_idx) as DartIdType;
+    let (d1, d2, d3, d4) = (DartId(d1), DartId(d1 + 1), DartId(d1 + 2), DartId(d1 + 3));
 
     // edit topology
     // d1
@@ -186,16 +187,16 @@ fn build_square_core<T: CoordsFloat>(
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_square_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier) {
-    let right_neighbor = dart + 6;
+fn build_square_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartId) {
+    let right_neighbor = DartId(dart.0 + 6);
     map.set_beta::<2>(dart, right_neighbor);
     map.set_beta::<2>(right_neighbor, dart);
 }
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_square_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier, n_square_x: usize) {
-    let up_neighbor = dart - 2 + 4 * n_square_x as DartIdentifier; // d1 + 4*nx
+fn build_square_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartId, n_square_x: usize) {
+    let up_neighbor = DartId(dart.0 - 2 + 4 * n_square_x as DartIdType); // d1 + 4*nx
     map.set_beta::<2>(dart, up_neighbor);
     map.set_beta::<2>(up_neighbor, dart);
 }
@@ -359,9 +360,16 @@ fn build_tris_core<T: CoordsFloat>(
     map: &CMap2<T>,
     n_square_x: usize,
     [x_idx, y_idx]: [usize; 2],
-) -> [DartIdentifier; 6] {
-    let d1 = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdentifier;
-    let (d2, d3, d4, d5, d6) = (d1 + 1, d1 + 2, d1 + 3, d1 + 4, d1 + 5);
+) -> [DartId; 6] {
+    let d1 = (1 + 6 * (x_idx + n_square_x * y_idx)) as DartIdType;
+    let (d1, d2, d3, d4, d5, d6) = (
+        DartId(d1),
+        DartId(d1 + 1),
+        DartId(d1 + 2),
+        DartId(d1 + 3),
+        DartId(d1 + 4),
+        DartId(d1 + 5),
+    );
 
     // edit topology
     // d1
@@ -391,16 +399,16 @@ fn build_tris_core<T: CoordsFloat>(
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_tris_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier) {
-    let right_neighbor = dart + 4;
+fn build_tris_sew_right<T: CoordsFloat>(map: &CMap2<T>, dart: DartId) {
+    let right_neighbor = DartId(dart.0 + 4);
     map.set_beta::<2>(dart, right_neighbor);
     map.set_beta::<2>(right_neighbor, dart);
 }
 
 #[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
-fn build_tris_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartIdentifier, n_square_x: usize) {
-    let up_neighbor = dart - 5 + 6 * n_square_x as DartIdentifier; // d1 + 6*nx
+fn build_tris_sew_up<T: CoordsFloat>(map: &CMap2<T>, dart: DartId, n_square_x: usize) {
+    let up_neighbor = DartId(dart.0 - 5 + 6 * n_square_x as DartIdType); // d1 + 6*nx
     map.set_beta::<2>(dart, up_neighbor);
     map.set_beta::<2>(up_neighbor, dart);
 }

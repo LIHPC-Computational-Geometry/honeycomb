@@ -1,13 +1,9 @@
 // ------ IMPORTS
 
-use std::{
-    ops::{Index, IndexMut},
-    sync::atomic::{AtomicBool, AtomicU32},
-};
-
-use stm::TVar;
+use std::ops::{Index, IndexMut};
 
 use super::identifiers::{DartId, NULL_DART_ID};
+use stm::TVar;
 
 // ------ CONTENT
 

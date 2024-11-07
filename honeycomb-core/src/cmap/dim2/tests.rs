@@ -2,7 +2,7 @@
 
 use crate::{
     attributes::AttrSparseVec,
-    cmap::VertexIdentifier,
+    cmap::{DartId, FaceId, VertexId},
     prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
 };
 
@@ -14,21 +14,21 @@ use crate::{
 fn example_test() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
-    map.one_link(1, 2);
-    map.one_link(2, 3);
-    map.one_link(3, 1);
-    map.insert_vertex(1, (0.0, 0.0));
-    map.insert_vertex(2, (1.0, 0.0));
-    map.insert_vertex(3, (0.0, 1.0));
+    map.one_link(DartId(1), DartId(2));
+    map.one_link(DartId(2), DartId(3));
+    map.one_link(DartId(3), DartId(1));
+    map.insert_vertex(VertexId(1), (0.0, 0.0));
+    map.insert_vertex(VertexId(2), (1.0, 0.0));
+    map.insert_vertex(VertexId(3), (0.0, 1.0));
 
     // checks
     let faces = map.fetch_faces();
     assert_eq!(faces.identifiers.len(), 1);
-    assert_eq!(faces.identifiers[0], 1);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-    assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
+    assert_eq!(faces.identifiers[0], FaceId(1));
+    let mut face = Orbit2::new(&map, OrbitPolicy::Face, DartId(1));
+    assert_eq!(face.next(), Some(DartId(1)));
+    assert_eq!(face.next(), Some(DartId(2)));
+    assert_eq!(face.next(), Some(DartId(3)));
     assert_eq!(face.next(), None);
 
     // build a second triangle

@@ -1,10 +1,13 @@
 // ------ IMPORTS
 
-use std::ops::{Index, IndexMut};
+use std::{
+    ops::{Index, IndexMut},
+    slice::Iter,
+};
 
 use stm::TVar;
 
-use super::identifiers::{DartId, NULL_DART_ID};
+use super::identifiers::DartId;
 
 // ------ CONTENT
 
@@ -25,6 +28,10 @@ impl UnusedDarts {
     /// Return internal storage length
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn iter(&self) -> Iter<'_, TVar<bool>> {
+        self.0.iter()
     }
 }
 

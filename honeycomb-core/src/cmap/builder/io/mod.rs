@@ -6,10 +6,15 @@
 //! are supported, because of orientation and dimension restriction.
 
 // ------ IMPORTS
-use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdentifier, Vertex2, VertexIdentifier};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-use num_traits::Zero;
+
 use std::collections::BTreeMap;
+
+use crate::{
+    attributes::AttrStorageManager,
+    cmap::{BuilderError, CMap2, CMapBuilder, DartId, DartIdType},
+    geometry::{CoordsFloat, Vertex2},
+};
+use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
@@ -104,7 +109,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
     mut _manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
 ) -> Result<CMap2<T>, BuilderError> {
     let mut cmap: CMap2<T> = CMap2::new(0);
-    let mut sew_buffer: BTreeMap<(usize, usize), DartIdentifier> = BTreeMap::new();
+    let mut sew_buffer: BTreeMap<(usize, usize), DartId> = BTreeMap::new();
     match value.data {
         DataSet::ImageData { .. }
         | DataSet::StructuredGrid { .. }
@@ -204,23 +209,16 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         );
                                         // build the triangle
                                         let d0 = cmap.add_free_darts(3);
-                                        let (d1, d2) = (d0 + 1, d0 + 2);
-                                        cmap.insert_vertex(
-                                            d0 as VertexIdentifier,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.insert_vertex(
-                                            d1 as VertexIdentifier,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.insert_vertex(
-                                            d2 as VertexIdentifier,
-                                            vertices[vids[2]],
-                                        );
+                                        let (d1, d2) = (DartId(d0.0 + 1), DartId(d0.0 + 2));
+                                        cmap.insert_vertex(d0.into(), vertices[vids[0]]);
+                                        cmap.insert_vertex(d1.into(), vertices[vids[1]]);
+                                        cmap.insert_vertex(d2.into(), vertices[vids[2]]);
+
                                         cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
-                                                               // record a trace of the built cell for future 2-sew
+
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[0]), d2);
@@ -235,13 +233,13 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         let n_vertices = vids.len();
                                         let d0 = cmap.add_free_darts(n_vertices);
                                         (0..n_vertices).for_each(|i| {
-                                            let di = d0 + i as DartIdentifier;
-                                            let dip1 =
-                                                if i == n_vertices - 1 { d0 } else { di + 1 };
-                                            cmap.insert_vertex(
-                                                di as VertexIdentifier,
-                                                vertices[vids[i]],
-                                            );
+                                            let di = DartId(d0.0 + i as DartIdType);
+                                            let dip1 = if i == n_vertices - 1 {
+                                                d0
+                                            } else {
+                                                DartId(di.0 + 1)
+                                            };
+                                            cmap.insert_vertex(di.into(), vertices[vids[i]]);
                                             cmap.one_link(di, dip1);
                                             sew_buffer
                                                 .insert((vids[i], vids[(i + 1) % n_vertices]), di);
@@ -260,28 +258,19 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         );
                                         // build the quad
                                         let d0 = cmap.add_free_darts(4);
-                                        let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
-                                        cmap.insert_vertex(
-                                            d0 as VertexIdentifier,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.insert_vertex(
-                                            d1 as VertexIdentifier,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.insert_vertex(
-                                            d2 as VertexIdentifier,
-                                            vertices[vids[2]],
-                                        );
-                                        cmap.insert_vertex(
-                                            d3 as VertexIdentifier,
-                                            vertices[vids[3]],
-                                        );
+                                        let (d1, d2, d3) =
+                                            (DartId(d0.0 + 1), DartId(d0.0 + 2), DartId(d0.0 + 3));
+                                        cmap.insert_vertex(d0.into(), vertices[vids[0]]);
+                                        cmap.insert_vertex(d1.into(), vertices[vids[1]]);
+                                        cmap.insert_vertex(d2.into(), vertices[vids[2]]);
+                                        cmap.insert_vertex(d3.into(), vertices[vids[3]]);
+
                                         cmap.one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
                                         cmap.one_link(d3, d0); // edge d3 links vertices vids[3] & vids[0]
-                                                               // record a trace of the built cell for future 2-sew
+
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[3]), d2);

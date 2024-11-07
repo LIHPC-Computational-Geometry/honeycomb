@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{DartIdentifier, OrbitPolicy};
+use crate::cmap::{DartId, OrbitPolicy};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -129,7 +129,7 @@ pub trait AttributeBind: Debug + Sized + Any + Clone + Copy {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: From<DartIdentifier> + num_traits::ToPrimitive + Clone;
+    type IdentifierType: From<DartId> + Into<DartId> + Clone;
 
     /// [`OrbitPolicy`] determining the kind of topological entity to which the attribute
     /// is associated.
@@ -178,9 +178,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Arguments
     ///
-    /// - `out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+    /// - `out: DartId` -- Identifier to associate the result with.
+    /// - `lhs_inp: DartId` -- Identifier of one attribute value to merge.
+    /// - `rhs_inp: DartId` -- Identifier of the other attribute value to merge.
     ///
     /// # Behavior pseudo-code
     ///
@@ -192,7 +192,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// }
     /// attributes.set(out, new_val);
     /// ```
-    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+    fn merge(&self, out: DartId, lhs_inp: DartId, rhs_inp: DartId);
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `merge`
@@ -204,9 +204,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     fn merge_transac(
         &self,
         trans: &mut Transaction,
-        out: DartIdentifier,
-        lhs_inp: DartIdentifier,
-        rhs_inp: DartIdentifier,
+        out: DartId,
+        lhs_inp: DartId,
+        rhs_inp: DartId,
     ) -> Result<(), StmError>;
 
     /// Split attribute to specified indices
@@ -216,9 +216,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Arguments
     ///
-    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
-    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    /// - `lhs_out: DartId` -- Identifier to associate the result with.
+    /// - `rhs_out: DartId` -- Identifier to associate the result with.
+    /// - `inp: DartId` -- Identifier of the attribute value to split.
     ///
     /// # Behavior pseudo-code
     ///
@@ -227,7 +227,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
     /// ```
-    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+    fn split(&self, lhs_out: DartId, rhs_out: DartId, inp: DartId);
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `split`
@@ -239,9 +239,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     fn split_transac(
         &self,
         trans: &mut Transaction,
-        lhs_out: DartIdentifier,
-        rhs_out: DartIdentifier,
-        inp: DartIdentifier,
+        lhs_out: DartId,
+        rhs_out: DartId,
+        inp: DartId,
     ) -> Result<(), StmError>;
 }
 

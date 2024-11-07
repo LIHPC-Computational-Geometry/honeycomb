@@ -12,9 +12,9 @@
 // ------ IMPORTS
 
 use super::CMAP2_BETA;
+use crate::cmap::DartId;
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdentifier};
-use std::{fs::File, io::Write};
+use crate::prelude::CMap2;
 use stm::atomically;
 
 // ------ CONTENT
@@ -32,8 +32,8 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `const I: u8` -- Beta function to edit.
     ///
-    pub fn set_beta<const I: u8>(&self, dart_id: DartIdentifier, val: DartIdentifier) {
-        atomically(|trans| self.betas[dart_id as usize][I as usize].write(trans, val));
+    pub fn set_beta<const I: u8>(&self, dart_id: DartId, val: DartId) {
+        atomically(|trans| self.betas[(I, dart_id)].write(trans, val));
     }
 
     /// Set the values of the beta functions of a dart.
@@ -44,12 +44,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
-    pub fn set_betas(&self, dart_id: DartIdentifier, [b0, b1, b2]: [DartIdentifier; CMAP2_BETA]) {
+    pub fn set_betas(&self, dart_id: DartId, [b0, b1, b2]: [DartId; CMAP2_BETA]) {
         // store separately to use non-mutable methods
         atomically(|trans| {
-            self.betas[dart_id as usize][0].write(trans, b0)?;
-            self.betas[dart_id as usize][1].write(trans, b1)?;
-            self.betas[dart_id as usize][2].write(trans, b2)?;
+            self.betas[(0, dart_id)].write(trans, b0)?;
+            self.betas[(1, dart_id)].write(trans, b1)?;
+            self.betas[(2, dart_id)].write(trans, b2)?;
             Ok(())
         });
     }
@@ -98,34 +98,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will return an error if:
     /// - the file cannot be created,
     /// - at any point, the program cannot write into the output file.
-    pub fn allocated_size(&self, rootname: &str) -> Result<(), std::io::Error> {
-        let mut file = File::create(rootname.to_owned() + "_allocated.csv")?;
-        writeln!(file, "key, memory (bytes)")?;
-
-        // beta
-        let mut beta_total = 0;
-        for beta_id in 0..3 {
-            let mem = self.betas.capacity() * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}")?;
-            beta_total += mem;
-        }
-        writeln!(file, "beta_total, {beta_total}")?;
-
-        // cells
-        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.allocated_size();
-        let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
-        writeln!(file, "geometry_total, {geometry_total}")?;
-
-        // others
-        let others_freedarts = self.unused_darts.len();
-        let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}")?;
-        writeln!(file, "others_counters, {others_counters}")?;
-        writeln!(file, "others_total, {others_total}")?;
-        Ok(())
+    pub fn allocated_size(&self, _rootname: &str) -> Result<(), std::io::Error> {
+        unimplemented!()
     }
 
     /// Computes the total used space dedicated to the map.
@@ -172,34 +146,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will return an error if:
     /// - the file cannot be created,
     /// - at any point, the program cannot write into the output file.
-    pub fn effective_size(&self, rootname: &str) -> Result<(), std::io::Error> {
-        let mut file = File::create(rootname.to_owned() + "_effective.csv")?;
-        writeln!(file, "key, memory (bytes)")?;
-
-        // beta
-        let mut beta_total = 0;
-        for beta_id in 0..3 {
-            let mem = self.n_darts * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}")?;
-            beta_total += mem;
-        }
-        writeln!(file, "beta_total, {beta_total}")?;
-
-        // cells
-        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.effective_size();
-        let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
-        writeln!(file, "geometry_total, {geometry_total}")?;
-
-        // others
-        let others_freedarts = self.unused_darts.len();
-        let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}")?;
-        writeln!(file, "others_counters, {others_counters}")?;
-        writeln!(file, "others_total, {others_total}")?;
-        Ok(())
+    pub fn effective_size(&self, _rootname: &str) -> Result<(), std::io::Error> {
+        unimplemented!()
     }
 
     /// Computes the actual used space dedicated to the map.
@@ -248,35 +196,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will return an error if:
     /// - the file cannot be created,
     /// - at any point, the program cannot write into the output file.
-    pub fn used_size(&self, rootname: &str) -> Result<(), std::io::Error> {
-        let mut file = File::create(rootname.to_owned() + "_used.csv")?;
-        writeln!(file, "key, memory (bytes)").unwrap();
-
-        let n_used_darts = self.n_darts - self.unused_darts.len();
-
-        // beta
-        let mut beta_total = 0;
-        for beta_id in 0..3 {
-            let mem = n_used_darts * std::mem::size_of::<DartIdentifier>();
-            writeln!(file, "beta_{beta_id}, {mem}")?;
-            beta_total += mem;
-        }
-        writeln!(file, "beta_total, {beta_total}")?;
-
-        // cells
-        // using 2 * sizeof(f64) bc sizeof(array) always is the size of a pointer
-        let geometry_vertex = self.vertices.used_size();
-        let geometry_total = geometry_vertex;
-        writeln!(file, "geometry_vertex, {geometry_vertex}")?;
-        writeln!(file, "geometry_total, {geometry_total}")?;
-
-        // others
-        let others_freedarts = self.unused_darts.len();
-        let others_counters = 2 * std::mem::size_of::<usize>();
-        let others_total = others_freedarts + others_counters;
-        writeln!(file, "others_freedarts, {others_freedarts}")?;
-        writeln!(file, "others_counters, {others_counters}")?;
-        writeln!(file, "others_total, {others_total}")?;
-        Ok(())
+    pub fn used_size(&self, _rootname: &str) -> Result<(), std::io::Error> {
+        unimplemented!()
     }
 }
