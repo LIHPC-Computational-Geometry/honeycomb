@@ -2,7 +2,8 @@
 
 // ------ MODULE DECLARATIONS
 
-mod maximizers;
+mod lambda;
+mod node;
 mod quality;
 
 // ------ IMPORTS
