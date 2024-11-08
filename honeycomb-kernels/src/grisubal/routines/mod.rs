@@ -7,22 +7,35 @@
 // ------ MODULES
 
 mod clip;
-mod step0;
-mod step1;
-mod step2;
-mod step3;
-mod step4;
-mod step5;
+mod compute_intersecs;
+mod compute_new_edges;
+mod insert_intersecs;
+mod insert_new_edges;
+mod pre_processing;
+mod process_intersecs_data;
 
 // ------ RE-EXPORTS
 
+// step 0
+pub(crate) use pre_processing::*;
+
+// step 1
+pub(crate) use compute_intersecs::*;
+
+// step 2
+pub(crate) use process_intersecs_data::*;
+
+// step 3
+pub(crate) use insert_intersecs::*;
+
+// step 4
+pub(crate) use compute_new_edges::*;
+
+// step 5
+pub(crate) use insert_new_edges::*;
+
+// optional clipping routines
 pub(crate) use clip::{clip_left, clip_right};
-pub(crate) use step0::*;
-pub(crate) use step1::*;
-pub(crate) use step2::*;
-pub(crate) use step3::*;
-pub(crate) use step4::*;
-pub(crate) use step5::*;
 
 // ------ IMPORTS
 
