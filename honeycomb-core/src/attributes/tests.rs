@@ -699,7 +699,7 @@ fn manager_extend() {
         10
     );
     (10..20).for_each(|id| {
-        manager.insert_attribute(VertexId(id), Temperature::from(273.0 + 2.0 * id as f32))
+        manager.insert_attribute(VertexId(id), Temperature::from(273.0 + 2.0 * id as f32));
     });
     assert_eq!(
         manager.get_storage::<Temperature>().unwrap().n_attributes(),

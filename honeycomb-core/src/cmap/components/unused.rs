@@ -25,11 +25,6 @@ impl UnusedDarts {
         self.0.extend((0..len).map(|_| TVar::new(false)));
     }
 
-    /// Return internal storage length
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
     pub fn iter(&self) -> Iter<'_, TVar<bool>> {
         self.0.iter()
     }

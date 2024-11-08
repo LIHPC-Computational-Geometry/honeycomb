@@ -34,9 +34,18 @@ macro_rules! impl_display {
     };
 }
 
+/// Common trait implemented by cell ID types.
 pub trait CellId {
+    /// Inner type of the cell ID. It should be one of:
+    /// - `DartId`
+    /// - `VertexId`
+    /// - `EdgeId`
+    /// - `FaceId`
+    /// - `VolumeId`
     type CellIdType;
+    /// Return the inner value.
     fn inner(&self) -> Self::CellIdType;
+    /// Return the inner value as `usize` for indexing purposes.
     fn inner_as_usize(&self) -> usize;
 }
 

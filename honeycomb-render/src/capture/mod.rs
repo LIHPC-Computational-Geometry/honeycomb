@@ -6,9 +6,7 @@ use crate::capture::ecs_data::CaptureId;
 use crate::capture::system::{populate_darts, populate_edges, populate_vertices};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::prelude::{
-    CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
-};
+use honeycomb_core::prelude::{CMap2, CoordsFloat, FaceIdType, Orbit2, OrbitPolicy, VertexIdType};
 
 /// Plugin handling capture data & entity generation from it.
 pub struct CapturePlugin;
@@ -41,7 +39,7 @@ pub struct CaptureList(pub Vec<Capture>);
 pub struct Capture {
     pub metadata: CaptureMD,
     pub vertex_vals: Vec<Vec3>,
-    pub normals: HashMap<FaceIdentifier, Vec<Vec3>>,
+    pub normals: HashMap<FaceIdType, Vec<Vec3>>,
     pub darts: Vec<(DartHeadBundle, DartBodyBundle)>,
     pub vertices: Vec<VertexBundle>,
     pub edges: Vec<EdgeBundle>,
@@ -63,15 +61,14 @@ impl Capture {
             n_volumes: 0,
         };
 
-        let mut index_map: HashMap<VertexIdentifier, usize> =
-            HashMap::with_capacity(cmap.n_vertices());
+        let mut index_map: HashMap<VertexIdType, usize> = HashMap::with_capacity(cmap.n_vertices());
 
         let vertex_vals: Vec<Vec3> = map_vertices
             .identifiers
             .iter()
             .enumerate()
             .map(|(idx, vid)| {
-                index_map.insert(*vid, idx);
+                index_map.insert(vid.0, idx);
                 let v = cmap
                     .vertex(*vid)
                     .expect("E: found a topological vertex with no associated coordinates");
@@ -83,20 +80,21 @@ impl Capture {
         let vertices: Vec<VertexBundle> = map_vertices
             .identifiers
             .iter()
-            .map(|id| VertexBundle::new(cap_id, *id, index_map[id]))
+            .map(|id| VertexBundle::new(cap_id, id.0, index_map[&id.0]))
             .collect();
 
         let edges: Vec<EdgeBundle> = map_edges
             .identifiers
             .iter()
             .map(|id| {
-                let v1id = cmap.vertex_id(*id as DartIdentifier);
-                let v2id = if cmap.is_i_free::<2>(*id as DartIdentifier) {
-                    cmap.vertex_id(cmap.beta::<1>(*id as DartIdentifier))
+                let id = honeycomb_core::cmap::DartId::from(*id);
+                let v1id = cmap.vertex_id(id);
+                let v2id = if cmap.is_i_free::<2>(id) {
+                    cmap.vertex_id(cmap.beta::<1>(id))
                 } else {
-                    cmap.vertex_id(cmap.beta::<2>(*id as DartIdentifier))
+                    cmap.vertex_id(cmap.beta::<2>(id))
                 };
-                EdgeBundle::new(cap_id, *id, (index_map[&v1id], index_map[&v2id]))
+                EdgeBundle::new(cap_id, id.0, (index_map[&v1id.0], index_map[&v2id.0]))
             })
             .collect();
 
@@ -107,10 +105,13 @@ impl Capture {
             .identifiers
             .iter()
             .map(|id| {
-                let vertex_ids: Vec<usize> =
-                    Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdentifier)
-                        .map(|dart_id| index_map[&cmap.vertex_id(dart_id)])
-                        .collect();
+                let vertex_ids: Vec<usize> = Orbit2::new(
+                    cmap,
+                    OrbitPolicy::Custom(&[1]),
+                    honeycomb_core::cmap::DartId::from(*id),
+                )
+                .map(|dart_id| index_map[&cmap.vertex_id(dart_id).0])
+                .collect();
                 let n_v = vertex_ids.len();
                 let mut loc_normals = vec![{
                     let (ver_in, ver, ver_out) =
@@ -148,13 +149,17 @@ impl Capture {
 
                 assert_eq!(loc_normals.len(), n_v);
 
-                normals.insert(*id, loc_normals);
+                normals.insert(id.0, loc_normals);
 
                 // common dart iterator
-                let mut tmp = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdentifier)
-                    .enumerate()
-                    .map(|(idx, dart_id)| (dart_id, index_map[&cmap.vertex_id(dart_id)], idx))
-                    .collect::<Vec<_>>();
+                let mut tmp = Orbit2::new(
+                    cmap,
+                    OrbitPolicy::Custom(&[1]),
+                    honeycomb_core::cmap::DartId::from(*id),
+                )
+                .enumerate()
+                .map(|(idx, dart_id)| (dart_id, index_map[&cmap.vertex_id(dart_id).0], idx))
+                .collect::<Vec<_>>();
                 tmp.push(tmp[0]); // trick for the `.windows` call
 
                 // dart bodies
@@ -164,10 +169,10 @@ impl Capture {
                     };
                     DartBodyBundle::new(
                         cap_id,
-                        *dart_id,
-                        cmap.vertex_id(*dart_id),
-                        cmap.edge_id(*dart_id),
-                        *id,
+                        dart_id.0,
+                        cmap.vertex_id(*dart_id).0,
+                        cmap.edge_id(*dart_id).0,
+                        id.0,
                         (*v1_id, *v2_id),
                         (*v1n_id, *v2n_id),
                     )
@@ -179,10 +184,10 @@ impl Capture {
                     };
                     DartHeadBundle::new(
                         cap_id,
-                        *dart_id,
-                        cmap.vertex_id(*dart_id),
-                        cmap.edge_id(*dart_id),
-                        *id,
+                        dart_id.0,
+                        cmap.vertex_id(*dart_id).0,
+                        cmap.edge_id(*dart_id).0,
+                        id.0,
                         (*v1_id, *v2_id),
                         (*v1n_id, *v2n_id),
                     )
@@ -190,7 +195,7 @@ impl Capture {
 
                 darts.extend(heads.zip(bodies));
 
-                FaceBundle::new(cap_id, *id, vertex_ids)
+                FaceBundle::new(cap_id, id.0, vertex_ids)
             })
             .collect();
 

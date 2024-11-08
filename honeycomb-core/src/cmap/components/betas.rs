@@ -32,11 +32,6 @@ impl<const N: usize> BetaFunctions<N> {
     pub fn extend(&mut self, len: usize) {
         self.0.extend((0..len).map(|_| new_beta_entry()));
     }
-
-    /// Return internal storage length
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
 }
 
 impl<const N: usize> Index<(u8, DartId)> for BetaFunctions<N> {
