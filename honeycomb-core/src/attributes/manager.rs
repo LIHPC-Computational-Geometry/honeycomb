@@ -129,17 +129,17 @@ impl AttrStorageManager {
         match orbit_policy {
             OrbitPolicy::Vertex => {
                 for storage in self.vertices.values() {
-                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                    storage.merge(id_out, id_in_lhs, id_in_rhs);
                 }
             }
             OrbitPolicy::Edge => {
                 for storage in self.edges.values() {
-                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                    storage.merge(id_out, id_in_lhs, id_in_rhs);
                 }
             }
             OrbitPolicy::Face => {
                 for storage in self.faces.values() {
-                    storage.merge(id_out.into(), id_in_lhs.into(), id_in_rhs.into());
+                    storage.merge(id_out, id_in_lhs, id_in_rhs);
                 }
             }
             OrbitPolicy::Custom(_) => {
@@ -677,34 +677,19 @@ impl AttrStorageManager {
         match orbit_policy {
             OrbitPolicy::Vertex => {
                 for storage in self.vertices.values() {
-                    storage.merge_transac(
-                        trans,
-                        id_out.into(),
-                        id_in_lhs.into(),
-                        id_in_rhs.into(),
-                    )?;
+                    storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
                 }
                 Ok(())
             }
             OrbitPolicy::Edge => {
                 for storage in self.edges.values() {
-                    storage.merge_transac(
-                        trans,
-                        id_out.into(),
-                        id_in_lhs.into(),
-                        id_in_rhs.into(),
-                    )?;
+                    storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
                 }
                 Ok(())
             }
             OrbitPolicy::Face => {
                 for storage in self.faces.values() {
-                    storage.merge_transac(
-                        trans,
-                        id_out.into(),
-                        id_in_lhs.into(),
-                        id_in_rhs.into(),
-                    )?;
+                    storage.merge_transac(trans, id_out, id_in_lhs, id_in_rhs)?;
                 }
                 Ok(())
             }
@@ -781,34 +766,19 @@ impl AttrStorageManager {
         match orbit_policy {
             OrbitPolicy::Vertex => {
                 for storage in self.vertices.values() {
-                    storage.split_transac(
-                        trans,
-                        id_out_lhs.into(),
-                        id_out_rhs.into(),
-                        id_in.into(),
-                    )?;
+                    storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
                 }
                 Ok(())
             }
             OrbitPolicy::Edge => {
                 for storage in self.edges.values() {
-                    storage.split_transac(
-                        trans,
-                        id_out_lhs.into(),
-                        id_out_rhs.into(),
-                        id_in.into(),
-                    )?;
+                    storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
                 }
                 Ok(())
             }
             OrbitPolicy::Face => {
                 for storage in self.faces.values() {
-                    storage.split_transac(
-                        trans,
-                        id_out_lhs.into(),
-                        id_out_rhs.into(),
-                        id_in.into(),
-                    )?;
+                    storage.split_transac(trans, id_out_lhs, id_out_rhs, id_in)?;
                 }
                 Ok(())
             }

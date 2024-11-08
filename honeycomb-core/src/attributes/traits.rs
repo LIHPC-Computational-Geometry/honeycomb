@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::cmap::{DartId, OrbitPolicy};
+use crate::cmap::{CellId, DartId, OrbitPolicy};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -129,7 +129,7 @@ pub trait AttributeBind: Debug + Sized + Any + Clone + Copy {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: From<DartId> + Into<DartId> + Clone;
+    type IdentifierType: CellId + Clone;
 
     /// [`OrbitPolicy`] determining the kind of topological entity to which the attribute
     /// is associated.

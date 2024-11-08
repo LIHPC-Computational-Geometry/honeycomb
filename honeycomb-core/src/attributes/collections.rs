@@ -8,7 +8,7 @@
 use std::ops::Index;
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::cmap::DartId;
+use crate::cmap::{CellId, DartId};
 use stm::{atomically, StmError, TVar, Transaction};
 
 // ------ CONTENT
@@ -33,12 +33,12 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<TVar<Option<T>>>,
 }
 
-impl<A: AttributeBind + AttributeUpdate> Index<DartId> for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate, I: CellId> Index<&I> for AttrSparseVec<A> {
     type Output = TVar<Option<A>>;
 
-    fn index(&self, index: DartId) -> &Self::Output {
-        assert!((index.0 as usize) < self.data.len());
-        &self.data[index.0 as usize]
+    fn index(&self, index: &I) -> &Self::Output {
+        assert!((index.inner_as_usize()) < self.data.len());
+        &self.data[index.inner_as_usize()]
     }
 }
 
@@ -51,7 +51,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         lhs_inp: DartId,
         rhs_inp: DartId,
     ) -> Result<(), StmError> {
-        let new_v = match (self[lhs_inp].read(trans)?, self[rhs_inp].read(trans)?) {
+        let new_v = match (self[&lhs_inp].read(trans)?, self[&rhs_inp].read(trans)?) {
             (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
             (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
             (None, None) => AttributeUpdate::merge_from_none(),
@@ -60,9 +60,9 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
             eprintln!("W: cannot merge two null attribute value");
             eprintln!("   setting new target value to `None`");
         }
-        self[rhs_inp].write(trans, None)?;
-        self[lhs_inp].write(trans, None)?;
-        self[out].write(trans, new_v)?;
+        self[&rhs_inp].write(trans, None)?;
+        self[&lhs_inp].write(trans, None)?;
+        self[&out].write(trans, new_v)?;
         Ok(())
     }
 
@@ -73,16 +73,16 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         rhs_out: DartId,
         inp: DartId,
     ) -> Result<(), StmError> {
-        if let Some(val) = self[inp].read(trans)? {
+        if let Some(val) = self[&inp].read(trans)? {
             let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self[inp].write(trans, None)?;
-            self[lhs_out].write(trans, Some(lhs_val))?;
-            self[rhs_out].write(trans, Some(rhs_val))?;
+            self[&inp].write(trans, None)?;
+            self[&lhs_out].write(trans, Some(lhs_val))?;
+            self[&rhs_out].write(trans, Some(rhs_val))?;
         } else {
             eprintln!("W: cannot split attribute value (not found in storage)");
             eprintln!("   setting both new values to `None`");
-            self[lhs_out].write(trans, None)?;
-            self[rhs_out].write(trans, None)?;
+            self[&lhs_out].write(trans, None)?;
+            self[&rhs_out].write(trans, None)?;
             //self.data[inp as usize].store(None, Ordering::Release);
         }
         Ok(())
@@ -94,7 +94,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         id: &A::IdentifierType,
         val: A,
     ) -> Result<(), StmError> {
-        self[<A::IdentifierType as Into<DartId>>::into(id.clone())].write(trans, Some(val))?;
+        self[id].write(trans, Some(val))?;
         Ok(())
     }
 
@@ -104,8 +104,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         id: &A::IdentifierType,
         val: A,
     ) -> Result<(), StmError> {
-        let tmp = self[<A::IdentifierType as Into<DartId>>::into(id.clone())]
-            .replace(trans, Some(val))?;
+        let tmp = self[id].replace(trans, Some(val))?;
         // assertion prevents the transaction from being validated, so the
         // storage will be left unchanged before the crash
         assert!(tmp.is_none());
@@ -117,7 +116,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         trans: &mut Transaction,
         id: &A::IdentifierType,
     ) -> Result<Option<A>, StmError> {
-        self[<A::IdentifierType as Into<DartId>>::into(id.clone())].read(trans)
+        self[id].read(trans)
     }
 
     pub(crate) fn replace_core(
@@ -126,7 +125,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         id: &A::IdentifierType,
         val: A,
     ) -> Result<Option<A>, StmError> {
-        self[<A::IdentifierType as Into<DartId>>::into(id.clone())].replace(trans, Some(val))
+        self[id].replace(trans, Some(val))
     }
 
     pub(crate) fn remove_core(
@@ -134,8 +133,7 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         trans: &mut Transaction,
         id: &A::IdentifierType,
     ) -> Result<Option<A>, StmError> {
-        // maybe make a to_usize function ?
-        self[<A::IdentifierType as Into<DartId>>::into(id.clone())].replace(trans, None)
+        self[id].replace(trans, None)
     }
 }
 
