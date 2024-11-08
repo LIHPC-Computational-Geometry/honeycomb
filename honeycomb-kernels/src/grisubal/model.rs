@@ -26,14 +26,16 @@ use vtkio::{
 pub struct GridCellId(pub usize, pub usize);
 
 impl GridCellId {
-    /// Compute the [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
+    /// Compute the [L1 / Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) between
     /// two cells.
-    pub fn man_dist(lhs: &Self, rhs: &Self) -> usize {
+    pub fn l1_dist(lhs: &Self, rhs: &Self) -> usize {
         lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
     }
 
+    /// Compute the substraction between cell indices. This corresponds to an offset / movement over
+    /// the grid **from `lhs` to `rhs`**.
     #[allow(clippy::cast_possible_wrap)]
-    pub fn diff(lhs: &Self, rhs: &Self) -> (isize, isize) {
+    pub fn offset(lhs: &Self, rhs: &Self) -> (isize, isize) {
         (
             rhs.0 as isize - lhs.0 as isize,
             rhs.1 as isize - lhs.1 as isize,

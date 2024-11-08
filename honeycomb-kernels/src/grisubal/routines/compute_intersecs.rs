@@ -87,8 +87,8 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                 ),
             );
             (
-                GridCellId::man_dist(&c1, &c2),
-                GridCellId::diff(&c1, &c2),
+                GridCellId::l1_dist(&c1, &c2),
+                GridCellId::offset(&c1, &c2),
                 v1,
                 v2,
                 v1_id,
