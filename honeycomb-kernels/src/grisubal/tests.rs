@@ -1,10 +1,10 @@
 // ------ IMPORTS
 
-use crate::grisubal::kernel::{
+use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex};
+use crate::grisubal::routines::{
     compute_intersection_ids, generate_edge_data, generate_intersection_data,
     group_intersections_per_edge, insert_edges_in_map, insert_intersections,
 };
-use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex};
 use honeycomb_core::prelude::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 // ------ CONTENT
