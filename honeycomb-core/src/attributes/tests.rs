@@ -708,7 +708,7 @@ fn manager_extend() {
 }
 
 #[test]
-#[should_panic(expected = "index out of bounds: the len is 10 but the index is 15")]
+#[should_panic(expected = "assertion failed: (index.inner_as_usize()) < self.data.len()")]
 fn manager_set_oob() {
     generate_manager!(manager);
     assert_eq!(

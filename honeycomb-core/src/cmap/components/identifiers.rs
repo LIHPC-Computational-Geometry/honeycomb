@@ -76,7 +76,7 @@ pub struct DartId(pub DartIdType);
 pub const NULL_DART_ID: DartId = DartId(0);
 
 impl_cellid!(DartId, DartIdType);
-impl_display!(DartId, "d{}");
+impl_display!(DartId, "{}");
 impl_from_for_dartid!(VertexId);
 impl_from_for_dartid!(EdgeId);
 impl_from_for_dartid!(FaceId);

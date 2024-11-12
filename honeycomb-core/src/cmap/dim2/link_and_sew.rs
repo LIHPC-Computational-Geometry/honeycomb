@@ -269,21 +269,23 @@ impl<T: CoordsFloat> CMap2<T> {
                     // update the topology
                     self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                     // merge vertices & attributes from the old IDs to the new one
+                    let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                     self.vertices.merge_core(
                         trans,
-                        self.vertex_id(lhs_dart_id).into(),
+                        lhs_vid_new.into(),
                         lhs_vid_old.into(),
                         b1rhs_vid_old.into(),
                     )?;
                     self.attributes.merge_vertex_attributes_transac(
                         trans,
-                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_new,
                         lhs_vid_old,
                         b1rhs_vid_old,
                     )?;
                     self.attributes.merge_edge_attributes_transac(
                         trans,
-                        self.edge_id(lhs_dart_id),
+                        eid_new,
                         lhs_eid_old,
                         rhs_eid_old,
                     )?;
@@ -298,21 +300,23 @@ impl<T: CoordsFloat> CMap2<T> {
                     // update the topology
                     self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                     // merge vertices & attributes from the old IDs to the new one
+                    let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
+                    let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                     self.vertices.merge_core(
                         trans,
-                        self.vertex_id(rhs_dart_id).into(),
+                        rhs_vid_new.into(),
                         b1lhs_vid_old.into(),
                         rhs_vid_old.into(),
                     )?;
                     self.attributes.merge_vertex_attributes_transac(
                         trans,
-                        self.vertex_id(rhs_dart_id),
+                        rhs_vid_new,
                         b1lhs_vid_old,
                         rhs_vid_old,
                     )?;
                     self.attributes.merge_edge_attributes_transac(
                         trans,
-                        self.edge_id(lhs_dart_id),
+                        eid_new,
                         lhs_eid_old,
                         rhs_eid_old,
                     )?;
@@ -354,33 +358,36 @@ impl<T: CoordsFloat> CMap2<T> {
                     // update the topology
                     self.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                     // merge vertices & attributes from the old IDs to the new one
+                    let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
+                    let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
+                    let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                     self.vertices.merge_core(
                         trans,
-                        self.vertex_id(lhs_dart_id).into(),
+                        lhs_vid_new.into(),
                         lhs_vid_old.into(),
                         b1rhs_vid_old.into(),
                     )?;
                     self.vertices.merge_core(
                         trans,
-                        self.vertex_id(rhs_dart_id).into(),
+                        rhs_vid_new.into(),
                         b1lhs_vid_old.into(),
                         rhs_vid_old.into(),
                     )?;
                     self.attributes.merge_vertex_attributes_transac(
                         trans,
-                        self.vertex_id(lhs_dart_id),
+                        lhs_vid_new,
                         lhs_vid_old,
                         b1rhs_vid_old,
                     )?;
                     self.attributes.merge_vertex_attributes_transac(
                         trans,
-                        self.vertex_id(rhs_dart_id),
+                        rhs_vid_new,
                         b1lhs_vid_old,
                         rhs_vid_old,
                     )?;
                     self.attributes.merge_edge_attributes_transac(
                         trans,
-                        self.edge_id(lhs_dart_id),
+                        eid_new,
                         lhs_eid_old,
                         rhs_eid_old,
                     )?;

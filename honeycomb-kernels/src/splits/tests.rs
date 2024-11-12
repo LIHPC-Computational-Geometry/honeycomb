@@ -159,14 +159,14 @@ mod standard {
         assert_eq!(map.beta::<1>(DartId(8)), DartId(9));
         assert_eq!(map.beta::<1>(DartId(9)), DartId(3));
 
-        assert_eq!(map.beta::<1>(DartId(5)), DartId(0));
-        assert_eq!(map.beta::<1>(DartId(0)), DartId(1));
-        assert_eq!(map.beta::<1>(DartId(1)), DartId(2));
-        assert_eq!(map.beta::<1>(DartId(2)), DartId(6));
+        assert_eq!(map.beta::<1>(DartId(5)), DartId(10));
+        assert_eq!(map.beta::<1>(DartId(10)), DartId(11));
+        assert_eq!(map.beta::<1>(DartId(11)), DartId(12));
+        assert_eq!(map.beta::<1>(DartId(12)), DartId(6));
 
-        assert_eq!(map.beta::<2>(DartId(2)), DartId(2));
-        assert_eq!(map.beta::<2>(DartId(7)), DartId(1));
-        assert_eq!(map.beta::<2>(DartId(8)), DartId(0));
+        assert_eq!(map.beta::<2>(DartId(2)), DartId(12));
+        assert_eq!(map.beta::<2>(DartId(7)), DartId(11));
+        assert_eq!(map.beta::<2>(DartId(8)), DartId(10));
         assert_eq!(map.beta::<2>(DartId(9)), DartId(5));
     }
 
