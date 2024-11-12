@@ -1,4 +1,4 @@
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartId};
 use rand::{
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
@@ -29,13 +29,18 @@ fn main() {
     map.fetch_faces()
         .identifiers
         .iter()
-        .filter(|square| splits[**square as usize % n_split])
+        .filter(|square| splits[square.0 as usize % n_split])
         .for_each(|square| {
-            let square = *square as DartIdentifier;
-            let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
+            let square = square.0;
+            let (d1, d2, d3, d4) = (
+                DartId(square),
+                DartId(square + 1),
+                DartId(square + 2),
+                DartId(square + 3),
+            );
             // in a parallel impl, we would create all new darts before-hand
             let dsplit1 = map.add_free_darts(2);
-            let dsplit2 = dsplit1 + 1;
+            let dsplit2 = DartId(dsplit1.0 + 1);
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops

@@ -12,6 +12,7 @@
 
 // ------ IMPORTS
 
+use honeycomb::prelude::{DartId, VertexId};
 use honeycomb_benches::FloatType;
 use honeycomb_core::prelude::{CMap2, CMapBuilder};
 use iai_callgrind::{
@@ -35,12 +36,12 @@ fn get_link_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = CMapBuilder::default()
+    let map = CMapBuilder::default()
         .n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap();
-    map.insert_vertex(4, (0.0, 0.0));
-    map.insert_vertex(6, (1.0, 0.0));
+    map.insert_vertex(VertexId(4), (0.0, 0.0));
+    map.insert_vertex(VertexId(6), (1.0, 0.0));
     map
 }
 
@@ -51,7 +52,7 @@ fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
 #[bench::medium(&mut get_link_map(64))]
 #[bench::large(&mut get_link_map(256))]
 fn one_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_link(4, 6);
+    map.one_link(DartId(4), DartId(6));
     black_box(map)
 }
 
@@ -60,7 +61,7 @@ fn one_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_link_map(64))]
 #[bench::large(&mut get_link_map(256))]
 fn two_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_link(4, 6);
+    map.two_link(DartId(4), DartId(6));
     black_box(map)
 }
 
@@ -69,7 +70,7 @@ fn two_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn one_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_unlink(4);
+    map.one_unlink(DartId(4));
     black_box(map)
 }
 
@@ -78,7 +79,7 @@ fn one_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn two_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_unlink(4);
+    map.two_unlink(DartId(4));
     black_box(map)
 }
 
@@ -98,7 +99,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_sew_map(64))]
 #[bench::large(&mut get_sew_map(256))]
 fn one_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_sew(4, 6);
+    map.one_sew(DartId(4), DartId(6));
     black_box(map)
 }
 
@@ -107,7 +108,7 @@ fn one_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_sew_map(64))]
 #[bench::large(&mut get_sew_map(256))]
 fn two_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_sew(4, 6);
+    map.two_sew(DartId(4), DartId(6));
     black_box(map)
 }
 
@@ -116,7 +117,7 @@ fn two_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn one_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.one_unsew(4);
+    map.one_unsew(DartId(4));
     black_box(map)
 }
 
@@ -125,7 +126,7 @@ fn one_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn two_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.two_unsew(4);
+    map.two_unsew(DartId(4));
     black_box(map)
 }
 

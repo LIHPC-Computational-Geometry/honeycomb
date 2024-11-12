@@ -13,6 +13,7 @@
 
 // ------ IMPORTS
 
+use honeycomb::prelude::DartId;
 use honeycomb_benches::FloatType;
 use honeycomb_core::prelude::{CMap2, CMapBuilder};
 use iai_callgrind::{
@@ -102,7 +103,7 @@ library_benchmark_group!(
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn zero_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<0>(5));
+    black_box(map.i_cell::<0>(DartId(5)));
 }
 
 #[library_benchmark]
@@ -110,7 +111,7 @@ fn zero_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn one_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<1>(5));
+    black_box(map.i_cell::<1>(DartId(5)));
 }
 
 #[library_benchmark]
@@ -118,7 +119,7 @@ fn one_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn two_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<2>(5));
+    black_box(map.i_cell::<2>(DartId(5)));
 }
 
 library_benchmark_group!(
