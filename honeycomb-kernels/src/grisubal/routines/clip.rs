@@ -84,8 +84,7 @@ fn delete_darts<T: CoordsFloat>(
     marked: HashSet<FaceIdType>,
     kept_boundary: Boundary,
 ) {
-    let kept_boundary_components: Vec<(DartIdType, Vertex2<T>)> = (1..cmap.n_darts()
-        as DartIdType)
+    let kept_boundary_components: Vec<(DartIdType, Vertex2<T>)> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
             if cmap.get_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
                 return Some((

@@ -17,8 +17,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     intersection_metadata: Vec<(DartIdType, T)>,
 ) -> (IntersectionsPerEdge<T>, DartSlices) {
     // group intersection data per edge, and associate an ID to each
-    let mut edge_intersec: HashMap<EdgeIdType, Vec<(usize, T, DartIdType)>> =
-        HashMap::new();
+    let mut edge_intersec: HashMap<EdgeIdType, Vec<(usize, T, DartIdType)>> = HashMap::new();
     intersection_metadata
         .into_iter()
         .filter(|(_, t)| !t.is_nan())
@@ -65,8 +64,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType)
-                .collect::<Vec<_>>()
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
         })
         .collect();
 

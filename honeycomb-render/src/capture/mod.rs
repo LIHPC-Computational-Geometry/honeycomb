@@ -63,8 +63,7 @@ impl Capture {
             n_volumes: 0,
         };
 
-        let mut index_map: HashMap<VertexIdType, usize> =
-            HashMap::with_capacity(cmap.n_vertices());
+        let mut index_map: HashMap<VertexIdType, usize> = HashMap::with_capacity(cmap.n_vertices());
 
         let vertex_vals: Vec<Vec3> = map_vertices
             .identifiers
