@@ -53,11 +53,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_dart(&mut self) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
-        self.betas.push([
-            TVar::new(NULL_DART_ID),
-            TVar::new(NULL_DART_ID),
-            TVar::new(NULL_DART_ID),
-        ]);
+        self.betas.extend(1);
         self.unused_darts.push(TVar::new(false));
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
@@ -80,13 +76,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdentifier {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
-        self.betas.extend((0..n_darts).map(|_| {
-            [
-                TVar::new(NULL_DART_ID),
-                TVar::new(NULL_DART_ID),
-                TVar::new(NULL_DART_ID),
-            ]
-        }));
+        self.betas.extend(n_darts);
         self.unused_darts
             .extend((0..n_darts).map(|_| TVar::new(false)));
         self.vertices.extend(n_darts);
@@ -110,11 +100,7 @@ impl<T: CoordsFloat> CMap2<T> {
             .enumerate()
             .find(|(_, u)| u.read_atomic())
         {
-            self.betas[new_id] = [
-                TVar::new(NULL_DART_ID),
-                TVar::new(NULL_DART_ID),
-                TVar::new(NULL_DART_ID),
-            ];
+            atomically(|trans| self.unused_darts[new_id].write(trans, false));
             new_id as DartIdentifier
         } else {
             self.add_free_dart()
@@ -177,7 +163,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdentifier) -> DartIdentifier {
         assert!(I < 3);
-        self.betas[dart_id as usize][I as usize].read_atomic()
+        self.betas[(I, dart_id)].read_atomic()
     }
 
     /// Compute the value of the i-th beta function of a given dart.
@@ -296,15 +282,13 @@ impl<T: CoordsFloat> CMap2<T> {
         marked.insert(dart_id); // we're starting here, so we mark it beforehand
         let mut pending = VecDeque::from([dart_id]);
         while let Some(d) = pending.pop_front() {
-            let image1 =
-                self.betas[self.betas[d as usize][2].read(trans)? as usize][1].read(trans)?;
+            let image1 = self.betas[(1, self.betas[(2, d)].read(trans)?)].read(trans)?;
             if marked.insert(image1) {
                 // if true, we did not see this dart yet
                 // i.e. we need to visit it later
                 pending.push_back(image1);
             }
-            let image2 =
-                self.betas[self.betas[d as usize][0].read(trans)? as usize][2].read(trans)?;
+            let image2 = self.betas[(2, self.betas[(0, d)].read(trans)?)].read(trans)?;
             if marked.insert(image2) {
                 // if true, we did not see this dart yet
                 // i.e. we need to visit it later
@@ -356,7 +340,7 @@ impl<T: CoordsFloat> CMap2<T> {
         dart_id: DartIdentifier,
     ) -> Result<EdgeIdentifier, StmError> {
         // optimizing this one bc I'm tired
-        let b2 = self.betas[dart_id as usize][2].read(trans)?;
+        let b2 = self.betas[(2, dart_id)].read(trans)?;
         if b2 == NULL_DART_ID {
             Ok(dart_id as EdgeIdentifier)
         } else {
@@ -411,7 +395,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let mut pending = VecDeque::from([dart_id]);
         while let Some(d) = pending.pop_front() {
             // WE ASSUME THAT THE FACE IS COMPLETE
-            let image = self.betas[d as usize][1].read(trans)?;
+            let image = self.betas[(1, d)].read(trans)?;
             if marked.insert(image) {
                 // if true, we did not see this dart yet
                 // i.e. we need to visit it later

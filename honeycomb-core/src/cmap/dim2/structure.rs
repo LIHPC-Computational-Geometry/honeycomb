@@ -8,7 +8,7 @@
 use stm::TVar;
 
 use super::CMAP2_BETA;
-use crate::cmap::{DartIdentifier, NULL_DART_ID};
+use crate::cmap::components::betas::BetaFunctions;
 use crate::prelude::Vertex2;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
@@ -154,7 +154,7 @@ pub struct CMap2<T: CoordsFloat> {
     /// in the current dart list
     pub(super) unused_darts: Vec<TVar<bool>>,
     /// Array representation of the beta functions
-    pub(super) betas: Vec<[TVar<DartIdentifier>; CMAP2_BETA]>,
+    pub(super) betas: BetaFunctions<CMAP2_BETA>,
     /// Current number of darts
     pub(super) n_darts: usize,
 }
@@ -186,15 +186,7 @@ impl<T: CoordsFloat> CMap2<T> {
             attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: (0..=n_darts).map(|_| TVar::new(false)).collect(),
-            betas: (0..=n_darts)
-                .map(|_| {
-                    [
-                        TVar::new(NULL_DART_ID),
-                        TVar::new(NULL_DART_ID),
-                        TVar::new(NULL_DART_ID),
-                    ]
-                })
-                .collect(),
+            betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
         }
     }
@@ -229,15 +221,7 @@ impl<T: CoordsFloat> CMap2<T> {
             attributes: attr_storage_manager,
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: (0..=n_darts).map(|_| TVar::new(false)).collect(),
-            betas: (0..=n_darts)
-                .map(|_| {
-                    [
-                        TVar::new(NULL_DART_ID),
-                        TVar::new(NULL_DART_ID),
-                        TVar::new(NULL_DART_ID),
-                    ]
-                })
-                .collect(),
+            betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
         }
     }

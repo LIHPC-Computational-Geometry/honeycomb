@@ -66,7 +66,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Atomically 1-sew two darts.
     pub fn atomically_one_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         atomically(|trans| {
-            let b2lhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
+            let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
                 self.one_link_core(trans, lhs_dart_id, rhs_dart_id)
             } else {
@@ -240,8 +240,8 @@ impl<T: CoordsFloat> CMap2<T> {
     #[allow(clippy::too_many_lines)]
     pub fn atomically_two_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
         atomically(|trans| {
-            let b1lhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
-            let b1rhs_dart_id = self.betas[rhs_dart_id as usize][1].read(trans)?;
+            let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
+            let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
             // match (is lhs 1-free, is rhs 1-free)
             match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
                 // trivial case, no update needed
@@ -421,12 +421,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Atomically 1-unsew two darts.
     pub fn atomically_one_unsew(&self, lhs_dart_id: DartIdentifier) {
         atomically(|trans| {
-            let b2lhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
+            let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
                 self.one_unlink_core(trans, lhs_dart_id)?;
             } else {
                 // fetch IDs before topology update
-                let rhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
+                let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
                 let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
                 // update the topology
                 self.one_unlink_core(trans, lhs_dart_id)?;
@@ -537,9 +537,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Atomically 2-unsew two darts.
     pub fn atomically_two_unsew(&self, lhs_dart_id: DartIdentifier) {
         atomically(|trans| {
-            let rhs_dart_id = self.betas[lhs_dart_id as usize][2].read(trans)?;
-            let b1lhs_dart_id = self.betas[lhs_dart_id as usize][1].read(trans)?;
-            let b1rhs_dart_id = self.betas[rhs_dart_id as usize][1].read(trans)?;
+            let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+            let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
+            let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
             // match (is lhs 1-free, is rhs 1-free)
             match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
                 (true, true) => {
@@ -752,9 +752,9 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(self.is_i_free::<1>(lhs_dart_id));
         assert!(self.is_i_free::<0>(rhs_dart_id));
         // set beta_1(lhs_dart) to rhs_dart
-        self.betas[lhs_dart_id as usize][1].write(trans, rhs_dart_id)?;
+        self.betas[(1, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_0(rhs_dart) to lhs_dart
-        self.betas[rhs_dart_id as usize][0].write(trans, lhs_dart_id)?;
+        self.betas[(0, rhs_dart_id)].write(trans, lhs_dart_id)?;
         Ok(())
     }
 
@@ -783,9 +783,9 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(self.is_i_free::<2>(lhs_dart_id));
         assert!(self.is_i_free::<2>(rhs_dart_id));
         // set beta_2(lhs_dart) to rhs_dart
-        self.betas[lhs_dart_id as usize][2].write(trans, rhs_dart_id)?;
+        self.betas[(2, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_2(rhs_dart) to lhs_dart
-        self.betas[rhs_dart_id as usize][2].write(trans, lhs_dart_id)?;
+        self.betas[(2, rhs_dart_id)].write(trans, lhs_dart_id)?;
         Ok(())
     }
 
@@ -809,10 +809,10 @@ impl<T: CoordsFloat> CMap2<T> {
         lhs_dart_id: DartIdentifier,
     ) -> Result<(), StmError> {
         // set beta_1(lhs_dart) to NullDart
-        let rhs_dart_id = self.betas[lhs_dart_id as usize][1].replace(trans, NULL_DART_ID)?;
+        let rhs_dart_id = self.betas[(1, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
         assert_ne!(rhs_dart_id, NULL_DART_ID);
         // set beta_0(rhs_dart) to NullDart
-        self.betas[rhs_dart_id as usize][0].write(trans, NULL_DART_ID)?;
+        self.betas[(0, rhs_dart_id)].write(trans, NULL_DART_ID)?;
         Ok(())
     }
 
@@ -835,10 +835,10 @@ impl<T: CoordsFloat> CMap2<T> {
         lhs_dart_id: DartIdentifier,
     ) -> Result<(), StmError> {
         // set beta_2(dart) to NullDart
-        let rhs_dart_id = self.betas[lhs_dart_id as usize][2].replace(trans, NULL_DART_ID)?;
+        let rhs_dart_id = self.betas[(2, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
         assert_ne!(rhs_dart_id, NULL_DART_ID);
         // set beta_2(beta_2(dart)) to NullDart
-        self.betas[rhs_dart_id as usize][2].write(trans, NULL_DART_ID)?;
+        self.betas[(2, rhs_dart_id)].write(trans, NULL_DART_ID)?;
         Ok(())
     }
 }

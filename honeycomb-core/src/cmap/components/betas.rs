@@ -28,7 +28,7 @@ fn new_beta_entry<const N: usize>() -> [TVar<DartIdType>; N] {
 impl<const N: usize> BetaFunctions<N> {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
-        Self((0..=n_darts).map(|_| new_beta_entry()).collect())
+        Self((0..n_darts).map(|_| new_beta_entry()).collect())
     }
 
     /// Extend internal storage capacity
@@ -36,9 +36,9 @@ impl<const N: usize> BetaFunctions<N> {
         self.0.extend((0..len).map(|_| new_beta_entry()));
     }
 
-    /// Return internal storage length
-    pub fn len(&self) -> usize {
-        self.0.len()
+    /// Return internal storage capacity
+    pub fn capacity(&self) -> usize {
+        self.0.capacity()
     }
 }
 
