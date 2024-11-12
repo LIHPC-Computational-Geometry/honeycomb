@@ -3,7 +3,7 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, DartId, EdgeId, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 // ------ CONTENT
@@ -52,7 +52,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 /// ```
 pub fn split_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
+    edge_id: EdgeId,
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // midpoint check
@@ -61,14 +61,14 @@ pub fn split_edge<T: CoordsFloat>(
     }
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = DartId::from(edge_id);
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     let new_darts = if base_dart2 == NULL_DART_ID {
         (cmap.add_free_dart(), NULL_DART_ID)
     } else {
         let tmp = cmap.add_free_darts(2);
-        (tmp, tmp + 1)
+        (tmp, DartId(tmp.0 + 1))
     };
 
     inner_split(cmap, base_dart1, new_darts, midpoint_vertex)
@@ -116,8 +116,8 @@ pub fn split_edge<T: CoordsFloat>(
 ///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn split_edge_noalloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
-    new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
+    edge_id: EdgeId,
+    new_darts: (DartId, DartId), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // midpoint check
@@ -126,7 +126,7 @@ pub fn split_edge_noalloc<T: CoordsFloat>(
     }
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = DartId::from(edge_id);
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
@@ -147,8 +147,8 @@ pub fn split_edge_noalloc<T: CoordsFloat>(
 
 fn inner_split<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    base_dart1: DartIdentifier,
-    new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
+    base_dart1: DartId,
+    new_darts: (DartId, DartId), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // base darts making up the edge
@@ -163,8 +163,8 @@ fn inner_split<T: CoordsFloat>(
             return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current dart
-        cmap.set_beta::<1>(base_dart1, 0);
-        cmap.set_beta::<0>(b1d1_old, 0);
+        cmap.set_beta::<1>(base_dart1, NULL_DART_ID);
+        cmap.set_beta::<0>(b1d1_old, NULL_DART_ID);
         // rebuild the edge
         cmap.one_link(base_dart1, b1d1_new);
         cmap.one_link(b1d1_new, b1d1_old);
@@ -186,10 +186,10 @@ fn inner_split<T: CoordsFloat>(
             return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current darts
-        cmap.set_beta::<1>(base_dart1, 0);
-        cmap.set_beta::<0>(b1d1_old, 0);
-        cmap.set_beta::<1>(base_dart2, 0);
-        cmap.set_beta::<0>(b1d2_old, 0);
+        cmap.set_beta::<1>(base_dart1, NULL_DART_ID);
+        cmap.set_beta::<0>(b1d1_old, NULL_DART_ID);
+        cmap.set_beta::<1>(base_dart2, NULL_DART_ID);
+        cmap.set_beta::<0>(b1d2_old, NULL_DART_ID);
         cmap.two_unlink(base_dart1);
         // rebuild the edge
         cmap.one_link(base_dart1, b1d1_new);

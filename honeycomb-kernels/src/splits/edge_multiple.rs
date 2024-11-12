@@ -3,7 +3,7 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, DartId, DartIdType, EdgeId, VertexId, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 // ------ CONTENT
 
@@ -82,28 +82,29 @@ use honeycomb_core::geometry::CoordsFloat;
 #[allow(clippy::cast_possible_truncation)]
 pub fn splitn_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
+    edge_id: EdgeId,
     midpoint_vertices: impl IntoIterator<Item = T>,
 ) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
     let midpoint_vertices = midpoint_vertices.into_iter().collect::<Vec<_>>();
-    let n_t = midpoint_vertices.len();
+    let n_t = midpoint_vertices.len() as DartIdType;
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = DartId::from(edge_id);
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     let new_darts = if base_dart2 == NULL_DART_ID {
-        let tmp = cmap.add_free_darts(n_t);
-        (tmp..tmp + n_t as DartIdentifier)
+        let tmp = cmap.add_free_darts(n_t as usize).0 as DartIdType;
+        (tmp..tmp + n_t)
+            .map(DartId)
             .chain((0..n_t).map(|_| NULL_DART_ID))
             .collect::<Vec<_>>()
     } else {
-        let tmp = cmap.add_free_darts(2 * n_t);
-        (tmp..tmp + 2 * n_t as DartIdentifier).collect::<Vec<_>>()
+        let tmp = cmap.add_free_darts(2 * n_t as usize).0 as DartIdType;
+        (tmp..tmp + 2 * n_t).map(DartId).collect::<Vec<_>>()
     };
     // get the first and second halves
-    let (darts_fh, darts_sh) = (&new_darts[..n_t], &new_darts[n_t..]);
+    let (darts_fh, darts_sh) = (&new_darts[..n_t as usize], &new_darts[n_t as usize..]);
 
     inner_splitn(cmap, base_dart1, darts_fh, darts_sh, &midpoint_vertices)
 }
@@ -151,8 +152,8 @@ pub fn splitn_edge<T: CoordsFloat>(
 ///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
-    new_darts: &[DartIdentifier],
+    edge_id: EdgeId,
+    new_darts: &[DartId],
     midpoint_vertices: &[T],
 ) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
@@ -169,7 +170,7 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     let darts_sh = &new_darts[n_t..];
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = DartId::from(edge_id);
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
@@ -190,9 +191,9 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
 
 fn inner_splitn<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    base_dart1: DartIdentifier,
-    darts_fh: &[DartIdentifier], //first half
-    darts_sh: &[DartIdentifier], //second half
+    base_dart1: DartId,
+    darts_fh: &[DartId], //first half
+    darts_sh: &[DartId], //second half
     midpoint_vertices: &[T],
 ) -> Result<(), SplitEdgeError> {
     if midpoint_vertices
@@ -219,8 +220,8 @@ fn inner_splitn<T: CoordsFloat>(
 
     // unsew current dart
     // self.one_unlink(base_dart1);
-    cmap.set_beta::<1>(base_dart1, 0);
-    cmap.set_beta::<0>(b1d1_old, 0);
+    cmap.set_beta::<1>(base_dart1, NULL_DART_ID);
+    cmap.set_beta::<0>(b1d1_old, NULL_DART_ID);
     if base_dart2 != NULL_DART_ID {
         cmap.two_unlink(base_dart1);
     }
@@ -235,7 +236,7 @@ fn inner_splitn<T: CoordsFloat>(
             }
             let new_v = v1 + seg * t;
             cmap.one_link(prev_d, new_d);
-            cmap.insert_vertex(new_d, new_v);
+            cmap.insert_vertex(VertexId::from(new_d), new_v);
             prev_d = new_d;
         });
     cmap.one_link(prev_d, b1d1_old);
@@ -244,8 +245,8 @@ fn inner_splitn<T: CoordsFloat>(
     if base_dart2 != NULL_DART_ID {
         let b1d2_old = cmap.beta::<1>(base_dart2);
         // self.one_unlink(base_dart2);
-        cmap.set_beta::<1>(base_dart2, 0);
-        cmap.set_beta::<0>(b1d2_old, 0);
+        cmap.set_beta::<1>(base_dart2, NULL_DART_ID);
+        cmap.set_beta::<0>(b1d2_old, NULL_DART_ID);
         let mut prev_d = base_dart2;
         darts_fh
             .iter()
