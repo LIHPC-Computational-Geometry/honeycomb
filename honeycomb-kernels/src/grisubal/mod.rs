@@ -52,26 +52,45 @@
 
 // ------ MODULE DECLARATIONS
 
-pub(crate) mod clip;
-pub(crate) mod grid;
-pub(crate) mod kernel;
 pub(crate) mod model;
-
-// ------ RE-EXPORTS
-
-pub use model::Clip;
+pub(crate) mod routines;
+pub(crate) mod timers;
 
 // ------ IMPORTS
 
-use crate::grisubal::clip::{clip_left, clip_right};
-use crate::grisubal::model::{
-    compute_overlapping_grid, detect_orientation_issue, remove_redundant_poi, Boundary, Geometry2,
+use crate::grisubal::{
+    model::{Boundary, Geometry2},
+    routines::{
+        clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
+        detect_orientation_issue, generate_edge_data, generate_intersection_data,
+        group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+        remove_redundant_poi,
+    },
+    timers::{finish, start_timer, unsafe_time_section},
 };
-use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use honeycomb_core::{
+    cmap::{CMapBuilder, GridDescriptor},
+    prelude::{CMap2, CoordsFloat},
+};
 use thiserror::Error;
 use vtkio::Vtk;
 
 // ------ CONTENT
+
+/// Post-processing clip operation.
+///
+/// Note that the part of the map that is clipped depends on the orientation of the original geometry provided as
+/// input.
+#[derive(Default)]
+pub enum Clip {
+    /// Clip elements located on the left side of the oriented boundary.
+    Left,
+    /// Clip elements located on the right side of the oriented boundary.
+    Right,
+    /// Keep all elements. Default value.
+    #[default]
+    None,
+}
 
 #[derive(Error, Debug)]
 /// Enum used to model potential errors of the `grisubal` kernel.
@@ -91,38 +110,6 @@ pub enum GrisubalError {
     /// The VTK file used to try to build a `Geometry2` object contains valid but unsupported data.
     #[error("unsupported data in the vtk file - {0}")]
     UnsupportedVtkData(&'static str),
-}
-
-/// Global timers for execution times per-section.
-#[cfg(feature = "profiling")]
-static mut TIMERS: [Option<std::time::Duration>; 13] = [None; 13];
-
-/// Kernel section.
-#[cfg(feature = "profiling")]
-enum Section {
-    ImportVTK = 0,
-    BuildGeometry,
-    DetectOrientation,
-    ComputeOverlappingGrid,
-    RemoveRedundantPoi,
-    BuildMeshTot,
-    BuildMeshInit,
-    BuildMeshIntersecData,
-    BuildMeshInsertIntersec,
-    BuildMeshEdgeData,
-    BuildMeshInsertEdge,
-    Clip,
-    Cleanup,
-}
-
-#[cfg(feature = "profiling")]
-macro_rules! unsafe_time_section {
-    ($inst: ident, $sec: expr) => {
-        unsafe {
-            TIMERS[$sec as usize] = Some($inst.elapsed());
-            $inst = std::time::Instant::now();
-        }
-    };
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -175,79 +162,101 @@ pub fn grisubal<T: CoordsFloat>(
     grid_cell_sizes: [T; 2],
     clip: Clip,
 ) -> Result<CMap2<T>, GrisubalError> {
-    #[cfg(feature = "profiling")]
-    let mut instant = std::time::Instant::now();
+    // INIT TIMER
+    start_timer!(instant);
 
-    // load geometry from file
+    // --- IMPORT VTK INPUT
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
         Err(e) => panic!("E: could not open specified vtk file - {e}"),
     };
+    unsafe_time_section!(instant, timers::Section::ImportVTK);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::ImportVTK);
-
-    // pre-processing
+    // --- BUILD OUR MODEL FROM THE VTK IMPORT
     let mut geometry = Geometry2::try_from(geometry_vtk)?;
+    unsafe_time_section!(instant, timers::Section::BuildGeometry);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::BuildGeometry);
-
+    // --- FIRST DETECTION OF ORIENTATION ISSUES
     detect_orientation_issue(&geometry)?;
+    unsafe_time_section!(instant, timers::Section::DetectOrientation);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::DetectOrientation);
+    // --- FIND AN OVERLAPPING GRID
+    let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    let [cx, cy] = grid_cell_sizes;
+    let ogrid = GridDescriptor::default()
+        .n_cells_x(nx)
+        .n_cells_y(ny)
+        .len_per_cell_x(cx)
+        .len_per_cell_y(cy)
+        .origin(origin);
+    unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
+    //----/
 
-    // compute an overlapping grid & remove redundant PoIs
-    let (grid_n_cells, origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
-
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::ComputeOverlappingGrid);
-
+    // --- REMOVE REDUNDANT PoIs
     remove_redundant_poi(&mut geometry, grid_cell_sizes, origin);
+    unsafe_time_section!(instant, timers::Section::RemoveRedundantPoi);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::RemoveRedundantPoi);
+    // ------ START MAIN KERNEL TIMER
+    start_timer!(kernel);
 
-    // build the map
-    let mut cmap = kernel::build_mesh(&geometry, grid_cell_sizes, grid_n_cells, origin);
+    // --- BUILD THE GRID
+    let mut cmap = CMapBuilder::default()
+        .grid_descriptor(ogrid)
+        .add_attribute::<Boundary>() // will be used for clipping
+        .build()
+        .expect("E: unreachable"); // unreachable because grid dims are valid
+    unsafe_time_section!(instant, timers::Section::BuildMeshInit);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::BuildMeshTot);
+    // process the geometry
 
-    // optional post-processing
+    // --- STEP 1 & 2
+    // (1)
+    let (new_segments, intersection_metadata) =
+        generate_intersection_data(&cmap, &geometry, [nx, ny], [cx, cy], origin);
+    // (2)
+    let n_intersec = intersection_metadata.len();
+    let (edge_intersec, dart_slices) =
+        group_intersections_per_edge(&mut cmap, intersection_metadata);
+    let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
+    unsafe_time_section!(instant, timers::Section::BuildMeshIntersecData);
+    //----/
+
+    // --- STEP 3
+    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    unsafe_time_section!(instant, timers::Section::BuildMeshInsertIntersec);
+    //----/
+
+    // --- STEP 4
+    let edges = generate_edge_data(&cmap, &geometry, &new_segments, &intersection_darts);
+    unsafe_time_section!(instant, timers::Section::BuildMeshEdgeData);
+    //----/
+
+    // --- STEP 5
+    insert_edges_in_map(&mut cmap, &edges);
+    unsafe_time_section!(instant, timers::Section::BuildMeshInsertEdge);
+    //----/
+
+    unsafe_time_section!(kernel, timers::Section::BuildMeshTot);
+    //-------/
+
+    // --- CLIP
     match clip {
         Clip::Left => clip_left(&mut cmap)?,
         Clip::Right => clip_right(&mut cmap)?,
         Clip::None => {}
     }
+    unsafe_time_section!(instant, timers::Section::Clip);
+    //----/
 
-    #[cfg(feature = "profiling")]
-    unsafe_time_section!(instant, Section::Clip);
-
-    // remove attribute used for clipping
+    // CLEANUP
     cmap.remove_attribute_storage::<Boundary>();
-
-    #[cfg(feature = "profiling")]
-    unsafe {
-        TIMERS[Section::Cleanup as usize] = Some(instant.elapsed());
-        println!(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{}",
-            TIMERS[0].unwrap().as_nanos(),
-            TIMERS[1].unwrap().as_nanos(),
-            TIMERS[2].unwrap().as_nanos(),
-            TIMERS[3].unwrap().as_nanos(),
-            TIMERS[4].unwrap().as_nanos(),
-            TIMERS[5].unwrap().as_nanos(),
-            TIMERS[6].unwrap().as_nanos(),
-            TIMERS[7].unwrap().as_nanos(),
-            TIMERS[8].unwrap().as_nanos(),
-            TIMERS[9].unwrap().as_nanos(),
-            TIMERS[10].unwrap().as_nanos(),
-            TIMERS[11].unwrap().as_nanos(),
-            TIMERS[12].unwrap().as_nanos(),
-        );
-    }
+    finish!(instant);
+    //-/
 
     Ok(cmap)
 }

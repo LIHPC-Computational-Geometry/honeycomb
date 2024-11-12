@@ -8,6 +8,7 @@ use honeycomb_core::prelude::{
     CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};
+
 // ------ CONTENT
 
 /// Clip content on the left side of the boundary.
