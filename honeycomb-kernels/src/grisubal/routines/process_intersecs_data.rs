@@ -7,18 +7,20 @@
 // ------ IMPORTS
 
 use super::{DartSlices, IntersectionsPerEdge};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::{
+    cmap::DartIdType,
+    prelude::{CMap2, CoordsFloat, DartId, EdgeId, NULL_DART_ID},
+};
 use std::collections::HashMap;
 
 // ------ CONTENT
 
 pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    intersection_metadata: Vec<(DartIdentifier, T)>,
+    intersection_metadata: Vec<(DartId, T)>,
 ) -> (IntersectionsPerEdge<T>, DartSlices) {
     // group intersection data per edge, and associate an ID to each
-    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
-        HashMap::new();
+    let mut edge_intersec: HashMap<EdgeId, Vec<(usize, T, DartId)>> = HashMap::new();
     intersection_metadata
         .into_iter()
         .filter(|(_, t)| !t.is_nan())
@@ -27,7 +29,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
             // classify intersections per edge_id & adjust t if  needed
             let edge_id = cmap.edge_id(dart_id);
             // condition works in 2D because edges are 2 darts at most
-            if edge_id != dart_id {
+            if DartId::from(edge_id) != dart_id {
                 t = T::one() - t;
             }
             if let Some(storage) = edge_intersec.get_mut(&edge_id) {
@@ -48,7 +50,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     // prealloc darts that will be used for vertex insertion
     let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
     let n_tot: usize = n_darts_per_seg.iter().sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let tmp = cmap.add_free_darts(n_tot).0 as usize;
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs
@@ -61,11 +63,12 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
         .collect();
 
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
+    let dart_slices: Vec<Vec<DartId>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType)
+                .map(DartId)
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -77,7 +80,7 @@ pub(crate) fn compute_intersection_ids<T: CoordsFloat>(
     n_intersec: usize,
     edge_intersec: &IntersectionsPerEdge<T>,
     dart_slices: &DartSlices,
-) -> Vec<DartIdentifier> {
+) -> Vec<DartId> {
     let mut res = vec![NULL_DART_ID; n_intersec];
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
         // order should be consistent between collection because of the sort_by call
@@ -86,7 +89,7 @@ pub(crate) fn compute_intersection_ids<T: CoordsFloat>(
         let sh = &new_darts[hl..]; // second half; used for the opposite side
         for (i, (id, _, old_dart_id)) in vs.iter().enumerate() {
             // readjust according to intersection side
-            res[*id] = if *old_dart_id == *edge_id {
+            res[*id] = if *old_dart_id == DartId::from(*edge_id) {
                 fh[i]
             } else {
                 sh[hl - 1 - i]

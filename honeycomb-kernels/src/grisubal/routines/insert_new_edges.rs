@@ -6,7 +6,8 @@
 
 use crate::grisubal::model::{Boundary, MapEdge};
 use crate::splits::splitn_edge_no_alloc;
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier};
+use honeycomb_core::cmap::DartIdType;
+use honeycomb_core::prelude::{CMap2, CoordsFloat, DartId};
 
 // ------ CONTENT
 
@@ -18,7 +19,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         .map(|e| 2 + 2 * e.intermediates.len())
         .collect();
     let n_tot: usize = n_darts_per_seg.iter().sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let tmp = cmap.add_free_darts(n_tot).0 as usize;
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs
@@ -30,11 +31,12 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         })
         .collect();
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
+    let dart_slices: Vec<Vec<DartId>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType)
+                .map(DartId)
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -77,7 +79,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
                 &vec![T::from(0.5).unwrap(); intermediates.len()],
             );
             // replace placeholder vertices
-            let mut dart_id = cmap.beta::<1>(edge_id as DartIdentifier);
+            let mut dart_id = cmap.beta::<1>(edge_id.into());
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
                 let _ = cmap.replace_vertex(vid, *v);

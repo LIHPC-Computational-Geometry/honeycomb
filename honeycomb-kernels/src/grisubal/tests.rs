@@ -5,6 +5,7 @@ use crate::grisubal::routines::{
     compute_intersection_ids, generate_edge_data, generate_intersection_data,
     group_intersections_per_edge, insert_edges_in_map, insert_intersections,
 };
+use honeycomb_core::cmap::{DartId, FaceId};
 use honeycomb_core::prelude::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy, Vertex2};
 use vtkio::Vtk;
 // ------ CONTENT
@@ -140,10 +141,10 @@ fn regular_intersections() {
         generate_intersection_data(&cmap, &geometry, [2, 2], [1.0, 1.0], Vertex2::default());
 
     assert_eq!(intersection_metadata.len(), 4);
-    assert_eq!(intersection_metadata[0], (2, 0.5));
-    assert_eq!(intersection_metadata[1], (7, 0.5));
-    assert_eq!(intersection_metadata[2], (16, 0.5));
-    assert_eq!(intersection_metadata[3], (9, 0.5));
+    assert_eq!(intersection_metadata[0], (DartId(2), 0.5));
+    assert_eq!(intersection_metadata[1], (DartId(7), 0.5));
+    assert_eq!(intersection_metadata[2], (DartId(16), 0.5));
+    assert_eq!(intersection_metadata[3], (DartId(9), 0.5));
     // go through the segments
     assert!(segments.contains_key(&GeometryVertex::PoI(0)));
     assert_eq!(
@@ -195,19 +196,19 @@ fn regular_intersections() {
     assert_eq!(n_intersec, 4);
     // check new vertices at intersection
     assert_eq!(
-        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(2))),
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(DartId(2)))),
         Some(Vertex2(1.0, 0.5))
     );
     assert_eq!(
-        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(7))),
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(DartId(7)))),
         Some(Vertex2(1.5, 1.0))
     );
     assert_eq!(
-        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(10))),
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(DartId(10)))),
         Some(Vertex2(1.0, 1.5))
     );
     assert_eq!(
-        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(3))),
+        cmap.vertex(cmap.vertex_id(cmap.beta::<1>(DartId(3)))),
         Some(Vertex2(0.5, 1.0))
     );
 
@@ -237,25 +238,25 @@ fn regular_intersections() {
     let faces = cmap.fetch_faces();
     assert_eq!(faces.identifiers.len(), 8);
     // bottom left
-    assert!(faces.identifiers.contains(&1));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 1).count(), 6);
-    assert!(faces.identifiers.contains(&3));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 3).count(), 4);
+    assert!(faces.identifiers.contains(&FaceId(1)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(1)).count(), 6);
+    assert!(faces.identifiers.contains(&FaceId(3)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(3)).count(), 4);
     // bottom right
-    assert!(faces.identifiers.contains(&5));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 5).count(), 6);
-    assert!(faces.identifiers.contains(&8));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 8).count(), 4);
+    assert!(faces.identifiers.contains(&FaceId(5)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(5)).count(), 6);
+    assert!(faces.identifiers.contains(&FaceId(8)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(8)).count(), 4);
     // top right
-    assert!(faces.identifiers.contains(&9));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 9).count(), 6);
-    assert!(faces.identifiers.contains(&10));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 10).count(), 4);
+    assert!(faces.identifiers.contains(&FaceId(9)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(9)).count(), 6);
+    assert!(faces.identifiers.contains(&FaceId(10)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(10)).count(), 4);
     // top left
-    assert!(faces.identifiers.contains(&14));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 14).count(), 6);
-    assert!(faces.identifiers.contains(&13));
-    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 13).count(), 4);
+    assert!(faces.identifiers.contains(&FaceId(14)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(14)).count(), 6);
+    assert!(faces.identifiers.contains(&FaceId(13)));
+    assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, DartId(13)).count(), 4);
 }
 
 #[test]
@@ -290,8 +291,8 @@ fn corner_intersection() {
             .count(),
         2
     );
-    assert_eq!(intersection_metadata[0], (2, 0.5));
-    assert_eq!(intersection_metadata[1], (7, 0.5));
+    assert_eq!(intersection_metadata[0], (DartId(2), 0.5));
+    assert_eq!(intersection_metadata[1], (DartId(7), 0.5));
 
     assert_eq!(segments.len(), 6);
 
@@ -319,12 +320,12 @@ fn corner_intersection() {
     assert!(segments.contains_key(&GeometryVertex::PoI(2)));
     assert_eq!(
         segments[&GeometryVertex::PoI(2)],
-        GeometryVertex::IntersecCorner(13)
+        GeometryVertex::IntersecCorner(DartId(13))
     );
     // !
-    assert!(segments.contains_key(&GeometryVertex::IntersecCorner(13)));
+    assert!(segments.contains_key(&GeometryVertex::IntersecCorner(DartId(13))));
     assert_eq!(
-        segments[&GeometryVertex::IntersecCorner(13)],
+        segments[&GeometryVertex::IntersecCorner(DartId(13))],
         GeometryVertex::PoI(0)
     );
 
@@ -362,7 +363,7 @@ fn corner_intersection() {
     let edges = cmap.fetch_edges();
     assert_eq!(edges.identifiers.len(), 20);
 
-    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 1)
+    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(1))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face1_vertices.len(), 6);
@@ -373,7 +374,7 @@ fn corner_intersection() {
     assert!(face1_vertices.contains(&Vertex2(1.0, 1.0)));
     assert!(face1_vertices.contains(&Vertex2(0.0, 1.0)));
 
-    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 9)
+    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(9))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face9_vertices.len(), 4);
@@ -382,7 +383,7 @@ fn corner_intersection() {
     assert!(face9_vertices.contains(&Vertex2(1.0, 2.0)));
     assert!(face9_vertices.contains(&Vertex2(0.0, 2.0)));
 
-    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 13)
+    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(13))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face13_vertices.len(), 3);
@@ -439,7 +440,7 @@ pub fn successive_straight_intersections() {
 
     // bottom row
 
-    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 1)
+    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(1))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face1_vertices.len(), 6);
@@ -450,7 +451,7 @@ pub fn successive_straight_intersections() {
     assert!(face1_vertices.contains(&Vertex2(0.5, 1.0)));
     assert!(face1_vertices.contains(&Vertex2(0.0, 1.0)));
 
-    let face3_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 3)
+    let face3_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(3))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face3_vertices.len(), 4);
@@ -459,7 +460,7 @@ pub fn successive_straight_intersections() {
     assert!(face3_vertices.contains(&Vertex2(1.0, 1.0)));
     assert!(face3_vertices.contains(&Vertex2(0.5, 1.0)));
 
-    let face5_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 5)
+    let face5_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(5))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face5_vertices.len(), 4);
@@ -468,7 +469,7 @@ pub fn successive_straight_intersections() {
     assert!(face5_vertices.contains(&Vertex2(2.0, 0.5)));
     assert!(face5_vertices.contains(&Vertex2(1.0, 0.5)));
 
-    let face7_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 7)
+    let face7_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(7))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face7_vertices.len(), 4);
@@ -477,7 +478,7 @@ pub fn successive_straight_intersections() {
     assert!(face7_vertices.contains(&Vertex2(2.0, 0.5)));
     assert!(face7_vertices.contains(&Vertex2(1.0, 0.5)));
 
-    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 9)
+    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(9))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face9_vertices.len(), 6);
@@ -488,7 +489,7 @@ pub fn successive_straight_intersections() {
     assert!(face9_vertices.contains(&Vertex2(2.5, 0.5)));
     assert!(face9_vertices.contains(&Vertex2(2.0, 0.5)));
 
-    let face12_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 12)
+    let face12_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(12))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face12_vertices.len(), 4);
@@ -499,7 +500,7 @@ pub fn successive_straight_intersections() {
 
     // middle row
 
-    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 13)
+    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(13))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face13_vertices.len(), 4);
@@ -508,7 +509,7 @@ pub fn successive_straight_intersections() {
     assert!(face13_vertices.contains(&Vertex2(0.5, 1.0)));
     assert!(face13_vertices.contains(&Vertex2(0.5, 2.0)));
 
-    let face14_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 14)
+    let face14_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(14))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face14_vertices.len(), 4);
@@ -517,7 +518,7 @@ pub fn successive_straight_intersections() {
     assert!(face14_vertices.contains(&Vertex2(1.0, 2.0)));
     assert!(face14_vertices.contains(&Vertex2(1.0, 1.0)));
 
-    let face17_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 17)
+    let face17_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(17))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face17_vertices.len(), 4);
@@ -526,7 +527,7 @@ pub fn successive_straight_intersections() {
     assert!(face17_vertices.contains(&Vertex2(2.0, 2.0)));
     assert!(face17_vertices.contains(&Vertex2(2.0, 1.0)));
 
-    let face21_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 21)
+    let face21_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(21))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face21_vertices.len(), 4);
@@ -535,7 +536,7 @@ pub fn successive_straight_intersections() {
     assert!(face21_vertices.contains(&Vertex2(2.5, 2.0)));
     assert!(face21_vertices.contains(&Vertex2(2.0, 2.0)));
 
-    let face22_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 22)
+    let face22_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(22))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face22_vertices.len(), 4);
@@ -546,7 +547,7 @@ pub fn successive_straight_intersections() {
 
     // top row
 
-    let face25_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 25)
+    let face25_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(25))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face25_vertices.len(), 6);
@@ -557,7 +558,7 @@ pub fn successive_straight_intersections() {
     assert!(face25_vertices.contains(&Vertex2(1.0, 3.0)));
     assert!(face25_vertices.contains(&Vertex2(0.0, 3.0)));
 
-    let face26_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 26)
+    let face26_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(26))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face26_vertices.len(), 4);
@@ -566,7 +567,7 @@ pub fn successive_straight_intersections() {
     assert!(face26_vertices.contains(&Vertex2(1.0, 2.5)));
     assert!(face26_vertices.contains(&Vertex2(0.5, 2.5)));
 
-    let face29_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 29)
+    let face29_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(29))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face29_vertices.len(), 4);
@@ -575,7 +576,7 @@ pub fn successive_straight_intersections() {
     assert!(face29_vertices.contains(&Vertex2(2.0, 2.5)));
     assert!(face29_vertices.contains(&Vertex2(1.0, 2.5)));
 
-    let face31_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 31)
+    let face31_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(31))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face31_vertices.len(), 4);
@@ -584,7 +585,7 @@ pub fn successive_straight_intersections() {
     assert!(face31_vertices.contains(&Vertex2(1.0, 3.0)));
     assert!(face31_vertices.contains(&Vertex2(2.0, 3.0)));
 
-    let face33_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 33)
+    let face33_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(33))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face33_vertices.len(), 4);
@@ -593,7 +594,7 @@ pub fn successive_straight_intersections() {
     assert!(face33_vertices.contains(&Vertex2(2.5, 2.5)));
     assert!(face33_vertices.contains(&Vertex2(2.5, 2.0)));
 
-    let face34_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 34)
+    let face34_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(34))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face34_vertices.len(), 6);
@@ -666,91 +667,91 @@ pub fn successive_diag_intersections() {
 
     // bottom row
 
-    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 1)
+    let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(1))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face1_vertices.len(), 5);
 
-    let face3_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 3)
+    let face3_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(3))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face3_vertices.len(), 3);
 
-    let face5_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 5)
+    let face5_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(5))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face5_vertices.len(), 6);
 
-    let face7_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 7)
+    let face7_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(7))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face7_vertices.len(), 6);
 
-    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 9)
+    let face9_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(9))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face9_vertices.len(), 5);
 
-    let face12_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 12)
+    let face12_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(12))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face12_vertices.len(), 3);
 
     // middle row
 
-    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 13)
+    let face13_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(13))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face13_vertices.len(), 6);
 
-    let face14_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 14)
+    let face14_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(14))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face14_vertices.len(), 6);
 
-    let face17_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 17)
+    let face17_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(17))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face17_vertices.len(), 4);
 
-    let face21_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 21)
+    let face21_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(21))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face21_vertices.len(), 6);
 
-    let face22_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 22)
+    let face22_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(22))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face22_vertices.len(), 6);
 
     // top row
 
-    let face25_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 25)
+    let face25_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(25))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face25_vertices.len(), 5);
 
-    let face26_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 26)
+    let face26_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(26))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face26_vertices.len(), 3);
 
-    let face29_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 29)
+    let face29_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(29))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face29_vertices.len(), 6);
 
-    let face31_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 31)
+    let face31_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(31))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face31_vertices.len(), 6);
 
-    let face33_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 33)
+    let face33_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(33))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face33_vertices.len(), 3);
 
-    let face34_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 34)
+    let face34_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, DartId(34))
         .map(|d| cmap.vertex(cmap.vertex_id(d)).expect("E: unreachable"))
         .collect();
     assert_eq!(face34_vertices.len(), 5);

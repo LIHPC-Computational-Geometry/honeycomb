@@ -40,13 +40,13 @@ pub(crate) use clip::{clip_left, clip_right};
 // ------ IMPORTS
 
 use crate::grisubal::model::GeometryVertex;
-use honeycomb_core::prelude::{DartIdentifier, EdgeIdentifier};
+use honeycomb_core::prelude::{DartId, EdgeId};
 use std::collections::HashMap;
 
 // ------ CONTENT
 
 pub type Segments = HashMap<GeometryVertex, GeometryVertex>;
 
-pub type IntersectionsPerEdge<T> = HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>>;
+pub type IntersectionsPerEdge<T> = HashMap<EdgeId, Vec<(usize, T, DartId)>>;
 
-pub type DartSlices = Vec<Vec<DartIdentifier>>;
+pub type DartSlices = Vec<Vec<DartId>>;
