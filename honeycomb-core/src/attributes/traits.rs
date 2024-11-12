@@ -93,7 +93,7 @@ pub trait AttributeUpdate: Sized + Send + Sync {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy};
+/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceId, OrbitPolicy};
 /// use honeycomb_core::attributes::AttrSparseVec;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
@@ -120,7 +120,7 @@ pub trait AttributeUpdate: Sized + Send + Sync {
 ///
 /// impl AttributeBind for Temperature {
 ///     type StorageType = AttrSparseVec<Self>;
-///     type IdentifierType = FaceIdentifier;
+///     type IdentifierType = FaceId;
 ///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 /// }
 /// ```

@@ -35,7 +35,7 @@ use honeycomb_core::geometry::CoordsFloat;
 /// # Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+/// # use honeycomb_core::prelude::{CMap2, CMapBuilder, DartId, EdgeId, NULL_DART_ID, VertexId, Vertex2};
 /// # use honeycomb_kernels::splits::splitn_edge;
 /// // before
 /// //    <--2---
@@ -45,39 +45,39 @@ use honeycomb_core::geometry::CoordsFloat;
 ///                             .n_darts(2)
 ///                             .build()
 ///                             .unwrap();
-/// map.two_link(1, 2);
-/// map.insert_vertex(1, (0.0, 0.0));
-/// map.insert_vertex(2, (1.0, 0.0));
+/// map.two_link(DartId(1), DartId(2));
+/// map.insert_vertex(VertexId(1), (0.0, 0.0));
+/// map.insert_vertex(VertexId(2), (1.0, 0.0));
 /// // split
-/// assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
+/// assert!(splitn_edge(&mut map, EdgeId(1), [0.25, 0.50, 0.75]).is_ok());
 /// // after
 /// //    <-<-<-<
 /// //  1 -3-4-5- 2
 /// //    >->->->
 /// let new_darts = [
-///     map.beta::<1>(1),
-///     map.beta::<1>(map.beta::<1>(1)),
-///     map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
+///     map.beta::<1>(DartId(1)),
+///     map.beta::<1>(map.beta::<1>(DartId(1))),
+///     map.beta::<1>(map.beta::<1>(map.beta::<1>(DartId(1)))),
 /// ];
-/// assert_eq!(&new_darts, &[3, 4, 5]);
-/// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-/// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-/// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
+/// assert_eq!(&new_darts, &[DartId(3), DartId(4), DartId(5)]);
+/// assert_eq!(map.vertex(VertexId(3)), Some(Vertex2(0.25, 0.0)));
+/// assert_eq!(map.vertex(VertexId(4)), Some(Vertex2(0.50, 0.0)));
+/// assert_eq!(map.vertex(VertexId(5)), Some(Vertex2(0.75, 0.0)));
 ///
-/// assert_eq!(map.beta::<1>(1), 3);
-/// assert_eq!(map.beta::<1>(3), 4);
-/// assert_eq!(map.beta::<1>(4), 5);
-/// assert_eq!(map.beta::<1>(5), NULL_DART_ID);
+/// assert_eq!(map.beta::<1>(DartId(1)), DartId(3));
+/// assert_eq!(map.beta::<1>(DartId(3)), DartId(4));
+/// assert_eq!(map.beta::<1>(DartId(4)), DartId(5));
+/// assert_eq!(map.beta::<1>(DartId(5)), NULL_DART_ID);
 ///
-/// assert_eq!(map.beta::<1>(2), 6);
-/// assert_eq!(map.beta::<1>(6), 7);
-/// assert_eq!(map.beta::<1>(7), 8);
-/// assert_eq!(map.beta::<1>(8), NULL_DART_ID);
+/// assert_eq!(map.beta::<1>(DartId(2)), DartId(6));
+/// assert_eq!(map.beta::<1>(DartId(6)), DartId(7));
+/// assert_eq!(map.beta::<1>(DartId(7)), DartId(8));
+/// assert_eq!(map.beta::<1>(DartId(8)), NULL_DART_ID);
 ///
-/// assert_eq!(map.beta::<2>(1), 8);
-/// assert_eq!(map.beta::<2>(3), 7);
-/// assert_eq!(map.beta::<2>(4), 6);
-/// assert_eq!(map.beta::<2>(5), 2);
+/// assert_eq!(map.beta::<2>(DartId(1)), DartId(8));
+/// assert_eq!(map.beta::<2>(DartId(3)), DartId(7));
+/// assert_eq!(map.beta::<2>(DartId(4)), DartId(6));
+/// assert_eq!(map.beta::<2>(DartId(5)), DartId(2));
 /// ```
 #[allow(clippy::cast_possible_truncation)]
 pub fn splitn_edge<T: CoordsFloat>(

@@ -64,84 +64,113 @@ use crate::{
 /// - the map we operate on has no boundaries. In addition to the different
 ///   operations realized at each step, we insert a few assertions to demonstrate the
 ///   progressive changes applied to the structure.
+/// - in a real application, you will likely want to initialize the map from a serialized mesh file.
 ///
 /// ```
 /// # fn main() {
+/// use honeycomb_core::prelude::{CMap2, CMapBuilder, DartId, EdgeId, FaceId, Orbit2, OrbitPolicy, VertexId, Vertex2};
 ///
-/// use honeycomb_core::prelude::{CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2};
+/// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
+/// map.one_link(DartId(1), DartId(2));
+/// map.one_link(DartId(2), DartId(3));
+/// map.one_link(DartId(3), DartId(1));
+/// map.insert_vertex(VertexId(1), (0.0, 0.0));
+/// map.insert_vertex(VertexId(2), (1.0, 0.0));
+/// map.insert_vertex(VertexId(3), (0.0, 1.0));
 ///
-/// // build a triangle
-/// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts
-/// map.one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
-/// map.one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
-/// map.one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
-/// map.insert_vertex(1, (0.0, 0.0));
-/// map.insert_vertex(2, (1.0, 0.0));
-/// map.insert_vertex(3, (0.0, 1.0));
-///
-/// // we can go through the face using an orbit
-/// let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-/// assert_eq!(face.next(), Some(1));
-/// assert_eq!(face.next(), Some(2));
-/// assert_eq!(face.next(), Some(3));
+/// // checks
+/// let faces = map.fetch_faces();
+/// assert_eq!(faces.identifiers.len(), 1);
+/// assert_eq!(faces.identifiers[0], FaceId(1));
+/// let mut face = Orbit2::new(&map, OrbitPolicy::Face, DartId(1));
+/// assert_eq!(face.next(), Some(DartId(1)));
+/// assert_eq!(face.next(), Some(DartId(2)));
+/// assert_eq!(face.next(), Some(DartId(3)));
 /// assert_eq!(face.next(), None);
 ///
 /// // build a second triangle
-/// let first_added_dart_id = map.add_free_darts(3);
-/// assert_eq!(first_added_dart_id, 4);
-/// map.one_link(4, 5);
-/// map.one_link(5, 6);
-/// map.one_link(6, 4);
-/// map.insert_vertex(4, (0.0, 2.0));
-/// map.insert_vertex(5, (2.0, 0.0));
-/// map.insert_vertex(6, (1.0, 1.0));
+/// map.add_free_darts(3);
+/// map.one_link(DartId(4), DartId(5));
+/// map.one_link(DartId(5), DartId(6));
+/// map.one_link(DartId(6), DartId(4));
+/// map.insert_vertex(VertexId(4), (0.0, 2.0));
+/// map.insert_vertex(VertexId(5), (2.0, 0.0));
+/// map.insert_vertex(VertexId(6), (1.0, 1.0));
 ///
-/// // there should be two faces now
+/// // checks
 /// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1, 4]);
+/// assert_eq!(&faces.identifiers, &[FaceId(1), FaceId(4)]);
+/// let mut face = Orbit2::new(&map, OrbitPolicy::Face, DartId(4));
+/// assert_eq!(face.next(), Some(DartId(4)));
+/// assert_eq!(face.next(), Some(DartId(5)));
+/// assert_eq!(face.next(), Some(DartId(6)));
+/// assert_eq!(face.next(), None);
 ///
 /// // sew both triangles
-/// map.two_sew(2, 4);
+/// map.two_sew(DartId(2), DartId(4));
 ///
-/// // there are 5 edges now, making up a square & its diagonal
+/// // checks
+/// assert_eq!(map.beta::<2>(DartId(2)), DartId(4));
+/// assert_eq!(map.vertex_id(DartId(2)), VertexId(2));
+/// assert_eq!(map.vertex_id(DartId(5)), VertexId(2));
+/// assert_eq!(map.vertex(VertexId(2)).unwrap(), Vertex2::from((1.5, 0.0)));
+/// assert_eq!(map.vertex_id(DartId(3)), VertexId(3));
+/// assert_eq!(map.vertex_id(DartId(4)), VertexId(3));
+/// assert_eq!(map.vertex(VertexId(3)).unwrap(), Vertex2::from((0.0, 1.5)));
 /// let edges = map.fetch_edges();
-/// assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
+/// assert_eq!(
+///     &edges.identifiers,
+///     &[EdgeId(1), EdgeId(2), EdgeId(3), EdgeId(5), EdgeId(6)]
+/// );
 ///
 /// // adjust bottom-right & top-left vertex position
-/// // the returned values were the average of the sewn vertices
 /// assert_eq!(
-///     map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
-///     Some(Vertex2(1.5, 0.0))
+///     map.replace_vertex(VertexId(2), Vertex2::from((1.0, 0.0))),
+///     Some(Vertex2::from((1.5, 0.0)))
 /// );
+/// assert_eq!(map.vertex(VertexId(2)).unwrap(), Vertex2::from((1.0, 0.0)));
 /// assert_eq!(
-///     map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
-///     Some(Vertex2(0.0, 1.5))
+///     map.replace_vertex(VertexId(3), Vertex2::from((0.0, 1.0))),
+///     Some(Vertex2::from((0.0, 1.5)))
 /// );
+/// assert_eq!(map.vertex(VertexId(3)).unwrap(), Vertex2::from((0.0, 1.0)));
 ///
 /// // separate the diagonal from the rest
-/// map.one_unsew(1);
-/// map.one_unsew(2);
-/// map.one_unsew(6);
-/// map.one_unsew(4);
+/// map.one_unsew(DartId(1));
+/// map.one_unsew(DartId(2));
+/// map.one_unsew(DartId(6));
+/// map.one_unsew(DartId(4));
 /// // break up & remove the diagonal
-/// map.two_unsew(2); // this makes dart 2 and 4 free
-/// map.remove_free_dart(2);
-/// map.remove_free_dart(4);
+/// map.two_unsew(DartId(2)); // this makes dart 2 and 4 free
+/// map.remove_free_dart(DartId(2));
+/// map.remove_free_dart(DartId(4));
 /// // sew the square back up
-/// map.one_sew(1, 5);
-/// map.one_sew(6, 3);
+/// map.one_sew(DartId(1), DartId(5));
+/// map.one_sew(DartId(6), DartId(3));
 ///
-/// // there's only the square face left
+/// // i-cells
 /// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1]);
-/// // we can check the vertices
+/// assert_eq!(&faces.identifiers, &[FaceId(1)]);
+/// let edges = map.fetch_edges();
+/// assert_eq!(
+///     &edges.identifiers,
+///     &[EdgeId(1), EdgeId(3), EdgeId(5), EdgeId(6)]
+/// );
 /// let vertices = map.fetch_vertices();
-/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.vertex(*vertex_id).unwrap());
-/// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
-/// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
-/// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
-/// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
-///
+/// assert_eq!(
+///     &vertices.identifiers,
+///     &[VertexId(1), VertexId(3), VertexId(5), VertexId(6)]
+/// );
+/// assert_eq!(map.vertex(VertexId(1)).unwrap(), Vertex2::from((0.0, 0.0)));
+/// assert_eq!(map.vertex(VertexId(5)).unwrap(), Vertex2::from((1.0, 0.0)));
+/// assert_eq!(map.vertex(VertexId(6)).unwrap(), Vertex2::from((1.0, 1.0)));
+/// assert_eq!(map.vertex(VertexId(3)).unwrap(), Vertex2::from((0.0, 1.0)));
+/// // darts
+/// assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
+/// assert_eq!(map.beta_runtime(1, DartId(1)), DartId(5));
+/// assert_eq!(map.beta_runtime(1, DartId(5)), DartId(6));
+/// assert_eq!(map.beta_runtime(1, DartId(6)), DartId(3));
+/// assert_eq!(map.beta_runtime(1, DartId(3)), DartId(1));
 /// # }
 /// ```
 pub struct CMap2<T: CoordsFloat> {
