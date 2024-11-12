@@ -9,6 +9,7 @@
 
 // ------ IMPORTS
 
+use crate::cmap::components::identifiers::DartIdType;
 use crate::prelude::{
     CMap2, DartIdentifier, EdgeIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, VertexIdentifier,
     NULL_DART_ID,
@@ -19,7 +20,7 @@ use crate::{
     geometry::CoordsFloat,
 };
 use std::collections::{BTreeSet, VecDeque};
-use stm::{atomically, StmError, TVar, Transaction};
+use stm::{atomically, StmError, Transaction};
 
 // ------ CONTENT
 
@@ -54,7 +55,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += 1;
         self.betas.extend(1);
-        self.unused_darts.push(TVar::new(false));
+        self.unused_darts.extend(1);
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -77,8 +78,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdentifier;
         self.n_darts += n_darts;
         self.betas.extend(n_darts);
-        self.unused_darts
-            .extend((0..n_darts).map(|_| TVar::new(false)));
+        self.unused_darts.extend(n_darts);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
@@ -100,7 +100,7 @@ impl<T: CoordsFloat> CMap2<T> {
             .enumerate()
             .find(|(_, u)| u.read_atomic())
         {
-            atomically(|trans| self.unused_darts[new_id].write(trans, false));
+            atomically(|trans| self.unused_darts[new_id as DartIdType].write(trans, false));
             new_id as DartIdentifier
         } else {
             self.add_free_dart()
@@ -131,7 +131,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn remove_free_dart(&mut self, dart_id: DartIdentifier) {
         atomically(|trans| {
             assert!(self.is_free(dart_id)); // all beta images are 0
-            assert!(!self.unused_darts[dart_id as usize].replace(trans, true)?);
+            assert!(!self.unused_darts[dart_id as DartIdType].replace(trans, true)?);
             Ok(())
         });
     }
@@ -448,7 +448,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_vertices(&self) -> VertexCollection<T> {
         let vids: BTreeSet<VertexIdentifier> = (1..self.n_darts as DartIdentifier)
-            .zip(self.unused_darts[1..].iter())
+            .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
                     None
@@ -470,7 +470,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_edges(&self) -> EdgeCollection<T> {
         let eids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .zip(self.unused_darts[1..].iter())
+            .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
                     None
@@ -492,7 +492,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn fetch_faces(&self) -> FaceCollection<T> {
         let fids: BTreeSet<EdgeIdentifier> = (1..self.n_darts as DartIdentifier)
-            .zip(self.unused_darts[1..].iter())
+            .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
                     None

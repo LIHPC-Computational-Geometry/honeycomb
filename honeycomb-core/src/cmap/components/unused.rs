@@ -1,6 +1,9 @@
 // ------ IMPORTS
 
-use std::ops::{Index, IndexMut};
+use std::{
+    ops::{Index, IndexMut},
+    slice::Iter,
+};
 
 use stm::TVar;
 
@@ -14,7 +17,7 @@ pub struct UnusedDarts(Vec<TVar<bool>>);
 impl UnusedDarts {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
-        Self((0..=n_darts).map(|_| TVar::new(false)).collect())
+        Self((0..n_darts).map(|_| TVar::new(false)).collect())
     }
 
     /// Extend internal storage capacity
@@ -25,6 +28,10 @@ impl UnusedDarts {
     /// Return internal storage length
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn iter(&self) -> Iter<'_, TVar<bool>> {
+        self.0.iter()
     }
 }
 
