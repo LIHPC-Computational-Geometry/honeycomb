@@ -1,5 +1,5 @@
 use crate::triangulation::{earclip_cell, fan_cell, TriangulateError};
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType};
 use honeycomb_core::prelude::CMapBuilder;
 
 // you can copy paste this function into the render example to see what the mesh looks like
@@ -81,18 +81,18 @@ fn fan_cells() {
     // generate a map with all kinds of cell
     let mut map = generate_map();
     // we know these by construction
-    let hex1: FaceIdentifier = 1;
-    let hex2: FaceIdentifier = 7;
-    let squ: FaceIdentifier = 13;
-    let nop: FaceIdentifier = 17;
-    let tri: FaceIdentifier = 26;
+    let hex1: FaceIdType = 1;
+    let hex2: FaceIdType = 7;
+    let squ: FaceIdType = 13;
+    let nop: FaceIdType = 17;
+    let tri: FaceIdType = 26;
 
     // the hex will be
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(fan_cell(&mut map, hex1, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(hex1 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(hex1 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(3).count(), 3);
     assert_eq!(map.i_cell::<2>(4).count(), 3);
     assert_eq!(map.i_cell::<2>(5).count(), 3);
@@ -102,7 +102,7 @@ fn fan_cells() {
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(fan_cell(&mut map, hex2, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(hex2 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(hex2 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(8).count(), 3);
     assert_eq!(map.i_cell::<2>(10).count(), 3);
     assert_eq!(map.i_cell::<2>(11).count(), 3);
@@ -112,7 +112,7 @@ fn fan_cells() {
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
     assert!(fan_cell(&mut map, squ, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(squ as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(squ as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(15).count(), 3);
 
     // this will be a no-op since the polygon isn't fannable
@@ -123,14 +123,14 @@ fn fan_cells() {
         Err(TriangulateError::NonFannable)
     );
 
-    assert_eq!(map.i_cell::<2>(nop as DartIdentifier).count(), 9); // unchanged
+    assert_eq!(map.i_cell::<2>(nop as DartIdType).count(), 9); // unchanged
 
     assert_eq!(
         fan_cell(&mut map, tri, &[]),
         Err(TriangulateError::AlreadyTriangulated)
     );
 
-    assert_eq!(map.i_cell::<2>(tri as DartIdentifier).count(), 3); // unchanged
+    assert_eq!(map.i_cell::<2>(tri as DartIdType).count(), 3); // unchanged
 }
 
 #[test]
@@ -138,18 +138,18 @@ fn earclip_cells() {
     // generate a map with all kinds of cell
     let mut map = generate_map();
     // we know these by construction
-    let hex1: FaceIdentifier = 1;
-    let hex2: FaceIdentifier = 7;
-    let squ: FaceIdentifier = 13;
-    let smh: FaceIdentifier = 17;
-    let tri: FaceIdentifier = 26;
+    let hex1: FaceIdType = 1;
+    let hex2: FaceIdType = 7;
+    let squ: FaceIdType = 13;
+    let smh: FaceIdType = 17;
+    let tri: FaceIdType = 26;
 
     // the hex will be split in 4
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(earclip_cell(&mut map, hex1, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(hex1 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(hex1 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(3).count(), 3);
     assert_eq!(map.i_cell::<2>(4).count(), 3);
     assert_eq!(map.i_cell::<2>(5).count(), 3);
@@ -159,7 +159,7 @@ fn earclip_cells() {
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(earclip_cell(&mut map, hex2, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(hex2 as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(hex2 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(8).count(), 3);
     assert_eq!(map.i_cell::<2>(10).count(), 3);
     assert_eq!(map.i_cell::<2>(11).count(), 3);
@@ -169,7 +169,7 @@ fn earclip_cells() {
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
     assert!(earclip_cell(&mut map, squ, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(squ as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(squ as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(15).count(), 3);
 
     // 9-gon is split in 7
@@ -177,7 +177,7 @@ fn earclip_cells() {
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
     assert!(earclip_cell(&mut map, smh, &new_darts).is_ok());
 
-    assert_eq!(map.i_cell::<2>(smh as DartIdentifier).count(), 3);
+    assert_eq!(map.i_cell::<2>(smh as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(18).count(), 3);
     assert_eq!(map.i_cell::<2>(19).count(), 3);
     assert_eq!(map.i_cell::<2>(21).count(), 3);
@@ -190,5 +190,5 @@ fn earclip_cells() {
         Err(TriangulateError::AlreadyTriangulated)
     );
 
-    assert_eq!(map.i_cell::<2>(tri as DartIdentifier).count(), 3); // unchanged
+    assert_eq!(map.i_cell::<2>(tri as DartIdType).count(), 3); // unchanged
 }

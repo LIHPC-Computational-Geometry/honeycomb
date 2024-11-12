@@ -5,7 +5,7 @@
 // ------ IMPORTS
 
 use super::super::Vector3;
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdentifier};
+use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdType};
 use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
 // ------ CONTENT
@@ -236,6 +236,6 @@ impl<T: CoordsFloat> AttributeUpdate for Vertex3<T> {
 /// - **BINDS TO 0-CELLS**
 impl<T: CoordsFloat> AttributeBind for Vertex3<T> {
     type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }

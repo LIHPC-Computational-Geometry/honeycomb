@@ -12,7 +12,7 @@
 // ------ IMPORTS
 
 use honeycomb_benches::FloatType;
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier, Vertex2};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
@@ -49,7 +49,7 @@ fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
+fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdType {
     black_box(map.add_free_dart())
 }
 
@@ -57,13 +57,13 @@ fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdentifier {
+fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdType {
     black_box(map.add_free_darts(10))
 }
 
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512], setup = get_empty_map)]
-fn add_many_darts((mut map, n_darts): (CMap2<FloatType>, usize)) -> DartIdentifier {
+fn add_many_darts((mut map, n_darts): (CMap2<FloatType>, usize)) -> DartIdType {
     black_box(map.add_free_darts(n_darts))
 }
 
@@ -71,7 +71,7 @@ fn add_many_darts((mut map, n_darts): (CMap2<FloatType>, usize)) -> DartIdentifi
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
-fn insert_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
+fn insert_dart(map: &mut CMap2<FloatType>) -> DartIdType {
     black_box(map.insert_free_dart())
 }
 
@@ -79,7 +79,7 @@ fn insert_dart(map: &mut CMap2<FloatType>) -> DartIdentifier {
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdentifier {
+fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdType {
     black_box(map.insert_free_dart())
 }
 

@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::prelude::DartIdentifier;
+use crate::prelude::DartIdType;
 use num_traits::ToPrimitive;
 use stm::{atomically, StmError, TVar, Transaction};
 
@@ -37,9 +37,9 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
     pub(crate) fn merge_core(
         &self,
         trans: &mut Transaction,
-        out: DartIdentifier,
-        lhs_inp: DartIdentifier,
-        rhs_inp: DartIdentifier,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
     ) -> Result<(), StmError> {
         let new_v = match (
             self.data[lhs_inp as usize].read(trans)?,
@@ -62,9 +62,9 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
     pub(crate) fn split_core(
         &self,
         trans: &mut Transaction,
-        lhs_out: DartIdentifier,
-        rhs_out: DartIdentifier,
-        inp: DartIdentifier,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
     ) -> Result<(), StmError> {
         if let Some(val) = self.data[inp as usize].read(trans)? {
             let (lhs_val, rhs_val) = AttributeUpdate::split(val);
@@ -154,30 +154,30 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             .count()
     }
 
-    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier) {
+    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
         atomically(|trans| self.merge_core(trans, out, lhs_inp, rhs_inp));
     }
 
     fn merge_transac(
         &self,
         trans: &mut Transaction,
-        out: DartIdentifier,
-        lhs_inp: DartIdentifier,
-        rhs_inp: DartIdentifier,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
     ) -> Result<(), StmError> {
         self.merge_core(trans, out, lhs_inp, rhs_inp)
     }
 
-    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier) {
+    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
         atomically(|trans| self.split_core(trans, lhs_out, rhs_out, inp));
     }
 
     fn split_transac(
         &self,
         trans: &mut Transaction,
-        lhs_out: DartIdentifier,
-        rhs_out: DartIdentifier,
-        inp: DartIdentifier,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
     ) -> Result<(), StmError> {
         self.split_core(trans, lhs_out, rhs_out, inp)
     }

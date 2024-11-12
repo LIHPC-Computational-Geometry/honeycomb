@@ -5,6 +5,7 @@
 
 // ------ IMPORTS
 
+use crate::cmap::{EdgeIdType, FaceIdType, VertexIdType};
 use crate::geometry::CoordsFloat;
 use crate::prelude::CMap2;
 
@@ -26,14 +27,6 @@ macro_rules! collection_constructor {
 
 // --- vertices
 
-/// Type definition for vertex identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VertexIdentifier = u32;
-
-/// Null value for vertex identifiers
-pub const NULL_VERTEX_ID: VertexIdentifier = 0;
-
 /// Vertex ID collection
 ///
 /// # Generics
@@ -52,23 +45,15 @@ pub struct VertexCollection<'a, T: CoordsFloat> {
     /// if the original map is used in a mutable context.
     lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
     /// Collection of vertex identifiers.
-    pub identifiers: Vec<VertexIdentifier>,
+    pub identifiers: Vec<VertexIdType>,
 }
 
 unsafe impl<'a, T: CoordsFloat> Send for VertexCollection<'a, T> {}
 unsafe impl<'a, T: CoordsFloat> Sync for VertexCollection<'a, T> {}
 
-collection_constructor!(VertexCollection, VertexIdentifier);
+collection_constructor!(VertexCollection, VertexIdType);
 
 // --- edges
-
-/// Type definition for edge identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type EdgeIdentifier = u32;
-
-/// Null value for edge identifiers
-pub const NULL_EDGE_ID: EdgeIdentifier = 0;
 
 /// Edge ID collection
 ///
@@ -88,23 +73,15 @@ pub struct EdgeCollection<'a, T: CoordsFloat> {
     /// if the original map is used in a mutable context.
     lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
     /// Collection of vertex identifiers.
-    pub identifiers: Vec<EdgeIdentifier>,
+    pub identifiers: Vec<EdgeIdType>,
 }
 
 unsafe impl<'a, T: CoordsFloat> Send for EdgeCollection<'a, T> {}
 unsafe impl<'a, T: CoordsFloat> Sync for EdgeCollection<'a, T> {}
 
-collection_constructor!(EdgeCollection, EdgeIdentifier);
+collection_constructor!(EdgeCollection, EdgeIdType);
 
 // --- faces
-
-/// Type definition for face identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type FaceIdentifier = u32;
-
-/// Null value for face identifiers
-pub const NULL_FACE_ID: FaceIdentifier = 0;
 
 /// Face ID collection
 ///
@@ -124,20 +101,12 @@ pub struct FaceCollection<'a, T: CoordsFloat> {
     /// if the original map is used in a mutable context.
     lifetime_indicator: std::marker::PhantomData<&'a CMap2<T>>,
     /// Collection of vertex identifiers.
-    pub identifiers: Vec<FaceIdentifier>,
+    pub identifiers: Vec<FaceIdType>,
 }
 
 unsafe impl<'a, T: CoordsFloat> Send for FaceCollection<'a, T> {}
 unsafe impl<'a, T: CoordsFloat> Sync for FaceCollection<'a, T> {}
 
-collection_constructor!(FaceCollection, FaceIdentifier);
+collection_constructor!(FaceCollection, FaceIdType);
 
 // --- volumes
-
-/// Type definition for volume identifiers
-///
-/// This is used for better control over memory usage and ID encoding.
-pub type VolumeIdentifier = u32;
-
-/// Null value for volume identifiers
-pub const NULL_VOLUME_ID: VolumeIdentifier = 0;

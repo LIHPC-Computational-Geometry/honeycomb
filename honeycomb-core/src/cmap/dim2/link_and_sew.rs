@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{CMap2, DartIdentifier, NULL_DART_ID};
+use crate::prelude::{CMap2, DartIdType, NULL_DART_ID};
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     geometry::CoordsFloat,
@@ -37,7 +37,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method may panic if the two darts are not 1-sewable.
     ///
-    pub fn one_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
         // its image through beta2 is defined & has a valid associated vertex (we assume the second
         // condition is valid if the first one is)
@@ -64,7 +64,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Atomically 1-sew two darts.
-    pub fn atomically_one_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn atomically_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
@@ -114,7 +114,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
     ///
-    pub fn two_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
         // match (is lhs 1-free, is rhs 1-free)
@@ -238,7 +238,7 @@ impl<T: CoordsFloat> CMap2<T> {
     #[allow(clippy::missing_panics_doc)]
     /// Atomically 2-sew two darts.
     #[allow(clippy::too_many_lines)]
-    pub fn atomically_two_sew(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn atomically_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
             let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
@@ -393,7 +393,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn one_unsew(&self, lhs_dart_id: DartIdentifier) {
+    pub fn one_unsew(&self, lhs_dart_id: DartIdType) {
         let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
         if b2lhs_dart_id == NULL_DART_ID {
             self.one_unlink(lhs_dart_id);
@@ -419,7 +419,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Atomically 1-unsew two darts.
-    pub fn atomically_one_unsew(&self, lhs_dart_id: DartIdentifier) {
+    pub fn atomically_one_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
@@ -465,7 +465,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn two_unsew(&self, lhs_dart_id: DartIdentifier) {
+    pub fn two_unsew(&self, lhs_dart_id: DartIdType) {
         let rhs_dart_id = self.beta::<2>(lhs_dart_id);
         let b1lhs_dart_id = self.beta::<1>(lhs_dart_id);
         let b1rhs_dart_id = self.beta::<1>(rhs_dart_id);
@@ -535,7 +535,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Atomically 2-unsew two darts.
-    pub fn atomically_two_unsew(&self, lhs_dart_id: DartIdentifier) {
+    pub fn atomically_two_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| {
             let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
@@ -665,7 +665,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
     ///
-    pub fn one_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn one_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.one_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 
@@ -683,7 +683,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
-    pub fn two_link(&self, lhs_dart_id: DartIdentifier, rhs_dart_id: DartIdentifier) {
+    pub fn two_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.two_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 
@@ -701,7 +701,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn one_unlink(&self, lhs_dart_id: DartIdentifier) {
+    pub fn one_unlink(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.one_unlink_core(trans, lhs_dart_id));
     }
 
@@ -718,7 +718,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
-    pub fn two_unlink(&self, lhs_dart_id: DartIdentifier) {
+    pub fn two_unlink(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.two_unlink_core(trans, lhs_dart_id));
     }
 }
@@ -744,8 +744,8 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn one_link_core(
         &self,
         trans: &mut Transaction,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
@@ -775,8 +775,8 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn two_link_core(
         &self,
         trans: &mut Transaction,
-        lhs_dart_id: DartIdentifier,
-        rhs_dart_id: DartIdentifier,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
@@ -806,7 +806,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn one_unlink_core(
         &self,
         trans: &mut Transaction,
-        lhs_dart_id: DartIdentifier,
+        lhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
         // set beta_1(lhs_dart) to NullDart
         let rhs_dart_id = self.betas[(1, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
@@ -832,7 +832,7 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(crate) fn two_unlink_core(
         &self,
         trans: &mut Transaction,
-        lhs_dart_id: DartIdentifier,
+        lhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
         // set beta_2(dart) to NullDart
         let rhs_dart_id = self.betas[(2, lhs_dart_id)].replace(trans, NULL_DART_ID)?;

@@ -9,7 +9,7 @@
 use crate::grisubal::GrisubalError;
 use honeycomb_core::attributes::AttrSparseVec;
 use honeycomb_core::prelude::{
-    AttributeBind, AttributeUpdate, CoordsFloat, DartIdentifier, OrbitPolicy, Vertex2,
+    AttributeBind, AttributeUpdate, CoordsFloat, DartIdType, OrbitPolicy, Vertex2,
 };
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
@@ -217,14 +217,14 @@ pub enum GeometryVertex {
     /// used to instantiate [`MapEdge`] objects. The contained dart correspond to the intersected dart (end dart); the
     /// dart of the opposite quadrant (start dart of the next segment) can be retrieved by applying a combination of
     /// beta functions
-    IntersecCorner(DartIdentifier),
+    IntersecCorner(DartIdType),
 }
 
 #[derive(Debug)]
 pub struct MapEdge<T: CoordsFloat> {
-    pub start: DartIdentifier,
+    pub start: DartIdType,
     pub intermediates: Vec<Vertex2<T>>,
-    pub end: DartIdentifier,
+    pub end: DartIdType,
 }
 
 /// Boundary-modeling enum.
@@ -270,6 +270,6 @@ impl AttributeUpdate for Boundary {
 
 impl AttributeBind for Boundary {
     type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = DartIdentifier;
+    type IdentifierType = DartIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }

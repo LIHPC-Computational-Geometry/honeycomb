@@ -7,17 +7,17 @@
 // ------ IMPORTS
 
 use super::{DartSlices, IntersectionsPerEdge};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType, EdgeIdType, NULL_DART_ID};
 use std::collections::HashMap;
 
 // ------ CONTENT
 
 pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    intersection_metadata: Vec<(DartIdentifier, T)>,
+    intersection_metadata: Vec<(DartIdType, T)>,
 ) -> (IntersectionsPerEdge<T>, DartSlices) {
     // group intersection data per edge, and associate an ID to each
-    let mut edge_intersec: HashMap<EdgeIdentifier, Vec<(usize, T, DartIdentifier)>> =
+    let mut edge_intersec: HashMap<EdgeIdType, Vec<(usize, T, DartIdType)>> =
         HashMap::new();
     intersection_metadata
         .into_iter()
@@ -61,11 +61,11 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
         .collect();
 
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
+    let dart_slices: Vec<Vec<DartIdType>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType)
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -77,7 +77,7 @@ pub(crate) fn compute_intersection_ids<T: CoordsFloat>(
     n_intersec: usize,
     edge_intersec: &IntersectionsPerEdge<T>,
     dart_slices: &DartSlices,
-) -> Vec<DartIdentifier> {
+) -> Vec<DartIdType> {
     let mut res = vec![NULL_DART_ID; n_intersec];
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
         // order should be consistent between collection because of the sort_by call

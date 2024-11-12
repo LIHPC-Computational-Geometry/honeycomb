@@ -5,7 +5,7 @@
 use crate::grisubal::model::Boundary;
 use crate::grisubal::GrisubalError;
 use honeycomb_core::prelude::{
-    CMap2, CoordsFloat, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
+    CMap2, CoordsFloat, DartIdType, FaceIdType, Orbit2, OrbitPolicy, Vertex2, NULL_DART_ID,
 };
 use std::collections::{HashSet, VecDeque};
 
@@ -40,9 +40,9 @@ fn mark_faces<T: CoordsFloat>(
     cmap: &CMap2<T>,
     mark: Boundary,
     other: Boundary,
-) -> Result<HashSet<FaceIdentifier>, GrisubalError> {
-    let mut marked: HashSet<FaceIdentifier> = HashSet::from([0]);
-    let mut queue: VecDeque<FaceIdentifier> = (1..cmap.n_darts() as DartIdentifier)
+) -> Result<HashSet<FaceIdType>, GrisubalError> {
+    let mut marked: HashSet<FaceIdType> = HashSet::from([0]);
+    let mut queue: VecDeque<FaceIdType> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
             // use darts on the left side of the boundary as starting points to walk through faces
             if cmap.get_attribute::<Boundary>(dart_id) == Some(mark) && !cmap.is_free(dart_id) {
@@ -55,14 +55,14 @@ fn mark_faces<T: CoordsFloat>(
         // mark faces
         if marked.insert(face_id) {
             // detect orientation issues / open geometries
-            let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier);
+            let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
             if darts.any(|did| cmap.get_attribute::<Boundary>(did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
                     "between-boundary inconsistency",
                 ));
             }
             // find neighbor faces where entry darts aren't tagged
-            let darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier);
+            let darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
             queue.extend(darts.filter_map(|dart_id| {
                 if matches!(
                     cmap.get_attribute::<Boundary>(cmap.beta::<2>(dart_id)),
@@ -81,11 +81,11 @@ fn mark_faces<T: CoordsFloat>(
 #[allow(clippy::cast_possible_truncation)]
 fn delete_darts<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    marked: HashSet<FaceIdentifier>,
+    marked: HashSet<FaceIdType>,
     kept_boundary: Boundary,
 ) {
-    let kept_boundary_components: Vec<(DartIdentifier, Vertex2<T>)> = (1..cmap.n_darts()
-        as DartIdentifier)
+    let kept_boundary_components: Vec<(DartIdType, Vertex2<T>)> = (1..cmap.n_darts()
+        as DartIdType)
         .filter_map(|dart_id| {
             if cmap.get_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
                 return Some((
@@ -99,8 +99,8 @@ fn delete_darts<T: CoordsFloat>(
         .collect();
 
     for face_id in marked {
-        let darts: Vec<DartIdentifier> =
-            Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdentifier).collect();
+        let darts: Vec<DartIdType> =
+            Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType).collect();
         for &dart in &darts {
             let _ = cmap.remove_vertex(cmap.vertex_id(dart));
             cmap.set_betas(dart, [NULL_DART_ID; 3]);

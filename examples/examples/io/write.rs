@@ -1,4 +1,4 @@
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdType};
 use rand::{
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
@@ -31,7 +31,7 @@ fn main() {
         .iter()
         .filter(|square| splits[**square as usize % n_split])
         .for_each(|square| {
-            let square = *square as DartIdentifier;
+            let square = *square as DartIdType;
             let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
             // in a parallel impl, we would create all new darts before-hand
             let dsplit1 = map.add_free_darts(2);

@@ -3,7 +3,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use honeycomb::prelude::{
     triangulation::{earclip_cell, fan_cell, TriangulateError},
-    CMap2, CMapBuilder, DartIdentifier, Orbit2, OrbitPolicy,
+    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy,
 };
 use honeycomb_benches::FloatType;
 
@@ -18,7 +18,7 @@ fn fan_bench() -> Result<(), TriangulateError> {
     let faces = map.fetch_faces().identifiers.clone();
     let n_darts_per_face: Vec<_> = faces
         .iter()
-        .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdentifier).count() - 3) * 2)
+        .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)
         .collect();
     let n_tot: usize = n_darts_per_face.iter().sum();
     let tmp = map.add_free_darts(n_tot) as usize;
@@ -30,12 +30,11 @@ fn fan_bench() -> Result<(), TriangulateError> {
         Some(*state - n_d) // we want an offset, not the actual sum
     });
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_face
+    let dart_slices: Vec<Vec<DartIdType>> = n_darts_per_face
         .iter()
         .zip(prefix_sum)
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
-                .collect::<Vec<_>>()
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
         })
         .collect();
 
@@ -53,7 +52,7 @@ fn earclip_bench() -> Result<(), TriangulateError> {
     let faces = map.fetch_faces().identifiers.clone();
     let n_darts_per_face: Vec<_> = faces
         .iter()
-        .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdentifier).count() - 3) * 2)
+        .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)
         .collect();
     let n_tot: usize = n_darts_per_face.iter().sum();
     let tmp = map.add_free_darts(n_tot) as usize;
@@ -65,12 +64,11 @@ fn earclip_bench() -> Result<(), TriangulateError> {
         Some(*state - n_d) // we want an offset, not the actual sum
     });
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_face
+    let dart_slices: Vec<Vec<DartIdType>> = n_darts_per_face
         .iter()
         .zip(prefix_sum)
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
-                .collect::<Vec<_>>()
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
         })
         .collect();
 

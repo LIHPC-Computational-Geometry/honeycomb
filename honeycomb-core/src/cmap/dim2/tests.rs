@@ -2,7 +2,7 @@
 
 use crate::{
     attributes::AttrSparseVec,
-    cmap::VertexIdentifier,
+    cmap::VertexIdType,
     prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
 };
 
@@ -346,7 +346,7 @@ impl AttributeUpdate for Weight {
 
 impl AttributeBind for Weight {
     type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
 

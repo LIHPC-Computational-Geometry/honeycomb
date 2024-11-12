@@ -13,7 +13,7 @@
 
 use super::CMAP2_BETA;
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdentifier};
+use crate::prelude::{CMap2, DartIdType};
 use std::{fs::File, io::Write};
 use stm::atomically;
 
@@ -32,7 +32,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `const I: u8` -- Beta function to edit.
     ///
-    pub fn set_beta<const I: u8>(&self, dart_id: DartIdentifier, val: DartIdentifier) {
+    pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, val: DartIdType) {
         atomically(|trans| self.betas[(I, dart_id)].write(trans, val));
     }
 
@@ -44,7 +44,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
     ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
     ///
-    pub fn set_betas(&self, dart_id: DartIdentifier, [b0, b1, b2]: [DartIdentifier; CMAP2_BETA]) {
+    pub fn set_betas(&self, dart_id: DartIdType, [b0, b1, b2]: [DartIdType; CMAP2_BETA]) {
         // store separately to use non-mutable methods
         atomically(|trans| {
             self.betas[(0, dart_id)].write(trans, b0)?;
@@ -105,7 +105,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // beta
         let mut beta_total = 0;
         for beta_id in 0..3 {
-            let mem = self.betas.capacity() * std::mem::size_of::<DartIdentifier>();
+            let mem = self.betas.capacity() * std::mem::size_of::<DartIdType>();
             writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
         }
@@ -179,7 +179,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // beta
         let mut beta_total = 0;
         for beta_id in 0..3 {
-            let mem = self.n_darts * std::mem::size_of::<DartIdentifier>();
+            let mem = self.n_darts * std::mem::size_of::<DartIdType>();
             writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
         }
@@ -257,7 +257,7 @@ impl<T: CoordsFloat> CMap2<T> {
         // beta
         let mut beta_total = 0;
         for beta_id in 0..3 {
-            let mem = n_used_darts * std::mem::size_of::<DartIdentifier>();
+            let mem = n_used_darts * std::mem::size_of::<DartIdType>();
             writeln!(file, "beta_{beta_id}, {mem}")?;
             beta_total += mem;
         }

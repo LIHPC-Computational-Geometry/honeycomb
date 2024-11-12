@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use honeycomb_core::prelude::{
-    DartIdentifier, EdgeIdentifier, FaceIdentifier, VertexIdentifier, VolumeIdentifier,
+    DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType,
 };
 
 // --- shared data
@@ -12,7 +12,7 @@ pub struct MapVertices(pub Vec<Vec3>);
 
 /// Collection of normals, organized per faces of a map.
 #[derive(Resource)]
-pub struct FaceNormals(pub HashMap<FaceIdentifier, Vec<Vec3>>);
+pub struct FaceNormals(pub HashMap<FaceIdType, Vec<Vec3>>);
 
 // --- bundles
 
@@ -32,10 +32,10 @@ impl DartHeadBundle {
     #[must_use = "Object unused after construction"]
     pub fn new(
         capture_id: usize,
-        id: DartIdentifier,
-        vertex_id: VertexIdentifier,
-        edge_id: EdgeIdentifier,
-        face_id: FaceIdentifier,
+        id: DartIdType,
+        vertex_id: VertexIdType,
+        edge_id: EdgeIdType,
+        face_id: FaceIdType,
         vertices: (usize, usize),
         normals: (usize, usize),
     ) -> Self {
@@ -66,10 +66,10 @@ impl DartBodyBundle {
     #[must_use = "Object unused after construction"]
     pub fn new(
         capture_id: usize,
-        id: DartIdentifier,
-        vertex_id: VertexIdentifier,
-        edge_id: EdgeIdentifier,
-        face_id: FaceIdentifier,
+        id: DartIdType,
+        vertex_id: VertexIdType,
+        edge_id: EdgeIdType,
+        face_id: FaceIdType,
         vertices: (usize, usize),
         normals: (usize, usize),
     ) -> Self {
@@ -95,7 +95,7 @@ pub struct VertexBundle {
 impl VertexBundle {
     /// Constructor.
     #[must_use = "Object unused after construction"]
-    pub fn new(capture_id: usize, id: VertexIdentifier, vertex: usize) -> Self {
+    pub fn new(capture_id: usize, id: VertexIdType, vertex: usize) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
             id: VertexId(id),
@@ -115,7 +115,7 @@ pub struct EdgeBundle {
 impl EdgeBundle {
     /// Constructor.
     #[must_use = "Object unused after construction"]
-    pub fn new(capture_id: usize, id: EdgeIdentifier, vertices: (usize, usize)) -> Self {
+    pub fn new(capture_id: usize, id: EdgeIdType, vertices: (usize, usize)) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
             id: EdgeId(id),
@@ -135,7 +135,7 @@ pub struct FaceBundle {
 impl FaceBundle {
     /// Constructor.
     #[must_use = "Object unused after construction"]
-    pub fn new(capture_id: usize, id: FaceIdentifier, vertices: Vec<usize>) -> Self {
+    pub fn new(capture_id: usize, id: FaceIdType, vertices: Vec<usize>) -> Self {
         Self {
             capture_id: CaptureId(capture_id),
             id: FaceId(id),
@@ -152,23 +152,23 @@ pub struct CaptureId(pub usize);
 
 /// Dart ID component.
 #[derive(Component, Clone)]
-pub struct DartId(pub DartIdentifier);
+pub struct DartId(pub DartIdType);
 
 /// Vertex ID component.
 #[derive(Component, Clone)]
-pub struct VertexId(pub VertexIdentifier);
+pub struct VertexId(pub VertexIdType);
 
 /// Edge ID component.
 #[derive(Component, Clone)]
-pub struct EdgeId(pub EdgeIdentifier);
+pub struct EdgeId(pub EdgeIdType);
 
 /// Face ID component.
 #[derive(Component, Clone)]
-pub struct FaceId(pub FaceIdentifier);
+pub struct FaceId(pub FaceIdType);
 
 /// Volume ID component.
 #[derive(Component, Clone)]
-pub struct VolumeId(pub VolumeIdentifier);
+pub struct VolumeId(pub VolumeIdType);
 
 /// Dart head component.
 #[derive(Component, Clone)]
