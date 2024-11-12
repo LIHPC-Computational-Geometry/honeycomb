@@ -3,7 +3,6 @@
 mod builder;
 mod collections;
 mod common;
-#[allow(unused)]
 mod components;
 mod dim2;
 

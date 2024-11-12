@@ -4,7 +4,7 @@ use std::ops::{Index, IndexMut};
 
 use stm::TVar;
 
-use super::identifiers::{DartId, NULL_DART_ID};
+use super::identifiers::DartIdType;
 
 // ------ CONTENT
 
@@ -28,16 +28,16 @@ impl UnusedDarts {
     }
 }
 
-impl Index<DartId> for UnusedDarts {
+impl Index<DartIdType> for UnusedDarts {
     type Output = TVar<bool>;
 
-    fn index(&self, dart_id: DartId) -> &Self::Output {
-        &self.0[dart_id.0 as usize]
+    fn index(&self, dart_id: DartIdType) -> &Self::Output {
+        &self.0[dart_id as usize]
     }
 }
 
-impl IndexMut<DartId> for UnusedDarts {
-    fn index_mut(&mut self, dart_id: DartId) -> &mut Self::Output {
-        &mut self.0[dart_id.0 as usize]
+impl IndexMut<DartIdType> for UnusedDarts {
+    fn index_mut(&mut self, dart_id: DartIdType) -> &mut Self::Output {
+        &mut self.0[dart_id as usize]
     }
 }
