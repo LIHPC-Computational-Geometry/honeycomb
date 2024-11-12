@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
 use crate::attributes::AttrStorageManager;
-use crate::prelude::{CMap2, DartIdentifier, Orbit2, OrbitPolicy};
+use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy};
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -21,7 +21,7 @@ fn io_read() {
     let mut n_vertices_per_face: Vec<usize> = faces
         .identifiers
         .iter()
-        .map(|id| Orbit2::new(&cmap, OrbitPolicy::Face, *id as DartIdentifier).count())
+        .map(|id| Orbit2::new(&cmap, OrbitPolicy::Face, *id as DartIdType).count())
         .collect();
     let (mut three_count, mut four_count, mut six_count): (usize, usize, usize) = (0, 0, 0);
     while let Some(n) = n_vertices_per_face.pop() {

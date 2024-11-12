@@ -1,10 +1,13 @@
 // ------ IMPORTS
 
-use std::ops::{Index, IndexMut};
+use std::{
+    ops::{Index, IndexMut},
+    slice::Iter,
+};
 
 use stm::TVar;
 
-use super::identifiers::{DartId, NULL_DART_ID};
+use super::identifiers::DartIdType;
 
 // ------ CONTENT
 
@@ -14,7 +17,7 @@ pub struct UnusedDarts(Vec<TVar<bool>>);
 impl UnusedDarts {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
-        Self((0..=n_darts).map(|_| TVar::new(false)).collect())
+        Self((0..n_darts).map(|_| TVar::new(false)).collect())
     }
 
     /// Extend internal storage capacity
@@ -26,18 +29,22 @@ impl UnusedDarts {
     pub fn len(&self) -> usize {
         self.0.len()
     }
-}
 
-impl Index<DartId> for UnusedDarts {
-    type Output = TVar<bool>;
-
-    fn index(&self, dart_id: DartId) -> &Self::Output {
-        &self.0[dart_id.0 as usize]
+    pub fn iter(&self) -> Iter<'_, TVar<bool>> {
+        self.0.iter()
     }
 }
 
-impl IndexMut<DartId> for UnusedDarts {
-    fn index_mut(&mut self, dart_id: DartId) -> &mut Self::Output {
-        &mut self.0[dart_id.0 as usize]
+impl Index<DartIdType> for UnusedDarts {
+    type Output = TVar<bool>;
+
+    fn index(&self, dart_id: DartIdType) -> &Self::Output {
+        &self.0[dart_id as usize]
+    }
+}
+
+impl IndexMut<DartIdType> for UnusedDarts {
+    fn index_mut(&mut self, dart_id: DartIdType) -> &mut Self::Output {
+        &mut self.0[dart_id as usize]
     }
 }

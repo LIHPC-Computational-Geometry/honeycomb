@@ -6,7 +6,7 @@
 
 // ------ IMPORT
 
-use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdentifier};
+use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdType};
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     geometry::CoordsFloat,
@@ -40,7 +40,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn vertex(&self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
+    pub fn vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         self.vertices.get(vertex_id)
     }
 
@@ -61,7 +61,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - **there is already a vertex associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn insert_vertex(&self, vertex_id: VertexIdentifier, vertex: impl Into<Vertex2<T>>) {
+    pub fn insert_vertex(&self, vertex_id: VertexIdType, vertex: impl Into<Vertex2<T>>) {
         self.vertices.insert(vertex_id, vertex.into());
     }
 
@@ -83,7 +83,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn remove_vertex(&self, vertex_id: VertexIdentifier) -> Option<Vertex2<T>> {
+    pub fn remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         self.vertices.remove(vertex_id)
     }
 
@@ -108,7 +108,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`
     pub fn replace_vertex(
         &self,
-        vertex_id: VertexIdentifier,
+        vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
     ) -> Option<Vertex2<T>> {
         self.vertices.replace(vertex_id, vertex.into())

@@ -1,7 +1,7 @@
 use crate::triangulation::{
     check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
 };
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
 #[allow(clippy::missing_panics_doc)]
@@ -43,12 +43,12 @@ use honeycomb_core::geometry::CoordsFloat;
 /// call.
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    face_id: FaceIdentifier,
-    new_darts: &[DartIdentifier],
+    face_id: FaceIdType,
+    new_darts: &[DartIdType],
 ) -> Result<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
     let darts: Vec<_> =
-        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
+        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdType).collect();
     let n = darts.len();
 
     // early checks - check # of darts & face size
@@ -146,16 +146,16 @@ pub fn process_cell<T: CoordsFloat>(
 /// call.
 pub fn process_convex_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    face_id: FaceIdentifier,
-    new_darts: &[DartIdentifier],
+    face_id: FaceIdType,
+    new_darts: &[DartIdType],
 ) -> Result<(), TriangulateError> {
-    let n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).count();
+    let n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdType).count();
 
     // early rets
     check_requirements(n, new_darts.len())?;
 
     // we assume the polygon is convex (== starrable from any vertex)
-    let sdart = face_id as DartIdentifier;
+    let sdart = face_id as DartIdType;
 
     // THIS CANNOT BE PARALLELIZED AS IS
     let b0_sdart = cmap.beta::<0>(sdart);

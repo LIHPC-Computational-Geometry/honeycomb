@@ -8,7 +8,7 @@
 // ------ IMPORTS
 
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdentifier, Orbit2, OrbitPolicy, VertexIdentifier, NULL_DART_ID};
+use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID};
 
 use std::{any::TypeId, collections::BTreeMap};
 
@@ -84,8 +84,8 @@ where
     T: CoordsFloat + 'static,
 {
     // common data
-    let vertex_ids: Vec<VertexIdentifier> = map.fetch_vertices().identifiers;
-    let mut id_map: BTreeMap<VertexIdentifier, usize> = BTreeMap::new();
+    let vertex_ids: Vec<VertexIdType> = map.fetch_vertices().identifiers;
+    let mut id_map: BTreeMap<VertexIdType, usize> = BTreeMap::new();
     vertex_ids.iter().enumerate().for_each(|(id, vid)| {
         id_map.insert(*vid, id);
     });
@@ -104,7 +104,7 @@ where
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
-        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Custom(&[1]), id as DartIdentifier)
+        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Custom(&[1]), id as DartIdType)
             .map(|dart_id| {
                 count += 1;
                 id_map[&map.vertex_id(dart_id)] as u32
@@ -119,9 +119,9 @@ where
     // from filtering isolated darts making up edges
     let edge_data = edge_ids
         .into_iter()
-        .filter(|id| map.beta::<2>(*id as DartIdentifier) == NULL_DART_ID)
+        .filter(|id| map.beta::<2>(*id as DartIdType) == NULL_DART_ID)
         .map(|id| {
-            let dart_id = id as DartIdentifier;
+            let dart_id = id as DartIdType;
             let ndart_id = map.beta::<1>(dart_id);
             (
                 id_map[&map.vertex_id(dart_id)] as u32,

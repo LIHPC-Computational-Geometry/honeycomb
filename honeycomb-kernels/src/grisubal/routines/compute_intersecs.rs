@@ -8,7 +8,7 @@
 
 use super::Segments;
 use crate::grisubal::model::{Geometry2, GeometryVertex, GridCellId};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier, Vertex2, NULL_DART_ID};
+use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType, Vertex2, NULL_DART_ID};
 use std::{
     cmp::{max, min},
     collections::VecDeque,
@@ -66,7 +66,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],
     origin: Vertex2<T>,
-) -> (Segments, Vec<(DartIdentifier, T)>) {
+) -> (Segments, Vec<(DartIdType, T)>) {
     let tmp: Vec<_> = geometry
         .segments
         .iter()
@@ -128,7 +128,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
             1 => {
                 // fetch base dart of the cell of v1
                 #[allow(clippy::cast_possible_truncation)]
-                let d_base = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdentifier;
+                let d_base = (1 + 4 * c1.0 + nx * 4 * c1.1) as DartIdType;
                 // which dart does this correspond to?
                 #[rustfmt::skip]
                 let dart_id = match diff {
@@ -180,7 +180,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                             (min(i_base, i_base + 1 + i)..max(i_base + i, i_base + 1)).zip(i_ids).map(|(x, id)| {
                                 // cell base dart
                                 let d_base =
-                                    (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdentifier;
+                                    (1 + 4 * x + (nx * 4 * c1.1) as isize) as DartIdType;
                                 // intersected dart
                                 let dart_id = if i.is_positive() {
                                     d_base + 1
@@ -230,7 +230,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                             // j < 0: j_base + 1 + j..j_base + 1
                             (min(j_base, j_base + 1 + j)..max(j_base + j, j_base + 1)).zip(i_ids).map(|(y, id)| {
                                 // cell base dart
-                                let d_base = (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdentifier;
+                                let d_base = (1 + 4 * c1.0 + nx * 4 * y as usize) as DartIdType;
                                 // intersected dart
                                 let dart_id = if j.is_positive() { d_base + 2 } else { d_base };
                                 // vertex associated to the intersected dart
@@ -277,10 +277,10 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                         let subgrid_cells =
                             i_cell_range.flat_map(|x| j_cell_range.clone().map(move |y| (x, y)));
 
-                        let mut intersec_data: Vec<(T, T, DartIdentifier)> = subgrid_cells
+                        let mut intersec_data: Vec<(T, T, DartIdType)> = subgrid_cells
                             .map(|(x, y)| {
                                 // cell base dart
-                                let d_base = (1 + 4 * x + nx as isize * 4 * y) as DartIdentifier;
+                                let d_base = (1 + 4 * x + nx as isize * 4 * y) as DartIdType;
                                 // (potentially) intersected darts
                                 let vdart_id = if i.is_positive() {
                                     d_base + 1

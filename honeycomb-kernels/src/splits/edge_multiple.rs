@@ -3,7 +3,7 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 // ------ CONTENT
 
@@ -82,7 +82,7 @@ use honeycomb_core::geometry::CoordsFloat;
 #[allow(clippy::cast_possible_truncation)]
 pub fn splitn_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
+    edge_id: EdgeIdType,
     midpoint_vertices: impl IntoIterator<Item = T>,
 ) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
@@ -90,17 +90,17 @@ pub fn splitn_edge<T: CoordsFloat>(
     let n_t = midpoint_vertices.len();
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     let new_darts = if base_dart2 == NULL_DART_ID {
         let tmp = cmap.add_free_darts(n_t);
-        (tmp..tmp + n_t as DartIdentifier)
+        (tmp..tmp + n_t as DartIdType)
             .chain((0..n_t).map(|_| NULL_DART_ID))
             .collect::<Vec<_>>()
     } else {
         let tmp = cmap.add_free_darts(2 * n_t);
-        (tmp..tmp + 2 * n_t as DartIdentifier).collect::<Vec<_>>()
+        (tmp..tmp + 2 * n_t as DartIdType).collect::<Vec<_>>()
     };
     // get the first and second halves
     let (darts_fh, darts_sh) = (&new_darts[..n_t], &new_darts[n_t..]);
@@ -151,8 +151,8 @@ pub fn splitn_edge<T: CoordsFloat>(
 ///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
-    new_darts: &[DartIdentifier],
+    edge_id: EdgeIdType,
+    new_darts: &[DartIdType],
     midpoint_vertices: &[T],
 ) -> Result<(), SplitEdgeError> {
     // check pre-allocated darts reqs
@@ -169,7 +169,7 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     let darts_sh = &new_darts[n_t..];
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
@@ -190,9 +190,9 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
 
 fn inner_splitn<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    base_dart1: DartIdentifier,
-    darts_fh: &[DartIdentifier], //first half
-    darts_sh: &[DartIdentifier], //second half
+    base_dart1: DartIdType,
+    darts_fh: &[DartIdType], //first half
+    darts_sh: &[DartIdType], //second half
     midpoint_vertices: &[T],
 ) -> Result<(), SplitEdgeError> {
     if midpoint_vertices

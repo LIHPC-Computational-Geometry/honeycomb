@@ -8,8 +8,8 @@ use super::{
     UnknownAttributeStorage,
 };
 use crate::{
-    cmap::EdgeIdentifier,
-    prelude::{CMap2, CMapBuilder, FaceIdentifier, OrbitPolicy, Vertex2, VertexIdentifier},
+    cmap::EdgeIdType,
+    prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
 };
 use std::any::Any;
 
@@ -46,7 +46,7 @@ impl AttributeUpdate for Temperature {
 
 impl AttributeBind for Temperature {
     type StorageType = AttrSparseVec<Temperature>;
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
 
@@ -72,7 +72,7 @@ impl AttributeUpdate for Weight {
 
 impl AttributeBind for Weight {
     type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = VertexIdentifier;
+    type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
 
@@ -92,7 +92,7 @@ impl AttributeUpdate for Length {
 }
 
 impl AttributeBind for Length {
-    type IdentifierType = EdgeIdentifier;
+    type IdentifierType = EdgeIdType;
     type StorageType = AttrSparseVec<Self>;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Edge;
 }
@@ -122,7 +122,7 @@ impl AttributeUpdate for Color {
 
 impl AttributeBind for Color {
     type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = FaceIdentifier;
+    type IdentifierType = FaceIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 }
 
@@ -491,7 +491,7 @@ fn attribute_update() {
 fn attribute_bind() {
     assert_eq!(Temperature::BIND_POLICY, OrbitPolicy::Vertex);
     let inst: <Temperature as AttributeBind>::IdentifierType = 0;
-    let ref_inst: FaceIdentifier = 0;
+    let ref_inst: FaceIdType = 0;
     let prim_inst: u32 = 0;
     assert_eq!(inst.type_id(), ref_inst.type_id());
     assert_eq!(inst.type_id(), prim_inst.type_id());

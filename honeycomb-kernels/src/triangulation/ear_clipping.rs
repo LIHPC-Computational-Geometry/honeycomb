@@ -1,7 +1,7 @@
 use crate::triangulation::{
     check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
 };
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
 #[allow(clippy::missing_panics_doc)]
@@ -55,12 +55,12 @@ use honeycomb_core::geometry::CoordsFloat;
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    face_id: FaceIdentifier,
-    new_darts: &[DartIdentifier],
+    face_id: FaceIdType,
+    new_darts: &[DartIdType],
 ) -> Result<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
     let mut darts: Vec<_> =
-        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
+        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdType).collect();
     let mut n = darts.len();
 
     // early checks - check # of darts & face size

@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{DartIdentifier, OrbitPolicy};
+use crate::prelude::{DartIdType, OrbitPolicy};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
@@ -93,7 +93,7 @@ pub trait AttributeUpdate: Sized + Send + Sync {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdentifier, OrbitPolicy};
+/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdType, OrbitPolicy};
 /// use honeycomb_core::attributes::AttrSparseVec;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
@@ -120,7 +120,7 @@ pub trait AttributeUpdate: Sized + Send + Sync {
 ///
 /// impl AttributeBind for Temperature {
 ///     type StorageType = AttrSparseVec<Self>;
-///     type IdentifierType = FaceIdentifier;
+///     type IdentifierType = FaceIdType;
 ///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
 /// }
 /// ```
@@ -129,7 +129,7 @@ pub trait AttributeBind: Debug + Sized + Any {
     type StorageType: AttributeStorage<Self>;
 
     /// Identifier type of the entity the attribute is bound to.
-    type IdentifierType: From<DartIdentifier> + num_traits::ToPrimitive + Clone;
+    type IdentifierType: From<DartIdType> + num_traits::ToPrimitive + Clone;
 
     /// [`OrbitPolicy`] determining the kind of topological entity to which the attribute
     /// is associated.
@@ -192,7 +192,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// }
     /// attributes.set(out, new_val);
     /// ```
-    fn merge(&self, out: DartIdentifier, lhs_inp: DartIdentifier, rhs_inp: DartIdentifier);
+    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType);
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `merge`
@@ -204,9 +204,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     fn merge_transac(
         &self,
         trans: &mut Transaction,
-        out: DartIdentifier,
-        lhs_inp: DartIdentifier,
-        rhs_inp: DartIdentifier,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
     ) -> Result<(), StmError>;
 
     /// Split attribute to specified indices
@@ -227,7 +227,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
     /// ```
-    fn split(&self, lhs_out: DartIdentifier, rhs_out: DartIdentifier, inp: DartIdentifier);
+    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType);
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `split`
@@ -239,9 +239,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     fn split_transac(
         &self,
         trans: &mut Transaction,
-        lhs_out: DartIdentifier,
-        rhs_out: DartIdentifier,
-        inp: DartIdentifier,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
     ) -> Result<(), StmError>;
 }
 

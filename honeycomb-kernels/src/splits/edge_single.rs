@@ -3,7 +3,7 @@
 // ------ IMPORTS
 
 use crate::splits::SplitEdgeError;
-use honeycomb_core::cmap::{CMap2, DartIdentifier, EdgeIdentifier, NULL_DART_ID};
+use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 // ------ CONTENT
@@ -52,7 +52,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 /// ```
 pub fn split_edge<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
+    edge_id: EdgeIdType,
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // midpoint check
@@ -61,7 +61,7 @@ pub fn split_edge<T: CoordsFloat>(
     }
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     let new_darts = if base_dart2 == NULL_DART_ID {
@@ -116,8 +116,8 @@ pub fn split_edge<T: CoordsFloat>(
 ///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
 pub fn split_edge_noalloc<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    edge_id: EdgeIdentifier,
-    new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
+    edge_id: EdgeIdType,
+    new_darts: (DartIdType, DartIdType), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // midpoint check
@@ -126,7 +126,7 @@ pub fn split_edge_noalloc<T: CoordsFloat>(
     }
 
     // base darts making up the edge
-    let base_dart1 = edge_id as DartIdentifier;
+    let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta::<2>(base_dart1);
 
     if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
@@ -147,8 +147,8 @@ pub fn split_edge_noalloc<T: CoordsFloat>(
 
 fn inner_split<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    base_dart1: DartIdentifier,
-    new_darts: (DartIdentifier, DartIdentifier), // 2D => statically known number of darts
+    base_dart1: DartIdType,
+    new_darts: (DartIdType, DartIdType), // 2D => statically known number of darts
     midpoint_vertex: Option<T>,
 ) -> Result<(), SplitEdgeError> {
     // base darts making up the edge

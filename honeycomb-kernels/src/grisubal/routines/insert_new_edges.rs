@@ -6,7 +6,7 @@
 
 use crate::grisubal::model::{Boundary, MapEdge};
 use crate::splits::splitn_edge_no_alloc;
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
 
 // ------ CONTENT
 
@@ -30,12 +30,11 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         })
         .collect();
     #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdentifier>> = n_darts_per_seg
+    let dart_slices: Vec<Vec<DartIdType>> = n_darts_per_seg
         .iter()
         .zip(prefix_sum.iter())
         .map(|(n_d, start)| {
-            ((tmp + start) as DartIdentifier..(tmp + start + n_d) as DartIdentifier)
-                .collect::<Vec<_>>()
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
         })
         .collect();
 
@@ -77,7 +76,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
                 &vec![T::from(0.5).unwrap(); intermediates.len()],
             );
             // replace placeholder vertices
-            let mut dart_id = cmap.beta::<1>(edge_id as DartIdentifier);
+            let mut dart_id = cmap.beta::<1>(edge_id as DartIdType);
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
                 let _ = cmap.replace_vertex(vid, *v);

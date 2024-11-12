@@ -8,7 +8,7 @@
 
 use super::Segments;
 use crate::grisubal::model::{Geometry2, GeometryVertex, MapEdge};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdentifier};
+use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
 
 // ------ CONTENT
 
@@ -16,7 +16,7 @@ pub(crate) fn generate_edge_data<T: CoordsFloat>(
     cmap: &CMap2<T>,
     geometry: &Geometry2<T>,
     new_segments: &Segments,
-    intersection_darts: &[DartIdentifier],
+    intersection_darts: &[DartIdType],
 ) -> Vec<MapEdge<T>> {
     new_segments
         .iter()
