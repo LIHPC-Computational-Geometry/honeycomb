@@ -1,7 +1,7 @@
 use crate::triangulation::{
     check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
 };
-use honeycomb_core::cmap::{CMap2, DartIdentifier, FaceIdentifier, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, DartId, FaceId, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
 #[allow(clippy::missing_panics_doc)]
@@ -55,12 +55,11 @@ use honeycomb_core::geometry::CoordsFloat;
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn process_cell<T: CoordsFloat>(
     cmap: &mut CMap2<T>,
-    face_id: FaceIdentifier,
-    new_darts: &[DartIdentifier],
+    face_id: FaceId,
+    new_darts: &[DartId],
 ) -> Result<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
-    let mut darts: Vec<_> =
-        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdentifier).collect();
+    let mut darts: Vec<_> = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id).collect();
     let mut n = darts.len();
 
     // early checks - check # of darts & face size
@@ -111,8 +110,8 @@ pub fn process_cell<T: CoordsFloat>(
         let b0_d_ear1 = cmap.beta::<0>(d_ear1);
         let b1_d_ear2 = cmap.beta::<1>(d_ear2);
         let nd1 = ndart_id;
-        let nd2 = ndart_id + 1;
-        ndart_id += 2;
+        let nd2 = DartId(ndart_id.0 + 1);
+        ndart_id.0 += 2;
         // FIXME: using link methods only works if new identifiers are greater than all existing
         // FIXME: using sew methods in parallel could crash bc of the panic when no vertex defined
         cmap.one_unlink(b0_d_ear1);
