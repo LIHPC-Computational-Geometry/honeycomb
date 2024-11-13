@@ -120,8 +120,8 @@ impl<T: CoordsFloat> CMap2<T> {
                         Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
                         Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
                     ) = (
-                        self.vertices.get(lhs_vid_old), self.vertices.get(b1rhs_vid_old),// (lhs/b1rhs)
-                        self.vertices.get(b1lhs_vid_old), self.vertices.get(rhs_vid_old) // (b1lhs/rhs)
+                        self.vertices.get_core(trans, &lhs_vid_old)?, self.vertices.get_core(trans, &b1rhs_vid_old)?,// (lhs/b1rhs)
+                        self.vertices.get_core(trans, &b1lhs_vid_old)?, self.vertices.get_core(trans, &rhs_vid_old)? // (b1lhs/rhs)
                     )
                     {
                         let lhs_vector = b1l_vertex - l_vertex;

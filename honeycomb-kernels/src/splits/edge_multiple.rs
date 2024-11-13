@@ -45,7 +45,7 @@ use honeycomb_core::geometry::CoordsFloat;
 ///                             .n_darts(2)
 ///                             .build()
 ///                             .unwrap();
-/// map.two_link(1, 2);
+/// map.force_two_link(1, 2);
 /// map.insert_vertex(1, (0.0, 0.0));
 /// map.insert_vertex(2, (1.0, 0.0));
 /// // split
