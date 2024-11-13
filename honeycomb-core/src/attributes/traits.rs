@@ -12,7 +12,7 @@ use crate::{
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
-use stm::{atomically, StmError, StmResult, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -292,7 +292,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn set(&self, id: A::IdentifierType, val: A);
+    fn force_write(&self, id: A::IdentifierType, val: A) -> Option<A>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `set`
@@ -301,50 +301,8 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn set_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError>;
-
-    /// Setter
-    ///
-    /// Insert a value at a given empty index.
-    /// Otherwise, see [#Panics] section for more information.
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - **should panic if there is already a value associated to the specified index**
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn insert(&self, id: A::IdentifierType, val: A) {
-        assert!(self.get(id.clone()).is_none());
-        self.set(id, val);
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `insert`
-    ///
-    /// # Result / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn insert_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        assert!(self.get(id.clone()).is_none());
-        self.set_transac(trans, id, val)
-    }
+    fn write(&self, trans: &mut Transaction, id: A::IdentifierType, val: A)
+        -> StmResult<Option<A>>;
 
     /// Getter
     ///
@@ -363,7 +321,9 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn get(&self, id: A::IdentifierType) -> Option<A>;
+    fn force_read(&self, id: A::IdentifierType) -> Option<A> {
+        atomically(|trans| self.read(trans, id.clone()))
+    }
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `get`
@@ -372,49 +332,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn get_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-    ) -> Result<Option<A>, StmError>;
-
-    /// Setter
-    ///
-    /// Replace the value of an element at a given index.
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// In both cases, the new value should be set to the one specified as argument.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `replace`
-    ///
-    /// # Result / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn replace_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError>;
+    fn read(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
 
     /// Remove an item from the storage and return it
     ///
@@ -433,7 +351,9 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&self, id: A::IdentifierType) -> Option<A>;
+    fn force_remove(&self, id: A::IdentifierType) -> Option<A> {
+        atomically(|trans| self.remove(trans, id.clone()))
+    }
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `remove`
@@ -442,9 +362,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn remove_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-    ) -> Result<Option<A>, StmError>;
+    fn remove(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
 }

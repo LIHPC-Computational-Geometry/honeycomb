@@ -11,7 +11,7 @@ use crate::{
     prelude::DartIdType,
 };
 use num_traits::ToPrimitive;
-use stm::{atomically, StmError, StmResult, TVar, Transaction};
+use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -37,51 +37,20 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 
 #[doc(hidden)]
 impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
-    pub(crate) fn set_core(
+    fn write_core(
         &self,
         trans: &mut Transaction,
         id: &A::IdentifierType,
         val: A,
-    ) -> Result<(), StmError> {
-        self.data[id.to_usize().unwrap()].write(trans, Some(val))?;
-        Ok(())
-    }
-
-    pub(crate) fn insert_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        let tmp = self.data[id.to_usize().unwrap()].replace(trans, Some(val))?;
-        // assertion prevents the transaction from being validated, so the
-        // storage will be left unchanged before the crash
-        assert!(tmp.is_none());
-        Ok(())
-    }
-
-    pub(crate) fn get_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
-        self.data[id.to_usize().unwrap()].read(trans)
-    }
-
-    pub(crate) fn replace_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError> {
+    ) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, Some(val))
     }
 
-    pub(crate) fn remove_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
+    fn read_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+        self.data[id.to_usize().unwrap()].read(trans)
+    }
+
+    fn remove_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, None)
     }
 }
@@ -209,66 +178,40 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
 }
 
 impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A> {
-    fn set(&self, id: A::IdentifierType, val: A) {
-        atomically(|trans| self.set_core(trans, &id, val));
+    fn force_write(&self, id: <A as AttributeBind>::IdentifierType, val: A) -> Option<A> {
+        atomically(|trans| self.write_core(trans, &id, val))
     }
 
-    fn set_transac(
+    fn write(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
         val: A,
-    ) -> Result<(), StmError> {
-        self.set_core(trans, &id, val)
+    ) -> StmResult<Option<A>> {
+        self.write_core(trans, &id, val)
     }
 
-    fn insert(&self, id: A::IdentifierType, val: A) {
-        atomically(|trans| self.insert_core(trans, &id, val));
+    fn force_read(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
+        atomically(|trans| self.read_core(trans, &id))
     }
 
-    fn insert_transac(
+    fn read(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        self.insert_core(trans, &id, val)
+    ) -> StmResult<Option<A>> {
+        self.read_core(trans, &id)
     }
 
-    fn get(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.get_core(trans, &id))
-    }
-
-    fn get_transac(
-        &self,
-        trans: &mut Transaction,
-        id: <A as AttributeBind>::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
-        self.get_core(trans, &id)
-    }
-
-    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
-        atomically(|trans| self.replace_core(trans, &id, val))
-    }
-
-    fn replace_transac(
-        &self,
-        trans: &mut Transaction,
-        id: <A as AttributeBind>::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError> {
-        self.replace_core(trans, &id, val)
-    }
-
-    fn remove(&self, id: A::IdentifierType) -> Option<A> {
+    fn force_remove(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
         atomically(|trans| self.remove_core(trans, &id))
     }
 
-    fn remove_transac(
+    fn remove(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
+    ) -> StmResult<Option<A>> {
         self.remove_core(trans, &id)
     }
 }
