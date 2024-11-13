@@ -30,13 +30,13 @@ use stm::{atomically, StmError, StmResult, TVar, Transaction};
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
+pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     /// Inner storage.
     data: Vec<TVar<Option<T>>>,
 }
 
 #[doc(hidden)]
-impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
     pub(crate) fn set_core(
         &self,
         trans: &mut Transaction,
@@ -86,10 +86,10 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
     }
 }
 
-unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Send for AttrSparseVec<A> {}
-unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Sync for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate> Send for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate> Sync for AttrSparseVec<A> {}
 
-impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -208,7 +208,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
     }
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A> {
     fn set(&self, id: A::IdentifierType, val: A) {
         atomically(|trans| self.set_core(trans, &id, val));
     }
@@ -274,7 +274,7 @@ impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSpar
 }
 
 #[cfg(feature = "utils")]
-impl<T: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<T> {
+impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {

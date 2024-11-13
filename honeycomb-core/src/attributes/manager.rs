@@ -7,7 +7,7 @@
 
 use stm::{StmError, Transaction};
 
-use super::{AttributeBind, AttributeStorage, UnknownAttributeStorage};
+use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::prelude::{DartIdType, OrbitPolicy};
 use std::{any::TypeId, collections::HashMap};
 
@@ -817,7 +817,7 @@ impl AttrStorageManager {
         todo!("custom orbit binding is a special case that will be treated later")
     }
 
-    pub(crate) fn set_attribute_transac<A: AttributeBind>(
+    pub(crate) fn set_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
@@ -835,7 +835,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn insert_attribute_transac<A: AttributeBind>(
+    pub(crate) fn insert_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
@@ -853,7 +853,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn get_attribute_transac<A: AttributeBind>(
+    pub(crate) fn get_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
@@ -870,7 +870,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn replace_attribute_transac<A: AttributeBind>(
+    pub(crate) fn replace_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
@@ -888,7 +888,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn remove_attribute_transac<A: AttributeBind>(
+    pub(crate) fn remove_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
@@ -905,7 +905,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn merge_attribute_transac<A: AttributeBind>(
+    pub(crate) fn merge_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -924,7 +924,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub(crate) fn split_attribute_transac<A: AttributeBind>(
+    pub(crate) fn split_attribute_transac<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
