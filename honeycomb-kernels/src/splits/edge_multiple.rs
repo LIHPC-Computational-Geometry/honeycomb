@@ -222,7 +222,7 @@ fn inner_splitn<T: CoordsFloat>(
     cmap.set_beta::<1>(base_dart1, 0);
     cmap.set_beta::<0>(b1d1_old, 0);
     if base_dart2 != NULL_DART_ID {
-        cmap.two_unlink(base_dart1);
+        cmap.force_two_unlink(base_dart1);
     }
     // insert new vertices / darts on base_dart1's side
     let mut prev_d = base_dart1;
@@ -234,11 +234,11 @@ fn inner_splitn<T: CoordsFloat>(
                 // println!("{W_VERTEX_BOUND}");
             }
             let new_v = v1 + seg * t;
-            cmap.one_link(prev_d, new_d);
+            cmap.force_one_link(prev_d, new_d);
             cmap.insert_vertex(new_d, new_v);
             prev_d = new_d;
         });
-    cmap.one_link(prev_d, b1d1_old);
+    cmap.force_one_link(prev_d, b1d1_old);
 
     // if b2(base_dart1) is defined, insert vertices / darts on its side too
     if base_dart2 != NULL_DART_ID {
@@ -252,12 +252,12 @@ fn inner_splitn<T: CoordsFloat>(
             .rev()
             .zip(darts_sh.iter())
             .for_each(|(d, new_d)| {
-                cmap.two_link(prev_d, *d);
-                cmap.one_link(prev_d, *new_d);
+                cmap.force_two_link(prev_d, *d);
+                cmap.force_one_link(prev_d, *new_d);
                 prev_d = *new_d;
             });
-        cmap.one_link(prev_d, b1d2_old);
-        cmap.two_link(prev_d, base_dart1);
+        cmap.force_one_link(prev_d, b1d2_old);
+        cmap.force_two_link(prev_d, base_dart1);
     }
 
     Ok(())

@@ -51,19 +51,19 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         // remove deprecated connectivities & save what data is necessary
         let b1_start_old = cmap.beta::<1>(*start);
         let b0_end_old = cmap.beta::<0>(*end);
-        cmap.one_unlink(*start);
-        cmap.one_unlink(b0_end_old);
+        cmap.force_one_unlink(*start);
+        cmap.force_one_unlink(b0_end_old);
 
         let &[d_new, b2_d_new] = &dslice[0..2] else {
             unreachable!()
         };
-        cmap.two_link(d_new, b2_d_new);
+        cmap.force_two_link(d_new, b2_d_new);
 
         // rebuild - this is the final construct if there are no intermediates
-        cmap.one_link(*start, d_new);
-        cmap.one_link(b2_d_new, b1_start_old);
-        cmap.one_link(d_new, *end);
-        cmap.one_link(b0_end_old, b2_d_new);
+        cmap.force_one_link(*start, d_new);
+        cmap.force_one_link(b2_d_new, b1_start_old);
+        cmap.force_one_link(d_new, *end);
+        cmap.force_one_link(b0_end_old, b2_d_new);
 
         if !intermediates.is_empty() {
             // create the topology components
