@@ -5,11 +5,14 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{DartIdType, OrbitPolicy};
+use crate::{
+    cmap::CMapResult,
+    prelude::{DartIdType, OrbitPolicy},
+};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
-use stm::{StmError, Transaction};
+use stm::{atomically, StmError, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -192,7 +195,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// }
     /// attributes.set(out, new_val);
     /// ```
-    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType);
+    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
+        atomically(|trans| self.merge(trans, out, lhs_inp, rhs_inp));
+    }
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `merge`
@@ -201,13 +206,21 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn merge_transac(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> Result<(), StmError>;
+    ) -> StmResult<()>;
+
+    fn try_merge(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> CMapResult<()>;
 
     /// Split attribute to specified indices
     ///
@@ -227,7 +240,9 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
     /// ```
-    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType);
+    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
+        atomically(|trans| self.split(trans, lhs_out, rhs_out, inp));
+    }
 
     #[allow(clippy::missing_errors_doc)]
     /// Transactional `split`
@@ -236,13 +251,21 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn split_transac(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> Result<(), StmError>;
+    ) -> StmResult<()>;
+
+    fn try_split(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> CMapResult<()>;
 }
 
 impl_downcast!(UnknownAttributeStorage);

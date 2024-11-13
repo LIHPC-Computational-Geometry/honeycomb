@@ -24,3 +24,9 @@ pub enum CMapError {
     #[error("unknown attribute: {0}")]
     UnknownAttribute(&'static str),
 }
+
+impl From<StmError> for CMapError {
+    fn from(value: StmError) -> Self {
+        Self::FailedTransaction(value)
+    }
+}

@@ -6,9 +6,12 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::prelude::DartIdType;
+use crate::{
+    cmap::{CMapError, CMapResult},
+    prelude::DartIdType,
+};
 use num_traits::ToPrimitive;
-use stm::{atomically, StmError, TVar, Transaction};
+use stm::{atomically, StmError, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -34,53 +37,6 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
 
 #[doc(hidden)]
 impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
-    pub(crate) fn merge_core(
-        &self,
-        trans: &mut Transaction,
-        out: DartIdType,
-        lhs_inp: DartIdType,
-        rhs_inp: DartIdType,
-    ) -> Result<(), StmError> {
-        let new_v = match (
-            self.data[lhs_inp as usize].read(trans)?,
-            self.data[rhs_inp as usize].read(trans)?,
-        ) {
-            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
-            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
-            (None, None) => AttributeUpdate::merge_from_none(),
-        };
-        if new_v.is_none() {
-            eprintln!("W: cannot merge two null attribute value");
-            eprintln!("   setting new target value to `None`");
-        }
-        self.data[rhs_inp as usize].write(trans, None)?;
-        self.data[lhs_inp as usize].write(trans, None)?;
-        self.data[out as usize].write(trans, new_v)?;
-        Ok(())
-    }
-
-    pub(crate) fn split_core(
-        &self,
-        trans: &mut Transaction,
-        lhs_out: DartIdType,
-        rhs_out: DartIdType,
-        inp: DartIdType,
-    ) -> Result<(), StmError> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.data[inp as usize].write(trans, None)?;
-            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
-        } else {
-            eprintln!("W: cannot split attribute value (not found in storage)");
-            eprintln!("   setting both new values to `None`");
-            self.data[lhs_out as usize].write(trans, None)?;
-            self.data[rhs_out as usize].write(trans, None)?;
-            //self.data[inp as usize].store(None, Ordering::Release);
-        }
-        Ok(())
-    }
-
     pub(crate) fn set_core(
         &self,
         trans: &mut Transaction,
@@ -154,32 +110,101 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             .count()
     }
 
-    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
-        atomically(|trans| self.merge_core(trans, out, lhs_inp, rhs_inp));
-    }
-
-    fn merge_transac(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> Result<(), StmError> {
-        self.merge_core(trans, out, lhs_inp, rhs_inp)
+    ) -> StmResult<()> {
+        let new_v = match (
+            self.data[lhs_inp as usize].read(trans)?,
+            self.data[rhs_inp as usize].read(trans)?,
+        ) {
+            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
+            (None, None) => AttributeUpdate::merge_from_none(),
+        };
+        if new_v.is_none() {
+            eprintln!("W: cannot merge two null attribute value");
+            eprintln!("   setting new target value to `None`");
+        }
+        self.data[rhs_inp as usize].write(trans, None)?;
+        self.data[lhs_inp as usize].write(trans, None)?;
+        self.data[out as usize].write(trans, new_v)?;
+        Ok(())
     }
 
-    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
-        atomically(|trans| self.split_core(trans, lhs_out, rhs_out, inp));
+    fn try_merge(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> CMapResult<()> {
+        let new_v = match (
+            self.data[lhs_inp as usize].read(trans)?,
+            self.data[rhs_inp as usize].read(trans)?,
+        ) {
+            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+            (Some(_), None) | (None, Some(_)) => {
+                return Err(CMapError::FailedAttributeMerge(
+                    "missing one value for merge",
+                ))
+            }
+            (None, None) => {
+                return Err(CMapError::FailedAttributeMerge(
+                    "missing both values for merge",
+                ))
+            }
+        };
+        if new_v.is_none() {
+            eprintln!("W: cannot merge two null attribute value");
+            eprintln!("   setting new target value to `None`");
+        }
+        self.data[rhs_inp as usize].write(trans, None)?;
+        self.data[lhs_inp as usize].write(trans, None)?;
+        self.data[out as usize].write(trans, new_v)?;
+        Ok(())
     }
 
-    fn split_transac(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> Result<(), StmError> {
-        self.split_core(trans, lhs_out, rhs_out, inp)
+    ) -> StmResult<()> {
+        if let Some(val) = self.data[inp as usize].read(trans)? {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.data[inp as usize].write(trans, None)?;
+            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        } else {
+            eprintln!("W: cannot split attribute value (not found in storage)");
+            eprintln!("   setting both new values to `None`");
+            self.data[lhs_out as usize].write(trans, None)?;
+            self.data[rhs_out as usize].write(trans, None)?;
+        }
+        Ok(())
+    }
+
+    fn try_split(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> CMapResult<()> {
+        if let Some(val) = self.data[inp as usize].read(trans)? {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.data[inp as usize].write(trans, None)?;
+            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        } else {
+            return Err(CMapError::FailedAttributeSplit("no value to split from"));
+        }
+        Ok(())
     }
 }
 
