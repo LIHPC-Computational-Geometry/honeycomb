@@ -3,6 +3,7 @@
 mod builder;
 mod components;
 mod dim2;
+mod error;
 
 pub use builder::{BuilderError, CMapBuilder};
 pub use components::{
@@ -16,6 +17,7 @@ pub use dim2::{
     orbits::{Orbit2, OrbitPolicy},
     structure::CMap2,
 };
+pub use error::{CMapError, CMapResult};
 
 #[cfg(feature = "utils")]
 pub use builder::GridDescriptor;
