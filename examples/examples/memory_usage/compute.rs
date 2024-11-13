@@ -6,15 +6,15 @@ pub fn main() {
     // darts making up the central square
     let (d1, d2, d3, d4): (DartIdType, DartIdType, DartIdType, DartIdType) = (17, 18, 19, 20);
     // separate the square from the rest
-    cmap.two_unsew(d1);
-    cmap.two_unsew(d2);
-    cmap.two_unsew(d3);
-    cmap.two_unsew(d4);
+    cmap.force_two_unsew(d1);
+    cmap.force_two_unsew(d2);
+    cmap.force_two_unsew(d3);
+    cmap.force_two_unsew(d4);
     // separate dart individually
-    cmap.one_unsew(d1);
-    cmap.one_unsew(d2);
-    cmap.one_unsew(d3);
-    cmap.one_unsew(d4);
+    cmap.force_one_unsew(d1);
+    cmap.force_one_unsew(d2);
+    cmap.force_one_unsew(d3);
+    cmap.force_one_unsew(d4);
     // remove darts
     cmap.remove_free_dart(d1);
     cmap.remove_free_dart(d2);
