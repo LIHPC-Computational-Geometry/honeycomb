@@ -27,6 +27,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// After the sewing operation, these darts will verify
     /// *β<sub>2</sub>(`lhs_dart`) = `rhs_dart`* and *β<sub>2</sub>(`rhs_dart`) = `lhs_dart`*.
     ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
+    /// The policy in case of failure can be defined through the transaction, using
+    /// `Transaction::with_control` for construction.
+    ///
     /// # Panics
     ///
     /// The method may panic if:
@@ -180,9 +188,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Attempt to 2-sew two darts.
     ///
+    /// # Errors
+    ///
     /// This method will fail, returning an error, if:
     /// - the transaction cannot be completed
     /// - one (or more) attribute merge fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub fn try_two_sew(
         &self,
@@ -341,6 +355,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Note that we do not need to take two darts as arguments since the second dart can be
     /// obtained through the *β<sub>2</sub>* function.
     ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
+    /// The policy in case of failure can be defined through the transaction, using
+    /// `Transaction::with_control` for construction.
+    ///
     /// # Panics
     ///
     /// The method may panic if there's a missing attribute at the splitting step. While the
@@ -470,9 +492,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Attempt to 2-unsew two darts.
     ///
+    /// # Errors
+    ///
     /// This method will fail, returning an error, if:
     /// - the transaction cannot be completed
-    /// - one (or more) attribute split fails
+    /// - one (or more) attribute merge fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_two_unsew(
         &self,
         trans: &mut Transaction,

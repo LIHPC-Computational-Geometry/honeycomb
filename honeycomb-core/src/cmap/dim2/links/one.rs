@@ -20,6 +20,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
     /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
     ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
     /// # Panics
     ///
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
@@ -53,6 +58,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     ///
     /// # Panics
     ///

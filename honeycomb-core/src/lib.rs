@@ -37,5 +37,7 @@ pub mod cmap;
 
 pub mod geometry;
 
+pub use stm; // re-export since we use their items in the API
+
 /// commonly used items
 pub mod prelude;
