@@ -1,9 +1,8 @@
 //! 1D sew implementations
 
-use stm::{StmError, Transaction};
+use stm::{atomically, StmError, Transaction};
 
 use crate::{
-    attributes::UnknownAttributeStorage,
     cmap::{CMap2, DartIdType, NULL_DART_ID},
     prelude::CoordsFloat,
 };
@@ -61,33 +60,18 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// 1-sew two darts.
+    ///
+    /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        // this operation only makes sense if lhs_dart is associated to a fully defined edge, i.e.
-        // its image through beta2 is defined & has a valid associated vertex (we assume the second
-        // condition is valid if the first one is)
-        // if that is not the case, the sewing operation becomes a linking operation
-        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id == NULL_DART_ID {
-            self.force_one_link(lhs_dart_id, rhs_dart_id);
-        } else {
-            // fetch vertices ID before topology update
-            let b2lhs_vid_old = self.vertex_id(b2lhs_dart_id);
-            let rhs_vid_old = self.vertex_id(rhs_dart_id);
-            // update the topology
-            self.force_one_link(lhs_dart_id, rhs_dart_id);
-            // merge vertices & attributes from the old IDs to the new one
-            // FIXME: VertexIdentifier should be cast to DartIdentifier
-            self.vertices
-                .merge(self.vertex_id(rhs_dart_id), b2lhs_vid_old, rhs_vid_old);
-            self.attributes.merge_vertex_attributes(
-                self.vertex_id(rhs_dart_id),
-                b2lhs_vid_old,
-                rhs_vid_old,
-            );
-        }
+        atomically(|trans| self.one_sew(trans, lhs_dart_id, rhs_dart_id));
     }
 
-    /// Atomically 1-sew two darts.
+    /// Attempt to 1-sew two darts.
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - one (or more) attribute merge fails
     pub fn try_one_sew(
         &self,
         trans: &mut Transaction,
@@ -170,32 +154,18 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// 1-unsew two darts.
+    ///
+    /// This variant is equivalent to `one_unsew`, but internally uses a transaction that will
+    /// be retried until validated.
     pub fn force_one_unsew(&self, lhs_dart_id: DartIdType) {
-        let b2lhs_dart_id = self.beta::<2>(lhs_dart_id);
-        if b2lhs_dart_id == NULL_DART_ID {
-            self.force_one_unlink(lhs_dart_id);
-        } else {
-            // fetch IDs before topology update
-            let rhs_dart_id = self.beta::<1>(lhs_dart_id);
-            let vid_old = self.vertex_id(rhs_dart_id);
-            // update the topology
-            self.force_one_unlink(lhs_dart_id);
-            // split vertices & attributes from the old ID to the new ones
-            // FIXME: VertexIdentifier should be cast to DartIdentifier
-            self.vertices.split(
-                self.vertex_id(b2lhs_dart_id),
-                self.vertex_id(rhs_dart_id),
-                vid_old,
-            );
-            self.attributes.split_vertex_attributes(
-                self.vertex_id(b2lhs_dart_id),
-                self.vertex_id(rhs_dart_id),
-                vid_old,
-            );
-        }
+        atomically(|trans| self.one_unsew(trans, lhs_dart_id));
     }
 
-    /// Atomically 1-unsew two darts.
+    /// Attempt to 1-unsew two darts.
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - one (or more) attribute split fails
     pub fn try_one_unsew(
         &self,
         trans: &mut Transaction,
