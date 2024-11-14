@@ -139,46 +139,55 @@ fn temperature_map() {
     map.two_link(3, 4);
     map.two_link(5, 6);
     map.one_link(1, 3);
-    map.insert_vertex(1, (0.0, 0.0));
-    map.insert_vertex(2, (1.0, 0.0));
-    map.insert_vertex(4, (1.5, 0.0));
-    map.insert_vertex(5, (2.5, 0.0));
-    map.insert_vertex(6, (3.0, 0.0));
-    map.set_attribute::<Temperature>(1, Temperature::from(273.));
-    map.set_attribute::<Temperature>(2, Temperature::from(275.));
-    map.set_attribute::<Temperature>(4, Temperature::from(277.));
-    map.set_attribute::<Temperature>(5, Temperature::from(273.));
-    map.set_attribute::<Temperature>(6, Temperature::from(273.));
+    map.force_write_vertex(1, (0.0, 0.0));
+    map.force_write_vertex(2, (1.0, 0.0));
+    map.force_write_vertex(4, (1.5, 0.0));
+    map.force_write_vertex(5, (2.5, 0.0));
+    map.force_write_vertex(6, (3.0, 0.0));
+    map.force_write_attribute::<Temperature>(1, Temperature::from(273.));
+    map.force_write_attribute::<Temperature>(2, Temperature::from(275.));
+    map.force_write_attribute::<Temperature>(4, Temperature::from(277.));
+    map.force_write_attribute::<Temperature>(5, Temperature::from(273.));
+    map.force_write_attribute::<Temperature>(6, Temperature::from(273.));
     // test the map
     assert_eq!(
-        map.get_attribute::<Temperature>(map.vertex_id(4)),
+        map.force_read_attribute::<Temperature>(map.vertex_id(4)),
         Some(Temperature::from(277.))
     );
     assert_eq!(
-        map.get_attribute::<Temperature>(map.vertex_id(5)),
+        map.force_read_attribute::<Temperature>(map.vertex_id(5)),
         Some(Temperature::from(273.))
     );
     // sew one segment
     map.one_sew(3, 5);
     assert_eq!(map.vertex_id(4), map.vertex_id(5));
     assert_eq!(
-        map.get_attribute::<Temperature>(map.vertex_id(4)),
+        map.force_read_attribute::<Temperature>(map.vertex_id(4)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(4)), Some(Vertex2::from((2., 0.))));
+    assert_eq!(
+        map.force_read_vertex(map.vertex_id(4)),
+        Some(Vertex2::from((2., 0.)))
+    );
     // unsew another
     map.one_unsew(1);
     assert_ne!(map.vertex_id(2), map.vertex_id(3));
     assert_eq!(
-        map.get_attribute::<Temperature>(map.vertex_id(2)),
+        map.force_read_attribute::<Temperature>(map.vertex_id(2)),
         Some(Temperature::from(275.))
     );
     assert_eq!(
-        map.get_attribute::<Temperature>(map.vertex_id(3)),
+        map.force_read_attribute::<Temperature>(map.vertex_id(3)),
         Some(Temperature::from(275.))
     );
-    assert_eq!(map.vertex(map.vertex_id(2)), Some(Vertex2::from((1., 0.))));
-    assert_eq!(map.vertex(map.vertex_id(3)), Some(Vertex2::from((1., 0.))));
+    assert_eq!(
+        map.force_read_vertex(map.vertex_id(2)),
+        Some(Vertex2::from((1., 0.)))
+    );
+    assert_eq!(
+        map.force_read_vertex(map.vertex_id(3)),
+        Some(Vertex2::from((1., 0.)))
+    );
 }
 
 #[test]
