@@ -45,6 +45,9 @@ dyn-clone = "1.0.17"
 num-traits = "0.2.19"
 vtkio = { version = "0.7.0-rc1", default-features = false }
 
+# kernel
+enum_dispatch = "0.3.13"
+
 # benchmarks
 criterion = "0.5.1"
 iai-callgrind = "0.14.0"

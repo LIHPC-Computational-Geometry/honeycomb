@@ -13,6 +13,7 @@ authors.workspace = true
 publish = true
 
 [dependencies]
+enum_dispatch.workspace = true
 honeycomb-core = { workspace = true, features = ["io", "utils"] }
 num-traits.workspace = true
 thiserror.workspace = true
