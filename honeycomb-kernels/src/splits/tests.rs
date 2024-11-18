@@ -19,13 +19,13 @@ mod standard {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.one_link(1, 2);
-        map.one_link(2, 3);
-        map.one_link(4, 5);
-        map.one_link(5, 6);
-        map.two_link(1, 6);
-        map.two_link(2, 5);
-        map.two_link(3, 4);
+        map.force_one_link(1, 2);
+        map.force_one_link(2, 3);
+        map.force_one_link(4, 5);
+        map.force_one_link(5, 6);
+        map.force_two_link(1, 6);
+        map.force_two_link(2, 5);
+        map.force_two_link(3, 4);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         map.insert_vertex(3, (2.0, 0.0));
@@ -61,7 +61,7 @@ mod standard {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -89,7 +89,7 @@ mod standard {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.one_link(1, 2);
+        map.force_one_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -108,7 +108,7 @@ mod standard {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
@@ -124,13 +124,13 @@ mod standard {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.one_link(1, 2);
-        map.one_link(2, 3);
-        map.one_link(4, 5);
-        map.one_link(5, 6);
-        map.two_link(1, 6);
-        map.two_link(2, 5);
-        map.two_link(3, 4);
+        map.force_one_link(1, 2);
+        map.force_one_link(2, 3);
+        map.force_one_link(4, 5);
+        map.force_one_link(5, 6);
+        map.force_two_link(1, 6);
+        map.force_two_link(2, 5);
+        map.force_two_link(3, 4);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         map.insert_vertex(3, (2.0, 0.0));
@@ -174,7 +174,7 @@ mod standard {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -211,7 +211,7 @@ mod standard {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.one_link(1, 2);
+        map.force_one_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -245,7 +245,7 @@ mod standard {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
@@ -264,13 +264,13 @@ mod noalloc {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.one_link(1, 2);
-        map.one_link(2, 3);
-        map.one_link(4, 5);
-        map.one_link(5, 6);
-        map.two_link(1, 6);
-        map.two_link(2, 5);
-        map.two_link(3, 4);
+        map.force_one_link(1, 2);
+        map.force_one_link(2, 3);
+        map.force_one_link(4, 5);
+        map.force_one_link(5, 6);
+        map.force_two_link(1, 6);
+        map.force_two_link(2, 5);
+        map.force_two_link(3, 4);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         map.insert_vertex(3, (2.0, 0.0));
@@ -307,7 +307,7 @@ mod noalloc {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -336,7 +336,7 @@ mod noalloc {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.one_link(1, 2);
+        map.force_one_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -356,7 +356,7 @@ mod noalloc {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split
@@ -374,13 +374,13 @@ mod noalloc {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.one_link(1, 2);
-        map.one_link(2, 3);
-        map.one_link(4, 5);
-        map.one_link(5, 6);
-        map.two_link(1, 6);
-        map.two_link(2, 5);
-        map.two_link(3, 4);
+        map.force_one_link(1, 2);
+        map.force_one_link(2, 3);
+        map.force_one_link(4, 5);
+        map.force_one_link(5, 6);
+        map.force_two_link(1, 6);
+        map.force_two_link(2, 5);
+        map.force_two_link(3, 4);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         map.insert_vertex(3, (2.0, 0.0));
@@ -421,7 +421,7 @@ mod noalloc {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -458,7 +458,7 @@ mod noalloc {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.one_link(1, 2);
+        map.force_one_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         map.insert_vertex(2, (1.0, 0.0));
         // split
@@ -501,7 +501,7 @@ mod noalloc {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.two_link(1, 2);
+        map.force_two_link(1, 2);
         map.insert_vertex(1, (0.0, 0.0));
         // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
         // split

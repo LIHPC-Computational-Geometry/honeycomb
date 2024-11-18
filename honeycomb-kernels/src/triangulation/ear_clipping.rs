@@ -115,13 +115,13 @@ pub fn process_cell<T: CoordsFloat>(
         ndart_id += 2;
         // FIXME: using link methods only works if new identifiers are greater than all existing
         // FIXME: using sew methods in parallel could crash bc of the panic when no vertex defined
-        cmap.one_unlink(b0_d_ear1);
-        cmap.one_unlink(d_ear2);
-        cmap.one_link(d_ear2, nd1);
-        cmap.one_link(nd1, d_ear1);
-        cmap.one_link(b0_d_ear1, nd2);
-        cmap.one_link(nd2, b1_d_ear2);
-        cmap.two_link(nd1, nd2);
+        cmap.force_one_unlink(b0_d_ear1);
+        cmap.force_one_unlink(d_ear2);
+        cmap.force_one_link(d_ear2, nd1);
+        cmap.force_one_link(nd1, d_ear1);
+        cmap.force_one_link(b0_d_ear1, nd2);
+        cmap.force_one_link(nd2, b1_d_ear2);
+        cmap.force_two_link(nd1, nd2);
 
         // edit existing vectors
         darts.remove((ear + 1) % n);

@@ -9,8 +9,9 @@
 
 pub mod basic_ops;
 pub mod embed;
-pub mod link_and_sew;
+pub mod links;
 pub mod orbits;
+pub mod sews;
 pub mod structure;
 
 #[cfg(feature = "io")]
