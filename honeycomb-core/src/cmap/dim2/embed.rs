@@ -24,6 +24,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.n_attributes()
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Read vertex associated to a given identifier.
     ///
     /// # Arguments
@@ -54,6 +55,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.read(trans, vertex_id)
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Write a vertex to a given identifier, and return its old value.
     ///
     /// This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
@@ -90,7 +92,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.write(trans, vertex_id, vertex.into())
     }
 
-    #[allow(clippy::must_use_candidate)]
+    #[allow(clippy::missing_errors_doc)]
     /// Remove vertex associated to a given identifier and return it.
     ///
     /// # Arguments
@@ -141,6 +143,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.force_write(vertex_id, vertex.into())
     }
 
+    #[allow(clippy::must_use_candidate)]
     /// Remove vertex associated to a given identifier and return it.
     ///
     /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will be
@@ -152,6 +155,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 /// **Generic attribute-related methods**
 impl<T: CoordsFloat> CMap2<T> {
+    #[allow(clippy::missing_errors_doc)]
     /// Read a given attribute's value associated to a given identifier.
     ///
     /// # Arguments
@@ -185,6 +189,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.read_attribute::<A>(trans, id)
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Write a given attribute's value to a given identifier, and return its old value.
     ///
     /// # Arguments
@@ -220,6 +225,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.write_attribute::<A>(trans, id, val)
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Remove a given attribute's value from the storage and return it.
     ///
     /// # Arguments
@@ -272,8 +278,8 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         id: A::IdentifierType,
         val: A,
-    ) {
-        self.attributes.force_write_attribute::<A>(id, val);
+    ) -> Option<A> {
+        self.attributes.force_write_attribute::<A>(id, val)
     }
 
     /// Remove a given attribute's value from the storage and return it.

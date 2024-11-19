@@ -310,6 +310,7 @@ impl AttrStorageManager {
 
     // attribute-agnostic regular
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -343,6 +344,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
     ///
     /// # Arguments
@@ -369,6 +371,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with edges for specified cells.
     ///
     /// # Arguments
@@ -395,6 +398,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with faces for specified cells.
     ///
     /// # Arguments
@@ -552,6 +556,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Merge given attribute values.
     ///
     /// # Arguments
@@ -633,7 +638,7 @@ impl AttrStorageManager {
     ) {
         match orbit_policy {
             OrbitPolicy::Vertex => {
-                self.force_split_vertex_attributes(id_out_lhs, id_out_rhs, id_in)
+                self.force_split_vertex_attributes(id_out_lhs, id_out_rhs, id_in);
             }
             OrbitPolicy::Edge => self.force_split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
             OrbitPolicy::Face => self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in),
@@ -691,6 +696,7 @@ impl AttrStorageManager {
 
     // attribute-agnostic regular
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -724,6 +730,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with vertices
     /// for specified cells.
     ///
@@ -751,6 +758,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with edges for specified cells.
     ///
     /// # Arguments
@@ -777,6 +785,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with faces for specified cells.
     ///
     /// # Arguments
@@ -934,6 +943,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Split given attribute value.
     ///
     /// # Arguments
@@ -1001,6 +1011,7 @@ impl AttrStorageManager {
 impl AttrStorageManager {
     // regular
 
+    #[allow(clippy::missing_errors_doc)]
     /// Get the value of an attribute.
     ///
     /// # Arguments
@@ -1040,6 +1051,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Set the value of an attribute, and return the old one.
     ///
     /// # Arguments
@@ -1081,6 +1093,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Remove the an item from an attribute storage, and return it.
     ///
     /// # Arguments
