@@ -31,7 +31,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 
             // edit geometry
             let vertex_id = map.vertex_id(d1); // bottom left
-            map.insert_vertex(
+            map.force_write_vertex(
                 vertex_id,
                 origin
                     + Vector2(
@@ -53,7 +53,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -62,7 +62,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d4); // top left
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -84,7 +84,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -93,7 +93,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d2); // bottom right
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -112,7 +112,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 
         // edit geometry
         let vertex_id = map.vertex_id(d1); // bottom left
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -121,7 +121,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d2); // bottom right
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -130,7 +130,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d4); // top left
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -139,7 +139,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d3); // top right
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -225,7 +225,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
 
             // edit geometry
             let vertex_id = map.vertex_id(d1);
-            map.insert_vertex(
+            map.force_write_vertex(
                 vertex_id,
                 origin
                     + Vector2(
@@ -247,7 +247,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
 
         // edit geometry
         let vertex_id = map.vertex_id(d1);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -256,7 +256,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d3);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -278,7 +278,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
 
         // edit geometry
         let vertex_id = map.vertex_id(d1);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -287,7 +287,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d5);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -305,7 +305,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
         let [d1, _, d3, _, d5, d6] = build_tris_core(&map, n_square_x, [x_idx, y_idx]);
 
         let vertex_id = map.vertex_id(d1);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -314,7 +314,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d3);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -323,7 +323,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d5);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -332,7 +332,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
                 ),
         );
         let vertex_id = map.vertex_id(d6);
-        map.insert_vertex(
+        map.force_write_vertex(
             vertex_id,
             origin
                 + Vector2(

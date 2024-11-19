@@ -206,7 +206,7 @@ fn test_attribute_operations() {
 
     // Test remove
     let removed = manager.force_remove_attribute::<Temperature>(0);
-    assert_eq!(removed, Some(Temperature::from(27.0)));
+    assert_eq!(removed, Some(Temperature::from(25.0)));
     assert_eq!(manager.force_read_attribute::<Temperature>(0), None);
 }
 

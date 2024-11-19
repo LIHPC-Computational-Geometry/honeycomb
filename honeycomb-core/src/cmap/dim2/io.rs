@@ -93,7 +93,7 @@ where
     let vertices = vertex_ids
         .iter()
         .map(|vid| {
-            map.vertex(*vid)
+            map.force_read_vertex(*vid)
                 .expect("E: found a topological vertex with no associated coordinates")
         })
         .flat_map(|v| [v.x(), v.y(), T::zero()].into_iter());

@@ -113,9 +113,9 @@ fn remove_vertex_twice() {
     // in its default state, all darts/vertices of a map are considered to be used
     let mut map: CMap2<f64> = CMap2::new(4);
     // set vertex 1 as unused
-    map.remove_vertex(1).unwrap();
+    map.force_remove_vertex(1).unwrap();
     // set vertex 1 as unused, again
-    map.remove_vertex(1).unwrap(); // this should panic
+    map.force_remove_vertex(1).unwrap(); // this should panic
 }
 
 #[test]

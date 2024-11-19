@@ -205,9 +205,18 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the triangle
                                         let d0 = cmap.add_free_darts(3);
                                         let (d1, d2) = (d0 + 1, d0 + 2);
-                                        cmap.insert_vertex(d0 as VertexIdType, vertices[vids[0]]);
-                                        cmap.insert_vertex(d1 as VertexIdType, vertices[vids[1]]);
-                                        cmap.insert_vertex(d2 as VertexIdType, vertices[vids[2]]);
+                                        cmap.force_write_vertex(
+                                            d0 as VertexIdType,
+                                            vertices[vids[0]],
+                                        );
+                                        cmap.force_write_vertex(
+                                            d1 as VertexIdType,
+                                            vertices[vids[1]],
+                                        );
+                                        cmap.force_write_vertex(
+                                            d2 as VertexIdType,
+                                            vertices[vids[2]],
+                                        );
                                         cmap.force_one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
@@ -229,7 +238,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             let di = d0 + i as DartIdType;
                                             let dip1 =
                                                 if i == n_vertices - 1 { d0 } else { di + 1 };
-                                            cmap.insert_vertex(
+                                            cmap.force_write_vertex(
                                                 di as VertexIdType,
                                                 vertices[vids[i]],
                                             );
@@ -252,10 +261,22 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the quad
                                         let d0 = cmap.add_free_darts(4);
                                         let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
-                                        cmap.insert_vertex(d0 as VertexIdType, vertices[vids[0]]);
-                                        cmap.insert_vertex(d1 as VertexIdType, vertices[vids[1]]);
-                                        cmap.insert_vertex(d2 as VertexIdType, vertices[vids[2]]);
-                                        cmap.insert_vertex(d3 as VertexIdType, vertices[vids[3]]);
+                                        cmap.force_write_vertex(
+                                            d0 as VertexIdType,
+                                            vertices[vids[0]],
+                                        );
+                                        cmap.force_write_vertex(
+                                            d1 as VertexIdType,
+                                            vertices[vids[1]],
+                                        );
+                                        cmap.force_write_vertex(
+                                            d2 as VertexIdType,
+                                            vertices[vids[2]],
+                                        );
+                                        cmap.force_write_vertex(
+                                            d3 as VertexIdType,
+                                            vertices[vids[3]],
+                                        );
                                         cmap.force_one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
