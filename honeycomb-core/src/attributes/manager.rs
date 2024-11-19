@@ -243,6 +243,11 @@ impl AttrStorageManager {
 impl AttrStorageManager {
     // attribute-agnostic force
 
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// This variant is equivalent to `merge_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_merge_attributes(
         &self,
         orbit_policy: &OrbitPolicy,
@@ -258,6 +263,10 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a merging operation on all attributes associated with vertices for specified cells.
+    ///
+    /// This variant is equivalent to `merge_vertex_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_merge_vertex_attributes(
         &self,
         id_out: DartIdType,
@@ -269,6 +278,10 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a merging operation on all attributes associated with edges for specified cells.
+    ///
+    /// This variant is equivalent to `merge_edge_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_merge_edge_attributes(
         &self,
         id_out: DartIdType,
@@ -280,6 +293,10 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a merging operation on all attributes associated with faces for specified cells.
+    ///
+    /// This variant is equivalent to `merge_face_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_merge_face_attributes(
         &self,
         id_out: DartIdType,
@@ -298,10 +315,16 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn merge_attributes(
         &self,
         trans: &mut Transaction,
@@ -324,9 +347,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn merge_vertex_attributes(
         &self,
         trans: &mut Transaction,
@@ -344,9 +373,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn merge_edge_attributes(
         &self,
         trans: &mut Transaction,
@@ -364,9 +399,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn merge_face_attributes(
         &self,
         trans: &mut Transaction,
@@ -382,6 +423,18 @@ impl AttrStorageManager {
 
     // attribute-agnostic try
 
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_merge_attributes(
         &self,
         trans: &mut Transaction,
@@ -404,6 +457,17 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a merging operation on all attributes associated with vertices for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_merge_vertex_attributes(
         &self,
         trans: &mut Transaction,
@@ -417,6 +481,17 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Execute a merging operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_merge_edge_attributes(
         &self,
         trans: &mut Transaction,
@@ -430,6 +505,17 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Execute a merging operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_merge_face_attributes(
         &self,
         trans: &mut Transaction,
@@ -445,6 +531,10 @@ impl AttrStorageManager {
 
     // attribute-specific
 
+    /// Merge given attribute values.
+    ///
+    /// This variant is equivalent to `merge_attribute`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_merge_attribute<A: AttributeBind>(
         &self,
         id_out: DartIdType,
@@ -466,9 +556,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -488,6 +584,17 @@ impl AttrStorageManager {
         }
     }
 
+    /// Merge given attribute values.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -512,6 +619,11 @@ impl AttrStorageManager {
 impl AttrStorageManager {
     // attribute-agnostic force
 
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// This variant is equivalent to `split_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_split_attributes(
         &self,
         orbit_policy: &OrbitPolicy,
@@ -529,6 +641,11 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a splitting operation on all attributes associated with vertices
+    /// for specified cells.
+    ///
+    /// This variant is equivalent to `split_vertex_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_split_vertex_attributes(
         &self,
         id_out_lhs: DartIdType,
@@ -540,6 +657,11 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a splitting operation on all attributes associated with edges
+    /// for specified cells.
+    ///
+    /// This variant is equivalent to `split_edge_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_split_edge_attributes(
         &self,
         id_out_lhs: DartIdType,
@@ -551,6 +673,11 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a splitting operation on all attributes associated with faces
+    /// for specified cells.
+    ///
+    /// This variant is equivalent to `split_face_attributes`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_split_face_attributes(
         &self,
         id_out_lhs: DartIdType,
@@ -569,10 +696,16 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn split_attributes(
         &self,
         trans: &mut Transaction,
@@ -596,10 +729,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn split_vertex_attributes(
         &self,
         trans: &mut Transaction,
@@ -617,10 +755,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn split_edge_attributes(
         &self,
         trans: &mut Transaction,
@@ -638,10 +781,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn split_face_attributes(
         &self,
         trans: &mut Transaction,
@@ -657,6 +805,18 @@ impl AttrStorageManager {
 
     // attribute-agnostic try
 
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_split_attributes(
         &self,
         trans: &mut Transaction,
@@ -679,6 +839,17 @@ impl AttrStorageManager {
         }
     }
 
+    /// Execute a splitting operation on all attributes associated with vertices for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_split_vertex_attributes(
         &self,
         trans: &mut Transaction,
@@ -692,6 +863,17 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Execute a splitting operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_split_edge_attributes(
         &self,
         trans: &mut Transaction,
@@ -705,6 +887,17 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Execute a splitting operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_split_face_attributes(
         &self,
         trans: &mut Transaction,
@@ -720,6 +913,10 @@ impl AttrStorageManager {
 
     // attribute-specific
 
+    /// Split given attribute value.
+    ///
+    /// This variant is equivalent to `split_attribute`, but internally uses a transaction
+    /// that will be retried until validated.
     pub fn force_split_attribute<A: AttributeBind>(
         &self,
         id_out_lhs: DartIdType,
@@ -741,9 +938,15 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -763,6 +966,17 @@ impl AttrStorageManager {
         }
     }
 
+    /// Split given attribute value.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn try_split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -785,24 +999,48 @@ impl AttrStorageManager {
 
 /// **Attribute read & write methods**
 impl AttrStorageManager {
-    pub fn force_write_attribute<A: AttributeBind>(
+    // regular
+
+    /// Get the value of an attribute.
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute fetched.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
+    pub fn read_attribute<A: AttributeBind>(
         &self,
+        trans: &mut Transaction,
         id: A::IdentifierType,
-        val: A,
-    ) -> Option<A> {
+    ) -> StmResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.force_write(id, val)
+            st.read(trans, id)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
-            None
+            Ok(None)
         }
     }
 
-    /// Set the value of an attribute.
+    /// Set the value of an attribute, and return the old one.
     ///
     /// # Arguments
     ///
@@ -813,11 +1051,11 @@ impl AttrStorageManager {
     ///
     /// - `A: AttributeBind` -- Type of the attribute being set.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// The method should return:
-    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there was not.
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
     /// # Panics
     ///
@@ -843,20 +1081,7 @@ impl AttrStorageManager {
         }
     }
 
-    pub fn force_read_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_read(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Get the value of an attribute.
+    /// Remove the an item from an attribute storage, and return it.
     ///
     /// # Arguments
     ///
@@ -866,63 +1091,11 @@ impl AttrStorageManager {
     ///
     /// - `A: AttributeBind` -- Type of the attribute fetched.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// The method may return:
-    /// - `Some(val: A)` if there is an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// # Panics
-    ///
-    /// This method may panic if:
-    /// - there's no storage associated with the specified attribute
-    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
-    /// - the index lands out of bounds
-    pub fn read_attribute<A: AttributeBind>(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-    ) -> StmResult<Option<A>> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.read(trans, id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(None)
-        }
-    }
-
-    pub fn force_remove_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_remove(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Remove the an item from an attribute storage.
-    ///
-    /// # Arguments
-    ///
-    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
-    ///
-    /// # Generic
-    ///
-    /// - `A: AttributeBind` -- Type of the attribute fetched.
-    ///
-    /// # Return
-    ///
-    /// The method may return:
-    /// - `Some(val: A)` if was is an attribute associated with the specified index,
-    /// - `None` if there was not.
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
     /// # Panics
     ///
@@ -944,6 +1117,61 @@ impl AttrStorageManager {
                 std::any::type_name::<A>()
             );
             Ok(None)
+        }
+    }
+
+    /// Get the value of an attribute.
+    ///
+    /// This variant is equivalent to `read_attribute`, but internally uses a transaction
+    /// that will be retried until validated.
+    pub fn force_read_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.force_read(id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
+    }
+
+    /// Set the value of an attribute, and return the old one.
+    ///
+    /// This variant is equivalent to `write_attribute`, but internally uses a transaction
+    /// that will be retried until validated.
+    pub fn force_write_attribute<A: AttributeBind>(
+        &self,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.force_write(id, val)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
+    }
+
+    /// Remove the an item from an attribute storage, and return it.
+    ///
+    /// This variant is equivalent to `remove_attribute`, but internally uses a transaction
+    /// that will be retried until validated.
+    pub fn force_remove_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.force_remove(id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
         }
     }
 }

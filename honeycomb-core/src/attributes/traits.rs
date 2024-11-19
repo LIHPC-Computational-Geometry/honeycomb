@@ -208,7 +208,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes.set(out, new_val);
     /// ```
     ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
@@ -238,10 +238,10 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[rhs_out] = val_rhs;
     /// ```
     ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
+    /// validate the transaction passed as argument. The result should not be processed manually.
     fn split(
         &self,
         trans: &mut Transaction,
@@ -360,7 +360,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - `index: A::IdentifierType` -- Cell index.
     /// - `val: A` -- Attribute value.
     ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. The result should not be processed manually,

@@ -24,13 +24,17 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.n_attributes()
     }
 
-    /// Fetch vertex value associated to a given identifier.
+    /// Read vertex associated to a given identifier.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
-    /// # Return
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
     /// This method return a `Option` taking the following values:
     /// - `Some(v: Vertex2)` if there is a vertex associated to this ID.
@@ -50,7 +54,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.read(trans, vertex_id)
     }
 
-    /// Insert a vertex in the combinatorial map.
+    /// Write a vertex to a given identifier, and return its old value.
     ///
     /// This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
     /// implicitly exist through topology, but their spatial representation is not automatically
@@ -60,6 +64,16 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `vertex_id: VertexIdentifier` -- Vertex identifier to attribute a value to.
     /// - `vertex: impl Into<Vertex2>` -- Value used to create a [Vertex2] value.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
     ///
     /// # Panics
     ///
@@ -77,15 +91,19 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     #[allow(clippy::must_use_candidate)]
-    /// Remove a vertex from the combinatorial map.
+    /// Remove vertex associated to a given identifier and return it.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// This method return a `Option` taking the following values:
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
     /// - `Some(v: Vertex2)` -- The vertex was successfully removed & its value was returned
     /// - `None` -- The vertex was not found in the internal storage
     ///
@@ -103,10 +121,18 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     #[must_use = "returned value is not used, consider removing this method call"]
+    /// Read vertex associated to a given identifier.
+    ///
+    /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         self.vertices.force_read(vertex_id)
     }
 
+    /// Write a vertex to a given identifier, and return its old value.
+    ///
+    /// This variant is equivalent to `write_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_write_vertex(
         &self,
         vertex_id: VertexIdType,
@@ -115,6 +141,10 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.force_write(vertex_id, vertex.into())
     }
 
+    /// Remove vertex associated to a given identifier and return it.
+    ///
+    /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         self.vertices.force_remove(vertex_id)
     }
@@ -122,7 +152,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
 /// **Generic attribute-related methods**
 impl<T: CoordsFloat> CMap2<T> {
-    /// Getter
+    /// Read a given attribute's value associated to a given identifier.
     ///
     /// # Arguments
     ///
@@ -130,13 +160,17 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to read.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// The method should return:
-    /// - `Some(val: A)` if there is an attribute associated with the specified index,
-    /// - `None` if there is not.
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
     ///
     /// # Panics
     ///
@@ -151,10 +185,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.read_attribute::<A>(trans, id)
     }
 
-    /// Setter
-    ///
-    /// Set the value of an attribute for a given index. This operation is not affected by
-    /// the initial state of the edited entry.
+    /// Write a given attribute's value to a given identifier, and return its old value.
     ///
     /// # Arguments
     ///
@@ -163,7 +194,17 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to edit.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
     ///
     /// # Panics
     ///
@@ -179,7 +220,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.write_attribute::<A>(trans, id, val)
     }
 
-    /// Remove an attribute value from the storage and return it
+    /// Remove a given attribute's value from the storage and return it.
     ///
     /// # Arguments
     ///
@@ -187,13 +228,17 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to edit.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// The method should return:
-    /// - `Some(val: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(val: A)` -- The vertex was successfully removed & its value was returned
+    /// - `None` -- The vertex was not found in the internal storage
     ///
     /// # Panics
     ///
@@ -208,6 +253,10 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.remove_attribute::<A>(trans, id)
     }
 
+    /// Read a given attribute's value associated to a given identifier.
+    ///
+    /// This variant is equivalent to `read_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_read_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
@@ -215,6 +264,10 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.force_read_attribute::<A>(id)
     }
 
+    /// Write a given attribute's value to a given identifier, and return its old value.
+    ///
+    /// This variant is equivalent to `write_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
@@ -223,6 +276,10 @@ impl<T: CoordsFloat> CMap2<T> {
         self.attributes.force_write_attribute::<A>(id, val);
     }
 
+    /// Remove a given attribute's value from the storage and return it.
+    ///
+    /// This variant is equivalent to `remove_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
     pub fn force_remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
