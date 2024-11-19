@@ -1,6 +1,6 @@
 //! 1D sew implementations
 
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,
@@ -43,7 +43,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> StmResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
@@ -145,11 +145,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn one_unsew(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    pub fn one_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_unlink_core(trans, lhs_dart_id)?;

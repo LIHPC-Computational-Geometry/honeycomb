@@ -1,6 +1,6 @@
 //! 1D link implementations
 
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
     cmap::{CMap2, DartIdType},
@@ -33,7 +33,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> StmResult<()> {
         self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
@@ -67,11 +67,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn one_unlink(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    pub fn one_unlink(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
         self.betas.one_unlink_core(trans, lhs_dart_id)
     }
 
