@@ -157,8 +157,8 @@ fn inner_split<T: CoordsFloat>(
         let b1d1_old = cmap.beta::<1>(base_dart1);
         let b1d1_new = new_darts.0;
         let (Some(v1), Some(v2)) = (
-            cmap.vertex(cmap.vertex_id(base_dart1)),
-            cmap.vertex(cmap.vertex_id(b1d1_old)),
+            cmap.force_read_vertex(cmap.vertex_id(base_dart1)),
+            cmap.force_read_vertex(cmap.vertex_id(b1d1_old)),
         ) else {
             return Err(SplitEdgeError::UndefinedEdge);
         };
@@ -170,7 +170,7 @@ fn inner_split<T: CoordsFloat>(
         cmap.force_one_link(b1d1_new, b1d1_old);
         // insert the new vertex
         let seg = v2 - v1;
-        cmap.insert_vertex(
+        cmap.force_write_vertex(
             cmap.vertex_id(b1d1_new),
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
         );
@@ -180,8 +180,8 @@ fn inner_split<T: CoordsFloat>(
         let b1d2_old = cmap.beta::<1>(base_dart2);
         let (b1d1_new, b1d2_new) = new_darts;
         let (Some(v1), Some(v2)) = (
-            cmap.vertex(cmap.vertex_id(base_dart1)),
-            cmap.vertex(cmap.vertex_id(base_dart2)),
+            cmap.force_read_vertex(cmap.vertex_id(base_dart1)),
+            cmap.force_read_vertex(cmap.vertex_id(base_dart2)),
         ) else {
             return Err(SplitEdgeError::UndefinedEdge);
         };
@@ -204,7 +204,7 @@ fn inner_split<T: CoordsFloat>(
         cmap.force_two_link(base_dart2, b1d1_new);
         // insert the new vertex
         let seg = v2 - v1;
-        cmap.insert_vertex(
+        cmap.force_write_vertex(
             cmap.vertex_id(b1d1_new),
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
         );

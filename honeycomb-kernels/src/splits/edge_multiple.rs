@@ -206,8 +206,8 @@ fn inner_splitn<T: CoordsFloat>(
     let b1d1_old = cmap.beta::<1>(base_dart1);
 
     let (Some(v1), Some(v2)) = (
-        cmap.vertex(cmap.vertex_id(base_dart1)),
-        cmap.vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
+        cmap.force_read_vertex(cmap.vertex_id(base_dart1)),
+        cmap.force_read_vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
             b1d1_old
         } else {
             base_dart2
@@ -235,7 +235,7 @@ fn inner_splitn<T: CoordsFloat>(
             }
             let new_v = v1 + seg * t;
             cmap.force_one_link(prev_d, new_d);
-            cmap.insert_vertex(new_d, new_v);
+            cmap.force_write_vertex(new_d, new_v);
             prev_d = new_d;
         });
     cmap.force_one_link(prev_d, b1d1_old);

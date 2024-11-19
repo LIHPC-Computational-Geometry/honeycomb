@@ -117,7 +117,7 @@ fn fetch_face_vertices<T: CoordsFloat>(
 ) -> Result<Vec<Vertex2<T>>, TriangulateError> {
     let tmp = darts
         .iter()
-        .map(|dart_id| cmap.vertex(cmap.vertex_id(*dart_id)));
+        .map(|dart_id| cmap.force_read_vertex(cmap.vertex_id(*dart_id)));
     if tmp.clone().any(|v| v.is_none()) {
         Err(TriangulateError::UndefinedFace(
             "one or more undefined vertices",
