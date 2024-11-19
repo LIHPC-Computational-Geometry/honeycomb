@@ -72,7 +72,7 @@ impl Capture {
             .map(|(idx, vid)| {
                 index_map.insert(*vid, idx);
                 let v = cmap
-                    .vertex(*vid)
+                    .force_read_vertex(*vid)
                     .expect("E: found a topological vertex with no associated coordinates");
                 // sane unwraps; will crash if the coordinates cannot be converted to f32
                 Vec3::from((v.0.to_f32().unwrap(), v.1.to_f32().unwrap(), 0.0))
