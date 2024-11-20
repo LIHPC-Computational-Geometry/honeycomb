@@ -55,4 +55,4 @@ body:
     id: misc
     attributes:
       label: Other
-      description: Anything else that may or may not be useful.
+      description: Anything else that may be useful or that you want to mention.
