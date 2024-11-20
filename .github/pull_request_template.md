@@ -1,30 +1,24 @@
-Summary of the changes if needed.
+### Description
 
-## Scope
+**Associated issue**: #...
 
-- [ ] Code: if relevant, add affected target
-- [ ] Build script: if relevant, add affected target
-- [ ] Documentation
-- [ ] CI
-- [ ] Repository
-- [ ] Other: ...
+**Content description**:
+...
 
-## Type of change
+*OR*
 
-- [ ] New feature(s)
-- [ ] Fix: if relevant, add issue #...
-- [ ] Testing
-- [ ] Refactor
-- [ ] Revert
-- [ ] Chore
+**Scope**:  core / kernels / repository / ...
 
-## Other
+**Type of change**: feat / fix / doc / refactor / ...
+
+**Content description**:
+...
+
+### Additional information
 
 - [ ] Breaking change
 - [ ] New dependency
 
-## Necessary follow-up
+### Necessary follow-up
 
-- [ ] Needs documentation
-- [ ] Needs testing
-- [ ] Other: ...
+...
