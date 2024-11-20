@@ -1,0 +1,40 @@
+name: Integration
+description: Update the integration process.
+title: "[Integration]: "
+labels: ["integration"]
+assignees:
+  - imrn99
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: What is affected.
+      multiple: true
+      options:
+        - actions
+        - deploy
+        - lints
+        - tests
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: change
+    attributes:
+      label: Type of change
+      description: Nature of the update.
+      multiple: true
+      options:
+        - new feature
+        - fix
+        - refactor
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Changes / proposals
+      description: Describe required changes and/or issues.
+      placeholder: X methods are not covered by tests. There are typos in the issue forms.
