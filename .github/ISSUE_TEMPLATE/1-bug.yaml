@@ -9,7 +9,7 @@ body:
     id: scope
     attributes:
       label: Scope
-      description: Which part of the project is affected / is the source of the problem
+      description: Which part of the project is affected / is the source of the problem.
       multiple: true
       options:
         - honeycomb (front-end crate)

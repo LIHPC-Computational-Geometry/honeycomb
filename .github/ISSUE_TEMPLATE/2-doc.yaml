@@ -1,0 +1,52 @@
+name: Documentation
+description: Highlight a documentation oversight.
+title: "[Doc]: "
+labels: ["documentation"]
+assignees:
+  - imrn99
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of the project is affected / is the source of the problem.
+      multiple: true
+      options:
+        - honeycomb (front-end crate)
+        - honeycomb-core (main structures)
+        - honeycomb-kernels (algorithms)
+        - honeycomb-render (visual debugger)
+        - benchmarks
+        - examples
+        - user guide
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem have you encountered
+      multiple: true
+      options:
+        - missing
+        - incomplete or unclear
+        - other
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: >-
+        **Remember that this should be an actionnable issue. Discussions are
+        enabled to debate about what *would* be better.**
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >-
+        What items are affected, and, if relevant, what to improve. It doesn't
+        matter if items are part of the public API or not.
+      placeholder: >-
+        Structure `X` has no documentation. Method `Y`'s doc is ambiguous about
+        Z behavior.
+    validations:
+      required: true
