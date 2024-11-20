@@ -1,0 +1,75 @@
+name: Improvement
+description: Describe a new feature or refactor for the project.
+title: "[Improvement]: "
+labels: ["improvement"]
+assignees:
+  - imrn99
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: >-
+        Which part of the project is affected. Only check items directly related
+        to the improvement.
+      multiple: true
+      options:
+        - honeycomb (front-end crate)
+        - honeycomb-core (main structures)
+        - honeycomb-kernels (algorithms)
+        - honeycomb-render (visual debugger)
+        - benchmarks
+        - examples
+        - user guide
+    validations:
+      required: true
+  - type: dropdown
+    id: effects
+    attributes:
+      label: Side effects
+      description: >-
+        Will main changes require adaptations of items outside of the scope. For
+        example, updating the signature of a method defined in the `core` crate
+        might require changes in the `benches` crate if it is the object of a
+        benchmark.
+      options:
+        - "yes"
+        - "no"
+        - unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: change
+    attributes:
+      label: Type of change
+      description: Nature of the suggested improvement.
+      multiple: true
+      options:
+        - new feature
+        - refactor
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected item(s)
+      description: What items would be affected by the improvement.
+      placeholder: >-
+        List clearly (a) the affected items, (b) the scope (for each item, if
+        applicable), and (c) the purpose of the improvement. You can also add
+        details about "side effects".
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Changes / proposals
+      description: >-
+        Add details about how the improvements should be made. The goal is to
+        have something that can easily be acted upon, but it can be a first
+        proposal. Discussions are enabled for larger conversations regarding
+        problem solving.
+      placeholder: >-
+        Implement trait X for struct Y. Change internal implementation of method
+        Z to use ... .

@@ -1,0 +1,58 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+  - imrn99
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of the project is affected / is the source of the problem.
+      multiple: true
+      options:
+        - honeycomb (front-end crate)
+        - honeycomb-core (main structures)
+        - honeycomb-kernels (algorithms)
+        - honeycomb-render (visual debugger)
+        - benchmarks
+        - examples
+        - unknown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Context and expected behavior
+      description: What you were trying to do, and what you were expecting from it.
+      placeholder: >-
+        I wanted to do X, used Y expecting Z to happen. Setup details and MRE go
+        in the dedicated section below.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What went wrong.
+      placeholder: >-
+        I ended up with Z'. If the bug involves a crash, please include the full
+        message (`RUST_BACKTRACE=full`).
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Minimal reproducible example / setup
+      description: Instructions for contributors to reproduce the issue.
+      placeholder: >-
+        This can be full details about your code / setup, steps to follow, or
+        (best) an MRE.
+    validations:
+      required: true
+  - type: textarea
+    id: misc
+    attributes:
+      label: Other
+      description: Anything else that may be useful or that you want to mention.
