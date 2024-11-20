@@ -25,7 +25,7 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What problem have you encountered
+      description: What problem have you encountered.
       multiple: true
       options:
         - missing
