@@ -1,10 +1,10 @@
 //! 2D sew implementations
 
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
-    attributes::AttributeStorage,
-    cmap::{CMap2, DartIdType, NULL_DART_ID},
+    attributes::{AttributeStorage, UnknownAttributeStorage},
+    cmap::{CMap2, CMapResult, DartIdType, NULL_DART_ID},
     prelude::CoordsFloat,
 };
 
@@ -46,7 +46,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> StmResult<()> {
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
         // match (is lhs 1-free, is rhs 1-free)
@@ -65,23 +65,18 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                 // merge vertices & attributes from the old IDs to the new one
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
+                self.attributes.merge_vertex_attributes(
                     trans,
                     lhs_vid_new,
                     lhs_vid_old,
                     b1rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
-                    trans,
-                    eid_new,
-                    lhs_eid_old,
-                    rhs_eid_old,
-                )?;
+                self.attributes
+                    .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old)?;
             }
             // update vertex associated to b1lhs/rhs
             (false, true) => {
@@ -96,19 +91,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .merge(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
+                self.attributes.merge_vertex_attributes(
                     trans,
                     rhs_vid_new,
                     b1lhs_vid_old,
                     rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
-                    trans,
-                    eid_new,
-                    lhs_eid_old,
-                    rhs_eid_old,
-                )?;
+                self.attributes
+                    .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old)?;
             }
             // update both vertices making up the edge
             (false, false) => {
@@ -128,8 +119,8 @@ impl<T: CoordsFloat> CMap2<T> {
                         Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
                         Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
                     ) = (
-                        self.vertices.get_core(trans, &lhs_vid_old)?, self.vertices.get_core(trans, &b1rhs_vid_old)?,// (lhs/b1rhs)
-                        self.vertices.get_core(trans, &b1lhs_vid_old)?, self.vertices.get_core(trans, &rhs_vid_old)? // (b1lhs/rhs)
+                        self.vertices.read(trans, lhs_vid_old)?, self.vertices.read(trans, b1rhs_vid_old)?,// (lhs/b1rhs)
+                        self.vertices.read(trans, b1lhs_vid_old)?, self.vertices.read(trans, rhs_vid_old)? // (b1lhs/rhs)
                     )
                     {
                         let lhs_vector = b1l_vertex - l_vertex;
@@ -147,32 +138,27 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                 // merge vertices & attributes from the old IDs to the new one
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
+                    .merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
                 self.vertices
-                    .merge_core(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .merge(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
+                self.attributes.merge_vertex_attributes(
                     trans,
                     lhs_vid_new,
                     lhs_vid_old,
                     b1rhs_vid_old,
                 )?;
-                self.attributes.merge_vertex_attributes_transac(
+                self.attributes.merge_vertex_attributes(
                     trans,
                     rhs_vid_new,
                     b1lhs_vid_old,
                     rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
-                    trans,
-                    eid_new,
-                    lhs_eid_old,
-                    rhs_eid_old,
-                )?;
+                self.attributes
+                    .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old)?;
             }
         }
         Ok(())
@@ -203,7 +189,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> CMapResult<()> {
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
         // match (is lhs 1-free, is rhs 1-free)
@@ -222,18 +208,17 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                 // merge vertices & attributes from the old IDs to the new one
-                // TODO: these should be attempts, only succeding if splitting a value
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .try_merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
+                self.attributes.try_merge_vertex_attributes(
                     trans,
                     lhs_vid_new,
                     lhs_vid_old,
                     b1rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
+                self.attributes.try_merge_edge_attributes(
                     trans,
                     eid_new,
                     lhs_eid_old,
@@ -250,18 +235,17 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                 // merge vertices & attributes from the old IDs to the new one
-                // TODO: these should be attempts, only succeding if splitting a value
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .try_merge(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
+                self.attributes.try_merge_vertex_attributes(
                     trans,
                     rhs_vid_new,
                     b1lhs_vid_old,
                     rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
+                self.attributes.try_merge_edge_attributes(
                     trans,
                     eid_new,
                     lhs_eid_old,
@@ -283,11 +267,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 // check orientation
                 #[rustfmt::skip]
                     if let (
-                        Some(l_vertex), Some(b1r_vertex), // (lhs/b1rhs) vertices
-                        Some(b1l_vertex), Some(r_vertex), // (b1lhs/rhs) vertices
+                        Ok(Some(l_vertex)), Ok(Some(b1r_vertex)), // (lhs/b1rhs) vertices
+                        Ok(Some(b1l_vertex)), Ok(Some(r_vertex)), // (b1lhs/rhs) vertices
                     ) = (
-                        self.vertices.get(lhs_vid_old), self.vertices.get(b1rhs_vid_old),// (lhs/b1rhs)
-                        self.vertices.get(b1lhs_vid_old), self.vertices.get(rhs_vid_old) // (b1lhs/rhs)
+                        self.vertices.read(trans, lhs_vid_old), self.vertices.read(trans, b1rhs_vid_old),// (lhs/b1rhs)
+                        self.vertices.read(trans, b1lhs_vid_old), self.vertices.read(trans, rhs_vid_old) // (b1lhs/rhs)
                     )
                     {
                         let lhs_vector = b1l_vertex - l_vertex;
@@ -305,27 +289,26 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
                 // merge vertices & attributes from the old IDs to the new one
-                // TODO: these should be attempts, only succeding if splitting a value
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 self.vertices
-                    .merge_core(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
+                    .try_merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old)?;
                 self.vertices
-                    .merge_core(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes_transac(
+                    .try_merge(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old)?;
+                self.attributes.try_merge_vertex_attributes(
                     trans,
                     lhs_vid_new,
                     lhs_vid_old,
                     b1rhs_vid_old,
                 )?;
-                self.attributes.merge_vertex_attributes_transac(
+                self.attributes.try_merge_vertex_attributes(
                     trans,
                     rhs_vid_new,
                     b1lhs_vid_old,
                     rhs_vid_old,
                 )?;
-                self.attributes.merge_edge_attributes_transac(
+                self.attributes.try_merge_edge_attributes(
                     trans,
                     eid_new,
                     lhs_eid_old,
@@ -368,11 +351,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn two_unsew(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    pub fn two_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
         let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
@@ -384,13 +363,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
-                    trans,
-                    lhs_dart_id,
-                    rhs_dart_id,
-                    eid_old,
-                )?;
+                self.attributes
+                    .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old)?;
             }
             (true, false) => {
                 // fetch IDs before topology update
@@ -399,18 +373,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertex & attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
-                    trans,
-                    lhs_dart_id,
-                    rhs_dart_id,
-                    eid_old,
-                )?;
+                self.attributes
+                    .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old)?;
                 let (new_lv_lhs, new_lv_rhs) = (
                     self.vertex_id_transac(trans, lhs_dart_id)?,
                     self.vertex_id_transac(trans, b1rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.split_vertex_attributes(
                     trans,
                     new_lv_lhs,
                     new_lv_rhs,
@@ -424,18 +393,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // update the topology
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertex & attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
-                    trans,
-                    lhs_dart_id,
-                    rhs_dart_id,
-                    eid_old,
-                )?;
+                self.attributes
+                    .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old)?;
                 let (new_rv_lhs, new_rv_rhs) = (
                     self.vertex_id_transac(trans, b1lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.split_vertex_attributes(
                     trans,
                     new_rv_lhs,
                     new_rv_rhs,
@@ -451,12 +415,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertices & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
-                    trans,
-                    lhs_dart_id,
-                    rhs_dart_id,
-                    eid_old,
-                )?;
+                self.attributes
+                    .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old)?;
                 let (new_lv_lhs, new_lv_rhs) = (
                     self.vertex_id_transac(trans, lhs_dart_id)?,
                     self.vertex_id_transac(trans, b1rhs_dart_id)?,
@@ -465,13 +425,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, b1lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.split_vertex_attributes(
                     trans,
                     new_lv_lhs,
                     new_lv_rhs,
                     lhs_vid_old,
                 )?;
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.split_vertex_attributes(
                     trans,
                     new_rv_lhs,
                     new_rv_rhs,
@@ -505,7 +465,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> CMapResult<()> {
         let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
@@ -518,7 +478,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
+                self.attributes.try_split_edge_attributes(
                     trans,
                     lhs_dart_id,
                     rhs_dart_id,
@@ -533,7 +493,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertex & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
+                self.attributes.try_split_edge_attributes(
                     trans,
                     lhs_dart_id,
                     rhs_dart_id,
@@ -543,7 +503,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, lhs_dart_id)?,
                     self.vertex_id_transac(trans, b1rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.try_split_vertex_attributes(
                     trans,
                     new_lv_lhs,
                     new_lv_rhs,
@@ -558,7 +518,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertex & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
+                self.attributes.try_split_edge_attributes(
                     trans,
                     lhs_dart_id,
                     rhs_dart_id,
@@ -568,7 +528,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, b1lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.try_split_vertex_attributes(
                     trans,
                     new_rv_lhs,
                     new_rv_rhs,
@@ -584,7 +544,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.betas.two_unlink_core(trans, lhs_dart_id)?;
                 // split vertices & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
-                self.attributes.split_edge_attributes_transac(
+                self.attributes.try_split_edge_attributes(
                     trans,
                     lhs_dart_id,
                     rhs_dart_id,
@@ -598,13 +558,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, b1lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.try_split_vertex_attributes(
                     trans,
                     new_lv_lhs,
                     new_lv_rhs,
                     lhs_vid_old,
                 )?;
-                self.attributes.split_vertex_attributes_transac(
+                self.attributes.try_split_vertex_attributes(
                     trans,
                     new_rv_lhs,
                     new_rv_rhs,

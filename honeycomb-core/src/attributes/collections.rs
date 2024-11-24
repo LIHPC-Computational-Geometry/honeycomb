@@ -6,9 +6,12 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::prelude::DartIdType;
+use crate::{
+    cmap::{CMapError, CMapResult},
+    prelude::DartIdType,
+};
 use num_traits::ToPrimitive;
-use stm::{atomically, StmError, TVar, Transaction};
+use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -27,113 +30,35 @@ use stm::{atomically, StmError, TVar, Transaction};
 ///
 /// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
-pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate + Copy> {
+pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     /// Inner storage.
     data: Vec<TVar<Option<T>>>,
 }
 
 #[doc(hidden)]
-impl<A: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<A> {
-    pub(crate) fn merge_core(
-        &self,
-        trans: &mut Transaction,
-        out: DartIdType,
-        lhs_inp: DartIdType,
-        rhs_inp: DartIdType,
-    ) -> Result<(), StmError> {
-        let new_v = match (
-            self.data[lhs_inp as usize].read(trans)?,
-            self.data[rhs_inp as usize].read(trans)?,
-        ) {
-            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
-            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
-            (None, None) => AttributeUpdate::merge_from_none(),
-        };
-        if new_v.is_none() {
-            eprintln!("W: cannot merge two null attribute value");
-            eprintln!("   setting new target value to `None`");
-        }
-        self.data[rhs_inp as usize].write(trans, None)?;
-        self.data[lhs_inp as usize].write(trans, None)?;
-        self.data[out as usize].write(trans, new_v)?;
-        Ok(())
-    }
-
-    pub(crate) fn split_core(
-        &self,
-        trans: &mut Transaction,
-        lhs_out: DartIdType,
-        rhs_out: DartIdType,
-        inp: DartIdType,
-    ) -> Result<(), StmError> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.data[inp as usize].write(trans, None)?;
-            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
-        } else {
-            eprintln!("W: cannot split attribute value (not found in storage)");
-            eprintln!("   setting both new values to `None`");
-            self.data[lhs_out as usize].write(trans, None)?;
-            self.data[rhs_out as usize].write(trans, None)?;
-            //self.data[inp as usize].store(None, Ordering::Release);
-        }
-        Ok(())
-    }
-
-    pub(crate) fn set_core(
+impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
+    fn write_core(
         &self,
         trans: &mut Transaction,
         id: &A::IdentifierType,
         val: A,
-    ) -> Result<(), StmError> {
-        self.data[id.to_usize().unwrap()].write(trans, Some(val))?;
-        Ok(())
-    }
-
-    pub(crate) fn insert_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        let tmp = self.data[id.to_usize().unwrap()].replace(trans, Some(val))?;
-        // assertion prevents the transaction from being validated, so the
-        // storage will be left unchanged before the crash
-        assert!(tmp.is_none());
-        Ok(())
-    }
-
-    pub(crate) fn get_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
-        self.data[id.to_usize().unwrap()].read(trans)
-    }
-
-    pub(crate) fn replace_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError> {
+    ) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, Some(val))
     }
 
-    pub(crate) fn remove_core(
-        &self,
-        trans: &mut Transaction,
-        id: &A::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
+    fn read_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+        self.data[id.to_usize().unwrap()].read(trans)
+    }
+
+    fn remove_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, None)
     }
 }
 
-unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Send for AttrSparseVec<A> {}
-unsafe impl<A: AttributeBind + AttributeUpdate + Copy> Sync for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate> Send for AttrSparseVec<A> {}
+unsafe impl<A: AttributeBind + AttributeUpdate> Sync for AttrSparseVec<A> {}
 
-impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for AttrSparseVec<A> {
+impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseVec<A> {
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -154,102 +79,145 @@ impl<A: AttributeBind + AttributeUpdate + Copy> UnknownAttributeStorage for Attr
             .count()
     }
 
-    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
-        atomically(|trans| self.merge_core(trans, out, lhs_inp, rhs_inp));
-    }
-
-    fn merge_transac(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> Result<(), StmError> {
-        self.merge_core(trans, out, lhs_inp, rhs_inp)
+    ) -> StmResult<()> {
+        let new_v = match (
+            self.data[lhs_inp as usize].read(trans)?,
+            self.data[rhs_inp as usize].read(trans)?,
+        ) {
+            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
+            (None, None) => AttributeUpdate::merge_from_none(),
+        };
+        if new_v.is_none() {
+            eprintln!("W: cannot merge two null attribute value");
+            eprintln!("   setting new target value to `None`");
+        }
+        self.data[rhs_inp as usize].write(trans, None)?;
+        self.data[lhs_inp as usize].write(trans, None)?;
+        self.data[out as usize].write(trans, new_v)?;
+        Ok(())
     }
 
-    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
-        atomically(|trans| self.split_core(trans, lhs_out, rhs_out, inp));
+    fn try_merge(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> CMapResult<()> {
+        let new_v = match (
+            self.data[lhs_inp as usize].read(trans)?,
+            self.data[rhs_inp as usize].read(trans)?,
+        ) {
+            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
+            (Some(_), None) | (None, Some(_)) => {
+                return Err(CMapError::FailedAttributeMerge(
+                    "missing one value for merge",
+                ))
+            }
+            (None, None) => {
+                return Err(CMapError::FailedAttributeMerge(
+                    "missing both values for merge",
+                ))
+            }
+        };
+        if new_v.is_none() {
+            eprintln!("W: cannot merge two null attribute value");
+            eprintln!("   setting new target value to `None`");
+        }
+        self.data[rhs_inp as usize].write(trans, None)?;
+        self.data[lhs_inp as usize].write(trans, None)?;
+        self.data[out as usize].write(trans, new_v)?;
+        Ok(())
     }
 
-    fn split_transac(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> Result<(), StmError> {
-        self.split_core(trans, lhs_out, rhs_out, inp)
+    ) -> StmResult<()> {
+        if let Some(val) = self.data[inp as usize].read(trans)? {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.data[inp as usize].write(trans, None)?;
+            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        } else {
+            eprintln!("W: cannot split attribute value (not found in storage)");
+            eprintln!("   setting both new values to `None`");
+            self.data[lhs_out as usize].write(trans, None)?;
+            self.data[rhs_out as usize].write(trans, None)?;
+        }
+        Ok(())
+    }
+
+    fn try_split(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> CMapResult<()> {
+        if let Some(val) = self.data[inp as usize].read(trans)? {
+            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+            self.data[inp as usize].write(trans, None)?;
+            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        } else {
+            return Err(CMapError::FailedAttributeSplit("no value to split from"));
+        }
+        Ok(())
     }
 }
 
-impl<A: AttributeBind + AttributeUpdate + Copy> AttributeStorage<A> for AttrSparseVec<A> {
-    fn set(&self, id: A::IdentifierType, val: A) {
-        atomically(|trans| self.set_core(trans, &id, val));
+impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A> {
+    fn force_write(&self, id: <A as AttributeBind>::IdentifierType, val: A) -> Option<A> {
+        atomically(|trans| self.write_core(trans, &id, val))
     }
 
-    fn set_transac(
+    fn write(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
         val: A,
-    ) -> Result<(), StmError> {
-        self.set_core(trans, &id, val)
+    ) -> StmResult<Option<A>> {
+        self.write_core(trans, &id, val)
     }
 
-    fn insert(&self, id: A::IdentifierType, val: A) {
-        atomically(|trans| self.insert_core(trans, &id, val));
+    fn force_read(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
+        atomically(|trans| self.read_core(trans, &id))
     }
 
-    fn insert_transac(
+    fn read(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        self.insert_core(trans, &id, val)
+    ) -> StmResult<Option<A>> {
+        self.read_core(trans, &id)
     }
 
-    fn get(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.get_core(trans, &id))
-    }
-
-    fn get_transac(
-        &self,
-        trans: &mut Transaction,
-        id: <A as AttributeBind>::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
-        self.get_core(trans, &id)
-    }
-
-    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A> {
-        atomically(|trans| self.replace_core(trans, &id, val))
-    }
-
-    fn replace_transac(
-        &self,
-        trans: &mut Transaction,
-        id: <A as AttributeBind>::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError> {
-        self.replace_core(trans, &id, val)
-    }
-
-    fn remove(&self, id: A::IdentifierType) -> Option<A> {
+    fn force_remove(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
         atomically(|trans| self.remove_core(trans, &id))
     }
 
-    fn remove_transac(
+    fn remove(
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> Result<Option<A>, StmError> {
+    ) -> StmResult<Option<A>> {
         self.remove_core(trans, &id)
     }
 }
 
 #[cfg(feature = "utils")]
-impl<T: AttributeBind + AttributeUpdate + Copy> AttrSparseVec<T> {
+impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
     /// Return the amount of space allocated for the storage.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn allocated_size(&self) -> usize {

@@ -85,7 +85,7 @@ pub fn process_cell<T: CoordsFloat>(
         // if we found a dart from the previous computations, it means the polygon is "fannable"
         // THIS CANNOT BE PARALLELIZED AS IS
         let b0_sdart = cmap.beta::<0>(*sdart);
-        let v0 = cmap.vertex(cmap.vertex_id(*sdart)).unwrap();
+        let v0 = cmap.force_read_vertex(cmap.vertex_id(*sdart)).unwrap();
         cmap.force_one_unsew(b0_sdart);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
@@ -100,7 +100,7 @@ pub fn process_cell<T: CoordsFloat>(
             d0 = *d2;
         }
         cmap.force_one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
-        cmap.replace_vertex(cmap.vertex_id(*sdart), v0);
+        cmap.force_write_vertex(cmap.vertex_id(*sdart), v0);
     } else {
         // println!("W: face {face_id} isn't fannable -- skipping triangulation");
         return Err(TriangulateError::NonFannable);
@@ -159,7 +159,7 @@ pub fn process_convex_cell<T: CoordsFloat>(
 
     // THIS CANNOT BE PARALLELIZED AS IS
     let b0_sdart = cmap.beta::<0>(sdart);
-    let v0 = cmap.vertex(cmap.vertex_id(sdart)).unwrap();
+    let v0 = cmap.force_read_vertex(cmap.vertex_id(sdart)).unwrap();
     cmap.force_one_unsew(b0_sdart);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
@@ -174,7 +174,7 @@ pub fn process_convex_cell<T: CoordsFloat>(
         d0 = *d2;
     }
     cmap.force_one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
-    cmap.replace_vertex(cmap.vertex_id(sdart), v0);
+    cmap.force_write_vertex(cmap.vertex_id(sdart), v0);
 
     Ok(())
 }

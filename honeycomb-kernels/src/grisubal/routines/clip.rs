@@ -45,7 +45,9 @@ fn mark_faces<T: CoordsFloat>(
     let mut queue: VecDeque<FaceIdType> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
             // use darts on the left side of the boundary as starting points to walk through faces
-            if cmap.get_attribute::<Boundary>(dart_id) == Some(mark) && !cmap.is_free(dart_id) {
+            if cmap.force_read_attribute::<Boundary>(dart_id) == Some(mark)
+                && !cmap.is_free(dart_id)
+            {
                 return Some(cmap.face_id(dart_id));
             }
             None
@@ -56,7 +58,7 @@ fn mark_faces<T: CoordsFloat>(
         if marked.insert(face_id) {
             // detect orientation issues / open geometries
             let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
-            if darts.any(|did| cmap.get_attribute::<Boundary>(did) == Some(other)) {
+            if darts.any(|did| cmap.force_read_attribute::<Boundary>(did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
                     "between-boundary inconsistency",
                 ));
@@ -65,7 +67,7 @@ fn mark_faces<T: CoordsFloat>(
             let darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
             queue.extend(darts.filter_map(|dart_id| {
                 if matches!(
-                    cmap.get_attribute::<Boundary>(cmap.beta::<2>(dart_id)),
+                    cmap.force_read_attribute::<Boundary>(cmap.beta::<2>(dart_id)),
                     Some(Boundary::None) | None
                 ) {
                     return Some(cmap.face_id(cmap.beta::<2>(dart_id)));
@@ -86,10 +88,10 @@ fn delete_darts<T: CoordsFloat>(
 ) {
     let kept_boundary_components: Vec<(DartIdType, Vertex2<T>)> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
-            if cmap.get_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
+            if cmap.force_read_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
                 return Some((
                     dart_id,
-                    cmap.vertex(cmap.vertex_id(dart_id))
+                    cmap.force_read_vertex(cmap.vertex_id(dart_id))
                         .expect("E: found a topological vertex with no associated coordinates"),
                 ));
             }
@@ -101,7 +103,7 @@ fn delete_darts<T: CoordsFloat>(
         let darts: Vec<DartIdType> =
             Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType).collect();
         for &dart in &darts {
-            let _ = cmap.remove_vertex(cmap.vertex_id(dart));
+            let _ = cmap.force_remove_vertex(cmap.vertex_id(dart));
             cmap.set_betas(dart, [NULL_DART_ID; 3]);
             cmap.remove_free_dart(dart);
         }
@@ -109,6 +111,6 @@ fn delete_darts<T: CoordsFloat>(
 
     for (dart, vertex) in kept_boundary_components {
         cmap.set_beta::<2>(dart, NULL_DART_ID); // set beta2(dart) to 0
-        cmap.insert_vertex(cmap.vertex_id(dart), vertex);
+        cmap.force_write_vertex(cmap.vertex_id(dart), vertex);
     }
 }

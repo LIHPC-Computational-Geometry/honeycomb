@@ -6,6 +6,8 @@
 
 // ------ IMPORT
 
+use stm::{StmResult, Transaction};
+
 use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdType};
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
@@ -22,13 +24,18 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.n_attributes()
     }
 
-    /// Fetch vertex value associated to a given identifier.
+    #[allow(clippy::missing_errors_doc)]
+    /// Read vertex associated to a given identifier.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the given vertex.
     ///
-    /// # Return
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
     /// This method return a `Option` taking the following values:
     /// - `Some(v: Vertex2)` if there is a vertex associated to this ID.
@@ -40,11 +47,16 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
-        self.vertices.get(vertex_id)
+    pub fn read_vertex(
+        &self,
+        trans: &mut Transaction,
+        vertex_id: VertexIdType,
+    ) -> StmResult<Option<Vertex2<T>>> {
+        self.vertices.read(trans, vertex_id)
     }
 
-    /// Insert a vertex in the combinatorial map.
+    #[allow(clippy::missing_errors_doc)]
+    /// Write a vertex to a given identifier, and return its old value.
     ///
     /// This method can be interpreted as giving a value to the vertex of a specific ID. Vertices
     /// implicitly exist through topology, but their spatial representation is not automatically
@@ -55,26 +67,45 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `vertex_id: VertexIdentifier` -- Vertex identifier to attribute a value to.
     /// - `vertex: impl Into<Vertex2>` -- Value used to create a [Vertex2] value.
     ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
+    ///
     /// # Panics
     ///
     /// The method may panic if:
     /// - **there is already a vertex associated to the specified index**
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn insert_vertex(&self, vertex_id: VertexIdType, vertex: impl Into<Vertex2<T>>) {
-        self.vertices.insert(vertex_id, vertex.into());
+    pub fn write_vertex(
+        &self,
+        trans: &mut Transaction,
+        vertex_id: VertexIdType,
+        vertex: impl Into<Vertex2<T>>,
+    ) -> StmResult<Option<Vertex2<T>>> {
+        self.vertices.write(trans, vertex_id, vertex.into())
     }
 
-    #[allow(clippy::must_use_candidate)]
-    /// Remove a vertex from the combinatorial map.
+    #[allow(clippy::missing_errors_doc)]
+    /// Remove vertex associated to a given identifier and return it.
     ///
     /// # Arguments
     ///
     /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to remove.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// This method return a `Option` taking the following values:
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
     /// - `Some(v: Vertex2)` -- The vertex was successfully removed & its value was returned
     /// - `None` -- The vertex was not found in the internal storage
     ///
@@ -83,67 +114,83 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds
     /// - the index cannot be converted to `usize`
-    pub fn remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
-        self.vertices.remove(vertex_id)
+    pub fn remove_vertex(
+        &self,
+        trans: &mut Transaction,
+        vertex_id: VertexIdType,
+    ) -> StmResult<Option<Vertex2<T>>> {
+        self.vertices.remove(trans, vertex_id)
     }
 
-    /// Try to overwrite the given vertex with a new value.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    /// Read vertex associated to a given identifier.
     ///
-    /// # Arguments
+    /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
+        self.vertices.force_read(vertex_id)
+    }
+
+    /// Write a vertex to a given identifier, and return its old value.
     ///
-    /// - `vertex_id: VertexIdentifier` -- Identifier of the vertex to replace.
-    /// - `vertex: impl<Into<Vertex2>>` -- New value for the vertex.
-    ///
-    /// # Return
-    ///
-    /// This method return an `Option` taking the following values:
-    /// - `Some(v: Vertex2)` -- The vertex was successfully overwritten & its previous value was
-    ///   returned
-    /// - `None` -- The vertex was set, but no value were overwritten
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - the index lands out of bounds
-    /// - the index cannot be converted to `usize`
-    pub fn replace_vertex(
+    /// This variant is equivalent to `write_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_write_vertex(
         &self,
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
     ) -> Option<Vertex2<T>> {
-        self.vertices.replace(vertex_id, vertex.into())
+        self.vertices.force_write(vertex_id, vertex.into())
+    }
+
+    #[allow(clippy::must_use_candidate)]
+    /// Remove vertex associated to a given identifier and return it.
+    ///
+    /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
+        self.vertices.force_remove(vertex_id)
     }
 }
 
 /// **Generic attribute-related methods**
 impl<T: CoordsFloat> CMap2<T> {
-    /// Setter
-    ///
-    /// Set the value of an attribute for a given index. This operation is not affected by
-    /// the initial state of the edited entry.
+    #[allow(clippy::missing_errors_doc)]
+    /// Read a given attribute's value associated to a given identifier.
     ///
     /// # Arguments
     ///
     /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to read.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
     ///
     /// # Panics
     ///
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    pub fn set_attribute<A: AttributeBind + AttributeUpdate>(&self, id: A::IdentifierType, val: A) {
-        self.attributes.set_attribute::<A>(id, val);
+    pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+    ) -> StmResult<Option<A>> {
+        self.attributes.read_attribute::<A>(trans, id)
     }
 
-    /// Setter
-    ///
-    /// Insert an attribute value at a given undefined index. See the panics section information
-    /// on behavior if the value is already defined.
+    #[allow(clippy::missing_errors_doc)]
+    /// Write a given attribute's value to a given identifier, and return its old value.
     ///
     /// # Arguments
     ///
@@ -152,23 +199,34 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to edit.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(v: Vertex2)` -- The old value was successfull replaced & returned
+    /// - `None` -- The value was successfully set
     ///
     /// # Panics
     ///
     /// The method:
-    /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    pub fn insert_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
+        trans: &mut Transaction,
         id: A::IdentifierType,
         val: A,
-    ) {
-        self.attributes.insert_attribute::<A>(id, val);
+    ) -> StmResult<Option<A>> {
+        self.attributes.write_attribute::<A>(trans, id, val)
     }
 
-    /// Getter
+    #[allow(clippy::missing_errors_doc)]
+    /// Remove a given attribute's value from the storage and return it.
     ///
     /// # Arguments
     ///
@@ -176,75 +234,17 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// ## Generic
     ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to edit.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
-    /// The method should return:
-    /// - `Some(val: A)` if there is an attribute associated with the specified index,
-    /// - `None` if there is not.
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    pub fn get_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        id: A::IdentifierType,
-    ) -> Option<A> {
-        self.attributes.get_attribute::<A>(id)
-    }
-
-    /// Setter
-    ///
-    /// Replace the value of the attribute for a given index.
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
-    ///
-    /// ## Generic
-    ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// In both cases, the new value should be set to the one specified as argument.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    pub fn replace_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Option<A> {
-        self.attributes.replace_attribute::<A>(id, val)
-    }
-
-    /// Remove an attribute value from the storage and return it
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    ///
-    /// ## Generic
-    ///
-    /// - `A: AttributeBind + AttributeUpdate` -- Attribute kind to edit.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
+    /// The result contains an `Option` taking the following values:
+    /// - `Some(val: A)` -- The vertex was successfully removed & its value was returned
+    /// - `None` -- The vertex was not found in the internal storage
     ///
     /// # Panics
     ///
@@ -253,11 +253,45 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - may panic if the index cannot be converted to `usize`
     pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
+        trans: &mut Transaction,
         id: A::IdentifierType,
-    ) -> Option<A> {
-        self.attributes.remove_attribute::<A>(id)
+    ) -> StmResult<Option<A>> {
+        self.attributes.remove_attribute::<A>(trans, id)
     }
 
+    /// Read a given attribute's value associated to a given identifier.
+    ///
+    /// This variant is equivalent to `read_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_read_attribute<A: AttributeBind + AttributeUpdate>(
+        &self,
+        id: A::IdentifierType,
+    ) -> Option<A> {
+        self.attributes.force_read_attribute::<A>(id)
+    }
+
+    /// Write a given attribute's value to a given identifier, and return its old value.
+    ///
+    /// This variant is equivalent to `write_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_write_attribute<A: AttributeBind + AttributeUpdate>(
+        &self,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Option<A> {
+        self.attributes.force_write_attribute::<A>(id, val)
+    }
+
+    /// Remove a given attribute's value from the storage and return it.
+    ///
+    /// This variant is equivalent to `remove_attribute`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_remove_attribute<A: AttributeBind + AttributeUpdate>(
+        &self,
+        id: A::IdentifierType,
+    ) -> Option<A> {
+        self.attributes.force_remove_attribute::<A>(id)
+    }
     // --- big guns
 
     /// Remove an entire attribute storage from the map.

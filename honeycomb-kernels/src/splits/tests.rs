@@ -26,10 +26,10 @@ mod standard {
         map.force_two_link(1, 6);
         map.force_two_link(2, 5);
         map.force_two_link(3, 4);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
-        map.insert_vertex(3, (2.0, 0.0));
-        map.insert_vertex(4, (3.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(3, (2.0, 0.0));
+        map.force_write_vertex(4, (3.0, 0.0));
         // split
         assert!(split_edge(&mut map, 2, None).is_ok());
         // after
@@ -49,9 +49,9 @@ mod standard {
         assert_eq!(map.vertex_id(8), 7);
         assert_eq!(map.vertex_id(7), 7);
 
-        assert_eq!(map.vertex(2), Some(Vertex2::from((1.0, 0.0))));
-        assert_eq!(map.vertex(7), Some(Vertex2::from((1.5, 0.0))));
-        assert_eq!(map.vertex(3), Some(Vertex2::from((2.0, 0.0))));
+        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.force_read_vertex(7), Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((2.0, 0.0))));
     }
 
     #[test]
@@ -62,8 +62,8 @@ mod standard {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         assert!(split_edge(&mut map, 1, Some(0.6)).is_ok());
         // after
@@ -79,9 +79,9 @@ mod standard {
         assert_eq!(map.vertex_id(3), 3);
         assert_eq!(map.vertex_id(4), 3);
 
-        assert_eq!(map.vertex(1), Some(Vertex2::from((0.0, 0.0))));
-        assert_eq!(map.vertex(3), Some(Vertex2::from((0.6, 0.0))));
-        assert_eq!(map.vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.force_read_vertex(1), Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.6, 0.0))));
+        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
     }
 
     #[test]
@@ -90,8 +90,8 @@ mod standard {
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
         map.force_one_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         assert!(split_edge(&mut map, 1, None).is_ok());
         // after
@@ -99,7 +99,7 @@ mod standard {
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 2);
         assert_eq!(map.beta::<2>(3), NULL_DART_ID);
-        assert_eq!(map.vertex(3), Some(Vertex2::from((0.5, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.5, 0.0))));
     }
 
     #[test]
@@ -109,8 +109,8 @@ mod standard {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+        map.force_write_vertex(1, (0.0, 0.0));
+        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         assert!(split_edge(&mut map, 1, None).is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
     }
@@ -131,10 +131,10 @@ mod standard {
         map.force_two_link(1, 6);
         map.force_two_link(2, 5);
         map.force_two_link(3, 4);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
-        map.insert_vertex(3, (2.0, 0.0));
-        map.insert_vertex(4, (3.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(3, (2.0, 0.0));
+        map.force_write_vertex(4, (3.0, 0.0));
         // split
         assert!(splitn_edge(&mut map, 2, [0.25, 0.50, 0.75]).is_ok());
         // after
@@ -147,9 +147,9 @@ mod standard {
             map.beta::<1>(map.beta::<1>(map.beta::<1>(2))),
         ];
         assert_eq!(&new_darts, &[7, 8, 9]);
-        assert_eq!(map.vertex(7), Some(Vertex2(1.25, 0.0)));
-        assert_eq!(map.vertex(8), Some(Vertex2(1.50, 0.0)));
-        assert_eq!(map.vertex(9), Some(Vertex2(1.75, 0.0)));
+        assert_eq!(map.force_read_vertex(7), Some(Vertex2(1.25, 0.0)));
+        assert_eq!(map.force_read_vertex(8), Some(Vertex2(1.50, 0.0)));
+        assert_eq!(map.force_read_vertex(9), Some(Vertex2(1.75, 0.0)));
 
         assert_eq!(map.beta::<1>(2), 7);
         assert_eq!(map.beta::<1>(7), 8);
@@ -175,8 +175,8 @@ mod standard {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
         // after
@@ -212,8 +212,8 @@ mod standard {
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
         map.force_one_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
         let new_darts = [
@@ -224,9 +224,9 @@ mod standard {
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         assert_eq!(&new_darts, &[3, 4, 5]);
-        assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
+        assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
+        assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -246,8 +246,8 @@ mod standard {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+        map.force_write_vertex(1, (0.0, 0.0));
+        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75])
             .is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
@@ -271,10 +271,10 @@ mod noalloc {
         map.force_two_link(1, 6);
         map.force_two_link(2, 5);
         map.force_two_link(3, 4);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
-        map.insert_vertex(3, (2.0, 0.0));
-        map.insert_vertex(4, (3.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(3, (2.0, 0.0));
+        map.force_write_vertex(4, (3.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
         assert!(split_edge_noalloc(&mut map, 2, (nds, nds + 1), None).is_ok());
@@ -295,9 +295,9 @@ mod noalloc {
         assert_eq!(map.vertex_id(8), 7);
         assert_eq!(map.vertex_id(7), 7);
 
-        assert_eq!(map.vertex(2), Some(Vertex2::from((1.0, 0.0))));
-        assert_eq!(map.vertex(7), Some(Vertex2::from((1.5, 0.0))));
-        assert_eq!(map.vertex(3), Some(Vertex2::from((2.0, 0.0))));
+        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.force_read_vertex(7), Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((2.0, 0.0))));
     }
 
     #[test]
@@ -308,8 +308,8 @@ mod noalloc {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
         assert!(split_edge_noalloc(&mut map, 1, (nds, nds + 1), Some(0.6)).is_ok());
@@ -326,9 +326,9 @@ mod noalloc {
         assert_eq!(map.vertex_id(3), 3);
         assert_eq!(map.vertex_id(4), 3);
 
-        assert_eq!(map.vertex(1), Some(Vertex2::from((0.0, 0.0))));
-        assert_eq!(map.vertex(3), Some(Vertex2::from((0.6, 0.0))));
-        assert_eq!(map.vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.force_read_vertex(1), Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.6, 0.0))));
+        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
     }
 
     #[test]
@@ -337,8 +337,8 @@ mod noalloc {
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
         map.force_one_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nd = map.add_free_dart(); // a single dart is enough in this case
         assert!(split_edge_noalloc(&mut map, 1, (nd, NULL_DART_ID), None).is_ok());
@@ -347,7 +347,7 @@ mod noalloc {
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 2);
         assert_eq!(map.beta::<2>(3), NULL_DART_ID);
-        assert_eq!(map.vertex(3), Some(Vertex2::from((0.5, 0.0))));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.5, 0.0))));
     }
 
     #[test]
@@ -357,8 +357,8 @@ mod noalloc {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+        map.force_write_vertex(1, (0.0, 0.0));
+        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(2);
         assert!(split_edge_noalloc(&mut map, 1, (nds, nds + 1), None)
@@ -381,10 +381,10 @@ mod noalloc {
         map.force_two_link(1, 6);
         map.force_two_link(2, 5);
         map.force_two_link(3, 4);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
-        map.insert_vertex(3, (2.0, 0.0));
-        map.insert_vertex(4, (3.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(3, (2.0, 0.0));
+        map.force_write_vertex(4, (3.0, 0.0));
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
@@ -394,9 +394,9 @@ mod noalloc {
         //  1         2 -7-8-9- 3         4
         //    ---1-->             ---3-->
         assert_eq!(&new_darts[0..3], &[7, 8, 9]);
-        assert_eq!(map.vertex(7), Some(Vertex2(1.25, 0.0)));
-        assert_eq!(map.vertex(8), Some(Vertex2(1.50, 0.0)));
-        assert_eq!(map.vertex(9), Some(Vertex2(1.75, 0.0)));
+        assert_eq!(map.force_read_vertex(7), Some(Vertex2(1.25, 0.0)));
+        assert_eq!(map.force_read_vertex(8), Some(Vertex2(1.50, 0.0)));
+        assert_eq!(map.force_read_vertex(9), Some(Vertex2(1.75, 0.0)));
 
         assert_eq!(map.beta::<1>(2), 7);
         assert_eq!(map.beta::<1>(7), 8);
@@ -422,8 +422,8 @@ mod noalloc {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
@@ -433,9 +433,9 @@ mod noalloc {
         //  1 -3-4-5- 2
         //    >->->->
         assert_eq!(&new_darts[0..3], &[3, 4, 5]);
-        assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
+        assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
+        assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -459,8 +459,8 @@ mod noalloc {
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
         map.force_one_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        map.insert_vertex(2, (1.0, 0.0));
+        map.force_write_vertex(1, (0.0, 0.0));
+        map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(3);
         assert!(splitn_edge_no_alloc(
@@ -480,9 +480,9 @@ mod noalloc {
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         // assert_eq!(&new_darts, &[3, 4, 5]);
-        assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
+        assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
+        assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
+        assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -502,8 +502,8 @@ mod noalloc {
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
         map.force_two_link(1, 2);
-        map.insert_vertex(1, (0.0, 0.0));
-        // map.insert_vertex(2, (1.0, 0.0)); missing vertex!
+        map.force_write_vertex(1, (0.0, 0.0));
+        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(6);
         assert!(splitn_edge_no_alloc(

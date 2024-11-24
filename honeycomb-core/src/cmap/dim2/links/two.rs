@@ -1,6 +1,6 @@
 //! 2D link implementations
 
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
     cmap::{CMap2, DartIdType},
@@ -33,7 +33,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> StmResult<()> {
         self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
@@ -66,11 +66,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
-    pub fn two_unlink(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    pub fn two_unlink(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
         self.betas.two_unlink_core(trans, lhs_dart_id)
     }
 

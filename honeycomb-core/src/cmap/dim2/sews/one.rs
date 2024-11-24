@@ -1,9 +1,10 @@
 //! 1D sew implementations
 
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
-    cmap::{CMap2, DartIdType, NULL_DART_ID},
+    attributes::UnknownAttributeStorage,
+    cmap::{CMap2, CMapResult, DartIdType, NULL_DART_ID},
     prelude::CoordsFloat,
 };
 
@@ -42,7 +43,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> StmResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
@@ -56,13 +57,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
             // FIXME: VertexIdentifier should be cast to DartIdentifier
             self.vertices
-                .merge_core(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-            self.attributes.merge_vertex_attributes_transac(
-                trans,
-                new_vid,
-                b2lhs_vid_old,
-                rhs_vid_old,
-            )?;
+                .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+            self.attributes
+                .merge_vertex_attributes(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
             Ok(())
         }
     }
@@ -91,10 +88,10 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> CMapResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
-            self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
+            self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)?;
         } else {
             let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
             let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
@@ -105,15 +102,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
             // TODO: these should be attempts, only succeding if it's a full merge
             self.vertices
-                .merge_core(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-            self.attributes.merge_vertex_attributes_transac(
+                .try_merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+            self.attributes.try_merge_vertex_attributes(
                 trans,
                 new_vid,
                 b2lhs_vid_old,
                 rhs_vid_old,
             )?;
-            Ok(())
         }
+        Ok(())
     }
 }
 
@@ -148,11 +145,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn one_unsew(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    pub fn one_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_unlink_core(trans, lhs_dart_id)?;
@@ -168,9 +161,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.vertex_id_transac(trans, b2lhs_dart_id)?,
                 self.vertex_id_transac(trans, rhs_dart_id)?,
             );
-            self.vertices.split_core(trans, new_lhs, new_rhs, vid_old)?;
+            self.vertices.split(trans, new_lhs, new_rhs, vid_old)?;
             self.attributes
-                .split_vertex_attributes_transac(trans, new_lhs, new_rhs, vid_old)?;
+                .split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
         }
         Ok(())
     }
@@ -198,7 +191,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> Result<(), StmError> {
+    ) -> CMapResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_unlink_core(trans, lhs_dart_id)?;
@@ -214,9 +207,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.vertex_id_transac(trans, b2lhs_dart_id)?,
                 self.vertex_id_transac(trans, rhs_dart_id)?,
             );
-            self.vertices.split_core(trans, new_lhs, new_rhs, vid_old)?;
+            self.vertices.try_split(trans, new_lhs, new_rhs, vid_old)?;
             self.attributes
-                .split_vertex_attributes_transac(trans, new_lhs, new_rhs, vid_old)?;
+                .try_split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
         }
         Ok(())
     }

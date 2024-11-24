@@ -55,23 +55,23 @@ fn generate_map() -> CMap2<f64> {
     cmap.force_two_link(18, 28);
 
     // geometry
-    cmap.insert_vertex(1, (1.0, 0.0));
-    cmap.insert_vertex(2, (2.0, 0.0));
-    cmap.insert_vertex(3, (2.5, 0.5));
-    cmap.insert_vertex(4, (2.0, 1.0));
-    cmap.insert_vertex(5, (1.0, 1.0));
-    cmap.insert_vertex(6, (0.5, 0.5));
-    cmap.insert_vertex(9, (3.0, 1.0));
-    cmap.insert_vertex(10, (3.0, 2.0));
-    cmap.insert_vertex(11, (2.5, 1.0));
-    cmap.insert_vertex(12, (2.0, 2.0));
-    cmap.insert_vertex(16, (1.0, 2.0));
-    cmap.insert_vertex(20, (3.0, 3.0));
-    cmap.insert_vertex(21, (2.7, 3.0));
-    cmap.insert_vertex(22, (2.7, 2.3));
-    cmap.insert_vertex(23, (1.3, 2.3));
-    cmap.insert_vertex(24, (1.3, 3.0));
-    cmap.insert_vertex(25, (1.0, 3.0));
+    cmap.force_write_vertex(1, (1.0, 0.0));
+    cmap.force_write_vertex(2, (2.0, 0.0));
+    cmap.force_write_vertex(3, (2.5, 0.5));
+    cmap.force_write_vertex(4, (2.0, 1.0));
+    cmap.force_write_vertex(5, (1.0, 1.0));
+    cmap.force_write_vertex(6, (0.5, 0.5));
+    cmap.force_write_vertex(9, (3.0, 1.0));
+    cmap.force_write_vertex(10, (3.0, 2.0));
+    cmap.force_write_vertex(11, (2.5, 1.0));
+    cmap.force_write_vertex(12, (2.0, 2.0));
+    cmap.force_write_vertex(16, (1.0, 2.0));
+    cmap.force_write_vertex(20, (3.0, 3.0));
+    cmap.force_write_vertex(21, (2.7, 3.0));
+    cmap.force_write_vertex(22, (2.7, 2.3));
+    cmap.force_write_vertex(23, (1.3, 2.3));
+    cmap.force_write_vertex(24, (1.3, 3.0));
+    cmap.force_write_vertex(25, (1.0, 3.0));
 
     cmap
 }

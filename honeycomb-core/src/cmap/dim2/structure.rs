@@ -75,9 +75,9 @@ use crate::{
 /// map.force_one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
 /// map.force_one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
 /// map.force_one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
-/// map.insert_vertex(1, (0.0, 0.0));
-/// map.insert_vertex(2, (1.0, 0.0));
-/// map.insert_vertex(3, (0.0, 1.0));
+/// map.force_write_vertex(1, (0.0, 0.0));
+/// map.force_write_vertex(2, (1.0, 0.0));
+/// map.force_write_vertex(3, (0.0, 1.0));
 ///
 /// // we can go through the face using an orbit
 /// let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
@@ -92,9 +92,9 @@ use crate::{
 /// map.force_one_link(4, 5);
 /// map.force_one_link(5, 6);
 /// map.force_one_link(6, 4);
-/// map.insert_vertex(4, (0.0, 2.0));
-/// map.insert_vertex(5, (2.0, 0.0));
-/// map.insert_vertex(6, (1.0, 1.0));
+/// map.force_write_vertex(4, (0.0, 2.0));
+/// map.force_write_vertex(5, (2.0, 0.0));
+/// map.force_write_vertex(6, (1.0, 1.0));
 ///
 /// // there should be two faces now
 /// let faces = map.fetch_faces();
@@ -110,11 +110,11 @@ use crate::{
 /// // adjust bottom-right & top-left vertex position
 /// // the returned values were the average of the sewn vertices
 /// assert_eq!(
-///     map.replace_vertex(2, Vertex2::from((1.0, 0.0))),
+///     map.force_write_vertex(2, Vertex2::from((1.0, 0.0))),
 ///     Some(Vertex2(1.5, 0.0))
 /// );
 /// assert_eq!(
-///     map.replace_vertex(3, Vertex2::from((0.0, 1.0))),
+///     map.force_write_vertex(3, Vertex2::from((0.0, 1.0))),
 ///     Some(Vertex2(0.0, 1.5))
 /// );
 ///
@@ -136,7 +136,7 @@ use crate::{
 /// assert_eq!(&faces.identifiers, &[1]);
 /// // we can check the vertices
 /// let vertices = map.fetch_vertices();
-/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.vertex(*vertex_id).unwrap());
+/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.force_read_vertex(*vertex_id).unwrap());
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5

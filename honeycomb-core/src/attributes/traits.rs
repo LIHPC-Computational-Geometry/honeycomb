@@ -5,11 +5,14 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{DartIdType, OrbitPolicy};
+use crate::{
+    cmap::CMapResult,
+    prelude::{DartIdType, OrbitPolicy},
+};
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::Any;
 use std::fmt::Debug;
-use stm::{StmError, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -57,7 +60,7 @@ use stm::{StmError, Transaction};
 ///
 /// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
 /// ```
-pub trait AttributeUpdate: Sized + Send + Sync {
+pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
     fn merge(attr1: Self, attr2: Self) -> Self;
 
@@ -140,7 +143,19 @@ pub trait AttributeBind: Debug + Sized + Any {
 ///
 /// This trait contain attribute-agnostic function & methods.
 ///
-/// The documentation of this trait describe the behavior each function & method should have.
+/// ### Note on force / regular / try semantics
+///
+/// We define three variants of split and merge methods (same as sews / unsews): `force`, regular,
+/// and `try`. Their goal is to provide different degrees of control vs convenience when using
+/// these operations. Documentation of each method shortly explains their individual quirks,
+/// below is a table summarizing the differences:
+///
+/// | variant | description |
+/// |---------| ----------- |
+/// | `try`   | defensive impl, only succeding if the attribute operation is successful & the transaction isn't invalidated |
+/// | regular | regular impl, which uses attribute fallback policies and will fail only if the transaction is invalidated   |
+/// | `force` | convenience impl, which wraps the regular impl in a transaction that retries until success                  |
+///
 pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// Constructor
     ///
@@ -170,19 +185,19 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     #[must_use = "returned value is not used, consider removing this method call"]
     fn n_attributes(&self) -> usize;
 
+    // regular
+
+    #[allow(clippy::missing_errors_doc)]
     /// Merge attributes at specified index
-    ///
-    /// This method should serve as a wire to either `AttributeUpdate::merge`
-    /// or `AttributeUpdate::merge_undefined` after removing the values we wish to merge from
-    /// the storage.
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `out: DartIdentifier` -- Identifier to associate the result with.
     /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Behavior pseudo-code
+    /// # Behavior (pseudo-code)
     ///
     /// ```text
     /// let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
@@ -192,30 +207,25 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// }
     /// attributes.set(out, new_val);
     /// ```
-    fn merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType);
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `merge`
     ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transacction passed as argument. The result should not be processed manually.
-    fn merge_transac(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> Result<(), StmError>;
+    ) -> StmResult<()>;
 
+    #[allow(clippy::missing_errors_doc)]
     /// Split attribute to specified indices
-    ///
-    /// This method should serve as a wire to `AttributeUpdate::split` after removing the value
-    /// we want to split from the storage.
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
@@ -227,22 +237,76 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
     /// ```
-    fn split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType);
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `split`
     ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn split_transac(
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> Result<(), StmError>;
+    ) -> StmResult<()>;
+
+    // force
+
+    /// Merge attributes at specified index
+    ///
+    /// This variant is equivalent to `merge`, but internally uses a transaction that will be
+    /// retried until validated.
+    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
+        atomically(|trans| self.merge(trans, out, lhs_inp, rhs_inp));
+    }
+
+    /// Split attribute to specified indices
+    ///
+    /// This variant is equivalent to `split`, but internally uses a transaction that will be
+    /// retried until validated.
+    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
+        atomically(|trans| self.split(trans, lhs_out, rhs_out, inp));
+    }
+
+    // try
+
+    /// Merge attributes at specified index
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
+    fn try_merge(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> CMapResult<()>;
+
+    /// Split attribute to specified indices
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
+    fn try_split(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> CMapResult<()>;
 }
 
 impl_downcast!(UnknownAttributeStorage);
@@ -253,175 +317,103 @@ impl_downcast!(UnknownAttributeStorage);
 ///
 /// The documentation of this trait describe the behavior each function & method should have. "ID"
 /// and "index" are used interchangeably.
+///
+/// ### Note on force / regular semantics
+///
+/// We define two variants of read / write / remove methods: `force` and regular. Their goal is to
+/// provide different degrees of control vs convenience when using these operations. Documentation
+/// of each method shortly explains their individual quirks, below is a table summarizing the
+/// differences:
+///
+/// | variant | description                                                                                |
+/// |---------| ------------------------------------------------------------------------------------------ |
+/// | regular | regular impl, which will fail if the transaction fails                                     |
+/// | `force` | convenience impl, which wraps the regular impl in a transaction that retries until success |
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
-    /// Setter
-    ///
-    /// Set the value of an element at a given index. This operation is not affected by the initial
-    /// state of the edited entry.
+    #[allow(clippy::missing_errors_doc)]
+    /// Read the value of an element at a given index.
     ///
     /// # Arguments
     ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
     ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn set(&self, id: A::IdentifierType, val: A);
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `set`
-    ///
-    /// # Result / Errors
+    /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn set_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError>;
-
-    /// Setter
-    ///
-    /// Insert a value at a given empty index.
-    /// Otherwise, see [#Panics] section for more information.
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
     ///
     /// # Panics
     ///
     /// The method:
-    /// - **should panic if there is already a value associated to the specified index**
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn insert(&self, id: A::IdentifierType, val: A) {
-        assert!(self.get(id.clone()).is_none());
-        self.set(id, val);
+    fn read(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Write the value of an element at a given index and return the old value.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn write(&self, trans: &mut Transaction, id: A::IdentifierType, val: A)
+        -> StmResult<Option<A>>;
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Remove the value at a given index and return it.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually,
+    /// only used via the `?` operator.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn remove(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
+
+    /// Read the value of an element at a given index.
+    ///
+    /// This variant is equivalent to `read`, but internally uses a transaction that will be
+    /// retried until validated.
+    fn force_read(&self, id: A::IdentifierType) -> Option<A> {
+        atomically(|trans| self.read(trans, id.clone()))
     }
 
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `insert`
+    /// Write the value of an element at a given index and return the old value.
     ///
-    /// # Result / Errors
+    /// This variant is equivalent to `write`, but internally uses a transaction that will be
+    /// retried until validated.
+    fn force_write(&self, id: A::IdentifierType, val: A) -> Option<A>;
+
+    /// Remove the value at a given index and return it.
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn insert_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<(), StmError> {
-        assert!(self.get(id.clone()).is_none());
-        self.set_transac(trans, id, val)
+    /// This variant is equivalent to `remove`, but internally uses a transaction that will be
+    /// retried until validated.
+    fn force_remove(&self, id: A::IdentifierType) -> Option<A> {
+        atomically(|trans| self.remove(trans, id.clone()))
     }
-
-    /// Getter
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val: A)` if there is an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn get(&self, id: A::IdentifierType) -> Option<A>;
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `get`
-    ///
-    /// # Result / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn get_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-    ) -> Result<Option<A>, StmError>;
-
-    /// Setter
-    ///
-    /// Replace the value of an element at a given index.
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    /// - `val: A` -- Attribute value.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val_old: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// In both cases, the new value should be set to the one specified as argument.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn replace(&self, id: A::IdentifierType, val: A) -> Option<A>;
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `replace`
-    ///
-    /// # Result / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn replace_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Result<Option<A>, StmError>;
-
-    /// Remove an item from the storage and return it
-    ///
-    /// # Arguments
-    ///
-    /// - `index: A::IdentifierType` -- Cell index.
-    ///
-    /// # Return
-    ///
-    /// The method should return:
-    /// - `Some(val: A)` if there was an attribute associated with the specified index,
-    /// - `None` if there is not.
-    ///
-    /// # Panics
-    ///
-    /// The method:
-    /// - should panic if the index lands out of bounds
-    /// - may panic if the index cannot be converted to `usize`
-    fn remove(&self, id: A::IdentifierType) -> Option<A>;
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Transactional `remove`
-    ///
-    /// # Result / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
-    fn remove_transac(
-        &self,
-        trans: &mut Transaction,
-        id: A::IdentifierType,
-    ) -> Result<Option<A>, StmError>;
 }

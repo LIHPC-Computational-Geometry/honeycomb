@@ -39,8 +39,8 @@ fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
         .n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap();
-    map.insert_vertex(4, (0.0, 0.0));
-    map.insert_vertex(6, (1.0, 0.0));
+    map.force_write_vertex(4, (0.0, 0.0));
+    map.force_write_vertex(6, (1.0, 0.0));
     map
 }
 

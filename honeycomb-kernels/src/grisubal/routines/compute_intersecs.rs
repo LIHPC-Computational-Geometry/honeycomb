@@ -140,7 +140,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                 };
                 // what's the vertex associated to the dart?
                 let v_dart = cmap
-                    .vertex(cmap.vertex_id(dart_id))
+                    .force_read_vertex(cmap.vertex_id(dart_id))
                     .expect("E: found a topological vertex with no associated coordinates");
                 // compute relative position of the intersection on the interecting edges
                 // `s` is relative to the segment `v1v2`, `t` to the grid's segment (the origin being `v_dart`)
@@ -188,7 +188,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                                     d_base + 3
                                 };
                                 // vertex associated to the intersected dart
-                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id))
+                                let v_dart = cmap.force_read_vertex(cmap.vertex_id(dart_id))
                                     .expect("E: found a topological vertex with no associated coordinates");
                                 // compute intersection
                                 let (_s, t) = if i.is_positive() {
@@ -234,7 +234,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                                 // intersected dart
                                 let dart_id = if j.is_positive() { d_base + 2 } else { d_base };
                                 // vertex associated to the intersected dart
-                                let v_dart = cmap.vertex(cmap.vertex_id(dart_id))
+                                let v_dart = cmap.force_read_vertex(cmap.vertex_id(dart_id))
                                     .expect("E: found a topological vertex with no associated coordinates");
                                 // compute intersection
                                 let (_s, t) = if j.is_positive() {
@@ -289,9 +289,9 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                                 };
                                 let hdart_id = if j.is_positive() { d_base + 2 } else { d_base };
                                 // associated vertices
-                                let v_vdart = cmap.vertex(cmap.vertex_id(vdart_id))
+                                let v_vdart = cmap.force_read_vertex(cmap.vertex_id(vdart_id))
                                     .expect("E: found a topological vertex with no associated coordinates");
-                                let v_hdart = cmap.vertex(cmap.vertex_id(hdart_id))
+                                let v_hdart = cmap.force_read_vertex(cmap.vertex_id(hdart_id))
                                     .expect("E: found a topological vertex with no associated coordinates");
                                 // compute (potential) intersections
                                 let v_coeffs = if i.is_positive() {

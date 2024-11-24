@@ -79,15 +79,15 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             let mut dart_id = cmap.beta::<1>(edge_id as DartIdType);
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
-                let _ = cmap.replace_vertex(vid, *v);
+                let _ = cmap.force_write_vertex(vid, *v);
                 dart_id = cmap.beta::<1>(dart_id);
             }
         }
 
         let mut d_boundary = cmap.beta::<1>(*start);
         while d_boundary != *end {
-            cmap.set_attribute::<Boundary>(d_boundary, Boundary::Left);
-            cmap.set_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
+            cmap.force_write_attribute::<Boundary>(d_boundary, Boundary::Left);
+            cmap.force_write_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
             d_boundary = cmap.beta::<1>(d_boundary);
         }
     }

@@ -46,8 +46,8 @@ use honeycomb_core::geometry::CoordsFloat;
 ///                             .build()
 ///                             .unwrap();
 /// map.force_two_link(1, 2);
-/// map.insert_vertex(1, (0.0, 0.0));
-/// map.insert_vertex(2, (1.0, 0.0));
+/// map.force_write_vertex(1, (0.0, 0.0));
+/// map.force_write_vertex(2, (1.0, 0.0));
 /// // split
 /// assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
 /// // after
@@ -60,9 +60,9 @@ use honeycomb_core::geometry::CoordsFloat;
 ///     map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
 /// ];
 /// assert_eq!(&new_darts, &[3, 4, 5]);
-/// assert_eq!(map.vertex(3), Some(Vertex2(0.25, 0.0)));
-/// assert_eq!(map.vertex(4), Some(Vertex2(0.50, 0.0)));
-/// assert_eq!(map.vertex(5), Some(Vertex2(0.75, 0.0)));
+/// assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
+/// assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
+/// assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
 ///
 /// assert_eq!(map.beta::<1>(1), 3);
 /// assert_eq!(map.beta::<1>(3), 4);
@@ -206,8 +206,8 @@ fn inner_splitn<T: CoordsFloat>(
     let b1d1_old = cmap.beta::<1>(base_dart1);
 
     let (Some(v1), Some(v2)) = (
-        cmap.vertex(cmap.vertex_id(base_dart1)),
-        cmap.vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
+        cmap.force_read_vertex(cmap.vertex_id(base_dart1)),
+        cmap.force_read_vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
             b1d1_old
         } else {
             base_dart2
@@ -235,7 +235,7 @@ fn inner_splitn<T: CoordsFloat>(
             }
             let new_v = v1 + seg * t;
             cmap.force_one_link(prev_d, new_d);
-            cmap.insert_vertex(new_d, new_v);
+            cmap.force_write_vertex(new_d, new_v);
             prev_d = new_d;
         });
     cmap.force_one_link(prev_d, b1d1_old);
