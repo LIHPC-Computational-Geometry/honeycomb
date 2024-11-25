@@ -27,7 +27,7 @@ use stm::{atomically, StmResult, Transaction};
 /// like this:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::AttributeUpdate;
+/// use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
@@ -43,12 +43,12 @@ use stm::{atomically, StmResult, Transaction};
 ///         (attr, attr)
 ///     }
 ///
-///     fn merge_incomplete(attr: Self) -> Self {
-///         Temperature { val: attr.val / 2.0 }
+///     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+///         Ok(Temperature { val: attr.val / 2.0 })
 ///     }
 ///
-///     fn merge_from_none() -> Option<Self> {
-///         Some(Temperature { val: 0.0 })
+///     fn merge_from_none() -> CMapResult<Self> {
+///         Ok(Temperature { val: 0.0 })
 ///     }
 /// }
 ///
@@ -105,7 +105,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdType, OrbitPolicy};
+/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, CMapResult, FaceIdType, OrbitPolicy};
 /// use honeycomb_core::attributes::AttrSparseVec;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
@@ -121,12 +121,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 /// #         (attr, attr)
 /// #     }
 /// #
-/// #     fn merge_incomplete(attr: Self) -> Self {
-/// #         Temperature { val: attr.val / 2.0 }
+/// #     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+/// #         Ok(Temperature { val: attr.val / 2.0 })
 /// #     }
 /// #
-/// #     fn merge_from_none() -> Option<Self> {
-/// #         Some(Temperature { val: 0.0 })
+/// #     fn merge_from_none() -> CMapResult<Self> {
+/// #         Ok(Temperature { val: 0.0 })
 /// #     }
 /// # }
 ///
