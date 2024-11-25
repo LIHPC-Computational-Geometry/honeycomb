@@ -20,10 +20,14 @@ use std::collections::{BTreeSet, VecDeque};
 pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
+    /// 0-cell orbit, without using beta 0. This requires the cell to be complete / closed.
+    VertexLinear,
     /// 1-cell orbit.
     Edge,
     /// 2-cell orbit.
     Face,
+    /// 2-cell orbit, without using beta 0. This requires the cell to be complete / closed.
+    FaceLinear,
     /// Ordered array of beta functions that define the orbit.
     Custom(&'static [u8]),
 }
@@ -125,7 +129,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
             match self.orbit_policy {
                 OrbitPolicy::Vertex => {
                     // THIS CODE IS ONLY VALID IN 2D
-
                     let image1 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
                     if self.marked.insert(image1) {
                         // if true, we did not see this dart yet
@@ -139,6 +142,15 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         self.pending.push_back(image2);
                     }
                 }
+                OrbitPolicy::VertexLinear => {
+                    // THIS CODE IS ONLY VALID IN 2D
+                    let image = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image);
+                    }
+                }
                 OrbitPolicy::Edge => {
                     // THIS CODE IS ONLY VALID IN 2D
                     let image = self.map_handle.beta::<2>(d);
@@ -150,7 +162,21 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                 }
                 OrbitPolicy::Face => {
                     // THIS CODE IS ONLY VALID IN 2D
-                    // WE ASSUME THAT THE FACE IS COMPLETE
+                    let image1 = self.map_handle.beta::<1>(d);
+                    if self.marked.insert(image1) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image1);
+                    }
+                    let image2 = self.map_handle.beta::<0>(d);
+                    if self.marked.insert(image2) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image2);
+                    }
+                }
+                OrbitPolicy::FaceLinear => {
+                    // THIS CODE IS ONLY VALID IN 2D
                     let image = self.map_handle.beta::<1>(d);
                     if self.marked.insert(image) {
                         // if true, we did not see this dart yet
