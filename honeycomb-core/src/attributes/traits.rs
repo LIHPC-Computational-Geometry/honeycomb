@@ -78,10 +78,19 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
     /// value.
     ///
-    /// The default implementation return `None`.
+    /// The default implementation return `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
     fn merge_from_none() -> CMapResult<Self> {
         Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
+    }
+
+    /// Fallback splitting routine, i.e. how to obtain the new attribute value from no existing
+    /// value.
+    ///
+    /// The default implementation return `Err(CMapError::FailedAttributeSplit)`.
+    #[allow(clippy::must_use_candidate)]
+    fn split_from_none() -> CMapResult<(Self, Self)> {
+        Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
     }
 }
 

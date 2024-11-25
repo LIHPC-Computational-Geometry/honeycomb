@@ -6,10 +6,7 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::{
-    cmap::{CMapError, CMapResult},
-    prelude::DartIdType,
-};
+use crate::{cmap::CMapResult, prelude::DartIdType};
 use num_traits::ToPrimitive;
 use stm::{atomically, StmResult, TVar, Transaction};
 
@@ -132,8 +129,12 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> StmResult<()> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+        let res = if let Some(val) = self.data[inp as usize].read(trans)? {
+            Ok(AttributeUpdate::split(val))
+        } else {
+            AttributeUpdate::split_from_none()
+        };
+        if let Ok((lhs_val, rhs_val)) = res {
             self.data[inp as usize].write(trans, None)?;
             self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
             self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
@@ -153,14 +154,14 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> CMapResult<()> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.data[inp as usize].write(trans, None)?;
-            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        let (lhs_val, rhs_val) = if let Some(val) = self.data[inp as usize].read(trans)? {
+            AttributeUpdate::split(val)
         } else {
-            return Err(CMapError::FailedAttributeSplit("no value to split from"));
-        }
+            AttributeUpdate::split_from_none()?
+        };
+        self.data[inp as usize].write(trans, None)?;
+        self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+        self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
         Ok(())
     }
 }
