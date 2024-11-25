@@ -6,11 +6,11 @@
 // ------ IMPORTS
 
 use crate::{
-    cmap::CMapResult,
+    cmap::{CMapError, CMapResult},
     prelude::{DartIdType, OrbitPolicy},
 };
 use downcast_rs::{impl_downcast, Downcast};
-use std::any::Any;
+use std::any::{type_name, Any};
 use std::fmt::Debug;
 use stm::{atomically, StmResult, Transaction};
 
@@ -71,8 +71,8 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// value.
     ///
     /// The default implementation simply returns the passed value.
-    fn merge_incomplete(attr: Self) -> Self {
-        attr
+    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+        Ok(attr)
     }
 
     /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
@@ -80,8 +80,8 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// The default implementation return `None`.
     #[allow(clippy::must_use_candidate)]
-    fn merge_from_none() -> Option<Self> {
-        None
+    fn merge_from_none() -> CMapResult<Self> {
+        Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
     }
 }
 
