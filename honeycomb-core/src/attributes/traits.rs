@@ -70,6 +70,16 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
     /// value.
     ///
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
+    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_merge` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the merge
+    /// isn't done properly from two values) and other as mores flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
+    ///
     /// The default implementation simply returns the passed value.
     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
         Ok(attr)
@@ -77,6 +87,16 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 
     /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
     /// value.
+    ///
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
+    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_merge` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the merge
+    /// isn't done properly from two values) and others as more flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
     ///
     /// The default implementation return `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
@@ -86,6 +106,16 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 
     /// Fallback splitting routine, i.e. how to obtain the new attribute value from no existing
     /// value.
+    ///
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::split`],
+    /// [`UnknownAttributeStorage::try_split`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_split` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the split
+    /// isn't done properly from a value) and others as more flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
     ///
     /// The default implementation return `Err(CMapError::FailedAttributeSplit)`.
     #[allow(clippy::must_use_candidate)]
