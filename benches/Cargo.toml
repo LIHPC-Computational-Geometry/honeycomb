@@ -82,6 +82,12 @@ name = "grisubal-grid-size"
 path = "benches/grisubal/grid_size.rs"
 harness = false
 
+
+[[bench]]
+name = "shift"
+path = "benches/shift.rs"
+harness = false
+
 [[bench]]
 name = "triangulate-quads"
 path = "benches/triangulate/quads.rs"
