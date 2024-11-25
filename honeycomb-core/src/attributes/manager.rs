@@ -267,11 +267,11 @@ impl AttrStorageManager {
     ) {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs)
+                self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs);
             }
             OrbitPolicy::Edge => self.force_merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs)
+                self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs);
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
@@ -658,7 +658,7 @@ impl AttrStorageManager {
             }
             OrbitPolicy::Edge => self.force_split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in)
+                self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in);
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
