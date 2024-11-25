@@ -20,6 +20,9 @@ pub enum CMapError {
     /// Geometry check failed.
     #[error("operation incompatible with map geometry: {0}")]
     IncorrectGeometry(&'static str),
+    /// Attribute already in the map storage.
+    #[error("duplicate attribute: {0}")]
+    DuplicateAttribute(&'static str),
     /// Accessed attribute isn't in the map storage.
     #[error("unknown attribute: {0}")]
     UnknownAttribute(&'static str),

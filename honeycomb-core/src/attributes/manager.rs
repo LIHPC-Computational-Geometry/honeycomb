@@ -9,7 +9,7 @@ use stm::{StmResult, Transaction};
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::{
-    cmap::CMapResult,
+    cmap::{CMapError, CMapResult},
     prelude::{DartIdType, OrbitPolicy},
 };
 use std::{any::TypeId, collections::HashMap};
@@ -158,7 +158,7 @@ impl AttrStorageManager {
     /// # Panics
     ///
     /// This function will panic if there is already a storage of attribute `A` in the manager.
-    pub fn add_storage<A: AttributeBind + 'static>(&mut self, size: usize) {
+    pub fn add_storage<A: AttributeBind + 'static>(&mut self, size: usize) -> CMapResult<()> {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
         if match A::BIND_POLICY {
@@ -169,12 +169,9 @@ impl AttrStorageManager {
         }
         .is_some()
         {
-            eprintln!(
-                "W: Storage of attribute `{}` already exists in the attribute storage manager",
-                std::any::type_name::<A>()
-            );
-            eprintln!("   Continuing...");
+            return Err(CMapError::DuplicateAttribute(std::any::type_name::<A>()));
         }
+        Ok(())
     }
 
     /// Extend the size of the storage of a given attribute.
@@ -186,15 +183,13 @@ impl AttrStorageManager {
     /// ## Generic
     ///
     /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
-    pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
+    pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) -> CMapResult<()> {
         get_storage_mut!(self, storage);
         if let Some(st) = storage {
             st.extend(length);
+            Ok(())
         } else {
-            eprintln!(
-                "W: could not extend storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
+            Err(CMapError::UnknownAttribute(std::any::type_name::<A>()))
         }
     }
 
@@ -210,14 +205,16 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
-    pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
+    pub fn get_storage<A: AttributeBind>(&self) -> CMapResult<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
             OrbitPolicy::Face => &self.faces[&TypeId::of::<A>()],
             OrbitPolicy::Custom(_) => &self.others[&TypeId::of::<A>()],
         };
-        probably_storage.downcast_ref::<<A as AttributeBind>::StorageType>()
+        probably_storage
+            .downcast_ref::<<A as AttributeBind>::StorageType>()
+            .ok_or(CMapError::UnknownAttribute(std::any::type_name::<A>()))
     }
 
     /// Remove an entire attribute storage from the manager.
@@ -611,11 +608,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.try_merge(trans, id_out, id_in_lhs, id_in_rhs)
         } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
+            Err(CMapError::UnknownAttribute(std::any::type_name::<A>()))
         }
     }
 }
@@ -998,11 +991,7 @@ impl AttrStorageManager {
         if let Some(st) = storage {
             st.try_split(trans, id_out_lhs, id_out_rhs, id_in)
         } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
+            Err(CMapError::UnknownAttribute(std::any::type_name::<A>()))
         }
     }
 }
