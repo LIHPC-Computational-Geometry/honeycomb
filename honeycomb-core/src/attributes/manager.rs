@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use stm::{StmResult, Transaction};
+use fast_stm::{StmResult, Transaction};
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::{

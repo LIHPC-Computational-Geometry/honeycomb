@@ -6,7 +6,7 @@
 
 // ------ IMPORT
 
-use stm::{StmResult, Transaction};
+use fast_stm::{StmResult, Transaction};
 
 use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdType};
 use crate::{
