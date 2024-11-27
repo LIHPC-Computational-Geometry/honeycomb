@@ -17,7 +17,7 @@ _single_precision = []
 [dependencies]
 cfg-if.workspace = true
 honeycomb.workspace = true
-rayon = "1.10.0"
+rayon.workspace = true
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
