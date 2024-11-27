@@ -22,6 +22,5 @@
 // ------ MODULE DECLARATIONS
 
 pub mod grisubal;
-pub mod shift;
 pub mod splits;
 pub mod triangulation;
