@@ -20,7 +20,7 @@ fn main() {
     let map: CMap2<f64> = CMapBuilder::unit_grid(n_squares).build().unwrap();
 
     // fetch all vertices that are not on the boundary of the map
-    let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
+    let tmp = map
         .fetch_vertices()
         .identifiers
         .into_iter()
@@ -37,12 +37,18 @@ fn main() {
                         .collect(),
                 ))
             }
-        })
-        .collect();
+        });
+
+    #[allow(clippy::type_complexity)]
+    let (first_batch, second_batch): (
+        Vec<(VertexIdType, Vec<VertexIdType>)>,
+        Vec<(VertexIdType, Vec<VertexIdType>)>,
+    ) = tmp.partition(|(v, _)| ((v - 1) / 4) % 2 == 0); // this yields 2 ind. batches, just trust me
+
     // main loop
     let mut round = 0;
     loop {
-        tmp.par_iter().for_each(|(vid, neigh)| {
+        first_batch.par_iter().for_each(|(vid, neigh)| {
             atomically(|trans| {
                 let mut new_val = Vertex2::default();
                 for v in neigh {
@@ -55,7 +61,19 @@ fn main() {
                 map.write_vertex(trans, *vid, new_val)
             });
         });
-
+        second_batch.par_iter().for_each(|(vid, neigh)| {
+            atomically(|trans| {
+                let mut new_val = Vertex2::default();
+                for v in neigh {
+                    let vertex = map.read_vertex(trans, *v)?.unwrap();
+                    new_val.0 += vertex.0;
+                    new_val.1 += vertex.1;
+                }
+                new_val.0 /= neigh.len() as f64;
+                new_val.1 /= neigh.len() as f64;
+                map.write_vertex(trans, *vid, new_val)
+            });
+        });
         round += 1;
         if round >= n_rounds {
             break;

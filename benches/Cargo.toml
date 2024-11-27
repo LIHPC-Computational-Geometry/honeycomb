@@ -17,6 +17,7 @@ _single_precision = []
 [dependencies]
 cfg-if.workspace = true
 honeycomb.workspace = true
+rayon = "1.10.0"
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
@@ -38,6 +39,9 @@ path = "src/grisubal.rs"
 name = "shift"
 path = "src/shift.rs"
 
+[[bin]]
+name = "shift-nc"
+path = "src/shift_noncollide.rs"
 
 # benches
 
