@@ -41,7 +41,7 @@ path = "src/shift.rs"
 
 [[bin]]
 name = "shift-nc"
-path = "src/shift_noncollide.rs"
+path = "src/shift_no_conflict.rs"
 
 # benches
 
