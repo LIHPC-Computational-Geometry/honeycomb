@@ -6,7 +6,7 @@ use honeycomb::prelude::{
 };
 
 fn main() {
-    // ./binary ~/path/to/file.vtk n_rounds
+    // ./binary grid_size n_rounds
     let args: Vec<String> = std::env::args().collect();
     let n_squares = args
         .get(1)
