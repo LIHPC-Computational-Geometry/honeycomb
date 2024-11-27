@@ -1,6 +1,6 @@
 //! Main error type
 
-use fast_stm::StmError;
+use stm::StmError;
 
 /// Convenience type alias.
 pub type CMapResult<T> = Result<T, CMapError>;

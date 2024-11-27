@@ -1,6 +1,6 @@
 //! 1D sew implementations
 
-use fast_stm::{atomically, StmResult, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,

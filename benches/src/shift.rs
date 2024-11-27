@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use honeycomb::core::fast_stm::atomically;
+use honeycomb::core::stm::atomically;
 use honeycomb::prelude::{
     CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
 };

@@ -1,6 +1,6 @@
 //! 2D link implementations
 
-use fast_stm::{atomically, StmResult, Transaction};
+use stm::{atomically, StmResult, Transaction};
 
 use crate::{
     cmap::{CMap2, DartIdType},

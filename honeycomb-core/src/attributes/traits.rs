@@ -10,9 +10,9 @@ use crate::{
     prelude::{DartIdType, OrbitPolicy},
 };
 use downcast_rs::{impl_downcast, Downcast};
-use fast_stm::{atomically, StmResult, Transaction};
 use std::any::Any;
 use std::fmt::Debug;
+use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 

@@ -10,8 +10,8 @@ use crate::{
     cmap::{CMapError, CMapResult},
     prelude::DartIdType,
 };
-use fast_stm::{atomically, StmResult, TVar, Transaction};
 use num_traits::ToPrimitive;
+use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 

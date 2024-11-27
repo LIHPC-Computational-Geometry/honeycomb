@@ -17,8 +17,8 @@ use crate::{
     cmap::{EdgeCollection, FaceCollection, VertexCollection},
     geometry::CoordsFloat,
 };
-use fast_stm::{atomically, StmError, Transaction};
 use std::collections::{BTreeSet, VecDeque};
+use stm::{atomically, StmError, Transaction};
 
 // ------ CONTENT
 

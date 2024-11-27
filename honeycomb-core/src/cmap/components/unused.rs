@@ -5,7 +5,7 @@ use std::{
     slice::Iter,
 };
 
-use fast_stm::TVar;
+use stm::TVar;
 
 use super::identifiers::DartIdType;
 

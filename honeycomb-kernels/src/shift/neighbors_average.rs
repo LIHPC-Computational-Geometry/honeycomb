@@ -1,7 +1,7 @@
 use honeycomb_core::{
     cmap::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID},
-    fast_stm::atomically,
     prelude::{CoordsFloat, Vertex2},
+    stm::atomically,
 };
 use rayon::prelude::*;
 

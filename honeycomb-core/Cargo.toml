@@ -19,9 +19,8 @@ utils = []
 # deps
 
 [dependencies]
-fast-stm = { git = "https://github.com/imrn99/fast-stm.git", rev = "9179010" }
 downcast-rs.workspace = true
-loom.workspace = true
+loom.workspace= true
 num-traits.workspace = true
 stm.workspace = true
 thiserror.workspace = true
