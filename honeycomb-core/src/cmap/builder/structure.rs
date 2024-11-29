@@ -140,7 +140,12 @@ impl<T: CoordsFloat> CMapBuilder<T> {
                         self.attributes,
                     )
                 } else {
-                    super::grid::building_routines::build_2d_grid(origin, ns, lens, self.attributes)
+                    super::grid::building_routines::build_2d_grid_alt(
+                        origin,
+                        ns,
+                        lens,
+                        self.attributes,
+                    )
                 }
             });
         }
