@@ -1,0 +1,13 @@
+remove other routine
+
+bench confirm perf is slightly better. more importantly, parallelizing
+the new one won't result in transaction conflicts
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch better-builder
+# Your branch is up to date with 'origin/better-builder'.
+#
+# Changes to be committed:
+#	modified:   honeycomb-core/src/cmap/builder/grid/building_routines.rs
+#
