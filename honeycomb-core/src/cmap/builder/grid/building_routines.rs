@@ -9,7 +9,7 @@ use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
 /// Internal grid-building routine
 #[allow(clippy::too_many_lines)]
-pub fn build_2d_grid_alt<T: CoordsFloat>(
+pub fn build_2d_grid<T: CoordsFloat>(
     origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
