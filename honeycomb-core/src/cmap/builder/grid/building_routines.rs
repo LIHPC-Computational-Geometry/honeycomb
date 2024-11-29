@@ -158,6 +158,28 @@ pub fn build_2d_grid<T: CoordsFloat>(
 }
 
 #[allow(clippy::inline_always)]
+#[rustfmt::skip]
+#[inline(always)]
+fn generate_beta_values(n_x: usize, n_y: usize) -> Vec<[DartIdType; 3]> {
+    (0..n_x)
+        .flat_map(|ix| {
+            (0..n_y).flat_map(move |iy| {
+                let d1 = (1 + 4 * ix + n_x * 4 * iy) as DartIdType;
+                let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+                // beta images of [d1, d2, d3, d4]
+                [
+                    [ d4, d2, if iy == 0     { 0 } else { d3 - 4 * n_x as DartIdType } ],
+                    [ d1, d3, if ix == n_x-1 { 0 } else { d1 + 6                     } ],
+                    [ d2, d4, if iy == n_y-1 { 0 } else { d1 + 4 * n_x as DartIdType } ],
+                    [ d3, d1, if ix == 0     { 0 } else { d4 - 6                     } ],
+                ]
+                .into_iter()
+            })
+        })
+        .collect()
+}
+
+#[allow(clippy::inline_always)]
 #[inline(always)] // seems like this is required to match the actual inline perf
 fn build_square_core<T: CoordsFloat>(
     map: &CMap2<T>,
