@@ -48,8 +48,8 @@ pub struct VertexCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<VertexIdType>,
 }
 
-unsafe impl<'a, T: CoordsFloat> Send for VertexCollection<'a, T> {}
-unsafe impl<'a, T: CoordsFloat> Sync for VertexCollection<'a, T> {}
+unsafe impl<T: CoordsFloat> Send for VertexCollection<'_, T> {}
+unsafe impl<T: CoordsFloat> Sync for VertexCollection<'_, T> {}
 
 collection_constructor!(VertexCollection, VertexIdType);
 
@@ -76,8 +76,8 @@ pub struct EdgeCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<EdgeIdType>,
 }
 
-unsafe impl<'a, T: CoordsFloat> Send for EdgeCollection<'a, T> {}
-unsafe impl<'a, T: CoordsFloat> Sync for EdgeCollection<'a, T> {}
+unsafe impl<T: CoordsFloat> Send for EdgeCollection<'_, T> {}
+unsafe impl<T: CoordsFloat> Sync for EdgeCollection<'_, T> {}
 
 collection_constructor!(EdgeCollection, EdgeIdType);
 
@@ -104,8 +104,8 @@ pub struct FaceCollection<'a, T: CoordsFloat> {
     pub identifiers: Vec<FaceIdType>,
 }
 
-unsafe impl<'a, T: CoordsFloat> Send for FaceCollection<'a, T> {}
-unsafe impl<'a, T: CoordsFloat> Sync for FaceCollection<'a, T> {}
+unsafe impl<T: CoordsFloat> Send for FaceCollection<'_, T> {}
+unsafe impl<T: CoordsFloat> Sync for FaceCollection<'_, T> {}
 
 collection_constructor!(FaceCollection, FaceIdType);
 

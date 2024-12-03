@@ -8,6 +8,7 @@
 
 use crate::grisubal::GrisubalError;
 use honeycomb_core::attributes::AttrSparseVec;
+use honeycomb_core::cmap::CMapResult;
 use honeycomb_core::prelude::{
     AttributeBind, AttributeUpdate, CoordsFloat, DartIdType, OrbitPolicy, Vertex2,
 };
@@ -263,8 +264,8 @@ impl AttributeUpdate for Boundary {
         unreachable!()
     }
 
-    fn merge_from_none() -> Option<Self> {
-        Some(Boundary::None)
+    fn merge_from_none() -> CMapResult<Self> {
+        Ok(Boundary::None)
     }
 }
 

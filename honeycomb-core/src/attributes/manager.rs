@@ -21,9 +21,11 @@ use std::{any::TypeId, collections::HashMap};
 macro_rules! get_storage {
     ($slf: ident, $id: ident) => {
         let probably_storage = match A::BIND_POLICY {
-            OrbitPolicy::Vertex => $slf.vertices.get(&TypeId::of::<A>()),
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                $slf.vertices.get(&TypeId::of::<A>())
+            }
             OrbitPolicy::Edge => $slf.edges.get(&TypeId::of::<A>()),
-            OrbitPolicy::Face => $slf.faces.get(&TypeId::of::<A>()),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => $slf.faces.get(&TypeId::of::<A>()),
             OrbitPolicy::Custom(_) => $slf.others.get(&TypeId::of::<A>()),
         };
         let $id = probably_storage
@@ -35,9 +37,11 @@ macro_rules! get_storage {
 macro_rules! get_storage_mut {
     ($slf: ident, $id: ident) => {
         let probably_storage = match A::BIND_POLICY {
-            OrbitPolicy::Vertex => $slf.vertices.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                $slf.vertices.get_mut(&TypeId::of::<A>())
+            }
             OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
-            OrbitPolicy::Face => $slf.faces.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => $slf.faces.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Custom(_) => $slf.others.get_mut(&TypeId::of::<A>()),
         };
         let $id = probably_storage
@@ -162,9 +166,13 @@ impl AttrStorageManager {
         let typeid = TypeId::of::<A>();
         let new_storage = <A as AttributeBind>::StorageType::new(size);
         if match A::BIND_POLICY {
-            OrbitPolicy::Vertex => self.vertices.insert(typeid, Box::new(new_storage)),
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                self.vertices.insert(typeid, Box::new(new_storage))
+            }
             OrbitPolicy::Edge => self.edges.insert(typeid, Box::new(new_storage)),
-            OrbitPolicy::Face => self.faces.insert(typeid, Box::new(new_storage)),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
+                self.faces.insert(typeid, Box::new(new_storage))
+            }
             OrbitPolicy::Custom(_) => self.others.insert(typeid, Box::new(new_storage)),
         }
         .is_some()
@@ -207,9 +215,9 @@ impl AttrStorageManager {
     #[must_use = "unused getter result - please remove this method call"]
     pub fn get_storage<A: AttributeBind>(&self) -> CMapResult<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
-            OrbitPolicy::Vertex => &self.vertices[&TypeId::of::<A>()],
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
-            OrbitPolicy::Face => &self.faces[&TypeId::of::<A>()],
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => &self.faces[&TypeId::of::<A>()],
             OrbitPolicy::Custom(_) => &self.others[&TypeId::of::<A>()],
         };
         probably_storage
@@ -228,9 +236,11 @@ impl AttrStorageManager {
     pub fn remove_storage<A: AttributeBind>(&mut self) {
         // we could return it ?
         let _ = match A::BIND_POLICY {
-            OrbitPolicy::Vertex => &self.vertices.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                &self.vertices.remove(&TypeId::of::<A>())
+            }
             OrbitPolicy::Edge => &self.edges.remove(&TypeId::of::<A>()),
-            OrbitPolicy::Face => &self.faces.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => &self.faces.remove(&TypeId::of::<A>()),
             OrbitPolicy::Custom(_) => &self.others.remove(&TypeId::of::<A>()),
         };
     }
@@ -253,9 +263,13 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) {
         match orbit_policy {
-            OrbitPolicy::Vertex => self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs);
+            }
             OrbitPolicy::Edge => self.force_merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Face => self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
+                self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs);
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
@@ -332,11 +346,13 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> StmResult<()> {
         match orbit_policy {
-            OrbitPolicy::Vertex => {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Edge => self.merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Face => self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
+                self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
@@ -445,13 +461,13 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> CMapResult<()> {
         match orbit_policy {
-            OrbitPolicy::Vertex => {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.try_merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Edge => {
                 self.try_merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
-            OrbitPolicy::Face => {
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.try_merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
@@ -630,11 +646,13 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) {
         match orbit_policy {
-            OrbitPolicy::Vertex => {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.force_split_vertex_attributes(id_out_lhs, id_out_rhs, id_in);
             }
             OrbitPolicy::Edge => self.force_split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Face => self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
+                self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in);
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
@@ -714,11 +732,13 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> StmResult<()> {
         match orbit_policy {
-            OrbitPolicy::Vertex => {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Edge => self.split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Face => self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
+                self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
@@ -828,13 +848,13 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> CMapResult<()> {
         match orbit_policy {
-            OrbitPolicy::Vertex => {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.try_split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Edge => {
                 self.try_split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
-            OrbitPolicy::Face => {
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.try_split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
