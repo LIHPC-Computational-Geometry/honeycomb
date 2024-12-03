@@ -1,6 +1,14 @@
 //! Internal grid-building routines
+//!
+//! Grids are built from left to right (ascending X), from bottom to top (ascending Y). We rely on
+//! this logic to compute the value of each beta function entry, as well as bind orbits to vertices.
+//!
+//! See [`CMapBuilder::unit_grid`] and [`CMapBuilder::unit_triangles`] documentation entries.
 
 // ------ IMPORTS
+
+#[cfg(doc)]
+use crate::prelude::CMapBuilder;
 
 use crate::prelude::{CMap2, DartIdType, Vector2, Vertex2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
@@ -97,6 +105,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
 #[inline(always)]
 fn generate_square_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [DartIdType; 3]> {
     // this loop hierarchy yields the value in correct order
+    // left to right first, then bottom to top
     (0..n_y).flat_map(move |iy| {
         (0..n_x).flat_map(move |ix| {
                 let d1 = (1 + 4 * ix + n_x * 4 * iy) as DartIdType;
@@ -206,6 +215,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
 #[inline(always)]
 fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [DartIdType; 3]> {
     // this loop hierarchy yields the value in correct order
+    // left to right first, then bottom to top
     (0..n_y).flat_map(move |iy| {
         (0..n_x).flat_map(move |ix| {
                 let d1 = (1 + 6 * ix + n_x * 6 * iy) as DartIdType;
