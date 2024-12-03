@@ -112,11 +112,12 @@ fn square_cmap2_correctness() {
     assert_eq!(cmap.face_id(3), 1);
     assert_eq!(cmap.face_id(4), 1);
 
+    // i-cell uses beta 0 to ensure correctness, so the iterator is BFS-like
     let mut face = cmap.i_cell::<2>(1);
     assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
-    assert_eq!(face.next(), Some(4));
+    assert_eq!(face.next(), Some(2)); // b1
+    assert_eq!(face.next(), Some(4)); // b0
+    assert_eq!(face.next(), Some(3)); // b1b1
     assert_eq!(face.next(), None);
 
     assert_eq!(cmap.beta::<1>(1), 2);
@@ -138,8 +139,8 @@ fn square_cmap2_correctness() {
     let mut face = cmap.i_cell::<2>(5);
     assert_eq!(face.next(), Some(5));
     assert_eq!(face.next(), Some(6));
-    assert_eq!(face.next(), Some(7));
     assert_eq!(face.next(), Some(8));
+    assert_eq!(face.next(), Some(7));
     assert_eq!(face.next(), None);
 
     assert_eq!(cmap.beta::<1>(5), 6);
@@ -161,8 +162,8 @@ fn square_cmap2_correctness() {
     let mut face = cmap.i_cell::<2>(9);
     assert_eq!(face.next(), Some(9));
     assert_eq!(face.next(), Some(10));
-    assert_eq!(face.next(), Some(11));
     assert_eq!(face.next(), Some(12));
+    assert_eq!(face.next(), Some(11));
     assert_eq!(face.next(), None);
 
     assert_eq!(cmap.beta::<1>(9), 10);
@@ -184,8 +185,8 @@ fn square_cmap2_correctness() {
     let mut face = cmap.i_cell::<2>(13);
     assert_eq!(face.next(), Some(13));
     assert_eq!(face.next(), Some(14));
-    assert_eq!(face.next(), Some(15));
     assert_eq!(face.next(), Some(16));
+    assert_eq!(face.next(), Some(15));
     assert_eq!(face.next(), None);
 
     assert_eq!(cmap.beta::<1>(13), 14);
