@@ -6,11 +6,11 @@
 // ------ IMPORTS
 
 use crate::{
-    cmap::CMapResult,
+    cmap::{CMapError, CMapResult},
     prelude::{DartIdType, OrbitPolicy},
 };
 use downcast_rs::{impl_downcast, Downcast};
-use std::any::Any;
+use std::any::{type_name, Any};
 use std::fmt::Debug;
 use stm::{atomically, StmResult, Transaction};
 
@@ -27,7 +27,7 @@ use stm::{atomically, StmResult, Transaction};
 /// like this:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::AttributeUpdate;
+/// use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
@@ -43,12 +43,12 @@ use stm::{atomically, StmResult, Transaction};
 ///         (attr, attr)
 ///     }
 ///
-///     fn merge_incomplete(attr: Self) -> Self {
-///         Temperature { val: attr.val / 2.0 }
+///     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+///         Ok(Temperature { val: attr.val / 2.0 })
 ///     }
 ///
-///     fn merge_from_none() -> Option<Self> {
-///         Some(Temperature { val: 0.0 })
+///     fn merge_from_none() -> CMapResult<Self> {
+///         Ok(Temperature { val: 0.0 })
 ///     }
 /// }
 ///
@@ -70,18 +70,57 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
     /// value.
     ///
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
+    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_merge` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the merge
+    /// isn't done properly from two values) and other as mores flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
+    ///
     /// The default implementation simply returns the passed value.
-    fn merge_incomplete(attr: Self) -> Self {
-        attr
+    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+        Ok(attr)
     }
 
     /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
     /// value.
     ///
-    /// The default implementation return `None`.
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
+    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_merge` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the merge
+    /// isn't done properly from two values) and others as more flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
+    ///
+    /// The default implementation return `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
-    fn merge_from_none() -> Option<Self> {
-        None
+    fn merge_from_none() -> CMapResult<Self> {
+        Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
+    }
+
+    /// Fallback splitting routine, i.e. how to obtain the new attribute value from no existing
+    /// value.
+    ///
+    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::split`],
+    /// [`UnknownAttributeStorage::try_split`], therefore of sewing methods too.
+    ///
+    /// For example, if this method returns an error for a given attribute, the `try_split` method
+    /// will fail. This allow the user to define some attributes as essential (fail if the split
+    /// isn't done properly from a value) and others as more flexible (can fallback to a default
+    /// value).
+    ///
+    /// # Errors
+    ///
+    /// The default implementation return `Err(CMapError::FailedAttributeSplit)`.
+    #[allow(clippy::must_use_candidate)]
+    fn split_from_none() -> CMapResult<(Self, Self)> {
+        Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
     }
 }
 
@@ -96,7 +135,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 /// to faces if we're modeling a 2D mesh:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, FaceIdType, OrbitPolicy};
+/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, CMapResult, FaceIdType, OrbitPolicy};
 /// use honeycomb_core::attributes::AttrSparseVec;
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
@@ -112,12 +151,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 /// #         (attr, attr)
 /// #     }
 /// #
-/// #     fn merge_incomplete(attr: Self) -> Self {
-/// #         Temperature { val: attr.val / 2.0 }
+/// #     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+/// #         Ok(Temperature { val: attr.val / 2.0 })
 /// #     }
 /// #
-/// #     fn merge_from_none() -> Option<Self> {
-/// #         Some(Temperature { val: 0.0 })
+/// #     fn merge_from_none() -> CMapResult<Self> {
+/// #         Ok(Temperature { val: 0.0 })
 /// #     }
 /// # }
 ///

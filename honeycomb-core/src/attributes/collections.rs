@@ -6,10 +6,7 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::{
-    cmap::{CMapError, CMapResult},
-    prelude::DartIdType,
-};
+use crate::{cmap::CMapResult, prelude::DartIdType};
 use num_traits::ToPrimitive;
 use stm::{atomically, StmResult, TVar, Transaction};
 
@@ -90,17 +87,17 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
             self.data[lhs_inp as usize].read(trans)?,
             self.data[rhs_inp as usize].read(trans)?,
         ) {
-            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
-            (Some(v), None) | (None, Some(v)) => Some(AttributeUpdate::merge_incomplete(v)),
+            (Some(v1), Some(v2)) => Ok(AttributeUpdate::merge(v1, v2)),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
             (None, None) => AttributeUpdate::merge_from_none(),
         };
-        if new_v.is_none() {
+        if new_v.is_err() {
             eprintln!("W: cannot merge two null attribute value");
             eprintln!("   setting new target value to `None`");
         }
         self.data[rhs_inp as usize].write(trans, None)?;
         self.data[lhs_inp as usize].write(trans, None)?;
-        self.data[out as usize].write(trans, new_v)?;
+        self.data[out as usize].write(trans, new_v.ok())?;
         Ok(())
     }
 
@@ -115,25 +112,13 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
             self.data[lhs_inp as usize].read(trans)?,
             self.data[rhs_inp as usize].read(trans)?,
         ) {
-            (Some(v1), Some(v2)) => Some(AttributeUpdate::merge(v1, v2)),
-            (Some(_), None) | (None, Some(_)) => {
-                return Err(CMapError::FailedAttributeMerge(
-                    "missing one value for merge",
-                ))
-            }
-            (None, None) => {
-                return Err(CMapError::FailedAttributeMerge(
-                    "missing both values for merge",
-                ))
-            }
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v)?,
+            (None, None) => AttributeUpdate::merge_from_none()?,
         };
-        if new_v.is_none() {
-            eprintln!("W: cannot merge two null attribute value");
-            eprintln!("   setting new target value to `None`");
-        }
         self.data[rhs_inp as usize].write(trans, None)?;
         self.data[lhs_inp as usize].write(trans, None)?;
-        self.data[out as usize].write(trans, new_v)?;
+        self.data[out as usize].write(trans, Some(new_v))?;
         Ok(())
     }
 
@@ -144,8 +129,12 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> StmResult<()> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
+        let res = if let Some(val) = self.data[inp as usize].read(trans)? {
+            Ok(AttributeUpdate::split(val))
+        } else {
+            AttributeUpdate::split_from_none()
+        };
+        if let Ok((lhs_val, rhs_val)) = res {
             self.data[inp as usize].write(trans, None)?;
             self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
             self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
@@ -165,14 +154,14 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> CMapResult<()> {
-        if let Some(val) = self.data[inp as usize].read(trans)? {
-            let (lhs_val, rhs_val) = AttributeUpdate::split(val);
-            self.data[inp as usize].write(trans, None)?;
-            self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-            self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+        let (lhs_val, rhs_val) = if let Some(val) = self.data[inp as usize].read(trans)? {
+            AttributeUpdate::split(val)
         } else {
-            return Err(CMapError::FailedAttributeSplit("no value to split from"));
-        }
+            AttributeUpdate::split_from_none()?
+        };
+        self.data[inp as usize].write(trans, None)?;
+        self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+        self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
         Ok(())
     }
 }

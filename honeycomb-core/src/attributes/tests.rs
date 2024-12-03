@@ -8,7 +8,7 @@ use super::{
     UnknownAttributeStorage,
 };
 use crate::{
-    cmap::EdgeIdType,
+    cmap::{CMapResult, EdgeIdType},
     prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
 };
 use std::any::Any;
@@ -35,12 +35,12 @@ impl AttributeUpdate for Temperature {
         (attr, attr)
     }
 
-    fn merge_incomplete(attr: Self) -> Self {
-        Temperature::from(attr.val / 2.0)
+    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+        Ok(Temperature::from(attr.val / 2.0))
     }
 
-    fn merge_from_none() -> Option<Self> {
-        Some(Temperature::from(0.0))
+    fn merge_from_none() -> CMapResult<Self> {
+        Ok(Temperature::from(0.0))
     }
 }
 
@@ -449,9 +449,9 @@ fn attribute_update() {
     assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
     assert_eq!(
         Temperature::merge_incomplete(t_ref),
-        Temperature::from(t_ref.val / 2.0)
+        Ok(Temperature::from(t_ref.val / 2.0))
     );
-    assert_eq!(Temperature::merge_from_none(), Some(Temperature::from(0.0)));
+    assert_eq!(Temperature::merge_from_none(), Ok(Temperature::from(0.0)));
 }
 
 #[test]

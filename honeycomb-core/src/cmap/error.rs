@@ -6,7 +6,7 @@ use stm::StmError;
 pub type CMapResult<T> = Result<T, CMapError>;
 
 /// `CMap` error enum.
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum CMapError {
     /// STM transaction failed.
     #[error("transaction failed")]
