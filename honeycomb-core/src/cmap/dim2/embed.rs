@@ -294,6 +294,18 @@ impl<T: CoordsFloat> CMap2<T> {
     }
     // --- big guns
 
+    /// Add a new attribute storage to the map.
+    ///
+    /// This method is useful for kernels using a specific attribute to execute, or as return
+    /// values.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute stored by the fetched storage.
+    pub fn add_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
+        self.attributes.add_storage::<A>(self.n_darts() + 1);
+    }
+
     /// Remove an entire attribute storage from the map.
     ///
     /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
