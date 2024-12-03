@@ -1,3 +1,32 @@
+//! Simple vertex relaxation routine.
+//!
+//! # Usage
+//!
+//! ```
+//! cargo build --release --bin=shift
+//! ./target/release/shift <GRID_SIZE> <N_ROUNDS>
+//! ```
+//!
+//! With:
+//! - `GRID_SIZE` the dimension of the generated (square) grid along one axis
+//! - `N_ROUNDS` the number of iterations of the relaxa6tion algorithm
+//!
+//! # Description
+//!
+//! ## Routine
+//!
+//! The algorithm fetches all vertices that are not on the border of the map, fetch all identifiers of each
+//! respective vertices' neighbors. Then, for all vertices:
+//!
+//! - compute the average between neighbors
+//1 - overwrite current vertex value with computed average
+//!
+//! ## Benchmark
+//!
+//! This binary is meant to be use to evaluate scalability of geometry-only kernels. It is parallelized using
+//! rayon, and the number of thread used for execution can be controlled using `taskset`. By controlling this,
+//! and the grid size, we can evaluate both strong and weak scaling characteristics.
+
 use rayon::prelude::*;
 
 use honeycomb::core::stm::atomically;
