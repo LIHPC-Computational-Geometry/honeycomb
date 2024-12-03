@@ -20,10 +20,14 @@ use std::collections::{BTreeSet, VecDeque};
 pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
+    /// 0-cell orbit, without using beta 0. This requires the cell to be complete / closed.
+    VertexLinear,
     /// 1-cell orbit.
     Edge,
     /// 2-cell orbit.
     Face,
+    /// 2-cell orbit, without using beta 0. This requires the cell to be complete / closed.
+    FaceLinear,
     /// Ordered array of beta functions that define the orbit.
     Custom(&'static [u8]),
 }
@@ -125,7 +129,6 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
             match self.orbit_policy {
                 OrbitPolicy::Vertex => {
                     // THIS CODE IS ONLY VALID IN 2D
-
                     let image1 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
                     if self.marked.insert(image1) {
                         // if true, we did not see this dart yet
@@ -139,6 +142,15 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                         self.pending.push_back(image2);
                     }
                 }
+                OrbitPolicy::VertexLinear => {
+                    // THIS CODE IS ONLY VALID IN 2D
+                    let image = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image);
+                    }
+                }
                 OrbitPolicy::Edge => {
                     // THIS CODE IS ONLY VALID IN 2D
                     let image = self.map_handle.beta::<2>(d);
@@ -150,7 +162,21 @@ impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
                 }
                 OrbitPolicy::Face => {
                     // THIS CODE IS ONLY VALID IN 2D
-                    // WE ASSUME THAT THE FACE IS COMPLETE
+                    let image1 = self.map_handle.beta::<1>(d);
+                    if self.marked.insert(image1) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image1);
+                    }
+                    let image2 = self.map_handle.beta::<0>(d);
+                    if self.marked.insert(image2) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        self.pending.push_back(image2);
+                    }
+                }
+                OrbitPolicy::FaceLinear => {
+                    // THIS CODE IS ONLY VALID IN 2D
                     let image = self.map_handle.beta::<1>(d);
                     if self.marked.insert(image) {
                         // if true, we did not see this dart yet
@@ -184,18 +210,34 @@ mod tests {
     use super::*;
 
     fn simple_map() -> CMap2<f64> {
-        let mut map: CMap2<f64> = CMap2::new(6);
+        let mut map: CMap2<f64> = CMap2::new(11);
+        // tri1
         map.force_one_link(1, 2);
         map.force_one_link(2, 3);
         map.force_one_link(3, 1);
+        // tri2
         map.force_one_link(4, 5);
         map.force_one_link(5, 6);
         map.force_one_link(6, 4);
+        // pent on top
+        map.force_one_link(7, 8);
+        map.force_one_link(8, 9);
+        map.force_one_link(9, 10);
+        map.force_one_link(10, 11);
+        map.force_one_link(11, 7);
+
+        // link all
         map.force_two_link(2, 4);
+        map.force_two_link(6, 7);
+
         assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
         assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());
         assert!(map.force_write_vertex(6, (1.0, 1.0)).is_none());
         assert!(map.force_write_vertex(3, (0.0, 1.0)).is_none());
+        assert!(map.force_write_vertex(9, (1.5, 1.5)).is_none());
+        assert!(map.force_write_vertex(10, (0.5, 2.0)).is_none());
+        assert!(map.force_write_vertex(11, (-0.5, 1.5)).is_none());
+
         map
     }
 
@@ -204,9 +246,30 @@ mod tests {
         let map = simple_map();
         let orbit = Orbit2::new(&map, OrbitPolicy::Custom(&[1, 2]), 3);
         let darts: Vec<DartIdType> = orbit.collect();
-        assert_eq!(darts.len(), 6);
+        assert_eq!(darts.len(), 11);
         // because the algorithm is consistent, we can predict the exact layout
-        assert_eq!(&darts, &[3, 1, 2, 4, 5, 6]);
+        assert_eq!(&darts, &[3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]);
+    }
+
+    #[test]
+    fn orbit_variants() {
+        let map = simple_map();
+
+        // face is complete, so everything works
+        let face: Vec<DartIdType> = Orbit2::new(&map, OrbitPolicy::Face, 7).collect();
+        let face_linear: Vec<DartIdType> = Orbit2::new(&map, OrbitPolicy::FaceLinear, 7).collect();
+        let face_custom: Vec<DartIdType> =
+            Orbit2::new(&map, OrbitPolicy::Custom(&[0, 1]), 7).collect();
+        assert_eq!(&face, &[7, 8, 11, 9, 10]);
+        assert_eq!(&face_linear, &[7, 8, 9, 10, 11]);
+        assert_eq!(&face_custom, &[7, 11, 8, 10, 9]);
+
+        // vertex is incomplete, so using the linear variant will yield an incomplete orbit
+        let vertex: Vec<DartIdType> = Orbit2::new(&map, OrbitPolicy::Vertex, 4).collect();
+        let vertex_linear: Vec<DartIdType> =
+            Orbit2::new(&map, OrbitPolicy::VertexLinear, 4).collect();
+        assert_eq!(&vertex, &[4, 3, 7]);
+        assert_eq!(&vertex_linear, &[4, 3]);
     }
 
     #[test]
@@ -240,9 +303,8 @@ mod tests {
         let map = simple_map();
         let orbit = Orbit2::new(&map, OrbitPolicy::Vertex, 4);
         let darts: Vec<DartIdType> = orbit.collect();
-        // note that this one fails if we start at 3, because the vertex is not complete
-        assert_eq!(darts.len(), 2);
-        assert_eq!(&darts, &[4, 3]);
+        assert_eq!(darts.len(), 3);
+        assert_eq!(&darts, &[4, 3, 7]);
     }
 
     #[test]
