@@ -121,7 +121,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     }
 }
 
-impl<'a, T: CoordsFloat> Iterator for Orbit2<'a, T> {
+impl<T: CoordsFloat> Iterator for Orbit2<'_, T> {
     type Item = DartIdType;
 
     fn next(&mut self) -> Option<Self::Item> {

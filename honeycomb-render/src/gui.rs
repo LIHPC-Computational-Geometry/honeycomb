@@ -101,7 +101,7 @@ pub struct TabViewer<'a> {
     viewport_rect: &'a mut bevy_egui::egui::Rect,
 }
 
-impl<'a> egui_dock::TabViewer for TabViewer<'a> {
+impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = CustomTab;
 
     fn title(&mut self, tab: &mut Self::Tab) -> WidgetText {
