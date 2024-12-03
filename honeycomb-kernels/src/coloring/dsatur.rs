@@ -3,13 +3,15 @@ use std::{cmp::Ordering, collections::HashMap};
 use honeycomb_core::{
     cmap::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID},
     prelude::CoordsFloat,
+    stm::atomically,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Color(u8);
+use super::Color;
 
 /// DSATUR algorithm implementation
-pub fn color<T: CoordsFloat>(cmap: &CMap2<T>) {
+pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
+    cmap.add_attribute_storage::<Color>();
+
     // build graph data as a collection of (Vertex, Vec<Neighbors>)
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = cmap
         .fetch_vertices()
@@ -36,6 +38,7 @@ pub fn color<T: CoordsFloat>(cmap: &CMap2<T>) {
         (0..nodes.len()).map(|i| (nodes[i].0, 0)).collect();
 
     // find the highest degree node to start from
+    let mut cmax = 0;
     let mut crt_node = nodes.iter().max_by(|n1, n2| n1.1.len().cmp(&n2.1.len()));
 
     while let Some((v, neighbors)) = crt_node {
@@ -52,6 +55,7 @@ pub fn color<T: CoordsFloat>(cmap: &CMap2<T>) {
         while neigh_colors.contains(&Color(tmp)) {
             tmp += 1;
         }
+        cmax = cmax.max(tmp);
 
         colors.insert(*v, Color(tmp));
 
@@ -72,4 +76,13 @@ pub fn color<T: CoordsFloat>(cmap: &CMap2<T>) {
                 }
             });
     }
+
+    atomically(|trans| {
+        for (&v, &c) in &colors {
+            cmap.write_attribute(trans, v, c)?;
+        }
+        Ok(())
+    });
+
+    cmax
 }
