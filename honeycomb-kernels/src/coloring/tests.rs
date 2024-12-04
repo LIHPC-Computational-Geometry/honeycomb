@@ -1,4 +1,5 @@
 use honeycomb_core::cmap::{CMap2, CMapBuilder, Orbit2, OrbitPolicy};
+use itertools::Itertools;
 
 use crate::coloring::{color_dsatur, Color};
 
@@ -20,9 +21,17 @@ fn dsatur_invariants() {
             .iter()
             .map(|id| (
                 map.force_read_attribute::<Color>(*id).unwrap(),
-                Orbit2::new(&map, OrbitPolicy::Vertex, *id).map(|d| map
-                    .force_read_attribute::<Color>(map.vertex_id(map.beta::<1>(d)))
-                    .unwrap())
+                Orbit2::new(&map, OrbitPolicy::Vertex, *id)
+                    .flat_map(|d| {
+                        [
+                            map.vertex_id(map.beta::<1>(d)),
+                            // needed when both nodes are on the boundary
+                            map.vertex_id(map.beta::<0>(d)),
+                        ]
+                        .into_iter()
+                    })
+                    .unique()
+                    .map(|v| map.force_read_attribute::<Color>(v).unwrap())
             ))
             .all(|(c, mut cns)| cns.all(|cn| cn != c)));
     }
@@ -49,9 +58,17 @@ fn dsatur_invariants() {
             .iter()
             .map(|id| (
                 map.force_read_attribute::<Color>(*id).unwrap(),
-                Orbit2::new(&map, OrbitPolicy::Vertex, *id).map(|d| map
-                    .force_read_attribute::<Color>(map.vertex_id(map.beta::<1>(d)))
-                    .unwrap())
+                Orbit2::new(&map, OrbitPolicy::Vertex, *id)
+                    .flat_map(|d| {
+                        [
+                            map.vertex_id(map.beta::<1>(d)),
+                            // needed when both nodes are on the boundary
+                            map.vertex_id(map.beta::<0>(d)),
+                        ]
+                        .into_iter()
+                    })
+                    .unique()
+                    .map(|v| map.force_read_attribute::<Color>(v).unwrap())
             ))
             .all(|(c, mut cns)| cns.all(|cn| cn != c)));
     }

@@ -5,6 +5,7 @@ use honeycomb_core::{
     prelude::CoordsFloat,
     stm::atomically,
 };
+use itertools::Itertools;
 
 use super::Color;
 
@@ -30,11 +31,20 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
             (
                 v,
                 Orbit2::new(cmap, OrbitPolicy::Vertex, v as DartIdType)
-                    .map(|d| cmap.vertex_id(cmap.beta::<1>(d)))
+                    .flat_map(|d| {
+                        [
+                            cmap.vertex_id(cmap.beta::<1>(d)),
+                            // needed when both nodes are on the boundary
+                            cmap.vertex_id(cmap.beta::<0>(d)),
+                        ]
+                        .into_iter()
+                    })
+                    .unique()
                     .collect(),
             )
         })
         .collect();
+
     // this can be a builtin attribute when I add a method to hijack the manager
     let mut colors: HashMap<VertexIdType, Color> = HashMap::with_capacity(nodes.len());
     let mut saturations: HashMap<VertexIdType, u8> =
