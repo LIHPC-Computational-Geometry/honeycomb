@@ -17,19 +17,13 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
         .fetch_vertices()
         .identifiers
         .into_iter()
-        .filter_map(|v| {
-            if Orbit2::new(cmap, OrbitPolicy::Vertex, v as DartIdType)
-                .any(|d| cmap.beta::<2>(d) == NULL_DART_ID)
-            {
-                None
-            } else {
-                Some((
-                    v,
-                    Orbit2::new(cmap, OrbitPolicy::Vertex, v as DartIdType)
-                        .map(|d| cmap.vertex_id(cmap.beta::<2>(d)))
-                        .collect(),
-                ))
-            }
+        .map(|v| {
+            (
+                v,
+                Orbit2::new(cmap, OrbitPolicy::Vertex, v as DartIdType)
+                    .map(|d| cmap.vertex_id(cmap.beta::<1>(d)))
+                    .collect(),
+            )
         })
         .collect();
     // this can be a builtin attribute when I add a method to hijack the manager
