@@ -6,6 +6,7 @@ use honeycomb_core::{
     stm::atomically,
 };
 use itertools::Itertools;
+use rayon::prelude::*;
 
 use super::Color;
 
@@ -26,7 +27,7 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = cmap
         .fetch_vertices()
         .identifiers
-        .into_iter()
+        .into_par_iter()
         .map(|v| {
             (
                 v,
@@ -86,11 +87,8 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
         c = 0;
     }
 
-    atomically(|trans| {
-        for (&v, &c) in &colors {
-            cmap.write_attribute(trans, v, c)?;
-        }
-        Ok(())
+    colors.into_par_iter().for_each(|(v, c)| {
+        atomically(|trans| cmap.write_attribute(trans, v, c));
     });
 
     cmax
