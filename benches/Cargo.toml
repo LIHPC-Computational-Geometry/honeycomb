@@ -17,6 +17,7 @@ _single_precision = []
 [dependencies]
 cfg-if.workspace = true
 honeycomb.workspace = true
+rayon.workspace = true
 
 [dev-dependencies]
 honeycomb-core = { workspace = true, features = ["utils"] }
@@ -33,6 +34,14 @@ path = "src/builder.rs"
 [[bin]]
 name = "grisubal"
 path = "src/grisubal.rs"
+
+[[bin]]
+name = "shift"
+path = "src/shift.rs"
+
+[[bin]]
+name = "shift-nc"
+path = "src/shift_no_conflict.rs"
 
 # benches
 
@@ -86,3 +95,4 @@ harness = false
 name = "triangulate-quads"
 path = "benches/triangulate/quads.rs"
 harness = false
+

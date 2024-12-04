@@ -4,6 +4,124 @@
 
 ## To be released
 
+**This update contains breaking changes**
+
+### Workspace
+
+*new:*
+
+* add a `shell.nix` file to handle render libs by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/219
+
+*refactor:*
+
+* update issue & PR templates by @imrn99 & @dssgabriel
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/229
+
+*deps:*
+
+* revert some upgrades that broke the render menu by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/206
+* update thiserror requirement from 1.0.64 to 2.0.3 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/221
+* bump codecov/codecov-action from 4.6.0 to 5.0.7 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/242
+
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+
+- add 3D geometry primitives by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/181
+- add struct wrappers around inner storages by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/208
+
+*refactor:*
+
+- change impls of the `fetch_<CELLS>` methods by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/204
+- improve grid building routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/209
+- **change underlying implementation of `CMap2` to add sync mechanisms** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/201
+- **turn internal `CMap2` items into structs** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/223
+- **rework `sew` methods to allow for more control** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/224
+- **update `AttributeUpdate` methods returns** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/237
+- **rework attribute semantics** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/226
+- rewrite grid building routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/241
+- **add new variants to `OrbitPolicy`** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/238
+
+*fix:*
+
+- use transactional ID computation in `atomically_two_sew` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/222
+- elude lifetimes where possible by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/244
+
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+
+*refactor:*
+
+- use prealloc methods for edge splitting by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/203
+- add intermediate compute before step 2 by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/205
+- improve dart preallocation code by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/211
+- rewrite step 1 to enable parallelization by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/210
+- clean-up module code by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/216
+
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+
+- add `fetch_...` methods benchmarks by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/202
+- add a criterion bench for triangulation functions by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/207
+- add binaries to bench scaling of non-conflicting transactions by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/240
+
+*refactor:*
+
+- unify naming & update doc by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/218
+
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+*refactor:*
+
+- update user guide & Pages deploy by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/217
+
+
 ---
 
 ## 0.6.0

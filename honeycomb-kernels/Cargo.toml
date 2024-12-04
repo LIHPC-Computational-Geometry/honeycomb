@@ -16,6 +16,7 @@ publish = true
 honeycomb-core = { workspace = true, features = ["io", "utils"] }
 itertools.workspace = true
 num-traits.workspace = true
+rayon = "1.10.0"
 thiserror.workspace = true
 vtkio.workspace = true
 
