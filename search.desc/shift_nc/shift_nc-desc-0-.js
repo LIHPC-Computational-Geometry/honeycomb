@@ -1,0 +1,1 @@
+searchState.loadedDescShard("shift_nc", 0, "Simple vertex relaxation routine.")
