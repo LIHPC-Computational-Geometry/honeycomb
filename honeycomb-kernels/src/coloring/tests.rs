@@ -7,7 +7,7 @@ use crate::coloring::{color_dsatur, Color};
 #[test]
 fn dsatur_invariants() {
     {
-        let mut map: CMap2<f64> = CMapBuilder::unit_grid(64).build().unwrap();
+        let mut map: CMap2<f64> = CMapBuilder::unit_grid(8).build().unwrap();
         let colors = 0..=color_dsatur(&mut map);
         let vertices = map.fetch_vertices().identifiers.clone();
 
@@ -37,7 +37,7 @@ fn dsatur_invariants() {
     }
 
     {
-        let mut map: CMap2<f64> = CMapBuilder::unit_triangles(2).build().unwrap();
+        let mut map: CMap2<f64> = CMapBuilder::unit_triangles(8).build().unwrap();
         let colors = 0..=color_dsatur(&mut map);
         let vertices = map.fetch_vertices().identifiers.clone();
 
