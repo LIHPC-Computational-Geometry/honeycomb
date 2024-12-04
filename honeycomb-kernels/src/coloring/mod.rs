@@ -1,3 +1,8 @@
+//! Graph colorign algorithms
+//!
+//! This module contains all coloring algorithms we implement for N-maps. The main purpose of such
+//! algorithms is to help generate independent subsets of data for meshing algorithms to process.
+
 use honeycomb_core::{
     attributes::AttrSparseVec,
     cmap::{OrbitPolicy, VertexIdType},
@@ -10,6 +15,7 @@ pub use dsatur::color as color_dsatur;
 
 // ---
 
+/// Color attribute used to mark vertices
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color(u8);
 

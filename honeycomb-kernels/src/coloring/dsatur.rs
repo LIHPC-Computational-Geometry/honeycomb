@@ -1,14 +1,23 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID},
+    cmap::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType},
     prelude::CoordsFloat,
     stm::atomically,
 };
 
 use super::Color;
 
+#[allow(clippy::missing_panics_doc)]
 /// DSATUR algorithm implementation
+///
+/// This algorithm is a coloring algorithm similar to the greedy coloring algorithm.
+///
+/// [Reference](https://en.wikipedia.org/wiki/DSatur).
+///
+/// # Return
+///
+/// The function will return the maximal used color, i.e. the `n_color_used - 1`.
 pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
     cmap.add_attribute_storage::<Color>();
 
@@ -29,7 +38,7 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
     // this can be a builtin attribute when I add a method to hijack the manager
     let mut colors: HashMap<VertexIdType, Color> = HashMap::with_capacity(nodes.len());
     let mut saturations: HashMap<VertexIdType, u8> =
-        (0..nodes.len()).map(|i| (nodes[i].0, 0)).collect();
+        (0..nodes.len()).map(|i| (nodes[i].0, 0)).collect(); // (*)
 
     // find the highest degree node to start from
     let mut cmax = 0;
@@ -39,7 +48,7 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
         let neigh_colors: Vec<Color> = neighbors
             .iter()
             .filter_map(|nghb| {
-                *saturations.get_mut(nghb).unwrap() += 1;
+                *saturations.get_mut(nghb).expect("E: unreachable") += 1; // due to (*)
                 colors.get(nghb)
             })
             .copied()
