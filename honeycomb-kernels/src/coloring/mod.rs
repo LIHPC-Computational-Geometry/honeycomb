@@ -8,7 +8,7 @@ mod dsatur;
 
 pub use dsatur::color as color_dsatur;
 
-// --- common content
+// ---
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color(u8);
@@ -28,3 +28,8 @@ impl AttributeBind for Color {
     type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
+
+// ---
+
+#[cfg(test)]
+mod tests;
