@@ -44,8 +44,6 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
             )
         })
         .collect();
-
-    // this can be a builtin attribute when I add a method to hijack the manager
     let mut colors: HashMap<VertexIdType, Color> = HashMap::with_capacity(nodes.len());
     let mut saturations: HashMap<VertexIdType, u8> =
         (0..nodes.len()).map(|i| (nodes[i].0, 0)).collect(); // (*)
@@ -53,24 +51,20 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
     // find the highest degree node to start from
     let mut cmax = 0;
     let mut crt_node = nodes.iter().max_by(|n1, n2| n1.1.len().cmp(&n2.1.len()));
+    let mut neigh_colors = Vec::new();
+    let mut c = 0;
 
     while let Some((v, neighbors)) = crt_node {
-        let neigh_colors: Vec<Color> = neighbors
-            .iter()
-            .filter_map(|nghb| {
-                *saturations.get_mut(nghb).expect("E: unreachable") += 1; // due to (*)
-                colors.get(nghb)
-            })
-            .copied()
-            .collect();
+        neigh_colors.extend(neighbors.iter().filter_map(|nghb| {
+            *saturations.get_mut(nghb).expect("E: unreachable") += 1; // due to (*)
+            colors.get(nghb)
+        }));
 
-        let mut tmp = 0;
-        while neigh_colors.contains(&Color(tmp)) {
-            tmp += 1;
+        while neigh_colors.contains(&Color(c)) {
+            c += 1;
         }
-        cmax = cmax.max(tmp);
-
-        colors.insert(*v, Color(tmp));
+        cmax = cmax.max(c);
+        colors.insert(*v, Color(c));
 
         // find next candidate that is:
         //
@@ -88,6 +82,8 @@ pub fn color<T: CoordsFloat>(cmap: &mut CMap2<T>) -> u8 {
                     order
                 }
             });
+        neigh_colors.clear();
+        c = 0;
     }
 
     atomically(|trans| {
