@@ -249,15 +249,20 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Return / Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmResult<()>;
+    ) -> CMapResult<()>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Split attribute to specified indices
@@ -279,73 +284,36 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Return / Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the split fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> StmResult<()>;
+    ) -> CMapResult<()>;
 
     // force
 
     /// Merge attributes at specified index
     ///
-    /// This variant is equivalent to `merge`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
-        atomically(|trans| self.merge(trans, out, lhs_inp, rhs_inp));
-    }
+    /// This variant is equivalent to `merge`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
+    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType);
 
     /// Split attribute to specified indices
     ///
-    /// This variant is equivalent to `split`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
-        atomically(|trans| self.split(trans, lhs_out, rhs_out, inp));
-    }
-
-    // try
-
-    /// Merge attributes at specified index
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    fn try_merge(
-        &self,
-        trans: &mut Transaction,
-        out: DartIdType,
-        lhs_inp: DartIdType,
-        rhs_inp: DartIdType,
-    ) -> CMapResult<()>;
-
-    /// Split attribute to specified indices
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    fn try_split(
-        &self,
-        trans: &mut Transaction,
-        lhs_out: DartIdType,
-        rhs_out: DartIdType,
-        inp: DartIdType,
-    ) -> CMapResult<()>;
+    /// This variant is equivalent to `split`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
+    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType);
 }
 
 impl_downcast!(UnknownAttributeStorage);
