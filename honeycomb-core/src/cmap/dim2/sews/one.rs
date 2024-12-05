@@ -70,8 +70,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 1-sew two darts.
     ///
-    /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// This variant is equivalent to `one_sew`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
     pub fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
@@ -159,8 +160,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 1-unsew two darts.
     ///
-    /// This variant is equivalent to `one_unsew`, but internally uses a transaction that will
-    /// be retried until validated.
+    /// This variant is equivalent to `one_unsew`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
     pub fn force_one_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;

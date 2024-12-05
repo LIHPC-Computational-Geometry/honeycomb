@@ -303,9 +303,8 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
     /// Merge attributes at specified index
     ///
-    /// This variant is equivalent to `merge`, but internally uses
-    /// - a transaction that will be retried until validated
-    /// - a fallback merge logic
+    /// This variant is equivalent to `merge`, but internally uses a fallback merge logic
+    #[allow(clippy::missing_errors_doc)]
     fn force_merge(
         &self,
         trans: &mut Transaction,
@@ -316,9 +315,8 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
     /// Split attribute to specified indices
     ///
-    /// This variant is equivalent to `split`, but internally uses
-    /// - a transaction that will be retried until validated
-    /// - a fallback merge logic
+    /// This variant is equivalent to `split`, but internally uses a fallback split logic
+    #[allow(clippy::missing_errors_doc)]
     fn force_split(
         &self,
         trans: &mut Transaction,

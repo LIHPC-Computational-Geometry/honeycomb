@@ -194,6 +194,7 @@ impl AttrStorageManager {
     /// ## Generic
     ///
     /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
+    #[allow(unused)]
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
         if let Some(st) = storage {
@@ -218,6 +219,7 @@ impl AttrStorageManager {
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
     #[must_use = "unused getter result - please remove this method call"]
+    #[allow(unused)]
     pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => &self.vertices[&TypeId::of::<A>()],
@@ -258,6 +260,7 @@ impl AttrStorageManager {
     ///
     /// This variant is equivalent to `merge_attributes`, but internally uses a transaction
     /// that will be retried until validated.
+    #[allow(unused)]
     pub fn force_merge_attributes(
         &self,
         trans: &mut Transaction,
@@ -354,6 +357,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[allow(unused)]
     pub fn merge_attributes(
         &self,
         trans: &mut Transaction,
@@ -476,6 +480,7 @@ impl AttrStorageManager {
     ///
     /// This variant is equivalent to `merge_attribute`, but internally uses a transaction
     /// that will be retried until validated.
+    #[allow(unused)]
     pub fn force_merge_attribute<A: AttributeBind>(
         &self,
         trans: &mut Transaction,
@@ -514,6 +519,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[allow(unused)]
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -543,6 +549,7 @@ impl AttrStorageManager {
     ///
     /// This variant is equivalent to `split_attributes`, but internally uses a transaction
     /// that will be retried until validated.
+    #[allow(unused)]
     pub fn force_split_attributes(
         &self,
         trans: &mut Transaction,
@@ -606,6 +613,7 @@ impl AttrStorageManager {
     ///
     /// This variant is equivalent to `split_face_attributes`, but internally uses a transaction
     /// that will be retried until validated.
+    #[allow(unused)]
     pub fn force_split_face_attributes(
         &self,
         trans: &mut Transaction,
@@ -642,6 +650,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[allow(unused)]
     pub fn split_attributes(
         &self,
         trans: &mut Transaction,
@@ -765,6 +774,7 @@ impl AttrStorageManager {
     ///
     /// This variant is equivalent to `split_attribute`, but internally uses a transaction
     /// that will be retried until validated.
+    #[allow(unused)]
     pub fn force_split_attribute<A: AttributeBind>(
         &self,
         trans: &mut Transaction,
@@ -803,6 +813,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[allow(unused)]
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,

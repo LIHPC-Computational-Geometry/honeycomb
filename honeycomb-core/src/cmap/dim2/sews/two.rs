@@ -171,8 +171,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 2-sew two darts.
     ///
-    /// This variant is equivalent to `two_sew`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// This variant is equivalent to `two_sew`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| {
@@ -439,8 +440,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 2-unsew two darts.
     ///
-    /// This variant is equivalent to `two_unsew`, but internally uses a transaction that will
-    /// be retried until validated.
+    /// This variant is equivalent to `two_unsew`, but internally uses
+    /// - a transaction that will be retried until validated
+    /// - a fallback merge logic
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub fn force_two_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| {
