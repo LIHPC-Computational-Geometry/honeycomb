@@ -20,9 +20,6 @@ pub enum CMapError {
     /// Geometry check failed.
     #[error("operation incompatible with map geometry: {0}")]
     IncorrectGeometry(&'static str),
-    /// No attribute value associated to specified ID.
-    #[error("missing attribute: {0}")]
-    MissingAttribute(&'static str),
     /// Accessed attribute isn't in the map storage.
     #[error("unknown attribute: {0}")]
     UnknownAttribute(&'static str),
@@ -42,8 +39,7 @@ impl From<CMapError> for StmError {
             CMapError::FailedAttributeMerge(_)
             | CMapError::FailedAttributeSplit(_)
             | CMapError::IncorrectGeometry(_)
-            | CMapError::MissingAttribute(_)
-            | CMapError::UnknownAttribute(_) => StmError::Retry,
+            | CMapError::UnknownAttribute(_) => StmError::Failure,
         }
     }
 }
