@@ -8,7 +8,7 @@ use super::{
     UnknownAttributeStorage,
 };
 use crate::{
-    cmap::{CMapError, CMapResult, EdgeIdType},
+    cmap::{CMapResult, EdgeIdType},
     prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
 };
 use std::any::Any;
@@ -310,7 +310,7 @@ fn test_merge_vertex_attributes() {
     manager.force_write_attribute(0, Temperature::from(20.0));
     manager.force_write_attribute(1, Temperature::from(30.0));
 
-    atomically(|trans| manager.merge_vertex_attributes(trans, 2, 0, 1));
+    atomically(|trans| Ok(manager.merge_vertex_attributes(trans, 2, 0, 1)?));
 
     // Verify merged result
     let merged = manager.force_read_attribute::<Temperature>(2);
@@ -325,7 +325,7 @@ fn test_split_vertex_attributes() {
     // Set initial value
     manager.force_write_attribute(0, Temperature::from(20.0));
 
-    atomically(|trans| manager.split_vertex_attributes(trans, 1, 2, 0));
+    atomically(|trans| Ok(manager.split_vertex_attributes(trans, 1, 2, 0)?));
 
     // Verify split results
     let split1 = manager.force_read_attribute::<Temperature>(1);
@@ -385,7 +385,7 @@ fn test_merge_attribute() {
     manager.force_write_attribute(0, Temperature::from(20.0));
     manager.force_write_attribute(1, Temperature::from(30.0));
 
-    atomically(|trans| manager.merge_attribute::<Temperature>(trans, 2, 0, 1));
+    atomically(|trans| Ok(manager.merge_attribute::<Temperature>(trans, 2, 0, 1)?));
 
     let merged = manager.force_read_attribute::<Temperature>(2);
     assert!(merged.is_some());
@@ -399,7 +399,7 @@ fn test_split_attribute() {
     // Set initial value
     manager.force_write_attribute(0, Temperature::from(20.0));
 
-    atomically(|trans| manager.split_attribute::<Temperature>(trans, 1, 2, 0));
+    atomically(|trans| Ok(manager.split_attribute::<Temperature>(trans, 1, 2, 0)?));
 
     let split1 = manager.force_read_attribute::<Temperature>(1);
     let split2 = manager.force_read_attribute::<Temperature>(2);
