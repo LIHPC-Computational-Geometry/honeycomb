@@ -14,6 +14,7 @@ use super::Color;
 /// DSATUR algorithm implementation
 ///
 /// This algorithm is a coloring algorithm similar to the greedy coloring algorithm.
+/// Its complexity is `O(n^2)`.
 ///
 /// [Reference](https://en.wikipedia.org/wiki/DSatur).
 ///
