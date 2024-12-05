@@ -1,6 +1,6 @@
 //! 1D sew implementations
 
-use stm::{atomically, StmResult, Transaction};
+use stm::{atomically, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,
@@ -29,8 +29,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - one (or more) attribute merge fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     ///
     /// The policy in case of failure can be defined through the transaction, using
     /// `Transaction::with_control` for construction.
@@ -39,51 +44,6 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The method may panic if the two darts are not 1-sewable.
     pub fn one_sew(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-        rhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
-        if b2lhs_dart_id == NULL_DART_ID {
-            self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
-        } else {
-            let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
-            let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
-
-            self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)?;
-
-            let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
-
-            // FIXME: VertexIdentifier should be cast to DartIdentifier
-            self.vertices
-                .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-            self.attributes
-                .merge_vertex_attributes(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-            Ok(())
-        }
-    }
-
-    /// 1-sew two darts.
-    ///
-    /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
-    /// retried until validated.
-    pub fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        atomically(|trans| self.one_sew(trans, lhs_dart_id, rhs_dart_id));
-    }
-
-    /// Attempt to 1-sew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_one_sew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -100,17 +60,43 @@ impl<T: CoordsFloat> CMap2<T> {
 
             let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
 
-            // TODO: these should be attempts, only succeding if it's a full merge
             self.vertices
-                .try_merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-            self.attributes.try_merge_vertex_attributes(
-                trans,
-                new_vid,
-                b2lhs_vid_old,
-                rhs_vid_old,
-            )?;
+                .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+            self.attributes
+                .merge_vertex_attributes(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
         }
         Ok(())
+    }
+
+    /// 1-sew two darts.
+    ///
+    /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
+    /// retried until validated.
+    pub fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+        // FIXME: this should use force variants for attribute ops
+        atomically(|trans| {
+            let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+            if b2lhs_dart_id == NULL_DART_ID {
+                self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
+            } else {
+                let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+
+                self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+
+                let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
+
+                self.vertices
+                    .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+                self.attributes.merge_vertex_attributes(
+                    trans,
+                    new_vid,
+                    b2lhs_vid_old,
+                    rhs_vid_old,
+                )?;
+                Ok(())
+            }
+        });
     }
 }
 
@@ -134,8 +120,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - one (or more) attribute merge fails
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     ///
     /// The policy in case of failure can be defined through the transaction, using
     /// `Transaction::with_control` for construction.
@@ -145,7 +136,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn one_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
+    pub fn one_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> CMapResult<()> {
         let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         if b2lhs_dart_id == NULL_DART_ID {
             self.betas.one_unlink_core(trans, lhs_dart_id)?;
@@ -156,7 +147,6 @@ impl<T: CoordsFloat> CMap2<T> {
             // update the topology
             self.betas.one_unlink_core(trans, lhs_dart_id)?;
             // split vertices & attributes from the old ID to the new ones
-            // FIXME: VertexIdentifier should be cast to DartIdentifier
             let (new_lhs, new_rhs) = (
                 self.vertex_id_transac(trans, b2lhs_dart_id)?,
                 self.vertex_id_transac(trans, rhs_dart_id)?,
@@ -173,44 +163,28 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `one_unsew`, but internally uses a transaction that will
     /// be retried until validated.
     pub fn force_one_unsew(&self, lhs_dart_id: DartIdType) {
-        atomically(|trans| self.one_unsew(trans, lhs_dart_id));
-    }
-
-    /// Attempt to 1-unsew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_one_unsew(
-        &self,
-        trans: &mut Transaction,
-        lhs_dart_id: DartIdType,
-    ) -> CMapResult<()> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
-        if b2lhs_dart_id == NULL_DART_ID {
-            self.betas.one_unlink_core(trans, lhs_dart_id)?;
-        } else {
-            // fetch IDs before topology update
-            let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
-            let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
-            // update the topology
-            self.betas.one_unlink_core(trans, lhs_dart_id)?;
-            // split vertices & attributes from the old ID to the new ones
-            // TODO: these should be attempts, only succeding if splitting a value
-            let (new_lhs, new_rhs) = (
-                self.vertex_id_transac(trans, b2lhs_dart_id)?,
-                self.vertex_id_transac(trans, rhs_dart_id)?,
-            );
-            self.vertices.try_split(trans, new_lhs, new_rhs, vid_old)?;
-            self.attributes
-                .try_split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
-        }
-        Ok(())
+        // FIXME: this should use force variants for attribute ops
+        atomically(|trans| {
+            let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+            if b2lhs_dart_id == NULL_DART_ID {
+                self.betas.one_unlink_core(trans, lhs_dart_id)?;
+            } else {
+                // fetch IDs before topology update
+                let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
+                let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                // update the topology
+                self.betas.one_unlink_core(trans, lhs_dart_id)?;
+                // split vertices & attributes from the old ID to the new ones
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                let (new_lhs, new_rhs) = (
+                    self.vertex_id_transac(trans, b2lhs_dart_id)?,
+                    self.vertex_id_transac(trans, rhs_dart_id)?,
+                );
+                self.vertices.split(trans, new_lhs, new_rhs, vid_old)?;
+                self.attributes
+                    .split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
+            }
+            Ok(())
+        });
     }
 }
