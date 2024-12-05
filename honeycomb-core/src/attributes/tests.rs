@@ -8,7 +8,7 @@ use super::{
     UnknownAttributeStorage,
 };
 use crate::{
-    cmap::{CMapResult, EdgeIdType},
+    cmap::{CMapError, CMapResult, EdgeIdType},
     prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
 };
 use std::any::Any;
