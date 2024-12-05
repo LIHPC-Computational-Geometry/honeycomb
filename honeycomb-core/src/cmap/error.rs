@@ -20,6 +20,9 @@ pub enum CMapError {
     /// Geometry check failed.
     #[error("operation incompatible with map geometry: {0}")]
     IncorrectGeometry(&'static str),
+    /// No attribute value associated to specified ID.
+    #[error("missing attribute: {0}")]
+    MissingAttribute(&'static str),
     /// Accessed attribute isn't in the map storage.
     #[error("unknown attribute: {0}")]
     UnknownAttribute(&'static str),
@@ -28,5 +31,19 @@ pub enum CMapError {
 impl From<StmError> for CMapError {
     fn from(value: StmError) -> Self {
         Self::FailedTransaction(value)
+    }
+}
+
+// by default, a map error inside of a transaction will result in a retry
+impl From<CMapError> for StmError {
+    fn from(value: CMapError) -> Self {
+        match value {
+            CMapError::FailedTransaction(e) => e,
+            CMapError::FailedAttributeMerge(_)
+            | CMapError::FailedAttributeSplit(_)
+            | CMapError::IncorrectGeometry(_)
+            | CMapError::MissingAttribute(_)
+            | CMapError::UnknownAttribute(_) => StmError::Retry,
+        }
     }
 }
