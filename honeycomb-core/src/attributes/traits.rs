@@ -306,14 +306,26 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// This variant is equivalent to `merge`, but internally uses
     /// - a transaction that will be retried until validated
     /// - a fallback merge logic
-    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType);
+    fn force_merge(
+        &self,
+        trans: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> StmResult<()>;
 
     /// Split attribute to specified indices
     ///
     /// This variant is equivalent to `split`, but internally uses
     /// - a transaction that will be retried until validated
     /// - a fallback merge logic
-    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType);
+    fn force_split(
+        &self,
+        trans: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> StmResult<()>;
 }
 
 impl_downcast!(UnknownAttributeStorage);

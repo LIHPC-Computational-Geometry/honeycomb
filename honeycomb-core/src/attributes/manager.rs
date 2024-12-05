@@ -260,18 +260,21 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_merge_attributes(
         &self,
+        trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs);
+                self.force_merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
-            OrbitPolicy::Edge => self.force_merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Edge => {
+                self.force_merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+            }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs);
+                self.force_merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
@@ -283,13 +286,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_merge_vertex_attributes(
         &self,
+        trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.vertices.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
+            storage.force_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
+        Ok(())
     }
 
     /// Execute a merging operation on all attributes associated with edges for specified cells.
@@ -298,13 +303,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_merge_edge_attributes(
         &self,
+        trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.edges.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
+            storage.force_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
+        Ok(())
     }
 
     /// Execute a merging operation on all attributes associated with faces for specified cells.
@@ -313,13 +320,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_merge_face_attributes(
         &self,
+        trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.faces.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
+            storage.force_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
+        Ok(())
     }
 
     // attribute-agnostic regular
@@ -469,18 +478,20 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_merge_attribute<A: AttributeBind>(
         &self,
+        trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.force_merge(id_out, id_in_lhs, id_in_rhs);
+            st.force_merge(trans, id_out, id_in_lhs, id_in_rhs)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
+            Ok(())
         }
     }
 
@@ -534,18 +545,21 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_split_attributes(
         &self,
+        trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.force_split_vertex_attributes(id_out_lhs, id_out_rhs, id_in);
+                self.force_split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
-            OrbitPolicy::Edge => self.force_split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Edge => {
+                self.force_split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+            }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in);
+                self.force_split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
@@ -558,13 +572,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_split_vertex_attributes(
         &self,
+        trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.vertices.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
+            storage.force_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
+        Ok(())
     }
 
     /// Execute a splitting operation on all attributes associated with edges
@@ -574,13 +590,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_split_edge_attributes(
         &self,
+        trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.edges.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
+            storage.force_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
+        Ok(())
     }
 
     /// Execute a splitting operation on all attributes associated with faces
@@ -590,13 +608,15 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_split_face_attributes(
         &self,
+        trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         for storage in self.faces.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
+            storage.force_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
+        Ok(())
     }
 
     // attribute-agnostic regular
@@ -747,18 +767,20 @@ impl AttrStorageManager {
     /// that will be retried until validated.
     pub fn force_split_attribute<A: AttributeBind>(
         &self,
+        trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
+    ) -> StmResult<()> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.force_split(id_out_lhs, id_out_rhs, id_in);
+            st.force_split(trans, id_out_lhs, id_out_rhs, id_in)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
                 std::any::type_name::<A>()
             );
+            Ok(())
         }
     }
 
