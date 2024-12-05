@@ -73,7 +73,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
     /// retried until validated.
     pub fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        // FIXME: this should use force variants for attribute ops
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
@@ -87,8 +86,8 @@ impl<T: CoordsFloat> CMap2<T> {
                 let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
 
                 self.vertices
-                    .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
-                self.attributes.merge_vertex_attributes(
+                    .force_merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old)?;
+                self.attributes.force_merge_vertex_attributes(
                     trans,
                     new_vid,
                     b2lhs_vid_old,
@@ -163,7 +162,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `one_unsew`, but internally uses a transaction that will
     /// be retried until validated.
     pub fn force_one_unsew(&self, lhs_dart_id: DartIdType) {
-        // FIXME: this should use force variants for attribute ops
         atomically(|trans| {
             let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
             if b2lhs_dart_id == NULL_DART_ID {
@@ -180,9 +178,10 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, b2lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
-                self.vertices.split(trans, new_lhs, new_rhs, vid_old)?;
+                self.vertices
+                    .force_split(trans, new_lhs, new_rhs, vid_old)?;
                 self.attributes
-                    .split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
+                    .force_split_vertex_attributes(trans, new_lhs, new_rhs, vid_old)?;
             }
             Ok(())
         });
