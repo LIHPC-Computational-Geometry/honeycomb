@@ -10,6 +10,10 @@
     - [Benchmarks](./project-structure/honeycomb-benches.md)
     - [Examples](./project-structure/honeycomb-examples.md)
 
+# Usage
+
+- [Parallelization: STM](./usage/stm.md)
+
 # Kernels
 
 - [DVR](./kernels/dvr.md)
