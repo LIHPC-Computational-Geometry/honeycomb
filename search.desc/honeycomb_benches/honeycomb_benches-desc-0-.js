@@ -1,0 +1,1 @@
+searchState.loadedDescShard("honeycomb_benches", 0, "honeycomb-benches\nFloating-point type alias.")
