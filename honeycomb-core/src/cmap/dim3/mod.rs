@@ -7,7 +7,7 @@
 
 pub mod basic_ops;
 pub mod embed;
-// pub mod links;
+pub mod links;
 // pub mod orbits;
 // pub mod sews;
 pub mod structure;
@@ -15,8 +15,8 @@ pub mod structure;
 // #[cfg(feature = "io")]
 // pub mod io;
 
-// #[cfg(feature = "utils")]
-// pub mod utils;
+#[cfg(feature = "utils")]
+pub mod utils;
 
 /// Number of beta functions defined for [`CMap3`].
 const CMAP3_BETA: usize = 4;
