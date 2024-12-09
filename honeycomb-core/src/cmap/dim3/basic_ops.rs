@@ -18,7 +18,7 @@ use crate::{
     geometry::CoordsFloat,
 };
 use std::collections::{BTreeSet, VecDeque};
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmError, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -84,6 +84,31 @@ impl<T: CoordsFloat> CMap3<T> {
 /// **Beta-related methods**
 impl<T: CoordsFloat> CMap3<T> {
     // --- read
+
+    pub fn beta_transac<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(I < 4);
+        self.betas[(I, dart_id)].read(trans)
+    }
+
+    pub fn beta_rt_transac(
+        &self,
+        trans: &mut Transaction,
+        i: u8,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(i < 4);
+        match i {
+            0 => self.beta_transac::<0>(trans, dart_id),
+            1 => self.beta_transac::<1>(trans, dart_id),
+            2 => self.beta_transac::<2>(trans, dart_id),
+            3 => self.beta_transac::<3>(trans, dart_id),
+            _ => unreachable!(),
+        }
+    }
 
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
