@@ -5,8 +5,8 @@
 //! The definitions are re-exported, direct interaction with this module
 //! should be minimal, if existing at all.
 
-// pub mod basic_ops;
-// pub mod embed;
+pub mod basic_ops;
+pub mod embed;
 // pub mod links;
 // pub mod orbits;
 // pub mod sews;
