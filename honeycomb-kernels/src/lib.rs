@@ -21,6 +21,7 @@
 
 // ------ MODULE DECLARATIONS
 
+pub mod coloring;
 pub mod grisubal;
 pub mod splits;
 pub mod triangulation;
