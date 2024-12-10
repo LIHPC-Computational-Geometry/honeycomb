@@ -15,6 +15,9 @@ honeycomb-core = { workspace = true, features = ["utils", "io"] }
 honeycomb-render = { workspace = true }
 honeycomb-kernels = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
+rayon.workspace = true
+
+# kernel
 
 [[example]]
 name = "grisubal"
@@ -35,6 +38,12 @@ path = "examples/io/write.rs"
 [[example]]
 name = "memory_usage"
 path = "examples/memory_usage/compute.rs"
+
+# parallelization
+
+[[example]]
+name = "parallel_shift"
+path = "examples/parallel_shift.rs"
 
 # rendering
 

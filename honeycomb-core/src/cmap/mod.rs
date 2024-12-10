@@ -14,11 +14,9 @@ pub use components::{
         DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType, NULL_DART_ID, NULL_EDGE_ID,
         NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
     },
+    orbits::OrbitPolicy,
 };
-pub use dim2::{
-    orbits::{Orbit2, OrbitPolicy},
-    structure::CMap2,
-};
+pub use dim2::{orbits::Orbit2, structure::CMap2};
 pub use dim3::{orbits::Orbit3, structure::CMap3};
 pub use error::{CMapError, CMapResult};
 
