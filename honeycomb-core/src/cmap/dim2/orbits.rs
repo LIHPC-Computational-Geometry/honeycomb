@@ -6,31 +6,11 @@
 // ------ IMPORTS
 
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdType, NULL_DART_ID};
+use crate::prelude::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
 
 use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
-
-/// Orbit search policy enum.
-///
-/// This is used to define special cases of orbits that are often used in
-/// algorithms. These special cases correspond to *i-cells*.
-#[derive(Debug, PartialEq)]
-pub enum OrbitPolicy {
-    /// 0-cell orbit.
-    Vertex,
-    /// 0-cell orbit, without using beta 0. This requires the cell to be complete / closed.
-    VertexLinear,
-    /// 1-cell orbit.
-    Edge,
-    /// 2-cell orbit.
-    Face,
-    /// 2-cell orbit, without using beta 0. This requires the cell to be complete / closed.
-    FaceLinear,
-    /// Ordered array of beta functions that define the orbit.
-    Custom(&'static [u8]),
-}
 
 /// Generic 2D orbit implementation
 ///
