@@ -1,0 +1,331 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Parallelization: STM - Honeycomb - User Guide</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Welcome</a></li><li class="chapter-item expanded affix "><li class="part-title">Project Structure</li><li class="chapter-item expanded "><a href="../project-structure/workspace.html"><strong aria-hidden="true">1.</strong> Workspace</a></li><li class="chapter-item expanded "><a href="../project-structure/published.html"><strong aria-hidden="true">2.</strong> Published crates</a></li><li class="chapter-item expanded "><a href="../project-structure/others.html"><strong aria-hidden="true">3.</strong> Other content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../project-structure/honeycomb-benches.html"><strong aria-hidden="true">3.1.</strong> Benchmarks</a></li><li class="chapter-item expanded "><a href="../project-structure/honeycomb-examples.html"><strong aria-hidden="true">3.2.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Usage</li><li class="chapter-item expanded "><a href="../usage/stm.html" class="active"><strong aria-hidden="true">4.</strong> Parallelization: STM</a></li><li class="chapter-item expanded affix "><li class="part-title">Kernels</li><li class="chapter-item expanded "><a href="../kernels/dvr.html"><strong aria-hidden="true">5.</strong> DVR</a></li><li class="chapter-item expanded "><a href="../kernels/grisubal.html"><strong aria-hidden="true">6.</strong> Grisubal</a></li><li class="chapter-item expanded "><a href="../kernels/triangulations.html"><strong aria-hidden="true">7.</strong> Polygon triangulation</a></li><li class="chapter-item expanded "><a href="../kernels/splits.html"><strong aria-hidden="true">8.</strong> Splits</a></li><li class="chapter-item expanded affix "><li class="part-title">Definitions</li><li class="chapter-item expanded "><a href="../definitions/introduction.html"><strong aria-hidden="true">9.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../definitions/cmaps.html"><strong aria-hidden="true">10.</strong> Combinatorial Maps</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/darts.html"><strong aria-hidden="true">10.1.</strong> Darts</a></li><li class="chapter-item expanded "><a href="../definitions/betaf.html"><strong aria-hidden="true">10.2.</strong> Beta Functions</a></li><li class="chapter-item expanded "><a href="../definitions/orbits.html"><strong aria-hidden="true">10.3.</strong> Orbits</a></li><li class="chapter-item expanded "><a href="../definitions/embedding.html"><strong aria-hidden="true">10.4.</strong> Embedding</a></li></ol></li><li class="chapter-item expanded "><a href="../definitions/basicops.html"><strong aria-hidden="true">11.</strong> Basic Operations</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/changeNdim.html"><strong aria-hidden="true">11.1.</strong> Add / Remove a dimension</a></li><li class="chapter-item expanded "><a href="../definitions/changeNdart.html"><strong aria-hidden="true">11.2.</strong> Add / Remove a free dart</a></li><li class="chapter-item expanded "><a href="../definitions/sew.html"><strong aria-hidden="true">11.3.</strong> Sewing / Unsewing operation</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Honeycomb - User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="the-transactional-memory-model"><a class="header" href="#the-transactional-memory-model">The transactional memory model</a></h1>
+<hr />
+<h2 id="our-model"><a class="header" href="#our-model">Our model</a></h2>
+<p>Due to Rust's ownership semantics, using our map structures in parallel require the addition of
+synchronization mechanism to the structure. While using primitives such as atomics and mutexes
+would be enough to get programs to compile, they would yield an incorrect implementation with
+undefined behaviors. This is due to the scope of the operations defined on a map, for example,
+the following operation is executed on all affected attributes of a sew:</p>
+<figure style="text-align:center">
+    <img src="../images/attribute_merge.svg" alt="Merge Operation" />
+    <figcaption><i>Attribute merging operation. This occurs at each sew operation.</i></figcaption>
+</figure>
+<p>To ensure our operators do not affect the integrity of the data structure, we use Software
+Transactional Memory (STM) to handle high-level synchronization of the structure. </p>
+<h2 id="example-vertex-relaxation-to-neighbors-average"><a class="header" href="#example-vertex-relaxation-to-neighbors-average">Example: Vertex relaxation to neighbors' average</a></h2>
+<p>In the following routine, we shift each vertex that's not on a boundary to the average of its
+neighbors posisitions. In this case, transactions allow us to ensure we won't compute a new
+position from a value that has been replaced since the start of the computation.</p>
+<h3 id="code"><a class="header" href="#code">Code</a></h3>
+<pre><code class="language-Rust">use honeycomb_core::{
+    prelude::{
+        CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy,
+        Vertex2, VertexIdType, NULL_DART_ID,
+    },
+    stm::atomically,
+};
+use rayon::prelude::*;
+
+const SIZE: usize = 256;
+const N_ROUNDS: usize = 100;
+
+fn main() {
+    // generate a simple grid as input
+    let map: CMap2&lt;f64&gt; = CMapBuilder::unit_triangles(SIZE).build().unwrap();
+
+    // fetch all vertices that are not on the boundary of the map
+    let nodes: Vec&lt;(VertexIdType, Vec&lt;VertexIdType&gt;)&gt; = map
+        .fetch_vertices()
+        .identifiers
+        .into_iter()
+        .filter_map(|v| {
+            // the condition detects if we're on the boundary
+            if Orbit2::new(&amp;map, OrbitPolicy::Vertex, v as DartIdType)
+                .any(|d| map.beta::&lt;2&gt;(d) == NULL_DART_ID)
+            {
+                None
+            } else {
+                // the orbit transformation yields neighbor IDs
+                Some((
+                    v,
+                    Orbit2::new(&amp;map, OrbitPolicy::Vertex, v as DartIdType)
+                        .map(|d| map.vertex_id(map.beta::&lt;2&gt;(d)))
+                        .collect(),
+                ))
+            }
+        })
+        .collect();
+
+    // main loop
+    let mut round = 0;
+    loop {
+        // process nodes in parallel
+        nodes.par_iter().for_each(|(vid, neigh)| {
+            // we need a transaction here to avoid UBs, since there's
+            // no guarantee we won't process neighbor nodes concurrently
+           atomically(|trans| {
+                let mut new_val = Vertex2::default();
+                for v in neigh {
+                    let vertex = map.read_vertex(trans, *v)?.unwrap();
+                    new_val.0 += vertex.0;
+                    new_val.1 += vertex.1;
+                }
+                new_val.0 /= neigh.len() as f64;
+                new_val.1 /= neigh.len() as f64;
+                map.write_vertex(trans, *vid, new_val)
+            });
+            // the transaction will ensure that we do not validate an operation
+            // where inputs changed due to instruction interleaving between threads
+            // here, it will retry the transaction until it can be validated
+        });
+
+        round += 1;
+        if round &gt;= N_ROUNDS {
+            break;
+        }
+    }
+
+    std::hint::black_box(map);
+}
+</code></pre>
+<h3 id="breakdown"><a class="header" href="#breakdown">Breakdown</a></h3>
+<p>The main map structure, <code>CMap2</code>, can be edited in parallel using transactions to ensure algorithm
+correctness.</p>
+<p>The implementation isn't bound to a parallelization framework. In our example, we use the <code>rayon</code>
+crate for convenience, but we could very well dispatch work using <code>std::thread</code> items, or roll out
+our own thread pool implementation.</p>
+<p>In the main computation loop, we use a transaction to ensure each new vertex value is computed from
+the current neighbor's values. The errors generated by <code>read_vertex</code> and <code>write_vertex</code> are used to
+detect any changes to the data used in the transaction, here, the list of <code>neigh</code> vertices.</p>
+<p>Note that we use the default control flow in case of transaction failure here. Essentially, the
+transaction will be re-attempted until its changes can be committed. The user can opt out of the
+retry loop and cancel the operation using the <code>Transaction::with_control</code> function. It is possible
+to introduce more nuance to the control flow, using <code>StmError</code> to differentiate failure from an
+explicit <code>retry</code> call.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../project-structure/honeycomb-examples.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../kernels/dvr.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../project-structure/honeycomb-examples.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../kernels/dvr.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

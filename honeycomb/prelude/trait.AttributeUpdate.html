@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generic attribute trait for logical behavior description"><title>AttributeUpdate in honeycomb::prelude - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (a224f3807 2024-12-09)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb/index.html">honeycomb</a><span class="version">0.6.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Attribute<wbr>Update</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.merge" title="merge">merge</a></li><li><a href="#tymethod.split" title="split">split</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.merge_from_none" title="merge_from_none">merge_from_none</a></li><li><a href="#method.merge_incomplete" title="merge_incomplete">merge_incomplete</a></li><li><a href="#method.split_from_none" title="split_from_none">split_from_none</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb::<wbr>prelude</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb</a>::<wbr><a href="index.html">prelude</a></span><h1>Trait <span class="trait">AttributeUpdate</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_core/attributes/traits.rs.html#63">Source</a> </span></div><pre class="rust item-decl"><code>pub trait AttributeUpdate:
+    <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>
+    + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>
+    + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a>
+    + <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>
+    + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> {
+    // Required methods
+    fn <a href="#tymethod.merge" class="fn">merge</a>(attr1: Self, attr2: Self) -&gt; Self;
+<span class="item-spacer"></span>    fn <a href="#tymethod.split" class="fn">split</a>(attr: Self) -&gt; (Self, Self);
+
+    // Provided methods
+    fn <a href="#method.merge_incomplete" class="fn">merge_incomplete</a>(attr: Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.merge_from_none" class="fn">merge_from_none</a>() -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt; { ... }
+<span class="item-spacer"></span>    fn <a href="#method.split_from_none" class="fn">split_from_none</a>() -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(Self, Self), <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt; { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generic attribute trait for logical behavior description</p>
+<p>This trait can be implemented for a given attribute in order to define the behavior to
+follow when (un)sewing operations result in an update of the attribute.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>For an intensive property of a system (e.g. a temperature), an implementation would look
+like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>honeycomb_core::prelude::{AttributeUpdate, CMapResult};
+
+<span class="attr">#[derive(Clone, Copy, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Temperature {
+    <span class="kw">pub </span>val: f32
+}
+
+<span class="kw">impl </span>AttributeUpdate <span class="kw">for </span>Temperature {
+    <span class="kw">fn </span>merge(attr1: <span class="self">Self</span>, attr2: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        Temperature { val: (attr1.val + attr2.val) / <span class="number">2.0 </span>}
+    }
+
+    <span class="kw">fn </span>split(attr: <span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
+        (attr, attr)
+    }
+
+    <span class="kw">fn </span>merge_incomplete(attr: <span class="self">Self</span>) -&gt; CMapResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(Temperature { val: attr.val / <span class="number">2.0 </span>})
+    }
+
+    <span class="kw">fn </span>merge_from_none() -&gt; CMapResult&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(Temperature { val: <span class="number">0.0 </span>})
+    }
+}
+
+<span class="kw">let </span>t1 = Temperature { val: <span class="number">273.0 </span>};
+<span class="kw">let </span>t2 = Temperature { val: <span class="number">298.0 </span>};
+
+<span class="kw">let </span>t_new = AttributeUpdate::merge(t1, t2); <span class="comment">// use AttributeUpdate::_
+</span><span class="kw">let </span>t_ref = Temperature { val: <span class="number">285.5 </span>};
+
+<span class="macro">assert_eq!</span>(Temperature::split(t_new), (t_ref, t_ref)); <span class="comment">// or Temperature::_</span></code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.merge" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#65">Source</a><h4 class="code-header">fn <a href="#tymethod.merge" class="fn">merge</a>(attr1: Self, attr2: Self) -&gt; Self</h4></section></summary><div class="docblock"><p>Merging routine, i.e. how to obtain the new attribute value from the two existing ones.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.split" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#68">Source</a><h4 class="code-header">fn <a href="#tymethod.split" class="fn">split</a>(attr: Self) -&gt; (Self, Self)</h4></section></summary><div class="docblock"><p>Splitting routine, i.e. how to obtain the two attributes from a single one.</p>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.merge_incomplete" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#84">Source</a><h4 class="code-header">fn <a href="#method.merge_incomplete" class="fn">merge_incomplete</a>(attr: Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt;</h4></section></summary><div class="docblock"><p>Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
+value.</p>
+<p>The returned value directly affects the behavior of <a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.merge" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::merge"><code>UnknownAttributeStorage::merge</code></a>,
+<a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.try_merge" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::try_merge"><code>UnknownAttributeStorage::try_merge</code></a>, therefore of sewing methods too.</p>
+<p>For example, if this method returns an error for a given attribute, the <code>try_merge</code> method
+will fail. This allow the user to define some attributes as essential (fail if the merge
+isn’t done properly from two values) and other as mores flexible (can fallback to a default
+value).</p>
+<h5 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h5>
+<p>The default implementation simply returns the passed value.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.merge_from_none" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#103">Source</a><h4 class="code-header">fn <a href="#method.merge_from_none" class="fn">merge_from_none</a>() -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt;</h4></section></summary><div class="docblock"><p>Fallback merging routine, i.e. how to obtain the new attribute value from no existing
+value.</p>
+<p>The returned value directly affects the behavior of <a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.merge" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::merge"><code>UnknownAttributeStorage::merge</code></a>,
+<a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.try_merge" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::try_merge"><code>UnknownAttributeStorage::try_merge</code></a>, therefore of sewing methods too.</p>
+<p>For example, if this method returns an error for a given attribute, the <code>try_merge</code> method
+will fail. This allow the user to define some attributes as essential (fail if the merge
+isn’t done properly from two values) and others as more flexible (can fallback to a default
+value).</p>
+<h5 id="errors-1"><a class="doc-anchor" href="#errors-1">§</a>Errors</h5>
+<p>The default implementation return <code>Err(CMapError::FailedAttributeMerge)</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.split_from_none" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#122">Source</a><h4 class="code-header">fn <a href="#method.split_from_none" class="fn">split_from_none</a>() -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(Self, Self), <a class="enum" href="../../honeycomb_core/cmap/error/enum.CMapError.html" title="enum honeycomb_core::cmap::error::CMapError">CMapError</a>&gt;</h4></section></summary><div class="docblock"><p>Fallback splitting routine, i.e. how to obtain the new attribute value from no existing
+value.</p>
+<p>The returned value directly affects the behavior of <a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.split" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::split"><code>UnknownAttributeStorage::split</code></a>,
+<a href="../../honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.html#tymethod.try_split" title="method honeycomb_core::attributes::traits::UnknownAttributeStorage::try_split"><code>UnknownAttributeStorage::try_split</code></a>, therefore of sewing methods too.</p>
+<p>For example, if this method returns an error for a given attribute, the <code>try_split</code> method
+will fail. This allow the user to define some attributes as essential (fail if the split
+isn’t done properly from a value) and others as more flexible (can fallback to a default
+value).</p>
+<h5 id="errors-2"><a class="doc-anchor" href="#errors-2">§</a>Errors</h5>
+<p>The default implementation return <code>Err(CMapError::FailedAttributeSplit)</code>.</p>
+</div></details></div><h2 id="dyn-compatibility" class="section-header">Dyn Compatibility<a href="#dyn-compatibility" class="anchor">§</a></h2><div class="dyn-compatibility-info"><p>This trait is <b>not</b> <a href="https://doc.rust-lang.org/nightly/reference/items/traits.html#object-safety">dyn compatible</a>.</p><p><i>In older versions of Rust, dyn compatibility was called "object safety", so this trait is not object safe.</i></p></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-AttributeUpdate-for-Vertex3%3CT%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/geometry/dim3/vertex.rs.html#224">Source</a><a href="#impl-AttributeUpdate-for-Vertex3%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.AttributeUpdate.html" title="trait honeycomb::prelude::AttributeUpdate">AttributeUpdate</a> for <a class="struct" href="../../honeycomb_core/geometry/dim3/vertex/struct.Vertex3.html" title="struct honeycomb_core::geometry::dim3::vertex::Vertex3">Vertex3</a>&lt;T&gt;<div class="where">where
+    T: <a class="trait" href="trait.CoordsFloat.html" title="trait honeycomb::prelude::CoordsFloat">CoordsFloat</a>,</div></h3><div class="docblock"><p>Attribute logic definitions</p>
+</div></section><div class="docblock"><ul>
+<li><strong>MERGING POLICY</strong> - The new vertex is placed at the midpoint between the two existing ones.</li>
+<li><strong>SPLITTING POLICY</strong> - The current vertex is duplicated.</li>
+<li><strong>(PARTIALLY) UNDEFINED ATTRIBUTES MERGING</strong> - The default implementations are used.</li>
+</ul>
+</div><section id="impl-AttributeUpdate-for-Vertex2%3CT%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/geometry/dim2/vertex.rs.html#204">Source</a><a href="#impl-AttributeUpdate-for-Vertex2%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.AttributeUpdate.html" title="trait honeycomb::prelude::AttributeUpdate">AttributeUpdate</a> for <a class="struct" href="struct.Vertex2.html" title="struct honeycomb::prelude::Vertex2">Vertex2</a>&lt;T&gt;<div class="where">where
+    T: <a class="trait" href="trait.CoordsFloat.html" title="trait honeycomb::prelude::CoordsFloat">CoordsFloat</a>,</div></h3><div class="docblock"><p>Attribute logic definitions</p>
+</div></section><div class="docblock"><ul>
+<li><strong>MERGING POLICY</strong> - The new vertex is placed at the midpoint between the two existing ones.</li>
+<li><strong>SPLITTING POLICY</strong> - The current vertex is duplicated.</li>
+<li><strong>(PARTIALLY) UNDEFINED ATTRIBUTES MERGING</strong> - The default implementations are used.</li>
+</ul>
+</div></div><script src="../../trait.impl/honeycomb_core/attributes/traits/trait.AttributeUpdate.js" data-ignore-extern-crates="honeycomb_core" async></script></section></div></main></body></html>
