@@ -108,7 +108,32 @@ impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
                         self.pending.push_back(image2);
                     }
                 }
-                // TODO: add Volume(Linear) variants
+                // B1, B0, B2
+                OrbitPolicy::Volume => {
+                    let image1 = self.map_handle.beta::<1>(d);
+                    if self.marked.insert(image1) {
+                        self.pending.push_back(image1);
+                    }
+                    let image2 = self.map_handle.beta::<0>(d);
+                    if self.marked.insert(image2) {
+                        self.pending.push_back(image2);
+                    }
+                    let image3 = self.map_handle.beta::<2>(d);
+                    if self.marked.insert(image3) {
+                        self.pending.push_back(image3);
+                    }
+                }
+                // B1, B2
+                OrbitPolicy::VolumeLinear => {
+                    let image1 = self.map_handle.beta::<1>(d);
+                    if self.marked.insert(image1) {
+                        self.pending.push_back(image1);
+                    }
+                    let image2 = self.map_handle.beta::<2>(d);
+                    if self.marked.insert(image2) {
+                        self.pending.push_back(image2);
+                    }
+                }
                 OrbitPolicy::Custom(beta_slice) => {
                     for beta_id in beta_slice {
                         let image = self.map_handle.beta_runtime(*beta_id, d);
