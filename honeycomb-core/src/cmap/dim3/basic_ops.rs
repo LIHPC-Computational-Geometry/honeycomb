@@ -9,16 +9,15 @@
 
 // ------ IMPORTS
 
-use crate::prelude::{
-    DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
-};
+use itertools::Itertools;
+use std::collections::{HashSet, VecDeque};
+use stm::{atomically, StmError, StmResult, Transaction};
+
 use crate::{
     attributes::UnknownAttributeStorage,
-    cmap::{CMap3, EdgeCollection, FaceCollection, VertexCollection},
+    cmap::{CMap3, DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType, NULL_DART_ID},
     geometry::CoordsFloat,
 };
-use std::collections::{BTreeSet, VecDeque};
-use stm::{atomically, StmError, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -146,7 +145,27 @@ impl<T: CoordsFloat> CMap3<T> {
 impl<T: CoordsFloat> CMap3<T> {
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        todo!()
+        let mut marked = HashSet::new();
+        let mut queue = VecDeque::new();
+        marked.insert(NULL_DART_ID);
+        queue.push_front(dart_id);
+        let mut min = dart_id;
+
+        while let Some(d) = queue.pop_front() {
+            if marked.insert(d) {
+                min = min.min(d);
+                let (b0, b2, b3) = (
+                    self.beta::<0>(d), // ?
+                    self.beta::<2>(d),
+                    self.beta::<3>(d),
+                );
+                queue.push_back(self.beta::<1>(b3));
+                queue.push_back(self.beta::<3>(b2));
+                queue.push_back(self.beta::<3>(b0)); // ?
+            }
+        }
+
+        min
     }
 
     pub fn vertex_id_transac(
@@ -154,11 +173,53 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VertexIdType, StmError> {
-        todo!()
+        let mut marked = HashSet::new();
+        let mut queue = VecDeque::new();
+        marked.insert(NULL_DART_ID);
+        queue.push_front(dart_id);
+        let mut min = dart_id;
+
+        while let Some(d) = queue.pop_front() {
+            if marked.insert(d) {
+                min = min.min(d);
+                let (b0, b2, b3) = (
+                    self.beta_transac::<0>(trans, d)?, // ?
+                    self.beta_transac::<2>(trans, d)?,
+                    self.beta_transac::<3>(trans, d)?,
+                );
+                queue.push_back(self.beta_transac::<1>(trans, b3)?);
+                queue.push_back(self.beta_transac::<3>(trans, b2)?);
+                queue.push_back(self.beta_transac::<3>(trans, b0)?); // ?
+            }
+        }
+
+        Ok(min)
     }
 
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        todo!()
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID);
+        let (mut lb, mut rb) = (dart_id, self.beta::<3>(dart_id));
+        let mut min = lb.min(rb);
+        let mut alt = true;
+
+        while marked.insert(lb) || marked.insert(rb) {
+            (lb, rb) = if alt {
+                (self.beta::<2>(lb), self.beta::<2>(rb))
+            } else {
+                (self.beta::<3>(lb), self.beta::<3>(rb))
+            };
+            if lb != NULL_DART_ID {
+                min = min.min(lb);
+            }
+            if rb != NULL_DART_ID {
+                min = min.min(rb);
+            }
+            alt = !alt;
+        }
+
+        min
     }
 
     pub fn edge_id_transac(
@@ -166,11 +227,68 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<EdgeIdType, StmError> {
-        todo!()
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID);
+        let (mut lb, mut rb) = (dart_id, self.beta_transac::<3>(trans, dart_id)?);
+        let mut min = lb.min(rb);
+        let mut alt = true;
+
+        while marked.insert(lb) || marked.insert(rb) {
+            (lb, rb) = if alt {
+                (
+                    self.beta_transac::<2>(trans, lb)?,
+                    self.beta_transac::<2>(trans, rb)?,
+                )
+            } else {
+                (
+                    self.beta_transac::<3>(trans, lb)?,
+                    self.beta_transac::<3>(trans, rb)?,
+                )
+            };
+            if lb != NULL_DART_ID {
+                min = min.min(lb);
+            }
+            if rb != NULL_DART_ID {
+                min = min.min(rb);
+            }
+            alt = !alt;
+        }
+
+        Ok(min)
     }
 
+    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        todo!()
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID);
+        let b3_dart_id = self.beta::<3>(dart_id);
+        let (mut lb, mut rb) = (dart_id, b3_dart_id);
+        let mut min = lb.min(rb);
+
+        while marked.insert(lb) || marked.insert(rb) {
+            (lb, rb) = (self.beta::<1>(lb), self.beta::<0>(rb));
+            if lb != NULL_DART_ID {
+                min = min.min(lb);
+            }
+            if rb != NULL_DART_ID {
+                min = min.min(rb);
+            }
+        }
+        // face is open, we need to iterate in the other direction
+        if lb == NULL_DART_ID || rb == NULL_DART_ID {
+            (lb, rb) = (self.beta::<0>(dart_id), self.beta::<1>(b3_dart_id));
+            while marked.insert(lb) || marked.insert(rb) {
+                (lb, rb) = (self.beta::<0>(lb), self.beta::<1>(rb));
+                if lb != NULL_DART_ID {
+                    min = min.min(lb);
+                }
+                if rb != NULL_DART_ID {
+                    min = min.min(rb);
+                }
+            }
+        }
+
+        min
     }
 
     pub fn face_id_transac(
@@ -178,22 +296,144 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<FaceIdType, StmError> {
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID);
+        let b3_dart_id = self.beta_transac::<3>(trans, dart_id)?;
+        let (mut lb, mut rb) = (dart_id, b3_dart_id);
+        let mut min = lb.min(rb);
+
+        while marked.insert(lb) || marked.insert(rb) {
+            (lb, rb) = (
+                self.beta_transac::<1>(trans, lb)?,
+                self.beta_transac::<0>(trans, rb)?,
+            );
+            if lb != NULL_DART_ID {
+                min = min.min(lb);
+            }
+            if rb != NULL_DART_ID {
+                min = min.min(rb);
+            }
+        }
+        // face is open, we need to iterate in the other direction
+        if lb == NULL_DART_ID || rb == NULL_DART_ID {
+            (lb, rb) = (
+                self.beta_transac::<0>(trans, dart_id)?,
+                self.beta_transac::<1>(trans, b3_dart_id)?,
+            );
+            while marked.insert(lb) || marked.insert(rb) {
+                (lb, rb) = (
+                    self.beta_transac::<0>(trans, lb)?,
+                    self.beta_transac::<1>(trans, rb)?,
+                );
+                if lb != NULL_DART_ID {
+                    min = min.min(lb);
+                }
+                if rb != NULL_DART_ID {
+                    min = min.min(rb);
+                }
+            }
+        }
+
+        Ok(min)
+    }
+
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn volume_id(&self, dart_id: DartIdType) -> VolumeIdType {
+        let mut marked = HashSet::new();
+        let mut queue = VecDeque::new();
+        marked.insert(NULL_DART_ID);
+        queue.push_front(dart_id);
+        let mut min = dart_id;
+
+        while let Some(d) = queue.pop_front() {
+            if marked.insert(d) {
+                min = min.min(d);
+                queue.push_back(self.beta::<1>(d));
+                queue.push_back(self.beta::<0>(d)); // ?
+                queue.push_back(self.beta::<2>(d));
+            }
+        }
+
+        min
+    }
+
+    pub fn volume_id_transac(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> Result<VolumeIdType, StmError> {
+        let mut marked = HashSet::new();
+        let mut queue = VecDeque::new();
+        marked.insert(NULL_DART_ID);
+        queue.push_front(dart_id);
+        let mut min = dart_id;
+
+        while let Some(d) = queue.pop_front() {
+            if marked.insert(d) {
+                min = min.min(d);
+                queue.push_back(self.beta_transac::<1>(trans, d)?);
+                queue.push_back(self.beta_transac::<0>(trans, d)?); // ?
+                queue.push_back(self.beta_transac::<2>(trans, d)?);
+            }
+        }
+
+        Ok(min)
+    }
+
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> () {
         todo!()
     }
 
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit2<T> {
-        todo!()
+    pub fn fetch_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .zip(self.unused_darts.iter().skip(1))
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
+                    None
+                } else {
+                    Some(self.vertex_id(d))
+                }
+            })
+            .unique()
     }
 
-    pub fn fetch_vertices(&self) -> VertexCollection<T> {
-        todo!()
+    pub fn fetch_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .zip(self.unused_darts.iter().skip(1))
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
+                    None
+                } else {
+                    Some(self.edge_id(d))
+                }
+            })
+            .unique()
     }
 
-    pub fn fetch_edges(&self) -> EdgeCollection<T> {
-        todo!()
+    pub fn fetch_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .zip(self.unused_darts.iter().skip(1))
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
+                    None
+                } else {
+                    Some(self.face_id(d))
+                }
+            })
+            .unique()
     }
 
-    pub fn fetch_faces(&self) -> FaceCollection<T> {
-        todo!()
+    pub fn fetch_volumes(&self) -> impl Iterator<Item = VolumeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .zip(self.unused_darts.iter().skip(1))
+            .filter_map(|(d, unused)| {
+                if unused.read_atomic() {
+                    None
+                } else {
+                    Some(self.volume_id(d))
+                }
+            })
+            .unique()
     }
 }

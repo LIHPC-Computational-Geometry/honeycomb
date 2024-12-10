@@ -20,6 +20,7 @@ utils = []
 
 [dependencies]
 downcast-rs.workspace = true
+itertools.workspace = true
 loom.workspace= true
 num-traits.workspace = true
 stm.workspace = true
