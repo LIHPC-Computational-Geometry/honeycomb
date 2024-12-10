@@ -15,7 +15,10 @@ use stm::{atomically, StmError, StmResult, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,
-    cmap::{CMap3, DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType, NULL_DART_ID},
+    cmap::{
+        CMap3, DartIdType, EdgeIdType, FaceIdType, Orbit3, OrbitPolicy, VertexIdType, VolumeIdType,
+        NULL_DART_ID,
+    },
     geometry::CoordsFloat,
 };
 
@@ -381,8 +384,15 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> () {
-        todo!()
+    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit3<'_, T> {
+        assert!(I < 4);
+        match I {
+            0 => Orbit3::new(self, OrbitPolicy::Vertex, dart_id),
+            1 => Orbit3::new(self, OrbitPolicy::Edge, dart_id),
+            2 => Orbit3::new(self, OrbitPolicy::Face, dart_id),
+            3 => todo!(),
+            _ => unreachable!(),
+        }
     }
 
     pub fn fetch_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {

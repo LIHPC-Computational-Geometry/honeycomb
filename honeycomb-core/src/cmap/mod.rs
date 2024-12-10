@@ -19,7 +19,7 @@ pub use dim2::{
     orbits::{Orbit2, OrbitPolicy},
     structure::CMap2,
 };
-pub use dim3::structure::CMap3;
+pub use dim3::{orbits::Orbit3, structure::CMap3};
 pub use error::{CMapError, CMapResult};
 
 #[cfg(feature = "utils")]
