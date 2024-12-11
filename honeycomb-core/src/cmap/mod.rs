@@ -7,7 +7,6 @@ mod error;
 
 pub use builder::{BuilderError, CMapBuilder};
 pub use components::{
-    collections::{EdgeCollection, FaceCollection, VertexCollection},
     identifiers::{
         DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType, NULL_DART_ID, NULL_EDGE_ID,
         NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID,
