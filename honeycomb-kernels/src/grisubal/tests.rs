@@ -234,30 +234,31 @@ fn regular_intersections() {
     // |     |     |
     // +-----+-----+
 
-    let faces = cmap.fetch_faces();
-    assert_eq!(faces.identifiers.len(), 8);
+    let faces: Vec<_> = cmap.fetch_faces().collect();
+    assert_eq!(faces.len(), 8);
     // bottom left
-    assert!(faces.identifiers.contains(&1));
+    assert!(faces.contains(&1));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 1).count(), 6);
-    assert!(faces.identifiers.contains(&3));
+    assert!(faces.contains(&3));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 3).count(), 4);
     // bottom right
-    assert!(faces.identifiers.contains(&5));
+    assert!(faces.contains(&5));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 5).count(), 6);
-    assert!(faces.identifiers.contains(&8));
+    assert!(faces.contains(&8));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 8).count(), 4);
     // top right
-    assert!(faces.identifiers.contains(&9));
+    assert!(faces.contains(&9));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 9).count(), 6);
-    assert!(faces.identifiers.contains(&10));
+    assert!(faces.contains(&10));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 10).count(), 4);
     // top left
-    assert!(faces.identifiers.contains(&14));
+    assert!(faces.contains(&14));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 14).count(), 6);
-    assert!(faces.identifiers.contains(&13));
+    assert!(faces.contains(&13));
     assert_eq!(Orbit2::new(&cmap, OrbitPolicy::Face, 13).count(), 4);
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn corner_intersection() {
     use num_traits::Float;
@@ -358,9 +359,9 @@ fn corner_intersection() {
     // +-----+-----+
 
     let faces = cmap.fetch_faces();
-    assert_eq!(faces.identifiers.len(), 7);
+    assert_eq!(faces.count(), 7);
     let edges = cmap.fetch_edges();
-    assert_eq!(edges.identifiers.len(), 20);
+    assert_eq!(edges.count(), 20);
 
     let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 1)
         .map(|d| {
