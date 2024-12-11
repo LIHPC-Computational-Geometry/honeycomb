@@ -68,7 +68,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn fetch_vertices(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_vertices());
+    black_box(map.fetch_vertices().collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -76,7 +76,7 @@ fn fetch_vertices(map: &mut CMap2<FloatType>) {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn fetch_edges(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_edges());
+    black_box(map.fetch_edges().collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -84,7 +84,7 @@ fn fetch_edges(map: &mut CMap2<FloatType>) {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn fetch_faces(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_faces());
+    black_box(map.fetch_faces().collect::<Vec<_>>());
 }
 
 library_benchmark_group!(
