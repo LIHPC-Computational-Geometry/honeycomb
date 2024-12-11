@@ -17,7 +17,7 @@ use crate::{
     cmap::{EdgeCollection, FaceCollection, VertexCollection},
     geometry::CoordsFloat,
 };
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::BTreeSet;
 use stm::{atomically, StmError, StmResult, Transaction};
 
 // ------ CONTENT
@@ -198,6 +198,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
     ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
     /// # Panics
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
@@ -217,6 +222,11 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
     /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     ///
     /// # Panics
     ///
@@ -310,6 +320,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the associated vertex ID of a given dart.
     ///
     /// This corresponds to the minimum dart ID among darts composing the topological vertex.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn vertex_id_transac(
         &self,
         trans: &mut Transaction,
@@ -352,6 +367,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the associated edge ID of a given dart.
     ///
     /// This corresponds to the minimum dart ID among darts composing the topological edge.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn edge_id_transac(
         &self,
         trans: &mut Transaction,
@@ -395,6 +415,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the associated face ID of a given dart.
     ///
     /// This corresponds to the minimum dart ID among darts composing the topological face.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
     pub fn face_id_transac(
         &self,
         trans: &mut Transaction,
