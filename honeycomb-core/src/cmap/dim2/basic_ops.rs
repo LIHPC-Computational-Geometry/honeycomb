@@ -18,7 +18,7 @@ use crate::{
     geometry::CoordsFloat,
 };
 use std::collections::{BTreeSet, VecDeque};
-use stm::{atomically, StmError, Transaction};
+use stm::{atomically, StmError, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -181,12 +181,58 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will panic if *i* is not 0, 1 or 2.
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn beta_runtime(&self, i: u8, dart_id: DartIdType) -> DartIdType {
+    pub fn beta_rt(&self, i: u8, dart_id: DartIdType) -> DartIdType {
         assert!(i < 3);
         match i {
             0 => self.beta::<0>(dart_id),
             1 => self.beta::<1>(dart_id),
             2 => self.beta::<2>(dart_id),
+            _ => unreachable!(),
+        }
+    }
+
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
+    /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn beta_transac<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(I < 3);
+        self.betas[(I, dart_id)].read(trans)
+    }
+
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
+    /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *i* is not 0, 1 or 2.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn beta_rt_transac(
+        &self,
+        trans: &mut Transaction,
+        i: u8,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(i < 3);
+        match i {
+            0 => self.beta_transac::<0>(trans, dart_id),
+            1 => self.beta_transac::<1>(trans, dart_id),
+            2 => self.beta_transac::<2>(trans, dart_id),
             _ => unreachable!(),
         }
     }

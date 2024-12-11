@@ -101,10 +101,10 @@ fn example_test() {
     assert_eq!(map.force_read_vertex(3).unwrap(), Vertex2::from((0.0, 1.0)));
     // darts
     assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
-    assert_eq!(map.beta_runtime(1, 1), 5);
-    assert_eq!(map.beta_runtime(1, 5), 6);
-    assert_eq!(map.beta_runtime(1, 6), 3);
-    assert_eq!(map.beta_runtime(1, 3), 1);
+    assert_eq!(map.beta_rt(1, 1), 5);
+    assert_eq!(map.beta_rt(1, 5), 6);
+    assert_eq!(map.beta_rt(1, 6), 3);
+    assert_eq!(map.beta_rt(1, 3), 1);
 }
 
 #[test]
