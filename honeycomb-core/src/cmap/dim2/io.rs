@@ -7,6 +7,7 @@
 
 // ------ IMPORTS
 
+use crate::cmap::{EdgeIdType, FaceIdType};
 use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID};
 
@@ -84,7 +85,7 @@ where
     T: CoordsFloat + 'static,
 {
     // common data
-    let vertex_ids: Vec<VertexIdType> = map.fetch_vertices().identifiers;
+    let vertex_ids: Vec<VertexIdType> = map.fetch_vertices().collect();
     let mut id_map: BTreeMap<VertexIdType, usize> = BTreeMap::new();
     vertex_ids.iter().enumerate().for_each(|(id, vid)| {
         id_map.insert(*vid, id);
@@ -100,7 +101,7 @@ where
     // ------ cells data
     let mut n_cells = 0;
     // --- faces
-    let face_ids = map.fetch_faces().identifiers;
+    let face_ids: Vec<FaceIdType> = map.fetch_faces().collect();
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
@@ -114,7 +115,7 @@ where
     });
 
     // --- borders
-    let edge_ids = map.fetch_edges().identifiers;
+    let edge_ids: Vec<EdgeIdType> = map.fetch_edges().collect();
     // because we do not model boundaries, we can get edges
     // from filtering isolated darts making up edges
     let edge_data = edge_ids
