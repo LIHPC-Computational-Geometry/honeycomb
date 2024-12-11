@@ -26,8 +26,8 @@ fn main() {
 
     println!("I: Start quad split process...");
     let now = Instant::now();
-    map.fetch_faces()
-        .identifiers
+    let faces: Vec<_> = map.fetch_faces().collect();
+    faces
         .iter()
         .filter(|square| splits[**square as usize % n_split])
         .for_each(|square| {
