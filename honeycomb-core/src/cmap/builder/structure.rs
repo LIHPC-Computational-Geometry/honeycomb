@@ -4,7 +4,6 @@ use crate::prelude::{AttributeBind, CMap2, GridDescriptor};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
 use thiserror::Error;
-#[cfg(feature = "io")]
 use vtkio::Vtk;
 
 // ------ CONTENT
@@ -53,7 +52,6 @@ pub struct CMapBuilder<T>
 where
     T: CoordsFloat,
 {
-    #[cfg(feature = "io")]
     pub(super) vtk_file: Option<Vtk>,
     pub(super) grid_descriptor: Option<GridDescriptor<T>>,
     pub(super) attributes: AttrStorageManager,
@@ -177,7 +175,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// See [`CMapBuilder`] example.
     pub fn build(self) -> Result<CMap2<T>, BuilderError> {
-        #[cfg(feature = "io")]
         if let Some(vfile) = self.vtk_file {
             // build from vtk
             // this routine should return a Result instead of the map directly

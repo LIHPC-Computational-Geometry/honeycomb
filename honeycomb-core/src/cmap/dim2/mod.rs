@@ -11,12 +11,10 @@ pub mod basic_ops;
 pub mod embed;
 pub mod links;
 pub mod orbits;
+pub mod serialize;
 pub mod sews;
 pub mod structure;
 pub mod utils;
-
-#[cfg(feature = "io")]
-pub mod io;
 
 // ------ CONTENT
 

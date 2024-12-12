@@ -11,7 +11,7 @@ publish = false
 autoexamples = false
 
 [dev-dependencies]
-honeycomb-core = { workspace = true, features = ["io"] }
+honeycomb-core = { workspace = true }
 honeycomb-render = { workspace = true }
 honeycomb-kernels = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
