@@ -12,13 +12,9 @@
 use crate::prelude::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
-use crate::{
-    attributes::UnknownAttributeStorage,
-    cmap::{EdgeCollection, FaceCollection, VertexCollection},
-    geometry::CoordsFloat,
-};
-use std::collections::BTreeSet;
-use stm::{atomically, StmError, StmResult, Transaction};
+use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
+use itertools::Itertools;
+use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -329,7 +325,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<VertexIdType, StmError> {
+    ) -> StmResult<VertexIdType> {
         let mut min = dart_id;
         let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
 
@@ -376,7 +372,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<EdgeIdType, StmError> {
+    ) -> StmResult<EdgeIdType> {
         // optimizing this one bc I'm tired
         let b2 = self.beta_transac::<2>(trans, dart_id)?;
         if b2 == NULL_DART_ID {
@@ -424,7 +420,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<FaceIdType, StmError> {
+    ) -> StmResult<FaceIdType> {
         let mut min = dart_id;
         let mut crt = self.beta_transac::<1>(trans, dart_id)?;
 
@@ -478,16 +474,10 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// Return a collection of all the map's vertices.
-    ///
-    /// # Return
-    ///
-    /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_vertices(&self) -> VertexCollection<T> {
-        let vids: BTreeSet<VertexIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -496,20 +486,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.vertex_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        VertexCollection::<'_, T>::new(self, vids)
+            .unique()
     }
 
-    /// Return a collection of all the map's edges.
-    ///
-    /// # Return
-    ///
-    /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's edges.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_edges(&self) -> EdgeCollection<T> {
-        let eids: BTreeSet<EdgeIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -518,20 +501,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.edge_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        EdgeCollection::<'_, T>::new(self, eids)
+            .unique()
     }
 
-    /// Return a collection of all the map's faces.
-    ///
-    /// # Return
-    ///
-    /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_faces(&self) -> FaceCollection<T> {
-        let fids: BTreeSet<EdgeIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -540,7 +516,6 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.face_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        FaceCollection::<'_, T>::new(self, fids)
+            .unique()
     }
 }
