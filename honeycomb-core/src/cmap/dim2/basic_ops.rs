@@ -292,25 +292,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the topological vertex.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        let mut min = dart_id;
-        let mut crt = self.beta::<1>(self.beta::<2>(dart_id));
-
-        // we first iterate in direct direction (B1oB2)
-        while crt != NULL_DART_ID && crt != dart_id {
-            min = min.min(crt);
-            crt = self.beta::<1>(self.beta::<2>(crt));
-        }
-        // if we landed on the null dart, the vertex is open
-        // we need to iterate in the opposite dir (B2oB0)
-        if crt == NULL_DART_ID {
-            crt = self.beta::<2>(self.beta::<0>(dart_id));
-            while crt != NULL_DART_ID {
-                min = min.min(crt);
-                crt = self.beta::<2>(self.beta::<0>(crt));
-            }
-        }
-
-        min
+        atomically(|trans| self.vertex_id_transac(trans, dart_id))
     }
 
     /// Compute the associated vertex ID of a given dart.
@@ -326,6 +308,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmResult<VertexIdType> {
+        // min encountered / current dart
         let mut min = dart_id;
         let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
 
@@ -352,12 +335,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the topological edge.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        let b2 = self.beta::<2>(dart_id);
-        if b2 == NULL_DART_ID {
-            dart_id as EdgeIdType
-        } else {
-            b2.min(dart_id) as EdgeIdType
-        }
+        atomically(|trans| self.edge_id_transac(trans, dart_id))
     }
 
     /// Compute the associated edge ID of a given dart.
@@ -387,25 +365,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the topological face.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        let mut min = dart_id;
-        let mut crt = self.beta::<1>(dart_id);
-
-        // we first iterate in direct direction (B1)
-        while crt != NULL_DART_ID && crt != dart_id {
-            min = min.min(crt);
-            crt = self.beta::<1>(crt);
-        }
-        // if we landed on the null dart, the face is open
-        // we need to iterate in the opposite dir (B0)
-        if crt == NULL_DART_ID {
-            crt = self.beta::<0>(dart_id);
-            while crt != NULL_DART_ID {
-                min = min.min(crt);
-                crt = self.beta::<0>(crt);
-            }
-        }
-
-        min
+        atomically(|trans| self.face_id_transac(trans, dart_id))
     }
 
     /// Compute the associated face ID of a given dart.
@@ -421,6 +381,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmResult<FaceIdType> {
+        // min encountered / current dart
         let mut min = dart_id;
         let mut crt = self.beta_transac::<1>(trans, dart_id)?;
 
