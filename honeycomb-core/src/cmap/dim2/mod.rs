@@ -13,12 +13,10 @@ pub mod links;
 pub mod orbits;
 pub mod sews;
 pub mod structure;
+pub mod utils;
 
 #[cfg(feature = "io")]
 pub mod io;
-
-#[cfg(feature = "utils")]
-pub mod utils;
 
 // ------ CONTENT
 

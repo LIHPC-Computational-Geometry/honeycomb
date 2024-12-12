@@ -5,7 +5,7 @@ mod components;
 mod dim2;
 mod error;
 
-pub use builder::{BuilderError, CMapBuilder};
+pub use builder::{BuilderError, CMapBuilder, GridDescriptor};
 pub use components::{
     identifiers::{
         DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType, NULL_DART_ID, NULL_EDGE_ID,
@@ -15,6 +15,3 @@ pub use components::{
 };
 pub use dim2::{orbits::Orbit2, structure::CMap2};
 pub use error::{CMapError, CMapResult};
-
-#[cfg(feature = "utils")]
-pub use builder::GridDescriptor;

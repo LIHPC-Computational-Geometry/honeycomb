@@ -25,6 +25,7 @@ fn new_beta_entry<const N: usize>() -> [TVar<DartIdType>; N] {
         .unwrap()
 }
 
+#[allow(unused)]
 impl<const N: usize> BetaFunctions<N> {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {

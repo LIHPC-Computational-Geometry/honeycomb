@@ -14,7 +14,6 @@ publish = true
 
 [features]
 io = ["dep:vtkio"]
-utils = []
 
 # deps
 

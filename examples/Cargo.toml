@@ -11,7 +11,7 @@ publish = false
 autoexamples = false
 
 [dev-dependencies]
-honeycomb-core = { workspace = true, features = ["utils", "io"] }
+honeycomb-core = { workspace = true, features = ["io"] }
 honeycomb-render = { workspace = true }
 honeycomb-kernels = { workspace = true }
 rand = { workspace = true, features = ["small_rng"] }
@@ -32,12 +32,6 @@ path = "examples/io/read.rs"
 [[example]]
 name = "io_write"
 path = "examples/io/write.rs"
-
-# memory usage
-
-[[example]]
-name = "memory_usage"
-path = "examples/memory_usage/compute.rs"
 
 # parallelization
 
