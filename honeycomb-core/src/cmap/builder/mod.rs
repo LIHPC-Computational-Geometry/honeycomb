@@ -10,7 +10,7 @@ pub mod io;
 
 // ------ RE-EXPORTS
 
-pub use grid::descriptor::GridDescriptor;
+pub use grid::GridDescriptor;
 pub use structure::{BuilderError, CMapBuilder};
 
 // ------ CONTENT

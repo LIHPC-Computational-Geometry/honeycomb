@@ -188,14 +188,9 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             let split = gridb.split_quads;
             return gridb.parse_2d().map(|(origin, ns, lens)| {
                 if split {
-                    super::grid::building_routines::build_2d_splitgrid(
-                        origin,
-                        ns,
-                        lens,
-                        self.attributes,
-                    )
+                    super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
                 } else {
-                    super::grid::building_routines::build_2d_grid(origin, ns, lens, self.attributes)
+                    super::grid::build_2d_grid(origin, ns, lens, self.attributes)
                 }
             });
         }

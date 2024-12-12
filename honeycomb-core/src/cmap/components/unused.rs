@@ -14,6 +14,7 @@ use super::identifiers::DartIdType;
 /// Unused dart tracking structure.
 pub struct UnusedDarts(Vec<TVar<bool>>);
 
+#[allow(unused)]
 impl UnusedDarts {
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
