@@ -3,10 +3,8 @@
 // ------ MODULE DECLARATIONS
 
 pub mod grid;
-pub mod structure;
-
-#[cfg(feature = "io")]
 pub mod io;
+pub mod structure;
 
 // ------ RE-EXPORTS
 

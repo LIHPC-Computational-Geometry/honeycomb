@@ -36,7 +36,7 @@ fn io_read() {
     assert_eq!(six_count, 1);
 }
 
-#[cfg(all(test, feature = "io"))]
+#[cfg(test)]
 const VTK_ASCII: &[u8] = b"
 # vtk DataFile Version 2.0
 cmap
