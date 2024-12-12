@@ -1,19 +1,13 @@
-//! Input/Output features implementation
-//!
-//! The support for I/O is currently very restricted since this is not the focus of this project.
-//! Maps can be built from and serialized to VTK legacy files (both binary and ASCII). The
-//! `DATASET` of the VTK file should be `UNSTRUCTURED_GRID`, and only a given set of `CELL_TYPES`
-//! are supported, because of orientation and dimension restriction.
-
-// ------ IMPORTS
 use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdType, Vertex2, VertexIdType};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-use num_traits::Zero;
+
 use std::collections::BTreeMap;
+
+use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
-// ------ CONTENT
+// --- descriptor impls
 
 impl<T: CoordsFloat> CMapBuilder<T> {
     /// Import and set the VTK file that will be used when building the map.
@@ -32,14 +26,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
 /// Create a [`CMapBuilder`] from an imported VTK file.
 ///
-/// This implementation is roughly equivalent to the following:
-///
-/// ```rust,no_run
-/// # use honeycomb_core::prelude::CMapBuilder;
-/// // `CMapBuilder::from_vtk_file("some/path/to/file.vtk")`, or:
-/// let builder = CMapBuilder::<f64>::default().vtk_file("some/path/to/file.vtk");
-/// ```
-///
 /// # Panics
 ///
 /// This function may panic if the file cannot be loaded.
@@ -53,6 +39,8 @@ impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CM
         }
     }
 }
+
+// --- building routine
 
 macro_rules! if_predicate_return_err {
     ($pr: expr, $er: expr) => {
@@ -315,7 +303,3 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
     }
     Ok(cmap)
 }
-
-// ------ TESTS
-#[cfg(test)]
-mod tests;
