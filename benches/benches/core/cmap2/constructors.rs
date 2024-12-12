@@ -67,32 +67,32 @@ library_benchmark_group!(
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn fetch_vertices(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_vertices());
+fn iter_vertices(map: &mut CMap2<FloatType>) {
+    black_box(map.iter_vertices().collect::<Vec<_>>());
 }
 
 #[library_benchmark]
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn fetch_edges(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_edges());
+fn iter_edges(map: &mut CMap2<FloatType>) {
+    black_box(map.iter_edges().collect::<Vec<_>>());
 }
 
 #[library_benchmark]
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn fetch_faces(map: &mut CMap2<FloatType>) {
-    black_box(map.fetch_faces());
+fn iter_faces(map: &mut CMap2<FloatType>) {
+    black_box(map.iter_faces().collect::<Vec<_>>());
 }
 
 library_benchmark_group!(
     name = bench_fetches;
     benchmarks =
-        fetch_vertices,
-        fetch_edges,
-        fetch_faces,
+        iter_vertices,
+        iter_edges,
+        iter_faces,
 );
 
 // --- i-cell group

@@ -22,9 +22,9 @@ fn example_test() {
     map.force_write_vertex(3, (0.0, 1.0));
 
     // checks
-    let faces = map.fetch_faces();
-    assert_eq!(faces.identifiers.len(), 1);
-    assert_eq!(faces.identifiers[0], 1);
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(faces.len(), 1);
+    assert_eq!(faces[0], 1);
     let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
     assert_eq!(face.next(), Some(1));
     assert_eq!(face.next(), Some(2));
@@ -41,8 +41,8 @@ fn example_test() {
     map.force_write_vertex(6, (1.0, 1.0));
 
     // checks
-    let faces = map.fetch_faces();
-    assert_eq!(&faces.identifiers, &[1, 4]);
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1, 4]);
     let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
     assert_eq!(face.next(), Some(4));
     assert_eq!(face.next(), Some(5));
@@ -60,8 +60,8 @@ fn example_test() {
     assert_eq!(map.vertex_id(3), 3);
     assert_eq!(map.vertex_id(4), 3);
     assert_eq!(map.force_read_vertex(3).unwrap(), Vertex2::from((0.0, 1.5)));
-    let edges = map.fetch_edges();
-    assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 2, 3, 5, 6]);
 
     // adjust bottom-right & top-left vertex position
     assert_eq!(
@@ -89,12 +89,12 @@ fn example_test() {
     map.force_one_sew(6, 3);
 
     // i-cells
-    let faces = map.fetch_faces();
-    assert_eq!(&faces.identifiers, &[1]);
-    let edges = map.fetch_edges();
-    assert_eq!(&edges.identifiers, &[1, 3, 5, 6]);
-    let vertices = map.fetch_vertices();
-    assert_eq!(&vertices.identifiers, &[1, 3, 5, 6]);
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1]);
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 3, 5, 6]);
+    let vertices: Vec<_> = map.iter_vertices().collect();
+    assert_eq!(&vertices, &[1, 3, 5, 6]);
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(5).unwrap(), Vertex2::from((1.0, 0.0)));
     assert_eq!(map.force_read_vertex(6).unwrap(), Vertex2::from((1.0, 1.0)));

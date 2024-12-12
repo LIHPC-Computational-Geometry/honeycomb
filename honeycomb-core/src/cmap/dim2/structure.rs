@@ -97,15 +97,15 @@ use crate::{
 /// map.force_write_vertex(6, (1.0, 1.0));
 ///
 /// // there should be two faces now
-/// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1, 4]);
+/// let faces: Vec<_> = map.iter_faces().collect();
+/// assert_eq!(&faces, &[1, 4]);
 ///
 /// // sew both triangles
 /// map.force_two_sew(2, 4);
 ///
 /// // there are 5 edges now, making up a square & its diagonal
-/// let edges = map.fetch_edges();
-/// assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
+/// let edges: Vec<_> = map.iter_edges().collect();
+/// assert_eq!(&edges, &[1, 2, 3, 5, 6]);
 ///
 /// // adjust bottom-right & top-left vertex position
 /// // the returned values were the average of the sewn vertices
@@ -132,11 +132,11 @@ use crate::{
 /// map.force_one_sew(6, 3);
 ///
 /// // there's only the square face left
-/// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1]);
+/// let faces: Vec<_> = map.iter_faces().collect();
+/// assert_eq!(&faces, &[1]);
 /// // we can check the vertices
-/// let vertices = map.fetch_vertices();
-/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.force_read_vertex(*vertex_id).unwrap());
+/// let vertices = map.iter_vertices();
+/// let mut value_iterator = vertices.map(|vertex_id| map.force_read_vertex(vertex_id).unwrap());
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5

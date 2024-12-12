@@ -48,8 +48,6 @@ fn main() {
     // fetch all vertices that are not on the boundary of the map
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = map
         .fetch_vertices()
-        .identifiers
-        .into_iter()
         .filter_map(|v| {
             // the condition detects if we're on the boundary
             if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)

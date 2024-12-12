@@ -51,22 +51,21 @@ pub struct Capture {
 impl Capture {
     #[allow(clippy::too_many_lines)]
     pub fn new<T: CoordsFloat>(cap_id: usize, cmap: &CMap2<T>) -> Self {
-        let map_vertices = cmap.fetch_vertices();
-        let map_edges = cmap.fetch_edges();
-        let map_faces = cmap.fetch_faces();
+        let map_vertices: Vec<_> = cmap.iter_vertices().collect();
+        let map_edges: Vec<_> = cmap.iter_edges().collect();
+        let map_faces: Vec<_> = cmap.iter_faces().collect();
         let metadata = CaptureMD {
             capture_id: cap_id,
             n_darts: cmap.n_darts() - cmap.n_unused_darts(),
             n_vertices: cmap.n_vertices(),
-            n_edges: map_edges.identifiers.len(),
-            n_faces: map_faces.identifiers.len(),
+            n_edges: map_edges.len(),
+            n_faces: map_faces.len(),
             n_volumes: 0,
         };
 
         let mut index_map: HashMap<VertexIdType, usize> = HashMap::with_capacity(cmap.n_vertices());
 
         let vertex_vals: Vec<Vec3> = map_vertices
-            .identifiers
             .iter()
             .enumerate()
             .map(|(idx, vid)| {
@@ -80,13 +79,11 @@ impl Capture {
             .collect();
 
         let vertices: Vec<VertexBundle> = map_vertices
-            .identifiers
             .iter()
             .map(|id| VertexBundle::new(cap_id, *id, index_map[id]))
             .collect();
 
         let edges: Vec<EdgeBundle> = map_edges
-            .identifiers
             .iter()
             .map(|id| {
                 let v1id = cmap.vertex_id(*id as DartIdType);
@@ -103,7 +100,6 @@ impl Capture {
         let mut darts: Vec<(DartHeadBundle, DartBodyBundle)> = Vec::new();
 
         let faces: Vec<FaceBundle> = map_faces
-            .identifiers
             .iter()
             .map(|id| {
                 let vertex_ids: Vec<usize> =
