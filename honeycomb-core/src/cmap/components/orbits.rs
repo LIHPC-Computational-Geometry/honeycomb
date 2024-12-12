@@ -14,6 +14,10 @@ pub enum OrbitPolicy {
     Face,
     /// 2-cell orbit, without using beta 0. This requires the cell to be complete / closed.
     FaceLinear,
+    /// 3-cell orbit.
+    Volume,
+    /// 3-cell orbit, without using beta 0. This requires the cell to be complete / closed.
+    VolumeLinear,
     /// Ordered array of beta functions that define the orbit.
     Custom(&'static [u8]),
 }
