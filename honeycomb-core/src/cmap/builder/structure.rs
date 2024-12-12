@@ -1,22 +1,13 @@
-//! Module short description
-//!
-//! Should you interact with this module directly?
-//!
-//! Content description if needed
-
 // ------ IMPORTS
 
-#[cfg(feature = "utils")]
-use super::GridDescriptor;
-use crate::prelude::{AttributeBind, CMap2};
+use crate::prelude::{AttributeBind, CMap2, GridDescriptor};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
+
 use thiserror::Error;
 #[cfg(feature = "io")]
 use vtkio::Vtk;
 
 // ------ CONTENT
-
-// --- common error enum
 
 /// Builder-level error enum
 ///
@@ -39,8 +30,6 @@ pub enum BuilderError {
     #[error("unsupported data in the vtk file - {0}")]
     UnsupportedVtkData(&'static str),
 }
-
-// --- main struct
 
 /// Combinatorial map builder structure.
 ///
@@ -66,7 +55,6 @@ where
 {
     #[cfg(feature = "io")]
     pub(super) vtk_file: Option<Vtk>,
-    #[cfg(feature = "utils")]
     pub(super) grid_descriptor: Option<GridDescriptor<T>>,
     pub(super) attributes: AttrStorageManager,
     pub(super) n_darts: usize,
@@ -127,7 +115,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             // this routine should return a Result instead of the map directly
             return super::io::build_2d_from_vtk(vfile, self.attributes);
         }
-        #[cfg(feature = "utils")]
         if let Some(gridb) = self.grid_descriptor {
             // build from grid descriptor
             let split = gridb.split_quads;

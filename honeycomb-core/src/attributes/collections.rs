@@ -204,24 +204,3 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         self.remove_core(trans, &id)
     }
 }
-
-#[cfg(feature = "utils")]
-impl<T: AttributeBind + AttributeUpdate> AttrSparseVec<T> {
-    /// Return the amount of space allocated for the storage.
-    #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn allocated_size(&self) -> usize {
-        self.data.capacity() * std::mem::size_of::<Option<T>>()
-    }
-
-    /// Return the total amount of space used by the storage.
-    #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn effective_size(&self) -> usize {
-        self.data.len() * std::mem::size_of::<Option<T>>()
-    }
-
-    /// Return the amount of space used by valid entries of the storage.
-    #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn used_size(&self) -> usize {
-        self.n_attributes() * size_of::<TVar<Option<T>>>()
-    }
-}

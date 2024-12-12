@@ -18,7 +18,6 @@ use crate::prelude::{CMapBuilder, GridDescriptor};
 // --- impl items for CMapBuilder
 
 impl<T: CoordsFloat> CMapBuilder<T> {
-    #[cfg(feature = "utils")]
     /// Set the [`GridDescriptor`] that will be used when building the map.
     #[must_use = "unused builder object, consider removing this method call"]
     pub fn grid_descriptor(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
@@ -39,7 +38,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 /// // `CMapBuilder::from(gridd)`, or:
 /// let builder = CMapBuilder::<f64>::default().grid_descriptor(gridd);
 /// ```
-#[cfg(feature = "utils")]
 impl<T: CoordsFloat> From<GridDescriptor<T>> for CMapBuilder<T> {
     fn from(value: GridDescriptor<T>) -> Self {
         CMapBuilder {
