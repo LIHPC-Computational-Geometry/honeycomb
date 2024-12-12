@@ -28,7 +28,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
-    pub fn two_link(
+    pub(super) fn two_link(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -41,7 +41,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `two_link`, but internally uses a transaction that will be
     /// retried until validated.
-    pub fn force_two_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+    pub(super) fn force_two_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 }
@@ -66,7 +66,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 2-free.
-    pub fn two_unlink(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
+    pub(super) fn two_unlink(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+    ) -> StmResult<()> {
         self.betas.two_unlink_core(trans, lhs_dart_id)
     }
 
@@ -74,7 +78,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `two_unlink`, but internally uses a transaction that will
     /// be retried until validated.
-    pub fn force_two_unlink(&self, lhs_dart_id: DartIdType) {
+    pub(super) fn force_two_unlink(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.betas.two_unlink_core(trans, lhs_dart_id));
     }
 }

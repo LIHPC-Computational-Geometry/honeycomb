@@ -28,7 +28,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
-    pub fn one_link(
+    pub(super) fn one_link(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -41,7 +41,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
     /// retried until validated.
-    pub fn force_one_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+    pub(super) fn force_one_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id));
     }
 }
@@ -67,7 +67,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn one_unlink(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
+    pub(super) fn one_unlink(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+    ) -> StmResult<()> {
         self.betas.one_unlink_core(trans, lhs_dart_id)
     }
 
@@ -85,7 +89,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// This method may panic if one of `lhs_dart_id` is already 1-free.
-    pub fn force_one_unlink(&self, lhs_dart_id: DartIdType) {
+    pub(super) fn force_one_unlink(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.betas.one_unlink_core(trans, lhs_dart_id));
     }
 }

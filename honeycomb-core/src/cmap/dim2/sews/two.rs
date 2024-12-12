@@ -41,7 +41,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not 2-sewable,
     /// - the method cannot resolve orientation issues.
     #[allow(clippy::too_many_lines)]
-    pub fn two_sew(
+    pub(super) fn two_sew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -168,7 +168,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `two_sew`, but internally uses a transaction that will be
     /// retried until validated.
-    pub fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+    pub(super) fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.two_sew(trans, lhs_dart_id, rhs_dart_id));
     }
 
@@ -184,7 +184,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
-    pub fn try_two_sew(
+    pub(super) fn try_two_sew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -351,7 +351,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if there's a missing attribute at the splitting step. While the
     /// implementation could fall back to a simple unlink operation, it probably should have been
     /// called by the user, instead of unsew, in the first place.
-    pub fn two_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
+    pub(super) fn two_unsew(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+    ) -> StmResult<()> {
         let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
@@ -446,7 +450,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `two_unsew`, but internally uses a transaction that will
     /// be retried until validated.
-    pub fn force_two_unsew(&self, lhs_dart_id: DartIdType) {
+    pub(super) fn force_two_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.two_unsew(trans, lhs_dart_id));
     }
 
@@ -461,7 +465,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_two_unsew(
+    pub(super) fn try_two_unsew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
