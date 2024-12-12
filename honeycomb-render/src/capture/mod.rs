@@ -51,9 +51,9 @@ pub struct Capture {
 impl Capture {
     #[allow(clippy::too_many_lines)]
     pub fn new<T: CoordsFloat>(cap_id: usize, cmap: &CMap2<T>) -> Self {
-        let map_vertices: Vec<_> = cmap.fetch_vertices().collect();
-        let map_edges: Vec<_> = cmap.fetch_edges().collect();
-        let map_faces: Vec<_> = cmap.fetch_faces().collect();
+        let map_vertices: Vec<_> = cmap.iter_vertices().collect();
+        let map_edges: Vec<_> = cmap.iter_edges().collect();
+        let map_faces: Vec<_> = cmap.iter_faces().collect();
         let metadata = CaptureMD {
             capture_id: cap_id,
             n_darts: cmap.n_darts() - cmap.n_unused_darts(),

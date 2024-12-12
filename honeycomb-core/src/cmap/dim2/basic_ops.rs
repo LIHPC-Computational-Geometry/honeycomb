@@ -435,7 +435,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
+    pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
@@ -450,7 +450,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return an iterator over IDs of all the map's edges.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
+    pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
@@ -465,7 +465,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
+    pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {

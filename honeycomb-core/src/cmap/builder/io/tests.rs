@@ -13,10 +13,10 @@ fn io_read() {
     let cmap: CMap2<f32> = super::build_2d_from_vtk(vtk, AttrStorageManager::default()).unwrap();
 
     // check result
-    let faces: Vec<_> = cmap.fetch_faces().collect();
+    let faces: Vec<_> = cmap.iter_faces().collect();
     assert_eq!(faces.len(), 4);
-    assert_eq!(cmap.fetch_edges().count(), 12);
-    assert_eq!(cmap.fetch_vertices().count(), 9);
+    assert_eq!(cmap.iter_edges().count(), 12);
+    assert_eq!(cmap.iter_vertices().count(), 9);
 
     let mut n_vertices_per_face: Vec<usize> = faces
         .iter()

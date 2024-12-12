@@ -22,7 +22,7 @@ fn example_test() {
     map.force_write_vertex(3, (0.0, 1.0));
 
     // checks
-    let faces: Vec<_> = map.fetch_faces().collect();
+    let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
     let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
@@ -41,7 +41,7 @@ fn example_test() {
     map.force_write_vertex(6, (1.0, 1.0));
 
     // checks
-    let faces: Vec<_> = map.fetch_faces().collect();
+    let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
     let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
     assert_eq!(face.next(), Some(4));
@@ -60,7 +60,7 @@ fn example_test() {
     assert_eq!(map.vertex_id(3), 3);
     assert_eq!(map.vertex_id(4), 3);
     assert_eq!(map.force_read_vertex(3).unwrap(), Vertex2::from((0.0, 1.5)));
-    let edges: Vec<_> = map.fetch_edges().collect();
+    let edges: Vec<_> = map.iter_edges().collect();
     assert_eq!(&edges, &[1, 2, 3, 5, 6]);
 
     // adjust bottom-right & top-left vertex position
@@ -89,11 +89,11 @@ fn example_test() {
     map.force_one_sew(6, 3);
 
     // i-cells
-    let faces: Vec<_> = map.fetch_faces().collect();
+    let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1]);
-    let edges: Vec<_> = map.fetch_edges().collect();
+    let edges: Vec<_> = map.iter_edges().collect();
     assert_eq!(&edges, &[1, 3, 5, 6]);
-    let vertices: Vec<_> = map.fetch_vertices().collect();
+    let vertices: Vec<_> = map.iter_vertices().collect();
     assert_eq!(&vertices, &[1, 3, 5, 6]);
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(5).unwrap(), Vertex2::from((1.0, 0.0)));

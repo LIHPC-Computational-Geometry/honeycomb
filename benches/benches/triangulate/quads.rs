@@ -15,7 +15,7 @@ fn fan_bench() -> Result<(), TriangulateError> {
     let mut map: CMap2<FloatType> = CMapBuilder::default().vtk_file(PATH).build().unwrap();
 
     // prealloc darts
-    let faces: Vec<_> = map.fetch_faces().collect();
+    let faces: Vec<_> = map.iter_faces().collect();
     let n_darts_per_face: Vec<_> = faces
         .iter()
         .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)
@@ -49,7 +49,7 @@ fn earclip_bench() -> Result<(), TriangulateError> {
     let mut map: CMap2<FloatType> = CMapBuilder::default().vtk_file(PATH).build().unwrap();
 
     // prealloc darts
-    let faces: Vec<_> = map.fetch_faces().collect();
+    let faces: Vec<_> = map.iter_faces().collect();
     let n_darts_per_face: Vec<_> = faces
         .iter()
         .map(|id| (Orbit2::new(&map, OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)

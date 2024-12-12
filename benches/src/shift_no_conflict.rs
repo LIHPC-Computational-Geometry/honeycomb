@@ -53,7 +53,7 @@ fn main() {
     let map: CMap2<f64> = CMapBuilder::unit_grid(n_squares).build().unwrap();
 
     // fetch all vertices that are not on the boundary of the map
-    let tmp = map.fetch_vertices().filter_map(|v| {
+    let tmp = map.iter_vertices().filter_map(|v| {
         if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
             .any(|d| map.beta::<2>(d) == NULL_DART_ID)
         {

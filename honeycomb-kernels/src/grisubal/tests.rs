@@ -234,7 +234,7 @@ fn regular_intersections() {
     // |     |     |
     // +-----+-----+
 
-    let faces: Vec<_> = cmap.fetch_faces().collect();
+    let faces: Vec<_> = cmap.iter_faces().collect();
     assert_eq!(faces.len(), 8);
     // bottom left
     assert!(faces.contains(&1));
@@ -358,9 +358,9 @@ fn corner_intersection() {
     // |     |     |
     // +-----+-----+
 
-    let faces = cmap.fetch_faces();
+    let faces = cmap.iter_faces();
     assert_eq!(faces.count(), 7);
-    let edges = cmap.fetch_edges();
+    let edges = cmap.iter_edges();
     assert_eq!(edges.count(), 20);
 
     let face1_vertices: Vec<Vertex2<f64>> = Orbit2::new(&cmap, OrbitPolicy::Face, 1)

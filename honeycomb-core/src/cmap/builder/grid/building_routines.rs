@@ -95,7 +95,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
     // check the number of built faces
     // this is set as debug only because the operation cost scales with map size
     // this can quickly overshadow the exectime of all previous code
-    debug_assert_eq!(map.fetch_faces().count(), n_square_x * n_square_y);
+    debug_assert_eq!(map.iter_faces().count(), n_square_x * n_square_y);
 
     map
 }
@@ -202,7 +202,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     // check the number of built faces
     // this is set as debug only because the operation cost scales with map size
     // this can quickly overshadow the exectime of all previous code
-    debug_assert_eq!(map.fetch_faces().count(), 2 * n_square_x * n_square_y);
+    debug_assert_eq!(map.iter_faces().count(), 2 * n_square_x * n_square_y);
 
     map
 }
