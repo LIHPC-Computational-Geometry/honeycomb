@@ -1,5 +1,3 @@
-//! 1D sew implementations
-
 use stm::{atomically, StmResult, Transaction};
 
 use crate::{
@@ -8,36 +6,10 @@ use crate::{
     prelude::CoordsFloat,
 };
 
+#[doc(hidden)]
 /// 1-sews
 impl<T: CoordsFloat> CMap2<T> {
-    /// 1-sew operation.
-    ///
-    /// This operation corresponds to *coherently linking* two darts via the *β<sub>1</sub>*
-    /// function. For a thorough explanation of this operation (and implied hypothesis &
-    /// consequences), refer to the [user guide][UG].
-    ///
-    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
-    ///
-    /// # Arguments
-    ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
-    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
-    /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
-    ///
-    /// After the sewing operation, these darts will verify
-    /// *β<sub>1</sub>(`lhs_dart`) = `rhs_dart`*. The *β<sub>0</sub>* function is also updated.
-    ///
-    /// # Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    ///
-    /// The policy in case of failure can be defined through the transaction, using
-    /// `Transaction::with_control` for construction.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if the two darts are not 1-sewable.
+    /// 1-sew transactional implementation.
     pub(super) fn one_sew(
         &self,
         trans: &mut Transaction,
@@ -64,25 +36,12 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// 1-sew two darts.
-    ///
-    /// This variant is equivalent to `one_sew`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// 1-sew implementation.
     pub(super) fn force_one_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.one_sew(trans, lhs_dart_id, rhs_dart_id));
     }
 
-    /// Attempt to 1-sew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
+    /// 1-sew defensive implementation.
     pub(super) fn try_one_sew(
         &self,
         trans: &mut Transaction,
@@ -114,37 +73,10 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
+#[doc(hidden)]
 /// 1-unsews
 impl<T: CoordsFloat> CMap2<T> {
-    /// 1-unsew operation.
-    ///
-    /// This operation corresponds to *coherently separating* two darts linked via the
-    /// *β<sub>1</sub>* function. For a thorough explanation of this operation (and implied
-    /// hypothesis & consequences), refer to the [user guide][UG].
-    ///
-    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
-    ///
-    /// # Arguments
-    ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
-    /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
-    ///
-    /// Note that we do not need to take two darts as arguments since the second dart can be
-    /// obtained through the *β<sub>1</sub>* function. The *β<sub>0</sub>* function is also updated.
-    ///
-    /// # Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    ///
-    /// The policy in case of failure can be defined through the transaction, using
-    /// `Transaction::with_control` for construction.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if there's a missing attribute at the splitting step. While the
-    /// implementation could fall back to a simple unlink operation, it probably should have been
-    /// called by the user, instead of unsew, in the first place.
+    /// 1-unsew transactional implementation.
     pub(super) fn one_unsew(
         &self,
         trans: &mut Transaction,
@@ -172,25 +104,12 @@ impl<T: CoordsFloat> CMap2<T> {
         Ok(())
     }
 
-    /// 1-unsew two darts.
-    ///
-    /// This variant is equivalent to `one_unsew`, but internally uses a transaction that will
-    /// be retried until validated.
+    /// 1-unsew implementation.
     pub(super) fn force_one_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.one_unsew(trans, lhs_dart_id));
     }
 
-    /// Attempt to 1-unsew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
+    /// 1-unsew defensive implementation.
     pub(super) fn try_one_unsew(
         &self,
         trans: &mut Transaction,
