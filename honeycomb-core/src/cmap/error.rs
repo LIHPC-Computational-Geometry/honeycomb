@@ -30,3 +30,16 @@ impl From<StmError> for CMapError {
         Self::FailedTransaction(value)
     }
 }
+
+// by default, a map error inside of a transaction will result in a retry
+impl From<CMapError> for StmError {
+    fn from(value: CMapError) -> Self {
+        match value {
+            CMapError::FailedTransaction(e) => e,
+            CMapError::FailedAttributeMerge(_)
+            | CMapError::FailedAttributeSplit(_)
+            | CMapError::IncorrectGeometry(_)
+            | CMapError::UnknownAttribute(_) => StmError::Failure,
+        }
+    }
+}
