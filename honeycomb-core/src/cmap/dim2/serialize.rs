@@ -1,12 +1,3 @@
-//! Input/Output features implementation
-//!
-//! The support for I/O is currently very restricted since this is not the focus of this project.
-//! Maps can be built from and serialized to VTK legacy files (both binary and ASCII). The
-//! `DATASET` of the VTK file should be `UNSTRUCTURED_GRID`, and only a given set of `CELL_TYPES`
-//! are supported, because of orientation and dimension restriction.
-
-// ------ IMPORTS
-
 use crate::cmap::{EdgeIdType, FaceIdType};
 use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID};
@@ -20,9 +11,9 @@ use vtkio::{
     IOBuffer,
 };
 
-// ------ CONTENT
+// --- VTK
 
-/// **Serializing methods**
+/// **Serialization methods**
 impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Generate a legacy VTK file from the map.
     ///
@@ -77,9 +68,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     }
 }
 
-// --- internals
-
-/// Internal building routine for [`CMap2::to_vtk_file`].
+/// Internal building routine for VTK serialization.
 fn build_unstructured_piece<T>(map: &CMap2<T>) -> UnstructuredGridPiece
 where
     T: CoordsFloat + 'static,

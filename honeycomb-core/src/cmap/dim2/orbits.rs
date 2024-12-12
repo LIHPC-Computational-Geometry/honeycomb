@@ -166,7 +166,7 @@ impl<T: CoordsFloat> Iterator for Orbit2<'_, T> {
                 }
                 OrbitPolicy::Custom(beta_slice) => {
                     for beta_id in beta_slice {
-                        let image = self.map_handle.beta_runtime(*beta_id, d);
+                        let image = self.map_handle.beta_rt(*beta_id, d);
                         if self.marked.insert(image) {
                             // if true, we did not see this dart yet
                             // i.e. we need to visit it later
