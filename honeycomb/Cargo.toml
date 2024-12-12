@@ -18,6 +18,6 @@ kernels = ["dep:honeycomb-kernels"]
 render = ["dep:honeycomb-render"]
 
 [dependencies]
-honeycomb-core = { workspace = true, features = ["io", "utils"] }
+honeycomb-core = { workspace = true, features = ["io"] }
 honeycomb-kernels = { workspace = true, optional = true }
 honeycomb-render = { workspace = true, optional = true }

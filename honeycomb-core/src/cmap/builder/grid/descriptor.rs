@@ -5,9 +5,6 @@
 use crate::geometry::CoordsFloat;
 use crate::prelude::{BuilderError, Vertex2};
 
-#[cfg(doc)]
-use crate::prelude::CMapBuilder;
-
 // ------ CONTENT
 
 /// Grid description used to generate maps via the map builder.

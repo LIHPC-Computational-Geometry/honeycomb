@@ -20,7 +20,7 @@ honeycomb.workspace = true
 rayon.workspace = true
 
 [dev-dependencies]
-honeycomb-core = { workspace = true, features = ["utils"] }
+honeycomb-core.workspace = true
 criterion = { workspace = true, features = ["html_reports"] }
 iai-callgrind.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
