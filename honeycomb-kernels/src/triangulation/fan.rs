@@ -86,20 +86,20 @@ pub fn process_cell<T: CoordsFloat>(
         // THIS CANNOT BE PARALLELIZED AS IS
         let b0_sdart = cmap.beta::<0>(*sdart);
         let v0 = cmap.force_read_vertex(cmap.vertex_id(*sdart)).unwrap();
-        cmap.force_one_unsew(b0_sdart);
+        cmap.force_unsew::<1>(b0_sdart);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
             let [d1, d2] = sl else { unreachable!() };
             let b1_d0 = cmap.beta::<1>(d0);
             let b1b1_d0 = cmap.beta::<1>(cmap.beta::<1>(d0));
-            cmap.force_one_unsew(b1_d0);
-            cmap.force_two_link(*d1, *d2);
-            cmap.force_one_link(*d2, b1b1_d0);
-            cmap.force_one_sew(b1_d0, *d1);
-            cmap.force_one_sew(*d1, d0);
+            cmap.force_unsew::<1>(b1_d0);
+            cmap.force_link::<2>(*d1, *d2);
+            cmap.force_link::<1>(*d2, b1b1_d0);
+            cmap.force_sew::<1>(b1_d0, *d1);
+            cmap.force_sew::<1>(*d1, d0);
             d0 = *d2;
         }
-        cmap.force_one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
+        cmap.force_sew::<1>(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
         cmap.force_write_vertex(cmap.vertex_id(*sdart), v0);
     } else {
         // println!("W: face {face_id} isn't fannable -- skipping triangulation");
@@ -160,20 +160,20 @@ pub fn process_convex_cell<T: CoordsFloat>(
     // THIS CANNOT BE PARALLELIZED AS IS
     let b0_sdart = cmap.beta::<0>(sdart);
     let v0 = cmap.force_read_vertex(cmap.vertex_id(sdart)).unwrap();
-    cmap.force_one_unsew(b0_sdart);
+    cmap.force_unsew::<1>(b0_sdart);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
         let [d1, d2] = sl else { unreachable!() };
         let b1_d0 = cmap.beta::<1>(d0);
         let b1b1_d0 = cmap.beta::<1>(cmap.beta::<1>(d0));
-        cmap.force_one_unsew(b1_d0);
-        cmap.force_two_link(*d1, *d2);
-        cmap.force_one_link(*d2, b1b1_d0);
-        cmap.force_one_sew(b1_d0, *d1);
-        cmap.force_one_sew(*d1, d0);
+        cmap.force_unsew::<1>(b1_d0);
+        cmap.force_link::<2>(*d1, *d2);
+        cmap.force_link::<1>(*d2, b1b1_d0);
+        cmap.force_sew::<1>(b1_d0, *d1);
+        cmap.force_sew::<1>(*d1, d0);
         d0 = *d2;
     }
-    cmap.force_one_sew(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
+    cmap.force_sew::<1>(cmap.beta::<1>(cmap.beta::<1>(d0)), d0);
     cmap.force_write_vertex(cmap.vertex_id(sdart), v0);
 
     Ok(())
