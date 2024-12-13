@@ -1,5 +1,3 @@
-//! 2D sew implementations
-
 use stm::{atomically, StmResult, Transaction};
 
 use crate::{
@@ -8,40 +6,12 @@ use crate::{
     prelude::CoordsFloat,
 };
 
+#[doc(hidden)]
 /// 2-sews
 impl<T: CoordsFloat> CMap2<T> {
-    /// 2-sew operation.
-    ///
-    /// This operation corresponds to *coherently linking* two darts via the *β<sub>2</sub>*
-    /// function. For a thorough explanation of this operation (and implied hypothesis &
-    /// consequences), refer to the [user guide][UG].
-    ///
-    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
-    ///
-    /// # Arguments
-    ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
-    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
-    /// - `policy: SewPolicy` -- Geometrical sewing policy to follow.
-    ///
-    /// After the sewing operation, these darts will verify
-    /// *β<sub>2</sub>(`lhs_dart`) = `rhs_dart`* and *β<sub>2</sub>(`rhs_dart`) = `lhs_dart`*.
-    ///
-    /// # Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    ///
-    /// The policy in case of failure can be defined through the transaction, using
-    /// `Transaction::with_control` for construction.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - the two darts are not 2-sewable,
-    /// - the method cannot resolve orientation issues.
+    /// 2-sew transactional implementation.
     #[allow(clippy::too_many_lines)]
-    pub fn two_sew(
+    pub(super) fn two_sew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -164,27 +134,14 @@ impl<T: CoordsFloat> CMap2<T> {
         Ok(())
     }
 
-    /// 2-sew two darts.
-    ///
-    /// This variant is equivalent to `two_sew`, but internally uses a transaction that will be
-    /// retried until validated.
-    pub fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+    /// 2-sew implementation.
+    pub(super) fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| self.two_sew(trans, lhs_dart_id, rhs_dart_id));
     }
 
-    /// Attempt to 2-sew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
+    /// 2-sew defensive implementation.
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
-    pub fn try_two_sew(
+    pub(super) fn try_two_sew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -320,38 +277,15 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 }
 
+#[doc(hidden)]
 /// 2-unsews
 impl<T: CoordsFloat> CMap2<T> {
-    /// 2-unsew operation.
-    ///
-    /// This operation corresponds to *coherently separating* two darts linked via the
-    /// *β<sub>2</sub>* function. For a thorough explanation of this operation (and implied
-    /// hypothesis & consequences), refer to the [user guide][UG].
-    ///
-    /// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/
-    ///
-    /// # Arguments
-    ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to separate.
-    /// - `policy: UnsewPolicy` -- Geometrical unsewing policy to follow.
-    ///
-    /// Note that we do not need to take two darts as arguments since the second dart can be
-    /// obtained through the *β<sub>2</sub>* function.
-    ///
-    /// # Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    ///
-    /// The policy in case of failure can be defined through the transaction, using
-    /// `Transaction::with_control` for construction.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if there's a missing attribute at the splitting step. While the
-    /// implementation could fall back to a simple unlink operation, it probably should have been
-    /// called by the user, instead of unsew, in the first place.
-    pub fn two_unsew(&self, trans: &mut Transaction, lhs_dart_id: DartIdType) -> StmResult<()> {
+    /// 2-unsew transactional implementation.
+    pub(super) fn two_unsew(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+    ) -> StmResult<()> {
         let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
@@ -442,26 +376,13 @@ impl<T: CoordsFloat> CMap2<T> {
         Ok(())
     }
 
-    /// 2-unsew two darts.
-    ///
-    /// This variant is equivalent to `two_unsew`, but internally uses a transaction that will
-    /// be retried until validated.
-    pub fn force_two_unsew(&self, lhs_dart_id: DartIdType) {
+    /// 2-unsew implementation.
+    pub(super) fn force_two_unsew(&self, lhs_dart_id: DartIdType) {
         atomically(|trans| self.two_unsew(trans, lhs_dart_id));
     }
 
-    /// Attempt to 2-unsew two darts.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - one (or more) attribute merge fails
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_two_unsew(
+    /// 2-unsew defensive implementation.
+    pub(super) fn try_two_unsew(
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,

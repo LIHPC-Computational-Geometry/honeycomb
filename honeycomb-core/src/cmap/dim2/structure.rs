@@ -72,9 +72,9 @@ use crate::{
 ///
 /// // build a triangle
 /// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts
-/// map.force_one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
-/// map.force_one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
-/// map.force_one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
+/// map.force_link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
+/// map.force_link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
+/// map.force_link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3
 /// map.force_write_vertex(1, (0.0, 0.0));
 /// map.force_write_vertex(2, (1.0, 0.0));
 /// map.force_write_vertex(3, (0.0, 1.0));
@@ -89,9 +89,9 @@ use crate::{
 /// // build a second triangle
 /// let first_added_dart_id = map.add_free_darts(3);
 /// assert_eq!(first_added_dart_id, 4);
-/// map.force_one_link(4, 5);
-/// map.force_one_link(5, 6);
-/// map.force_one_link(6, 4);
+/// map.force_link::<1>(4, 5);
+/// map.force_link::<1>(5, 6);
+/// map.force_link::<1>(6, 4);
 /// map.force_write_vertex(4, (0.0, 2.0));
 /// map.force_write_vertex(5, (2.0, 0.0));
 /// map.force_write_vertex(6, (1.0, 1.0));
@@ -101,7 +101,7 @@ use crate::{
 /// assert_eq!(&faces, &[1, 4]);
 ///
 /// // sew both triangles
-/// map.force_two_sew(2, 4);
+/// map.force_sew::<2>(2, 4);
 ///
 /// // there are 5 edges now, making up a square & its diagonal
 /// let edges: Vec<_> = map.iter_edges().collect();
@@ -119,17 +119,17 @@ use crate::{
 /// );
 ///
 /// // separate the diagonal from the rest
-/// map.force_one_unsew(1);
-/// map.force_one_unsew(2);
-/// map.force_one_unsew(6);
-/// map.force_one_unsew(4);
+/// map.force_unsew::<1>(1);
+/// map.force_unsew::<1>(2);
+/// map.force_unsew::<1>(6);
+/// map.force_unsew::<1>(4);
 /// // break up & remove the diagonal
-/// map.force_two_unsew(2); // this makes dart 2 and 4 free
+/// map.force_unsew::<2>(2); // this makes dart 2 and 4 free
 /// map.remove_free_dart(2);
 /// map.remove_free_dart(4);
 /// // sew the square back up
-/// map.force_one_sew(1, 5);
-/// map.force_one_sew(6, 3);
+/// map.force_sew::<1>(1, 5);
+/// map.force_sew::<1>(6, 3);
 ///
 /// // there's only the square face left
 /// let faces: Vec<_> = map.iter_faces().collect();
