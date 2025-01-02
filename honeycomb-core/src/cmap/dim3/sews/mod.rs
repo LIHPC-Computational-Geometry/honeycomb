@@ -34,8 +34,8 @@ impl<T: CoordsFloat> CMap3<T> {
         assert_ne!(I, 0);
         match I {
             1 => self.one_unsew(trans, ld),
-            2 => self.one_unsew(trans, ld),
-            3 => self.one_unsew(trans, ld),
+            2 => self.two_unsew(trans, ld),
+            3 => self.three_unsew(trans, ld),
             _ => unreachable!(),
         }
     }
