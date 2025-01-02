@@ -1,4 +1,4 @@
-use stm::{atomically, StmResult, Transaction};
+use stm::{atomically, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,

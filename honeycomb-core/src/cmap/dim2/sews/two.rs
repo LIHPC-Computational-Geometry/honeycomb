@@ -1,4 +1,4 @@
-use stm::{atomically, StmResult, Transaction};
+use stm::{atomically, Transaction};
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
@@ -147,6 +147,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// 2-sew implementation.
+    #[allow(clippy::too_many_lines)]
     pub(super) fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
         atomically(|trans| {
             let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
