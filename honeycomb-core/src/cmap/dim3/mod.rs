@@ -12,10 +12,8 @@ pub mod orbits;
 // pub mod sews;
 pub mod structure;
 
-// #[cfg(feature = "io")]
 // pub mod io;
 
-#[cfg(feature = "utils")]
 pub mod utils;
 
 /// Number of beta functions defined for [`CMap3`].
