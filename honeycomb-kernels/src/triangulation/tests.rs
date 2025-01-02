@@ -13,46 +13,46 @@ fn generate_map() -> CMap2<f64> {
     let cmap: CMap2<f64> = CMapBuilder::default().n_darts(28).build().unwrap();
 
     // topology
-    cmap.force_one_link(1, 2);
-    cmap.force_one_link(2, 3);
-    cmap.force_one_link(3, 4);
-    cmap.force_one_link(4, 5);
-    cmap.force_one_link(5, 6);
-    cmap.force_one_link(6, 1);
+    cmap.force_link::<1>(1, 2);
+    cmap.force_link::<1>(2, 3);
+    cmap.force_link::<1>(3, 4);
+    cmap.force_link::<1>(4, 5);
+    cmap.force_link::<1>(5, 6);
+    cmap.force_link::<1>(6, 1);
 
-    cmap.force_one_link(7, 8);
-    cmap.force_one_link(8, 9);
-    cmap.force_one_link(9, 10);
-    cmap.force_one_link(10, 11);
-    cmap.force_one_link(11, 12);
-    cmap.force_one_link(12, 7);
+    cmap.force_link::<1>(7, 8);
+    cmap.force_link::<1>(8, 9);
+    cmap.force_link::<1>(9, 10);
+    cmap.force_link::<1>(10, 11);
+    cmap.force_link::<1>(11, 12);
+    cmap.force_link::<1>(12, 7);
 
-    cmap.force_one_link(13, 14);
-    cmap.force_one_link(14, 15);
-    cmap.force_one_link(15, 16);
-    cmap.force_one_link(16, 13);
+    cmap.force_link::<1>(13, 14);
+    cmap.force_link::<1>(14, 15);
+    cmap.force_link::<1>(15, 16);
+    cmap.force_link::<1>(16, 13);
 
-    cmap.force_one_link(17, 18);
-    cmap.force_one_link(18, 19);
-    cmap.force_one_link(19, 20);
-    cmap.force_one_link(20, 21);
-    cmap.force_one_link(21, 22);
-    cmap.force_one_link(22, 23);
-    cmap.force_one_link(23, 24);
-    cmap.force_one_link(24, 25);
-    cmap.force_one_link(25, 17);
+    cmap.force_link::<1>(17, 18);
+    cmap.force_link::<1>(18, 19);
+    cmap.force_link::<1>(19, 20);
+    cmap.force_link::<1>(20, 21);
+    cmap.force_link::<1>(21, 22);
+    cmap.force_link::<1>(22, 23);
+    cmap.force_link::<1>(23, 24);
+    cmap.force_link::<1>(24, 25);
+    cmap.force_link::<1>(25, 17);
 
-    cmap.force_one_link(26, 27);
-    cmap.force_one_link(27, 28);
-    cmap.force_one_link(28, 26);
+    cmap.force_link::<1>(26, 27);
+    cmap.force_link::<1>(27, 28);
+    cmap.force_link::<1>(28, 26);
 
-    cmap.force_two_link(3, 7);
-    cmap.force_two_link(4, 13);
-    cmap.force_two_link(10, 27);
-    cmap.force_two_link(11, 26);
-    cmap.force_two_link(12, 14);
-    cmap.force_two_link(15, 17);
-    cmap.force_two_link(18, 28);
+    cmap.force_link::<2>(3, 7);
+    cmap.force_link::<2>(4, 13);
+    cmap.force_link::<2>(10, 27);
+    cmap.force_link::<2>(11, 26);
+    cmap.force_link::<2>(12, 14);
+    cmap.force_link::<2>(15, 17);
+    cmap.force_link::<2>(18, 28);
 
     // geometry
     cmap.force_write_vertex(1, (1.0, 0.0));

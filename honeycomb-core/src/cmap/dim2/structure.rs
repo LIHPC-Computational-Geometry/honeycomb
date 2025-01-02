@@ -72,9 +72,9 @@ use crate::{
 ///
 /// // build a triangle
 /// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts
-/// map.force_one_link(1, 2); // beta1(1) = 2 & beta0(2) = 1
-/// map.force_one_link(2, 3); // beta1(2) = 3 & beta0(3) = 2
-/// map.force_one_link(3, 1); // beta1(3) = 1 & beta0(1) = 3
+/// map.force_link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
+/// map.force_link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
+/// map.force_link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3
 /// map.force_write_vertex(1, (0.0, 0.0));
 /// map.force_write_vertex(2, (1.0, 0.0));
 /// map.force_write_vertex(3, (0.0, 1.0));
@@ -89,23 +89,23 @@ use crate::{
 /// // build a second triangle
 /// let first_added_dart_id = map.add_free_darts(3);
 /// assert_eq!(first_added_dart_id, 4);
-/// map.force_one_link(4, 5);
-/// map.force_one_link(5, 6);
-/// map.force_one_link(6, 4);
+/// map.force_link::<1>(4, 5);
+/// map.force_link::<1>(5, 6);
+/// map.force_link::<1>(6, 4);
 /// map.force_write_vertex(4, (0.0, 2.0));
 /// map.force_write_vertex(5, (2.0, 0.0));
 /// map.force_write_vertex(6, (1.0, 1.0));
 ///
 /// // there should be two faces now
-/// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1, 4]);
+/// let faces: Vec<_> = map.iter_faces().collect();
+/// assert_eq!(&faces, &[1, 4]);
 ///
 /// // sew both triangles
-/// map.force_two_sew(2, 4);
+/// map.force_sew::<2>(2, 4);
 ///
 /// // there are 5 edges now, making up a square & its diagonal
-/// let edges = map.fetch_edges();
-/// assert_eq!(&edges.identifiers, &[1, 2, 3, 5, 6]);
+/// let edges: Vec<_> = map.iter_edges().collect();
+/// assert_eq!(&edges, &[1, 2, 3, 5, 6]);
 ///
 /// // adjust bottom-right & top-left vertex position
 /// // the returned values were the average of the sewn vertices
@@ -119,24 +119,24 @@ use crate::{
 /// );
 ///
 /// // separate the diagonal from the rest
-/// map.force_one_unsew(1);
-/// map.force_one_unsew(2);
-/// map.force_one_unsew(6);
-/// map.force_one_unsew(4);
+/// map.force_unsew::<1>(1);
+/// map.force_unsew::<1>(2);
+/// map.force_unsew::<1>(6);
+/// map.force_unsew::<1>(4);
 /// // break up & remove the diagonal
-/// map.force_two_unsew(2); // this makes dart 2 and 4 free
+/// map.force_unsew::<2>(2); // this makes dart 2 and 4 free
 /// map.remove_free_dart(2);
 /// map.remove_free_dart(4);
 /// // sew the square back up
-/// map.force_one_sew(1, 5);
-/// map.force_one_sew(6, 3);
+/// map.force_sew::<1>(1, 5);
+/// map.force_sew::<1>(6, 3);
 ///
 /// // there's only the square face left
-/// let faces = map.fetch_faces();
-/// assert_eq!(&faces.identifiers, &[1]);
+/// let faces: Vec<_> = map.iter_faces().collect();
+/// assert_eq!(&faces, &[1]);
 /// // we can check the vertices
-/// let vertices = map.fetch_vertices();
-/// let mut value_iterator = vertices.identifiers.iter().map(|vertex_id| map.force_read_vertex(*vertex_id).unwrap());
+/// let vertices = map.iter_vertices();
+/// let mut value_iterator = vertices.map(|vertex_id| map.force_read_vertex(vertex_id).unwrap());
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5

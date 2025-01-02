@@ -26,8 +26,8 @@ fn main() {
 
     println!("I: Start quad split process...");
     let now = Instant::now();
-    map.fetch_faces()
-        .identifiers
+    let faces: Vec<_> = map.iter_faces().collect();
+    faces
         .iter()
         .filter(|square| splits[**square as usize % n_split])
         .for_each(|square| {
@@ -39,17 +39,17 @@ fn main() {
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops
-            map.force_one_unsew(d1);
-            map.force_one_unsew(d3);
+            map.force_unsew::<1>(d1);
+            map.force_unsew::<1>(d3);
             // link the two new dart in order to
-            map.force_two_link(dsplit1, dsplit2);
+            map.force_link::<2>(dsplit1, dsplit2);
             // define beta1 of the new darts, i.e. tell them where they point to
-            map.force_one_sew(dsplit1, d4);
-            map.force_one_sew(dsplit2, d2);
+            map.force_sew::<1>(dsplit1, d4);
+            map.force_sew::<1>(dsplit2, d2);
 
             // sew the original darts to the new darts
-            map.force_one_sew(d1, dsplit1);
-            map.force_one_sew(d3, dsplit2);
+            map.force_sew::<1>(d1, dsplit1);
+            map.force_sew::<1>(d3, dsplit2);
             // fuse the edges; this is where duplicated vertices are merged back together
         });
     let elapsed = now.elapsed();

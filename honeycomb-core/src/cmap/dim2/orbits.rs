@@ -166,7 +166,7 @@ impl<T: CoordsFloat> Iterator for Orbit2<'_, T> {
                 }
                 OrbitPolicy::Custom(beta_slice) => {
                     for beta_id in beta_slice {
-                        let image = self.map_handle.beta_runtime(*beta_id, d);
+                        let image = self.map_handle.beta_rt(*beta_id, d);
                         if self.marked.insert(image) {
                             // if true, we did not see this dart yet
                             // i.e. we need to visit it later
@@ -195,23 +195,23 @@ mod tests {
     fn simple_map() -> CMap2<f64> {
         let mut map: CMap2<f64> = CMap2::new(11);
         // tri1
-        map.force_one_link(1, 2);
-        map.force_one_link(2, 3);
-        map.force_one_link(3, 1);
+        map.force_link::<1>(1, 2);
+        map.force_link::<1>(2, 3);
+        map.force_link::<1>(3, 1);
         // tri2
-        map.force_one_link(4, 5);
-        map.force_one_link(5, 6);
-        map.force_one_link(6, 4);
+        map.force_link::<1>(4, 5);
+        map.force_link::<1>(5, 6);
+        map.force_link::<1>(6, 4);
         // pent on top
-        map.force_one_link(7, 8);
-        map.force_one_link(8, 9);
-        map.force_one_link(9, 10);
-        map.force_one_link(10, 11);
-        map.force_one_link(11, 7);
+        map.force_link::<1>(7, 8);
+        map.force_link::<1>(8, 9);
+        map.force_link::<1>(9, 10);
+        map.force_link::<1>(10, 11);
+        map.force_link::<1>(11, 7);
 
         // link all
-        map.force_two_link(2, 4);
-        map.force_two_link(6, 7);
+        map.force_link::<2>(2, 4);
+        map.force_link::<2>(6, 7);
 
         assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
         assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());

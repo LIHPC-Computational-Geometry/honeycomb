@@ -15,19 +15,19 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_with_input(BenchmarkId::new("fetch-vertices", ""), &map, |b, m| {
         b.iter(|| {
-            let mut vertices = m.fetch_vertices();
+            let mut vertices: Vec<_> = m.iter_vertices().collect();
             black_box(&mut vertices);
         })
     });
     group.bench_with_input(BenchmarkId::new("fetch-edges", ""), &map, |b, m| {
         b.iter(|| {
-            let mut edges = m.fetch_edges();
+            let mut edges: Vec<_> = m.iter_edges().collect();
             black_box(&mut edges);
         })
     });
     group.bench_with_input(BenchmarkId::new("fetch-faces", ""), &map, |b, m| {
         b.iter(|| {
-            let mut faces = m.fetch_faces();
+            let mut faces: Vec<_> = m.iter_faces().collect();
             black_box(&mut faces);
         })
     });

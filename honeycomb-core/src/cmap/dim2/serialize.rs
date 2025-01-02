@@ -1,12 +1,4 @@
-//! Input/Output features implementation
-//!
-//! The support for I/O is currently very restricted since this is not the focus of this project.
-//! Maps can be built from and serialized to VTK legacy files (both binary and ASCII). The
-//! `DATASET` of the VTK file should be `UNSTRUCTURED_GRID`, and only a given set of `CELL_TYPES`
-//! are supported, because of orientation and dimension restriction.
-
-// ------ IMPORTS
-
+use crate::cmap::{EdgeIdType, FaceIdType};
 use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID};
 
@@ -19,9 +11,9 @@ use vtkio::{
     IOBuffer,
 };
 
-// ------ CONTENT
+// --- VTK
 
-/// **Serializing methods**
+/// **Serialization methods**
 impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Generate a legacy VTK file from the map.
     ///
@@ -76,15 +68,13 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     }
 }
 
-// --- internals
-
-/// Internal building routine for [`CMap2::to_vtk_file`].
+/// Internal building routine for VTK serialization.
 fn build_unstructured_piece<T>(map: &CMap2<T>) -> UnstructuredGridPiece
 where
     T: CoordsFloat + 'static,
 {
     // common data
-    let vertex_ids: Vec<VertexIdType> = map.fetch_vertices().identifiers;
+    let vertex_ids: Vec<VertexIdType> = map.iter_vertices().collect();
     let mut id_map: BTreeMap<VertexIdType, usize> = BTreeMap::new();
     vertex_ids.iter().enumerate().for_each(|(id, vid)| {
         id_map.insert(*vid, id);
@@ -100,7 +90,7 @@ where
     // ------ cells data
     let mut n_cells = 0;
     // --- faces
-    let face_ids = map.fetch_faces().identifiers;
+    let face_ids: Vec<FaceIdType> = map.iter_faces().collect();
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
@@ -114,7 +104,7 @@ where
     });
 
     // --- borders
-    let edge_ids = map.fetch_edges().identifiers;
+    let edge_ids: Vec<EdgeIdType> = map.iter_edges().collect();
     // because we do not model boundaries, we can get edges
     // from filtering isolated darts making up edges
     let edge_data = edge_ids

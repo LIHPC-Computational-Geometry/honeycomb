@@ -12,9 +12,7 @@ keywords.workspace = true
 authors.workspace = true
 publish = true
 
-[features]
-io = ["dep:vtkio"]
-utils = []
+# [features]
 
 # deps
 
@@ -25,7 +23,7 @@ loom.workspace= true
 num-traits.workspace = true
 stm.workspace = true
 thiserror.workspace = true
-vtkio = { workspace = true, optional = true }
+vtkio.workspace = true
 
 [build-dependencies]
 rustversion.workspace = true

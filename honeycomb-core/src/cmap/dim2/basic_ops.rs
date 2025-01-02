@@ -12,13 +12,9 @@
 use crate::prelude::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
-use crate::{
-    attributes::UnknownAttributeStorage,
-    cmap::{EdgeCollection, FaceCollection, VertexCollection},
-    geometry::CoordsFloat,
-};
-use std::collections::{BTreeSet, VecDeque};
-use stm::{atomically, StmError, Transaction};
+use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
+use itertools::Itertools;
+use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -181,12 +177,68 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will panic if *i* is not 0, 1 or 2.
     ///
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn beta_runtime(&self, i: u8, dart_id: DartIdType) -> DartIdType {
+    pub fn beta_rt(&self, i: u8, dart_id: DartIdType) -> DartIdType {
         assert!(i < 3);
         match i {
             0 => self.beta::<0>(dart_id),
             1 => self.beta::<1>(dart_id),
             2 => self.beta::<2>(dart_id),
+            _ => unreachable!(),
+        }
+    }
+
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
+    /// - `const I: u8` -- Index of the beta function. *I* should be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *I* is not 0, 1 or 2.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn beta_transac<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(I < 3);
+        self.betas[(I, dart_id)].read(trans)
+    }
+
+    /// Compute the value of the i-th beta function of a given dart.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
+    /// - `i: u8` -- Index of the beta function. *i* should be 0, 1 or 2 for a 2D map.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *i* is not 0, 1 or 2.
+    #[must_use = "returned value is not used, consider removing this method call"]
+    pub fn beta_rt_transac(
+        &self,
+        trans: &mut Transaction,
+        i: u8,
+        dart_id: DartIdType,
+    ) -> StmResult<DartIdType> {
+        assert!(i < 3);
+        match i {
+            0 => self.beta_transac::<0>(trans, dart_id),
+            1 => self.beta_transac::<1>(trans, dart_id),
+            2 => self.beta_transac::<2>(trans, dart_id),
             _ => unreachable!(),
         }
     }
@@ -235,110 +287,72 @@ impl<T: CoordsFloat> CMap2<T> {
 
 /// **I-cell-related methods**
 impl<T: CoordsFloat> CMap2<T> {
-    #[allow(clippy::missing_panics_doc)]
-    /// Fetch vertex identifier associated to a given dart.
+    /// Compute the associated vertex ID of a given dart.
     ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
-    ///
-    /// # Return
-    ///
-    /// Return the identifier of the associated vertex.
-    ///
-    /// ## Note on cell identifiers
-    ///
-    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
-    /// cell. This definition has three interesting properties:
-    ///
-    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    ///   associated cell ID.
-    /// - Cell IDs are not affected by the order of traversal of the map.
-    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    ///   that the storage is consistent / up to date.
-    ///
-    /// These properties come at the literal cost of the computation routine, which is:
-    /// 1. a BFS to compute a given orbit
-    /// 2. a minimum computation on the IDs composing the orbit
-    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological vertex.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id)
-            .min()
-            .expect("E: unreachable") as VertexIdType
+        atomically(|trans| self.vertex_id_transac(trans, dart_id))
     }
 
-    /// Atomically compute the associated vertex ID.
-    pub(crate) fn vertex_id_transac(
+    /// Compute the associated vertex ID of a given dart.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological vertex.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    pub fn vertex_id_transac(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<VertexIdType, StmError> {
-        let mut marked = BTreeSet::<DartIdType>::new();
-        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
-        marked.insert(dart_id); // we're starting here, so we mark it beforehand
-        let mut pending = VecDeque::from([dart_id]);
-        while let Some(d) = pending.pop_front() {
-            let image1 = self.betas[(1, self.betas[(2, d)].read(trans)?)].read(trans)?;
-            if marked.insert(image1) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                pending.push_back(image1);
-            }
-            let image2 = self.betas[(2, self.betas[(0, d)].read(trans)?)].read(trans)?;
-            if marked.insert(image2) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                pending.push_back(image2);
+    ) -> StmResult<VertexIdType> {
+        // min encountered / current dart
+        let mut min = dart_id;
+        let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
+
+        // we first iterate in direct direction (B1oB2)
+        while crt != NULL_DART_ID && crt != dart_id {
+            min = min.min(crt);
+            crt = self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?;
+        }
+        // if we landed on the null dart, the vertex is open
+        // we need to iterate in the opposite dir (B2oB0)
+        if crt == NULL_DART_ID {
+            crt = self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?;
+            while crt != NULL_DART_ID {
+                min = min.min(crt);
+                crt = self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?;
             }
         }
-        marked.remove(&NULL_DART_ID);
-        Ok(marked.into_iter().min().unwrap() as VertexIdType)
+
+        Ok(min)
     }
 
-    #[allow(clippy::missing_panics_doc)]
-    /// Fetch edge associated to a given dart.
+    /// Compute the associated edge ID of a given dart.
     ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
-    ///
-    /// # Return
-    ///
-    /// Return the identifier of the associated edge.
-    ///
-    /// ## Note on cell identifiers
-    ///
-    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
-    /// cell. This definition has three interesting properties:
-    ///
-    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    ///   associated cell ID.
-    /// - Cell IDs are not affected by the order of traversal of the map.
-    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    ///   that the storage is consistent / up to date.
-    ///
-    /// These properties come at the literal cost of the computation routine, which is:
-    /// 1. a BFS to compute a given orbit
-    /// 2. a minimum computation on the IDs composing the orbit
-    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological edge.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id)
-            .min()
-            .expect("E: unreachable") as EdgeIdType
+        atomically(|trans| self.edge_id_transac(trans, dart_id))
     }
 
-    /// Atomically compute the associated edge ID.
-    pub(crate) fn edge_id_transac(
+    /// Compute the associated edge ID of a given dart.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological edge.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    pub fn edge_id_transac(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<EdgeIdType, StmError> {
+    ) -> StmResult<EdgeIdType> {
         // optimizing this one bc I'm tired
-        let b2 = self.betas[(2, dart_id)].read(trans)?;
+        let b2 = self.beta_transac::<2>(trans, dart_id)?;
         if b2 == NULL_DART_ID {
             Ok(dart_id as EdgeIdType)
         } else {
@@ -346,62 +360,47 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    #[allow(clippy::missing_panics_doc)]
-    /// Fetch face associated to a given dart.
+    /// Compute the associated face ID of a given dart.
     ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of a given dart.
-    ///
-    /// # Return
-    ///
-    /// Return the identifier of the associated face.
-    ///
-    /// ## Note on cell identifiers
-    ///
-    /// Cells identifiers are defined as the smallest identifier among the darts that make up the
-    /// cell. This definition has three interesting properties:
-    ///
-    /// - A given cell ID can be computed from any dart of the cell, i.e. all darts have an
-    ///   associated cell ID.
-    /// - Cell IDs are not affected by the order of traversal of the map.
-    /// - Because the ID is computed in real time, there is no need to store cell IDs and ensure
-    ///   that the storage is consistent / up to date.
-    ///
-    /// These properties come at the literal cost of the computation routine, which is:
-    /// 1. a BFS to compute a given orbit
-    /// 2. a minimum computation on the IDs composing the orbit
-    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological face.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        // unwraping the result is safe because the orbit is always non empty
-        Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id)
-            .min()
-            .expect("E: unreachable") as FaceIdType
+        atomically(|trans| self.face_id_transac(trans, dart_id))
     }
 
-    #[allow(unused)]
-    /// Atomically compute the associated face ID.
-    pub(crate) fn face_id_transac(
+    /// Compute the associated face ID of a given dart.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the topological face.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    pub fn face_id_transac(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> Result<FaceIdType, StmError> {
-        let mut marked = BTreeSet::<DartIdType>::new();
-        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
-        marked.insert(dart_id); // we're starting here, so we mark it beforehand
-        let mut pending = VecDeque::from([dart_id]);
-        while let Some(d) = pending.pop_front() {
-            // WE ASSUME THAT THE FACE IS COMPLETE
-            let image = self.betas[(1, d)].read(trans)?;
-            if marked.insert(image) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                pending.push_back(image);
+    ) -> StmResult<FaceIdType> {
+        // min encountered / current dart
+        let mut min = dart_id;
+        let mut crt = self.beta_transac::<1>(trans, dart_id)?;
+
+        // we first iterate in direct direction (B1)
+        while crt != NULL_DART_ID && crt != dart_id {
+            min = min.min(crt);
+            crt = self.beta_transac::<1>(trans, crt)?;
+        }
+        // if we landed on the null dart, the face is open
+        // we need to iterate in the opposite dir (B0)
+        if crt == NULL_DART_ID {
+            crt = self.beta_transac::<0>(trans, dart_id)?;
+            while crt != NULL_DART_ID {
+                min = min.min(crt);
+                crt = self.beta_transac::<0>(trans, crt)?;
             }
         }
-        marked.remove(&NULL_DART_ID);
-        Ok(marked.into_iter().min().unwrap() as FaceIdType)
+
+        Ok(min)
     }
 
     /// Return an [`Orbit2`] object that can be used to iterate over darts of an i-cell.
@@ -436,16 +435,10 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// Return a collection of all the map's vertices.
-    ///
-    /// # Return
-    ///
-    /// Return a [`VertexCollection`] object containing a list of vertex identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_vertices(&self) -> VertexCollection<T> {
-        let vids: BTreeSet<VertexIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -454,20 +447,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.vertex_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        VertexCollection::<'_, T>::new(self, vids)
+            .unique()
     }
 
-    /// Return a collection of all the map's edges.
-    ///
-    /// # Return
-    ///
-    /// Return an [`EdgeCollection`] object containing a list of edge identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's edges.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_edges(&self) -> EdgeCollection<T> {
-        let eids: BTreeSet<EdgeIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -476,20 +462,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.edge_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        EdgeCollection::<'_, T>::new(self, eids)
+            .unique()
     }
 
-    /// Return a collection of all the map's faces.
-    ///
-    /// # Return
-    ///
-    /// Return a [`FaceCollection`] object containing a list of face identifiers, whose validity
-    /// is ensured through an implicit lifetime condition on the structure and original map.
-    ///
+    /// Return an iterator over IDs of all the map's faces.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn fetch_faces(&self) -> FaceCollection<T> {
-        let fids: BTreeSet<EdgeIdType> = (1..self.n_darts as DartIdType)
+    pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
                 if unused.read_atomic() {
@@ -498,7 +477,6 @@ impl<T: CoordsFloat> CMap2<T> {
                     Some(self.face_id(d))
                 }
             })
-            .collect(); // duplicates are automatically handled when colelcting into a set
-        FaceCollection::<'_, T>::new(self, fids)
+            .unique()
     }
 }
