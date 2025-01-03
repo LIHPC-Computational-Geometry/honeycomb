@@ -2,7 +2,9 @@
 
 mod builder;
 mod components;
-mod dim2;
+mod dim2; // FIXME:simplify docs
+#[allow(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc)] // FIXME:write docs
+mod dim3;
 mod error;
 
 pub use builder::{BuilderError, CMapBuilder, GridDescriptor};
@@ -14,4 +16,5 @@ pub use components::{
     orbits::OrbitPolicy,
 };
 pub use dim2::{orbits::Orbit2, structure::CMap2};
+pub use dim3::{orbits::Orbit3, structure::CMap3};
 pub use error::{CMapError, CMapResult};
