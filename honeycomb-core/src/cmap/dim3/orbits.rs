@@ -9,6 +9,7 @@ use crate::prelude::{DartIdType, OrbitPolicy, NULL_DART_ID};
 
 use std::collections::{HashSet, VecDeque};
 
+#[derive(Clone)]
 pub struct Orbit3<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
     map_handle: &'a CMap3<T>,

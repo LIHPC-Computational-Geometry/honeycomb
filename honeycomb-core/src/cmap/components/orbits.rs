@@ -2,7 +2,7 @@
 ///
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to *i-cells*.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
