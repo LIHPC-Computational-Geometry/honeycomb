@@ -10,7 +10,9 @@ use crate::{
 
 /// # **Sew implementations**
 impl<T: CoordsFloat> CMap2<T> {
-    /// # `I`-sew operator.
+    /// `I`-sew operator.
+    ///
+    /// # Description
     ///
     /// This operation corresponds to:
     /// - coherently linking two darts via their *β* images,
@@ -36,14 +38,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - for `I == 2`: orientation is inconsistent.
     ///
     /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes (see `Transaction::with_control`).
+    /// modifications in case of failure at attribute level. The user can then choose to retry or
+    /// abort as he wishes using `Transaction::with_control`.
     ///
     /// # Panics
     ///
     /// The method may panic if:
-    /// - `I >= 3` or `I == 0`
-    /// - the two darts are not I-sewable,    
+    /// - `I >= 3` or `I == 0`,
+    /// - the two darts are not `I`-sewable.
     pub fn sew<const I: u8>(
         &self,
         trans: &mut Transaction,
@@ -60,7 +62,9 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// # `I`-unsew operator.
+    /// `I`-unsew operator.
+    ///
+    /// # Description
     ///
     /// This operation corresponds to:
     /// - unlinking two darts by resetting their *β* images,
@@ -86,14 +90,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - one (or more) attribute split fails,
     ///
     /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes (see `Transaction::with_control`).
+    /// modifications in case of failure at attribute level. The user can then choose to retry or
+    /// abort as he wishes using `Transaction::with_control`.
     ///
     /// # Panics
     ///
     /// The method may panic if:
-    /// - `I >= 3` or `I == 0`
-    /// - `ld` is already `I`-free,
+    /// - `I >= 3` or `I == 0`,
+    /// - `ld` is already `I`-free.
     pub fn unsew<const I: u8>(&self, trans: &mut Transaction, ld: DartIdType) -> CMapResult<()> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
@@ -105,23 +109,10 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// # `I`-sew operator.
+    /// `I`-sew operator.
     ///
-    /// This variant is equivalent to `sew`, but internally uses a transaction that will
-    /// be retried until validated.
-    ///
-    /// # Arguments
-    ///
-    /// - `const I: u8` -- Sew dimension.
-    /// - `ld: DartIdType` -- First dart ID.
-    /// - `rd: DartIdType` -- Second dart ID.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - `I >= 3` or `I == 0`
-    /// - the two darts are not I-sewable,
-    /// - for `I == 2`: orientation is inconsistent.
+    /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
+    /// will be retried until validated.
     pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
@@ -133,23 +124,10 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    /// # `I`-unsew operator.
+    /// `I`-unsew operator.
     ///
-    /// This variant is equivalent to `sew`, but internally uses a transaction that will
-    /// be retried until validated.
-    ///
-    /// # Arguments
-    ///
-    /// - `const I: u8` -- Unsew dimension.
-    /// - `ld: DartIdType` -- First dart ID.
-    ///
-    /// The second dart ID is fetched using `I` and `ld`.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if:
-    /// - `I >= 3` or `I == 0`
-    /// - `ld` is already `I`-free,
+    /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
+    /// will be retried until validated.
     pub fn force_unsew<const I: u8>(&self, ld: DartIdType) {
         // these assertions + match on a const are optimized away
         assert!(I < 3);

@@ -3,17 +3,17 @@ use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
 // --- grid descriptor
 
-/// Grid description used to generate maps via the map builder.
+/// # Grid description used by the map builder
 ///
-/// The user must specify two out of these three characteristics:
+/// The user must specify two out of these three characteristics (third is deduced):
 ///
 /// - `n_cells: [usize; 3]` -- The number of cells per axis
 /// - `len_per_cell: [T; 3]` -- The dimensions of cells per axis
-/// - `lens: [T; 3]` -- The dimensions of the grid per axis
+/// - `lens: [T; 3]` -- The total dimensions of the grid per axis
 ///
-/// # Generics
+/// ## Generics
 ///
-/// - `T: CoordsFloat` -- Generic type of the future map object.
+/// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
 #[derive(Default, Clone)]
 pub struct GridDescriptor<T: CoordsFloat> {
     pub(crate) origin: Vertex2<T>,
