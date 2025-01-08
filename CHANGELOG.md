@@ -4,6 +4,10 @@
 
 ## To be released
 
+---
+
+## 0.7.0
+
 **This update contains breaking changes**
 
 ### Workspace
@@ -475,7 +479,7 @@ New changelog format!
     - `smaa` from `0.13.0` to `0.14.0`
     - `wgpu` from `0.19.4` to `0.20.0`
     - `winit` from `0.29.15` to `0.30.0`
-- implement nighly conditional compilation for doc generation (#66)
+- implement nightly conditional compilation for doc generation (#66)
 
 ### Published crates
 
@@ -790,7 +794,7 @@ aspects of the project</sup>
 aspects of the project.</sup>
 
 - complete (partially) definition sections (#5)
-- add documentation for the core implementatiosn (#5)
+- add documentation for the core implementations (#5)
 - add usage instructions (#12)
 - add `honeycomb-utils` section (#12)
 
