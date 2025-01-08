@@ -67,6 +67,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Splitting routine, i.e. how to obtain the two new values from a single one.
     fn split(attr: Self) -> (Self, Self);
 
+    #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from a single existing one.
     ///
     /// The returned value directly affects the behavior of sewing methods: For example, if this
@@ -80,13 +81,14 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
         Ok(attr)
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from no existing one.
     ///
     /// The returned value directly affects the behavior of sewing methods: For example, if this
     /// method returns an error for a given attribute, the `sew` method will fail. This allows the
     /// user to define some attribute-specific behavior and enable fallbacks when it makes sense.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
     /// The default implementation fails with `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
@@ -101,10 +103,9 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// user to define some attribute-specific behavior and enable fallbacks when it makes sense.
     /// value).
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
     /// The default implementation fails with `Err(CMapError::FailedAttributeSplit)`.
-    #[allow(clippy::must_use_candidate)]
     fn split_from_none() -> CMapResult<(Self, Self)> {
         Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
     }

@@ -96,6 +96,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// `I`-link operator.
     ///
     /// This variant is equivalent to [`link`][Self::link], but internally uses a transaction that
@@ -111,6 +112,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// # `I`-unlink operator.
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
