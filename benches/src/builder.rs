@@ -13,7 +13,7 @@ fn main() {
                     .lens([1.0, 1.0, 1.0])
                     .split_quads(split.is_some())
             }
-            _ => panic!("E: specifify at least the number of cells along X and Y axes"),
+            _ => panic!("E: specify at least the number of cells along X and Y axes"),
         }
     };
 

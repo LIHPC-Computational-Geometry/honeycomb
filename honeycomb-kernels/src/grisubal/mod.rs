@@ -1,6 +1,6 @@
-//! *GRISUBAL* algorithm description & implementation
+//! *grisubal* algorithm description & implementation
 //!
-//! This module contain all code used to implement our grid submersion algorithm, or *GRISUBAL*
+//! This module contain all code used to implement our grid submersion algorithm, or *grisubal*
 //! for short.
 //!
 //! This algorithm builds the mesh of a geometry by overlapping a grid over it and intersecting
@@ -11,35 +11,35 @@
 //! # Assumptions / Hypotheses
 //!
 //! Boundaries are consistently oriented, i.e.:
-//! - normals of segments making up a boundary all point outward / inward, no mix
-//! - boundaries are closed
+//! - normals of segments making up a boundary all point outward / inward, no mix,
+//! - boundaries are closed,
 //! - if there are nested boundaries, their orientation are consistent one with the other; this is
-//!   an extension of the first condition
+//!   an extension of the first condition.
 //!
 //! # Algorithm
 //!
 //! The steps followed by the algorithm are detailed in the user guide. The following is a summary.
 //!
-//! ## Pre-processing
+//! ### Pre-processing
 //!
 //! 1. Compute characteristics of a grid covering the entire geometry, avoiding exact intersection
 //!    between the grid's segments and the geometry's vertices.
 //! 2. Remove "redundant" Points of Interest to avoid duplicated vertices.
 //! 3. Check for obvious orientation issues (open geometry & orientation per boundary).
 //!
-//! ## Main kernel
+//! ### Main kernel
 //!
 //! 1. Compute intersection vertices between the geometry's segments and the grid.
 //! 2. Insert given intersections into the grid.
 //! 3. Build new edge data by searching through the original segments.
-//! 4. Insert the new edges into the map. Mark darts on each side of the edge with the `Boundary`
+//! 4. Insert new edges into the map. Mark darts on each side of the edge with the `Boundary`
 //!    attribute.
 //!
-//! ## Post-processing clip
+//! ### Post-processing clip
 //!
 //! Depending on the specified argument, one side (or the other) of the boundary can be clipped.
 //! This is specified using the [`Clip`] enum; The following steps describe the operation for
-//! [`Clip::Left`].
+//! [`Clip::Left`]:
 //!
 //! 1. Fetch all darts marked as `Boundary::Left` during the last step of the main kernel.
 //! 2. Use these darts' faces as starting point for a coloring algorithm. The search is done using
@@ -117,13 +117,11 @@ pub enum GrisubalError {
 ///
 /// # Arguments
 ///
-/// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry. See
-///   [VTK Format] for more information about the expected formatting.
+/// - `file_path: impl AsRef<Path>` -- Path to a VTK file describing input geometry.
 /// - `grid_cell_sizes: [T; 2],` -- Desired grid cell size along the X/Y axes.
 /// - `clip: Option<Clip>` -- Indicates which part of the map should be clipped, if any, in
-///   the post-processing phase. For more information on the clipping process, see [`Clip`].
+///   the post-processing phase.
 ///
-/// ## VTK Format
 ///
 /// At the moment, the input geometry should be specified via a file under the VTK Legacy format.
 /// Just like the `io` feature provided in the core crate, there are a few additional requirements
@@ -132,15 +130,15 @@ pub enum GrisubalError {
 ///   given should form normals with a consistent direction (either pointing inward or outward the
 ///   geometry).
 /// - The geometry should be described using in an `UnstructuredGrid` data set, with supported
-///   cell types (`Vertex`, `Line`). Lines will be interpreted as the boundary to match while
+///   cell types (`Vertex`, `Line`). Lines will be interpreted as the boundary to intersect while
 ///   vertices will be considered as points of interests.
 ///
 /// # Return / Errors
 ///
 /// This function returns a `Result` taking the following values:
 /// - `Ok(CMap2)` -- Algorithm ran successfully.
-/// - `Err(GrisubalError)` -- Algorithm encountered an issue. See [`GrisubalError`] for more
-///   information about possible errors.
+/// - `Err(GrisubalError)` -- Algorithm encountered an issue. See [`GrisubalError`] for all
+///   possible errors.
 ///
 /// # Panics
 ///

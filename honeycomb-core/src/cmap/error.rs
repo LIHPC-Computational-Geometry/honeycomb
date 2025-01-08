@@ -2,10 +2,10 @@
 
 use stm::StmError;
 
-/// Convenience type alias.
+/// Convenience type alias
 pub type CMapResult<T> = Result<T, CMapError>;
 
-/// `CMap` error enum.
+/// # Map-level error enum.
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum CMapError {
     /// STM transaction failed.
@@ -17,7 +17,7 @@ pub enum CMapError {
     /// Attribute split failed due to missing value.
     #[error("attribute split failed: {0}")]
     FailedAttributeSplit(&'static str),
-    /// Geometry check failed.
+    /// Geometry predicate failed verification.
     #[error("operation incompatible with map geometry: {0}")]
     IncorrectGeometry(&'static str),
     /// Accessed attribute isn't in the map storage.
@@ -25,6 +25,8 @@ pub enum CMapError {
     UnknownAttribute(&'static str),
 }
 
+// if `StmError` derived `thiserror::Error`, this would be automatically generated
+// by the commented `#[from]` macro above
 impl From<StmError> for CMapError {
     fn from(value: StmError) -> Self {
         Self::FailedTransaction(value)

@@ -7,24 +7,7 @@ use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
-// --- descriptor impls
-
-impl<T: CoordsFloat> CMapBuilder<T> {
-    /// Import and set the VTK file that will be used when building the map.
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if the file cannot be loaded.
-    #[must_use = "unused builder object, consider removing this method call"]
-    pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        let vtk_file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        self.vtk_file = Some(vtk_file);
-        self
-    }
-}
-
-/// Create a [`CMapBuilder`] from an imported VTK file.
+/// Create a [`CMapBuilder`] from the VTK file specified by the path.
 ///
 /// # Panics
 ///

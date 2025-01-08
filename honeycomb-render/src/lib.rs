@@ -9,9 +9,6 @@
 //!
 //! Note that rendering large maps may require running the program in `release` mode.
 //!
-//! ## Quickstart
-//!
-//! Examples are available in the dedicated crate.
 
 // ------ CUSTOM LINTS
 

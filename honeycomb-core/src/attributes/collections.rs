@@ -12,20 +12,17 @@ use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
-/// Custom storage structure for attributes
+/// Custom storage structure
 ///
-/// This structured is used to store user-defined attributes using a vector of `Option<T>` items.
-/// This means that valid attributes value may be separated by an arbitrary number of `None`.
+/// **This structure is not meant to be used directly** but with the [`AttributeBind`] trait.
 ///
+/// The structure is used to store user-defined attributes using a vector of `Option<T>` items.
 /// This implementation should favor access logic over locality of reference.
 ///
 /// # Generics
 ///
 /// - `T: AttributeBind + AttributeUpdate` -- Type of the stored attributes.
 ///
-/// # Example
-///
-/// **This type is not meant to be used directly** but used along the [`AttributeBind`] trait.
 #[derive(Debug)]
 pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     /// Inner storage.
@@ -34,6 +31,7 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 
 #[doc(hidden)]
 impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
+    /// Transactional write
     fn write_core(
         &self,
         trans: &mut Transaction,
@@ -43,10 +41,12 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         self.data[id.to_usize().unwrap()].replace(trans, Some(val))
     }
 
+    /// Transactional read
     fn read_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].read(trans)
     }
 
+    /// Transactional remove
     fn remove_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, None)
     }

@@ -13,25 +13,23 @@ and many-core architectures.
 The current objective is to profile and benchmark performance of our structure in the context of our
 kernels' implementations, and start introducing concurrency into our code.
 
-
 ## Quickstart
 
 You can add `honeycomb` as a dependency of your project by adding the following lines to its `Cargo.toml`:
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.6.0"} # remove tag for master branch build
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.7.0" } # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.6.0"
-honeycomb-kernels = "0.6.0"
-honeycomb-render = "0.6.0"
+honeycomb-core = "0.7.0"
+honeycomb-kernels = "0.7.0"
+honeycomb-render = "0.7.0"
 ```
-
 
 ## Project content
 
@@ -54,8 +52,8 @@ The repository also hosts these members:
 
 ### User guide
 
-The [user guide][UG] provides an overview of everything available in the project as well as usage instructions. It can 
-be generated offline using **mdbook**. Note that generating the doc using a stable toolchain is possible, the features 
+The [user guide][UG] provides an overview of everything available in the project as well as usage instructions. It can
+be generated offline using **mdbook**. Note that generating the doc using a stable toolchain is possible, the features
 just won't be documented as clearly.
 
 ```shell
@@ -72,18 +70,16 @@ kill $(pidof mdbook)
 kill $(ps -e | awk '/mdbook/ {print $1}')
 ```
 
-
 ## Contributing
 
 Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues to report bugs,
 missing documentation or suggest improvements of the project.
 
 Note that a most of the code possess documentation, including private modules / items / sections. You can generate
-the complete documentation by using the instructions [above](#user-guide) and passing the option 
+the complete documentation by using the instructions [above](#user-guide) and passing the option
 `--document-private-items` to `cargo doc`.
 
 [GH]: https://github.com/LIHPC-Computational-Geometry/honeycomb
-
 
 ## License
 
@@ -98,7 +94,7 @@ at your preference.
 
 The [SPDX](https://spdx.dev) license identifier for this project is `MIT OR Apache-2.0`.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as 
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
 defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 
