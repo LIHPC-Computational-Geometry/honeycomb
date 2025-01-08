@@ -199,7 +199,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// # Return
     ///
     /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     fn new(length: usize) -> Self
     where
         Self: Sized;
@@ -213,7 +213,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
     /// Return the number of stored attributes, i.e. the number of used slots in the storage (not
     /// its length).
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     fn n_attributes(&self) -> usize;
 
     // regular

@@ -23,13 +23,13 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- read
 
     /// Return the current number of darts.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn n_darts(&self) -> usize {
         self.n_darts
     }
 
     /// Return the current number of unused darts.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
@@ -121,7 +121,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// The method will panic if `I` is not 0, 1 or 2.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
         assert!(I < 3);
         self.betas[(I, dart_id)].read_atomic()
@@ -132,7 +132,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// The method will panic if `i` is not 0, 1 or 2.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn beta_rt(&self, i: u8, dart_id: DartIdType) -> DartIdType {
         assert!(i < 3);
         match i {
@@ -154,7 +154,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// The method will panic if `I` is not 0, 1 or 2.
-    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta_transac<const I: u8>(
         &self,
         trans: &mut Transaction,
@@ -175,7 +174,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// The method will panic if `i` is not 0, 1 or 2.
-    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta_rt_transac(
         &self,
         trans: &mut Transaction,
@@ -203,7 +201,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The function will panic if *I* is not 0, 1 or 2.
     ///
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdType) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
@@ -213,7 +211,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Return
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn is_free(&self, dart_id: DartIdType) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
             && self.beta::<1>(dart_id) == NULL_DART_ID
@@ -226,7 +224,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the ID of the vertex a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
         atomically(|trans| self.vertex_id_transac(trans, dart_id))
     }
@@ -270,7 +268,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the ID of the edge a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
         atomically(|trans| self.edge_id_transac(trans, dart_id))
     }
@@ -301,7 +299,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Compute the ID of the face a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
         atomically(|trans| self.face_id_transac(trans, dart_id))
     }
@@ -352,7 +350,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Panics
     ///
     /// The method will panic if *I* is not 0, 1 or 2.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit2<T> {
         assert!(I < 3);
         match I {
@@ -364,7 +362,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Return an iterator over IDs of all the map's vertices.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
@@ -379,7 +377,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Return an iterator over IDs of all the map's edges.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
@@ -394,7 +392,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Return an iterator over IDs of all the map's faces.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))

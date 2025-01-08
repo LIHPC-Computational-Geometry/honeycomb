@@ -215,7 +215,7 @@ impl AttrStorageManager {
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
-    #[must_use = "unused getter result - please remove this method call"]
+    #[must_use = "unused return value"]
     pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => &self.vertices[&TypeId::of::<A>()],

@@ -26,14 +26,14 @@ pub struct GridDescriptor<T: CoordsFloat> {
 macro_rules! setters {
     ($fld: ident, $fldx: ident, $fldy: ident, $fldz: ident, $zero: expr, $fldty: ty) => {
         /// Set values for all dimensions
-        #[must_use = "unused builder object, consider removing this method call"]
+        #[must_use = "unused builder object"]
         pub fn $fld(mut self, $fld: [$fldty; 3]) -> Self {
             self.$fld = Some($fld);
             self
         }
 
         /// Set x-axis value
-        #[must_use = "unused builder object, consider removing this method call"]
+        #[must_use = "unused builder object"]
         pub fn $fldx(mut self, $fld: $fldty) -> Self {
             if let Some([ptr, _, _]) = &mut self.$fld {
                 *ptr = $fld;
@@ -44,7 +44,7 @@ macro_rules! setters {
         }
 
         /// Set y-axis value
-        #[must_use = "unused builder object, consider removing this method call"]
+        #[must_use = "unused builder object"]
         pub fn $fldy(mut self, $fld: $fldty) -> Self {
             if let Some([_, ptr, _]) = &mut self.$fld {
                 *ptr = $fld;
@@ -55,7 +55,7 @@ macro_rules! setters {
         }
 
         /// Set z-axis value
-        #[must_use = "unused builder object, consider removing this method call"]
+        #[must_use = "unused builder object"]
         pub fn $fldz(mut self, $fld: $fldty) -> Self {
             if let Some([_, _, ptr]) = &mut self.$fld {
                 *ptr = $fld;
@@ -85,14 +85,14 @@ impl<T: CoordsFloat> GridDescriptor<T> {
     setters!(lens, lens_x, lens_y, lens_z, T::zero(), T);
 
     /// Set origin (most bottom-left vertex) of the grid
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn origin(mut self, origin: Vertex2<T>) -> Self {
         self.origin = origin;
         self
     }
 
     /// Indicate whether to split quads of the grid
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn split_quads(mut self, split: bool) -> Self {
         self.split_quads = split;
         self

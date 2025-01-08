@@ -74,14 +74,14 @@ impl<T: CoordsFloat> From<GridDescriptor<T>> for CMapBuilder<T> {
 /// # Regular methods
 impl<T: CoordsFloat> CMapBuilder<T> {
     /// Set the number of dart that the created map will contain.
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn n_darts(mut self, n_darts: usize) -> Self {
         self.n_darts = n_darts;
         self
     }
 
     /// Set the [`GridDescriptor`] that will be used when building the map.
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn grid_descriptor(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
         self.grid_descriptor = Some(grid_descriptor);
         self
@@ -92,7 +92,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// # Panics
     ///
     /// This function may panic if the file cannot be loaded.
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         let vtk_file =
             Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
@@ -112,7 +112,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// to look into the **Newtype** pattern
     /// [here](https://rust-unofficial.github.io/patterns/patterns/behavioural/newtype.html)
     /// and [here](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
-    #[must_use = "unused builder object, consider removing this method call"]
+    #[must_use = "unused builder object"]
     pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
         self.attributes.add_storage::<A>(self.n_darts);
         self
@@ -171,7 +171,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// equal number of cells along each axis:
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid.svg)
-    #[must_use = "unused builder object, consider removing this function call"]
+    #[must_use = "unused builder object"]
     pub fn unit_grid(n_square: usize) -> Self {
         GridDescriptor::default()
             .n_cells([n_square; 3])
@@ -195,7 +195,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// left to bottom right) to form triangles:
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid_tri.svg)
-    #[must_use = "unused builder object, consider removing this function call"]
+    #[must_use = "unused builder object"]
     pub fn unit_triangles(n_square: usize) -> Self {
         GridDescriptor::default()
             .n_cells([n_square; 3])

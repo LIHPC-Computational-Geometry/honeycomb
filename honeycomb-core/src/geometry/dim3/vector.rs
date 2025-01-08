@@ -42,19 +42,19 @@ unsafe impl<T: CoordsFloat> Sync for Vector3<T> {}
 
 impl<T: CoordsFloat> Vector3<T> {
     /// Return a unit vector along the `x` axis.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_x() -> Self {
         Self(T::one(), T::zero(), T::zero())
     }
 
     /// Return a unit vector along the `y` axis.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_y() -> Self {
         Self(T::zero(), T::one(), T::zero())
     }
 
     /// Return a unit vector along the `z` axis.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_z() -> Self {
         Self(T::zero(), T::zero(), T::one())
     }
@@ -103,7 +103,7 @@ impl<T: CoordsFloat> Vector3<T> {
     }
 
     /// Return the cross product between `self` and `other`.
-    #[must_use = "result is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn cross(&self, other: &Vector3<T>) -> Self {
         Self(
             self.1 * other.2 - self.2 * other.1,

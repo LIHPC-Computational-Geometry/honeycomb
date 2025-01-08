@@ -64,7 +64,7 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     /// Currently, orbits use two dynamically allocated structures for computation: a `VecDeque`,
     /// and a `BTreeSet`. Allocations are made by the constructor since these structures aren't
     /// empty initially.
-    #[must_use = "orbits are lazy and do nothing unless consumed"]
+    #[must_use = "unused return value"]
     pub fn new(map_handle: &'a CMap2<T>, orbit_policy: OrbitPolicy, dart: DartIdType) -> Self {
         let mut marked = BTreeSet::<DartIdType>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit

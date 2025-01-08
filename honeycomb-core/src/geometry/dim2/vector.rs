@@ -39,13 +39,13 @@ unsafe impl<T: CoordsFloat> Sync for Vector2<T> {}
 
 impl<T: CoordsFloat> Vector2<T> {
     /// Return a unit vector along the `x` axis.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_x() -> Self {
         Self(T::one(), T::zero())
     }
 
     /// Return a unit vector along the `y` axis.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_y() -> Self {
         Self(T::zero(), T::one())
     }

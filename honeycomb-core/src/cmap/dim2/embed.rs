@@ -19,7 +19,7 @@ use crate::{
 /// **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap2<T> {
     /// Return the current number of vertices.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn n_vertices(&self) -> usize {
         self.vertices.n_attributes()
     }
@@ -42,7 +42,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    #[must_use = "returned value is not used, consider removing this method call"]
     pub fn read_vertex(
         &self,
         trans: &mut Transaction,
@@ -109,7 +108,7 @@ impl<T: CoordsFloat> CMap2<T> {
         self.vertices.remove(trans, vertex_id)
     }
 
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     /// Read the vertex associated to a given identifier.
     ///
     /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be

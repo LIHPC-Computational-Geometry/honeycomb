@@ -149,7 +149,7 @@ unsafe impl<T: CoordsFloat> Sync for CMap2<T> {}
 impl<T: CoordsFloat> CMap2<T> {
     /// Creates a new 2D combinatorial map.
     #[allow(unused)]
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
             attributes: AttrStorageManager::default(),
@@ -164,7 +164,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// We expect the passed storages to be defined but empty, i.e. attributes are known,
     /// but no space has been used/  allocated yet.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
         mut attr_storage_manager: AttrStorageManager,
