@@ -20,8 +20,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     /// # Panics
     ///
     /// This function may panic if the internal writing routine fails, i.e.:
-    ///     - Vertex coordinates cannot be cast to `f32` or `f64`
-    ///     - A vertex cannot be found
+    /// - vertex coordinates cannot be cast to `f32` or `f64`,
+    /// - a vertex cannot be found.
     pub fn to_vtk_binary(&self, writer: impl std::io::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {
@@ -46,8 +46,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     /// # Panics
     ///
     /// This function may panic if the internal writing routine fails, i.e.:
-    ///     - Vertex coordinates cannot be cast to `f32` or `f64`
-    ///     - A vertex cannot be found
+    /// - vertex coordinates cannot be cast to `f32` or `f64`,
+    /// - a vertex cannot be found.
     pub fn to_vtk_ascii(&self, writer: impl std::fmt::Write) {
         // build a Vtk structure
         let vtk_struct = Vtk {

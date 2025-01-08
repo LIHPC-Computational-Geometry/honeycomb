@@ -7,7 +7,7 @@
 //! ```
 //!
 //! With `N_THREADS the number of thread used for execution. If it is not specified, or the
-//! argument can't be parsed, it will default to `std::thread::availqble_parallelism`, which in
+//! argument can't be parsed, it will default to `std::thread::available_parallelism`, which in
 //! turns default to `1` if it fails.
 //!
 //! # Description

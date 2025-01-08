@@ -50,7 +50,10 @@ macro_rules! get_storage_mut {
     };
 }
 
+// TODO: make the structure private & remove unused methods
 /// Main attribute storage structure.
+///
+/// **This structure is not meant to be used directly**.
 ///
 /// This structure is used to store all generic attributes that the user may add to the
 /// combinatorial map he's building.
@@ -153,11 +156,8 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `size: usize` -- Initial size of the new storage.
-    ///
-    /// ## Generic
-    ///
     /// - `A: AttributeBind + 'static` -- Type of the attribute that will be stored.
+    /// - `size: usize` -- Initial size of the new storage.
     ///
     /// # Panics
     ///
@@ -189,11 +189,9 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     /// - `length: usize` -- Length by which the storage should be extended.
     ///
-    /// ## Generic
-    ///
-    /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
         if let Some(st) = storage {
@@ -208,7 +206,7 @@ impl AttrStorageManager {
 
     /// Get a reference to the storage of a given attribute.
     ///
-    /// # Generic
+    /// # Arguments
     ///
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     ///
@@ -217,7 +215,7 @@ impl AttrStorageManager {
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
-    #[must_use = "unused getter result - please remove this method call"]
+    #[must_use = "unused return value"]
     pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => &self.vertices[&TypeId::of::<A>()],
@@ -233,7 +231,7 @@ impl AttrStorageManager {
     /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
     /// before the final result is returned.
     ///
-    /// # Generic
+    /// # Arguments
     ///
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     pub fn remove_storage<A: AttributeBind>(&mut self) {

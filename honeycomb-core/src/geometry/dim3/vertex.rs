@@ -2,20 +2,24 @@
 //!
 //! This module contains all code used to model vertices.
 
-// ------ IMPORTS
-
 use super::super::Vector3;
 use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdType};
 use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
-// ------ CONTENT
-/// 3D vertex representation
+/// # 2D vertex structure
 ///
-/// # Generics
+/// ## Attribute behavior
 ///
-/// - `T: CoordsFloat` -- Generic type for coordinates representation.
+/// - binds to 0-cells,
+/// - merge policy: the new vertex is placed at the midpoint between the two existing ones,
+/// - split policy: the current vertex is duplicated,
+/// - fallback policies: default implementations are used.
 ///
-/// # Example
+/// ## Generics
+///
+/// - `T: CoordsFloat` -- Generic FP type for coordinates.
+///
+/// ## Example
 ///
 /// ```
 /// # use honeycomb_core::prelude::CoordsError;
@@ -47,7 +51,6 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 /// # Ok(())
 /// # }
 /// ```
-///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vertex3<T: CoordsFloat>(pub T, pub T, pub T);
 
@@ -55,51 +58,27 @@ unsafe impl<T: CoordsFloat> Send for Vertex3<T> {}
 unsafe impl<T: CoordsFloat> Sync for Vertex3<T> {}
 
 impl<T: CoordsFloat> Vertex3<T> {
-    /// Consume `self` to return inner value
-    ///
-    /// # Return
-    ///
-    /// Return coordinate values as a simple tuple.
-    ///
+    /// Consume `self` to return inner values.
     pub fn into_inner(self) -> (T, T, T) {
         (self.0, self.1, self.2)
     }
 
-    /// Getter
-    ///
-    /// # Return
-    ///
     /// Return the value of the `x` coordinate of the vertex.
-    ///
     pub fn x(&self) -> T {
         self.0
     }
 
-    /// Getter
-    ///
-    /// # Return
-    ///
     /// Return the value of the `y` coordinate of the vertex.
-    ///
     pub fn y(&self) -> T {
         self.1
     }
 
-    /// Getter
-    ///
-    /// # Return
-    ///
     /// Return the value of the `z` coordinate of the vertex.
-    ///
     pub fn z(&self) -> T {
         self.2
     }
 
     /// Compute the mid-point between two vertices.
-    ///
-    /// # Return
-    ///
-    /// Return the mid-point as a new [Vertex3] object.
     ///
     /// # Panics
     ///
@@ -216,11 +195,6 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex3<T>> for Vertex3<T> {
     }
 }
 
-/// Attribute logic definitions
-///
-/// - **MERGING POLICY** - The new vertex is placed at the midpoint between the two existing ones.
-/// - **SPLITTING POLICY** - The current vertex is duplicated.
-/// - **(PARTIALLY) UNDEFINED ATTRIBUTES MERGING** - The default implementations are used.
 impl<T: CoordsFloat> AttributeUpdate for Vertex3<T> {
     fn merge(attr1: Self, attr2: Self) -> Self {
         Self::average(&attr1, &attr2)
@@ -231,9 +205,6 @@ impl<T: CoordsFloat> AttributeUpdate for Vertex3<T> {
     }
 }
 
-/// Attribute support definitions
-///
-/// - **BINDS TO 0-CELLS**
 impl<T: CoordsFloat> AttributeBind for Vertex3<T> {
     type StorageType = AttrSparseVec<Self>;
     type IdentifierType = VertexIdType;

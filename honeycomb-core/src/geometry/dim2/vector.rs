@@ -2,19 +2,15 @@
 //!
 //! This module contains all code used to model vectors.
 
-// ------ IMPORTS
-
 use super::super::{CoordsError, CoordsFloat};
 
-// ------ CONTENT
-
-/// 2D vector representation
+/// # 2D vector structure
 ///
-/// # Generics
+/// ## Generics
 ///
-/// - `T: CoordsFloat` -- Generic type for coordinates representation.
+/// - `T: CoordsFloat` -- Generic FP type for coordinates.
 ///
-/// # Example
+/// ## Example
 ///
 /// ```
 /// # use honeycomb_core::prelude::CoordsError;
@@ -35,7 +31,6 @@ use super::super::{CoordsError, CoordsFloat};
 /// # Ok(())
 /// # }
 /// ```
-///
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Vector2<T: CoordsFloat>(pub T, pub T);
 
@@ -43,89 +38,43 @@ unsafe impl<T: CoordsFloat> Send for Vector2<T> {}
 unsafe impl<T: CoordsFloat> Sync for Vector2<T> {}
 
 impl<T: CoordsFloat> Vector2<T> {
-    /// Base vector
-    ///
-    /// # Return
-    ///
     /// Return a unit vector along the `x` axis.
-    ///
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_x() -> Self {
         Self(T::one(), T::zero())
     }
 
-    /// Base vector
-    ///
-    /// # Return
-    ///
     /// Return a unit vector along the `y` axis.
-    ///
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub fn unit_y() -> Self {
         Self(T::zero(), T::one())
     }
 
-    /// Consume `self` to return inner value
-    ///
-    /// # Return
-    ///
-    /// Return coordinate values as a simple tuple.
-    ///
+    /// Consume `self` to return inner values.
     pub fn into_inner(self) -> (T, T) {
         (self.0, self.1)
     }
 
-    /// Getter
-    ///
-    /// # Return
-    ///
     /// Return the value of the `x` coordinate of the vector.
-    ///
     pub fn x(&self) -> T {
         self.0
     }
 
-    /// Getter
-    ///
-    /// # Return
-    ///
     /// Return the value of the `y` coordinate of the vector.
-    ///
     pub fn y(&self) -> T {
         self.1
     }
 
     /// Compute the norm of `self`.
-    ///
-    /// # Return
-    ///
-    /// Return the norm. Its type is the same as the one used for internal
-    /// representation.
-    ///
-    /// # Example
-    ///
-    /// See [Vector2] example.
-    ///
     pub fn norm(&self) -> T {
         self.0.hypot(self.1)
     }
 
     /// Compute the direction of `self` as a unit vector.
     ///
-    /// # Return
-    ///
-    /// Return a [Vector2] indicating the direction of `self`. The norm of the returned
-    /// struct is equal to one.
-    ///
     /// # Errors
     ///
-    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
-    /// i.e. a null `Vector2`.
-    ///
-    /// # Example
-    ///
-    /// See [Vector2] example.
-    ///
+    /// This method will return an error if called on a null `Vector2`.
     pub fn unit_dir(&self) -> Result<Self, CoordsError> {
         let norm = self.norm();
         if norm.is_zero() {
@@ -135,42 +84,18 @@ impl<T: CoordsFloat> Vector2<T> {
         }
     }
 
-    /// Compute the direction of the normal vector to `self`.
-    ///
-    /// # Return
-    ///
-    /// Return a [Vector2] indicating the direction of the normal to `self`. The norm of the
-    /// returned struct is equal to one.
+    /// Compute the direction of the normal vector to `self` as a unit vector.
     ///
     /// # Errors
     ///
-    /// This method will return an error if called on a `Vector2` with a norm equal to zero,
-    /// i.e. a null `Vector2`.
-    ///
-    /// # Example
-    ///
-    /// See [Vector2] example.
-    ///
+    /// This method will return an error if called on a null `Vector2`.
     pub fn normal_dir(&self) -> Result<Vector2<T>, CoordsError> {
         Self(-self.1, self.0)
             .unit_dir() // unit(-y, x)
             .map_err(|_| CoordsError::InvalidNormDir)
     }
 
-    /// Compute the dot product between two vectors
-    ///
-    /// # Arguments
-    ///
-    /// - `other: &Vector2` -- reference to the second vector.
-    ///
-    /// # Return
-    ///
     /// Return the dot product between `self` and `other`.
-    ///
-    /// # Example
-    ///
-    /// See [Vector2] example.
-    ///
     pub fn dot(&self, other: &Vector2<T>) -> T {
         self.0 * other.0 + self.1 * other.1
     }

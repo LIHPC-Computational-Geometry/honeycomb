@@ -21,15 +21,14 @@
 //! - `render` -- content from the `honeycomb-render` crate
 //!
 //! Note that:
-//! - the `kernels` feature is enabled by default since it does not require any more dependencies
-//!   than the core crate.
+//! - the `kernels` feature is enabled by default since it does not require additional dependencies.
 //! - the `render` feature is disabled by default; enabling it significantly lengthen the
 //!   dependency tree as well as the compilation time.
 //!
 //! ## Quickstart
 //!
-//! For usage examples, refer to examples hosted in the [repository][EX]; there also are
-//! documentation examples for important items:
+//! For usage examples, refer to examples hosted in the [repository][EX]. Important items also have
+//! example(s) included in their documentation:
 //!
 //! - [`CMap2`][honeycomb_core::cmap::CMap2]
 //! - [`CMapBuilder`][honeycomb_core::cmap::CMapBuilder]

@@ -2,8 +2,6 @@
 //!
 //! This module contains all code related to generic attribute modelling and handling.
 
-// ------ MODULE DECLARATIONS
-
 mod collections;
 mod manager;
 mod traits;
