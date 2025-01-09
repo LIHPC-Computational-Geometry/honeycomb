@@ -149,6 +149,8 @@ impl<T: CoordsFloat> CMap3<T> {
                 }
             }
 
+            // FIXME: figure out a way to test orientations
+
             // (*): these branch corresponds to incomplete merges (at best),
             //      or incorrect structure (at worst). that's not a problem
             //      because `three_link` will detect inconsistencies
