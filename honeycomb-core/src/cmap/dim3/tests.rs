@@ -71,6 +71,13 @@ fn example_test() {
     map.force_link::<1>(22, 23);
     map.force_link::<1>(23, 24);
     map.force_link::<1>(24, 22);
+    // link triangles to get the tet
+    map.force_link::<2>(13, 16);
+    map.force_link::<2>(14, 19);
+    map.force_link::<2>(15, 22);
+    map.force_link::<2>(17, 24);
+    map.force_link::<2>(18, 20);
+    map.force_link::<2>(21, 23);
 
     map.force_write_vertex(13, (2.5, 1.5, 0.0));
     map.force_write_vertex(14, (1.5, 2.0, 0.0));
@@ -112,7 +119,7 @@ fn example_test() {
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
         // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
-        assert_eq!(map.iter_edges().count(), 8);
+        assert_eq!(map.iter_edges().count(), 9);
     }
 
     // Adjust shared vertices (D)
@@ -160,6 +167,9 @@ fn example_test() {
     map.remove_free_dart(10);
     map.remove_free_dart(11);
     map.remove_free_dart(12);
+    map.remove_free_dart(16);
+    map.remove_free_dart(17);
+    map.remove_free_dart(18);
 
     {
         let mut volumes = map.iter_volumes();
@@ -169,6 +179,7 @@ fn example_test() {
         assert_eq!(faces.next(), Some(1)); // base
         assert_eq!(faces.next(), Some(4)); // y-
         assert_eq!(faces.next(), Some(7)); // x-
+        assert_eq!(faces.next(), Some(13)); // base
         assert_eq!(faces.next(), Some(19)); // y+
         assert_eq!(faces.next(), Some(22)); // x+
         assert_eq!(faces.next(), None);

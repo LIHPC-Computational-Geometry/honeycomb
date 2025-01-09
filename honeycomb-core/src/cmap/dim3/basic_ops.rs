@@ -247,7 +247,9 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 queue.push_back(self.beta::<1>(b3));
                 queue.push_back(self.beta::<3>(b2));
+                queue.push_back(self.beta::<1>(b2));
                 queue.push_back(self.beta::<3>(b0)); // ?
+                queue.push_back(self.beta::<2>(b0)); // ?
             }
         }
 
@@ -284,7 +286,9 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 queue.push_back(self.beta_transac::<1>(trans, b3)?);
                 queue.push_back(self.beta_transac::<3>(trans, b2)?);
+                queue.push_back(self.beta_transac::<1>(trans, b2)?);
                 queue.push_back(self.beta_transac::<3>(trans, b0)?); // ?
+                queue.push_back(self.beta_transac::<2>(trans, b0)?); // ?
             }
         }
 
@@ -299,7 +303,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let mut marked = HashSet::new();
         marked.insert(NULL_DART_ID);
         let (mut lb, mut rb) = (dart_id, self.beta::<3>(dart_id));
-        let mut min = lb.min(rb);
+        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
         let mut alt = true;
 
         while marked.insert(lb) || marked.insert(rb) {
@@ -337,7 +341,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let mut marked = HashSet::new();
         marked.insert(NULL_DART_ID);
         let (mut lb, mut rb) = (dart_id, self.beta_transac::<3>(trans, dart_id)?);
-        let mut min = lb.min(rb);
+        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
         let mut alt = true;
 
         while marked.insert(lb) || marked.insert(rb) {
@@ -373,7 +377,7 @@ impl<T: CoordsFloat> CMap3<T> {
         marked.insert(NULL_DART_ID);
         let b3_dart_id = self.beta::<3>(dart_id);
         let (mut lb, mut rb) = (dart_id, b3_dart_id);
-        let mut min = lb.min(rb);
+        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
 
         while marked.insert(lb) || marked.insert(rb) {
             (lb, rb) = (self.beta::<1>(lb), self.beta::<0>(rb));
@@ -419,7 +423,7 @@ impl<T: CoordsFloat> CMap3<T> {
         marked.insert(NULL_DART_ID);
         let b3_dart_id = self.beta_transac::<3>(trans, dart_id)?;
         let (mut lb, mut rb) = (dart_id, b3_dart_id);
-        let mut min = lb.min(rb);
+        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
 
         while marked.insert(lb) || marked.insert(rb) {
             (lb, rb) = (
