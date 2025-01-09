@@ -46,19 +46,32 @@ impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
             match self.orbit_policy {
                 // B3oB2, B1oB3, B3oB0
                 OrbitPolicy::Vertex => {
+                    // b3(b2(d))
                     let image1 = self.map_handle.beta::<3>(self.map_handle.beta::<2>(d));
                     if self.marked.insert(image1) {
                         // if true, we did not see this dart yet
                         // i.e. we need to visit it later
                         self.pending.push_back(image1);
                     }
+                    // b1(b3(d))
                     let image2 = self.map_handle.beta::<1>(self.map_handle.beta::<3>(d));
                     if self.marked.insert(image2) {
                         self.pending.push_back(image2);
                     }
-                    let image3 = self.map_handle.beta::<3>(self.map_handle.beta::<0>(d));
+                    // b1(b2(d))
+                    let image3 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
                     if self.marked.insert(image3) {
                         self.pending.push_back(image3);
+                    }
+                    // b3(b0(d))
+                    let image4 = self.map_handle.beta::<3>(self.map_handle.beta::<0>(d));
+                    if self.marked.insert(image4) {
+                        self.pending.push_back(image4);
+                    }
+                    // b2(b0(d))
+                    let image5 = self.map_handle.beta::<2>(self.map_handle.beta::<0>(d));
+                    if self.marked.insert(image5) {
+                        self.pending.push_back(image5);
                     }
                 }
                 // B3oB2, B1oB3

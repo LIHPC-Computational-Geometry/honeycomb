@@ -62,17 +62,7 @@ unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
 ///
 /// ```rust
 /// # fn main() {
-/// use honeycomb_core::{
-///     cmap::{CMap3, CMapBuilder, Orbit3, OrbitPolicy},
-///     geometry::Vertex3,
-/// };
-///
-/// // Build a tetrahedron (A)
-/// let mut map: CMap3<f64> = CMapBuilder::default().n_darts(12).build().unwrap(); // 3*4 darts
-/// // Build a second tetrahedron (B)
-/// // Sew both tetrahedrons along a face (C)
-/// // Adjust shared vertices (D)
-/// // Separate the shared face (E)
+/// // TODO: complete with test example once the structure is integrated to the builder
 /// # }
 /// ```
 ///
