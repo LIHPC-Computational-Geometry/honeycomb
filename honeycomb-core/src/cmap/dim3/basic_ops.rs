@@ -28,20 +28,25 @@ use crate::{
 impl<T: CoordsFloat> CMap3<T> {
     // --- read
 
-    /// Return information about the current number of darts.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    /// Return the current number of darts.
+    #[must_use = "unused return value"]
     pub fn n_darts(&self) -> usize {
         self.unused_darts.len()
     }
 
-    /// Return information about the current number of unused darts.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    /// Return the current number of unused darts.
+    #[must_use = "unused return value"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
     // --- edit
 
+    /// Add a new free dart to the map.
+    ///
+    /// # Return
+    ///
+    /// Returns the ID of the new dart.
     pub fn add_free_dart(&mut self) -> DartIdType {
         let new_id = self.n_darts() as DartIdType;
         self.betas.extend(1);
@@ -51,6 +56,11 @@ impl<T: CoordsFloat> CMap3<T> {
         new_id
     }
 
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// # Return
+    ///
+    /// Returns the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdType {
         let new_id = self.n_darts() as DartIdType;
         self.betas.extend(n_darts);
@@ -60,6 +70,13 @@ impl<T: CoordsFloat> CMap3<T> {
         new_id
     }
 
+    /// Insert a new free dart into the map.
+    ///
+    /// This method attempts to reuse an unused dart slot if available; otherwise, it adds a new one.
+    ///
+    /// # Return
+    ///
+    /// Returns the ID of the inserted dart.
     pub fn insert_free_dart(&mut self) -> DartIdType {
         if let Some((new_id, _)) = self
             .unused_darts
@@ -74,6 +91,21 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    /// Remove a free dart from the map.
+    ///
+    /// The removed dart identifier is added to the list of free darts. This way of proceeding is
+    /// necessary as the structure relies on dart indexing for encoding data, making reordering of
+    /// any sort extremely costly.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdType` -- Identifier of the dart to remove.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - the dart is not free for all *i*,
+    /// - the dart is already marked as unused.
     pub fn remove_free_dart(&mut self, dart_id: DartIdType) {
         atomically(|trans| {
             assert!(self.is_free(dart_id)); // all beta images are 0
@@ -87,6 +119,17 @@ impl<T: CoordsFloat> CMap3<T> {
 impl<T: CoordsFloat> CMap3<T> {
     // --- read
 
+    /// Return β<sub>`I`</sub>(`dart_id`).
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if `I` is not 0, 1, 2, or 3.
     pub fn beta_transac<const I: u8>(
         &self,
         trans: &mut Transaction,
@@ -96,6 +139,17 @@ impl<T: CoordsFloat> CMap3<T> {
         self.betas[(I, dart_id)].read(trans)
     }
 
+    /// Return β<sub>`i`</sub>(`dart_id`).
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if `i` is not 0, 1, 2, or 3.
     pub fn beta_rt_transac(
         &self,
         trans: &mut Transaction,
@@ -112,14 +166,24 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    /// Return β<sub>`I`</sub>(`dart_id`).
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if `I` is not 0, 1, 2, or 3.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
         assert!(I < 4);
         self.betas[(I, dart_id)].read_atomic()
     }
 
+    /// Return β<sub>`i`</sub>(`dart_id`).
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if `i` is not 0, 1, 2, or 3.
     #[must_use = "returned value is not used, consider removing this method call"]
-    pub fn beta_runtime(&self, i: u8, dart_id: DartIdType) -> DartIdType {
+    pub fn beta_rt(&self, i: u8, dart_id: DartIdType) -> DartIdType {
         assert!(i < 4);
         match i {
             0 => self.beta::<0>(dart_id),
@@ -130,11 +194,27 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    /// Check if a given dart is `I`-free.
+    ///
+    /// # Return
+    ///
+    /// The method returns:
+    /// - `true` if β<sub>`I`</sub>(`dart_id`) = `NULL_DART_ID`,
+    /// - `false` otherwise.
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if *I* is not 0, 1, 2, or 3.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdType) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
 
+    /// Check if a given dart is free for all `i`.
+    ///
+    /// # Return
+    ///
+    /// Returns `true` if the dart is 0-free, 1-free, 2-free, **and** 3-free.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn is_free(&self, dart_id: DartIdType) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
@@ -146,6 +226,9 @@ impl<T: CoordsFloat> CMap3<T> {
 
 /// **I-cell-related methods**
 impl<T: CoordsFloat> CMap3<T> {
+    /// Compute the ID of the vertex a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
         let mut marked = HashSet::new();
@@ -171,6 +254,15 @@ impl<T: CoordsFloat> CMap3<T> {
         min
     }
 
+    /// Compute the ID of the vertex a given dart is part of, transactionally.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn vertex_id_transac(
         &self,
         trans: &mut Transaction,
@@ -199,6 +291,9 @@ impl<T: CoordsFloat> CMap3<T> {
         Ok(min)
     }
 
+    /// Compute the ID of the edge a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
         let mut marked = HashSet::new();
@@ -225,6 +320,15 @@ impl<T: CoordsFloat> CMap3<T> {
         min
     }
 
+    /// Compute the ID of the edge a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn edge_id_transac(
         &self,
         trans: &mut Transaction,
@@ -260,6 +364,9 @@ impl<T: CoordsFloat> CMap3<T> {
         Ok(min)
     }
 
+    /// Compute the ID of the face a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
         let mut marked = HashSet::new();
@@ -294,6 +401,15 @@ impl<T: CoordsFloat> CMap3<T> {
         min
     }
 
+    /// Compute the ID of the face a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn face_id_transac(
         &self,
         trans: &mut Transaction,
@@ -340,6 +456,9 @@ impl<T: CoordsFloat> CMap3<T> {
         Ok(min)
     }
 
+    /// Compute the ID of the volume a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 3-cell orbit.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn volume_id(&self, dart_id: DartIdType) -> VolumeIdType {
         let mut marked = HashSet::new();
@@ -360,6 +479,15 @@ impl<T: CoordsFloat> CMap3<T> {
         min
     }
 
+    /// Compute the ID of the volume a given dart is part of.
+    ///
+    /// This corresponds to the minimum dart ID among darts composing the 3-cell orbit.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn volume_id_transac(
         &self,
         trans: &mut Transaction,
@@ -383,6 +511,16 @@ impl<T: CoordsFloat> CMap3<T> {
         Ok(min)
     }
 
+    /// Return the orbit defined by a dart and its `I`-cell.
+    ///
+    /// # Usage
+    ///
+    /// The [`Orbit3`] can be iterated upon to retrieve all dart members of the cell. Note that
+    /// **the dart passed as an argument is included as the first element of the returned orbit**.
+    ///
+    /// # Panics
+    ///
+    /// The method will panic if *I* is not 0, 1, 2, or 3.
     #[must_use = "returned value is not used, consider removing this method call"]
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit3<'_, T> {
         assert!(I < 4);
@@ -395,7 +533,8 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
-    pub fn fetch_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
+    /// Return an iterator over IDs of all the map's vertices.
+    pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
@@ -408,7 +547,8 @@ impl<T: CoordsFloat> CMap3<T> {
             .unique()
     }
 
-    pub fn fetch_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
+    /// Return an iterator over IDs of all the map's edges.
+    pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
@@ -421,7 +561,8 @@ impl<T: CoordsFloat> CMap3<T> {
             .unique()
     }
 
-    pub fn fetch_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
+    /// Return an iterator over IDs of all the map's faces.
+    pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
@@ -434,7 +575,8 @@ impl<T: CoordsFloat> CMap3<T> {
             .unique()
     }
 
-    pub fn fetch_volumes(&self) -> impl Iterator<Item = VolumeIdType> + '_ {
+    /// Return an iterator over IDs of all the map's volumes.
+    pub fn iter_volumes(&self) -> impl Iterator<Item = VolumeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(|(d, unused)| {
