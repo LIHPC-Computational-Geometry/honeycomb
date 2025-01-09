@@ -41,6 +41,7 @@ impl<'a, T: CoordsFloat> Orbit3<'a, T> {
 impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
     type Item = DartIdType;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(d) = self.pending.pop_front() {
             match self.orbit_policy {

@@ -89,6 +89,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// We expect the passed storages to be defined but empty, i.e. attributes are known,
     /// but no space has been used/ allocated yet.
+    #[allow(unused)] // FIXME: remove once the structure is integrated to the builder
     #[must_use = "constructed object is not used, consider removing this function call"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
