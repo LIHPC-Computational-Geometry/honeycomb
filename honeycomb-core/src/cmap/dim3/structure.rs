@@ -75,7 +75,7 @@ unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
 impl<T: CoordsFloat> CMap3<T> {
     /// Creates a new 3D combinatorial map.
     #[allow(unused)]
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub(crate) fn new(n_darts: usize) -> Self {
         Self {
             attributes: AttrStorageManager::default(),
@@ -90,7 +90,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// We expect the passed storages to be defined but empty, i.e. attributes are known,
     /// but no space has been used/ allocated yet.
     #[allow(unused)] // FIXME: remove once the structure is integrated to the builder
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
         mut attr_storage_manager: AttrStorageManager,

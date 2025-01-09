@@ -171,7 +171,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The method will panic if `I` is not 0, 1, 2, or 3.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
         assert!(I < 4);
         self.betas[(I, dart_id)].read_atomic()
@@ -182,7 +182,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The method will panic if `i` is not 0, 1, 2, or 3.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn beta_rt(&self, i: u8, dart_id: DartIdType) -> DartIdType {
         assert!(i < 4);
         match i {
@@ -205,7 +205,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The function will panic if *I* is not 0, 1, 2, or 3.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn is_i_free<const I: u8>(&self, dart_id: DartIdType) -> bool {
         self.beta::<I>(dart_id) == NULL_DART_ID
     }
@@ -215,7 +215,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Return
     ///
     /// Returns `true` if the dart is 0-free, 1-free, 2-free, **and** 3-free.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn is_free(&self, dart_id: DartIdType) -> bool {
         self.beta::<0>(dart_id) == NULL_DART_ID
             && self.beta::<1>(dart_id) == NULL_DART_ID
@@ -229,7 +229,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Compute the ID of the vertex a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
         let mut marked = HashSet::new();
         let mut queue = VecDeque::new();
@@ -298,7 +298,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Compute the ID of the edge a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
         let mut marked = HashSet::new();
         marked.insert(NULL_DART_ID);
@@ -371,7 +371,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Compute the ID of the face a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
         let mut marked = HashSet::new();
         marked.insert(NULL_DART_ID);
@@ -463,7 +463,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Compute the ID of the volume a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 3-cell orbit.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn volume_id(&self, dart_id: DartIdType) -> VolumeIdType {
         let mut marked = HashSet::new();
         let mut queue = VecDeque::new();
@@ -525,7 +525,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The method will panic if *I* is not 0, 1, 2, or 3.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    #[must_use = "unused return value"]
     pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit3<'_, T> {
         assert!(I < 4);
         match I {

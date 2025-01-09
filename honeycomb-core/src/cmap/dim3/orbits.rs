@@ -22,7 +22,7 @@ pub struct Orbit3<'a, T: CoordsFloat> {
 }
 
 impl<'a, T: CoordsFloat> Orbit3<'a, T> {
-    #[must_use = "orbits are lazy and do nothing unless consumed"]
+    #[must_use = "unused return value"]
     pub fn new(map_handle: &'a CMap3<T>, orbit_policy: OrbitPolicy, dart: DartIdType) -> Self {
         let mut marked = HashSet::<DartIdType>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
