@@ -1,8 +1,10 @@
 // ------ IMPORTS
 
+use stm::{atomically, StmError, TVar};
+
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeUpdate},
-    cmap::{CMap3, DartIdType, Orbit3, OrbitPolicy, VertexIdType},
+    cmap::{CMap3, CMapError, DartIdType, Orbit3, OrbitPolicy, VertexIdType},
     geometry::Vertex3,
 };
 
@@ -322,6 +324,81 @@ fn sew_ordering_3d() {
     });
 }
 
+#[test]
+fn sew_ordering_with_transactions() {
+    loom::model(|| {
+        // setup the map
+        let map: CMap3<f64> = CMap3::new(5);
+        map.force_link::<2>(1, 2);
+        map.force_link::<2>(3, 4);
+        // only one vertex is defined
+        // the idea is to use CMapError, along with transaction control to ensure
+        // we don't proceed with a sew on no value
+        map.force_write_vertex(2, Vertex3(1.0, 1.0, 1.0));
+        // map.force_write_vertex(3, Vertex3(1.0, 2.0, 1.0));
+        // map.force_write_vertex(5, Vertex3(2.0, 2.0, 1.0));
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to sew ops:
+        // - 1-sew 1 to 3 (t1)
+        // - 1-sew 4 to 5 (t2)
+        // this will result in a single vertex being defined, of ID 2
+        // to demonstrate order of execution, we're going to use a TVar
+        let foo = TVar::new(0);
+        let f = loom::sync::Arc::new(foo);
+        let (f1, f2) = (f.clone(), f.clone());
+
+        let t1 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                f1.modify(trans, |v| v + 1)?;
+                // this should be useless as the vertex is defined on this op
+                // we still have to pattern match becaue CMapError cannot be automatically
+                // coerced to StmError
+                if let Err(e) = m1.sew::<1>(trans, 1, 3) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
+                        CMapError::FailedAttributeSplit(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                f2.modify(trans, |v| if v != 0 { v + 4 } else { v })?;
+                // this should be useless as the vertex is defined on this op
+                if let Err(e) = m2.sew::<1>(trans, 4, 5) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
+                        CMapError::FailedAttributeSplit(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            })
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all paths should result in the same topological result here
+        assert!(arc.force_read_vertex(2).is_some());
+        assert!(arc.force_read_vertex(3).is_none());
+        assert!(arc.force_read_vertex(5).is_none());
+        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        // if execution order was respected, foo should be at 5
+        assert_eq!(f.read_atomic(), 5);
+    });
+}
 /*
 #[test]
 fn unsew_ordering_3d() {
