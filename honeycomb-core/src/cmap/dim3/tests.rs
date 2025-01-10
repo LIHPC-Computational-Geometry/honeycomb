@@ -239,8 +239,32 @@ fn three_sew_complete() {
 
 #[test]
 // FIXME: fix the impl & uncomment
+#[should_panic(expected = "Dart 1 and 5 do not have consistent orientation for 2-sewing")]
+fn two_sew_bad_orientation() {
+    let map: CMap3<f64> = CMap3::new(8);
+    map.force_link::<1>(1, 2);
+    map.force_link::<1>(2, 3);
+    map.force_link::<1>(3, 4);
+    map.force_link::<1>(4, 1);
+    map.force_link::<1>(5, 6);
+    map.force_link::<1>(6, 7);
+    map.force_link::<1>(7, 8);
+    map.force_link::<1>(8, 5);
+    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+    map.force_write_vertex(5, Vertex3(0.0, 0.0, 1.0));
+    map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
+    map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
+    map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
+    map.force_sew::<2>(1, 5); // panic due to inconsistent orientation
+}
+
+#[test]
+// FIXME: fix the impl & uncomment
 // #[should_panic(expected = "Dart 1 and 3 do not have consistent orientation for 3-sewing")]
-fn three_sew_bad_orientation_3d() {
+fn three_sew_bad_orientation() {
     let map: CMap3<f64> = CMap3::new(8);
     map.force_link::<1>(1, 2);
     map.force_link::<1>(2, 3);
@@ -263,28 +287,8 @@ fn three_sew_bad_orientation_3d() {
 
 // --- PARALLEL
 
-#[derive(Debug, Clone, Copy, Default)]
-struct Weight(pub u32);
-
-impl AttributeUpdate for Weight {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self(attr1.0 + attr2.0)
-    }
-
-    fn split(attr: Self) -> (Self, Self) {
-        // adding the % to keep things conservative
-        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
-    }
-}
-
-impl AttributeBind for Weight {
-    type StorageType = AttrSparseVec<Self>;
-    type IdentifierType = VertexIdType;
-    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
-}
-
 #[test]
-fn sew_ordering_3d() {
+fn sew_ordering() {
     loom::model(|| {
         // setup the map
         let map: CMap3<f64> = CMap3::new(5);
@@ -399,16 +403,33 @@ fn sew_ordering_with_transactions() {
         assert_eq!(f.read_atomic(), 5);
     });
 }
-/*
+
+#[derive(Debug, Clone, Copy, Default)]
+struct Weight(pub u32);
+
+impl AttributeUpdate for Weight {
+    fn merge(attr1: Self, attr2: Self) -> Self {
+        Self(attr1.0 + attr2.0)
+    }
+
+    fn split(attr: Self) -> (Self, Self) {
+        // adding the % to keep things conservative
+        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
+    }
+}
+
+impl AttributeBind for Weight {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = VertexIdType;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
+}
 #[test]
-fn unsew_ordering_3d() {
+fn unsew_ordering() {
     loom::model(|| {
-        // setup the map
-        let map: CMap3<f64> = CMapBuilder::default()
-            .n_darts(5)
-            .add_attribute::<Weight>()
-            .build()
-            .unwrap();
+        // setup the map FIXME: use the builder
+        let mut map: CMap3<f64> = CMap3::new(5);
+        map.attributes.add_storage::<Weight>(6);
+
         map.force_link::<2>(1, 2);
         map.force_link::<2>(3, 4);
         map.force_link::<1>(1, 3);
@@ -435,14 +456,19 @@ fn unsew_ordering_3d() {
         t2.join().unwrap();
 
         // all paths should result in the same topological result here
-        assert!(arc.force_read_attribute::<Weight>(2).is_some());
-        assert!(arc.force_read_attribute::<Weight>(3).is_some());
-        assert!(arc.force_read_attribute::<Weight>(5).is_some());
-        let _w2 = arc.force_read_attribute::<Weight>(2).unwrap();
-        let _w3 = arc.force_read_attribute::<Weight>(3).unwrap();
-        let _w5 = arc.force_read_attribute::<Weight>(5).unwrap();
+
+        let w1 = arc.force_read_attribute::<Weight>(1);
+        println!("{:?}", w1);
+        let w2 = arc.force_read_attribute::<Weight>(2);
+        println!("{:?}", w2);
+        let w3 = arc.force_read_attribute::<Weight>(3);
+        println!("{:?}", w3);
+        let w5 = arc.force_read_attribute::<Weight>(5);
+        println!("{:?}", w5);
+        assert!(w2.is_some());
+        assert!(w3.is_some());
+        assert!(w5.is_some());
 
         // We don't check for exact values here as they might differ based on execution order
     });
 }
-*/
