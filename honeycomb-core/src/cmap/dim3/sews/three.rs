@@ -35,35 +35,19 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.edge_id_transac(trans, r)?,
             ));
             let b1l = self.beta_transac::<1>(trans, l)?;
+            let b2l = self.beta_transac::<2>(trans, l)?;
             // this monster statement is necessary to handle open faces
             vertices.push((
-                if b1l == NULL_DART_ID {
-                    let b2l = self.beta_transac::<2>(trans, l)?;
-                    if b2l == NULL_DART_ID {
-                        NULL_DART_ID // (*)
-                    } else {
-                        self.vertex_id_transac(trans, b2l)?
-                    }
-                } else {
-                    self.vertex_id_transac(trans, b1l)?
-                },
+                self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
                 self.vertex_id_transac(trans, r)?,
             ));
             // one more for good measures (aka open faces)
             if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
                 let b1r = self.beta_transac::<1>(trans, r)?;
+                let b2r = self.beta_transac::<2>(trans, r)?;
                 vertices.push((
                     self.vertex_id_transac(trans, l)?,
-                    if b1r == NULL_DART_ID {
-                        let b2r = self.beta_transac::<2>(trans, r)?;
-                        if b2r == NULL_DART_ID {
-                            NULL_DART_ID // (*)
-                        } else {
-                            self.vertex_id_transac(trans, b2r)?
-                        }
-                    } else {
-                        self.vertex_id_transac(trans, b1r)?
-                    },
+                    self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                 ));
             }
         }
@@ -114,35 +98,18 @@ impl<T: CoordsFloat> CMap3<T> {
                     self.edge_id_transac(trans, r)?,
                 ));
                 let b1l = self.beta_transac::<1>(trans, l)?;
-                // this monster statement is necessary to handle open faces
+                let b2l = self.beta_transac::<2>(trans, l)?;
                 vertices.push((
-                    if b1l == NULL_DART_ID {
-                        let b2l = self.beta_transac::<2>(trans, l)?;
-                        if b2l == NULL_DART_ID {
-                            NULL_DART_ID // (*)
-                        } else {
-                            self.vertex_id_transac(trans, b2l)?
-                        }
-                    } else {
-                        self.vertex_id_transac(trans, b1l)?
-                    },
+                    self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
                     self.vertex_id_transac(trans, r)?,
                 ));
-                // one more for good measures (aka open faces)
+                // handle open face
                 if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
                     let b1r = self.beta_transac::<1>(trans, r)?;
+                    let b2r = self.beta_transac::<2>(trans, r)?;
                     vertices.push((
                         self.vertex_id_transac(trans, l)?,
-                        if b1r == NULL_DART_ID {
-                            let b2r = self.beta_transac::<2>(trans, r)?;
-                            if b2r == NULL_DART_ID {
-                                NULL_DART_ID // (*)
-                            } else {
-                                self.vertex_id_transac(trans, b2r)?
-                            }
-                        } else {
-                            self.vertex_id_transac(trans, b1r)?
-                        },
+                        self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                     ));
                 }
             }
@@ -247,20 +214,12 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 self.attributes
                     .try_split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r))?;
-                let b1l = self.beta_transac::<1>(trans, l)?;
 
                 // vertices
+                let b1l = self.beta_transac::<1>(trans, l)?;
+                let b2l = self.beta_transac::<2>(trans, l)?;
                 let (vid_l, vid_r) = (
-                    if b1l == NULL_DART_ID {
-                        let b2l = self.beta_transac::<2>(trans, l)?;
-                        if b2l == NULL_DART_ID {
-                            NULL_DART_ID // (*)
-                        } else {
-                            self.vertex_id_transac(trans, b2l)?
-                        }
-                    } else {
-                        self.vertex_id_transac(trans, b1l)?
-                    },
+                    self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
                     self.vertex_id_transac(trans, r)?,
                 );
                 self.vertices
@@ -273,18 +232,10 @@ impl<T: CoordsFloat> CMap3<T> {
                 )?;
                 if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
                     let b1r = self.beta_transac::<1>(trans, r)?;
+                    let b2r = self.beta_transac::<2>(trans, r)?;
                     let (lvid_l, lvid_r) = (
                         self.vertex_id_transac(trans, l)?,
-                        if b1r == NULL_DART_ID {
-                            let b2r = self.beta_transac::<2>(trans, r)?;
-                            if b2r == NULL_DART_ID {
-                                NULL_DART_ID // (*)
-                            } else {
-                                self.vertex_id_transac(trans, b2r)?
-                            }
-                        } else {
-                            self.vertex_id_transac(trans, b1r)?
-                        },
+                        self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                     );
                     self.vertices
                         .try_split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r))?;
@@ -327,20 +278,12 @@ impl<T: CoordsFloat> CMap3<T> {
                     );
                     self.attributes
                         .split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r))?;
-                    let b1l = self.beta_transac::<1>(trans, l)?;
 
                     // vertices
+                    let b1l = self.beta_transac::<1>(trans, l)?;
+                    let b2l = self.beta_transac::<2>(trans, l)?;
                     let (vid_l, vid_r) = (
-                        if b1l == NULL_DART_ID {
-                            let b2l = self.beta_transac::<2>(trans, l)?;
-                            if b2l == NULL_DART_ID {
-                                NULL_DART_ID // (*)
-                            } else {
-                                self.vertex_id_transac(trans, b2l)?
-                            }
-                        } else {
-                            self.vertex_id_transac(trans, b1l)?
-                        },
+                        self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
                         self.vertex_id_transac(trans, r)?,
                     );
                     self.vertices.split(trans, vid_l, vid_r, vid_l.max(vid_r))?;
@@ -352,18 +295,13 @@ impl<T: CoordsFloat> CMap3<T> {
                     )?;
                     if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
                         let b1r = self.beta_transac::<1>(trans, r)?;
+                        let b2r = self.beta_transac::<2>(trans, r)?;
                         let (lvid_l, lvid_r) = (
                             self.vertex_id_transac(trans, l)?,
-                            if b1r == NULL_DART_ID {
-                                let b2r = self.beta_transac::<2>(trans, r)?;
-                                if b2r == NULL_DART_ID {
-                                    NULL_DART_ID // (*)
-                                } else {
-                                    self.vertex_id_transac(trans, b2r)?
-                                }
-                            } else {
-                                self.vertex_id_transac(trans, b1r)?
-                            },
+                            self.vertex_id_transac(
+                                trans,
+                                if b1r == NULL_DART_ID { b2r } else { b1r },
+                            )?,
                         );
                         self.vertices
                             .split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r))?;
