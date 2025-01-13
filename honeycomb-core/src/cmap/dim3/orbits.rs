@@ -45,7 +45,7 @@ impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(d) = self.pending.pop_front() {
             match self.orbit_policy {
-                // B3oB2, B1oB3, B3oB0
+                // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
                 OrbitPolicy::Vertex => {
                     // b3(b2(d))
                     let image1 = self.map_handle.beta::<3>(self.map_handle.beta::<2>(d));
@@ -75,7 +75,7 @@ impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
                         self.pending.push_back(image5);
                     }
                 }
-                // B3oB2, B1oB3
+                // B3oB2, B1oB3, B1oB2
                 OrbitPolicy::VertexLinear => {
                     let image1 = self.map_handle.beta::<3>(self.map_handle.beta::<2>(d));
                     if self.marked.insert(image1) {
@@ -84,6 +84,11 @@ impl<T: CoordsFloat> Iterator for Orbit3<'_, T> {
                     let image2 = self.map_handle.beta::<1>(self.map_handle.beta::<3>(d));
                     if self.marked.insert(image2) {
                         self.pending.push_back(image2);
+                    }
+                    // b1(b2(d))
+                    let image3 = self.map_handle.beta::<1>(self.map_handle.beta::<2>(d));
+                    if self.marked.insert(image3) {
+                        self.pending.push_back(image3);
                     }
                 }
                 // B2, B3

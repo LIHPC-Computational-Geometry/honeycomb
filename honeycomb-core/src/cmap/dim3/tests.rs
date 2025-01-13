@@ -210,7 +210,47 @@ fn remove_dart_twice() {
 // --- (UN)SEW
 
 #[test]
-fn three_sew_complete() {
+fn one_sew() {
+    let map: CMap3<f64> = CMap3::new(8);
+    // map.force_link::<1>(1, 2);
+    map.force_link::<1>(2, 3);
+    map.force_link::<1>(3, 4);
+    map.force_link::<1>(4, 1);
+    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+
+    map.force_link::<1>(5, 6);
+    map.force_link::<1>(6, 7);
+    map.force_link::<1>(7, 8);
+    // map.force_link::<1>(8, 5);
+    map.force_write_vertex(5, Vertex3(0.5, 0.0, 1.0));
+    map.force_write_vertex(6, Vertex3(0.0, 0.0, 1.0));
+    map.force_write_vertex(7, Vertex3(0.0, 1.0, 1.0));
+    map.force_write_vertex(8, Vertex3(1.0, 1.0, 1.0));
+
+    map.force_sew::<3>(1, 5);
+    assert_eq!(map.beta::<3>(1), 5);
+    assert_eq!(map.beta::<3>(2), 8);
+    assert_eq!(map.beta::<3>(3), 7);
+    assert_eq!(map.beta::<3>(4), 6);
+
+    map.force_sew::<1>(1, 2);
+
+    map.iter_vertices()
+        .for_each(|id| println!("{:?}", map.force_read_vertex(id)));
+
+    assert_eq!(map.beta::<1>(1), 2);
+    assert_eq!(map.beta::<1>(8), 5);
+    assert_eq!(
+        map.force_read_vertex(map.vertex_id(5)),
+        Some(Vertex3(0.75, 0.0, 0.5))
+    );
+}
+
+#[test]
+fn three_sew() {
     let map: CMap3<f64> = CMap3::new(8);
     map.force_link::<1>(1, 2);
     map.force_link::<1>(2, 3);
@@ -263,7 +303,7 @@ fn two_sew_bad_orientation() {
 
 #[test]
 // FIXME: fix the impl & uncomment
-// #[should_panic(expected = "Dart 1 and 3 do not have consistent orientation for 3-sewing")]
+// #[should_panic(expected = "Dart 1 and 5 do not have consistent orientation for 3-sewing")]
 fn three_sew_bad_orientation() {
     let map: CMap3<f64> = CMap3::new(8);
     map.force_link::<1>(1, 2);
