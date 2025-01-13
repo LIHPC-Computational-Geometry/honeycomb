@@ -76,24 +76,22 @@ impl<T: CoordsFloat> CMap3<T> {
         // merge face, edge, vertex attributes
         self.attributes
             .try_merge_face_attributes(trans, l_face.min(r_face), l_face, r_face)?;
-        for (eid_l, eid_r) in edges {
-            if eid_l != eid_r {
-                self.attributes
-                    .try_merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r)?;
-            }
+
+        for (eid_l, eid_r) in edges.into_iter().filter(|&(eid_l, eid_r)| {
+            eid_l != eid_r && eid_l != NULL_DART_ID && eid_r != NULL_DART_ID
+        }) {
+            self.attributes
+                .try_merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r)?;
         }
-        for (vid_l, vid_r) in vertices {
-            if vid_l != vid_r {
-                self.vertices
-                    .try_merge(trans, vid_l.min(vid_r), vid_l, vid_r)?;
-                self.attributes.try_merge_vertex_attributes(
-                    trans,
-                    vid_l.min(vid_r),
-                    vid_l,
-                    vid_r,
-                )?;
-            }
+        for (vid_l, vid_r) in vertices.into_iter().filter(|&(vid_l, vid_r)| {
+            vid_l != vid_r && vid_l != NULL_DART_ID && vid_r != NULL_DART_ID
+        }) {
+            self.vertices
+                .try_merge(trans, vid_l.min(vid_r), vid_l, vid_r)?;
+            self.attributes
+                .try_merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r)?;
         }
+
         Ok(())
     }
 
@@ -159,23 +157,20 @@ impl<T: CoordsFloat> CMap3<T> {
             // merge face, edge, vertex attributes
             self.attributes
                 .merge_face_attributes(trans, l_face.min(r_face), l_face, r_face)?;
-            for (eid_l, eid_r) in edges {
-                if eid_l != eid_r {
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r)?;
-                }
+            for (eid_l, eid_r) in edges.into_iter().filter(|&(eid_l, eid_r)| {
+                eid_l != eid_r && eid_l != NULL_DART_ID && eid_r != NULL_DART_ID
+            }) {
+                self.attributes
+                    .merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r)?;
             }
-            for (vid_l, vid_r) in vertices {
-                if vid_l != vid_r {
-                    self.vertices.merge(trans, vid_l.min(vid_r), vid_l, vid_r)?;
-                    self.attributes.merge_vertex_attributes(
-                        trans,
-                        vid_l.min(vid_r),
-                        vid_l,
-                        vid_r,
-                    )?;
-                }
+            for (vid_l, vid_r) in vertices.into_iter().filter(|&(vid_l, vid_r)| {
+                vid_l != vid_r && vid_l != NULL_DART_ID && vid_r != NULL_DART_ID
+            }) {
+                self.vertices.merge(trans, vid_l.min(vid_r), vid_l, vid_r)?;
+                self.attributes
+                    .merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r)?;
             }
+
             Ok(())
         });
     }

@@ -236,10 +236,9 @@ fn one_sew() {
     assert_eq!(map.beta::<3>(3), 7);
     assert_eq!(map.beta::<3>(4), 6);
 
-    map.force_sew::<1>(1, 2);
-
     map.iter_vertices()
         .for_each(|id| println!("{:?}", map.force_read_vertex(id)));
+    map.force_sew::<1>(1, 2);
 
     assert_eq!(map.beta::<1>(1), 2);
     assert_eq!(map.beta::<1>(8), 5);
