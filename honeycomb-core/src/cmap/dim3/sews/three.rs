@@ -3,7 +3,7 @@
 use stm::{atomically, Transaction};
 
 use crate::{
-    attributes::UnknownAttributeStorage,
+    attributes::{AttributeStorage, UnknownAttributeStorage},
     cmap::{
         CMap3, CMapResult, DartIdType, EdgeIdType, Orbit3, OrbitPolicy, VertexIdType, NULL_DART_ID,
     },
@@ -148,6 +148,51 @@ impl<T: CoordsFloat> CMap3<T> {
             }
 
             // FIXME: figure out a way to test orientations
+            // we check each edge's orientation
+            for e in &edges {
+                let (l, r) = (e.0 as DartIdType, e.1 as DartIdType);
+                let (b1l, b2l, b1r, b2r) = (
+                    self.beta_transac::<1>(trans, l)?,
+                    self.beta_transac::<2>(trans, l)?,
+                    self.beta_transac::<1>(trans, r)?,
+                    self.beta_transac::<2>(trans, r)?,
+                );
+                let (vid_l, vid_r, vid_b1l, vid_b1r) = (
+                    self.vertex_id_transac(trans, l)?,
+                    self.vertex_id_transac(trans, r)?,
+                    self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                    self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                );
+
+                if let (
+                    // (lhs/b1rhs) vertices
+                    Some(l_vertex),
+                    Some(b1r_vertex),
+                    // (b1lhs/rhs) vertices
+                    Some(b1l_vertex),
+                    Some(r_vertex),
+                ) = (
+                    // (lhs/b1rhs)
+                    self.vertices.read(trans, vid_l)?,
+                    self.vertices.read(trans, vid_b1r)?,
+                    // (b1lhs/rhs)
+                    self.vertices.read(trans, vid_b1l)?,
+                    self.vertices.read(trans, vid_r)?,
+                ) {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    assert!(
+                        lhs_vector.dot(&rhs_vector) < T::zero(),
+                        "{}",
+                        format!(
+                            "Dart {ld} and {rd} do not have consistent orientation for 3-sewing"
+                        ),
+                    );
+                };
+            }
 
             // (*): these branch corresponds to incomplete merges (at best),
             //      or incorrect structure (at worst). that's not a problem

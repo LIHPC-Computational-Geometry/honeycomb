@@ -236,16 +236,12 @@ fn one_sew() {
     assert_eq!(map.beta::<3>(3), 7);
     assert_eq!(map.beta::<3>(4), 6);
 
-    map.iter_vertices()
-        .for_each(|id| println!("{:?}", map.force_read_vertex(id)));
     map.force_sew::<1>(1, 2);
 
     assert_eq!(map.beta::<1>(1), 2);
     assert_eq!(map.beta::<1>(8), 5);
-    assert_eq!(
-        map.force_read_vertex(map.vertex_id(5)),
-        Some(Vertex3(0.75, 0.0, 0.5))
-    );
+    assert_eq!(map.vertex_id(5), 2);
+    assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.75, 0.0, 0.5)));
 }
 
 #[test]
@@ -277,7 +273,6 @@ fn three_sew() {
 }
 
 #[test]
-// FIXME: fix the impl & uncomment
 #[should_panic(expected = "Dart 1 and 5 do not have consistent orientation for 2-sewing")]
 fn two_sew_bad_orientation() {
     let map: CMap3<f64> = CMap3::new(8);
@@ -301,8 +296,7 @@ fn two_sew_bad_orientation() {
 }
 
 #[test]
-// FIXME: fix the impl & uncomment
-// #[should_panic(expected = "Dart 1 and 5 do not have consistent orientation for 3-sewing")]
+#[should_panic(expected = "Dart 1 and 5 do not have consistent orientation for 3-sewing")]
 fn three_sew_bad_orientation() {
     let map: CMap3<f64> = CMap3::new(8);
     map.force_link::<1>(1, 2);
@@ -383,7 +377,7 @@ fn sew_ordering_with_transactions() {
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
 
-        // we're going to do to sew ops:
+        // we're going to do two sew ops:
         // - 1-sew 1 to 3 (t1)
         // - 1-sew 4 to 5 (t2)
         // this will result in a single vertex being defined, of ID 2
@@ -415,7 +409,9 @@ fn sew_ordering_with_transactions() {
         let t2 = loom::thread::spawn(move || {
             atomically(|trans| {
                 f2.modify(trans, |v| if v != 0 { v + 4 } else { v })?;
-                // this should be useless as the vertex is defined on this op
+                // if the first op landed, this won't create an error
+                // otherwise, we'll either fail the transaction or fail the merge
+                // in both (error) cases, we want to retry the transaction
                 if let Err(e) = m2.sew::<1>(trans, 4, 5) {
                     match e {
                         CMapError::FailedTransaction(e) => Err(e),
