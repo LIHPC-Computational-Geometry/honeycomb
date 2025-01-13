@@ -147,10 +147,10 @@ impl<T: CoordsFloat> CMap3<T> {
                 }
             }
 
-            // FIXME: figure out a way to test orientations
-            // we check each edge's orientation
-            for e in &edges {
-                let (l, r) = (e.0 as DartIdType, e.1 as DartIdType);
+            // FIXME: we only check orientation of the arg darts
+            // ideally, we want to check every sewn pair
+            {
+                let (l, r) = (ld, rd);
                 let (b1l, b2l, b1r, b2r) = (
                     self.beta_transac::<1>(trans, l)?,
                     self.beta_transac::<2>(trans, l)?,
@@ -187,9 +187,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     assert!(
                         lhs_vector.dot(&rhs_vector) < T::zero(),
                         "{}",
-                        format!(
-                            "Dart {ld} and {rd} do not have consistent orientation for 3-sewing"
-                        ),
+                        format!("Dart {l} and {r} do not have consistent orientation for 3-sewing"),
                     );
                 };
             }

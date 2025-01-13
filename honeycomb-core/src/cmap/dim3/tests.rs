@@ -105,6 +105,17 @@ fn example_test() {
 
     // Sew both tetrahedrons along a face (C)
 
+    println!("v d10: {:?}", map.force_read_vertex(map.vertex_id(10)));
+    println!(
+        "v b1d10: {:?}",
+        map.force_read_vertex(map.vertex_id(map.beta::<1>(10)))
+    );
+    println!("v d16: {:?}", map.force_read_vertex(map.vertex_id(16)));
+    println!(
+        "v b1d16: {:?}",
+        map.force_read_vertex(map.vertex_id(map.beta::<1>(16)))
+    );
+
     map.force_sew::<3>(10, 16);
 
     // this results in a quad-base pyramid
