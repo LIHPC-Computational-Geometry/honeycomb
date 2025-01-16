@@ -54,7 +54,6 @@ macro_rules! get_storage_mut {
     };
 }
 
-// TODO: make the structure private & remove unused methods
 /// Main attribute storage structure.
 ///
 /// **This structure is not meant to be used directly**.
@@ -113,7 +112,7 @@ macro_rules! get_storage_mut {
 /// }
 /// ```
 #[derive(Default)]
-pub struct AttrStorageManager {
+pub(crate) struct AttrStorageManager {
     /// Vertex attributes' storages.
     vertices: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Edge attributes' storages.
