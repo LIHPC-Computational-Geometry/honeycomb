@@ -200,6 +200,203 @@ fn example_test() {
 }
 
 #[test]
+fn example_test_transactional() {
+    // Build a tetrahedron (A)
+    let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
+
+    // face z- (base)
+    atomically(|trans| {
+        map.link::<1>(trans, 1, 2)?;
+        map.link::<1>(trans, 2, 3)?;
+        map.link::<1>(trans, 3, 1)?;
+        // face y-
+        map.link::<1>(trans, 4, 5)?;
+        map.link::<1>(trans, 5, 6)?;
+        map.link::<1>(trans, 6, 4)?;
+        // face x-
+        map.link::<1>(trans, 7, 8)?;
+        map.link::<1>(trans, 8, 9)?;
+        map.link::<1>(trans, 9, 7)?;
+        // face x+/y+
+        map.link::<1>(trans, 10, 11)?;
+        map.link::<1>(trans, 11, 12)?;
+        map.link::<1>(trans, 12, 10)?;
+        // link triangles to get the tet
+        map.link::<2>(trans, 1, 4)?;
+        map.link::<2>(trans, 2, 7)?;
+        map.link::<2>(trans, 3, 10)?;
+        map.link::<2>(trans, 5, 12)?;
+        map.link::<2>(trans, 6, 8)?;
+        map.link::<2>(trans, 9, 11)?;
+        Ok(())
+    });
+
+    // putting this in a scope to force dropping the iterator before the next mutable borrow
+    {
+        let mut vertices = map.iter_vertices();
+        assert_eq!(vertices.next(), Some(1));
+        assert_eq!(vertices.next(), Some(2));
+        assert_eq!(vertices.next(), Some(3));
+        assert_eq!(vertices.next(), Some(6));
+        assert_eq!(vertices.next(), None);
+    }
+
+    atomically(|trans| {
+        map.write_vertex(trans, 1, (1.0, 0.0, 0.0))?;
+        map.write_vertex(trans, 2, (0.0, 0.0, 0.0))?;
+        map.write_vertex(trans, 3, (0.0, 0.5, 0.0))?;
+        map.write_vertex(trans, 6, (0.5, 0.25, 1.0))?;
+        Ok(())
+    });
+
+    // Build a second tetrahedron (B)
+    let _ = map.add_free_darts(12);
+    atomically(|trans| {
+        // face z- (base)
+        map.link::<1>(trans, 13, 14)?;
+        map.link::<1>(trans, 14, 15)?;
+        map.link::<1>(trans, 15, 13)?;
+        // face x-/y-
+        map.link::<1>(trans, 16, 17)?;
+        map.link::<1>(trans, 17, 18)?;
+        map.link::<1>(trans, 18, 16)?;
+        // face y+
+        map.link::<1>(trans, 19, 20)?;
+        map.link::<1>(trans, 20, 21)?;
+        map.link::<1>(trans, 21, 19)?;
+        // face x+
+        map.link::<1>(trans, 22, 23)?;
+        map.link::<1>(trans, 23, 24)?;
+        map.link::<1>(trans, 24, 22)?;
+        // link triangles to get the tet
+        map.link::<2>(trans, 13, 16)?;
+        map.link::<2>(trans, 14, 19)?;
+        map.link::<2>(trans, 15, 22)?;
+        map.link::<2>(trans, 17, 24)?;
+        map.link::<2>(trans, 18, 20)?;
+        map.link::<2>(trans, 21, 23)?;
+
+        map.write_vertex(trans, 13, (2.5, 1.5, 0.0))?;
+        map.write_vertex(trans, 14, (1.5, 2.0, 0.0))?;
+        map.write_vertex(trans, 15, (2.5, 2.0, 0.0))?;
+        map.write_vertex(trans, 18, (1.5, 1.75, 1.0))?;
+        Ok(())
+    });
+
+    {
+        let mut volumes = map.iter_volumes();
+        assert_eq!(volumes.next(), Some(1));
+        assert_eq!(volumes.next(), Some(13));
+        assert_eq!(volumes.next(), None);
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1));
+        assert_eq!(faces.next(), Some(4));
+        assert_eq!(faces.next(), Some(7));
+        assert_eq!(faces.next(), Some(10));
+        assert_eq!(faces.next(), Some(13));
+        assert_eq!(faces.next(), Some(16));
+        assert_eq!(faces.next(), Some(19));
+        assert_eq!(faces.next(), Some(22));
+        assert_eq!(faces.next(), None);
+    }
+
+    // Sew both tetrahedrons along a face (C)
+    atomically(|trans| {
+        assert!(map.sew::<3>(trans, 10, 16).is_ok());
+        Ok(())
+    });
+
+    // this results in a quad-base pyramid
+    // the pyramid is split in two volumes along the (base) diagonal plane
+    {
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1));
+        assert_eq!(faces.next(), Some(4));
+        assert_eq!(faces.next(), Some(7));
+        assert_eq!(faces.next(), Some(10));
+        assert_eq!(faces.next(), Some(13));
+        // assert_eq!(faces.next(), Some(16)); // now fused with 10
+        assert_eq!(faces.next(), Some(19));
+        assert_eq!(faces.next(), Some(22));
+        assert_eq!(faces.next(), None);
+        // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
+        assert_eq!(map.iter_edges().count(), 9);
+    }
+
+    // Adjust shared vertices (D)
+    atomically(|trans| {
+        // this makes it a symetrical square-base pyramid
+        assert_eq!(
+            map.write_vertex(trans, 3, (0.0, 1.0, 0.0))?,
+            Some(Vertex3(0.75, 1.25, 0.0))
+        );
+        assert_eq!(
+            map.write_vertex(trans, 1, (1.0, 0.0, 0.0))?,
+            Some(Vertex3(1.75, 0.75, 0.0))
+        );
+        assert_eq!(
+            map.write_vertex(trans, 6, (0.5, 0.5, 1.0))?,
+            Some(Vertex3(1.0, 1.0, 1.0))
+        );
+        assert_eq!(
+            map.write_vertex(trans, 15, (1.0, 1.0, 0.0))?,
+            Some(Vertex3(2.5, 2.0, 0.0))
+        );
+        Ok(())
+    });
+
+    // Remove the split to have a single volume pyramid (E)
+
+    fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
+        atomically(|trans| {
+            let b3d = map.beta_transac::<3>(trans, dart)?;
+            let ld = map.beta_transac::<2>(trans, dart)?;
+            let rd = map.beta_transac::<2>(trans, b3d)?;
+
+            assert!(map.unsew::<2>(trans, dart).is_ok());
+            assert!(map.unsew::<2>(trans, b3d).is_ok());
+            assert!(map.sew::<2>(trans, ld, rd).is_ok());
+            Ok(())
+        })
+    }
+    rebuild_edge(&map, 10);
+    rebuild_edge(&map, 11);
+    rebuild_edge(&map, 12);
+
+    // delete old face components
+    atomically(|trans| {
+        assert!(map.unsew::<1>(trans, 10).is_ok());
+        assert!(map.unsew::<1>(trans, 11).is_ok());
+        assert!(map.unsew::<1>(trans, 12).is_ok());
+        assert!(map.unsew::<3>(trans, 10).is_ok());
+        assert!(map.unsew::<3>(trans, 11).is_ok());
+        assert!(map.unsew::<3>(trans, 12).is_ok());
+        Ok(())
+    });
+
+    map.remove_free_dart(10);
+    map.remove_free_dart(11);
+    map.remove_free_dart(12);
+    map.remove_free_dart(16);
+    map.remove_free_dart(17);
+    map.remove_free_dart(18);
+
+    {
+        let mut volumes = map.iter_volumes();
+        assert_eq!(volumes.next(), Some(1));
+        assert_eq!(volumes.next(), None);
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1)); // base
+        assert_eq!(faces.next(), Some(4)); // y-
+        assert_eq!(faces.next(), Some(7)); // x-
+        assert_eq!(faces.next(), Some(13)); // base
+        assert_eq!(faces.next(), Some(19)); // y+
+        assert_eq!(faces.next(), Some(22)); // x+
+        assert_eq!(faces.next(), None);
+    }
+}
+
+#[test]
 fn remove_vertex_twice() {
     let map: CMap3<f64> = CMap3::new(4);
     assert!(map.force_write_vertex(1, (1.0, 1.0, 1.0)).is_none());
