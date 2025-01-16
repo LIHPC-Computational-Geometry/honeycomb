@@ -1,5 +1,7 @@
 // ------ IMPORTS
 
+use stm::atomically;
+
 use crate::{
     attributes::AttrSparseVec,
     cmap::VertexIdType,
@@ -107,6 +109,129 @@ fn example_test() {
     assert_eq!(map.beta_rt(1, 3), 1);
 }
 
+#[test]
+fn example_test_transactional() {
+    // build a triangle
+    let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
+    atomically(|trans| {
+        map.link::<1>(trans, 1, 2)?;
+        map.link::<1>(trans, 2, 3)?;
+        map.link::<1>(trans, 3, 1)?;
+        map.write_vertex(trans, 1, (0.0, 0.0))?;
+        map.write_vertex(trans, 2, (1.0, 0.0))?;
+        map.write_vertex(trans, 3, (0.0, 1.0))?;
+        Ok(())
+    });
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(faces.len(), 1);
+    assert_eq!(faces[0], 1);
+    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
+    assert_eq!(face.next(), Some(1));
+    assert_eq!(face.next(), Some(2));
+    assert_eq!(face.next(), Some(3));
+    assert_eq!(face.next(), None);
+
+    // build a second triangle
+    map.add_free_darts(3);
+    atomically(|trans| {
+        map.link::<1>(trans, 4, 5)?;
+        map.link::<1>(trans, 5, 6)?;
+        map.link::<1>(trans, 6, 4)?;
+        map.write_vertex(trans, 4, (0.0, 2.0))?;
+        map.write_vertex(trans, 5, (2.0, 0.0))?;
+        map.write_vertex(trans, 6, (1.0, 1.0))?;
+        Ok(())
+    });
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1, 4]);
+    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
+    assert_eq!(face.next(), Some(4));
+    assert_eq!(face.next(), Some(5));
+    assert_eq!(face.next(), Some(6));
+    assert_eq!(face.next(), None);
+
+    // sew both triangles
+    atomically(|trans| {
+        // normally the erro should be handled, but we're in a seq context
+        assert!(map.sew::<2>(trans, 2, 4).is_ok());
+        Ok(())
+    });
+
+    // checks
+    atomically(|trans| {
+        assert_eq!(map.beta_transac::<2>(trans, 2)?, 4);
+        assert_eq!(map.vertex_id_transac(trans, 2)?, 2);
+        assert_eq!(map.vertex_id_transac(trans, 5)?, 2);
+        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.vertex_id_transac(trans, 3)?, 3);
+        assert_eq!(map.vertex_id_transac(trans, 4)?, 3);
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.5))));
+        Ok(())
+    });
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 2, 3, 5, 6]);
+
+    // adjust bottom-right & top-left vertex position
+    atomically(|trans| {
+        assert_eq!(
+            map.write_vertex(trans, 2, (1.0, 0.0))?,
+            Some(Vertex2::from((1.5, 0.0)))
+        );
+        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(
+            map.write_vertex(trans, 3, (0.0, 1.0))?,
+            Some(Vertex2::from((0.0, 1.5)))
+        );
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        Ok(())
+    });
+
+    // separate the diagonal from the rest
+    atomically(|trans| {
+        assert!(map.unsew::<1>(trans, 1).is_ok());
+        assert!(map.unsew::<1>(trans, 2).is_ok());
+        assert!(map.unsew::<1>(trans, 6).is_ok());
+        assert!(map.unsew::<1>(trans, 4).is_ok());
+        assert!(map.unsew::<2>(trans, 2).is_ok()); // this makes dart 2 and 4 free
+        Ok(())
+    });
+    map.remove_free_dart(2);
+    map.remove_free_dart(4);
+    atomically(|trans| {
+        // sew the square back up
+        assert!(map.sew::<1>(trans, 1, 5).is_ok());
+        assert!(map.sew::<1>(trans, 6, 3).is_ok());
+        Ok(())
+    });
+
+    // i-cells
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1]);
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 3, 5, 6]);
+    let vertices: Vec<_> = map.iter_vertices().collect();
+    assert_eq!(&vertices, &[1, 3, 5, 6]);
+    atomically(|trans| {
+        assert_eq!(map.read_vertex(trans, 1)?, Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.read_vertex(trans, 5)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(trans, 6)?, Some(Vertex2::from((1.0, 1.0))));
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        Ok(())
+    });
+    // darts
+    assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
+    atomically(|trans| {
+        assert_eq!(map.beta_rt_transac(trans, 1, 1)?, 5);
+        assert_eq!(map.beta_rt_transac(trans, 1, 5)?, 6);
+        assert_eq!(map.beta_rt_transac(trans, 1, 6)?, 3);
+        assert_eq!(map.beta_rt_transac(trans, 1, 3)?, 1);
+        Ok(())
+    });
+}
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn remove_vertex_twice() {
