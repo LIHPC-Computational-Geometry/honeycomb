@@ -2,7 +2,7 @@
 ///
 /// This is used to define special cases of orbits that are often used in
 /// algorithms. These special cases correspond to `i`-cells.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum OrbitPolicy {
     /// 0-cell orbit.
     Vertex,
@@ -14,6 +14,10 @@ pub enum OrbitPolicy {
     Face,
     /// 2-cell orbit, without using beta 0. Incorrect if the cell isn't complete / closed.
     FaceLinear,
+    /// 3-cell orbit.
+    Volume,
+    /// 3-cell orbit, without using beta 0. Incorrect if the cell isn't complete / closed.
+    VolumeLinear,
     /// Ordered array of beta functions defining the orbit.
     Custom(&'static [u8]),
 }

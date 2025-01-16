@@ -157,6 +157,9 @@ impl<T: CoordsFloat> Iterator for Orbit2<'_, T> {
                         }
                     }
                 }
+                OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                    unimplemented!("3-cells aren't defined for 2-maps")
+                }
             }
             Some(d)
         } else {
