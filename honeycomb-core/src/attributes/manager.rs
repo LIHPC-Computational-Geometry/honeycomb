@@ -35,6 +35,26 @@ macro_rules! get_storage {
     };
 }
 
+#[cfg(test)]
+macro_rules! get_storage_mut {
+    ($slf: ident, $id: ident) => {
+        let probably_storage = match A::BIND_POLICY {
+            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
+                $slf.vertices.get_mut(&TypeId::of::<A>())
+            }
+            OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Face | OrbitPolicy::FaceLinear => $slf.faces.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                $slf.volumes.get_mut(&TypeId::of::<A>())
+            }
+            OrbitPolicy::Custom(_) => $slf.others.get_mut(&TypeId::of::<A>()),
+        };
+        let $id = probably_storage
+            .map(|m| m.downcast_mut::<<A as AttributeBind>::StorageType>())
+            .flatten();
+    };
+}
+
 /// Main attribute storage structure.
 ///
 /// **This structure is not meant to be used directly**.
@@ -177,7 +197,7 @@ impl AttrStorageManager {
         }
     }
 
-    /*
+    #[cfg(test)]
     /// Extend the size of the storage of a given attribute.
     ///
     /// # Arguments
@@ -208,6 +228,7 @@ impl AttrStorageManager {
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
+    #[cfg(test)]
     #[must_use = "unused return value"]
     pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
@@ -219,7 +240,6 @@ impl AttrStorageManager {
         };
         probably_storage.downcast_ref::<<A as AttributeBind>::StorageType>()
     }
-    */
 
     /// Remove an entire attribute storage from the manager.
     ///
