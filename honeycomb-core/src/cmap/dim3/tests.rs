@@ -365,7 +365,7 @@ fn example_test_transactional() {
 
     // delete old face components
     atomically(|trans| {
-        assert!(map.unsew::<1>(trans, 10).is_ok());
+        assert!(map.unsew::<1>(trans, 10).unwrap() == ());
         assert!(map.unsew::<1>(trans, 11).is_ok());
         assert!(map.unsew::<1>(trans, 12).is_ok());
         assert!(map.unsew::<3>(trans, 10).is_ok());

@@ -86,8 +86,8 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
-        assert!(self[(1, lhs_dart_id)].read_atomic() == NULL_DART_ID);
-        assert!(self[(0, rhs_dart_id)].read_atomic() == NULL_DART_ID);
+        assert!(self[(1, lhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(self[(0, rhs_dart_id)].read(trans)? == NULL_DART_ID);
         // set beta_1(lhs_dart) to rhs_dart
         self[(1, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_0(rhs_dart) to lhs_dart
@@ -117,8 +117,8 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
-        assert!(self[(2, lhs_dart_id)].read_atomic() == NULL_DART_ID);
-        assert!(self[(2, rhs_dart_id)].read_atomic() == NULL_DART_ID);
+        assert!(self[(2, lhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(self[(2, rhs_dart_id)].read(trans)? == NULL_DART_ID);
         // set beta_2(lhs_dart) to rhs_dart
         self[(2, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_2(rhs_dart) to lhs_dart

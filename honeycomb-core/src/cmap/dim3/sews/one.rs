@@ -82,8 +82,20 @@ impl<T: CoordsFloat> CMap3<T> {
         let vid_old = self.vertex_id_transac(trans, rd)?;
 
         self.one_unlink(trans, ld)?;
+        let b2ld = self.beta_transac::<2>(trans, ld)?;
+        let b3ld = self.beta_transac::<3>(trans, ld)?;
 
-        let vid_l_new = self.vertex_id_transac(trans, ld)?;
+        let vid_l_new = self.vertex_id_transac(
+            trans,
+            if b2ld != NULL_DART_ID {
+                b2ld
+            } else if b3ld != NULL_DART_ID {
+                b3ld
+            } else {
+                // don't split if there's no vertex on one side
+                return Ok(());
+            },
+        )?;
         let vid_r_new = self.vertex_id_transac(trans, rd)?;
         // perf: branch miss vs redundancy
         if vid_l_new != vid_r_new {
