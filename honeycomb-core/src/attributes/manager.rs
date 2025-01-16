@@ -269,6 +269,7 @@ impl AttrStorageManager {
 impl AttrStorageManager {
     // attribute-agnostic regular
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
@@ -307,6 +308,7 @@ impl AttrStorageManager {
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
@@ -389,6 +391,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with volumes for specified cells.
     ///
@@ -415,9 +418,11 @@ impl AttrStorageManager {
         }
         Ok(())
     }
+    */
 
     // attribute-agnostic try
 
+    /*
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -454,6 +459,7 @@ impl AttrStorageManager {
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
     ///
@@ -527,6 +533,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
     /// Execute a merging operation on all attributes associated with volumes for specified cells.
     ///
     /// # Errors
@@ -550,6 +557,7 @@ impl AttrStorageManager {
         }
         Ok(())
     }
+    */
 
     // attribute-specific
 
@@ -567,6 +575,7 @@ impl AttrStorageManager {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. The result should not be processed manually.
+    #[cfg(test)]
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -586,6 +595,7 @@ impl AttrStorageManager {
         }
     }
 
+    /*
     /// Merge given attribute values.
     ///
     /// # Errors
@@ -615,12 +625,14 @@ impl AttrStorageManager {
             Ok(())
         }
     }
+    */
 }
 
 /// Split variants.
 impl AttrStorageManager {
     // attribute-agnostic regular
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
@@ -659,6 +671,7 @@ impl AttrStorageManager {
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with vertices
@@ -742,6 +755,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with volumes for specified cells.
     ///
@@ -768,9 +782,11 @@ impl AttrStorageManager {
         }
         Ok(())
     }
+    */
 
     // attribute-agnostic try
 
+    /*
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -807,6 +823,7 @@ impl AttrStorageManager {
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     /// Execute a splitting operation on all attributes associated with vertices for specified cells.
     ///
@@ -880,6 +897,7 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
     /// Execute a splitting operation on all attributes associated with volumes for specified cells.
     ///
     /// # Errors
@@ -903,6 +921,7 @@ impl AttrStorageManager {
         }
         Ok(())
     }
+    */
 
     // attribute-specific
 
@@ -920,6 +939,7 @@ impl AttrStorageManager {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. The result should not be processed manually.
+    #[cfg(test)]
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -939,6 +959,7 @@ impl AttrStorageManager {
         }
     }
 
+    /*
     /// Split given attribute value.
     ///
     /// # Errors
@@ -968,6 +989,7 @@ impl AttrStorageManager {
             Ok(())
         }
     }
+    */
 }
 
 /// **Attribute read & write methods**
