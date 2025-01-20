@@ -116,7 +116,9 @@ fn example_test() {
         map.force_read_vertex(map.vertex_id(map.beta::<1>(16)))
     );
 
+    assert_eq!(map.n_vertices(), 8);
     map.force_sew::<3>(10, 16);
+    assert_eq!(map.n_vertices(), 5);
 
     // this results in a quad-base pyramid
     // the pyramid is split in two volumes along the (base) diagonal plane
@@ -301,10 +303,12 @@ fn example_test_transactional() {
     }
 
     // Sew both tetrahedrons along a face (C)
+    assert_eq!(map.n_vertices(), 8);
     atomically(|trans| {
         assert!(map.sew::<3>(trans, 10, 16).is_ok());
         Ok(())
     });
+    assert_eq!(map.n_vertices(), 5);
 
     // this results in a quad-base pyramid
     // the pyramid is split in two volumes along the (base) diagonal plane
@@ -559,13 +563,16 @@ fn sew_ordering() {
         t2.join().unwrap();
 
         // all paths should result in the same topological result here
-        assert!(arc.force_read_vertex(2).is_some());
+        let v2 = arc.force_remove_vertex(2);
+        let v3 = arc.force_remove_vertex(3);
+        let v5 = arc.force_remove_vertex(5);
+        assert!(v2.is_some());
+        assert!(v3.is_none());
+        assert!(v5.is_none());
+        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert!(arc.force_read_vertex(2).is_none());
         assert!(arc.force_read_vertex(3).is_none());
         assert!(arc.force_read_vertex(5).is_none());
-        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
-
-        // the vertex can have two values though; we don't check for exact values here
-        assert!(arc.force_read_vertex(2).is_some());
     });
 }
 
@@ -638,10 +645,24 @@ fn sew_ordering_with_transactions() {
         t2.join().unwrap();
 
         // all paths should result in the same topological result here
-        assert!(arc.force_read_vertex(2).is_some());
-        assert!(arc.force_read_vertex(3).is_none());
-        assert!(arc.force_read_vertex(5).is_none());
+        let (v2, v3, v5) = atomically(|trans| {
+            Ok((
+                arc.remove_vertex(trans, 2)?,
+                arc.remove_vertex(trans, 3)?,
+                arc.remove_vertex(trans, 5)?,
+            ))
+        });
+        assert!(v2.is_some());
+        assert!(v3.is_none());
+        assert!(v5.is_none());
         assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        atomically(|trans| {
+            assert!(arc.read_vertex(trans, 2)?.is_none());
+            assert!(arc.read_vertex(trans, 3)?.is_none());
+            assert!(arc.read_vertex(trans, 5)?.is_none());
+            Ok(())
+        });
+
         // if execution order was respected, foo should be at 5
         assert_eq!(f.read_atomic(), 5);
     });
@@ -666,6 +687,7 @@ impl AttributeBind for Weight {
     type IdentifierType = VertexIdType;
     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
 }
+
 #[test]
 fn unsew_ordering() {
     loom::model(|| {
@@ -700,18 +722,96 @@ fn unsew_ordering() {
 
         // all paths should result in the same topological result here
 
-        let w1 = arc.force_read_attribute::<Weight>(1);
-        println!("{:?}", w1);
-        let w2 = arc.force_read_attribute::<Weight>(2);
-        println!("{:?}", w2);
-        let w3 = arc.force_read_attribute::<Weight>(3);
-        println!("{:?}", w3);
-        let w5 = arc.force_read_attribute::<Weight>(5);
-        println!("{:?}", w5);
+        // We don't check for exact values here as they might differ based on execution order
+        let w2 = arc.force_remove_attribute::<Weight>(2);
+        let w3 = arc.force_remove_attribute::<Weight>(3);
+        let w5 = arc.force_remove_attribute::<Weight>(5);
         assert!(w2.is_some());
         assert!(w3.is_some());
         assert!(w5.is_some());
+        assert!(arc.force_read_attribute::<Weight>(2).is_none());
+        assert!(arc.force_read_attribute::<Weight>(3).is_none());
+        assert!(arc.force_read_attribute::<Weight>(5).is_none());
+    });
+}
+
+#[test]
+fn unsew_ordering_with_transactions() {
+    loom::model(|| {
+        // setup the map FIXME: use the builder
+        let mut map: CMap3<f64> = CMap3::new(5);
+        map.attributes.add_storage::<Weight>(6);
+
+        atomically(|trans| {
+            map.link::<2>(trans, 1, 2)?;
+            map.link::<2>(trans, 3, 4)?;
+            map.link::<1>(trans, 1, 3)?;
+            map.link::<1>(trans, 4, 5)?;
+            map.write_vertex(trans, 2, (0.0, 0.0, 0.0))?;
+            map.write_attribute(trans, 2, Weight(33))?;
+            Ok(())
+        });
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to unsew ops:
+        // - 1-unsew 1 and 3 (t1)
+        // - 2-unsew 3 and 4 (t2)
+        // this will result in different weights, defined on IDs 2, 3, and 5
+
+        let t1 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m1.unsew::<1>(trans, 1) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
+                        CMapError::FailedAttributeMerge(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m2.unsew::<2>(trans, 3) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
+                        CMapError::FailedAttributeMerge(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all paths should result in the same topological result here
 
         // We don't check for exact values here as they might differ based on execution order
+        let (w2, w3, w5) = atomically(|trans| {
+            Ok((
+                arc.remove_attribute::<Weight>(trans, 2)?,
+                arc.remove_attribute::<Weight>(trans, 3)?,
+                arc.remove_attribute::<Weight>(trans, 5)?,
+            ))
+        });
+        assert!(w2.is_some());
+        assert!(w3.is_some());
+        assert!(w5.is_some());
+        atomically(|trans| {
+            assert!(arc.read_attribute::<Weight>(trans, 2)?.is_none());
+            assert!(arc.read_attribute::<Weight>(trans, 3)?.is_none());
+            assert!(arc.read_attribute::<Weight>(trans, 5)?.is_none());
+            Ok(())
+        });
     });
 }
