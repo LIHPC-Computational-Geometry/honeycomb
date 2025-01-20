@@ -26,6 +26,7 @@ macro_rules! get_storage {
             }
             OrbitPolicy::Edge => $slf.edges.get(&TypeId::of::<A>()),
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => $slf.faces.get(&TypeId::of::<A>()),
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => $slf.volumes.get(&TypeId::of::<A>()),
             OrbitPolicy::Custom(_) => $slf.others.get(&TypeId::of::<A>()),
         };
         let $id = probably_storage
@@ -34,6 +35,7 @@ macro_rules! get_storage {
     };
 }
 
+#[cfg(test)]
 macro_rules! get_storage_mut {
     ($slf: ident, $id: ident) => {
         let probably_storage = match A::BIND_POLICY {
@@ -42,6 +44,9 @@ macro_rules! get_storage_mut {
             }
             OrbitPolicy::Edge => $slf.edges.get_mut(&TypeId::of::<A>()),
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => $slf.faces.get_mut(&TypeId::of::<A>()),
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                $slf.volumes.get_mut(&TypeId::of::<A>())
+            }
             OrbitPolicy::Custom(_) => $slf.others.get_mut(&TypeId::of::<A>()),
         };
         let $id = probably_storage
@@ -51,6 +56,8 @@ macro_rules! get_storage_mut {
 }
 
 /// Main attribute storage structure.
+///
+/// **This structure is not meant to be used directly**.
 ///
 /// This structure is used to store all generic attributes that the user may add to the
 /// combinatorial map he's building.
@@ -106,13 +113,15 @@ macro_rules! get_storage_mut {
 /// }
 /// ```
 #[derive(Default)]
-pub struct AttrStorageManager {
+pub(crate) struct AttrStorageManager {
     /// Vertex attributes' storages.
     vertices: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Edge attributes' storages.
     edges: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Face attributes' storages.
     faces: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
+    /// Volume attributes' storages.
+    volumes: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>,
     /// Other storages.
     others: HashMap<TypeId, Box<dyn UnknownAttributeStorage>>, // Orbit::Custom
 }
@@ -139,6 +148,9 @@ impl AttrStorageManager {
         for storage in self.faces.values_mut() {
             storage.extend(length);
         }
+        for storage in self.volumes.values_mut() {
+            storage.extend(length);
+        }
         for storage in self.others.values_mut() {
             storage.extend(length);
         }
@@ -153,11 +165,8 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `size: usize` -- Initial size of the new storage.
-    ///
-    /// ## Generic
-    ///
     /// - `A: AttributeBind + 'static` -- Type of the attribute that will be stored.
+    /// - `size: usize` -- Initial size of the new storage.
     ///
     /// # Panics
     ///
@@ -173,6 +182,9 @@ impl AttrStorageManager {
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.faces.insert(typeid, Box::new(new_storage))
             }
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                self.volumes.insert(typeid, Box::new(new_storage))
+            }
             OrbitPolicy::Custom(_) => self.others.insert(typeid, Box::new(new_storage)),
         }
         .is_some()
@@ -185,15 +197,14 @@ impl AttrStorageManager {
         }
     }
 
+    #[cfg(test)]
     /// Extend the size of the storage of a given attribute.
     ///
     /// # Arguments
     ///
+    /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     /// - `length: usize` -- Length by which the storage should be extended.
     ///
-    /// ## Generic
-    ///
-    /// - `A: AttributeBind` -- Attribute of which the storage should be extended.
     pub fn extend_storage<A: AttributeBind>(&mut self, length: usize) {
         get_storage_mut!(self, storage);
         if let Some(st) = storage {
@@ -208,7 +219,7 @@ impl AttrStorageManager {
 
     /// Get a reference to the storage of a given attribute.
     ///
-    /// # Generic
+    /// # Arguments
     ///
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     ///
@@ -217,12 +228,14 @@ impl AttrStorageManager {
     /// This method may panic if:
     /// - there's no storage associated with the specified attribute
     /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
-    #[must_use = "unused getter result - please remove this method call"]
+    #[cfg(test)]
+    #[must_use = "unused return value"]
     pub fn get_storage<A: AttributeBind>(&self) -> Option<&<A as AttributeBind>::StorageType> {
         let probably_storage = match A::BIND_POLICY {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => &self.vertices[&TypeId::of::<A>()],
             OrbitPolicy::Edge => &self.edges[&TypeId::of::<A>()],
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => &self.faces[&TypeId::of::<A>()],
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => &self.volumes[&TypeId::of::<A>()],
             OrbitPolicy::Custom(_) => &self.others[&TypeId::of::<A>()],
         };
         probably_storage.downcast_ref::<<A as AttributeBind>::StorageType>()
@@ -233,7 +246,7 @@ impl AttrStorageManager {
     /// This method is useful when implementing routines that uses attributes to run; Those can then be removed
     /// before the final result is returned.
     ///
-    /// # Generic
+    /// # Arguments
     ///
     /// - `A: AttributeBind` -- Attribute stored by the fetched storage.
     pub fn remove_storage<A: AttributeBind>(&mut self) {
@@ -244,6 +257,9 @@ impl AttrStorageManager {
             }
             OrbitPolicy::Edge => &self.edges.remove(&TypeId::of::<A>()),
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => &self.faces.remove(&TypeId::of::<A>()),
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                &self.volumes.remove(&TypeId::of::<A>())
+            }
             OrbitPolicy::Custom(_) => &self.others.remove(&TypeId::of::<A>()),
         };
     }
@@ -251,79 +267,9 @@ impl AttrStorageManager {
 
 /// Merge variants.
 impl AttrStorageManager {
-    // attribute-agnostic force
-
-    /// Execute a merging operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// This variant is equivalent to `merge_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_merge_attributes(
-        &self,
-        orbit_policy: &OrbitPolicy,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.force_merge_vertex_attributes(id_out, id_in_lhs, id_in_rhs);
-            }
-            OrbitPolicy::Edge => self.force_merge_edge_attributes(id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_merge_face_attributes(id_out, id_in_lhs, id_in_rhs);
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-
-    /// Execute a merging operation on all attributes associated with vertices for specified cells.
-    ///
-    /// This variant is equivalent to `merge_vertex_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_merge_vertex_attributes(
-        &self,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) {
-        for storage in self.vertices.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
-        }
-    }
-
-    /// Execute a merging operation on all attributes associated with edges for specified cells.
-    ///
-    /// This variant is equivalent to `merge_edge_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_merge_edge_attributes(
-        &self,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) {
-        for storage in self.edges.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
-        }
-    }
-
-    /// Execute a merging operation on all attributes associated with faces for specified cells.
-    ///
-    /// This variant is equivalent to `merge_face_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_merge_face_attributes(
-        &self,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) {
-        for storage in self.faces.values() {
-            storage.force_merge(id_out, id_in_lhs, id_in_rhs);
-        }
-    }
-
     // attribute-agnostic regular
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
@@ -356,9 +302,13 @@ impl AttrStorageManager {
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                self.merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
@@ -441,8 +391,38 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
+    #[allow(clippy::missing_errors_doc)]
+    /// Execute a merging operation on all attributes associated with volumes for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    pub fn merge_volume_attributes(
+        &self,
+        trans: &mut Transaction,
+        id_out: DartIdType,
+        id_in_lhs: DartIdType,
+        id_in_rhs: DartIdType,
+    ) -> StmResult<()> {
+        for storage in self.volumes.values() {
+            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+        }
+        Ok(())
+    }
+    */
+
     // attribute-agnostic try
 
+    /*
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -473,9 +453,13 @@ impl AttrStorageManager {
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.try_merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                self.try_merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
     ///
@@ -549,28 +533,33 @@ impl AttrStorageManager {
         Ok(())
     }
 
-    // attribute-specific
-
-    /// Merge given attribute values.
+    /*
+    /// Execute a merging operation on all attributes associated with volumes for specified cells.
     ///
-    /// This variant is equivalent to `merge_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_merge_attribute<A: AttributeBind>(
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
+    pub fn try_merge_volume_attributes(
         &self,
+        trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_merge(id_out, id_in_lhs, id_in_rhs);
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
+    ) -> CMapResult<()> {
+        for storage in self.volumes.values() {
+            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
+        Ok(())
     }
+    */
+
+    // attribute-specific
 
     #[allow(clippy::missing_errors_doc)]
     /// Merge given attribute values.
@@ -586,6 +575,7 @@ impl AttrStorageManager {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. The result should not be processed manually.
+    #[cfg(test)]
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -605,6 +595,7 @@ impl AttrStorageManager {
         }
     }
 
+    /*
     /// Merge given attribute values.
     ///
     /// # Errors
@@ -634,86 +625,14 @@ impl AttrStorageManager {
             Ok(())
         }
     }
+    */
 }
 
 /// Split variants.
 impl AttrStorageManager {
-    // attribute-agnostic force
-
-    /// Execute a splitting operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// This variant is equivalent to `split_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_split_attributes(
-        &self,
-        orbit_policy: &OrbitPolicy,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.force_split_vertex_attributes(id_out_lhs, id_out_rhs, id_in);
-            }
-            OrbitPolicy::Edge => self.force_split_edge_attributes(id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.force_split_face_attributes(id_out_lhs, id_out_rhs, id_in);
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-
-    /// Execute a splitting operation on all attributes associated with vertices
-    /// for specified cells.
-    ///
-    /// This variant is equivalent to `split_vertex_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_split_vertex_attributes(
-        &self,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) {
-        for storage in self.vertices.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
-        }
-    }
-
-    /// Execute a splitting operation on all attributes associated with edges
-    /// for specified cells.
-    ///
-    /// This variant is equivalent to `split_edge_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_split_edge_attributes(
-        &self,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) {
-        for storage in self.edges.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
-        }
-    }
-
-    /// Execute a splitting operation on all attributes associated with faces
-    /// for specified cells.
-    ///
-    /// This variant is equivalent to `split_face_attributes`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_split_face_attributes(
-        &self,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) {
-        for storage in self.faces.values() {
-            storage.force_split(id_out_lhs, id_out_rhs, id_in);
-        }
-    }
-
     // attribute-agnostic regular
 
+    /*
     #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
@@ -746,9 +665,13 @@ impl AttrStorageManager {
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                self.split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with vertices
@@ -832,8 +755,38 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /*
+    #[allow(clippy::missing_errors_doc)]
+    /// Execute a splitting operation on all attributes associated with volumes for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. The result should not be processed manually.
+    pub fn split_volume_attributes(
+        &self,
+        trans: &mut Transaction,
+        id_out_lhs: DartIdType,
+        id_out_rhs: DartIdType,
+        id_in: DartIdType,
+    ) -> StmResult<()> {
+        for storage in self.volumes.values() {
+            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
+        }
+        Ok(())
+    }
+    */
+
     // attribute-agnostic try
 
+    /*
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -864,9 +817,13 @@ impl AttrStorageManager {
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.try_split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
+            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                self.try_split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+            }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
     }
+    */
 
     /// Execute a splitting operation on all attributes associated with vertices for specified cells.
     ///
@@ -940,28 +897,33 @@ impl AttrStorageManager {
         Ok(())
     }
 
-    // attribute-specific
-
-    /// Split given attribute value.
+    /*
+    /// Execute a splitting operation on all attributes associated with volumes for specified cells.
     ///
-    /// This variant is equivalent to `split_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_split_attribute<A: AttributeBind>(
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
+    pub fn try_split_volume_attributes(
         &self,
+        trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_split(id_out_lhs, id_out_rhs, id_in);
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
+    ) -> CMapResult<()> {
+        for storage in self.volumes.values() {
+            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
+        Ok(())
     }
+    */
+
+    // attribute-specific
 
     #[allow(clippy::missing_errors_doc)]
     /// Split given attribute value.
@@ -977,6 +939,7 @@ impl AttrStorageManager {
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. The result should not be processed manually.
+    #[cfg(test)]
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
@@ -996,6 +959,7 @@ impl AttrStorageManager {
         }
     }
 
+    /*
     /// Split given attribute value.
     ///
     /// # Errors
@@ -1025,6 +989,7 @@ impl AttrStorageManager {
             Ok(())
         }
     }
+    */
 }
 
 /// **Attribute read & write methods**

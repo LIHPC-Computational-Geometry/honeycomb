@@ -4,6 +4,10 @@
 
 ## To be released
 
+---
+
+## 0.7.0
+
 **This update contains breaking changes**
 
 ### Workspace
@@ -15,18 +19,23 @@
 
 *refactor:*
 
-* update issue & PR templates by @imrn99 & @dssgabriel
+- update issue & PR templates by @imrn99 & @dssgabriel
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/229
+- simplify and improve documentation consistency by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/263
 
 *deps:*
 
-* revert some upgrades that broke the render menu by @imrn99
+- revert some upgrades that broke the render menu by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/206
-* update thiserror requirement from 1.0.64 to 2.0.3 by @dependabot
+- update thiserror requirement from 1.0.64 to 2.0.3 by @dependabot
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/221
-* bump codecov/codecov-action from 4.6.0 to 5.0.7 by @dependabot
+- bump codecov/codecov-action from 4.6.0 to 5.0.7 by @dependabot
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/242
-
+- chore(deps): bump codecov/codecov-action from 5.0.7 to 5.1.2 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/258
+- chore(deps): update itertools requirement from 0.13.0 to 0.14.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/262
 
 ### Published crates
 
@@ -61,6 +70,20 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/241
 - **add new variants to `OrbitPolicy`** by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/238
+- move `OrbitPolicy` to the components submodule by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/250
+- **delete the i-cell collection structures** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/251
+- **update basic operations** of `CMap2` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/252
+- **delete the `utils` feature**by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/254
+- **delete the `io` feature** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/255
+- **make dimension an argument of sew/link methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/253
+- **update sew variants** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/261
 
 *fix:*
 
@@ -68,7 +91,6 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/222
 - elude lifetimes where possible by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/244
-
 
 #### honeycomb-kernels
 
@@ -88,7 +110,6 @@
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/210
 - clean-up module code by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/216
-
 
 ### Others
 
@@ -110,17 +131,20 @@
 - unify naming & update doc by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/218
 
-
 #### honeycomb-guide
 
 <sup>**mdbook**-based user guide with information regarding usage & non-code-related
 aspects of the project</sup>
 
+*new*:
+
+- add STM usage example by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/248
+
 *refactor:*
 
 - update user guide & Pages deploy by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/217
-
 
 ---
 
@@ -138,7 +162,8 @@ aspects of the project</sup>
 *refactor:*
 
 - replace some explicit `panic!` and `unwrap` calls with cleaner alternatives by @imrn99
-  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/174 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/176
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/174
+  and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/176
 - **cleanup error enums** by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/190
 - replace regular prints with prints to stderr for warnings by @imrn99
@@ -155,10 +180,9 @@ aspects of the project</sup>
 - bump `egui_dock` from 0.13.0 to 0.14.0 & `bevy_egui` from 0.29.0 to 0.30.0 by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/187
 - bump:
-  - `rustversion` from 1.0.15 to 1.0.18
-  - `bevy` from 0.14.1 to 0.14.2
-  - `bevy_mod_outline` from 0.8.1 to 0.8.3
-
+    - `rustversion` from 1.0.15 to 1.0.18
+    - `bevy` from 0.14.1 to 0.14.2
+    - `bevy_mod_outline` from 0.8.1 to 0.8.3
 
 ### Published crates
 
@@ -169,7 +193,6 @@ aspects of the project</sup>
 This is a reexport-only crate used to provide a single, clean user-facing API
 
 added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
-
 
 #### honeycomb-core
 
@@ -205,7 +228,6 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 
 - correct face computation in serializing code by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/168
-
 
 #### honeycomb-kernels
 
@@ -247,14 +269,12 @@ added in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/160
 - **remove irrelevant benchmarks** by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/195
 
-
 #### honeycomb-examples
 
 <sup>project examples</sup>
 
 - **improve and filter-out examples** by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/156
-
 
 #### honeycomb-guide
 
@@ -268,7 +288,6 @@ aspects of the project</sup>
 - update rustdoc & user guide by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/166
 
-
 ---
 
 ## 0.5.0
@@ -281,7 +300,7 @@ aspects of the project</sup>
 
 - fix errors introduced by `rand` update by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/130
-- indent lists in doc correctly to comply with clippy by @imrn99 
+- indent lists in doc correctly to comply with clippy by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/126
 
 *deps:*
@@ -295,7 +314,6 @@ aspects of the project</sup>
 - update iai-callgrind requirement from 0.12.0 to 0.13.0 by @dependabot
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/145
 
-
 ### Published crates
 
 #### honeycomb-core
@@ -304,21 +322,21 @@ aspects of the project</sup>
 
 *new:*
 
-- add `splitn_edge` method to `CMap2` by @imrn99 
+- add `splitn_edge` method to `CMap2` by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/127
-- add `remove_storage` method to `AttrStorageManager` by @imrn99 
+- add `remove_storage` method to `AttrStorageManager` by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/128
-- add origin offset directly to grid descriptor/builder by @imrn99 
+- add origin offset directly to grid descriptor/builder by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/148
 
 *refactor:*
 
-- **rewrite `Vertex2` & `Vector2` as tuple structs** by @imrn99 
+- **rewrite `Vertex2` & `Vector2` as tuple structs** by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/124
 
 *fix:*
 
-- extend generic attribute storages when adding darts by @imrn99 
+- extend generic attribute storages when adding darts by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/122
 
 #### honeycomb-kernels (new member)
@@ -327,15 +345,15 @@ aspects of the project</sup>
 
 *new:*
 
-- add an overlay grid type algorithm: `grisubal`; it takes a 2D boundary as input and return a combinatorial map of 
+- add an overlay grid type algorithm: `grisubal`; it takes a 2D boundary as input and return a combinatorial map of
   the boundary, captured in an orthogonal grid; an optional clipping step is also implemented
-  - this was implemented in PRs #109, #111, #113, #115, #114, #116, #123, #119, #129, #131, #134, #135, #136, #137, #138, #140, #141, #143, #146, #147, #149, #151, and #152
+    - this was implemented in PRs #109, #111, #113, #115, #114, #116, #123, #119, #129, #131, #134, #135, #136, #137,
+      #138, #140, #141, #143, #146, #147, #149, #151, and #152
 
 *test:*
 
-- add coverage using basic geometries by @imrn99 
+- add coverage using basic geometries by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/139
-
 
 #### honeycomb-render
 
@@ -343,7 +361,7 @@ aspects of the project</sup>
 
 *fix:*
 
-- add condition over shrink dir to prevent some crashes by @imrn99 
+- add condition over shrink dir to prevent some crashes by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/121
 
 ### Others
@@ -354,7 +372,7 @@ aspects of the project</sup>
 
 *new:*
 
-- add example for the `grisubal` kernel by @imrn99 
+- add example for the `grisubal` kernel by @imrn99
   in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/120
 
 #### honeycomb-guide
@@ -364,9 +382,9 @@ aspects of the project</sup>
 
 *new:*
 
-- add `honeycomb-kernel` and `grisubal` pages by @imrn99 
-  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/117 and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/153
-
+- add `honeycomb-kernel` and `grisubal` pages by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/117
+  and https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/153
 
 ---
 
@@ -461,7 +479,7 @@ New changelog format!
     - `smaa` from `0.13.0` to `0.14.0`
     - `wgpu` from `0.19.4` to `0.20.0`
     - `winit` from `0.29.15` to `0.30.0`
-- implement nighly conditional compilation for doc generation (#66)
+- implement nightly conditional compilation for doc generation (#66)
 
 ### Published crates
 
@@ -776,7 +794,7 @@ aspects of the project</sup>
 aspects of the project.</sup>
 
 - complete (partially) definition sections (#5)
-- add documentation for the core implementatiosn (#5)
+- add documentation for the core implementations (#5)
 - add usage instructions (#12)
 - add `honeycomb-utils` section (#12)
 

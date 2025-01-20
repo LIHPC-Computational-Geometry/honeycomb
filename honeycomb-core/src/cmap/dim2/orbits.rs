@@ -12,7 +12,7 @@ use std::collections::{BTreeSet, VecDeque};
 
 // ------ CONTENT
 
-/// Generic 2D orbit implementation
+/// # Generic 2D orbit implementation
 ///
 /// This structure only contains meta-data about the orbit in its initial state. All the darts
 /// making up the orbit are computed when using the methods that come with the [Iterator]
@@ -22,30 +22,22 @@ use std::collections::{BTreeSet, VecDeque};
 /// result to be used. This is most likely the best behavior since orbits should be consumed upon
 /// traversal to avoid inconsistencies created by a later mutable operation on the map.
 ///
-/// # Generics
+/// ## Generics
 ///
 /// - `'a` -- Lifetime of the reference to the map
 /// - `T: CoordsFloat` -- Generic parameter of the referenced map.
 ///
-/// # The search algorithm
+/// ## The search algorithm
 ///
 /// The search algorithm used to establish the list of dart included in the orbit is a
 /// [Breadth-First Search algorithm][WIKIBFS]. This means that:
 ///
 /// - we look at the images of the current dart through all beta functions,
 ///   adding those to a queue, before moving on to the next dart.
-/// - we apply the beta functions in their specified order (in the case of a
-///   custom [`OrbitPolicy`]); This guarantees a consistent and predictable result.
-///
-/// Both of these points allow orbitd to be used for sewing operations at the cost of some
-/// performance (non-trivial parallelization & sequential consistency requirements).
+/// - we apply the beta functions in their specified order; This guarantees a consistent and
+///   predictable result.
 ///
 /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
-///
-/// # Example
-///
-/// See [`CMap2`] example.
-///
 pub struct Orbit2<'a, T: CoordsFloat> {
     /// Reference to the map containing the beta functions used in the BFS.
     map_handle: &'a CMap2<T>,
@@ -64,24 +56,15 @@ impl<'a, T: CoordsFloat> Orbit2<'a, T> {
     ///
     /// - `map_handle: &'a CMap2<T>` -- Reference to the map containing the beta
     ///   functions used in the BFS.
-    /// - `orbit_policy: OrbitPolicy<'a>` -- Policy used by the orbit for the BFS.
+    /// - `orbit_policy: OrbitPolicy` -- Policy used by the orbit for the BFS.
     /// - `dart: DartIdentifier` -- Dart of which the structure will compute the orbit.
     ///
-    /// # Return
+    /// # Performance
     ///
-    /// Return an [Orbit2] structure that can be iterated upon to retrieve the orbit's darts.
-    ///
-    /// # Panics
-    ///
-    /// The method may panic if no beta index is passed along the custom policy. Additionally,
-    /// if an invalid beta index is passed through the custom policy (e.g. `3` for a 2D map),
-    /// a panic will occur on iteration
-    ///
-    /// # Example
-    ///
-    /// See [`CMap2`] example.
-    ///
-    #[must_use = "orbits are lazy and do nothing unless consumed"]
+    /// Currently, orbits use two dynamically allocated structures for computation: a `VecDeque`,
+    /// and a `BTreeSet`. Allocations are made by the constructor since these structures aren't
+    /// empty initially.
+    #[must_use = "unused return value"]
     pub fn new(map_handle: &'a CMap2<T>, orbit_policy: OrbitPolicy, dart: DartIdType) -> Self {
         let mut marked = BTreeSet::<DartIdType>::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
@@ -174,6 +157,9 @@ impl<T: CoordsFloat> Iterator for Orbit2<'_, T> {
                         }
                     }
                 }
+                OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                    unimplemented!("3-cells aren't defined for 2-maps")
+                }
             }
             Some(d)
         } else {
@@ -192,23 +178,23 @@ mod tests {
     fn simple_map() -> CMap2<f64> {
         let mut map: CMap2<f64> = CMap2::new(11);
         // tri1
-        map.force_one_link(1, 2);
-        map.force_one_link(2, 3);
-        map.force_one_link(3, 1);
+        map.force_link::<1>(1, 2);
+        map.force_link::<1>(2, 3);
+        map.force_link::<1>(3, 1);
         // tri2
-        map.force_one_link(4, 5);
-        map.force_one_link(5, 6);
-        map.force_one_link(6, 4);
+        map.force_link::<1>(4, 5);
+        map.force_link::<1>(5, 6);
+        map.force_link::<1>(6, 4);
         // pent on top
-        map.force_one_link(7, 8);
-        map.force_one_link(8, 9);
-        map.force_one_link(9, 10);
-        map.force_one_link(10, 11);
-        map.force_one_link(11, 7);
+        map.force_link::<1>(7, 8);
+        map.force_link::<1>(8, 9);
+        map.force_link::<1>(9, 10);
+        map.force_link::<1>(10, 11);
+        map.force_link::<1>(11, 7);
 
         // link all
-        map.force_two_link(2, 4);
-        map.force_two_link(6, 7);
+        map.force_link::<2>(2, 4);
+        map.force_link::<2>(6, 7);
 
         assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
         assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());

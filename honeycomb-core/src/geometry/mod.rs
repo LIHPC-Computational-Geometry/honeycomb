@@ -1,52 +1,35 @@
 //! geometry representation types & operators
 //!
-//! This module contains all code related to custom spatial reprentation type implementations.
-//! This include custom vector / vertex types as well as generic traits for value encoding.
-
-// ------ MODULE DECLARATIONS
+//! This module contains all code related to custom spatial representation type implementations.
+//! This include custom vector / vertex types as well as a generic FP trait.
 
 mod dim2;
 mod dim3;
-
-// ------ IMPORTS
 
 use std::fmt::Debug;
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 use thiserror::Error;
 
-// ------ CONTENT
-
-// --- re-exports
+//
 
 pub use dim2::{vector::Vector2, vertex::Vertex2};
 pub use dim3::{vector::Vector3, vertex::Vertex3};
 
-// --- error enum
-
-/// Coordinates-level error enum
+/// # Coordinates-level error enum
 #[derive(Error, Debug, PartialEq)]
 pub enum CoordsError {
-    /// Error during the computation of the unit direction vector.
-    ///
-    /// This is returned when trying to compute the unit vector of a null [`Vector2`].
+    /// Error returned when trying to compute the unit vector of a null [`Vector2`].
     #[error("cannot compute unit direction of a null vector")]
     InvalidUnitDir,
-    /// Error during the computation of the normal direction vector.
-    ///
-    /// This is returned when trying to compute the normal to a null [`Vector2`].
+    /// Error returned when trying to compute the normal to a null [`Vector2`].
     #[error("cannot compute normal direction to a null vector")]
     InvalidNormDir,
 }
 
-// --- generic fp repersentation trait
-
-/// Common trait implemented by types used for coordinate representation.
+/// # Generic FP type trait
 ///
-/// The static lifetime is a requirements induced by specific implementations that use
-/// [`TypeId`][std::any::TypeId];
-/// This is used in order to identify types in two contexts:
-/// - Interacting with VTK files (`io` feature),
-/// - Coding vertices and generic attributes handling
+/// This trait is used for vertex & vector values. The static lifetime is a requirements induced
+/// by the attribute system implementation.
 pub trait CoordsFloat:
     num_traits::Float
     + Default

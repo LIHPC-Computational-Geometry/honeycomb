@@ -120,6 +120,7 @@ pub fn remove_redundant_poi<T: CoordsFloat>(
     });
 }
 
+#[allow(clippy::map_all_any_identity)]
 pub fn detect_overlaps<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [cx, cy]: [T; 2],

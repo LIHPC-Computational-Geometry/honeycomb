@@ -7,24 +7,7 @@ use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
-// --- descriptor impls
-
-impl<T: CoordsFloat> CMapBuilder<T> {
-    /// Import and set the VTK file that will be used when building the map.
-    ///
-    /// # Panics
-    ///
-    /// This function may panic if the file cannot be loaded.
-    #[must_use = "unused builder object, consider removing this method call"]
-    pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
-        let vtk_file =
-            Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        self.vtk_file = Some(vtk_file);
-        self
-    }
-}
-
-/// Create a [`CMapBuilder`] from an imported VTK file.
+/// Create a [`CMapBuilder`] from the VTK file specified by the path.
 ///
 /// # Panics
 ///
@@ -205,10 +188,10 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             d2 as VertexIdType,
                                             vertices[vids[2]],
                                         );
-                                        cmap.force_one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
-                                        cmap.force_one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
-                                        cmap.force_one_link(d2, d0); // edge d2 links vertices vids[2] & vids[0]
-                                                                     // record a trace of the built cell for future 2-sew
+                                        cmap.force_link::<1>(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                                        cmap.force_link::<1>(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                                        cmap.force_link::<1>(d2, d0); // edge d2 links vertices vids[2] & vids[0]
+                                                                      // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[0]), d2);
@@ -230,7 +213,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                                 di as VertexIdType,
                                                 vertices[vids[i]],
                                             );
-                                            cmap.force_one_link(di, dip1);
+                                            cmap.force_link::<1>(di, dip1);
                                             sew_buffer
                                                 .insert((vids[i], vids[(i + 1) % n_vertices]), di);
                                         });
@@ -265,11 +248,11 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             d3 as VertexIdType,
                                             vertices[vids[3]],
                                         );
-                                        cmap.force_one_link(d0, d1); // edge d0 links vertices vids[0] & vids[1]
-                                        cmap.force_one_link(d1, d2); // edge d1 links vertices vids[1] & vids[2]
-                                        cmap.force_one_link(d2, d3); // edge d2 links vertices vids[2] & vids[3]
-                                        cmap.force_one_link(d3, d0); // edge d3 links vertices vids[3] & vids[0]
-                                                                     // record a trace of the built cell for future 2-sew
+                                        cmap.force_link::<1>(d0, d1); // edge d0 links vertices vids[0] & vids[1]
+                                        cmap.force_link::<1>(d1, d2); // edge d1 links vertices vids[1] & vids[2]
+                                        cmap.force_link::<1>(d2, d3); // edge d2 links vertices vids[2] & vids[3]
+                                        cmap.force_link::<1>(d3, d0); // edge d3 links vertices vids[3] & vids[0]
+                                                                      // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[3]), d2);
@@ -298,7 +281,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
     }
     while let Some(((id0, id1), dart_id0)) = sew_buffer.pop_first() {
         if let Some(dart_id1) = sew_buffer.remove(&(id1, id0)) {
-            cmap.force_two_sew(dart_id0, dart_id1);
+            cmap.force_sew::<2>(dart_id0, dart_id1);
         }
     }
     Ok(cmap)

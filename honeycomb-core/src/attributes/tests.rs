@@ -136,10 +136,10 @@ fn temperature_map() {
         .add_attribute::<Temperature>();
     let map: CMap2<f64> = builder.build().unwrap();
 
-    map.force_two_link(1, 2);
-    map.force_two_link(3, 4);
-    map.force_two_link(5, 6);
-    map.force_one_link(1, 3);
+    map.force_link::<2>(1, 2);
+    map.force_link::<2>(3, 4);
+    map.force_link::<2>(5, 6);
+    map.force_link::<1>(1, 3);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (1.0, 0.0));
     map.force_write_vertex(4, (1.5, 0.0));
@@ -161,7 +161,7 @@ fn temperature_map() {
         Some(Temperature::from(273.))
     );
     // sew one segment
-    map.force_one_sew(3, 5);
+    map.force_sew::<1>(3, 5);
     assert_eq!(map.vertex_id(4), map.vertex_id(5));
     assert_eq!(
         map.force_read_attribute::<Temperature>(map.vertex_id(4)),
@@ -172,7 +172,7 @@ fn temperature_map() {
         Some(Vertex2::from((2., 0.)))
     );
     // unsew another
-    map.force_one_unsew(1);
+    map.force_unsew::<1>(1);
     assert_ne!(map.vertex_id(2), map.vertex_id(3));
     assert_eq!(
         map.force_read_attribute::<Temperature>(map.vertex_id(2)),
@@ -220,7 +220,7 @@ fn test_merge_attributes() {
     manager.force_write_attribute(1, Temperature::from(30.0));
 
     // Test merge
-    manager.force_merge_attribute::<Temperature>(2, 0, 1);
+    atomically(|trans| manager.merge_attribute::<Temperature>(trans, 2, 0, 1));
 
     // The exact result depends on how merge is implemented in AttributeStorage
     // Just verify that something was stored at the output location
@@ -236,7 +236,7 @@ fn test_split_attributes() {
     manager.force_write_attribute(0, Temperature::from(25.0));
 
     // Test split
-    manager.force_split_attribute::<Temperature>(1, 2, 0);
+    atomically(|trans| manager.split_attribute::<Temperature>(trans, 1, 2, 0));
 
     // The exact results depend on how split is implemented in AttributeStorage
     // Just verify that something was stored at both output locations
@@ -273,7 +273,7 @@ fn test_orbit_specific_merges() {
     manager.force_write_attribute(1, Temperature::from(30.0));
 
     // Test vertex-specific merge
-    manager.force_merge_vertex_attributes(2, 0, 1);
+    atomically(|trans| manager.merge_vertex_attributes(trans, 2, 0, 1));
 
     assert!(manager.force_read_attribute::<Temperature>(2).is_some());
 }
@@ -287,7 +287,7 @@ fn test_orbit_specific_splits() {
     manager.force_write_attribute(0, Temperature::from(25.0));
 
     // Test vertex-specific split
-    manager.force_split_vertex_attributes(1, 2, 0);
+    atomically(|trans| manager.split_vertex_attributes(trans, 1, 2, 0));
 
     assert!(manager.force_read_attribute::<Temperature>(1).is_some());
     assert!(manager.force_read_attribute::<Temperature>(2).is_some());
@@ -686,7 +686,7 @@ fn manager_merge_attribute() {
         manager.force_read_attribute(8),
         Some(Temperature::from(289.0))
     );
-    manager.force_merge_attribute::<Temperature>(8, 3, 6);
+    atomically(|trans| manager.merge_attribute::<Temperature>(trans, 8, 3, 6));
     assert_eq!(manager.force_read_attribute::<Temperature>(3), None);
     assert_eq!(manager.force_read_attribute::<Temperature>(6), None);
     assert_eq!(
@@ -711,7 +711,7 @@ fn manager_merge_undefined_attribute() {
         Some(Temperature::from(289.0))
     );
     // merge from two undefined value
-    manager.force_merge_attribute::<Temperature>(8, 3, 6);
+    atomically(|trans| manager.merge_attribute::<Temperature>(trans, 8, 3, 6));
     assert_eq!(manager.force_read_attribute::<Temperature>(3), None);
     assert_eq!(manager.force_read_attribute::<Temperature>(6), None);
     assert_eq!(
@@ -723,7 +723,7 @@ fn manager_merge_undefined_attribute() {
         manager.force_read_attribute(4),
         Some(Temperature::from(281.0))
     );
-    manager.force_merge_attribute::<Temperature>(6, 3, 4);
+    atomically(|trans| manager.merge_attribute::<Temperature>(trans, 6, 3, 4));
     assert_eq!(manager.force_read_attribute::<Temperature>(3), None);
     assert_eq!(manager.force_read_attribute::<Temperature>(4), None);
     assert_eq!(
@@ -747,7 +747,7 @@ fn manager_split_attribute() {
         manager.force_read_attribute(8),
         Some(Temperature::from(289.0))
     );
-    manager.force_split_attribute::<Temperature>(3, 6, 8);
+    atomically(|trans| manager.split_attribute::<Temperature>(trans, 3, 6, 8));
     assert_eq!(
         manager.force_read_attribute(3),
         Some(Temperature::from(289.0))
