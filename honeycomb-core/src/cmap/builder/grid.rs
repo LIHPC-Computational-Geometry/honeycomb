@@ -1,3 +1,5 @@
+use std::usize;
+
 use crate::prelude::{BuilderError, CMap2, DartIdType, Vector2, Vertex2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
@@ -377,4 +379,92 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
                 .into_iter()
             })
         })
+}
+
+//
+//    y+
+// z+ |
+// \  |
+//  \ |
+//   \|
+//    +------x+
+//
+//
+// +------+
+// |\     |\
+// | \13    \
+// |  \ 21|  \
+// |17 +------+
+// +- -|- + 9 |
+//  \  |   \  |
+//   \ |1 5   |
+//    \|     \|
+//     +------+
+//
+// down: 1
+// sides: 5, 9, 13, 17
+// up: 21
+//
+#[allow(clippy::inline_always, unused)]
+#[rustfmt::skip]
+#[inline(always)]
+fn generate_hex_beta_values(
+    n_x: usize,
+    n_y: usize,
+    n_z: usize,
+) -> impl Iterator<Item = [DartIdType; 4]> {
+    // this loop hierarchy yields the value in correct order
+    // left to right first, then bottom to top
+    (0..n_z).flat_map(move |iz| {
+        (0..n_y).flat_map(move |iy| {
+            (0..n_x).flat_map(move |ix| {
+                let d1 = (1 + 24 * ix + n_x * 24 * iy + n_x * n_y * 24 * iz) as DartIdType;
+                let (    d2 , d3 , d4 , d5 , d6 , d7 , d8 ,
+                    d9 , d10, d11, d12, d13, d14, d15, d16,
+                    d17, d18, d19, d20, d21, d22, d23, d24,
+                ) = (        d1 + 1 , d1 + 2 , d1 + 3 , d1 + 4 , d1 + 5 , d1 + 6 , d1 + 7 ,
+                    d1 + 8 , d1 + 9 , d1 + 10, d1 + 11, d1 + 12, d1 + 13, d1 + 14, d1 + 15,
+                    d1 + 16, d1 + 17, d1 + 18, d1 + 19, d1 + 20, d1 + 21, d1 + 22, d1 + 23,
+                );
+                let noffset_x = 24;
+                let noffset_y = 24 * n_x as DartIdType;
+                let noffset_z = 24 * (n_x * n_y ) as DartIdType;
+
+                // beta images of the cube (tm)
+                [
+                    // down (1, y-)
+                    [d4 , d2 , d5 , if iy == 0       { 0 } else { d21 - noffset_y }],
+                    [d1 , d3 , d9 , if iy == 0       { 0 } else { d24 - noffset_y }],
+                    [d2 , d4 , d13, if iy == 0       { 0 } else { d23 - noffset_y }],
+                    [d3 , d1 , d17, if iy == 0       { 0 } else { d22 - noffset_y }],
+                    // side (5 , z-)
+                    [d8 , d6 , d1 , if iz == 0       { 0 } else { d13 - noffset_z }],
+                    [d5 , d7 , d10, if iz == 0       { 0 } else { d16 - noffset_z }],
+                    [d6 , d8 , d21, if iz == 0       { 0 } else { d15 - noffset_z }],
+                    [d7 , d5 , d20, if iz == 0       { 0 } else { d14 - noffset_z }],
+                    // side (9 , x+)
+                    [d12, d10, d2 , if ix == n_x - 1 { 0 } else { d17 - noffset_z }],
+                    [d9 , d11, d6 , if ix == n_x - 1 { 0 } else { d20 - noffset_z }],
+                    [d10, d12, d24, if ix == n_x - 1 { 0 } else { d19 - noffset_z }],
+                    [d11, d9 , d14, if ix == n_x - 1 { 0 } else { d18 - noffset_z }],
+                    // side (13, z+)
+                    [d16, d14, d3 , if iz == n_z - 1 { 0 } else { d5  + noffset_z }],
+                    [d13, d15, d12, if iz == n_z - 1 { 0 } else { d8  + noffset_z }],
+                    [d14, d16, d23, if iz == n_z - 1 { 0 } else { d7  + noffset_z }],
+                    [d15, d13, d18, if iz == n_z - 1 { 0 } else { d6  + noffset_z }],
+                    // side (17, x-)
+                    [d20, d18, d4 , if ix == 0       { 0 } else { d9  + noffset_z }],
+                    [d17, d19, d16, if ix == 0       { 0 } else { d12 + noffset_z }],
+                    [d18, d20, d22, if ix == 0       { 0 } else { d11 + noffset_z }],
+                    [d19, d17, d8 , if ix == 0       { 0 } else { d10 + noffset_z }],
+                    // up   (21, y+)
+                    [d24, d22, d7 , if iy == n_y - 1 { 0 } else { d1  + noffset_y }],
+                    [d21, d23, d14, if iy == n_y - 1 { 0 } else { d4  + noffset_y }],
+                    [d22, d24, d15, if iy == n_y - 1 { 0 } else { d3  + noffset_y }],
+                    [d23, d21, d11, if iy == n_y - 1 { 0 } else { d2  + noffset_y }],
+                ]
+                .into_iter()
+            })
+        })
+    })
 }
