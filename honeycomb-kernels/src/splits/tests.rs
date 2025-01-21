@@ -283,10 +283,10 @@ mod noalloc {
             if let Err(e) = split_edge_transac(&map, trans, 2, (nds, nds + 1), None) {
                 match e {
                     SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge => Ok(Err(e)),
-                    SplitEdgeError::VertexBound
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
                     | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
                 }
             } else {
                 Ok(Ok(()))
@@ -331,10 +331,10 @@ mod noalloc {
             if let Err(e) = split_edge_transac(&map, trans, 1, (nds, nds + 1), Some(0.6)) {
                 match e {
                     SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge => Ok(Err(e)),
-                    SplitEdgeError::VertexBound
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
                     | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
                 }
             } else {
                 Ok(Ok(()))
@@ -373,10 +373,10 @@ mod noalloc {
             if let Err(e) = split_edge_transac(&map, trans, 1, (nd, NULL_DART_ID), None) {
                 match e {
                     SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge => Ok(Err(e)),
-                    SplitEdgeError::VertexBound
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
                     | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
                 }
             } else {
                 Ok(Ok(()))
@@ -402,15 +402,14 @@ mod noalloc {
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(2);
-
         let res = atomically(|trans| {
             if let Err(e) = split_edge_transac(&map, trans, 1, (nds, nds + 1), None) {
                 match e {
                     SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge => Ok(Err(e)),
-                    SplitEdgeError::VertexBound
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
                     | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
                 }
             } else {
                 Ok(Ok(()))
@@ -442,7 +441,20 @@ mod noalloc {
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        assert!(splitn_edge_no_alloc(&mut map, 2, &new_darts, &[0.25, 0.50, 0.75]).is_ok());
+        let res = atomically(|trans| {
+            if let Err(e) = splitn_edge_transac(&map, trans, 2, &new_darts, &[0.25, 0.50, 0.75]) {
+                match e {
+                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
+                    | SplitEdgeError::InvalidDarts(_)
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
+                }
+            } else {
+                Ok(Ok(()))
+            }
+        });
+        assert!(res.is_ok());
         // after
         //    <--6---             <--4---
         //  1         2 -7-8-9- 3         4
@@ -481,7 +493,20 @@ mod noalloc {
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        assert!(splitn_edge_no_alloc(&mut map, 1, &new_darts, &[0.25, 0.50, 0.75]).is_ok());
+        let res = atomically(|trans| {
+            if let Err(e) = splitn_edge_transac(&map, trans, 1, &new_darts, &[0.25, 0.50, 0.75]) {
+                match e {
+                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
+                    | SplitEdgeError::InvalidDarts(_)
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
+                }
+            } else {
+                Ok(Ok(()))
+            }
+        });
+        assert!(res.is_ok());
         // after
         //    <-<-<-<
         //  1 -3-4-5- 2
@@ -517,20 +542,33 @@ mod noalloc {
         map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(3);
-        assert!(splitn_edge_no_alloc(
-            &mut map,
-            1,
-            &[
-                nds,
-                nds + 1,
-                nds + 2,
-                NULL_DART_ID,
-                NULL_DART_ID,
-                NULL_DART_ID,
-            ],
-            &[0.25, 0.50, 0.75],
-        )
-        .is_ok());
+        let res = atomically(|trans| {
+            if let Err(e) = splitn_edge_transac(
+                &map,
+                trans,
+                1,
+                &[
+                    nds,
+                    nds + 1,
+                    nds + 2,
+                    NULL_DART_ID,
+                    NULL_DART_ID,
+                    NULL_DART_ID,
+                ],
+                &[0.25, 0.50, 0.75],
+            ) {
+                match e {
+                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
+                    | SplitEdgeError::InvalidDarts(_)
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
+                }
+            } else {
+                Ok(Ok(()))
+            }
+        });
+        assert!(res.is_ok());
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         // assert_eq!(&new_darts, &[3, 4, 5]);
@@ -560,12 +598,25 @@ mod noalloc {
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(6);
-        assert!(splitn_edge_no_alloc(
-            &mut map,
-            1,
-            &[nds, nds + 1, nds + 2, nds + 3, nds + 4, nds + 5],
-            &[0.25, 0.50, 0.75],
-        )
-        .is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
+        let res = atomically(|trans| {
+            if let Err(e) = splitn_edge_transac(
+                &map,
+                trans,
+                1,
+                &[nds, nds + 1, nds + 2, nds + 3, nds + 4, nds + 5],
+                &[0.25, 0.50, 0.75],
+            ) {
+                match e {
+                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
+                    SplitEdgeError::UndefinedEdge
+                    | SplitEdgeError::VertexBound
+                    | SplitEdgeError::InvalidDarts(_)
+                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
+                }
+            } else {
+                Ok(Ok(()))
+            }
+        });
+        assert!(res.is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
     }
 }

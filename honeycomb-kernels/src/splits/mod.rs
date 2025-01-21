@@ -12,7 +12,7 @@ mod edge_single;
 
 // ------ PUBLIC RE-EXPORTS
 
-pub use edge_multiple::{splitn_edge, splitn_edge_no_alloc};
+pub use edge_multiple::{splitn_edge, splitn_edge_transac};
 pub use edge_single::{split_edge, split_edge_transac};
 use honeycomb_core::stm::StmError;
 

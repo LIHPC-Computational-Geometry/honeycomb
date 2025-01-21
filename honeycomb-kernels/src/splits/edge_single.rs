@@ -72,23 +72,19 @@ pub fn split_edge<T: CoordsFloat>(
         (tmp, tmp + 1)
     };
 
-    if let Some(edge_err) = atomically(|trans| {
+    atomically(|trans| {
         if let Err(e) = inner_split(cmap, trans, base_dart1, new_darts, midpoint_vertex) {
             match e {
                 SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                SplitEdgeError::UndefinedEdge => Ok(Some(e)),
+                SplitEdgeError::UndefinedEdge => Ok(Err(e)),
                 SplitEdgeError::VertexBound
                 | SplitEdgeError::InvalidDarts(_)
                 | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
             }
         } else {
-            Ok(None)
+            Ok(Ok(()))
         }
-    }) {
-        Err(edge_err)
-    } else {
-        Ok(())
-    }
+    })
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -147,11 +143,13 @@ pub fn split_edge_transac<T: CoordsFloat>(
     let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
+    // FIXME: is_free should be transactional
     if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
         return Err(SplitEdgeError::InvalidDarts(
             "first dart is null or not free",
         ));
     }
+    // FIXME: is_free should be transactional
     if base_dart2 != NULL_DART_ID && (new_darts.1 == NULL_DART_ID || !cmap.is_free(new_darts.1)) {
         return Err(SplitEdgeError::InvalidDarts(
             "second dart is null or not free",
