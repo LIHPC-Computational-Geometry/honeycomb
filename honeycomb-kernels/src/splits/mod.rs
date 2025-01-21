@@ -13,13 +13,17 @@ mod edge_single;
 // ------ PUBLIC RE-EXPORTS
 
 pub use edge_multiple::{splitn_edge, splitn_edge_no_alloc};
-pub use edge_single::{split_edge, split_edge_noalloc};
+pub use edge_single::{split_edge, split_edge_transac};
+use honeycomb_core::stm::StmError;
 
 // ------ CONTENT
 
 /// Error-modeling enum for edge-splitting routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum SplitEdgeError {
+    /// STM transaction failed.
+    #[error("transaction failed")]
+    FailedTransaction(/*#[from]*/ StmError),
     /// Relative position of the new vertex isn't located on the edge.
     #[error("vertex placement for split is not in ]0;1[")]
     VertexBound,
@@ -33,6 +37,12 @@ pub enum SplitEdgeError {
     /// is the number of missing darts.
     #[error("wrong # of darts - expected `{0}`, got {1}")]
     WrongAmountDarts(usize, usize),
+}
+
+impl From<StmError> for SplitEdgeError {
+    fn from(value: StmError) -> Self {
+        Self::FailedTransaction(value)
+    }
 }
 
 // ------ TESTS
