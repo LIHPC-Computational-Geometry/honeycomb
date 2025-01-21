@@ -18,6 +18,7 @@ _single_precision = []
 cfg-if.workspace = true
 honeycomb.workspace = true
 rayon.workspace = true
+rand = { workspace = true, features = ["small_rng"] }
 
 [dev-dependencies]
 honeycomb-core.workspace = true
@@ -30,6 +31,11 @@ rand = { workspace = true, features = ["small_rng"] }
 [[bin]]
 name = "builder"
 path = "src/builder.rs"
+doc = false
+
+[[bin]]
+name = "grid-random-split"
+path = "src/grid_random_split.rs"
 doc = false
 
 [[bin]]
