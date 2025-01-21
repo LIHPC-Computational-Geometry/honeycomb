@@ -286,7 +286,9 @@ fn inner_splitn<T: CoordsFloat>(
             cmap.link::<1>(trans, prev_d, *new_d)?;
             prev_d = *new_d;
         }
-        cmap.link::<1>(trans, prev_d, b1d2_old)?;
+        if b1d2_old != NULL_DART_ID {
+            cmap.link::<1>(trans, prev_d, b1d2_old)?;
+        }
         cmap.link::<2>(trans, prev_d, base_dart1)?;
     }
 

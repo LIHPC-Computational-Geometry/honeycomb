@@ -5,7 +5,7 @@
 use crate::splits::SplitEdgeError;
 use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
-use honeycomb_core::stm::{atomically, StmError, Transaction};
+use honeycomb_core::stm::{atomically, Transaction};
 
 // ------ CONTENT
 
