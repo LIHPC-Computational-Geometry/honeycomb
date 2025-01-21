@@ -225,7 +225,7 @@ pub fn grisubal<T: CoordsFloat>(
     //----/
 
     // --- STEP 3
-    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    insert_intersections(&cmap, &edge_intersec, &dart_slices);
     unsafe_time_section!(instant, timers::Section::BuildMeshInsertIntersec);
     //----/
 
