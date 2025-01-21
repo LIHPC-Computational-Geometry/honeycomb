@@ -54,6 +54,7 @@ fn main() {
     let mut map: CMap2<f64> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
     // collect these now so additional darts don't mess up the iterator
     let faces = map.iter_faces().collect::<Vec<_>>();
+    println!("grid built in {}ms", instant.elapsed().as_millis());
 
     // (b) split diagonals one way or the other
     // sample diag orientation
@@ -97,9 +98,11 @@ fn main() {
                 Ok(())
             });
         });
-    println!("split diags in {}ms", instant.elapsed().as_millis());
+    println!("diagonals split in {}ms", instant.elapsed().as_millis());
 
+    instant = Instant::now();
     // (c) save the map
     let mut f = File::create("grid_split.vtk").unwrap();
     map.to_vtk_binary(&mut f);
+    println!("map saved in {}ms", instant.elapsed().as_millis());
 }
