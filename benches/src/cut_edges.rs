@@ -1,10 +1,13 @@
 use std::time::Instant;
 
-use honeycomb::prelude::{
-    splits::split_edge_noalloc, CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType,
+use honeycomb::{
+    core::stm::atomically,
+    prelude::{
+        splits::{split_edge_transac, SplitEdgeError},
+        CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType,
+    },
 };
 
-use honeycomb_core::stm::atomically;
 use rayon::prelude::*;
 
 const INPUT_MAP: &str = "grid_split.vtk";
@@ -71,7 +74,15 @@ fn main() {
                         map.beta_transac::<1>(trans, rd)?,
                     );
 
-                    // split_edge_noalloc(&map, e, (nd1, nd2), None);
+                    if let Err(e) = split_edge_transac(&map, trans, e, (nd1, nd2), None) {
+                        match e {
+                            SplitEdgeError::FailedTransaction(stmerr) => return Err(stmerr),
+                            SplitEdgeError::UndefinedEdge => unreachable!("unreachable due to STM"),
+                            SplitEdgeError::VertexBound
+                            | SplitEdgeError::InvalidDarts(_)
+                            | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                        }
+                    };
 
                     // left side tet
                     map.unlink::<1>(trans, ld)?;
