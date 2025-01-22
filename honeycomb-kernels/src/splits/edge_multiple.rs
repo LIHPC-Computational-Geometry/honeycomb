@@ -5,6 +5,7 @@
 use crate::splits::SplitEdgeError;
 use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
+use honeycomb_core::stm::{atomically, Transaction};
 // ------ CONTENT
 
 #[allow(clippy::missing_errors_doc)]
@@ -105,7 +106,26 @@ pub fn splitn_edge<T: CoordsFloat>(
     // get the first and second halves
     let (darts_fh, darts_sh) = (&new_darts[..n_t], &new_darts[n_t..]);
 
-    inner_splitn(cmap, base_dart1, darts_fh, darts_sh, &midpoint_vertices)
+    atomically(|trans| {
+        if let Err(e) = inner_splitn(
+            cmap,
+            trans,
+            base_dart1,
+            darts_fh,
+            darts_sh,
+            &midpoint_vertices,
+        ) {
+            match e {
+                SplitEdgeError::FailedTransaction(stme) => Err(stme),
+                SplitEdgeError::UndefinedEdge
+                | SplitEdgeError::VertexBound
+                | SplitEdgeError::InvalidDarts(_)
+                | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
+            }
+        } else {
+            Ok(Ok(()))
+        }
+    })
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -149,8 +169,9 @@ pub fn splitn_edge<T: CoordsFloat>(
 /// - `Ok(())` if the operation is successful & the edge was split
 /// - `Err(SplitEdgeError)` if the operation fails & the edge is left unchanged. Causes of failure
 ///   are described in [`SplitEdgeError`]'s documentation and in requirements mentionned above.
-pub fn splitn_edge_no_alloc<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+pub fn splitn_edge_transac<T: CoordsFloat>(
+    cmap: &CMap2<T>,
+    trans: &mut Transaction,
     edge_id: EdgeIdType,
     new_darts: &[DartIdType],
     midpoint_vertices: &[T],
@@ -161,6 +182,7 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
     if n_d != 2 * n_t {
         return Err(SplitEdgeError::WrongAmountDarts(2 * n_t, n_d));
     }
+    // FIXME: is_free should be transactional
     if new_darts.iter().any(|d| !cmap.is_free(*d)) {
         return Err(SplitEdgeError::InvalidDarts("one dart is not free"));
     }
@@ -170,7 +192,7 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
 
     // base darts making up the edge
     let base_dart1 = edge_id as DartIdType;
-    let base_dart2 = cmap.beta::<2>(base_dart1);
+    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
     if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
         return Err(SplitEdgeError::InvalidDarts(
@@ -183,13 +205,21 @@ pub fn splitn_edge_no_alloc<T: CoordsFloat>(
         ));
     }
 
-    inner_splitn(cmap, base_dart1, darts_fh, darts_sh, midpoint_vertices)
+    inner_splitn(
+        cmap,
+        trans,
+        base_dart1,
+        darts_fh,
+        darts_sh,
+        midpoint_vertices,
+    )
 }
 
 // --- common inner routine
 
 fn inner_splitn<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    cmap: &CMap2<T>,
+    trans: &mut Transaction,
     base_dart1: DartIdType,
     darts_fh: &[DartIdType], //first half
     darts_sh: &[DartIdType], //second half
@@ -202,62 +232,64 @@ fn inner_splitn<T: CoordsFloat>(
         return Err(SplitEdgeError::VertexBound);
     }
 
-    let base_dart2 = cmap.beta::<2>(base_dart1);
-    let b1d1_old = cmap.beta::<1>(base_dart1);
+    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
+    let b1d1_old = cmap.beta_transac::<1>(trans, base_dart1)?;
 
+    let (vid1, vid2) = (
+        cmap.vertex_id_transac(trans, base_dart1)?,
+        cmap.vertex_id_transac(
+            trans,
+            if b1d1_old != NULL_DART_ID {
+                b1d1_old
+            } else if base_dart2 != NULL_DART_ID {
+                base_dart2
+            } else {
+                return Err(SplitEdgeError::UndefinedEdge);
+            },
+        )?,
+    );
     let (Some(v1), Some(v2)) = (
-        cmap.force_read_vertex(cmap.vertex_id(base_dart1)),
-        cmap.force_read_vertex(cmap.vertex_id(if base_dart2 == NULL_DART_ID {
-            b1d1_old
-        } else {
-            base_dart2
-        })),
+        cmap.read_vertex(trans, vid1)?,
+        cmap.read_vertex(trans, vid2)?,
     ) else {
         return Err(SplitEdgeError::UndefinedEdge);
     };
     let seg = v2 - v1;
 
     // unsew current dart
-    // self.one_unlink(base_dart1);
-    cmap.set_beta::<1>(base_dart1, 0);
-    cmap.set_beta::<0>(b1d1_old, 0);
+    if b1d1_old != NULL_DART_ID {
+        cmap.unlink::<1>(trans, base_dart1)?;
+    }
+    //
     if base_dart2 != NULL_DART_ID {
-        cmap.force_unlink::<2>(base_dart1);
+        cmap.unlink::<2>(trans, base_dart1)?;
     }
     // insert new vertices / darts on base_dart1's side
     let mut prev_d = base_dart1;
-    midpoint_vertices
-        .iter()
-        .zip(darts_fh.iter())
-        .for_each(|(&t, &new_d)| {
-            if (t >= T::one()) | (t <= T::zero()) {
-                // println!("{W_VERTEX_BOUND}");
-            }
-            let new_v = v1 + seg * t;
-            cmap.force_link::<1>(prev_d, new_d);
-            cmap.force_write_vertex(new_d, new_v);
-            prev_d = new_d;
-        });
-    cmap.force_link::<1>(prev_d, b1d1_old);
+    for (&t, &new_d) in midpoint_vertices.iter().zip(darts_fh.iter()) {
+        let new_v = v1 + seg * t;
+        cmap.link::<1>(trans, prev_d, new_d)?;
+        cmap.write_vertex(trans, new_d, new_v)?;
+        prev_d = new_d;
+    }
+    cmap.link::<1>(trans, prev_d, b1d1_old)?;
 
     // if b2(base_dart1) is defined, insert vertices / darts on its side too
     if base_dart2 != NULL_DART_ID {
-        let b1d2_old = cmap.beta::<1>(base_dart2);
-        // self.one_unlink(base_dart2);
-        cmap.set_beta::<1>(base_dart2, 0);
-        cmap.set_beta::<0>(b1d2_old, 0);
+        let b1d2_old = cmap.beta_transac::<1>(trans, base_dart2)?;
+        if b1d2_old != NULL_DART_ID {
+            cmap.unlink::<1>(trans, base_dart2)?;
+        }
         let mut prev_d = base_dart2;
-        darts_fh
-            .iter()
-            .rev()
-            .zip(darts_sh.iter())
-            .for_each(|(d, new_d)| {
-                cmap.force_link::<2>(prev_d, *d);
-                cmap.force_link::<1>(prev_d, *new_d);
-                prev_d = *new_d;
-            });
-        cmap.force_link::<1>(prev_d, b1d2_old);
-        cmap.force_link::<2>(prev_d, base_dart1);
+        for (d, new_d) in darts_fh.iter().rev().zip(darts_sh.iter()) {
+            cmap.link::<2>(trans, prev_d, *d)?;
+            cmap.link::<1>(trans, prev_d, *new_d)?;
+            prev_d = *new_d;
+        }
+        if b1d2_old != NULL_DART_ID {
+            cmap.link::<1>(trans, prev_d, b1d2_old)?;
+        }
+        cmap.link::<2>(trans, prev_d, base_dart1)?;
     }
 
     Ok(())

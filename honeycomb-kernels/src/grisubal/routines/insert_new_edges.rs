@@ -5,8 +5,9 @@
 // ------ IMPORTS
 
 use crate::grisubal::model::{Boundary, MapEdge};
-use crate::splits::splitn_edge_no_alloc;
+use crate::splits::{splitn_edge_transac, SplitEdgeError};
 use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
+use honeycomb_core::stm::atomically;
 
 // ------ CONTENT
 
@@ -69,12 +70,19 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             // create the topology components
             let edge_id = cmap.edge_id(d_new);
             let new_darts = &dslice[2..];
-            let _ = splitn_edge_no_alloc(
-                cmap,
-                edge_id,
-                new_darts,
-                &vec![T::from(0.5).unwrap(); intermediates.len()],
-            );
+            atomically(|trans| {
+                if let Err(SplitEdgeError::FailedTransaction(e)) = splitn_edge_transac(
+                    cmap,
+                    trans,
+                    edge_id,
+                    new_darts,
+                    &vec![T::from(0.5).unwrap(); intermediates.len()],
+                ) {
+                    Err(e)
+                } else {
+                    Ok(())
+                }
+            });
             // replace placeholder vertices
             let mut dart_id = cmap.beta::<1>(edge_id as DartIdType);
             for v in intermediates {
