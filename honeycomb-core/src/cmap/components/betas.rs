@@ -86,8 +86,16 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
-        assert!(self[(1, lhs_dart_id)].read(trans)? == NULL_DART_ID);
-        assert!(self[(0, rhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert_eq!(
+            self[(1, lhs_dart_id)].read(trans)?,
+            NULL_DART_ID,
+            "cannot 1-link {lhs_dart_id} to {rhs_dart_id}: b1({lhs_dart_id}) != NULL"
+        );
+        assert_eq!(
+            self[(0, rhs_dart_id)].read(trans)?,
+            NULL_DART_ID,
+            "cannot 1-link {lhs_dart_id} to {rhs_dart_id}: b0({rhs_dart_id}) != NULL"
+        );
         // set beta_1(lhs_dart) to rhs_dart
         self[(1, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_0(rhs_dart) to lhs_dart

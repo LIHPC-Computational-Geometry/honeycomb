@@ -187,11 +187,11 @@ fn inner_split<T: CoordsFloat>(
         if b1d1_old != NULL_DART_ID {
             cmap.unlink::<1>(trans, base_dart1)?;
         }
-        // cmap.set_beta::<1>(base_dart1, 0);
-        // cmap.set_beta::<0>(b1d1_old, 0);
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
-        cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
+        if b1d1_old != NULL_DART_ID {
+            cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
+        }
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
@@ -222,10 +222,6 @@ fn inner_split<T: CoordsFloat>(
         if b1d2_old != NULL_DART_ID {
             cmap.unlink::<1>(trans, base_dart2)?;
         }
-        // cmap.set_beta::<1>(base_dart1, 0);
-        // cmap.set_beta::<0>(b1d1_old, 0);
-        // cmap.set_beta::<1>(base_dart2, 0);
-        // cmap.set_beta::<0>(b1d2_old, 0);
         cmap.unlink::<2>(trans, base_dart1)?;
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
