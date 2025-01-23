@@ -1,7 +1,10 @@
 use std::{fs::File, time::Instant};
 
 use honeycomb::{
-    core::stm::atomically,
+    core::{
+        cmap::CMapError,
+        stm::{atomically, StmError},
+    },
     prelude::{
         splits::{split_edge_transac, SplitEdgeError},
         CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, NULL_DART_ID,
@@ -11,7 +14,7 @@ use honeycomb::{
 use rayon::prelude::*;
 
 const INPUT_MAP: &str = "grid_split.vtk";
-const TARGET_LENGTH: f64 = 0.4;
+const TARGET_LENGTH: f64 = 0.1;
 
 fn fetch_edges_to_process<'a, 'b, T: CoordsFloat>(
     map: &'a CMap2<T>,
@@ -30,6 +33,33 @@ where
             (_, _) => false,
         }
     })
+}
+
+macro_rules! process_unsew {
+    ($op: expr) => {
+        if let Err(e) = $op {
+            return match e {
+                CMapError::FailedTransaction(e) => Err(e),
+                CMapError::FailedAttributeSplit(_) => Err(StmError::Failure),
+                CMapError::FailedAttributeMerge(_)
+                | CMapError::IncorrectGeometry(_)
+                | CMapError::UnknownAttribute(_) => unreachable!(),
+            };
+        }
+    };
+}
+macro_rules! process_sew {
+    ($op: expr) => {
+        if let Err(e) = $op {
+            return match e {
+                CMapError::FailedTransaction(e) => Err(e),
+                CMapError::FailedAttributeMerge(_) => Err(StmError::Failure),
+                CMapError::FailedAttributeSplit(_)
+                | CMapError::IncorrectGeometry(_)
+                | CMapError::UnknownAttribute(_) => unreachable!(),
+            };
+        }
+    };
 }
 
 fn main() {
@@ -51,68 +81,75 @@ fn main() {
     while !edges.is_empty() {
         instant = Instant::now();
         // process edges in parallel with transactions
-        edges.drain(..).zip(darts.chunks(6)).for_each(|(e, sl)| {
-            // we can read invariants outside of the transaction
-            let &[nd1, nd2, nd3, nd4, nd5, nd6] = sl else {
-                unreachable!()
-            };
-            let (ld, rd) = (e as DartIdType, map.beta::<2>(e as DartIdType));
-
-            atomically(|trans| {
-                let (b0ld, b1ld) = (
-                    map.beta_transac::<0>(trans, ld)?,
-                    map.beta_transac::<1>(trans, ld)?,
-                );
-                let (b0rd, b1rd) = if rd == NULL_DART_ID {
-                    (NULL_DART_ID, NULL_DART_ID)
-                } else {
-                    (
-                        map.beta_transac::<0>(trans, rd)?,
-                        map.beta_transac::<1>(trans, rd)?,
-                    )
+        edges
+            .drain(..)
+            .zip(darts.chunks(6))
+            .par_bridge()
+            .for_each(|(e, sl)| {
+                // we can read invariants outside of the transaction
+                let &[nd1, nd2, nd3, nd4, nd5, nd6] = sl else {
+                    unreachable!()
                 };
 
-                if let Err(e) = split_edge_transac(&map, trans, e, (nd1, nd2), None) {
-                    match e {
-                        SplitEdgeError::FailedTransaction(stmerr) => return Err(stmerr),
-                        SplitEdgeError::UndefinedEdge => unreachable!("unreachable due to STM"),
-                        SplitEdgeError::VertexBound
-                        | SplitEdgeError::InvalidDarts(_)
-                        | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
-                    }
-                };
+                atomically(|trans| {
+                    let (ld, rd) = (
+                        e as DartIdType,
+                        map.beta_transac::<2>(trans, e as DartIdType)?,
+                    );
+                    let (b0ld, b1ld) = (
+                        map.beta_transac::<0>(trans, ld)?,
+                        map.beta_transac::<1>(trans, ld)?,
+                    );
+                    let (b0rd, b1rd) = if rd == NULL_DART_ID {
+                        (NULL_DART_ID, NULL_DART_ID)
+                    } else {
+                        (
+                            map.beta_transac::<0>(trans, rd)?,
+                            map.beta_transac::<1>(trans, rd)?,
+                        )
+                    };
 
-                // left side
-                // unlink original tet
-                map.unlink::<1>(trans, ld)?;
-                map.unlink::<1>(trans, b1ld)?;
-                // build the new edge
-                map.link::<2>(trans, nd3, nd4)?;
-                // build 1st new tet
-                map.link::<1>(trans, ld, nd4)?;
-                map.link::<1>(trans, nd4, b0ld)?;
-                // build 2nd new tet
-                map.link::<1>(trans, b1ld, nd3)?;
-                map.link::<1>(trans, nd3, nd1)?;
+                    if let Err(e) = split_edge_transac(&map, trans, e, (nd1, nd2), None) {
+                        match e {
+                            SplitEdgeError::FailedTransaction(stmerr) => return Err(stmerr),
+                            SplitEdgeError::UndefinedEdge => unreachable!("unreachable due to STM"),
+                            SplitEdgeError::VertexBound
+                            | SplitEdgeError::InvalidDarts(_)
+                            | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                        }
+                    };
 
-                // right side, if there was one
-                if rd != NULL_DART_ID {
+                    // left side
                     // unlink original tet
-                    map.unlink::<1>(trans, rd)?;
-                    map.unlink::<1>(trans, b1rd)?;
+                    process_unsew!(map.unsew::<1>(trans, ld));
+                    process_unsew!(map.unsew::<1>(trans, b1ld));
                     // build the new edge
-                    map.link::<2>(trans, nd5, nd6)?;
+                    map.link::<2>(trans, nd3, nd4)?;
                     // build 1st new tet
-                    map.link::<1>(trans, rd, nd6)?;
-                    map.link::<1>(trans, nd6, b0rd)?;
+                    process_sew!(map.sew::<1>(trans, ld, nd4));
+                    process_sew!(map.sew::<1>(trans, nd4, b0ld));
                     // build 2nd new tet
-                    map.link::<1>(trans, b1rd, nd5)?;
-                    map.link::<1>(trans, nd5, nd2)?;
-                }
+                    process_sew!(map.sew::<1>(trans, b1ld, nd3));
+                    process_sew!(map.sew::<1>(trans, nd3, nd1));
 
-                Ok(())
+                    // right side, if there was one
+                    if rd != NULL_DART_ID {
+                        // unlink original tet
+                        process_unsew!(map.unsew::<1>(trans, rd));
+                        process_unsew!(map.unsew::<1>(trans, b1rd));
+                        // build the new edge
+                        map.link::<2>(trans, nd5, nd6)?;
+                        // build 1st new tet
+                        process_sew!(map.sew::<1>(trans, rd, nd6));
+                        process_sew!(map.sew::<1>(trans, nd6, b0rd));
+                        // build 2nd new tet
+                        process_sew!(map.sew::<1>(trans, b1rd, nd5));
+                        process_sew!(map.sew::<1>(trans, nd5, nd2));
+                    }
+
+                    Ok(())
+                });
             });
-        });
         println!("batch processed in {}ms", instant.elapsed().as_millis());
 
         instant = Instant::now();
@@ -125,6 +162,14 @@ fn main() {
         println!("new batch computed in {}ms", instant.elapsed().as_millis());
     }
 
+    // necessary for serialization
+    (1..map.n_darts() as DartIdType).for_each(|d| {
+        if map.is_free(d) {
+            map.remove_free_dart(d);
+        }
+    });
+
+    // checks
     assert!(map
         .iter_edges()
         .filter_map(|e| {
@@ -138,15 +183,12 @@ fn main() {
             }
         })
         .all(|norm| norm <= TARGET_LENGTH));
+    assert!(map
+        .iter_vertices()
+        .all(|v| map.force_read_vertex(v).is_some()));
 
-    (1..map.n_darts() as DartIdType).for_each(|d| {
-        if map.is_free(d) {
-            map.remove_free_dart(d);
-        }
-    });
-
+    // serialize
     instant = Instant::now();
-    // (c) save the map
     let mut f = File::create("edge_target_size.vtk").unwrap();
     map.to_vtk_binary(&mut f);
     println!("map saved in {}ms", instant.elapsed().as_millis());

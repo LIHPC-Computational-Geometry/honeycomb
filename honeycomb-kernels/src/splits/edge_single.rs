@@ -217,23 +217,25 @@ fn inner_split<T: CoordsFloat>(
         };
         // unsew current darts
         if b1d1_old != NULL_DART_ID {
-            cmap.unlink::<1>(trans, base_dart1)?;
+            cmap.unlink::<1>(trans, base_dart1)?; // should be unsew
         }
         if b1d2_old != NULL_DART_ID {
-            cmap.unlink::<1>(trans, base_dart2)?;
+            cmap.unlink::<1>(trans, base_dart2)?; // should be unsew
         }
-        cmap.unlink::<2>(trans, base_dart1)?;
+        cmap.unlink::<2>(trans, base_dart1)?; // should be unsew
+
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
         if b1d1_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
+            cmap.link::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
         }
         cmap.link::<1>(trans, base_dart2, b1d2_new)?;
         if b1d2_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d2_new, b1d2_old)?;
+            cmap.link::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
         }
-        cmap.link::<2>(trans, base_dart1, b1d2_new)?;
-        cmap.link::<2>(trans, base_dart2, b1d1_new)?;
+        cmap.link::<2>(trans, base_dart1, b1d2_new)?; // should be sew?
+        cmap.link::<2>(trans, base_dart2, b1d1_new)?; // should be sew?
+
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
