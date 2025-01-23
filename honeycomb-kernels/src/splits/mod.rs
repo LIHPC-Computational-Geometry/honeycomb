@@ -14,9 +14,10 @@ mod edge_single;
 
 pub use edge_multiple::{splitn_edge, splitn_edge_transac};
 pub use edge_single::{split_edge, split_edge_transac};
-use honeycomb_core::stm::StmError;
 
 // ------ CONTENT
+
+use honeycomb_core::{cmap::CMapError, stm::StmError};
 
 /// Error-modeling enum for edge-splitting routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -24,6 +25,9 @@ pub enum SplitEdgeError {
     /// STM transaction failed.
     #[error("transaction failed")]
     FailedTransaction(/*#[from]*/ StmError),
+    /// Sew or unsew failed.
+    #[error("map (un)sew failed")]
+    FailedOp(CMapError),
     /// Relative position of the new vertex isn't located on the edge.
     #[error("vertex placement for split is not in ]0;1[")]
     VertexBound,
@@ -45,6 +49,17 @@ impl From<StmError> for SplitEdgeError {
     }
 }
 
+impl From<CMapError> for SplitEdgeError {
+    fn from(value: CMapError) -> Self {
+        match value {
+            CMapError::FailedTransaction(e) => Self::FailedTransaction(e),
+            CMapError::FailedAttributeMerge(_) | CMapError::FailedAttributeSplit(_) => {
+                Self::FailedOp(value)
+            }
+            CMapError::IncorrectGeometry(_) | CMapError::UnknownAttribute(_) => unreachable!(),
+        }
+    }
+}
 // ------ TESTS
 
 #[cfg(test)]

@@ -217,6 +217,39 @@ impl<T: CoordsFloat> CMap2<T> {
             && self.beta::<1>(dart_id) == NULL_DART_ID
             && self.beta::<2>(dart_id) == NULL_DART_ID
     }
+
+    /// Check if a given dart is `I`-free.
+    ///
+    /// # Return
+    ///
+    /// Return a boolean indicating if the dart is `I`-free, i.e.:
+    /// - `true` if β<sub>`I`</sub>(`dart_id`) = `NULL_DART_ID`,
+    /// - `false` else.
+    ///
+    /// # Panics
+    ///
+    /// The function will panic if *I* is not 0, 1 or 2.
+    ///
+    #[must_use = "unused return value"]
+    pub fn is_i_free_transac<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmResult<bool> {
+        Ok(self.beta_transac::<I>(trans, dart_id)? == NULL_DART_ID)
+    }
+
+    /// Check if a given dart is `i`-free, for all `i`.
+    ///
+    /// # Return
+    ///
+    /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
+    #[must_use = "unused return value"]
+    pub fn is_free_transac(&self, trans: &mut Transaction, dart_id: DartIdType) -> StmResult<bool> {
+        Ok(self.beta_transac::<0>(trans, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<1>(trans, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<2>(trans, dart_id)? == NULL_DART_ID)
+    }
 }
 
 /// **I-cell-related methods**

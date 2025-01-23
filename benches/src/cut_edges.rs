@@ -6,15 +6,14 @@ use honeycomb::{
         stm::{atomically, StmError},
     },
     prelude::{
-        splits::{split_edge_transac, SplitEdgeError},
-        CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, NULL_DART_ID,
+        CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Orbit2, OrbitPolicy, Vertex2,
     },
 };
 
 use rayon::prelude::*;
 
 const INPUT_MAP: &str = "grid_split.vtk";
-const TARGET_LENGTH: f64 = 0.1;
+const TARGET_LENGTH: f64 = 0.4;
 
 fn fetch_edges_to_process<'a, 'b, T: CoordsFloat>(
     map: &'a CMap2<T>,
@@ -68,6 +67,14 @@ fn main() {
     let mut map: CMap2<f64> = CMapBuilder::from(INPUT_MAP).build().unwrap();
     println!("map loaded in {}ms", instant.elapsed().as_millis());
 
+    map.iter_faces().for_each(|f| {
+        assert_eq!(
+            Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count(),
+            3,
+            "Input mesh isn't a triangle mesh"
+        )
+    });
+
     instant = Instant::now();
     // compute first batch
     let mut edges: Vec<EdgeIdType> = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
@@ -82,75 +89,110 @@ fn main() {
         instant = Instant::now();
         // process edges in parallel with transactions
         edges
-            .drain(..)
-            .zip(darts.chunks(6))
-            .par_bridge()
+            .par_drain(..)
+            .zip(darts.par_chunks(6))
             .for_each(|(e, sl)| {
                 // we can read invariants outside of the transaction
                 let &[nd1, nd2, nd3, nd4, nd5, nd6] = sl else {
                     unreachable!()
                 };
-
+                map.force_link::<2>(nd1, nd2);
+                map.force_link::<1>(nd2, nd3);
                 atomically(|trans| {
-                    let (ld, rd) = (
-                        e as DartIdType,
-                        map.beta_transac::<2>(trans, e as DartIdType)?,
-                    );
-                    let (b0ld, b1ld) = (
-                        map.beta_transac::<0>(trans, ld)?,
-                        map.beta_transac::<1>(trans, ld)?,
-                    );
-                    let (b0rd, b1rd) = if rd == NULL_DART_ID {
-                        (NULL_DART_ID, NULL_DART_ID)
+                    if map.is_i_free_transac::<2>(trans, e as DartIdType)? {
+                        let (ld, _rd) = (
+                            e as DartIdType,
+                            map.beta_transac::<2>(trans, e as DartIdType)?,
+                        );
+                        let (b0ld, b1ld) = (
+                            map.beta_transac::<0>(trans, ld)?,
+                            map.beta_transac::<1>(trans, ld)?,
+                        );
+                        if map.beta_transac::<1>(trans, b1ld)? != b0ld {
+                            return Err(StmError::Failure);
+                        }
+
+                        let (vid1, vid2) = (
+                            map.vertex_id_transac(trans, ld)?,
+                            map.vertex_id_transac(trans, b1ld)?,
+                        );
+                        let new_v = Vertex2::average(
+                            &map.read_vertex(trans, vid1)?.unwrap(),
+                            &map.read_vertex(trans, vid2)?.unwrap(),
+                        );
+                        map.write_vertex(trans, nd1, new_v)?;
+
+                        process_unsew!(map.unsew::<1>(trans, ld));
+                        process_unsew!(map.unsew::<1>(trans, b1ld));
+
+                        process_sew!(map.sew::<1>(trans, ld, nd1));
+                        process_sew!(map.sew::<1>(trans, nd1, b0ld));
+                        process_sew!(map.sew::<1>(trans, nd3, b1ld));
+                        process_sew!(map.sew::<1>(trans, b1ld, nd2));
+
+                        Ok(())
                     } else {
-                        (
+                        map.link::<2>(trans, nd4, nd5)?;
+                        map.link::<1>(trans, nd5, nd6)?;
+                        let (ld, rd) = (
+                            e as DartIdType,
+                            map.beta_transac::<2>(trans, e as DartIdType)?,
+                        );
+                        let (b0ld, b1ld) = (
+                            map.beta_transac::<0>(trans, ld)?,
+                            map.beta_transac::<1>(trans, ld)?,
+                        );
+                        if map.beta_transac::<1>(trans, b1ld)? != b0ld {
+                            return Err(StmError::Failure);
+                        }
+                        let (b0rd, b1rd) = (
                             map.beta_transac::<0>(trans, rd)?,
                             map.beta_transac::<1>(trans, rd)?,
-                        )
-                    };
-
-                    if let Err(e) = split_edge_transac(&map, trans, e, (nd1, nd2), None) {
-                        match e {
-                            SplitEdgeError::FailedTransaction(stmerr) => return Err(stmerr),
-                            SplitEdgeError::UndefinedEdge => unreachable!("unreachable due to STM"),
-                            SplitEdgeError::VertexBound
-                            | SplitEdgeError::InvalidDarts(_)
-                            | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
+                        );
+                        if map.beta_transac::<1>(trans, b1rd)? != b0rd {
+                            return Err(StmError::Failure);
                         }
-                    };
+                        let (vid1, vid2) = (
+                            map.vertex_id_transac(trans, ld)?,
+                            map.vertex_id_transac(trans, b1ld)?,
+                        );
+                        let new_v = Vertex2::average(
+                            &map.read_vertex(trans, vid1)?.unwrap(),
+                            &map.read_vertex(trans, vid2)?.unwrap(),
+                        );
+                        map.write_vertex(trans, nd1, new_v)?;
 
-                    // left side
-                    // unlink original tet
-                    process_unsew!(map.unsew::<1>(trans, ld));
-                    process_unsew!(map.unsew::<1>(trans, b1ld));
-                    // build the new edge
-                    map.link::<2>(trans, nd3, nd4)?;
-                    // build 1st new tet
-                    process_sew!(map.sew::<1>(trans, ld, nd4));
-                    process_sew!(map.sew::<1>(trans, nd4, b0ld));
-                    // build 2nd new tet
-                    process_sew!(map.sew::<1>(trans, b1ld, nd3));
-                    process_sew!(map.sew::<1>(trans, nd3, nd1));
-
-                    // right side, if there was one
-                    if rd != NULL_DART_ID {
-                        // unlink original tet
+                        process_unsew!(map.unsew::<2>(trans, ld));
+                        process_unsew!(map.unsew::<1>(trans, ld));
+                        process_unsew!(map.unsew::<1>(trans, b1ld));
                         process_unsew!(map.unsew::<1>(trans, rd));
                         process_unsew!(map.unsew::<1>(trans, b1rd));
-                        // build the new edge
-                        map.link::<2>(trans, nd5, nd6)?;
-                        // build 1st new tet
-                        process_sew!(map.sew::<1>(trans, rd, nd6));
-                        process_sew!(map.sew::<1>(trans, nd6, b0rd));
-                        // build 2nd new tet
-                        process_sew!(map.sew::<1>(trans, b1rd, nd5));
-                        process_sew!(map.sew::<1>(trans, nd5, nd2));
-                    }
 
-                    Ok(())
+                        process_sew!(map.sew::<2>(trans, ld, nd6));
+                        process_sew!(map.sew::<2>(trans, rd, nd3));
+
+                        process_sew!(map.sew::<1>(trans, ld, nd1));
+                        process_sew!(map.sew::<1>(trans, nd1, b0ld));
+                        process_sew!(map.sew::<1>(trans, nd3, b1ld));
+                        process_sew!(map.sew::<1>(trans, b1ld, nd2));
+
+                        process_sew!(map.sew::<1>(trans, rd, nd4));
+                        process_sew!(map.sew::<1>(trans, nd4, b0rd));
+                        process_sew!(map.sew::<1>(trans, nd6, b1rd));
+                        process_sew!(map.sew::<1>(trans, b1rd, nd5));
+
+                        Ok(())
+                    }
                 });
             });
         println!("batch processed in {}ms", instant.elapsed().as_millis());
+
+        assert!(
+            map.iter_faces()
+                .filter(|f| !map.is_free(*f as DartIdType))
+                .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
+            "Input mesh isn't a triangle mesh"
+        );
 
         instant = Instant::now();
         // update the edge list
@@ -186,6 +228,11 @@ fn main() {
     assert!(map
         .iter_vertices()
         .all(|v| map.force_read_vertex(v).is_some()));
+    assert!(
+        map.iter_faces()
+            .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
+        "Input mesh isn't a triangle mesh"
+    );
 
     // serialize
     instant = Instant::now();

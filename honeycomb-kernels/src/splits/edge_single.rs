@@ -76,7 +76,7 @@ pub fn split_edge<T: CoordsFloat>(
         if let Err(e) = inner_split(cmap, trans, base_dart1, new_darts, midpoint_vertex) {
             match e {
                 SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                SplitEdgeError::UndefinedEdge => Ok(Err(e)),
+                SplitEdgeError::FailedOp(_) | SplitEdgeError::UndefinedEdge => Ok(Err(e)),
                 SplitEdgeError::VertexBound
                 | SplitEdgeError::InvalidDarts(_)
                 | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
@@ -143,14 +143,14 @@ pub fn split_edge_transac<T: CoordsFloat>(
     let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
-    // FIXME: is_free should be transactional
-    if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
+    if new_darts.0 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.0)? {
         return Err(SplitEdgeError::InvalidDarts(
             "first dart is null or not free",
         ));
     }
-    // FIXME: is_free should be transactional
-    if base_dart2 != NULL_DART_ID && (new_darts.1 == NULL_DART_ID || !cmap.is_free(new_darts.1)) {
+    if base_dart2 != NULL_DART_ID
+        && (new_darts.1 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.1)?)
+    {
         return Err(SplitEdgeError::InvalidDarts(
             "second dart is null or not free",
         ));
@@ -216,33 +216,32 @@ fn inner_split<T: CoordsFloat>(
             return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current darts
+        cmap.unlink::<2>(trans, base_dart1)?;
         if b1d1_old != NULL_DART_ID {
-            cmap.unlink::<1>(trans, base_dart1)?; // should be unsew
+            cmap.unsew::<1>(trans, base_dart1)?;
         }
         if b1d2_old != NULL_DART_ID {
-            cmap.unlink::<1>(trans, base_dart2)?; // should be unsew
+            cmap.unsew::<1>(trans, base_dart2)?;
         }
-        cmap.unlink::<2>(trans, base_dart1)?; // should be unsew
 
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
-        if b1d1_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
-        }
         cmap.link::<1>(trans, base_dart2, b1d2_new)?;
-        if b1d2_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
-        }
         cmap.link::<2>(trans, base_dart1, b1d2_new)?; // should be sew?
         cmap.link::<2>(trans, base_dart2, b1d1_new)?; // should be sew?
+        if b1d1_old != NULL_DART_ID {
+            cmap.sew::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
+        }
+        if b1d2_old != NULL_DART_ID {
+            cmap.sew::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
+        }
 
         // insert the new vertex
-        let seg = v2 - v1;
         let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
         cmap.write_vertex(
             trans,
             vnew,
-            midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
+            midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + (v2 - v1) * t),
         )?;
         Ok(())
     }
