@@ -1,4 +1,4 @@
-use std::{fs::File, time::Instant};
+use std::{fs::File, sync::Arc, time::Instant};
 
 use honeycomb::{
     core::{
@@ -88,9 +88,116 @@ fn main() {
     while !edges.is_empty() {
         instant = Instant::now();
         // process edges in parallel with transactions
+        let units: Vec<(u32, [u32; 6])> = edges
+            .drain(..)
+            .zip(darts.chunks(6))
+            .map(|(e, sl)| (e, sl.try_into().unwrap()))
+            .collect();
+        let workloads = units.chunks((units.len() + 1) / 4);
+        assert_eq!(workloads.len(), 4);
+        std::thread::scope(|s| {
+            for wl in workloads {
+                let wl = wl.to_vec();
+                s.spawn(|| {
+                    wl.into_iter()
+                        .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
+                            map.force_link::<2>(nd1, nd2);
+                            map.force_link::<1>(nd2, nd3);
+                            atomically(|trans| {
+                                if map.is_i_free_transac::<2>(trans, e as DartIdType)? {
+                                    let (ld, _rd) = (
+                                        e as DartIdType,
+                                        map.beta_transac::<2>(trans, e as DartIdType)?,
+                                    );
+                                    let (b0ld, b1ld) = (
+                                        map.beta_transac::<0>(trans, ld)?,
+                                        map.beta_transac::<1>(trans, ld)?,
+                                    );
+                                    if map.beta_transac::<1>(trans, b1ld)? != b0ld {
+                                        return Err(StmError::Failure);
+                                    }
+
+                                    let (vid1, vid2) = (
+                                        map.vertex_id_transac(trans, ld)?,
+                                        map.vertex_id_transac(trans, b1ld)?,
+                                    );
+                                    let new_v = Vertex2::average(
+                                        &map.read_vertex(trans, vid1)?.unwrap(),
+                                        &map.read_vertex(trans, vid2)?.unwrap(),
+                                    );
+                                    map.write_vertex(trans, nd1, new_v)?;
+
+                                    process_unsew!(map.unsew::<1>(trans, ld));
+                                    process_unsew!(map.unsew::<1>(trans, b1ld));
+
+                                    process_sew!(map.sew::<1>(trans, ld, nd1));
+                                    process_sew!(map.sew::<1>(trans, nd1, b0ld));
+                                    process_sew!(map.sew::<1>(trans, nd3, b1ld));
+                                    process_sew!(map.sew::<1>(trans, b1ld, nd2));
+
+                                    Ok(())
+                                } else {
+                                    map.link::<2>(trans, nd4, nd5)?;
+                                    map.link::<1>(trans, nd5, nd6)?;
+                                    let (ld, rd) = (
+                                        e as DartIdType,
+                                        map.beta_transac::<2>(trans, e as DartIdType)?,
+                                    );
+                                    let (b0ld, b1ld) = (
+                                        map.beta_transac::<0>(trans, ld)?,
+                                        map.beta_transac::<1>(trans, ld)?,
+                                    );
+                                    if map.beta_transac::<1>(trans, b1ld)? != b0ld {
+                                        return Err(StmError::Failure);
+                                    }
+                                    let (b0rd, b1rd) = (
+                                        map.beta_transac::<0>(trans, rd)?,
+                                        map.beta_transac::<1>(trans, rd)?,
+                                    );
+                                    if map.beta_transac::<1>(trans, b1rd)? != b0rd {
+                                        return Err(StmError::Failure);
+                                    }
+                                    let (vid1, vid2) = (
+                                        map.vertex_id_transac(trans, ld)?,
+                                        map.vertex_id_transac(trans, b1ld)?,
+                                    );
+                                    let new_v = Vertex2::average(
+                                        &map.read_vertex(trans, vid1)?.unwrap(),
+                                        &map.read_vertex(trans, vid2)?.unwrap(),
+                                    );
+                                    map.write_vertex(trans, nd1, new_v)?;
+
+                                    process_unsew!(map.unsew::<2>(trans, ld));
+                                    process_unsew!(map.unsew::<1>(trans, ld));
+                                    process_unsew!(map.unsew::<1>(trans, b1ld));
+                                    process_unsew!(map.unsew::<1>(trans, rd));
+                                    process_unsew!(map.unsew::<1>(trans, b1rd));
+
+                                    process_sew!(map.sew::<2>(trans, ld, nd6));
+                                    process_sew!(map.sew::<2>(trans, rd, nd3));
+
+                                    process_sew!(map.sew::<1>(trans, ld, nd1));
+                                    process_sew!(map.sew::<1>(trans, nd1, b0ld));
+                                    process_sew!(map.sew::<1>(trans, nd3, b1ld));
+                                    process_sew!(map.sew::<1>(trans, b1ld, nd2));
+
+                                    process_sew!(map.sew::<1>(trans, rd, nd4));
+                                    process_sew!(map.sew::<1>(trans, nd4, b0rd));
+                                    process_sew!(map.sew::<1>(trans, nd6, b1rd));
+                                    process_sew!(map.sew::<1>(trans, b1rd, nd5));
+
+                                    Ok(())
+                                }
+                            });
+                        });
+                });
+            }
+        });
+        /*
         edges
-            .par_drain(..)
-            .zip(darts.par_chunks(6))
+            .drain(..)
+            .zip(darts.chunks(6))
+            .par_bridge()
             .for_each(|(e, sl)| {
                 // we can read invariants outside of the transaction
                 let &[nd1, nd2, nd3, nd4, nd5, nd6] = sl else {
@@ -184,7 +291,7 @@ fn main() {
                         Ok(())
                     }
                 });
-            });
+            });*/
         println!("batch processed in {}ms", instant.elapsed().as_millis());
 
         assert!(
