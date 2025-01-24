@@ -14,10 +14,9 @@ mod edge_single;
 
 pub use edge_multiple::{splitn_edge, splitn_edge_transac};
 pub use edge_single::{split_edge, split_edge_transac};
+use honeycomb_core::stm::StmError;
 
 // ------ CONTENT
-
-use honeycomb_core::stm::StmError;
 
 /// Error-modeling enum for edge-splitting routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]

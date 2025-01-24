@@ -94,9 +94,9 @@ fn main() {
             .map(|(e, sl)| (e, sl.try_into().unwrap()))
             .collect();
         let workloads = if units.len() < 7 {
-            units.chunks(units.len())
+            units.chunks(units.len()).collect::<Vec<_>>()
         } else {
-            units.chunks((units.len() + 1) / 4)
+            units.chunks((units.len() + 1) / 4).collect::<Vec<_>>()
         };
         assert_eq!(workloads.len(), 4); // why does this fail sometime?
         std::thread::scope(|s| {
