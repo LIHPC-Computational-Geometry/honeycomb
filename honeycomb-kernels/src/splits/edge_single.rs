@@ -76,7 +76,7 @@ pub fn split_edge<T: CoordsFloat>(
         if let Err(e) = inner_split(cmap, trans, base_dart1, new_darts, midpoint_vertex) {
             match e {
                 SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                SplitEdgeError::FailedOp(_) | SplitEdgeError::UndefinedEdge => Ok(Err(e)),
+                SplitEdgeError::UndefinedEdge => Ok(Err(e)),
                 SplitEdgeError::VertexBound
                 | SplitEdgeError::InvalidDarts(_)
                 | SplitEdgeError::WrongAmountDarts(_, _) => unreachable!(),
@@ -218,10 +218,10 @@ fn inner_split<T: CoordsFloat>(
         // unsew current darts
         cmap.unlink::<2>(trans, base_dart1)?;
         if b1d1_old != NULL_DART_ID {
-            cmap.unsew::<1>(trans, base_dart1)?;
+            cmap.unlink::<1>(trans, base_dart1)?;
         }
         if b1d2_old != NULL_DART_ID {
-            cmap.unsew::<1>(trans, base_dart2)?;
+            cmap.unlink::<1>(trans, base_dart2)?;
         }
 
         // rebuild the edge
@@ -230,10 +230,10 @@ fn inner_split<T: CoordsFloat>(
         cmap.link::<2>(trans, base_dart1, b1d2_new)?; // should be sew?
         cmap.link::<2>(trans, base_dart2, b1d1_new)?; // should be sew?
         if b1d1_old != NULL_DART_ID {
-            cmap.sew::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
+            cmap.link::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
         }
         if b1d2_old != NULL_DART_ID {
-            cmap.sew::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
+            cmap.link::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
         }
 
         // insert the new vertex

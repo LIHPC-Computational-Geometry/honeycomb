@@ -117,8 +117,7 @@ pub fn splitn_edge<T: CoordsFloat>(
         ) {
             match e {
                 SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                SplitEdgeError::FailedOp(_)
-                | SplitEdgeError::UndefinedEdge
+                SplitEdgeError::UndefinedEdge
                 | SplitEdgeError::VertexBound
                 | SplitEdgeError::InvalidDarts(_)
                 | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
