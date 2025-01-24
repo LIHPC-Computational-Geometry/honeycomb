@@ -43,7 +43,7 @@ macro_rules! process_sew {
         }
     };
 }
-const N_SQUARE: usize = 2;
+const N_SQUARE: usize = 1;
 const N_DIAG: usize = N_SQUARE.pow(2);
 const P_BERNOULLI: f64 = 0.6;
 const SEED: u64 = 9_817_498_146_784;

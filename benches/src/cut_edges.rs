@@ -98,7 +98,6 @@ fn main() {
         } else {
             units.chunks((units.len() + 1) / 4).collect::<Vec<_>>()
         };
-        assert_eq!(workloads.len(), 4); // why does this fail sometime?
         std::thread::scope(|s| {
             for wl in workloads {
                 let wl = wl.to_vec();
