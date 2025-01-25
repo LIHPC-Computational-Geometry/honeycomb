@@ -78,13 +78,14 @@ fn main() {
     instant = Instant::now();
     // compute first batch
     let mut edges: Vec<EdgeIdType> = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
+    assert_eq!(edges.len(), map.iter_edges().count());
     let mut nd = map.add_free_darts(6 * edges.len()); // 2 for edge split + 2*2 for new edges in neighbor tets
     let mut darts: Vec<DartIdType> = (nd..nd + 6 * edges.len() as DartIdType).collect();
     println!(
         "first batch computed in {}ms",
         instant.elapsed().as_millis()
     );
-
+    let mut step = 0;
     while !edges.is_empty() {
         instant = Instant::now();
         // process edges in parallel with transactions
@@ -99,15 +100,17 @@ fn main() {
             units.chunks((units.len() + 1) / 4).collect::<Vec<_>>()
         };
         std::thread::scope(|s| {
+            println!("hello");
             for wl in workloads {
                 let wl = wl.to_vec();
                 s.spawn(|| {
+                    println!("batch spawned");
                     wl.into_iter()
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
-                            map.force_link::<2>(nd1, nd2);
-                            map.force_link::<1>(nd2, nd3);
                             atomically(|trans| {
                                 if map.is_i_free_transac::<2>(trans, e as DartIdType)? {
+                                    map.link::<2>(trans, nd1, nd2)?;
+                                    map.link::<1>(trans, nd2, nd3)?;
                                     let (ld, _rd) = (
                                         e as DartIdType,
                                         map.beta_transac::<2>(trans, e as DartIdType)?,
@@ -140,6 +143,8 @@ fn main() {
 
                                     Ok(())
                                 } else {
+                                    map.link::<2>(trans, nd1, nd2)?;
+                                    map.link::<1>(trans, nd2, nd3)?;
                                     map.link::<2>(trans, nd4, nd5)?;
                                     map.link::<1>(trans, nd5, nd6)?;
                                     let (ld, rd) = (
@@ -205,6 +210,15 @@ fn main() {
             "Input mesh isn't a triangle mesh"
         );
 
+        (1..map.n_darts() as DartIdType).for_each(|d| {
+            if map.is_free(d) && !map.is_unused(d) {
+                map.remove_free_dart(d);
+            }
+        });
+        let mut f = File::create(format!("step{}.vtk", step)).unwrap();
+        map.to_vtk_binary(&mut f);
+        step += 1;
+
         instant = Instant::now();
         // update the edge list
         edges.extend(fetch_edges_to_process(&map, &TARGET_LENGTH));
@@ -217,7 +231,7 @@ fn main() {
 
     // necessary for serialization
     (1..map.n_darts() as DartIdType).for_each(|d| {
-        if map.is_free(d) {
+        if map.is_free(d) && !map.is_unused(d) {
             map.remove_free_dart(d);
         }
     });
