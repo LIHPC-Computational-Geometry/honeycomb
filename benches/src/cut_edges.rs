@@ -109,22 +109,21 @@ fn main() {
                 s.spawn(|| {
                     wl.into_iter()
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
-                            let on_edge = map.is_i_free::<2>(e as DartIdType);
                             let mut n_retry = 0;
-                            Transaction::with_control(
-                                |e| match e {
-                                    StmError::Failure => TransactionControl::Abort,
-                                    StmError::Retry => {
-                                        if n_retry < MAX_RETRY {
-                                            n_retry += 1;
-                                            TransactionControl::Retry
-                                        } else {
-                                            TransactionControl::Abort
+                            if map.is_i_free::<2>(e as DartIdType) {
+                                Transaction::with_control(
+                                    |e| match e {
+                                        StmError::Failure => TransactionControl::Abort,
+                                        StmError::Retry => {
+                                            if n_retry < MAX_RETRY {
+                                                n_retry += 1;
+                                                TransactionControl::Retry
+                                            } else {
+                                                TransactionControl::Abort
+                                            }
                                         }
-                                    }
-                                },
-                                |trans| {
-                                    if on_edge {
+                                    },
+                                    |trans| {
                                         map.link::<2>(trans, nd1, nd2)?;
                                         map.link::<1>(trans, nd2, nd3)?;
                                         let ld = e as DartIdType;
@@ -133,8 +132,7 @@ fn main() {
                                             map.beta_transac::<1>(trans, ld)?,
                                         );
                                         if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                            println!("wtf");
-                                            return Err(StmError::Retry);
+                                            return Err(StmError::Failure);
                                         }
 
                                         let (vid1, vid2) = (
@@ -156,7 +154,22 @@ fn main() {
                                         process_sew!(map.sew::<1>(trans, b1ld, nd2));
 
                                         Ok(())
-                                    } else {
+                                    },
+                                );
+                            } else {
+                                Transaction::with_control(
+                                    |e| match e {
+                                        StmError::Failure => TransactionControl::Abort,
+                                        StmError::Retry => {
+                                            if n_retry < MAX_RETRY {
+                                                n_retry += 1;
+                                                TransactionControl::Retry
+                                            } else {
+                                                TransactionControl::Abort
+                                            }
+                                        }
+                                    },
+                                    |trans| {
                                         map.link::<2>(trans, nd1, nd2)?;
                                         map.link::<1>(trans, nd2, nd3)?;
                                         map.link::<2>(trans, nd4, nd5)?;
@@ -170,16 +183,14 @@ fn main() {
                                             map.beta_transac::<1>(trans, ld)?,
                                         );
                                         if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                            println!("wtf");
-                                            return Err(StmError::Retry);
+                                            return Err(StmError::Failure);
                                         }
                                         let (b0rd, b1rd) = (
                                             map.beta_transac::<0>(trans, rd)?,
                                             map.beta_transac::<1>(trans, rd)?,
                                         );
                                         if map.beta_transac::<1>(trans, b1rd)? != b0rd {
-                                            println!("wtf");
-                                            return Err(StmError::Retry);
+                                            return Err(StmError::Failure);
                                         }
                                         let (vid1, vid2) = (
                                             map.vertex_id_transac(trans, ld)?,
@@ -211,9 +222,9 @@ fn main() {
                                         process_sew!(map.sew::<1>(trans, b1rd, nd5));
 
                                         Ok(())
-                                    }
-                                },
-                            );
+                                    },
+                                );
+                            }
                         });
                 });
             }
