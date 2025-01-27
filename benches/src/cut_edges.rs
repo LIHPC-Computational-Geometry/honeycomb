@@ -7,6 +7,7 @@ use honeycomb::{
     },
     prelude::{
         CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Orbit2, OrbitPolicy, Vertex2,
+        NULL_DART_ID,
     },
 };
 
@@ -107,20 +108,19 @@ fn main() {
                     println!("batch spawned");
                     wl.into_iter()
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
+                            let on_edge = map.is_i_free::<2>(e as DartIdType);
                             atomically(|trans| {
-                                if map.is_i_free_transac::<2>(trans, e as DartIdType)? {
+                                if on_edge {
                                     map.link::<2>(trans, nd1, nd2)?;
                                     map.link::<1>(trans, nd2, nd3)?;
-                                    let (ld, _rd) = (
-                                        e as DartIdType,
-                                        map.beta_transac::<2>(trans, e as DartIdType)?,
-                                    );
+                                    let ld = e as DartIdType;
                                     let (b0ld, b1ld) = (
                                         map.beta_transac::<0>(trans, ld)?,
                                         map.beta_transac::<1>(trans, ld)?,
                                     );
                                     if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                        return Err(StmError::Failure);
+                                        println!("wtf");
+                                        return Err(StmError::Retry);
                                     }
 
                                     let (vid1, vid2) = (
@@ -156,14 +156,16 @@ fn main() {
                                         map.beta_transac::<1>(trans, ld)?,
                                     );
                                     if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                        return Err(StmError::Failure);
+                                        println!("wtf");
+                                        return Err(StmError::Retry);
                                     }
                                     let (b0rd, b1rd) = (
                                         map.beta_transac::<0>(trans, rd)?,
                                         map.beta_transac::<1>(trans, rd)?,
                                     );
                                     if map.beta_transac::<1>(trans, b1rd)? != b0rd {
-                                        return Err(StmError::Failure);
+                                        println!("wtf");
+                                        return Err(StmError::Retry);
                                     }
                                     let (vid1, vid2) = (
                                         map.vertex_id_transac(trans, ld)?,
