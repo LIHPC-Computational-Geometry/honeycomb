@@ -14,6 +14,7 @@ use crate::prelude::{
 };
 use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
 use itertools::Itertools;
+use std::collections::HashSet;
 use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
@@ -285,25 +286,122 @@ impl<T: CoordsFloat> CMap2<T> {
         dart_id: DartIdType,
     ) -> StmResult<VertexIdType> {
         // min encountered / current dart
+        let mut i = 0;
         let mut min = dart_id;
-        let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
-
+        let mut tmp = self.beta_transac::<2>(trans, dart_id)?;
+        let mut crt = self.beta_transac::<1>(trans, tmp)?;
         // we first iterate in direct direction (B1oB2)
         while crt != NULL_DART_ID && crt != dart_id {
+            if i > 3000 {
+                self.print_everything(trans, dart_id)?;
+                panic!("haha");
+            }
+            i += 1;
             min = min.min(crt);
-            crt = self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?;
+            tmp = self.beta_transac::<2>(trans, crt)?;
+            crt = self.beta_transac::<1>(trans, tmp)?;
         }
         // if we landed on the null dart, the vertex is open
         // we need to iterate in the opposite dir (B2oB0)
         if crt == NULL_DART_ID {
-            crt = self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?;
+            tmp = self.beta_transac::<0>(trans, dart_id)?;
+            crt = self.beta_transac::<2>(trans, tmp)?;
             while crt != NULL_DART_ID {
+                if i > 3000 {
+                    self.print_everything(trans, dart_id)?;
+                    panic!("haha");
+                }
+                i += 1;
                 min = min.min(crt);
-                crt = self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?;
+                tmp = self.beta_transac::<0>(trans, crt)?;
+                crt = self.beta_transac::<2>(trans, tmp)?;
             }
         }
 
         Ok(min)
+    }
+
+    fn print_everything(&self, trans: &mut Transaction, dart_id: DartIdType) -> StmResult<()> {
+        let mut marked = HashSet::new();
+        marked.insert(dart_id);
+        println!("dart {dart_id}:");
+        println!(
+            "   Bs: [{}, {}, {}]",
+            self.beta_transac::<0>(trans, dart_id)?,
+            self.beta_transac::<1>(trans, dart_id)?,
+            self.beta_transac::<2>(trans, dart_id)?,
+        );
+        println!(
+            "   B1oB2: {}",
+            self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?
+        );
+        println!(
+            "   B2oB0: {}",
+            self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?
+        );
+        let mut tmp = self.beta_transac::<2>(trans, dart_id)?;
+        let mut crt = self.beta_transac::<1>(trans, tmp)?;
+        // we first iterate in direct direction (B1oB2)
+        while marked.insert(crt) {
+            println!("dart {crt}:");
+            println!(
+                "   Bs: [{}, {}, {}]",
+                self.beta_transac::<0>(trans, crt)?,
+                self.beta_transac::<1>(trans, crt)?,
+                self.beta_transac::<2>(trans, crt)?,
+            );
+            println!(
+                "   B1oB2: {}",
+                self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?
+            );
+            println!(
+                "   B2oB0: {}",
+                self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?
+            );
+            tmp = self.beta_transac::<2>(trans, crt)?;
+            crt = self.beta_transac::<1>(trans, tmp)?;
+        }
+        // if we landed on the null dart, the vertex is open
+        // we need to iterate in the opposite dir (B2oB0)
+        if crt == NULL_DART_ID {
+            println!("dart {dart_id}:");
+            println!(
+                "   Bs: [{}, {}, {}]",
+                self.beta_transac::<0>(trans, dart_id)?,
+                self.beta_transac::<1>(trans, dart_id)?,
+                self.beta_transac::<2>(trans, dart_id)?,
+            );
+            println!(
+                "   B2oB0: {}",
+                self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?
+            );
+            println!(
+                "   B1oB2: {}",
+                self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?
+            );
+            tmp = self.beta_transac::<0>(trans, dart_id)?;
+            crt = self.beta_transac::<2>(trans, tmp)?;
+            while marked.insert(crt) {
+                println!("dart {crt}:");
+                println!(
+                    "   Bs: [{}, {}, {}]",
+                    self.beta_transac::<0>(trans, crt)?,
+                    self.beta_transac::<1>(trans, crt)?,
+                    self.beta_transac::<2>(trans, crt)?,
+                );
+                println!(
+                    "   B2oB0: {}",
+                    self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?
+                );
+                println!(
+                    "   B1oB2: {}",
+                    self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?
+                );
+                tmp = self.beta_transac::<0>(trans, crt)?;
+                crt = self.beta_transac::<2>(trans, tmp)?;
+            }
+        }
+        Ok(())
     }
 
     /// Compute the ID of the edge a given dart is part of.

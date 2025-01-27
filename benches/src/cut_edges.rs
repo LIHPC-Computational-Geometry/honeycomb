@@ -1,5 +1,3 @@
-use std::{fs::File, time::Instant};
-
 use honeycomb::{
     core::{
         cmap::CMapError,
@@ -9,11 +7,12 @@ use honeycomb::{
         CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Orbit2, OrbitPolicy, Vertex2,
     },
 };
+use std::{fs::File, time::Instant};
 
 use rayon::prelude::*;
 
 const INPUT_MAP: &str = "grid_split.vtk";
-const TARGET_LENGTH: f64 = 0.4;
+const TARGET_LENGTH: f64 = 0.1;
 const MAX_RETRY: u8 = 10;
 
 fn fetch_edges_to_process<'a, 'b, T: CoordsFloat>(
@@ -100,7 +99,7 @@ fn main() {
         } else {
             units.chunks(4 + units.len() / 4)
         };
-        assert!(workloads.len() < 4);
+        assert!(workloads.len() <= 4);
         println!("round #{step} ready");
         std::thread::scope(|s| {
             for wl in workloads {
