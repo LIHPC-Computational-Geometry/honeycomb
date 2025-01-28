@@ -7,6 +7,10 @@ use honeycomb::{
         CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Orbit2, OrbitPolicy, Vertex2,
     },
 };
+
+#[cfg(debug_assertions)]
+use honeycomb::{core::stm::atomically, prelude::NULL_DART_ID};
+
 use std::{fs::File, time::Instant};
 
 use rayon::prelude::*;
@@ -62,33 +66,32 @@ macro_rules! process_sew {
 }
 
 fn main() {
-    let mut instant = Instant::now();
     // load map from file
     let mut map: CMap2<f64> = CMapBuilder::from(INPUT_MAP).build().unwrap();
-    println!("map loaded in {}ms", instant.elapsed().as_millis());
+    assert!(
+        map.iter_faces()
+            .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
+        "Input mesh isn't a triangle mesh"
+    );
 
-    map.iter_faces().for_each(|f| {
-        assert_eq!(
-            Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count(),
-            3,
-            "Input mesh isn't a triangle mesh"
-        )
-    });
+    let mut step = 0;
+    let total_process_time = Instant::now();
 
-    instant = Instant::now();
     // compute first batch
+    let mut instant = Instant::now();
     let mut edges: Vec<EdgeIdType> = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
-    assert_eq!(edges.len(), map.iter_edges().count());
     let mut nd = map.add_free_darts(6 * edges.len()); // 2 for edge split + 2*2 for new edges in neighbor tets
     let mut darts: Vec<DartIdType> = (nd..nd + 6 * edges.len() as DartIdType).collect();
     println!(
-        "first batch computed in {}ms",
+        "[B{}] computed in {}ms",
+        step,
         instant.elapsed().as_millis()
     );
-    let mut step = 0;
+
+    // while there are edges to cut
     while !edges.is_empty() {
+        // process batch
         instant = Instant::now();
-        // process edges in parallel with transactions
         let units: Vec<(u32, [u32; 6])> = edges
             .drain(..)
             .zip(darts.chunks(6))
@@ -99,13 +102,10 @@ fn main() {
         } else {
             units.chunks(4 + units.len() / 4)
         };
-        assert!(workloads.len() <= 4);
-        println!("round #{step} ready");
         std::thread::scope(|s| {
             for wl in workloads {
-                let wl = wl.to_vec();
-                println!("spawning batch");
                 s.spawn(|| {
+                    let wl = wl.to_vec();
                     wl.into_iter()
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
                             let mut n_retry = 0;
@@ -125,14 +125,12 @@ fn main() {
                                     |trans| {
                                         map.link::<2>(trans, nd1, nd2)?;
                                         map.link::<1>(trans, nd2, nd3)?;
+
                                         let ld = e as DartIdType;
                                         let (b0ld, b1ld) = (
                                             map.beta_transac::<0>(trans, ld)?,
                                             map.beta_transac::<1>(trans, ld)?,
                                         );
-                                        if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                            return Err(StmError::Failure);
-                                        }
 
                                         let (vid1, vid2) = (
                                             map.vertex_id_transac(trans, ld)?,
@@ -154,7 +152,7 @@ fn main() {
 
                                         Ok(())
                                     },
-                                );
+                                ); // Transaction::with_control
                             } else {
                                 Transaction::with_control(
                                     |e| match e {
@@ -173,6 +171,7 @@ fn main() {
                                         map.link::<1>(trans, nd2, nd3)?;
                                         map.link::<2>(trans, nd4, nd5)?;
                                         map.link::<1>(trans, nd5, nd6)?;
+
                                         let (ld, rd) = (
                                             e as DartIdType,
                                             map.beta_transac::<2>(trans, e as DartIdType)?,
@@ -181,24 +180,22 @@ fn main() {
                                             map.beta_transac::<0>(trans, ld)?,
                                             map.beta_transac::<1>(trans, ld)?,
                                         );
-                                        if map.beta_transac::<1>(trans, b1ld)? != b0ld {
-                                            return Err(StmError::Failure);
-                                        }
                                         let (b0rd, b1rd) = (
                                             map.beta_transac::<0>(trans, rd)?,
                                             map.beta_transac::<1>(trans, rd)?,
                                         );
-                                        if map.beta_transac::<1>(trans, b1rd)? != b0rd {
-                                            return Err(StmError::Failure);
-                                        }
+
                                         let (vid1, vid2) = (
                                             map.vertex_id_transac(trans, ld)?,
                                             map.vertex_id_transac(trans, b1ld)?,
                                         );
-                                        let new_v = Vertex2::average(
-                                            &map.read_vertex(trans, vid1)?.unwrap(),
-                                            &map.read_vertex(trans, vid2)?.unwrap(),
-                                        );
+                                        let new_v = match (
+                                            map.read_vertex(trans, vid1)?,
+                                            map.read_vertex(trans, vid2)?,
+                                        ) {
+                                            (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
+                                            _ => return Err(StmError::Retry),
+                                        };
                                         map.write_vertex(trans, nd1, new_v)?;
 
                                         process_unsew!(map.unsew::<2>(trans, ld));
@@ -222,19 +219,16 @@ fn main() {
 
                                         Ok(())
                                     },
-                                );
+                                ); // Transaction::with_control
                             }
                         });
-                });
-            }
-        });
-        println!("batch processed in {}ms", instant.elapsed().as_millis());
-
-        assert!(
-            map.iter_faces()
-                .filter(|f| !map.is_free(*f as DartIdType))
-                .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
-            "Input mesh isn't a triangle mesh"
+                }); // s.spawn
+            } // for wl in workloads
+        }); // std::thread::scope
+        println!(
+            "[B{}] processed in {}ms",
+            step,
+            instant.elapsed().as_millis()
         );
 
         (1..map.n_darts() as DartIdType).for_each(|d| {
@@ -242,26 +236,74 @@ fn main() {
                 map.remove_free_dart(d);
             }
         });
-        let mut f = File::create(format!("step{}.vtk", step)).unwrap();
-        map.to_vtk_binary(&mut f);
-        step += 1;
 
+        #[cfg(debug_assertions)] // if debug is enabled, check mesh validity
+        {
+            assert!(
+                map.iter_faces()
+                    .filter(|f| !map.is_free(*f as DartIdType))
+                    .all(|f| {
+                        Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3
+                    }),
+                "Input mesh isn't a triangle mesh"
+            );
+            (1..map.n_darts() as DartIdType).for_each(|d| {
+                atomically(|trans| {
+                    let b0d = map.beta_transac::<0>(trans, d)?;
+                    let b1d = map.beta_transac::<1>(trans, d)?;
+                    let b2d = map.beta_transac::<2>(trans, d)?;
+                    assert_eq!(
+                        map.beta_transac::<1>(trans, b0d)?,
+                        if b0d == NULL_DART_ID { NULL_DART_ID } else { d },
+                        "inconsistencies detected on edge {d}/{b2d}\n{d}: [{b0d},{b1d},{b2d}] | [{},{},{}]",
+                        map.beta_transac::<1>(trans, b0d)?,
+                        map.beta_transac::<0>(trans, b1d)?,
+                        map.beta_transac::<2>(trans, b2d)?,
+                    );
+                    assert_eq!(
+                        map.beta_transac::<0>(trans, b1d)?,
+                        if b1d == NULL_DART_ID { NULL_DART_ID } else { d },
+                        "inconsistencies detected on edge {d}/{b2d}\n{d}: [{b0d},{b1d},{b2d}] | [{},{},{}]",
+                        map.beta_transac::<1>(trans, b0d)?,
+                        map.beta_transac::<0>(trans, b1d)?,
+                        map.beta_transac::<2>(trans, b2d)?,
+                    );
+                    assert_eq!(
+                        map.beta_transac::<2>(trans, b2d)?,
+                        if b2d == NULL_DART_ID { NULL_DART_ID } else { d },
+                        "inconsistencies detected on edge {d}/{b2d}\n{d}: [{b0d},{b1d},{b2d}] | [{},{},{}]",
+                        map.beta_transac::<1>(trans, b0d)?,
+                        map.beta_transac::<0>(trans, b1d)?,
+                        map.beta_transac::<2>(trans, b2d)?,
+                    );
+                    Ok(())
+                });
+            });
+            let mut f = File::create(format!("step{}.vtk", step)).unwrap();
+            map.to_vtk_binary(&mut f);
+        }
+
+        // compute the new batch
         instant = Instant::now();
-        // update the edge list
+        step += 1;
         edges.extend(fetch_edges_to_process(&map, &TARGET_LENGTH));
-        // allocate necessary darts
-        nd = map.add_free_darts(6 * edges.len());
+        let n_e = edges.len();
+        nd = map.add_free_darts(6 * n_e);
         darts.par_drain(..); // is there a better way?
-        darts.extend(nd..nd + 6 * edges.len() as DartIdType);
-        println!("new batch computed in {}ms", instant.elapsed().as_millis());
+        darts.extend(nd..nd + 6 * n_e as DartIdType);
+        if n_e != 0 {
+            println!(
+                "[B{}] computed in {}ms",
+                step,
+                instant.elapsed().as_millis()
+            );
+        }
     }
 
-    // necessary for serialization
-    (1..map.n_darts() as DartIdType).for_each(|d| {
-        if map.is_free(d) && !map.is_unused(d) {
-            map.remove_free_dart(d);
-        }
-    });
+    println!(
+        "total process time: {}ms",
+        total_process_time.elapsed().as_millis()
+    );
 
     // checks
     assert!(map

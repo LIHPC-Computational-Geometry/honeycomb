@@ -14,7 +14,7 @@ use crate::prelude::{
 };
 use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
 use itertools::Itertools;
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
@@ -286,35 +286,30 @@ impl<T: CoordsFloat> CMap2<T> {
         dart_id: DartIdType,
     ) -> StmResult<VertexIdType> {
         // min encountered / current dart
-        let mut i = 0;
         let mut min = dart_id;
-        let mut tmp = self.beta_transac::<2>(trans, dart_id)?;
-        let mut crt = self.beta_transac::<1>(trans, tmp)?;
-        // we first iterate in direct direction (B1oB2)
-        while crt != NULL_DART_ID && crt != dart_id {
-            if i > 3000 {
-                self.print_everything(trans, dart_id)?;
-                panic!("haha");
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
+        while let Some(d) = pending.pop_front() {
+            // THIS CODE IS ONLY VALID IN 2D
+            let (b2d, b0d) = (
+                self.beta_transac::<2>(trans, d)?,
+                self.beta_transac::<0>(trans, d)?,
+            );
+            let image1 = self.beta_transac::<1>(trans, b2d)?;
+            if marked.insert(image1) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image1);
+                pending.push_back(image1);
             }
-            i += 1;
-            min = min.min(crt);
-            tmp = self.beta_transac::<2>(trans, crt)?;
-            crt = self.beta_transac::<1>(trans, tmp)?;
-        }
-        // if we landed on the null dart, the vertex is open
-        // we need to iterate in the opposite dir (B2oB0)
-        if crt == NULL_DART_ID {
-            tmp = self.beta_transac::<0>(trans, dart_id)?;
-            crt = self.beta_transac::<2>(trans, tmp)?;
-            while crt != NULL_DART_ID {
-                if i > 3000 {
-                    self.print_everything(trans, dart_id)?;
-                    panic!("haha");
-                }
-                i += 1;
-                min = min.min(crt);
-                tmp = self.beta_transac::<0>(trans, crt)?;
-                crt = self.beta_transac::<2>(trans, tmp)?;
+            let image2 = self.beta_transac::<2>(trans, b0d)?;
+            if marked.insert(image2) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image2);
+                pending.push_back(image2);
             }
         }
 
