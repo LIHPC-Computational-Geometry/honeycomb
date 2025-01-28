@@ -86,8 +86,16 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
-        assert!(self[(1, lhs_dart_id)].read(trans)? == NULL_DART_ID);
-        assert!(self[(0, rhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert_eq!(
+            self[(1, lhs_dart_id)].read(trans)?,
+            NULL_DART_ID,
+            "cannot 1-link {lhs_dart_id} to {rhs_dart_id}: b1({lhs_dart_id}) != NULL"
+        );
+        assert_eq!(
+            self[(0, rhs_dart_id)].read(trans)?,
+            NULL_DART_ID,
+            "cannot 1-link {lhs_dart_id} to {rhs_dart_id}: b0({rhs_dart_id}) != NULL"
+        );
         // set beta_1(lhs_dart) to rhs_dart
         self[(1, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_0(rhs_dart) to lhs_dart
@@ -117,8 +125,14 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
-        assert!(self[(2, lhs_dart_id)].read(trans)? == NULL_DART_ID);
-        assert!(self[(2, rhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(
+            self[(2, lhs_dart_id)].read(trans)? == NULL_DART_ID,
+            "cannot 2-link {lhs_dart_id} to {rhs_dart_id}: b2({lhs_dart_id}) != NULL"
+        );
+        assert!(
+            self[(2, rhs_dart_id)].read(trans)? == NULL_DART_ID,
+            "cannot 2-link {lhs_dart_id} to {rhs_dart_id}: b2({lhs_dart_id}) != NULL"
+        );
         // set beta_2(lhs_dart) to rhs_dart
         self[(2, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_2(rhs_dart) to lhs_dart
@@ -160,10 +174,9 @@ impl<const N: usize> BetaFunctions<N> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
-        // set beta_1(lhs_dart) to NullDart
-        let rhs_dart_id = self[(1, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
+        let rhs_dart_id = self[(1, lhs_dart_id)].read(trans)?;
         assert_ne!(rhs_dart_id, NULL_DART_ID);
-        // set beta_0(rhs_dart) to NullDart
+        self[(1, lhs_dart_id)].write(trans, NULL_DART_ID)?;
         self[(0, rhs_dart_id)].write(trans, NULL_DART_ID)?;
         Ok(())
     }
@@ -186,10 +199,9 @@ impl<const N: usize> BetaFunctions<N> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> Result<(), StmError> {
-        // set beta_2(dart) to NullDart
-        let rhs_dart_id = self[(2, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
+        let rhs_dart_id = self[(2, lhs_dart_id)].read(trans)?;
         assert_ne!(rhs_dart_id, NULL_DART_ID);
-        // set beta_2(beta_2(dart)) to NullDart
+        self[(2, lhs_dart_id)].write(trans, NULL_DART_ID)?;
         self[(2, rhs_dart_id)].write(trans, NULL_DART_ID)?;
         Ok(())
     }
