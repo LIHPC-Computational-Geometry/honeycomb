@@ -13,7 +13,6 @@ use crate::prelude::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
 use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
-use itertools::Itertools;
 use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
@@ -366,14 +365,23 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let vid = self.vertex_id(d);
+                if d == vid {
+                    Some(vid)
                 } else {
-                    Some(self.vertex_id(d))
+                    None
                 }
             })
-            .unique()
     }
 
     /// Return an iterator over IDs of all the map's edges.
@@ -381,14 +389,23 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let eid = self.edge_id(d);
+                if d == eid {
+                    Some(eid)
                 } else {
-                    Some(self.edge_id(d))
+                    None
                 }
             })
-            .unique()
     }
 
     /// Return an iterator over IDs of all the map's faces.
@@ -396,13 +413,22 @@ impl<T: CoordsFloat> CMap2<T> {
     pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let fid = self.face_id(d);
+                if d == fid {
+                    Some(fid)
                 } else {
-                    Some(self.face_id(d))
+                    None
                 }
             })
-            .unique()
     }
 }
