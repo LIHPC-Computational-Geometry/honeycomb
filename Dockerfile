@@ -1,6 +1,9 @@
-FROM rust:1.84 as builder
+FROM rust:1.84 AS builder
 
 WORKDIR /builder
+
+# Copy files from the repo
+COPY . .
 
 # Install dependencuies
 # RUN apt-get update
@@ -21,7 +24,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /honeycomb
 
 # Fetch input meshes
-ADD git@github.com:imrn99/meshing-samples.git /honeycomb/meshes/
+# for some reason this doesn't resolve
+# ADD https://github.com/imrn99/meshing-samples.git /honeycomb/meshes/
 
 # Copy useful stuff
 COPY --from=builder /builder/target/release /honeycomb/
