@@ -8,10 +8,18 @@ COPY . .
 # Install dependencuies
 # RUN apt-get update
 
-# Build the project
-RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo cargo build --benches --release -p honeycomb-benches
-RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo cargo build --bins --release
-RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo cargo build --bins --profile profiling
+# Build binaries
+RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
+        cargo install \
+        --path=benches \
+        --bins \
+        --root /builder/release
+RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
+        cargo install \
+        --path=benches \
+        --bins \
+        --profile profiling \
+        --root /builder/profiling
 
 # Use Ubuntu as the runtime image
 FROM ubuntu:22.04
@@ -28,6 +36,5 @@ WORKDIR /honeycomb
 # ADD https://github.com/imrn99/meshing-samples.git /honeycomb/meshes/
 
 # Copy useful stuff
-COPY --from=builder /builder/target/release /honeycomb/
-COPY --from=builder /builder/target/profiling /honeycomb/
-
+COPY --from=builder /builder/release/bin /honeycomb/rbin
+COPY --from=builder /builder/profiling/bin /honeycomb/pbin
