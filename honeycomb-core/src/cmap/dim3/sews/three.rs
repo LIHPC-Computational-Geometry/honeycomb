@@ -1,6 +1,6 @@
 //! 3D sew implementations
 
-use stm::{atomically, Transaction};
+use crate::stm::{atomically, Transaction};
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},

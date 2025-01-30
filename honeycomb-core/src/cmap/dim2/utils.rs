@@ -5,7 +5,7 @@
 use super::CMAP2_BETA;
 use crate::geometry::CoordsFloat;
 use crate::prelude::{CMap2, DartIdType};
-use stm::atomically;
+use crate::stm::atomically;
 
 // ------ CONTENT
 

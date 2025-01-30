@@ -5,6 +5,7 @@
 
 // ------ IMPORTS
 
+use crate::stm::{atomically, StmClosureResult, Transaction};
 use crate::{
     cmap::{CMapError, CMapResult},
     prelude::{DartIdType, OrbitPolicy},
@@ -12,7 +13,6 @@ use crate::{
 use downcast_rs::{impl_downcast, Downcast};
 use std::any::{type_name, Any};
 use std::fmt::Debug;
-use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -250,7 +250,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmResult<()>;
+    ) -> StmClosureResult<()>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Split attribute to specified indices
@@ -280,7 +280,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> StmResult<()>;
+    ) -> StmClosureResult<()>;
 
     // force
 
@@ -371,7 +371,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn read(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
+    fn read(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Write the value of an element at a given index and return the old value.
@@ -393,8 +393,12 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn write(&self, trans: &mut Transaction, id: A::IdentifierType, val: A)
-        -> StmResult<Option<A>>;
+    fn write(
+        &self,
+        trans: &mut Transaction,
+        id: A::IdentifierType,
+        val: A,
+    ) -> StmClosureResult<Option<A>>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Remove the value at a given index and return it.
@@ -415,7 +419,8 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmResult<Option<A>>;
+    fn remove(&self, trans: &mut Transaction, id: A::IdentifierType)
+        -> StmClosureResult<Option<A>>;
 
     /// Read the value of an element at a given index.
     ///

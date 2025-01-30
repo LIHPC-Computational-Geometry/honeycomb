@@ -1,6 +1,6 @@
 //! 1D link implementations
 
-use stm::{atomically, StmResult, Transaction};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 
 use crate::{
     cmap::{CMap3, DartIdType, NULL_DART_ID},
@@ -15,7 +15,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         self.betas.one_link_core(trans, ld, rd)?;
         let (b3_ld, b3_rd) = (
             self.beta_transac::<3>(trans, ld)?,
@@ -39,7 +39,11 @@ impl<T: CoordsFloat> CMap3<T> {
 /// 1-unlinks
 impl<T: CoordsFloat> CMap3<T> {
     /// 1-unlink operation.
-    pub(crate) fn one_unlink(&self, trans: &mut Transaction, ld: DartIdType) -> StmResult<()> {
+    pub(crate) fn one_unlink(
+        &self,
+        trans: &mut Transaction,
+        ld: DartIdType,
+    ) -> StmClosureResult<()> {
         let rd = self.beta_transac::<1>(trans, ld)?;
         self.betas.one_unlink_core(trans, ld)?;
         let (b3_ld, b3_rd) = (

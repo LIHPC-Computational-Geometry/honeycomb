@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use stm::{atomically, StmError, TVar};
+use crate::stm::{atomically, StmError, TVar};
 
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeUpdate},

@@ -1,7 +1,7 @@
 // ------ IMPORTS
 
+use crate::stm::{atomically, StmError, Transaction, TransactionControl};
 use loom::sync::Arc;
-use stm::{atomically, StmError, Transaction, TransactionControl};
 
 use super::{
     AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage, AttributeUpdate,

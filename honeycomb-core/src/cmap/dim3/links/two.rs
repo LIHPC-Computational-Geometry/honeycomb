@@ -1,6 +1,6 @@
 //! 2D link implementations
 
-use stm::{atomically, StmResult, Transaction};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 
 use crate::{
     cmap::{CMap3, DartIdType},
@@ -15,7 +15,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
@@ -32,7 +32,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         self.betas.two_unlink_core(trans, lhs_dart_id)
     }
 
