@@ -10,7 +10,7 @@
 // ------ IMPORTS
 
 use crate::stm::{atomically, StmClosureResult, StmError, Transaction};
-use itertools::Itertools;
+
 use std::collections::{HashSet, VecDeque};
 
 use crate::{
@@ -541,55 +541,91 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let vid = self.vertex_id(d);
+                if d == vid {
+                    Some(vid)
                 } else {
-                    Some(self.vertex_id(d))
+                    None
                 }
             })
-            .unique()
     }
 
     /// Return an iterator over IDs of all the map's edges.
     pub fn iter_edges(&self) -> impl Iterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let eid = self.edge_id(d);
+                if d == eid {
+                    Some(eid)
                 } else {
-                    Some(self.edge_id(d))
+                    None
                 }
             })
-            .unique()
     }
 
     /// Return an iterator over IDs of all the map's faces.
     pub fn iter_faces(&self) -> impl Iterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let fid = self.face_id(d);
+                if d == fid {
+                    Some(fid)
                 } else {
-                    Some(self.face_id(d))
+                    None
                 }
             })
-            .unique()
     }
 
     /// Return an iterator over IDs of all the map's volumes.
     pub fn iter_volumes(&self) -> impl Iterator<Item = VolumeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .zip(self.unused_darts.iter().skip(1))
-            .filter_map(|(d, unused)| {
-                if unused.read_atomic() {
-                    None
+            .filter_map(
+                |(d, unused)| {
+                    if unused.read_atomic() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                },
+            )
+            .filter_map(|d| {
+                let vid = self.volume_id(d);
+                if d == vid {
+                    Some(vid)
                 } else {
-                    Some(self.volume_id(d))
+                    None
                 }
             })
-            .unique()
     }
 }
