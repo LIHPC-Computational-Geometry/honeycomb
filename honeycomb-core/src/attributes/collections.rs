@@ -6,9 +6,9 @@
 // ------ IMPORTS
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
+use crate::stm::{atomically, StmClosureResult, TVar, Transaction};
 use crate::{cmap::CMapResult, prelude::DartIdType};
 use num_traits::ToPrimitive;
-use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -37,17 +37,25 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         trans: &mut Transaction,
         id: &A::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, Some(val))
     }
 
     /// Transactional read
-    fn read_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+    fn read_core(
+        &self,
+        trans: &mut Transaction,
+        id: &A::IdentifierType,
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].read(trans)
     }
 
     /// Transactional remove
-    fn remove_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+    fn remove_core(
+        &self,
+        trans: &mut Transaction,
+        id: &A::IdentifierType,
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, None)
     }
 }
@@ -82,7 +90,7 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         let new_v = match (
             self.data[lhs_inp as usize].read(trans)?,
             self.data[rhs_inp as usize].read(trans)?,
@@ -128,7 +136,7 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         let res = if let Some(val) = self.data[inp as usize].read(trans)? {
             Ok(AttributeUpdate::split(val))
         } else {
@@ -176,7 +184,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.write_core(trans, &id, val)
     }
 
@@ -188,7 +196,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.read_core(trans, &id)
     }
 
@@ -200,7 +208,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.remove_core(trans, &id)
     }
 }

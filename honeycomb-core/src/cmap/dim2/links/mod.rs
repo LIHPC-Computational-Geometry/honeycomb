@@ -1,7 +1,7 @@
 mod one;
 mod two;
 
-use stm::{StmResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction};
 
 use crate::{
     cmap::{CMap2, DartIdType},
@@ -44,7 +44,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -85,7 +85,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unlink<const I: u8>(&self, trans: &mut Transaction, ld: DartIdType) -> StmResult<()> {
+    pub fn unlink<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        ld: DartIdType,
+    ) -> StmClosureResult<()> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);

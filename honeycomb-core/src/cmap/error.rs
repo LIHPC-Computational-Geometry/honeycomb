@@ -10,7 +10,7 @@ pub type CMapResult<T> = Result<T, CMapError>;
 pub enum CMapError {
     /// STM transaction failed.
     #[error("transaction failed")]
-    FailedTransaction(/*#[from]*/ StmError),
+    FailedTransaction(#[from] StmError),
     /// Attribute merge failed due to missing value(s).
     #[error("attribute merge failed: {0}")]
     FailedAttributeMerge(&'static str),
@@ -23,14 +23,6 @@ pub enum CMapError {
     /// Accessed attribute isn't in the map storage.
     #[error("unknown attribute: {0}")]
     UnknownAttribute(&'static str),
-}
-
-// if `StmError` derived `thiserror::Error`, this would be automatically generated
-// by the commented `#[from]` macro above
-impl From<StmError> for CMapError {
-    fn from(value: StmError) -> Self {
-        Self::FailedTransaction(value)
-    }
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
