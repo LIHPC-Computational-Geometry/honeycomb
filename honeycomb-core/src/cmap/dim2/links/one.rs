@@ -1,4 +1,4 @@
-use stm::{atomically, StmResult, Transaction};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 
 use crate::{
     cmap::{CMap2, DartIdType},
@@ -14,7 +14,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
@@ -32,7 +32,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         self.betas.one_unlink_core(trans, lhs_dart_id)
     }
 

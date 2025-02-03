@@ -14,8 +14,8 @@ use std::collections::{HashSet, VecDeque};
 use crate::prelude::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
+use crate::stm::{atomically, StmClosureResult, Transaction};
 use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
-use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
@@ -159,7 +159,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmResult<DartIdType> {
+    ) -> StmClosureResult<DartIdType> {
         assert!(I < 3);
         self.betas[(I, dart_id)].read(trans)
     }
@@ -180,7 +180,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         i: u8,
         dart_id: DartIdType,
-    ) -> StmResult<DartIdType> {
+    ) -> StmClosureResult<DartIdType> {
         assert!(i < 3);
         match i {
             0 => self.beta_transac::<0>(trans, dart_id),
@@ -243,7 +243,8 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmResult<VertexIdType> {
+    ) -> StmClosureResult<VertexIdType> {
+        // min encountered / current dart
         let mut min = dart_id;
         let mut marked = HashSet::new();
         marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
@@ -296,7 +297,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmResult<EdgeIdType> {
+    ) -> StmClosureResult<EdgeIdType> {
         // optimizing this one bc I'm tired
         let b2 = self.beta_transac::<2>(trans, dart_id)?;
         if b2 == NULL_DART_ID {
@@ -327,7 +328,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmResult<FaceIdType> {
+    ) -> StmClosureResult<FaceIdType> {
         // min encountered / current dart
         let mut min = dart_id;
         let mut marked = HashSet::new();

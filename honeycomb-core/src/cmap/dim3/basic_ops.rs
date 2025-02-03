@@ -9,8 +9,9 @@
 
 // ------ IMPORTS
 
+use crate::stm::{atomically, StmClosureResult, StmError, Transaction};
+
 use std::collections::{HashSet, VecDeque};
-use stm::{atomically, StmError, StmResult, Transaction};
 
 use crate::{
     attributes::UnknownAttributeStorage,
@@ -133,7 +134,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmResult<DartIdType> {
+    ) -> StmClosureResult<DartIdType> {
         assert!(I < 4);
         self.betas[(I, dart_id)].read(trans)
     }
@@ -154,7 +155,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         i: u8,
         dart_id: DartIdType,
-    ) -> StmResult<DartIdType> {
+    ) -> StmClosureResult<DartIdType> {
         assert!(i < 4);
         match i {
             0 => self.beta_transac::<0>(trans, dart_id),

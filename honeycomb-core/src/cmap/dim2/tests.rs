@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use stm::atomically;
+use crate::stm::{atomically, StmError};
 
 use crate::{
     attributes::AttrSparseVec,
@@ -555,7 +555,7 @@ fn sew_ordering_with_transactions() {
                 if let Err(e) = m1.sew::<1>(trans, 1, 3) {
                     match e {
                         CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeMerge(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
                         CMapError::FailedAttributeSplit(_)
                         | CMapError::IncorrectGeometry(_)
                         | CMapError::UnknownAttribute(_) => unreachable!(),
@@ -571,7 +571,7 @@ fn sew_ordering_with_transactions() {
                 if let Err(e) = m2.sew::<2>(trans, 3, 4) {
                     match e {
                         CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeMerge(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
                         CMapError::FailedAttributeSplit(_)
                         | CMapError::IncorrectGeometry(_)
                         | CMapError::UnknownAttribute(_) => unreachable!(),
@@ -703,7 +703,7 @@ fn unsew_ordering_with_transactions() {
                 if let Err(e) = m1.unsew::<1>(trans, 1) {
                     match e {
                         CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeSplit(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
                         CMapError::FailedAttributeMerge(_)
                         | CMapError::IncorrectGeometry(_)
                         | CMapError::UnknownAttribute(_) => unreachable!(),
@@ -719,7 +719,7 @@ fn unsew_ordering_with_transactions() {
                 if let Err(e) = m2.unsew::<2>(trans, 3) {
                     match e {
                         CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeSplit(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
                         CMapError::FailedAttributeMerge(_)
                         | CMapError::IncorrectGeometry(_)
                         | CMapError::UnknownAttribute(_) => unreachable!(),

@@ -6,7 +6,7 @@
 
 // ------ IMPORT
 
-use stm::{StmResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction};
 
 use crate::prelude::{AttributeBind, AttributeUpdate, CMap2, Vertex2, VertexIdType};
 use crate::{
@@ -46,7 +46,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         vertex_id: VertexIdType,
-    ) -> StmResult<Option<Vertex2<T>>> {
+    ) -> StmClosureResult<Option<Vertex2<T>>> {
         self.vertices.read(trans, vertex_id)
     }
 
@@ -78,7 +78,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
-    ) -> StmResult<Option<Vertex2<T>>> {
+    ) -> StmClosureResult<Option<Vertex2<T>>> {
         self.vertices.write(trans, vertex_id, vertex.into())
     }
 
@@ -104,7 +104,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         vertex_id: VertexIdType,
-    ) -> StmResult<Option<Vertex2<T>>> {
+    ) -> StmClosureResult<Option<Vertex2<T>>> {
         self.vertices.remove(trans, vertex_id)
     }
 
@@ -166,7 +166,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.attributes.read_attribute::<A>(trans, id)
     }
 
@@ -198,7 +198,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         id: A::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.attributes.write_attribute::<A>(trans, id, val)
     }
 
@@ -224,7 +224,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.attributes.remove_attribute::<A>(trans, id)
     }
 
