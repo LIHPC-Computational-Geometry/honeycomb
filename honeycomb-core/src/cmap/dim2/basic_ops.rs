@@ -9,6 +9,8 @@
 
 // ------ IMPORTS
 
+use std::collections::{HashSet, VecDeque};
+
 use crate::prelude::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
@@ -242,22 +244,31 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmResult<VertexIdType> {
-        // min encountered / current dart
         let mut min = dart_id;
-        let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
 
-        // we first iterate in direct direction (B1oB2)
-        while crt != NULL_DART_ID && crt != dart_id {
-            min = min.min(crt);
-            crt = self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?;
-        }
-        // if we landed on the null dart, the vertex is open
-        // we need to iterate in the opposite dir (B2oB0)
-        if crt == NULL_DART_ID {
-            crt = self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?;
-            while crt != NULL_DART_ID {
-                min = min.min(crt);
-                crt = self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?;
+        while let Some(d) = pending.pop_front() {
+            // THIS CODE IS ONLY VALID IN 2D
+            let (b2d, b0d) = (
+                self.beta_transac::<2>(trans, d)?,
+                self.beta_transac::<0>(trans, d)?,
+            );
+            let image1 = self.beta_transac::<1>(trans, b2d)?;
+            if marked.insert(image1) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image1);
+                pending.push_back(image1);
+            }
+            let image2 = self.beta_transac::<2>(trans, b0d)?;
+            if marked.insert(image2) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image2);
+                pending.push_back(image2);
             }
         }
 
@@ -319,20 +330,26 @@ impl<T: CoordsFloat> CMap2<T> {
     ) -> StmResult<FaceIdType> {
         // min encountered / current dart
         let mut min = dart_id;
-        let mut crt = self.beta_transac::<1>(trans, dart_id)?;
+        let mut marked = HashSet::new();
+        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+        let mut pending = VecDeque::from([dart_id]);
 
-        // we first iterate in direct direction (B1)
-        while crt != NULL_DART_ID && crt != dart_id {
-            min = min.min(crt);
-            crt = self.beta_transac::<1>(trans, crt)?;
-        }
-        // if we landed on the null dart, the face is open
-        // we need to iterate in the opposite dir (B0)
-        if crt == NULL_DART_ID {
-            crt = self.beta_transac::<0>(trans, dart_id)?;
-            while crt != NULL_DART_ID {
-                min = min.min(crt);
-                crt = self.beta_transac::<0>(trans, crt)?;
+        while let Some(d) = pending.pop_front() {
+            // THIS CODE IS ONLY VALID IN 2D
+            let image1 = self.beta_transac::<1>(trans, d)?;
+            if marked.insert(image1) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image1);
+                pending.push_back(image1);
+            }
+            let image2 = self.beta_transac::<0>(trans, d)?;
+            if marked.insert(image2) {
+                // if true, we did not see this dart yet
+                // i.e. we need to visit it later
+                min = min.min(image2);
+                pending.push_back(image2);
             }
         }
 
