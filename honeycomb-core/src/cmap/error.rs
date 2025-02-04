@@ -1,6 +1,6 @@
 //! Main error type
 
-use crate::{cmap::DartIdType, stm::StmError};
+use crate::{attributes::AttributeError, cmap::DartIdType};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum LinkError {
@@ -15,12 +15,12 @@ pub enum LinkError {
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum SewError {
     /// Geometry predicate failed verification.
-    #[error("operation incompatible with map geometry: {0}")]
-    BadGeometry(&'static str),
+    #[error("cannot {0}-sew darts {1} and {2} due to geometry predicates")]
+    BadGeometry(u8, DartIdType, DartIdType),
     /// Dart link failed.
     #[error("inner link failed: {0}")]
     FailedLink(#[from] LinkError),
     /// Attribute operation failed.
     #[error("attribute operation failed: {0}")]
-    FailedAttributeOp(&'static str),
+    FailedAttributeOp(#[from] AttributeError),
 }

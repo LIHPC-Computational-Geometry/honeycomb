@@ -5,12 +5,13 @@
 
 // ------ IMPORTS
 
+use crate::attributes::AttributeError;
+use crate::prelude::{DartIdType, OrbitPolicy};
 use crate::stm::{atomically, StmClosureResult, Transaction};
-use crate::{
-    cmap::{CMapError, CMapResult},
-    prelude::{DartIdType, OrbitPolicy},
-};
+
 use downcast_rs::{impl_downcast, Downcast};
+use fast_stm::TransactionClosureResult;
+
 use std::any::{type_name, Any};
 use std::fmt::Debug;
 
@@ -62,10 +63,10 @@ use std::fmt::Debug;
 /// ```
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain a new value from two existing ones.
-    fn merge(attr1: Self, attr2: Self) -> Self;
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError>;
 
     /// Splitting routine, i.e. how to obtain the two new values from a single one.
-    fn split(attr: Self) -> (Self, Self);
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from a single existing one.
@@ -77,8 +78,11 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// # Return / Errors
     ///
     /// The default implementation succeeds and simply returns the passed value.
-    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-        Ok(attr)
+    fn merge_incomplete(_: Self) -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -92,8 +96,11 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// The default implementation fails with `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
-    fn merge_from_none() -> CMapResult<Self> {
-        Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
+    fn merge_from_none() -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
     /// Fallback splitting routine, i.e. how to obtain two new values from no existing one.
@@ -106,8 +113,11 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// # Errors
     ///
     /// The default implementation fails with `Err(CMapError::FailedAttributeSplit)`.
-    fn split_from_none() -> CMapResult<(Self, Self)> {
-        Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
+    fn split_from_none() -> Result<(Self, Self), AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "split",
+            type_name::<Self>(),
+        ))
     }
 }
 
@@ -319,7 +329,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> CMapResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 
     /// Split attribute to specified indices
     ///
@@ -338,7 +348,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> CMapResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 }
 
 impl_downcast!(UnknownAttributeStorage);

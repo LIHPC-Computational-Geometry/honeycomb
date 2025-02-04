@@ -1,8 +1,10 @@
-use crate::stm::{atomically, Transaction};
+use fast_stm::atomically_with_err;
+
+use crate::stm::{abort, atomically, try_or_coerce, Transaction, TransactionClosureResult};
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap2, CMapResult, DartIdType, NULL_DART_ID},
+    cmap::{CMap2, DartIdType, SewError, NULL_DART_ID},
     prelude::CoordsFloat,
 };
 
@@ -16,14 +18,17 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), SewError> {
         let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
         let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
             (true, true) => {
-                self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                try_or_coerce!(
+                    self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
+                    SewError
+                );
             }
             // update vertex associated to b1rhs/lhs
             (true, false) => {
@@ -33,7 +38,10 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
                 // update the topology
-                self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                try_or_coerce!(
+                    self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
+                    SewError
+                );
                 // merge vertices & attributes from the old IDs to the new one
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
@@ -60,7 +68,10 @@ impl<T: CoordsFloat> CMap2<T> {
                 let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
                 let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
                 // update the topology
-                self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                try_or_coerce!(
+                    self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
+                    SewError
+                );
                 // merge vertices & attributes from the old IDs to the new one
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
@@ -106,6 +117,9 @@ impl<T: CoordsFloat> CMap2<T> {
                         // dot product should be negative if the two darts have opposite direction
                         // we could also put restriction on the angle made by the two darts to prevent
                         // drastic deformation
+                        if lhs_vector.dot(&rhs_vector) >= T::zero() {
+                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?
+                        }
                         assert!(
                             lhs_vector.dot(&rhs_vector) < T::zero(),
                             "{}",
@@ -114,7 +128,10 @@ impl<T: CoordsFloat> CMap2<T> {
                     };
 
                 // update the topology
-                self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)?;
+                try_or_coerce!(
+                    self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
+                    SewError
+                );
                 // merge vertices & attributes from the old IDs to the new one
                 let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
@@ -148,8 +165,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// 2-sew implementation.
     #[allow(clippy::too_many_lines)]
-    pub(super) fn force_two_sew(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        atomically(|trans| {
+    pub(super) fn force_two_sew(
+        &self,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
+    ) -> Result<(), SewError> {
+        atomically_with_err(|trans| {
             let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
             let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
             // match (is lhs 1-free, is rhs 1-free)
@@ -277,7 +298,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 }
             }
             Ok(())
-        });
+        })
     }
 }
 

@@ -1,11 +1,10 @@
 mod one;
 mod two;
 
-use crate::stm::Transaction;
-
 use crate::{
-    cmap::{CMap2, CMapResult, DartIdType},
+    cmap::{CMap2, CMapResult, DartIdType, SewError},
     prelude::CoordsFloat,
+    stm::{Transaction, TransactionClosureResult},
 };
 
 /// # **Sew implementations**
@@ -51,7 +50,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -98,7 +97,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unsew<const I: u8>(&self, trans: &mut Transaction, ld: DartIdType) -> CMapResult<()> {
+    pub fn unsew<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        ld: DartIdType,
+    ) -> TransactionClosureResult<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);

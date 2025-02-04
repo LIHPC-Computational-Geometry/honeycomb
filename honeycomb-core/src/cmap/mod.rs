@@ -17,4 +17,4 @@ pub use components::{
 };
 pub use dim2::{orbits::Orbit2, structure::CMap2};
 pub use dim3::{orbits::Orbit3, structure::CMap3};
-pub use error::{CMapError, CMapResult};
+pub use error::{LinkError, SewError};

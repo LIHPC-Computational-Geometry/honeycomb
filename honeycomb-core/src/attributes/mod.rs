@@ -13,12 +13,12 @@ pub(crate) use manager::AttrStorageManager;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AttributeError {
-    #[error("cannot merge attributes: {0}")]
-    FailedMerge(&'static str),
-    #[error("cannot split attributes: {0}")]
-    FailedSplit(&'static str),
-    #[error("insufficient data to complete attribute operation: {0}")]
-    InsufficientData(&'static str),
+    #[error("cannot merge attribute {0}: {1}")]
+    FailedMerge(&'static str, &'static str),
+    #[error("cannot split attribute {0}: {1}")]
+    FailedSplit(&'static str, &'static str),
+    #[error("insufficient data to complete {0} operation on {1}")]
+    InsufficientData(&'static str, &'static str),
 }
 
 // ------ TESTS
