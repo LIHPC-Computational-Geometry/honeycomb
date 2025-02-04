@@ -11,6 +11,16 @@ pub use traits::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttrib
 
 pub(crate) use manager::AttrStorageManager;
 
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+pub enum AttributeError {
+    #[error("cannot merge attributes: {0}")]
+    FailedMerge(&'static str),
+    #[error("cannot split attributes: {0}")]
+    FailedSplit(&'static str),
+    #[error("insufficient data to complete attribute operation: {0}")]
+    InsufficientData(&'static str),
+}
+
 // ------ TESTS
 
 #[allow(clippy::float_cmp)]
