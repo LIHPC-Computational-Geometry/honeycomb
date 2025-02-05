@@ -556,13 +556,9 @@ fn sew_ordering() {
         // this will result in a single vertex being defined, of ID 2
         // depending on the order of execution of the sews, the value may change
 
-        let t1 = loom::thread::spawn(move || {
-            m1.force_sew::<1>(1, 3);
-        });
+        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_sew::<1>(1, 3) {});
 
-        let t2 = loom::thread::spawn(move || {
-            m2.force_sew::<2>(3, 4);
-        });
+        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_sew::<2>(3, 4) {});
 
         t1.join().unwrap();
         t2.join().unwrap();
@@ -586,8 +582,8 @@ fn sew_ordering_with_transactions() {
     loom::model(|| {
         // setup the map
         let map: CMap3<f64> = CMap3::new(5);
-        map.force_link::<2>(1, 2);
-        map.force_link::<2>(3, 4);
+        map.force_link::<2>(1, 2).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
         // only one vertex is defined
         // the idea is to use CMapError, along with transaction control to ensure
         // we don't proceed with a sew on no value
@@ -698,10 +694,10 @@ fn unsew_ordering() {
         let mut map: CMap3<f64> = CMap3::new(5);
         map.attributes.add_storage::<Weight>(6);
 
-        map.force_link::<2>(1, 2);
-        map.force_link::<2>(3, 4);
-        map.force_link::<1>(1, 3);
-        map.force_link::<1>(4, 5);
+        map.force_link::<2>(1, 2).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
+        map.force_link::<1>(1, 3).unwrap();
+        map.force_link::<1>(4, 5).unwrap();
         map.force_write_vertex(2, Vertex3(0.0, 0.0, 0.0));
         map.force_write_attribute(2, Weight(33));
         let arc = loom::sync::Arc::new(map);
@@ -712,13 +708,9 @@ fn unsew_ordering() {
         // - 2-unsew 3 and 4 (t2)
         // this will result in different weights, defined on IDs 2, 3, and 5
 
-        let t1 = loom::thread::spawn(move || {
-            m1.force_unsew::<1>(1);
-        });
+        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_unsew::<1>(1) {});
 
-        let t2 = loom::thread::spawn(move || {
-            m2.force_unsew::<2>(3);
-        });
+        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_unsew::<2>(3) {});
 
         t1.join().unwrap();
         t2.join().unwrap();

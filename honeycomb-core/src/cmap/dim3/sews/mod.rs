@@ -115,6 +115,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// `I`-sew operator.
     ///
     /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
@@ -131,6 +132,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// `I`-unsew operator.
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that

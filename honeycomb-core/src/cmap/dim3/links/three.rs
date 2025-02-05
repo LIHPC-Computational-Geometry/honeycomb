@@ -3,7 +3,7 @@
 use crate::{
     cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
     prelude::CoordsFloat,
-    stm::{abort, atomically_with_err, Transaction, TransactionClosureResult},
+    stm::{atomically_with_err, Transaction, TransactionClosureResult},
 };
 
 /// 3-links
@@ -70,9 +70,7 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         let rd = self.beta_transac::<3>(trans, ld)?;
-        if rd == NULL_DART_ID {
-            abort(LinkError::AlreadyFree(3, ld))?
-        }
+
         self.betas.three_unlink_core(trans, ld)?;
         let (mut lside, mut rside) = (
             self.beta_transac::<1>(trans, ld)?,

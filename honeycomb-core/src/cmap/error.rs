@@ -2,16 +2,21 @@
 
 use crate::{attributes::AttributeError, cmap::DartIdType};
 
+/// Link operation error enum
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum LinkError {
+    /// The base dart is not free.
     #[error("cannot link {1} to {2}: b{0}({1}) != NULL")]
     NonFreeBase(u8, DartIdType, DartIdType),
+    /// The image dart is not free
     #[error("cannot link {1} to {2}: b{0}({2}) != NULL")]
     NonFreeImage(u8, DartIdType, DartIdType),
+    /// The dart is already free.
     #[error("cannot unlink {1}: b{0}({1}) == NULL")]
     AlreadyFree(u8, DartIdType),
 }
 
+/// Sew operation error enum
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum SewError {
     /// Geometry predicate failed verification.

@@ -149,10 +149,10 @@ fn temperature_map() {
         .add_attribute::<Temperature>();
     let map: CMap2<f64> = builder.build().unwrap();
 
-    map.force_link::<2>(1, 2);
-    map.force_link::<2>(3, 4);
-    map.force_link::<2>(5, 6);
-    map.force_link::<1>(1, 3);
+    map.force_link::<2>(1, 2).unwrap();
+    map.force_link::<2>(3, 4).unwrap();
+    map.force_link::<2>(5, 6).unwrap();
+    map.force_link::<1>(1, 3).unwrap();
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (1.0, 0.0));
     map.force_write_vertex(4, (1.5, 0.0));
@@ -174,7 +174,7 @@ fn temperature_map() {
         Some(Temperature::from(273.))
     );
     // sew one segment
-    map.force_sew::<1>(3, 5);
+    map.force_sew::<1>(3, 5).unwrap();
     assert_eq!(map.vertex_id(4), map.vertex_id(5));
     assert_eq!(
         map.force_read_attribute::<Temperature>(map.vertex_id(4)),
@@ -185,7 +185,7 @@ fn temperature_map() {
         Some(Vertex2::from((2., 0.)))
     );
     // unsew another
-    map.force_unsew::<1>(1);
+    map.force_unsew::<1>(1).unwrap();
     assert_ne!(map.vertex_id(2), map.vertex_id(3));
     assert_eq!(
         map.force_read_attribute::<Temperature>(map.vertex_id(2)),

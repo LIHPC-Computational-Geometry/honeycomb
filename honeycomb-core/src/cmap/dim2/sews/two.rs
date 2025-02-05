@@ -137,7 +137,7 @@ impl<T: CoordsFloat> CMap2<T> {
                         // we could also put restriction on the angle made by the two darts to prevent
                         // drastic deformation
                         if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?
+                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
                         }
                     };
 
@@ -300,7 +300,7 @@ impl<T: CoordsFloat> CMap2<T> {
                         // we could also put restriction on the angle made by the two darts to prevent
                         // drastic deformation
                         if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?
+                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
                         }
                     };
 
@@ -346,6 +346,7 @@ impl<T: CoordsFloat> CMap2<T> {
 /// 2-unsews
 impl<T: CoordsFloat> CMap2<T> {
     /// 2-unsew transactional implementation.
+    #[allow(clippy::too_many_lines)]
     pub(super) fn two_unsew(
         &self,
         trans: &mut Transaction,

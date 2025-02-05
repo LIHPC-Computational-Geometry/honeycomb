@@ -9,6 +9,7 @@ use crate::{
 
 /// 2-sews
 impl<T: CoordsFloat> CMap3<T> {
+    #[allow(clippy::too_many_lines)]
     /// 2-sew transactional operation.
     pub(crate) fn two_sew(
         &self,
@@ -113,7 +114,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     // we could also put restriction on the angle made by the two darts to prevent
                     // drastic deformation
                     if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                        abort(SewError::BadGeometry(2, ld, rd))?
+                        abort(SewError::BadGeometry(2, ld, rd))?;
                     }
                 };
 
@@ -233,7 +234,7 @@ impl<T: CoordsFloat> CMap3<T> {
                         // we could also put restriction on the angle made by the two darts to prevent
                         // drastic deformation
                         if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(2, ld, rd))?
+                            abort(SewError::BadGeometry(2, ld, rd))?;
                         }
                     };
 
@@ -383,7 +384,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     // split attributes from the old ID to the new ones
                     // FIXME: VertexIdentifier should be cast to DartIdentifier
                     self.attributes
-                        .split_edge_attributes(trans, ld, rd, eid_old);
+                        .split_edge_attributes(trans, ld, rd, eid_old)?;
                 }
                 (true, false) => {
                     // fetch IDs before topology update
