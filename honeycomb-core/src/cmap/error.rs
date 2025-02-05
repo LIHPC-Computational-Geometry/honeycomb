@@ -14,6 +14,9 @@ pub enum LinkError {
     /// The dart is already free.
     #[error("cannot unlink {1}: b{0}({1}) == NULL")]
     AlreadyFree(u8, DartIdType),
+    /// The two orbits being linked have different structures.
+    #[error("cannot 3-link {0} and {1}: faces do not have the same structure")]
+    AsymmetricalFaces(DartIdType, DartIdType),
 }
 
 /// Sew operation error enum

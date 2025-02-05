@@ -1,5 +1,7 @@
 //! 3D link implementations
 
+use fast_stm::abort;
+
 use crate::{
     cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
     prelude::CoordsFloat,
@@ -22,7 +24,10 @@ impl<T: CoordsFloat> CMap3<T> {
         );
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
-            assert_ne!(rside, NULL_DART_ID); // (*)
+            if rside == NULL_DART_ID {
+                // (*)
+                abort(LinkError::AsymmetricalFaces(ld, rd))?;
+            }
             self.betas.three_link_core(trans, lside, rside)?;
             (lside, rside) = (
                 self.beta_transac::<1>(trans, lside)?,
@@ -33,13 +38,19 @@ impl<T: CoordsFloat> CMap3<T> {
         // for meshes, we should be working on complete faces at all times,
         // so branch prediction will hopefully save use
         if lside == NULL_DART_ID {
-            assert_eq!(rside, NULL_DART_ID); // (*)
+            if rside != NULL_DART_ID {
+                // (*)
+                abort(LinkError::AsymmetricalFaces(ld, rd))?;
+            }
             (lside, rside) = (
                 self.beta_transac::<0>(trans, ld)?,
                 self.beta_transac::<1>(trans, rd)?,
             );
             while lside != NULL_DART_ID {
-                assert_ne!(rd, NULL_DART_ID); // (*)
+                if rside == NULL_DART_ID {
+                    // (*)
+                    abort(LinkError::AsymmetricalFaces(ld, rd))?;
+                }
                 self.betas.three_link_core(trans, lside, rside)?;
                 (lside, rside) = (
                     self.beta_transac::<0>(trans, lside)?,
@@ -78,7 +89,10 @@ impl<T: CoordsFloat> CMap3<T> {
         );
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
-            assert_eq!(lside, self.beta_transac::<3>(trans, rside)?); // (*)
+            if lside != self.beta_transac::<3>(trans, rside)? {
+                // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
+                abort(LinkError::AsymmetricalFaces(ld, rd))?;
+            }
             self.betas.three_unlink_core(trans, lside)?;
             (lside, rside) = (
                 self.beta_transac::<1>(trans, lside)?,
@@ -89,12 +103,19 @@ impl<T: CoordsFloat> CMap3<T> {
         // for meshes, we should be working on complete faces at all times,
         // so branch prediction will hopefully save use
         if lside == NULL_DART_ID {
-            assert_eq!(rside, NULL_DART_ID); // (**)
+            if rside != NULL_DART_ID {
+                // (**)
+                abort(LinkError::AsymmetricalFaces(ld, rd))?;
+            }
             (lside, rside) = (
                 self.beta_transac::<0>(trans, ld)?,
                 self.beta_transac::<1>(trans, rd)?,
             );
             while lside != NULL_DART_ID {
+                if lside != self.beta_transac::<3>(trans, rside)? {
+                    // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
+                    abort(LinkError::AsymmetricalFaces(ld, rd))?;
+                }
                 assert_eq!(lside, self.beta_transac::<3>(trans, rside)?); // (*)
                 self.betas.three_unlink_core(trans, lside)?;
                 (lside, rside) = (

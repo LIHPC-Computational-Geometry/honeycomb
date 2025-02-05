@@ -1,5 +1,7 @@
 //! 1D link implementations
 
+use fast_stm::abort;
+
 use crate::{
     cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
     prelude::CoordsFloat,
@@ -50,7 +52,10 @@ impl<T: CoordsFloat> CMap3<T> {
             self.beta_transac::<3>(trans, rd)?,
         );
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
-            assert!(self.beta_transac::<1>(trans, b3_rd)? == b3_ld);
+            if self.beta_transac::<1>(trans, b3_rd)? != b3_ld {
+                // FIXME: add dedicated variant ~LinkError::DivergentStructures ?
+                abort(LinkError::AsymmetricalFaces(ld, rd))?;
+            }
             self.betas.one_unlink_core(trans, b3_rd)?;
         }
         Ok(())
