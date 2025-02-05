@@ -51,7 +51,7 @@ fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
 #[bench::medium(&mut get_link_map(64))]
 #[bench::large(&mut get_link_map(256))]
 fn one_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_link::<1>(4, 6);
+    map.force_link::<1>(4, 6).unwrap();
     black_box(map)
 }
 
@@ -60,7 +60,7 @@ fn one_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_link_map(64))]
 #[bench::large(&mut get_link_map(256))]
 fn two_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_link::<2>(4, 6);
+    map.force_link::<2>(4, 6).unwrap();
     black_box(map)
 }
 
@@ -69,7 +69,7 @@ fn two_link(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn one_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_unlink::<1>(4);
+    map.force_unlink::<1>(4).unwrap();
     black_box(map)
 }
 
@@ -78,7 +78,7 @@ fn one_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn two_unlink(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_unlink::<2>(4);
+    map.force_unlink::<2>(4).unwrap();
     black_box(map)
 }
 
@@ -98,7 +98,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_sew_map(64))]
 #[bench::large(&mut get_sew_map(256))]
 fn one_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_sew::<1>(4, 6);
+    map.force_sew::<1>(4, 6).unwrap();
     black_box(map)
 }
 
@@ -107,7 +107,7 @@ fn one_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_sew_map(64))]
 #[bench::large(&mut get_sew_map(256))]
 fn two_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_sew::<2>(4, 6);
+    map.force_sew::<2>(4, 6).unwrap();
     black_box(map)
 }
 
@@ -116,7 +116,7 @@ fn two_sew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn one_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_unsew::<1>(4);
+    map.force_unsew::<1>(4).unwrap();
     black_box(map)
 }
 
@@ -125,7 +125,7 @@ fn one_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn two_unsew(map: &mut CMap2<FloatType>) -> &mut CMap2<FloatType> {
-    map.force_unsew::<2>(4);
+    map.force_unsew::<2>(4).unwrap();
     black_box(map)
 }
 
