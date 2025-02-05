@@ -88,7 +88,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // dot product should be negative if the two darts have opposite direction
                 // we could also put restriction on the angle made by the two darts to prevent
                 // drastic deformation
-                if lhs_vector.dot(&rhs_vector) < T::zero() {
+                if lhs_vector.dot(&rhs_vector) >= T::zero() {
                     abort(SewError::BadGeometry(3, ld, rd))?
                 }
             };
@@ -205,7 +205,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     // dot product should be negative if the two darts have opposite direction
                     // we could also put restriction on the angle made by the two darts to prevent
                     // drastic deformation
-                    if lhs_vector.dot(&rhs_vector) < T::zero() {
+                    if lhs_vector.dot(&rhs_vector) >= T::zero() {
                         abort(SewError::BadGeometry(3, ld, rd))?
                     }
                 };

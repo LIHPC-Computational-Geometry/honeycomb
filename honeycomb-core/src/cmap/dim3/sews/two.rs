@@ -112,13 +112,9 @@ impl<T: CoordsFloat> CMap3<T> {
                     // dot product should be negative if the two darts have opposite direction
                     // we could also put restriction on the angle made by the two darts to prevent
                     // drastic deformation
-                    assert!(
-                        lhs_vector.dot(&rhs_vector) < T::zero(),
-                        "{}",
-                        format!(
-                            "Dart {ld} and {rd} do not have consistent orientation for 2-sewing"
-                        ),
-                    );
+                    if lhs_vector.dot(&rhs_vector) >= T::zero() {
+                        abort(SewError::BadGeometry(2, ld, rd))?
+                    }
                 };
 
                 // update the topology
@@ -237,7 +233,7 @@ impl<T: CoordsFloat> CMap3<T> {
                         // we could also put restriction on the angle made by the two darts to prevent
                         // drastic deformation
                         if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(3, ld, rd))?
+                            abort(SewError::BadGeometry(2, ld, rd))?
                         }
                     };
 
