@@ -1,10 +1,9 @@
 //! 3D link implementations
 
-use crate::stm::{atomically, StmClosureResult, Transaction};
-
 use crate::{
-    cmap::{CMap3, DartIdType, NULL_DART_ID},
+    cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
     prelude::CoordsFloat,
+    stm::{abort, atomically_with_err, Transaction, TransactionClosureResult},
 };
 
 /// 3-links
@@ -15,7 +14,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.three_link_core(trans, ld, rd)?;
         let (mut lside, mut rside) = (
             self.beta_transac::<1>(trans, ld)?,
@@ -57,8 +56,8 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 3-link operation.
-    pub(crate) fn force_three_link(&self, ld: DartIdType, rd: DartIdType) {
-        atomically(|trans| self.three_link(trans, ld, rd));
+    pub(crate) fn force_three_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.three_link(trans, ld, rd))
     }
 }
 
@@ -69,8 +68,11 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         ld: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         let rd = self.beta_transac::<3>(trans, ld)?;
+        if rd == NULL_DART_ID {
+            abort(LinkError::AlreadyFree(3, ld))?
+        }
         self.betas.three_unlink_core(trans, ld)?;
         let (mut lside, mut rside) = (
             self.beta_transac::<1>(trans, ld)?,
@@ -110,7 +112,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 3-unlink operation.
-    pub(crate) fn force_three_unlink(&self, ld: DartIdType) {
-        atomically(|trans| self.three_unlink(trans, ld));
+    pub(crate) fn force_three_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.three_unlink(trans, ld))
     }
 }

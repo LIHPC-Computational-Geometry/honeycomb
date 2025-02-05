@@ -1,10 +1,9 @@
 //! 1D link implementations
 
-use crate::stm::{atomically, StmClosureResult, Transaction};
-
 use crate::{
-    cmap::{CMap3, DartIdType, NULL_DART_ID},
+    cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
     prelude::CoordsFloat,
+    stm::{atomically_with_err, Transaction, TransactionClosureResult},
 };
 
 /// 1-links
@@ -15,7 +14,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.one_link_core(trans, ld, rd)?;
         let (b3_ld, b3_rd) = (
             self.beta_transac::<3>(trans, ld)?,
@@ -31,8 +30,8 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
     /// retried until validated.
-    pub(crate) fn force_one_link(&self, ld: DartIdType, rd: DartIdType) {
-        atomically(|trans| self.one_link(trans, ld, rd));
+    pub(crate) fn force_one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.one_link(trans, ld, rd))
     }
 }
 
@@ -43,7 +42,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         ld: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         let rd = self.beta_transac::<1>(trans, ld)?;
         self.betas.one_unlink_core(trans, ld)?;
         let (b3_ld, b3_rd) = (
@@ -61,7 +60,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `one_unlink`, but internally uses a transaction that will be
     /// retried until validated.
-    pub(crate) fn force_one_unlink(&self, ld: DartIdType) {
-        atomically(|trans| self.one_unlink(trans, ld));
+    pub(crate) fn force_one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.one_unlink(trans, ld))
     }
 }
