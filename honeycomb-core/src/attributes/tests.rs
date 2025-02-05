@@ -1,17 +1,18 @@
 // ------ IMPORTS
 
+use std::any::Any;
+
 use crate::stm::{atomically, StmError, Transaction, TransactionControl};
 use loom::sync::Arc;
 
-use super::{
-    AttrSparseVec, AttrStorageManager, AttributeBind, AttributeStorage, AttributeUpdate,
-    UnknownAttributeStorage,
-};
 use crate::{
-    cmap::{CMapResult, EdgeIdType},
+    attributes::{
+        AttrSparseVec, AttrStorageManager, AttributeBind, AttributeError, AttributeStorage,
+        AttributeUpdate, UnknownAttributeStorage,
+    },
+    cmap::EdgeIdType,
     prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
 };
-use std::any::Any;
 
 // ------ CONTENT
 
@@ -25,21 +26,21 @@ struct Temperature {
 }
 
 impl AttributeUpdate for Temperature {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Temperature {
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Temperature {
             val: (attr1.val + attr2.val) / 2.0,
-        }
+        })
     }
 
-    fn split(attr: Self) -> (Self, Self) {
-        (attr, attr)
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        Ok((attr, attr))
     }
 
-    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
         Ok(Temperature::from(attr.val / 2.0))
     }
 
-    fn merge_from_none() -> CMapResult<Self> {
+    fn merge_from_none() -> Result<Self, AttributeError> {
         Ok(Temperature::from(0.0))
     }
 }
@@ -60,13 +61,17 @@ impl From<f32> for Temperature {
 struct Weight(pub u32);
 
 impl AttributeUpdate for Weight {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self(attr1.0 + attr2.0)
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Self(attr1.0 + attr2.0))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         // adding the % to keep things conservative
-        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
+        Ok((Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2)))
+    }
+
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 
@@ -82,12 +87,16 @@ impl AttributeBind for Weight {
 struct Length(pub f32);
 
 impl AttributeUpdate for Length {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Length((attr1.0 + attr2.0) / 2.0)
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Length((attr1.0 + attr2.0) / 2.0))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
-        (attr, attr)
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        Ok((attr, attr))
+    }
+
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 
@@ -107,16 +116,20 @@ fn mean(a: u8, b: u8) -> u8 {
 struct Color(pub u8, pub u8, pub u8);
 
 impl AttributeUpdate for Color {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self(
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Self(
             mean(attr1.0, attr2.0),
             mean(attr1.1, attr2.1),
             mean(attr1.2, attr2.2),
-        )
+        ))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
-        (attr, attr)
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        Ok((attr, attr))
+    }
+
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 
@@ -443,10 +456,10 @@ fn attribute_update() {
     let t1 = Temperature { val: 273.0 };
     let t2 = Temperature { val: 298.0 };
 
-    let t_new = AttributeUpdate::merge(t1, t2); // use AttributeUpdate::_
+    let t_new = AttributeUpdate::merge(t1, t2).unwrap(); // use AttributeUpdate::_
     let t_ref = Temperature { val: 285.5 };
 
-    assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
+    assert_eq!(Temperature::split(t_new), Ok((t_ref, t_ref))); // or Temperature::_
     assert_eq!(
         Temperature::merge_incomplete(t_ref),
         Ok(Temperature::from(t_ref.val / 2.0))

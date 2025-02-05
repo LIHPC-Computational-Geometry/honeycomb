@@ -1,11 +1,12 @@
 // ------ IMPORTS
 
-use crate::stm::{atomically, StmError};
+use fast_stm::{atomically_with_err, TransactionError};
 
 use crate::{
-    attributes::AttrSparseVec,
-    cmap::{CMapError, VertexIdType},
+    attributes::{AttrSparseVec, AttributeError},
+    cmap::VertexIdType,
     prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
+    stm::{atomically, StmError},
 };
 
 // ------ CONTENT
@@ -113,7 +114,7 @@ fn example_test() {
 fn example_test_transactional() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
-    atomically(|trans| {
+    let res = atomically_with_err(|trans| {
         map.link::<1>(trans, 1, 2)?;
         map.link::<1>(trans, 2, 3)?;
         map.link::<1>(trans, 3, 1)?;
@@ -122,6 +123,7 @@ fn example_test_transactional() {
         map.write_vertex(trans, 3, (0.0, 1.0))?;
         Ok(())
     });
+    assert!(res.is_ok());
 
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
@@ -135,7 +137,7 @@ fn example_test_transactional() {
 
     // build a second triangle
     map.add_free_darts(3);
-    atomically(|trans| {
+    let res = atomically_with_err(|trans| {
         map.link::<1>(trans, 4, 5)?;
         map.link::<1>(trans, 5, 6)?;
         map.link::<1>(trans, 6, 4)?;
@@ -144,6 +146,7 @@ fn example_test_transactional() {
         map.write_vertex(trans, 6, (1.0, 1.0))?;
         Ok(())
     });
+    assert!(res.is_ok());
 
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
@@ -458,13 +461,17 @@ fn io_write() {
 struct Weight(pub u32);
 
 impl AttributeUpdate for Weight {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self(attr1.0 + attr2.0)
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Self(attr1.0 + attr2.0))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         // adding the % to keep things conservative
-        (Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2))
+        Ok((Weight(attr.0 / 2 + attr.0 % 2), Weight(attr.0 / 2)))
+    }
+
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 
@@ -530,7 +537,7 @@ fn sew_ordering_with_transactions() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
-        atomically(|trans| {
+        let res = atomically_with_err(|trans| {
             map.link::<2>(trans, 1, 2)?;
             map.link::<1>(trans, 4, 5)?;
             map.write_vertex(trans, 2, Vertex2(1.0, 1.0))?;
@@ -538,6 +545,7 @@ fn sew_ordering_with_transactions() {
             map.write_vertex(trans, 5, Vertex2(2.0, 2.0))?;
             Ok(())
         });
+        assert!(res.is_ok());
 
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
@@ -554,11 +562,8 @@ fn sew_ordering_with_transactions() {
             atomically(|trans| {
                 if let Err(e) = m1.sew::<1>(trans, 1, 3) {
                     match e {
-                        CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
-                        CMapError::FailedAttributeSplit(_)
-                        | CMapError::IncorrectGeometry(_)
-                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                        TransactionError::Stm(e) => Err(e),
+                        TransactionError::Abort(_) => Err(StmError::Retry),
                     }
                 } else {
                     Ok(())
@@ -570,11 +575,8 @@ fn sew_ordering_with_transactions() {
             atomically(|trans| {
                 if let Err(e) = m2.sew::<2>(trans, 3, 4) {
                     match e {
-                        CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
-                        CMapError::FailedAttributeSplit(_)
-                        | CMapError::IncorrectGeometry(_)
-                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                        TransactionError::Stm(e) => Err(e),
+                        TransactionError::Abort(_) => Err(StmError::Retry),
                     }
                 } else {
                     Ok(())
@@ -678,7 +680,7 @@ fn unsew_ordering_with_transactions() {
             .add_attribute::<Weight>()
             .build()
             .unwrap();
-        atomically(|trans| {
+        let res = atomically_with_err(|trans| {
             map.link::<2>(trans, 1, 2)?;
             map.link::<2>(trans, 3, 4)?;
             map.link::<1>(trans, 1, 3)?;
@@ -687,6 +689,7 @@ fn unsew_ordering_with_transactions() {
             map.write_attribute(trans, 2, Weight(33))?;
             Ok(())
         });
+        assert!(res.is_ok());
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
 
@@ -702,11 +705,8 @@ fn unsew_ordering_with_transactions() {
             atomically(|trans| {
                 if let Err(e) = m1.unsew::<1>(trans, 1) {
                     match e {
-                        CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
-                        CMapError::FailedAttributeMerge(_)
-                        | CMapError::IncorrectGeometry(_)
-                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                        TransactionError::Stm(e) => Err(e),
+                        TransactionError::Abort(_) => Err(StmError::Retry),
                     }
                 } else {
                     Ok(())
@@ -718,11 +718,8 @@ fn unsew_ordering_with_transactions() {
             atomically(|trans| {
                 if let Err(e) = m2.unsew::<2>(trans, 3) {
                     match e {
-                        CMapError::FailedTransaction(e) => Err(e),
-                        CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
-                        CMapError::FailedAttributeMerge(_)
-                        | CMapError::IncorrectGeometry(_)
-                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                        TransactionError::Stm(e) => Err(e),
+                        TransactionError::Abort(_) => Err(StmError::Retry),
                     }
                 } else {
                     Ok(())

@@ -2,7 +2,7 @@ mod one;
 mod two;
 
 use crate::{
-    cmap::{CMap2, CMapResult, DartIdType, SewError},
+    cmap::{CMap2, DartIdType, SewError},
     prelude::CoordsFloat,
     stm::{Transaction, TransactionClosureResult},
 };
@@ -117,7 +117,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) {
+    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -133,7 +133,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) {
+    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
