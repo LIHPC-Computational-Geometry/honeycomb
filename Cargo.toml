@@ -45,7 +45,7 @@ thiserror = "2.0.11"
 downcast-rs = "2.0.1"
 loom = "0.7.2"
 num-traits = "0.2.19"
-fast-stm = { git = "https://github.com/imrn99/fast-stm", rev = "6433107819957a620a3e19be8fc1555280e18d3c" }
+fast-stm = { git = "https://github.com/imrn99/fast-stm", rev = "0622c44a59d69417914faded2b7d2f967ac53727" }
 vtkio = { version = "0.7.0-rc1", default-features = false }
 
 # benchmarks

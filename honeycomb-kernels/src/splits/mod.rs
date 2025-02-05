@@ -14,16 +14,20 @@ mod edge_single;
 
 pub use edge_multiple::{splitn_edge, splitn_edge_transac};
 pub use edge_single::{split_edge, split_edge_transac};
-use honeycomb_core::stm::StmError;
+
+use honeycomb_core::{
+    attributes::AttributeError,
+    cmap::{LinkError, SewError},
+};
 
 // ------ CONTENT
 
 /// Error-modeling enum for edge-splitting routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum SplitEdgeError {
-    /// STM transaction failed.
-    #[error("transaction failed")]
-    FailedTransaction(/*#[from]*/ StmError),
+    /// A core operation failed.
+    #[error("core operation failed: {0}")]
+    FailedCoreOp(#[from] SewError),
     /// Relative position of the new vertex isn't located on the edge.
     #[error("vertex placement for split is not in ]0;1[")]
     VertexBound,
@@ -39,9 +43,15 @@ pub enum SplitEdgeError {
     WrongAmountDarts(usize, usize),
 }
 
-impl From<StmError> for SplitEdgeError {
-    fn from(value: StmError) -> Self {
-        Self::FailedTransaction(value)
+impl From<LinkError> for SplitEdgeError {
+    fn from(value: LinkError) -> Self {
+        Self::FailedCoreOp(value.into())
+    }
+}
+
+impl From<AttributeError> for SplitEdgeError {
+    fn from(value: AttributeError) -> Self {
+        Self::FailedCoreOp(value.into())
     }
 }
 
