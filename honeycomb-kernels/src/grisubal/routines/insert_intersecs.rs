@@ -5,22 +5,32 @@
 // ------ IMPORTS
 
 use super::{DartSlices, IntersectionsPerEdge};
-use crate::splits::splitn_edge_no_alloc;
-use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use crate::splits::{splitn_edge_transac, SplitEdgeError};
+use honeycomb_core::{
+    prelude::{CMap2, CoordsFloat},
+    stm::atomically,
+};
 
 // ------ CONTENT
 
 pub(crate) fn insert_intersections<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    cmap: &CMap2<T>,
     edge_intersec: &IntersectionsPerEdge<T>,
     dart_slices: &DartSlices,
 ) {
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
-        let _ = splitn_edge_no_alloc(
-            cmap,
-            *edge_id,
-            new_darts,
-            &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),
-        );
+        atomically(|trans| {
+            if let Err(SplitEdgeError::FailedTransaction(e)) = splitn_edge_transac(
+                cmap,
+                trans,
+                *edge_id,
+                new_darts,
+                &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),
+            ) {
+                Err(e)
+            } else {
+                Ok(())
+            }
+        });
     }
 }

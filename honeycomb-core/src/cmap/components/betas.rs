@@ -2,7 +2,7 @@
 
 use std::ops::{Index, IndexMut};
 
-use stm::{StmError, TVar, Transaction};
+use crate::stm::{StmError, TVar, Transaction};
 
 use crate::cmap::NULL_DART_ID;
 

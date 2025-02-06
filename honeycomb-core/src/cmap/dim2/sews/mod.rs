@@ -1,7 +1,7 @@
 mod one;
 mod two;
 
-use stm::Transaction;
+use crate::stm::Transaction;
 
 use crate::{
     cmap::{CMap2, CMapResult, DartIdType},

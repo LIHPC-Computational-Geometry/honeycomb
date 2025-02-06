@@ -5,7 +5,7 @@
 
 // ------ IMPORTS
 
-use stm::{StmResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction};
 
 use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
 use crate::{
@@ -330,7 +330,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.vertices.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -357,7 +357,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.edges.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -384,7 +384,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.faces.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -582,7 +582,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.merge(trans, id_out, id_in_lhs, id_in_rhs)
@@ -694,7 +694,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.vertices.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -721,7 +721,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.edges.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -748,7 +748,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         for storage in self.faces.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -946,7 +946,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.split(trans, id_out_lhs, id_out_rhs, id_in)
@@ -1023,7 +1023,7 @@ impl AttrStorageManager {
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.read(trans, id)
@@ -1065,7 +1065,7 @@ impl AttrStorageManager {
         trans: &mut Transaction,
         id: A::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.write(trans, id, val)
@@ -1105,7 +1105,7 @@ impl AttrStorageManager {
         &self,
         trans: &mut Transaction,
         id: A::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.remove(trans, id)

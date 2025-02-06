@@ -2,7 +2,7 @@ mod one;
 mod three;
 mod two;
 
-use stm::{StmResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction};
 
 use crate::{
     cmap::{CMap3, DartIdType},
@@ -45,7 +45,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -91,7 +91,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
