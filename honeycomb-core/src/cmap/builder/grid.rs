@@ -1,5 +1,6 @@
 use std::usize;
 
+use crate::geometry::{Vector3, Vertex3};
 use crate::prelude::{BuilderError, CMap2, DartIdType, Vector2, Vertex2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
@@ -164,6 +165,8 @@ impl<T: CoordsFloat> GridDescriptor<T> {
 }
 
 // --- building routines
+
+// ------ 2D
 
 /// Internal grid-building routine
 #[allow(clippy::too_many_lines)]
@@ -380,6 +383,57 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
             })
         })
 }
+
+// ------ 3D
+/*
+/// Internal grid-building routine
+#[allow(clippy::too_many_lines)]
+pub fn build_3d_grid<T: CoordsFloat>(
+    origin: Vertex3<T>,
+    [n_square_x, n_square_y, n_square_z]: [usize; 3],
+    [len_per_x, len_per_y, len_per_z]: [T; 3],
+    manager: AttrStorageManager,
+) -> CMap3<T> {
+    let map: CMap3<T> =
+        CMap3::new_with_undefined_attributes(24 * n_square_x * n_square_y * n_square_z, manager);
+
+    // init beta functions
+    (1..=(4 * n_square_x * n_square_y) as DartIdType)
+        .zip(generate_square_beta_values(n_square_x, n_square_y))
+        .for_each(|(dart, images)| {
+            map.set_betas(dart, images);
+        });
+
+    // place vertices
+
+    // bottow left vertex of all cells
+    (0..n_square_y)
+        // flatten the loop to expose more parallelism
+        .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
+        .for_each(|(y_idx, x_idx)| {
+            let vertex_id = map.vertex_id((1 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
+            map.force_write_vertex(
+                vertex_id,
+                origin
+                    + Vector3(
+                        T::from(x_idx).unwrap() * len_per_x,
+                        T::from(y_idx).unwrap() * len_per_y,
+                        T::from(y_idx).unwrap() * len_per_z,
+                    ),
+            );
+        });
+
+    // check the number of built volumes
+    // this is set as debug only because the operation cost scales with map size
+    // this can quickly overshadow the exectime of all previous code
+    debug_assert_eq!(
+        map.iter_volumes().count(),
+        n_square_x * n_square_y * n_square_z
+    );
+
+    map
+}
+*/
 
 //
 //    y+
