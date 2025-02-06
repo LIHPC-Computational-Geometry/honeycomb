@@ -22,28 +22,30 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     /// The format specification is described in the [user guide]().
     pub fn serialize(&self, name: &str) {
         let mut file = File::create(name).expect("E: couldn't create file");
+        let n_darts = self.n_darts();
 
         writeln!(&mut file, "[META]").expect("E: couldn't write to file");
         writeln!(
             &mut file,
             "{} 2 {}",
             env!("CARGO_PKG_VERSION"), // indicates which version was used to generate the file
-            self.n_darts()
+            n_darts
         )
         .expect("E: couldn't write to file");
         writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[BETAS]").expect("E: couldn't write to file");
-        let mut b0 = String::with_capacity(self.n_darts() * 2);
-        let mut b1 = String::with_capacity(self.n_darts() * 2);
-        let mut b2 = String::with_capacity(self.n_darts() * 2);
+        let width = n_darts.to_string().len();
+        let mut b0 = String::with_capacity(n_darts * 2);
+        let mut b1 = String::with_capacity(n_darts * 2);
+        let mut b2 = String::with_capacity(n_darts * 2);
         std::thread::scope(|s| {
             s.spawn(|| {
                 // convoluted bc this prevents ephemeral allocs
                 use std::fmt::Write;
                 let mut buf = String::new();
-                (0..self.n_darts() as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{} ", self.beta::<0>(d)).unwrap();
+                (0..n_darts as DartIdType).for_each(|d| {
+                    write!(&mut buf, "{:>width$} ", self.beta::<0>(d)).unwrap();
                     b0.push_str(buf.as_str());
                     buf.clear();
                 });
@@ -52,8 +54,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
                 // convoluted bc this prevents ephemeral allocs
                 use std::fmt::Write;
                 let mut buf = String::new();
-                (0..self.n_darts() as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{} ", self.beta::<1>(d)).unwrap();
+                (0..n_darts as DartIdType).for_each(|d| {
+                    write!(&mut buf, "{:>width$} ", self.beta::<1>(d)).unwrap();
                     b1.push_str(buf.as_str());
                     buf.clear();
                 });
@@ -62,8 +64,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
                 // convoluted bc this prevents ephemeral allocs
                 use std::fmt::Write;
                 let mut buf = String::new();
-                (0..self.n_darts() as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{} ", self.beta::<2>(d)).unwrap();
+                (0..n_darts as DartIdType).for_each(|d| {
+                    write!(&mut buf, "{:>width$} ", self.beta::<2>(d)).unwrap();
                     b2.push_str(buf.as_str());
                     buf.clear();
                 });
