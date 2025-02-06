@@ -14,7 +14,6 @@ use crate::prelude::{
 };
 use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
 use itertools::Itertools;
-use std::collections::{HashSet, VecDeque};
 use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
@@ -33,14 +32,6 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "unused return value"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
-    }
-
-    pub fn is_unused(&self, d: DartIdType) -> bool {
-        self.unused_darts[d].read_atomic()
-    }
-
-    pub fn is_unused_transac(&self, trans: &mut Transaction, d: DartIdType) -> StmResult<bool> {
-        self.unused_darts[d].read(trans)
     }
 
     // --- edit
@@ -226,39 +217,6 @@ impl<T: CoordsFloat> CMap2<T> {
             && self.beta::<1>(dart_id) == NULL_DART_ID
             && self.beta::<2>(dart_id) == NULL_DART_ID
     }
-
-    /// Check if a given dart is `I`-free.
-    ///
-    /// # Return
-    ///
-    /// Return a boolean indicating if the dart is `I`-free, i.e.:
-    /// - `true` if β<sub>`I`</sub>(`dart_id`) = `NULL_DART_ID`,
-    /// - `false` else.
-    ///
-    /// # Panics
-    ///
-    /// The function will panic if *I* is not 0, 1 or 2.
-    ///
-    #[must_use = "unused return value"]
-    pub fn is_i_free_transac<const I: u8>(
-        &self,
-        trans: &mut Transaction,
-        dart_id: DartIdType,
-    ) -> StmResult<bool> {
-        Ok(self.beta_transac::<I>(trans, dart_id)? == NULL_DART_ID)
-    }
-
-    /// Check if a given dart is `i`-free, for all `i`.
-    ///
-    /// # Return
-    ///
-    /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
-    #[must_use = "unused return value"]
-    pub fn is_free_transac(&self, trans: &mut Transaction, dart_id: DartIdType) -> StmResult<bool> {
-        Ok(self.beta_transac::<0>(trans, dart_id)? == NULL_DART_ID
-            && self.beta_transac::<1>(trans, dart_id)? == NULL_DART_ID
-            && self.beta_transac::<2>(trans, dart_id)? == NULL_DART_ID)
-    }
 }
 
 /// **I-cell-related methods**
@@ -287,116 +245,24 @@ impl<T: CoordsFloat> CMap2<T> {
     ) -> StmResult<VertexIdType> {
         // min encountered / current dart
         let mut min = dart_id;
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
-        marked.insert(dart_id); // we're starting here, so we mark it beforehand
-        let mut pending = VecDeque::from([dart_id]);
-        while let Some(d) = pending.pop_front() {
-            // THIS CODE IS ONLY VALID IN 2D
-            let (b2d, b0d) = (
-                self.beta_transac::<2>(trans, d)?,
-                self.beta_transac::<0>(trans, d)?,
-            );
-            let image1 = self.beta_transac::<1>(trans, b2d)?;
-            if marked.insert(image1) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image1);
-                pending.push_back(image1);
-            }
-            let image2 = self.beta_transac::<2>(trans, b0d)?;
-            if marked.insert(image2) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image2);
-                pending.push_back(image2);
-            }
-        }
+        let mut crt = self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?;
 
-        Ok(min)
-    }
-
-    fn print_everything(&self, trans: &mut Transaction, dart_id: DartIdType) -> StmResult<()> {
-        let mut marked = HashSet::new();
-        marked.insert(dart_id);
-        println!("dart {dart_id}:");
-        println!(
-            "   Bs: [{}, {}, {}]",
-            self.beta_transac::<0>(trans, dart_id)?,
-            self.beta_transac::<1>(trans, dart_id)?,
-            self.beta_transac::<2>(trans, dart_id)?,
-        );
-        println!(
-            "   B1oB2: {}",
-            self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?
-        );
-        println!(
-            "   B2oB0: {}",
-            self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?
-        );
-        let mut tmp = self.beta_transac::<2>(trans, dart_id)?;
-        let mut crt = self.beta_transac::<1>(trans, tmp)?;
         // we first iterate in direct direction (B1oB2)
-        while marked.insert(crt) {
-            println!("dart {crt}:");
-            println!(
-                "   Bs: [{}, {}, {}]",
-                self.beta_transac::<0>(trans, crt)?,
-                self.beta_transac::<1>(trans, crt)?,
-                self.beta_transac::<2>(trans, crt)?,
-            );
-            println!(
-                "   B1oB2: {}",
-                self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?
-            );
-            println!(
-                "   B2oB0: {}",
-                self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?
-            );
-            tmp = self.beta_transac::<2>(trans, crt)?;
-            crt = self.beta_transac::<1>(trans, tmp)?;
+        while crt != NULL_DART_ID && crt != dart_id {
+            min = min.min(crt);
+            crt = self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?;
         }
         // if we landed on the null dart, the vertex is open
         // we need to iterate in the opposite dir (B2oB0)
         if crt == NULL_DART_ID {
-            println!("dart {dart_id}:");
-            println!(
-                "   Bs: [{}, {}, {}]",
-                self.beta_transac::<0>(trans, dart_id)?,
-                self.beta_transac::<1>(trans, dart_id)?,
-                self.beta_transac::<2>(trans, dart_id)?,
-            );
-            println!(
-                "   B2oB0: {}",
-                self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?
-            );
-            println!(
-                "   B1oB2: {}",
-                self.betas[(1, self.betas[(2, dart_id)].read(trans)?)].read(trans)?
-            );
-            tmp = self.beta_transac::<0>(trans, dart_id)?;
-            crt = self.beta_transac::<2>(trans, tmp)?;
-            while marked.insert(crt) {
-                println!("dart {crt}:");
-                println!(
-                    "   Bs: [{}, {}, {}]",
-                    self.beta_transac::<0>(trans, crt)?,
-                    self.beta_transac::<1>(trans, crt)?,
-                    self.beta_transac::<2>(trans, crt)?,
-                );
-                println!(
-                    "   B2oB0: {}",
-                    self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?
-                );
-                println!(
-                    "   B1oB2: {}",
-                    self.betas[(1, self.betas[(2, crt)].read(trans)?)].read(trans)?
-                );
-                tmp = self.beta_transac::<0>(trans, crt)?;
-                crt = self.beta_transac::<2>(trans, tmp)?;
+            crt = self.betas[(2, self.betas[(0, dart_id)].read(trans)?)].read(trans)?;
+            while crt != NULL_DART_ID {
+                min = min.min(crt);
+                crt = self.betas[(2, self.betas[(0, crt)].read(trans)?)].read(trans)?;
             }
         }
-        Ok(())
+
+        Ok(min)
     }
 
     /// Compute the ID of the edge a given dart is part of.
