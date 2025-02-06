@@ -1,0 +1,13 @@
+[META]
+<VERSION> <DIM> <N_DARTS_EXCL_0>
+
+[BETAS]
+0 2 3 ... # LEN should be equal across line, equal to `N_DARTS_EXCL_0 + 1`
+0 4 1 ... # columns will be read in order
+0 6 7 ...
+
+[UNUSED]
+5 8 9 ... # list of IDs; unused implies free
+
+[VERTICES]
+<ID> <X> <Y> # 2D case, add <Z> for 3D, no order reqs
