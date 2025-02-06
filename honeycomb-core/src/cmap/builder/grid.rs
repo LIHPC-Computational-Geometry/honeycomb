@@ -1,5 +1,6 @@
 use std::usize;
 
+use crate::cmap::{CMap3, VertexIdType};
 use crate::geometry::{Vector3, Vertex3};
 use crate::prelude::{BuilderError, CMap2, DartIdType, Vector2, Vertex2};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
@@ -385,42 +386,33 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
 }
 
 // ------ 3D
-/*
+
 /// Internal grid-building routine
 #[allow(clippy::too_many_lines)]
 pub fn build_3d_grid<T: CoordsFloat>(
     origin: Vertex3<T>,
-    [n_square_x, n_square_y, n_square_z]: [usize; 3],
-    [len_per_x, len_per_y, len_per_z]: [T; 3],
+    ns: [usize; 3],
+    lens: [T; 3],
     manager: AttrStorageManager,
 ) -> CMap3<T> {
-    let map: CMap3<T> =
-        CMap3::new_with_undefined_attributes(24 * n_square_x * n_square_y * n_square_z, manager);
+    let [n_square_x, n_square_y, n_square_z] = ns;
+    let n_darts = 24 * n_square_x * n_square_y * n_square_z;
+
+    let map: CMap3<T> = CMap3::new_with_undefined_attributes(n_darts, manager);
 
     // init beta functions
-    (1..=(4 * n_square_x * n_square_y) as DartIdType)
-        .zip(generate_square_beta_values(n_square_x, n_square_y))
+    (1..=n_darts as DartIdType)
+        .zip(generate_hex_beta_values(ns))
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
 
     // place vertices
-
-    // bottow left vertex of all cells
-    (0..n_square_y)
-        // flatten the loop to expose more parallelism
-        .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
-        .for_each(|(y_idx, x_idx)| {
-            let vertex_id = map.vertex_id((1 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
-            map.force_write_vertex(
-                vertex_id,
-                origin
-                    + Vector3(
-                        T::from(x_idx).unwrap() * len_per_x,
-                        T::from(y_idx).unwrap() * len_per_y,
-                        T::from(y_idx).unwrap() * len_per_z,
-                    ),
-            );
+    (1..=n_darts as DartIdType)
+        .filter(|d| *d as VertexIdType == map.vertex_id(*d))
+        .for_each(|d| {
+            let v = origin + generate_hex_offset(d, ns, lens);
+            map.force_write_vertex(d as VertexIdType, v);
         });
 
     // check the number of built volumes
@@ -433,7 +425,6 @@ pub fn build_3d_grid<T: CoordsFloat>(
 
     map
 }
-*/
 
 //
 //    y+
@@ -463,9 +454,7 @@ pub fn build_3d_grid<T: CoordsFloat>(
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_hex_beta_values(
-    n_x: usize,
-    n_y: usize,
-    n_z: usize,
+    [n_x, n_y, n_z]: [usize; 3],
 ) -> impl Iterator<Item = [DartIdType; 4]> {
     // this loop hierarchy yields the value in correct order
     // left to right first, then bottom to top
@@ -521,4 +510,152 @@ fn generate_hex_beta_values(
             })
         })
     })
+}
+
+#[allow(clippy::inline_always, unused)]
+#[inline(always)]
+fn generate_hex_offset<T: CoordsFloat>(
+    dart: DartIdType,
+    [n_x, n_y, _]: [usize; 3],
+    [lx, ly, lz]: [T; 3],
+) -> Vector3<T> {
+    // d = p + 24*x + 24*NX*y + 24*NX*NY*z
+    let d = dart as usize;
+    let dm = d % 24;
+    let dmm = d % (24 * n_x);
+    let dmmm = d % (24 * n_x * n_y);
+    let p = dm;
+    let x = (dmm - dm) / 24;
+    let y = (dmmm - dmm) / (24 * n_x);
+    let z = dmmm / (24 * n_x * n_y);
+    match p {
+        // d1 to d24
+        // y- face
+        1 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        2 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        3 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        4 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        // z- face
+        5 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        6 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        7 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        8 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        // x+ face
+        9 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        10 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        11 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        12 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        // z+ face
+        13 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        14 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        15 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        16 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        // x- face
+        17 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        18 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        19 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        20 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        // y+ face
+        21 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        22 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z).unwrap() * lz,
+        ),
+        23 => Vector3(
+            T::from(x + 1).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        0 => Vector3(
+            T::from(x).unwrap() * lx,
+            T::from(y + 1).unwrap() * ly,
+            T::from(z + 1).unwrap() * lz,
+        ),
+        _ => unreachable!(),
+    }
 }
