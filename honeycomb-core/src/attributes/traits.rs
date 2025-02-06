@@ -16,12 +16,12 @@ use stm::{atomically, StmResult, Transaction};
 
 // ------ CONTENT
 
-/// Generic attribute trait for logical behavior description
+/// # Generic attribute trait
 ///
-/// This trait can be implemented for a given attribute in order to define the behavior to
-/// follow when (un)sewing operations result in an update of the attribute.
+/// This trait is used to describe how a values of a given attribute are merged and split during
+/// sewing and unsewing operations.
 ///
-/// # Example
+/// ## Example
 ///
 /// For an intensive property of a system (e.g. a temperature), an implementation would look
 /// like this:
@@ -61,82 +61,70 @@ use stm::{atomically, StmResult, Transaction};
 /// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
 /// ```
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
-    /// Merging routine, i.e. how to obtain the new attribute value from the two existing ones.
+    /// Merging routine, i.e. how to obtain a new value from two existing ones.
     fn merge(attr1: Self, attr2: Self) -> Self;
 
-    /// Splitting routine, i.e. how to obtain the two attributes from a single one.
+    /// Splitting routine, i.e. how to obtain the two new values from a single one.
     fn split(attr: Self) -> (Self, Self);
 
-    /// Fallback merging routine, i.e. how to obtain the new attribute value from a single existing
-    /// value.
+    #[allow(clippy::missing_errors_doc)]
+    /// Fallback merging routine, i.e. how to obtain a new value from a single existing one.
     ///
-    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
-    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
+    /// The returned value directly affects the behavior of sewing methods: For example, if this
+    /// method returns an error for a given attribute, the `sew` method will fail. This allows the
+    /// user to define some attribute-specific behavior and enable fallbacks when it makes sense.
     ///
-    /// For example, if this method returns an error for a given attribute, the `try_merge` method
-    /// will fail. This allow the user to define some attributes as essential (fail if the merge
-    /// isn't done properly from two values) and other as mores flexible (can fallback to a default
-    /// value).
+    /// # Return / Errors
     ///
-    /// # Errors
-    ///
-    /// The default implementation simply returns the passed value.
+    /// The default implementation succeeds and simply returns the passed value.
     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
         Ok(attr)
     }
 
-    /// Fallback merging routine, i.e. how to obtain the new attribute value from no existing
-    /// value.
+    #[allow(clippy::missing_errors_doc)]
+    /// Fallback merging routine, i.e. how to obtain a new value from no existing one.
     ///
-    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::merge`],
-    /// [`UnknownAttributeStorage::try_merge`], therefore of sewing methods too.
-    ///
-    /// For example, if this method returns an error for a given attribute, the `try_merge` method
-    /// will fail. This allow the user to define some attributes as essential (fail if the merge
-    /// isn't done properly from two values) and others as more flexible (can fallback to a default
-    /// value).
+    /// The returned value directly affects the behavior of sewing methods: For example, if this
+    /// method returns an error for a given attribute, the `sew` method will fail. This allows the
+    /// user to define some attribute-specific behavior and enable fallbacks when it makes sense.
     ///
     /// # Errors
     ///
-    /// The default implementation return `Err(CMapError::FailedAttributeMerge)`.
+    /// The default implementation fails with `Err(CMapError::FailedAttributeMerge)`.
     #[allow(clippy::must_use_candidate)]
     fn merge_from_none() -> CMapResult<Self> {
         Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
     }
 
-    /// Fallback splitting routine, i.e. how to obtain the new attribute value from no existing
-    /// value.
+    /// Fallback splitting routine, i.e. how to obtain two new values from no existing one.
     ///
-    /// The returned value directly affects the behavior of [`UnknownAttributeStorage::split`],
-    /// [`UnknownAttributeStorage::try_split`], therefore of sewing methods too.
-    ///
-    /// For example, if this method returns an error for a given attribute, the `try_split` method
-    /// will fail. This allow the user to define some attributes as essential (fail if the split
-    /// isn't done properly from a value) and others as more flexible (can fallback to a default
+    /// The returned value directly affects the behavior of sewing methods: For example, if this
+    /// method returns an error for a given attribute, the `unsew` method will fail. This allows the
+    /// user to define some attribute-specific behavior and enable fallbacks when it makes sense.
     /// value).
     ///
     /// # Errors
     ///
-    /// The default implementation return `Err(CMapError::FailedAttributeSplit)`.
-    #[allow(clippy::must_use_candidate)]
+    /// The default implementation fails with `Err(CMapError::FailedAttributeSplit)`.
     fn split_from_none() -> CMapResult<(Self, Self)> {
         Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
     }
 }
 
-/// Generic attribute trait for support description
+/// # Generic attribute trait
 ///
-/// This trait can be implemented for a given attribute in order to hint at which components of
-/// the map the attribute is bound.
+/// This trait is used to describe how a given attribute binds to the map, and how it should be
+/// stored in memory.
 ///
-/// # Example
+/// ## Example
 ///
 /// Using the same context as the for the [`AttributeUpdate`] example, we can associate temperature
-/// to faces if we're modeling a 2D mesh:
+/// to faces and model a 2D heat-map:
 ///
 /// ```rust
-/// use honeycomb_core::prelude::{AttributeBind, AttributeUpdate, CMapResult, FaceIdType, OrbitPolicy};
-/// use honeycomb_core::attributes::AttrSparseVec;
+/// # use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
+/// use honeycomb_core::prelude::{FaceIdType, OrbitPolicy};
+/// use honeycomb_core::attributes::{AttributeBind, AttrSparseVec};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
 /// pub struct Temperature {
@@ -178,11 +166,16 @@ pub trait AttributeBind: Debug + Sized + Any {
     const BIND_POLICY: OrbitPolicy;
 }
 
-/// Common trait implemented by generic attribute storages.
+/// # Generic attribute storage trait
 ///
-/// This trait contain attribute-agnostic function & methods.
+/// This trait defines attribute-agnostic functions & methods. The documentation describes the
+/// expected behavior of each item. “ID” and “index” are used interchangeably.
 ///
 /// ### Note on force / regular / try semantics
+///
+/// <div class="warning">
+/// This will be simplified in the near future, most likely with the deletion of force variants.
+/// </div>
 ///
 /// We define three variants of split and merge methods (same as sews / unsews): `force`, regular,
 /// and `try`. Their goal is to provide different degrees of control vs convenience when using
@@ -207,7 +200,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// # Return
     ///
     /// Return a [Self] instance which yields correct accesses over the ID range `0..length`.
-    #[must_use = "constructed object is not used, consider removing this function call"]
+    #[must_use = "unused return value"]
     fn new(length: usize) -> Self
     where
         Self: Sized;
@@ -219,15 +212,15 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// - `length: usize` -- length of which the storage should be extended.
     fn extend(&mut self, length: usize);
 
-    /// Return the number of stored attributes, i.e. the number of used slots in the storage, not
-    /// its length.
-    #[must_use = "returned value is not used, consider removing this method call"]
+    /// Return the number of stored attributes, i.e. the number of used slots in the storage (not
+    /// its length).
+    #[must_use = "unused return value"]
     fn n_attributes(&self) -> usize;
 
     // regular
 
     #[allow(clippy::missing_errors_doc)]
-    /// Merge attributes at specified index
+    /// Merge attributes to specified index
     ///
     /// # Arguments
     ///
@@ -250,7 +243,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transacction passed as argument. The result should not be processed manually.
+    /// validate the transaction passed as argument. Errors should not be processed manually.
     fn merge(
         &self,
         trans: &mut Transaction,
@@ -280,7 +273,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// validate the transaction passed as argument. Errors should not be processed manually.
     fn split(
         &self,
         trans: &mut Transaction,
@@ -291,7 +284,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
     // force
 
-    /// Merge attributes at specified index
+    /// Merge attributes to specified index
     ///
     /// This variant is equivalent to `merge`, but internally uses a transaction that will be
     /// retried until validated.
@@ -309,7 +302,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
     // try
 
-    /// Merge attributes at specified index
+    /// Merge attributes to specified index
     ///
     /// # Errors
     ///
@@ -350,24 +343,14 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
 
 impl_downcast!(UnknownAttributeStorage);
 
-/// Common trait implemented by generic attribute storages.
+/// # Generic attribute storage trait
 ///
-/// This trait contain attribute-specific methods.
+/// This trait defines attribute-specific methods. The documentation describes the expected behavior
+/// of each method. "ID" and "index" are used interchangeably.
 ///
-/// The documentation of this trait describe the behavior each function & method should have. "ID"
-/// and "index" are used interchangeably.
-///
-/// ### Note on force / regular semantics
-///
-/// We define two variants of read / write / remove methods: `force` and regular. Their goal is to
-/// provide different degrees of control vs convenience when using these operations. Documentation
-/// of each method shortly explains their individual quirks, below is a table summarizing the
-/// differences:
-///
-/// | variant | description                                                                                |
-/// |---------| ------------------------------------------------------------------------------------------ |
-/// | regular | regular impl, which will fail if the transaction fails                                     |
-/// | `force` | convenience impl, which wraps the regular impl in a transaction that retries until success |
+/// Aside from the regular (transactional) read / write / remove methods, we provide `force`
+/// variants which wraps regular methods in a transaction that retries until success. The main
+/// purpose of these variants is to allow omitting transactions when they're not needed.
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     #[allow(clippy::missing_errors_doc)]
     /// Read the value of an element at a given index.
@@ -380,8 +363,8 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually,
-    /// only used via the `?` operator.
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     ///
     /// # Panics
     ///
@@ -402,8 +385,8 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually,
-    /// only used via the `?` operator.
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     ///
     /// # Panics
     ///
@@ -424,8 +407,8 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// # Return / Errors
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually,
-    /// only used via the `?` operator.
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     ///
     /// # Panics
     ///

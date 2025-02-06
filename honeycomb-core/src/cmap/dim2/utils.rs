@@ -11,16 +11,9 @@ use stm::atomically;
 
 /// **Utilities**
 impl<T: CoordsFloat> CMap2<T> {
-    /// Set the value of the specified beta function of a dart.
-    ///
-    /// # Arguments
-    ///
-    /// - `const I: u8` -- Beta function to edit.
-    /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
-    /// - `val: DartIdentifier` -- Value of the image of `dart_id` through the beta `I` function.
-    ///
-    pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, val: DartIdType) {
-        atomically(|trans| self.betas[(I, dart_id)].write(trans, val));
+    /// Set the value of β<sub>`I`</sub>(`dart_id`) to `new_val`.
+    pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, new_val: DartIdType) {
+        atomically(|trans| self.betas[(I, dart_id)].write(trans, new_val));
     }
 
     /// Set the values of the beta functions of a dart.
@@ -29,8 +22,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// - `dart_id: DartIdentifier` -- ID of the dart of interest.
     /// - `betas: [DartIdentifier; 3]` -- Value of the images as
-    ///   *[β<sub>0</sub>(dart), β<sub>1</sub>(dart), β<sub>2</sub>(dart)]*
-    ///
+    ///   [ β<sub>`0`</sub>(`dart_id`), β<sub>`1`</sub>(`dart_id`), β<sub>`2`</sub>(`dart_id`) ]
     pub fn set_betas(&self, dart_id: DartIdType, [b0, b1, b2]: [DartIdType; CMAP2_BETA]) {
         // store separately to use non-mutable methods
         atomically(|trans| {

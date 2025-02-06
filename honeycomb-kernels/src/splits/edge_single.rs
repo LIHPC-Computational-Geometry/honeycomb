@@ -166,8 +166,8 @@ fn inner_split<T: CoordsFloat>(
         cmap.set_beta::<1>(base_dart1, 0);
         cmap.set_beta::<0>(b1d1_old, 0);
         // rebuild the edge
-        cmap.force_one_link(base_dart1, b1d1_new);
-        cmap.force_one_link(b1d1_new, b1d1_old);
+        cmap.force_link::<1>(base_dart1, b1d1_new);
+        cmap.force_link::<1>(b1d1_new, b1d1_old);
         // insert the new vertex
         let seg = v2 - v1;
         cmap.force_write_vertex(
@@ -190,18 +190,18 @@ fn inner_split<T: CoordsFloat>(
         cmap.set_beta::<0>(b1d1_old, 0);
         cmap.set_beta::<1>(base_dart2, 0);
         cmap.set_beta::<0>(b1d2_old, 0);
-        cmap.force_two_unlink(base_dart1);
+        cmap.force_unlink::<2>(base_dart1);
         // rebuild the edge
-        cmap.force_one_link(base_dart1, b1d1_new);
+        cmap.force_link::<1>(base_dart1, b1d1_new);
         if b1d1_old != NULL_DART_ID {
-            cmap.force_one_link(b1d1_new, b1d1_old);
+            cmap.force_link::<1>(b1d1_new, b1d1_old);
         }
-        cmap.force_one_link(base_dart2, b1d2_new);
+        cmap.force_link::<1>(base_dart2, b1d2_new);
         if b1d2_old != NULL_DART_ID {
-            cmap.force_one_link(b1d2_new, b1d2_old);
+            cmap.force_link::<1>(b1d2_new, b1d2_old);
         }
-        cmap.force_two_link(base_dart1, b1d2_new);
-        cmap.force_two_link(base_dart2, b1d1_new);
+        cmap.force_link::<2>(base_dart1, b1d2_new);
+        cmap.force_link::<2>(base_dart2, b1d1_new);
         // insert the new vertex
         let seg = v2 - v1;
         cmap.force_write_vertex(

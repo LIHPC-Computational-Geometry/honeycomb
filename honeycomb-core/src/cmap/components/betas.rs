@@ -86,8 +86,8 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // makes it easier to assert algorithm correctness
-        assert!(self[(1, lhs_dart_id)].read_atomic() == NULL_DART_ID);
-        assert!(self[(0, rhs_dart_id)].read_atomic() == NULL_DART_ID);
+        assert!(self[(1, lhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(self[(0, rhs_dart_id)].read(trans)? == NULL_DART_ID);
         // set beta_1(lhs_dart) to rhs_dart
         self[(1, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_0(rhs_dart) to lhs_dart
@@ -117,12 +117,27 @@ impl<const N: usize> BetaFunctions<N> {
     ) -> Result<(), StmError> {
         // we could technically overwrite the value, but these assertions
         // make it easier to assert algorithm correctness
-        assert!(self[(2, lhs_dart_id)].read_atomic() == NULL_DART_ID);
-        assert!(self[(2, rhs_dart_id)].read_atomic() == NULL_DART_ID);
+        assert!(self[(2, lhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(self[(2, rhs_dart_id)].read(trans)? == NULL_DART_ID);
         // set beta_2(lhs_dart) to rhs_dart
         self[(2, lhs_dart_id)].write(trans, rhs_dart_id)?;
         // set beta_2(rhs_dart) to lhs_dart
         self[(2, rhs_dart_id)].write(trans, lhs_dart_id)?;
+        Ok(())
+    }
+
+    pub fn three_link_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
+    ) -> Result<(), StmError> {
+        // we could technically overwrite the value, but these assertions
+        // make it easier to assert algorithm correctness
+        assert!(self[(3, lhs_dart_id)].read(trans)? == NULL_DART_ID);
+        assert!(self[(3, rhs_dart_id)].read(trans)? == NULL_DART_ID);
+        self[(3, lhs_dart_id)].write(trans, rhs_dart_id)?;
+        self[(3, rhs_dart_id)].write(trans, lhs_dart_id)?;
         Ok(())
     }
 
@@ -176,6 +191,17 @@ impl<const N: usize> BetaFunctions<N> {
         assert_ne!(rhs_dart_id, NULL_DART_ID);
         // set beta_2(beta_2(dart)) to NullDart
         self[(2, rhs_dart_id)].write(trans, NULL_DART_ID)?;
+        Ok(())
+    }
+
+    pub fn three_unlink_core(
+        &self,
+        trans: &mut Transaction,
+        lhs_dart_id: DartIdType,
+    ) -> Result<(), StmError> {
+        let rhs_dart_id = self[(3, lhs_dart_id)].replace(trans, NULL_DART_ID)?;
+        assert_ne!(rhs_dart_id, NULL_DART_ID);
+        self[(3, rhs_dart_id)].write(trans, NULL_DART_ID)?;
         Ok(())
     }
 }

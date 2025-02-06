@@ -30,18 +30,22 @@ rand = { workspace = true, features = ["small_rng"] }
 [[bin]]
 name = "builder"
 path = "src/builder.rs"
+doc = false
 
 [[bin]]
 name = "grisubal"
 path = "src/grisubal.rs"
+doc = false
 
 [[bin]]
 name = "shift"
 path = "src/shift.rs"
+doc = false
 
 [[bin]]
 name = "shift-nc"
 path = "src/shift_no_conflict.rs"
+doc = false
 
 # benches
 

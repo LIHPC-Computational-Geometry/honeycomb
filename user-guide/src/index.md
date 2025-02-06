@@ -21,7 +21,8 @@ The current objective is to
 - ~implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
   Rust's framework to streamline the refactoring and parallelization process~
 - ~Benchmark and/or profile and/or parallelize our first algorithm, **grisubal**~
-- Ship a first stable version of the library (see this [issue](https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150))
+- Ship a first stable version of the library (see
+  this [issue](https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150))
 - Work on efficient parallelism
 
 ### Core Requirements
@@ -37,16 +38,16 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.6.0"} # remove tag for master branch build
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.7.0" } # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.6.0"
-honeycomb-kernels = "0.6.0"
-honeycomb-render = "0.6.0"
+honeycomb-core = "0.7.0"
+honeycomb-kernels = "0.7.0"
+honeycomb-render = "0.7.0"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
@@ -59,6 +60,7 @@ You can generate this book and the Rust documentation locally using respectively
 ```shell
 mdbook serve --open user-guide/
 ```
+
 ```shell
 cargo +nightly doc --all --all-features --no-deps
 ```

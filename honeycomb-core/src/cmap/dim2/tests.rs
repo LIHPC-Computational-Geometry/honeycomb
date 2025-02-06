@@ -1,8 +1,10 @@
 // ------ IMPORTS
 
+use stm::atomically;
+
 use crate::{
     attributes::AttrSparseVec,
-    cmap::VertexIdType,
+    cmap::{CMapError, VertexIdType},
     prelude::{AttributeBind, AttributeUpdate, CMap2, CMapBuilder, Orbit2, OrbitPolicy, Vertex2},
 };
 
@@ -14,9 +16,9 @@ use crate::{
 fn example_test() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
-    map.force_one_link(1, 2);
-    map.force_one_link(2, 3);
-    map.force_one_link(3, 1);
+    map.force_link::<1>(1, 2);
+    map.force_link::<1>(2, 3);
+    map.force_link::<1>(3, 1);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (1.0, 0.0));
     map.force_write_vertex(3, (0.0, 1.0));
@@ -33,9 +35,9 @@ fn example_test() {
 
     // build a second triangle
     map.add_free_darts(3);
-    map.force_one_link(4, 5);
-    map.force_one_link(5, 6);
-    map.force_one_link(6, 4);
+    map.force_link::<1>(4, 5);
+    map.force_link::<1>(5, 6);
+    map.force_link::<1>(6, 4);
     map.force_write_vertex(4, (0.0, 2.0));
     map.force_write_vertex(5, (2.0, 0.0));
     map.force_write_vertex(6, (1.0, 1.0));
@@ -50,7 +52,7 @@ fn example_test() {
     assert_eq!(face.next(), None);
 
     // sew both triangles
-    map.force_two_sew(2, 4);
+    map.force_sew::<2>(2, 4);
 
     // checks
     assert_eq!(map.beta::<2>(2), 4);
@@ -76,17 +78,17 @@ fn example_test() {
     assert_eq!(map.force_read_vertex(3).unwrap(), Vertex2::from((0.0, 1.0)));
 
     // separate the diagonal from the rest
-    map.force_one_unsew(1);
-    map.force_one_unsew(2);
-    map.force_one_unsew(6);
-    map.force_one_unsew(4);
+    map.force_unsew::<1>(1);
+    map.force_unsew::<1>(2);
+    map.force_unsew::<1>(6);
+    map.force_unsew::<1>(4);
     // break up & remove the diagonal
-    map.force_two_unsew(2); // this makes dart 2 and 4 free
+    map.force_unsew::<2>(2); // this makes dart 2 and 4 free
     map.remove_free_dart(2);
     map.remove_free_dart(4);
     // sew the square back up
-    map.force_one_sew(1, 5);
-    map.force_one_sew(6, 3);
+    map.force_sew::<1>(1, 5);
+    map.force_sew::<1>(6, 3);
 
     // i-cells
     let faces: Vec<_> = map.iter_faces().collect();
@@ -107,6 +109,129 @@ fn example_test() {
     assert_eq!(map.beta_rt(1, 3), 1);
 }
 
+#[test]
+fn example_test_transactional() {
+    // build a triangle
+    let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
+    atomically(|trans| {
+        map.link::<1>(trans, 1, 2)?;
+        map.link::<1>(trans, 2, 3)?;
+        map.link::<1>(trans, 3, 1)?;
+        map.write_vertex(trans, 1, (0.0, 0.0))?;
+        map.write_vertex(trans, 2, (1.0, 0.0))?;
+        map.write_vertex(trans, 3, (0.0, 1.0))?;
+        Ok(())
+    });
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(faces.len(), 1);
+    assert_eq!(faces[0], 1);
+    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
+    assert_eq!(face.next(), Some(1));
+    assert_eq!(face.next(), Some(2));
+    assert_eq!(face.next(), Some(3));
+    assert_eq!(face.next(), None);
+
+    // build a second triangle
+    map.add_free_darts(3);
+    atomically(|trans| {
+        map.link::<1>(trans, 4, 5)?;
+        map.link::<1>(trans, 5, 6)?;
+        map.link::<1>(trans, 6, 4)?;
+        map.write_vertex(trans, 4, (0.0, 2.0))?;
+        map.write_vertex(trans, 5, (2.0, 0.0))?;
+        map.write_vertex(trans, 6, (1.0, 1.0))?;
+        Ok(())
+    });
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1, 4]);
+    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
+    assert_eq!(face.next(), Some(4));
+    assert_eq!(face.next(), Some(5));
+    assert_eq!(face.next(), Some(6));
+    assert_eq!(face.next(), None);
+
+    // sew both triangles
+    atomically(|trans| {
+        // normally the erro should be handled, but we're in a seq context
+        assert!(map.sew::<2>(trans, 2, 4).is_ok());
+        Ok(())
+    });
+
+    // checks
+    atomically(|trans| {
+        assert_eq!(map.beta_transac::<2>(trans, 2)?, 4);
+        assert_eq!(map.vertex_id_transac(trans, 2)?, 2);
+        assert_eq!(map.vertex_id_transac(trans, 5)?, 2);
+        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.vertex_id_transac(trans, 3)?, 3);
+        assert_eq!(map.vertex_id_transac(trans, 4)?, 3);
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.5))));
+        Ok(())
+    });
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 2, 3, 5, 6]);
+
+    // adjust bottom-right & top-left vertex position
+    atomically(|trans| {
+        assert_eq!(
+            map.write_vertex(trans, 2, (1.0, 0.0))?,
+            Some(Vertex2::from((1.5, 0.0)))
+        );
+        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(
+            map.write_vertex(trans, 3, (0.0, 1.0))?,
+            Some(Vertex2::from((0.0, 1.5)))
+        );
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        Ok(())
+    });
+
+    // separate the diagonal from the rest
+    atomically(|trans| {
+        assert!(map.unsew::<1>(trans, 1).is_ok());
+        assert!(map.unsew::<1>(trans, 2).is_ok());
+        assert!(map.unsew::<1>(trans, 6).is_ok());
+        assert!(map.unsew::<1>(trans, 4).is_ok());
+        assert!(map.unsew::<2>(trans, 2).is_ok()); // this makes dart 2 and 4 free
+        Ok(())
+    });
+    map.remove_free_dart(2);
+    map.remove_free_dart(4);
+    atomically(|trans| {
+        // sew the square back up
+        assert!(map.sew::<1>(trans, 1, 5).is_ok());
+        assert!(map.sew::<1>(trans, 6, 3).is_ok());
+        Ok(())
+    });
+
+    // i-cells
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1]);
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 3, 5, 6]);
+    let vertices: Vec<_> = map.iter_vertices().collect();
+    assert_eq!(&vertices, &[1, 3, 5, 6]);
+    atomically(|trans| {
+        assert_eq!(map.read_vertex(trans, 1)?, Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.read_vertex(trans, 5)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(trans, 6)?, Some(Vertex2::from((1.0, 1.0))));
+        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        Ok(())
+    });
+    // darts
+    assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
+    atomically(|trans| {
+        assert_eq!(map.beta_rt_transac(trans, 1, 1)?, 5);
+        assert_eq!(map.beta_rt_transac(trans, 1, 5)?, 6);
+        assert_eq!(map.beta_rt_transac(trans, 1, 6)?, 3);
+        assert_eq!(map.beta_rt_transac(trans, 1, 3)?, 1);
+        Ok(())
+    });
+}
 #[test]
 #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn remove_vertex_twice() {
@@ -135,13 +260,13 @@ fn remove_dart_twice() {
 #[test]
 fn two_sew_complete() {
     let mut map: CMap2<f64> = CMap2::new(4);
-    map.force_one_link(1, 2);
-    map.force_one_link(3, 4);
+    map.force_link::<1>(1, 2);
+    map.force_link::<1>(3, 4);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0));
     map.force_write_vertex(3, (1.0, 1.0));
     map.force_write_vertex(4, (1.0, 0.0));
-    map.force_two_sew(1, 3);
+    map.force_sew::<2>(1, 3);
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.5, 0.0)));
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
 }
@@ -149,18 +274,18 @@ fn two_sew_complete() {
 #[test]
 fn two_sew_incomplete() {
     let mut map: CMap2<f64> = CMap2::new(3);
-    map.force_one_link(1, 2);
+    map.force_link::<1>(1, 2);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0));
     map.force_write_vertex(3, (1.0, 1.0));
-    map.force_two_sew(1, 3);
+    map.force_sew::<2>(1, 3);
     // missing beta1 image for dart 3
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
-    map.force_two_unsew(1);
+    map.force_unsew::<2>(1);
     assert_eq!(map.add_free_dart(), 4);
-    map.force_one_link(3, 4);
-    map.force_two_sew(1, 3);
+    map.force_link::<1>(3, 4);
+    map.force_sew::<2>(1, 3);
     // missing vertex for dart 4
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
@@ -171,7 +296,7 @@ fn two_sew_no_b1() {
     let mut map: CMap2<f64> = CMap2::new(2);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (1.0, 1.0));
-    map.force_two_sew(1, 2);
+    map.force_sew::<2>(1, 2);
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((1.0, 1.0)));
 }
@@ -180,49 +305,49 @@ fn two_sew_no_b1() {
 // #[should_panic] // FIXME: find a way to test what's printed?
 fn two_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(2);
-    map.force_two_sew(1, 2); // should panic
+    map.force_sew::<2>(1, 2); // should panic
 }
 
 #[test]
 // #[should_panic] // FIXME: find a way to test what's printed?
 fn two_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(4);
-    map.force_one_link(1, 2);
-    map.force_one_link(3, 4);
-    map.force_two_sew(1, 3); // panic
+    map.force_link::<1>(1, 2);
+    map.force_link::<1>(3, 4);
+    map.force_sew::<2>(1, 3); // panic
 }
 
 #[test]
 #[should_panic(expected = "Dart 1 and 3 do not have consistent orientation for 2-sewing")]
 fn two_sew_bad_orientation() {
     let mut map: CMap2<f64> = CMap2::new(4);
-    map.force_one_link(1, 2);
-    map.force_one_link(3, 4);
+    map.force_link::<1>(1, 2);
+    map.force_link::<1>(3, 4);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0)); // 1->2 goes up
     map.force_write_vertex(3, (1.0, 0.0));
     map.force_write_vertex(4, (1.0, 1.0)); // 3->4 also goes up
-    map.force_two_sew(1, 3); // panic
+    map.force_sew::<2>(1, 3); // panic
 }
 
 #[test]
 fn one_sew_complete() {
     let mut map: CMap2<f64> = CMap2::new(3);
-    map.force_two_link(1, 2);
+    map.force_link::<2>(1, 2);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0));
     map.force_write_vertex(3, (0.0, 2.0));
-    map.force_one_sew(1, 3);
+    map.force_sew::<1>(1, 3);
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.0, 1.5)));
 }
 
 #[test]
 fn one_sew_incomplete_attributes() {
     let mut map: CMap2<f64> = CMap2::new(3);
-    map.force_two_link(1, 2);
+    map.force_link::<2>(1, 2);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0));
-    map.force_one_sew(1, 3);
+    map.force_sew::<1>(1, 3);
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.0, 1.0)));
 }
 
@@ -231,27 +356,26 @@ fn one_sew_incomplete_beta() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.force_write_vertex(1, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 1.0));
-    map.force_one_sew(1, 2);
+    map.force_sew::<1>(1, 2);
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.0, 1.0)));
 }
 #[test]
 // #[should_panic] // FIXME: find a way to test what's printed?
 fn one_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(2);
-    map.force_one_sew(1, 2); // should panic
+    map.force_sew::<1>(1, 2); // should panic
 }
 
 #[test]
 // #[should_panic] // FIXME: find a way to test what's printed?
 fn one_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(3);
-    map.force_two_link(1, 2);
-    map.force_one_sew(1, 3); // panic
+    map.force_link::<2>(1, 2);
+    map.force_sew::<1>(1, 3); // panic
 }
 
 // --- IO
 
-#[cfg(feature = "io")]
 #[test]
 fn io_write() {
     // build a map looking like this:
@@ -268,29 +392,29 @@ fn io_write() {
     //  1---2---6
     let mut cmap: CMap2<f32> = CMap2::new(16);
     // bottom left square
-    cmap.force_one_link(1, 2);
-    cmap.force_one_link(2, 3);
-    cmap.force_one_link(3, 4);
-    cmap.force_one_link(4, 1);
+    cmap.force_link::<1>(1, 2);
+    cmap.force_link::<1>(2, 3);
+    cmap.force_link::<1>(3, 4);
+    cmap.force_link::<1>(4, 1);
     // bottom right triangles
-    cmap.force_one_link(5, 6);
-    cmap.force_one_link(6, 7);
-    cmap.force_one_link(7, 5);
-    cmap.force_two_link(7, 8);
-    cmap.force_one_link(8, 9);
-    cmap.force_one_link(9, 10);
-    cmap.force_one_link(10, 8);
+    cmap.force_link::<1>(5, 6);
+    cmap.force_link::<1>(6, 7);
+    cmap.force_link::<1>(7, 5);
+    cmap.force_link::<2>(7, 8);
+    cmap.force_link::<1>(8, 9);
+    cmap.force_link::<1>(9, 10);
+    cmap.force_link::<1>(10, 8);
     // top polygon
-    cmap.force_one_link(11, 12);
-    cmap.force_one_link(12, 13);
-    cmap.force_one_link(13, 14);
-    cmap.force_one_link(14, 15);
-    cmap.force_one_link(15, 16);
-    cmap.force_one_link(16, 11);
+    cmap.force_link::<1>(11, 12);
+    cmap.force_link::<1>(12, 13);
+    cmap.force_link::<1>(13, 14);
+    cmap.force_link::<1>(14, 15);
+    cmap.force_link::<1>(15, 16);
+    cmap.force_link::<1>(16, 11);
     // assemble
-    cmap.force_two_link(2, 10);
-    cmap.force_two_link(3, 11);
-    cmap.force_two_link(9, 12);
+    cmap.force_link::<2>(2, 10);
+    cmap.force_link::<2>(3, 11);
+    cmap.force_link::<2>(9, 12);
 
     // insert vertices
     cmap.force_write_vertex(1, (0.0, 0.0));
@@ -355,8 +479,8 @@ fn sew_ordering() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
-        map.force_two_link(1, 2);
-        map.force_one_link(4, 5);
+        map.force_link::<2>(1, 2);
+        map.force_link::<1>(4, 5);
         map.force_write_vertex(2, Vertex2(1.0, 1.0));
         map.force_write_vertex(3, Vertex2(1.0, 2.0));
         map.force_write_vertex(5, Vertex2(2.0, 2.0));
@@ -372,25 +496,117 @@ fn sew_ordering() {
         // 2-sew before 1-sew: (1.25, 1.5)
 
         let t1 = loom::thread::spawn(move || {
-            m1.force_one_sew(1, 3);
+            m1.force_sew::<1>(1, 3);
         });
 
         let t2 = loom::thread::spawn(move || {
-            m2.force_two_sew(3, 4);
+            m2.force_sew::<2>(3, 4);
         });
 
         t1.join().unwrap();
         t2.join().unwrap();
 
         // all path should result in the same topological result here
-        assert!(arc.force_read_vertex(2).is_some());
-        assert!(arc.force_read_vertex(3).is_none());
-        assert!(arc.force_read_vertex(5).is_none());
+        let v2 = arc.force_remove_vertex(2);
+        let v3 = arc.force_remove_vertex(3);
+        let v5 = arc.force_remove_vertex(5);
+        assert!(v2.is_some());
+        assert!(v3.is_none());
+        assert!(v5.is_none());
         assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.force_read_vertex(2), None);
+        assert_eq!(arc.force_read_vertex(3), None);
+        assert_eq!(arc.force_read_vertex(5), None);
 
-        // the v2 can have two values though
-        let path1 = arc.force_read_vertex(2) == Some(Vertex2(1.5, 1.75));
-        let path2 = arc.force_read_vertex(2) == Some(Vertex2(1.25, 1.5));
+        // v2 can have two values though
+        let path1 = v2 == Some(Vertex2(1.5, 1.75));
+        let path2 = v2 == Some(Vertex2(1.25, 1.5));
+        assert!(path1 || path2);
+    });
+}
+
+#[test]
+fn sew_ordering_with_transactions() {
+    loom::model(|| {
+        // setup the map
+        let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
+        atomically(|trans| {
+            map.link::<2>(trans, 1, 2)?;
+            map.link::<1>(trans, 4, 5)?;
+            map.write_vertex(trans, 2, Vertex2(1.0, 1.0))?;
+            map.write_vertex(trans, 3, Vertex2(1.0, 2.0))?;
+            map.write_vertex(trans, 5, Vertex2(2.0, 2.0))?;
+            Ok(())
+        });
+
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to sew ops:
+        // - 1-sew 1 to 3 (t1)
+        // - 2-sew 3 to 4 (t2)
+        // this will result in a single vertex being define, of ID 2
+        // depending on the order of execution of the sews, the value may change
+        // 1-sew before 2-sew: (1.5, 1.75)
+        // 2-sew before 1-sew: (1.25, 1.5)
+
+        let t1 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m1.sew::<1>(trans, 1, 3) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeMerge(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeSplit(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m2.sew::<2>(trans, 3, 4) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeMerge(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeSplit(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all path should result in the same topological result here
+        let (v2, v3, v5) = atomically(|trans| {
+            Ok((
+                arc.remove_vertex(trans, 2)?,
+                arc.remove_vertex(trans, 3)?,
+                arc.remove_vertex(trans, 5)?,
+            ))
+        });
+        assert!(v2.is_some());
+        assert!(v3.is_none());
+        assert!(v5.is_none());
+        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        atomically(|trans| {
+            assert_eq!(arc.read_vertex(trans, 2)?, None);
+            assert_eq!(arc.read_vertex(trans, 3)?, None);
+            assert_eq!(arc.read_vertex(trans, 5)?, None);
+            Ok(())
+        });
+
+        // v2 can have two values though
+        let path1 = v2 == Some(Vertex2(1.5, 1.75));
+        let path2 = v2 == Some(Vertex2(1.25, 1.5));
         assert!(path1 || path2);
     });
 }
@@ -404,10 +620,10 @@ fn unsew_ordering() {
             .add_attribute::<Weight>()
             .build()
             .unwrap();
-        map.force_two_link(1, 2);
-        map.force_two_link(3, 4);
-        map.force_one_link(1, 3);
-        map.force_one_link(4, 5);
+        map.force_link::<2>(1, 2);
+        map.force_link::<2>(3, 4);
+        map.force_link::<1>(1, 3);
+        map.force_link::<1>(4, 5);
         map.force_write_vertex(2, Vertex2(0.0, 0.0));
         map.force_write_attribute(2, Weight(33));
         let arc = loom::sync::Arc::new(map);
@@ -422,23 +638,121 @@ fn unsew_ordering() {
         // 2-unsew before 1-unsew: (W2, W3, W5) = (9, 8, 16)
 
         let t1 = loom::thread::spawn(move || {
-            m1.force_one_unsew(1);
+            m1.force_unsew::<1>(1);
         });
 
         let t2 = loom::thread::spawn(move || {
-            m2.force_two_unsew(3);
+            m2.force_unsew::<2>(3);
         });
 
         t1.join().unwrap();
         t2.join().unwrap();
 
         // all path should result in the same topological result here
-        assert!(arc.force_read_attribute::<Weight>(2).is_some());
-        assert!(arc.force_read_attribute::<Weight>(3).is_some());
-        assert!(arc.force_read_attribute::<Weight>(5).is_some());
-        let w2 = arc.force_read_attribute::<Weight>(2).unwrap();
-        let w3 = arc.force_read_attribute::<Weight>(3).unwrap();
-        let w5 = arc.force_read_attribute::<Weight>(5).unwrap();
+        let w2 = arc.force_remove_attribute::<Weight>(2);
+        let w3 = arc.force_remove_attribute::<Weight>(3);
+        let w5 = arc.force_remove_attribute::<Weight>(5);
+        assert!(w2.is_some());
+        assert!(w3.is_some());
+        assert!(w5.is_some());
+        let w2 = w2.unwrap();
+        let w3 = w3.unwrap();
+        let w5 = w5.unwrap();
+        assert!(arc.force_read_attribute::<Weight>(2).is_none());
+        assert!(arc.force_read_attribute::<Weight>(3).is_none());
+        assert!(arc.force_read_attribute::<Weight>(5).is_none());
+
+        // check scenarios
+        let path1 = w2.0 == 17 && w3.0 == 8 && w5.0 == 8;
+        let path2 = w2.0 == 9 && w3.0 == 8 && w5.0 == 16;
+        assert!(path1 || path2);
+    });
+}
+
+#[test]
+fn unsew_ordering_with_transactions() {
+    loom::model(|| {
+        // setup the map
+        let map: CMap2<f64> = CMapBuilder::default()
+            .n_darts(5)
+            .add_attribute::<Weight>()
+            .build()
+            .unwrap();
+        atomically(|trans| {
+            map.link::<2>(trans, 1, 2)?;
+            map.link::<2>(trans, 3, 4)?;
+            map.link::<1>(trans, 1, 3)?;
+            map.link::<1>(trans, 4, 5)?;
+            map.write_vertex(trans, 2, Vertex2(0.0, 0.0))?;
+            map.write_attribute(trans, 2, Weight(33))?;
+            Ok(())
+        });
+        let arc = loom::sync::Arc::new(map);
+        let (m1, m2) = (arc.clone(), arc.clone());
+
+        // we're going to do to sew ops:
+        // - 1-unsew 1 and 3 (t1)
+        // - 2-unsew 3 and 4 (t2)
+        // this will result in 3 different weights, defined on IDs 2, 3 and 5
+        // depending on the order of execution, the final weights will take the following values:
+        // 1-unsew before 2-unsew: (W2, W3, W5) = (17, 8, 8)
+        // 2-unsew before 1-unsew: (W2, W3, W5) = (9, 8, 16)
+
+        let t1 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m1.unsew::<1>(trans, 1) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeSplit(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeMerge(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        let t2 = loom::thread::spawn(move || {
+            atomically(|trans| {
+                if let Err(e) = m2.unsew::<2>(trans, 3) {
+                    match e {
+                        CMapError::FailedTransaction(e) => Err(e),
+                        CMapError::FailedAttributeSplit(_) => Err(stm::StmError::Retry),
+                        CMapError::FailedAttributeMerge(_)
+                        | CMapError::IncorrectGeometry(_)
+                        | CMapError::UnknownAttribute(_) => unreachable!(),
+                    }
+                } else {
+                    Ok(())
+                }
+            });
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        // all path should result in the same topological result here
+        let (w2, w3, w5) = atomically(|trans| {
+            Ok((
+                arc.remove_attribute::<Weight>(trans, 2)?,
+                arc.remove_attribute::<Weight>(trans, 3)?,
+                arc.remove_attribute::<Weight>(trans, 5)?,
+            ))
+        });
+        assert!(w2.is_some());
+        assert!(w3.is_some());
+        assert!(w5.is_some());
+        let w2 = w2.unwrap();
+        let w3 = w3.unwrap();
+        let w5 = w5.unwrap();
+        atomically(|trans| {
+            assert!(arc.read_attribute::<Weight>(trans, 2)?.is_none());
+            assert!(arc.read_attribute::<Weight>(trans, 3)?.is_none());
+            assert!(arc.read_attribute::<Weight>(trans, 5)?.is_none());
+            Ok(())
+        });
 
         // check scenarios
         let path1 = w2.0 == 17 && w3.0 == 8 && w5.0 == 8;
