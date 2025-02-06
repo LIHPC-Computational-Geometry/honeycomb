@@ -143,14 +143,14 @@ pub fn split_edge_transac<T: CoordsFloat>(
     let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
-    if new_darts.0 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.0)? {
+    // FIXME: is_free should be transactional
+    if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
         return Err(SplitEdgeError::InvalidDarts(
             "first dart is null or not free",
         ));
     }
-    if base_dart2 != NULL_DART_ID
-        && (new_darts.1 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.1)?)
-    {
+    // FIXME: is_free should be transactional
+    if base_dart2 != NULL_DART_ID && (new_darts.1 == NULL_DART_ID || !cmap.is_free(new_darts.1)) {
         return Err(SplitEdgeError::InvalidDarts(
             "second dart is null or not free",
         ));
@@ -187,11 +187,11 @@ fn inner_split<T: CoordsFloat>(
         if b1d1_old != NULL_DART_ID {
             cmap.unlink::<1>(trans, base_dart1)?;
         }
+        // cmap.set_beta::<1>(base_dart1, 0);
+        // cmap.set_beta::<0>(b1d1_old, 0);
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
-        if b1d1_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
-        }
+        cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
@@ -216,32 +216,35 @@ fn inner_split<T: CoordsFloat>(
             return Err(SplitEdgeError::UndefinedEdge);
         };
         // unsew current darts
-        cmap.unlink::<2>(trans, base_dart1)?;
         if b1d1_old != NULL_DART_ID {
             cmap.unlink::<1>(trans, base_dart1)?;
         }
         if b1d2_old != NULL_DART_ID {
             cmap.unlink::<1>(trans, base_dart2)?;
         }
-
+        // cmap.set_beta::<1>(base_dart1, 0);
+        // cmap.set_beta::<0>(b1d1_old, 0);
+        // cmap.set_beta::<1>(base_dart2, 0);
+        // cmap.set_beta::<0>(b1d2_old, 0);
+        cmap.unlink::<2>(trans, base_dart1)?;
         // rebuild the edge
         cmap.link::<1>(trans, base_dart1, b1d1_new)?;
-        cmap.link::<1>(trans, base_dart2, b1d2_new)?;
-        cmap.link::<2>(trans, base_dart1, b1d2_new)?; // should be sew?
-        cmap.link::<2>(trans, base_dart2, b1d1_new)?; // should be sew?
         if b1d1_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d1_new, b1d1_old)?; // should be sew
+            cmap.link::<1>(trans, b1d1_new, b1d1_old)?;
         }
+        cmap.link::<1>(trans, base_dart2, b1d2_new)?;
         if b1d2_old != NULL_DART_ID {
-            cmap.link::<1>(trans, b1d2_new, b1d2_old)?; // should be sew
+            cmap.link::<1>(trans, b1d2_new, b1d2_old)?;
         }
-
+        cmap.link::<2>(trans, base_dart1, b1d2_new)?;
+        cmap.link::<2>(trans, base_dart2, b1d1_new)?;
         // insert the new vertex
+        let seg = v2 - v1;
         let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
         cmap.write_vertex(
             trans,
             vnew,
-            midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + (v2 - v1) * t),
+            midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
         )?;
         Ok(())
     }
