@@ -25,7 +25,7 @@ impl<T: CoordsFloat> CMap3<T> {
             n_darts
         )
         .expect("E: couldn't write to file");
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[BETAS]").expect("E: couldn't write to file");
         let width = n_darts.to_string().len();
@@ -79,7 +79,7 @@ impl<T: CoordsFloat> CMap3<T> {
         writeln!(&mut file, "{}", b1.trim()).expect("E: couldn't write to file");
         writeln!(&mut file, "{}", b2.trim()).expect("E: couldn't write to file");
         writeln!(&mut file, "{}", b3.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[UNUSED]").expect("E: couldn't write to file");
         self.unused_darts
@@ -87,10 +87,10 @@ impl<T: CoordsFloat> CMap3<T> {
             .enumerate()
             .filter(|(_, v)| v.read_atomic())
             .for_each(|(i, _)| {
-                write!(&mut file, "{} ", i).unwrap();
+                write!(&mut file, "{i} ").unwrap();
             });
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // required
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // required
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[VERTICES]").expect("E: couldn't write to file");
         self.iter_vertices().for_each(|v| {

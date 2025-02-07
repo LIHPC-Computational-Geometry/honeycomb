@@ -20,6 +20,10 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
     /// Serialize the map under a custom format.
     ///
     /// The format specification is described in the [user guide]().
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if writing to the file fails.
     pub fn serialize(&self, name: &str) {
         let mut file = File::create(name).expect("E: couldn't create file");
         let n_darts = self.n_darts();
@@ -32,7 +36,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
             n_darts
         )
         .expect("E: couldn't write to file");
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[BETAS]").expect("E: couldn't write to file");
         let width = n_darts.to_string().len();
@@ -45,7 +49,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
                 use std::fmt::Write;
                 let mut buf = String::new();
                 (0..n_darts as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{:>width$} ", self.beta::<0>(d)).unwrap();
+                    write!(&mut buf, "{:>width$} ", self.beta::<0>(d))
+                        .expect("E: couldn't write to file");
                     b0.push_str(buf.as_str());
                     buf.clear();
                 });
@@ -55,7 +60,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
                 use std::fmt::Write;
                 let mut buf = String::new();
                 (0..n_darts as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{:>width$} ", self.beta::<1>(d)).unwrap();
+                    write!(&mut buf, "{:>width$} ", self.beta::<1>(d))
+                        .expect("E: couldn't write to file");
                     b1.push_str(buf.as_str());
                     buf.clear();
                 });
@@ -65,7 +71,8 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
                 use std::fmt::Write;
                 let mut buf = String::new();
                 (0..n_darts as DartIdType).for_each(|d| {
-                    write!(&mut buf, "{:>width$} ", self.beta::<2>(d)).unwrap();
+                    write!(&mut buf, "{:>width$} ", self.beta::<2>(d))
+                        .expect("E: couldn't write to file");
                     b2.push_str(buf.as_str());
                     buf.clear();
                 });
@@ -74,7 +81,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
         writeln!(&mut file, "{}", b0.trim()).expect("E: couldn't write to file");
         writeln!(&mut file, "{}", b1.trim()).expect("E: couldn't write to file");
         writeln!(&mut file, "{}", b2.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[UNUSED]").expect("E: couldn't write to file");
         self.unused_darts
@@ -82,10 +89,10 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
             .enumerate()
             .filter(|(_, v)| v.read_atomic())
             .for_each(|(i, _)| {
-                write!(&mut file, "{} ", i).unwrap();
+                write!(&mut file, "{i} ").unwrap();
             });
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // required
-        writeln!(&mut file, "").expect("E: couldn't write to file"); // not required, but nice
+        writeln!(&mut file).expect("E: couldn't write to file"); // required
+        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
 
         writeln!(&mut file, "[VERTICES]").expect("E: couldn't write to file");
         self.iter_vertices().for_each(|v| {

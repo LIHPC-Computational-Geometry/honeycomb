@@ -1,11 +1,191 @@
 use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdType, Vertex2, VertexIdType};
 use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
+use itertools::multizip;
 use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
+
+// --- Custom
+
+pub(crate) struct CMapFile {
+    pub meta: (String, usize, usize),
+    pub betas: String,
+    pub unused: Option<String>,
+    pub vertices: Option<String>,
+}
+
+fn parse_meta(meta_line: &str) -> Result<(String, usize, usize), BuilderError> {
+    let parts: Vec<&str> = meta_line.split_whitespace().collect();
+    if parts.len() != 3 {
+        return Err(BuilderError::BadMetaData("incorrect format"));
+    }
+
+    Ok((
+        parts[0].to_string(),
+        parts[1]
+            .parse()
+            .map_err(|_| BuilderError::BadMetaData("could not parse dimension"))?,
+        parts[2]
+            .parse()
+            .map_err(|_| BuilderError::BadMetaData("could not parse dart number"))?,
+    ))
+}
+
+impl TryFrom<String> for CMapFile {
+    type Error = BuilderError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let mut sections = HashMap::new();
+        let mut current_section = String::new();
+
+        for line in value.trim().lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                // ignore empty & comment lines
+                continue;
+            }
+            if trimmed.starts_with('[') && trimmed.contains(']') {
+                // process section header
+                let section_name = trimmed.trim_matches(['[', ']']).to_lowercase();
+
+                if section_name != "meta"
+                    && section_name != "betas"
+                    && section_name != "unused"
+                    && section_name != "vertices"
+                {
+                    return Err(BuilderError::UnknownHeader(section_name));
+                }
+
+                if sections
+                    .insert(section_name.clone(), String::new())
+                    .is_some()
+                {
+                    return Err(BuilderError::DuplicatedSection(section_name));
+                }
+                current_section = section_name;
+
+                continue;
+            }
+            if !current_section.is_empty() {
+                // regular line
+                let line_without_comment = trimmed.split('#').next().unwrap().trim();
+                if !line_without_comment.is_empty() {
+                    let current_content = sections.get_mut(&current_section).unwrap();
+                    if !current_content.is_empty() {
+                        current_content.push('\n');
+                    }
+                    current_content.push_str(line_without_comment);
+                }
+            }
+        }
+
+        if !sections.contains_key("meta") {
+            // missing required section
+            return Err(BuilderError::MissingSection("meta"));
+        }
+        if !sections.contains_key("betas") {
+            // missing required section
+            return Err(BuilderError::MissingSection("betas"));
+        }
+
+        Ok(Self {
+            meta: parse_meta(sections["meta"].as_str())?,
+            betas: sections["betas"].clone(),
+            unused: sections.get("unused").cloned(),
+            vertices: sections.get("vertices").cloned(),
+        })
+    }
+}
+
+// ------ building routines
+
+pub fn build_2d_from_cmap_file<T: CoordsFloat>(
+    f: CMapFile,
+    manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
+) -> Result<CMap2<T>, BuilderError> {
+    let mut map = CMap2::new_with_undefined_attributes(f.meta.2, manager);
+
+    // putting it in a scope to drop the data
+    let betas = f.betas.lines().collect::<Vec<_>>();
+    if betas.len() != 3 {
+        // mismatched dim
+        todo!()
+    }
+    let b0 = betas[0]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+    let b1 = betas[1]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+    let b2 = betas[2]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+
+    // mismatched dart number
+    if b0.len() != f.meta.2 + 1 {
+        todo!()
+    }
+    if b1.len() != f.meta.2 + 1 {
+        todo!()
+    }
+    if b2.len() != f.meta.2 + 1 {
+        todo!()
+    }
+
+    for (d, b0d, b1d, b2d) in multizip((
+        (1..=f.meta.2),
+        b0.into_iter().skip(1),
+        b1.into_iter().skip(1),
+        b2.into_iter().skip(1),
+    )) {
+        let b0d = b0d.map_err(|_| todo!())?;
+        let b1d = b1d.map_err(|_| todo!())?;
+        let b2d = b2d.map_err(|_| todo!())?;
+        map.set_betas(d as DartIdType, [b0d, b1d, b2d]);
+    }
+
+    if let Some(unused) = f.unused {
+        for u in unused.split_whitespace() {
+            let d = u.parse().map_err(|_| todo!())?;
+            map.remove_free_dart(d);
+        }
+    }
+
+    if let Some(vertices) = f.vertices {
+        for l in vertices.trim().lines() {
+            let mut it = l.split_whitespace();
+            let id: VertexIdType = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex ID"))?;
+            let x: f64 = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex x coordinate"))?;
+            let y: f64 = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex y coordinate"))?;
+            if it.next().is_some() {
+                return Err(BuilderError::BadValue("incorrect vertex line format"));
+            }
+            map.force_write_vertex(id, (T::from(x).unwrap(), T::from(y).unwrap()));
+        }
+    }
+
+    Ok(map)
+}
+
+// --- VTK
 
 /// Create a [`CMapBuilder`] from the VTK file specified by the path.
 ///
@@ -23,7 +203,7 @@ impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CM
     }
 }
 
-// --- building routine
+// ------ building routine
 
 macro_rules! if_predicate_return_err {
     ($pr: expr, $er: expr) => {
