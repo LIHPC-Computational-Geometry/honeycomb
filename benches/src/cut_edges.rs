@@ -1,8 +1,6 @@
 use honeycomb::{
-    core::{
-        cmap::CMapError,
-        stm::{StmError, Transaction, TransactionControl},
-    },
+    core::cmap::SewError,
+    core::stm::{retry, try_or_coerce, StmError, Transaction, TransactionControl},
     prelude::{
         CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Orbit2, OrbitPolicy, Vertex2,
     },
@@ -36,33 +34,6 @@ where
             (_, _) => false,
         }
     })
-}
-
-macro_rules! process_unsew {
-    ($op: expr) => {
-        if let Err(e) = $op {
-            return match e {
-                CMapError::FailedTransaction(e) => Err(e),
-                CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
-                CMapError::FailedAttributeMerge(_)
-                | CMapError::IncorrectGeometry(_)
-                | CMapError::UnknownAttribute(_) => unreachable!(),
-            };
-        }
-    };
-}
-macro_rules! process_sew {
-    ($op: expr) => {
-        if let Err(e) = $op {
-            return match e {
-                CMapError::FailedTransaction(e) => Err(e),
-                CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
-                CMapError::FailedAttributeSplit(_)
-                | CMapError::IncorrectGeometry(_)
-                | CMapError::UnknownAttribute(_) => unreachable!(),
-            };
-        }
-    };
 }
 
 fn main() {
@@ -110,7 +81,7 @@ fn main() {
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
                             let mut n_retry = 0;
                             if map.is_i_free::<2>(e as DartIdType) {
-                                Transaction::with_control(
+                                let res = Transaction::with_control_and_err(
                                     |e| match e {
                                         StmError::Failure => TransactionControl::Abort,
                                         StmError::Retry => {
@@ -123,8 +94,8 @@ fn main() {
                                         }
                                     },
                                     |trans| {
-                                        map.link::<2>(trans, nd1, nd2)?;
-                                        map.link::<1>(trans, nd2, nd3)?;
+                                        try_or_coerce!(map.link::<2>(trans, nd1, nd2), SewError);
+                                        try_or_coerce!(map.link::<1>(trans, nd2, nd3), SewError);
 
                                         let ld = e as DartIdType;
                                         let (b0ld, b1ld) = (
@@ -142,19 +113,19 @@ fn main() {
                                         );
                                         map.write_vertex(trans, nd1, new_v)?;
 
-                                        process_unsew!(map.unsew::<1>(trans, ld));
-                                        process_unsew!(map.unsew::<1>(trans, b1ld));
+                                        map.unsew::<1>(trans, ld)?;
+                                        map.unsew::<1>(trans, b1ld)?;
 
-                                        process_sew!(map.sew::<1>(trans, ld, nd1));
-                                        process_sew!(map.sew::<1>(trans, nd1, b0ld));
-                                        process_sew!(map.sew::<1>(trans, nd3, b1ld));
-                                        process_sew!(map.sew::<1>(trans, b1ld, nd2));
+                                        map.sew::<1>(trans, ld, nd1)?;
+                                        map.sew::<1>(trans, nd1, b0ld)?;
+                                        map.sew::<1>(trans, nd3, b1ld)?;
+                                        map.sew::<1>(trans, b1ld, nd2)?;
 
                                         Ok(())
                                     },
                                 ); // Transaction::with_control
                             } else {
-                                Transaction::with_control(
+                                let res = Transaction::with_control_and_err(
                                     |e| match e {
                                         StmError::Failure => TransactionControl::Abort,
                                         StmError::Retry => {
@@ -167,10 +138,10 @@ fn main() {
                                         }
                                     },
                                     |trans| {
-                                        map.link::<2>(trans, nd1, nd2)?;
-                                        map.link::<1>(trans, nd2, nd3)?;
-                                        map.link::<2>(trans, nd4, nd5)?;
-                                        map.link::<1>(trans, nd5, nd6)?;
+                                        try_or_coerce!(map.link::<2>(trans, nd1, nd2), SewError);
+                                        try_or_coerce!(map.link::<1>(trans, nd2, nd3), SewError);
+                                        try_or_coerce!(map.link::<2>(trans, nd4, nd5), SewError);
+                                        try_or_coerce!(map.link::<1>(trans, nd5, nd6), SewError);
 
                                         let (ld, rd) = (
                                             e as DartIdType,
@@ -194,28 +165,28 @@ fn main() {
                                             map.read_vertex(trans, vid2)?,
                                         ) {
                                             (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
-                                            _ => return Err(StmError::Retry),
+                                            _ => retry()?,
                                         };
                                         map.write_vertex(trans, nd1, new_v)?;
 
-                                        process_unsew!(map.unsew::<2>(trans, ld));
-                                        process_unsew!(map.unsew::<1>(trans, ld));
-                                        process_unsew!(map.unsew::<1>(trans, b1ld));
-                                        process_unsew!(map.unsew::<1>(trans, rd));
-                                        process_unsew!(map.unsew::<1>(trans, b1rd));
+                                        map.unsew::<2>(trans, ld)?;
+                                        map.unsew::<1>(trans, ld)?;
+                                        map.unsew::<1>(trans, b1ld)?;
+                                        map.unsew::<1>(trans, rd)?;
+                                        map.unsew::<1>(trans, b1rd)?;
 
-                                        process_sew!(map.sew::<2>(trans, ld, nd6));
-                                        process_sew!(map.sew::<2>(trans, rd, nd3));
+                                        map.sew::<2>(trans, ld, nd6)?;
+                                        map.sew::<2>(trans, rd, nd3)?;
 
-                                        process_sew!(map.sew::<1>(trans, ld, nd1));
-                                        process_sew!(map.sew::<1>(trans, nd1, b0ld));
-                                        process_sew!(map.sew::<1>(trans, nd3, b1ld));
-                                        process_sew!(map.sew::<1>(trans, b1ld, nd2));
+                                        map.sew::<1>(trans, ld, nd1)?;
+                                        map.sew::<1>(trans, nd1, b0ld)?;
+                                        map.sew::<1>(trans, nd3, b1ld)?;
+                                        map.sew::<1>(trans, b1ld, nd2)?;
 
-                                        process_sew!(map.sew::<1>(trans, rd, nd4));
-                                        process_sew!(map.sew::<1>(trans, nd4, b0rd));
-                                        process_sew!(map.sew::<1>(trans, nd6, b1rd));
-                                        process_sew!(map.sew::<1>(trans, b1rd, nd5));
+                                        map.sew::<1>(trans, rd, nd4)?;
+                                        map.sew::<1>(trans, nd4, b0rd)?;
+                                        map.sew::<1>(trans, nd6, b1rd)?;
+                                        map.sew::<1>(trans, b1rd, nd5)?;
 
                                         Ok(())
                                     },
@@ -231,11 +202,13 @@ fn main() {
             instant.elapsed().as_millis()
         );
 
+        /*
         (1..map.n_darts() as DartIdType).for_each(|d| {
             if map.is_free(d) && !map.is_unused(d) {
                 map.remove_free_dart(d);
             }
         });
+        */
 
         #[cfg(debug_assertions)] // if debug is enabled, check mesh validity
         {
