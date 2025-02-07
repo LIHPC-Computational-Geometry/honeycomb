@@ -4,7 +4,7 @@ mod two;
 use crate::{
     cmap::{CMap2, DartIdType, SewError},
     prelude::CoordsFloat,
-    stm::{Transaction, TransactionClosureResult},
+    stm::{atomically_with_err, Transaction, TransactionClosureResult},
 };
 
 /// # **Sew implementations**
@@ -122,8 +122,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_sew(ld, rd),
-            2 => self.force_two_sew(ld, rd),
+            1 => atomically_with_err(|trans| self.one_sew(trans, ld, rd)),
+            2 => atomically_with_err(|trans| self.two_sew(trans, ld, rd)),
             _ => unreachable!(),
         }
     }
@@ -138,8 +138,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_unsew(ld),
-            2 => self.force_two_unsew(ld),
+            1 => atomically_with_err(|trans| self.one_unsew(trans, ld)),
+            2 => atomically_with_err(|trans| self.two_unsew(trans, ld)),
             _ => unreachable!(),
         }
     }
