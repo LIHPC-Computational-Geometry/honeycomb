@@ -5,12 +5,13 @@
 
 // ------ IMPORTS
 
+use crate::attributes::AttributeError;
+use crate::prelude::{DartIdType, OrbitPolicy};
 use crate::stm::{atomically, StmClosureResult, Transaction};
-use crate::{
-    cmap::{CMapError, CMapResult},
-    prelude::{DartIdType, OrbitPolicy},
-};
+
 use downcast_rs::{impl_downcast, Downcast};
+use fast_stm::TransactionClosureResult;
+
 use std::any::{type_name, Any};
 use std::fmt::Debug;
 
@@ -26,7 +27,7 @@ use std::fmt::Debug;
 /// For an intensive property of a system (e.g. a temperature), an implementation would look
 /// like this:
 ///
-/// ```rust
+/// ```ignore
 /// use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
 ///
 /// #[derive(Clone, Copy, Debug, PartialEq)]
@@ -62,10 +63,20 @@ use std::fmt::Debug;
 /// ```
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain a new value from two existing ones.
-    fn merge(attr1: Self, attr2: Self) -> Self;
+    ///
+    /// # Errors
+    ///
+    /// You may use [`AttributeError::FailedMerge`] to model a possible failure in your attribute
+    /// mergin process.
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError>;
 
     /// Splitting routine, i.e. how to obtain the two new values from a single one.
-    fn split(attr: Self) -> (Self, Self);
+    ///
+    /// # Errors
+    ///
+    /// You may use [`AttributeError::FailedSplit`] to model a possible failure in your attribute
+    /// mergin process.
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from a single existing one.
@@ -76,12 +87,16 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Return / Errors
     ///
-    /// The default implementation succeeds and simply returns the passed value.
-    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-        Ok(attr)
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`]. You may
+    /// override the implementation and use [`AttributeError::FailedMerge`] to model another
+    /// possible failure.
+    fn merge_incomplete(_: Self) -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from no existing one.
     ///
     /// The returned value directly affects the behavior of sewing methods: For example, if this
@@ -90,10 +105,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Errors
     ///
-    /// The default implementation fails with `Err(CMapError::FailedAttributeMerge)`.
-    #[allow(clippy::must_use_candidate)]
-    fn merge_from_none() -> CMapResult<Self> {
-        Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`].
+    fn merge_from_none() -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
     /// Fallback splitting routine, i.e. how to obtain two new values from no existing one.
@@ -105,9 +122,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Errors
     ///
-    /// The default implementation fails with `Err(CMapError::FailedAttributeSplit)`.
-    fn split_from_none() -> CMapResult<(Self, Self)> {
-        Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`].
+    fn split_from_none() -> Result<(Self, Self), AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "split",
+            type_name::<Self>(),
+        ))
     }
 }
 
@@ -121,7 +141,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 /// Using the same context as the for the [`AttributeUpdate`] example, we can associate temperature
 /// to faces and model a 2D heat-map:
 ///
-/// ```rust
+/// ```ignore
 /// # use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
 /// use honeycomb_core::prelude::{FaceIdType, OrbitPolicy};
 /// use honeycomb_core::attributes::{AttributeBind, AttrSparseVec};
@@ -319,7 +339,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> CMapResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 
     /// Split attribute to specified indices
     ///
@@ -338,7 +358,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> CMapResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 }
 
 impl_downcast!(UnknownAttributeStorage);

@@ -5,13 +5,12 @@
 
 // ------ IMPORTS
 
-use crate::stm::{StmClosureResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction, TransactionClosureResult};
 
-use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::{
-    cmap::CMapResult,
-    prelude::{DartIdType, OrbitPolicy},
+use super::{
+    AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
+use crate::prelude::{DartIdType, OrbitPolicy};
 use std::{any::TypeId, collections::HashMap};
 
 // ------ CONTENT
@@ -478,7 +477,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
             storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -502,7 +501,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
             storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -526,7 +525,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
             storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -842,7 +841,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
             storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -866,7 +865,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
             storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -890,7 +889,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
             storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
