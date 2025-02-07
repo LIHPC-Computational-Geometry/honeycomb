@@ -1,7 +1,8 @@
-use stm::{atomically, StmResult, Transaction};
+use crate::stm::{Transaction, TransactionClosureResult};
+use fast_stm::atomically_with_err;
 
 use crate::{
-    cmap::{CMap2, DartIdType},
+    cmap::{error::LinkError, CMap2, DartIdType},
     prelude::CoordsFloat,
 };
 
@@ -14,13 +15,17 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
     /// 1-link defensive implementation.
-    pub(super) fn force_one_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        atomically(|trans| self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id));
+    pub(super) fn force_one_link(
+        &self,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
+    ) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id))
     }
 }
 
@@ -32,12 +37,12 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.one_unlink_core(trans, lhs_dart_id)
     }
 
     /// 1-unlink defensive implementation.
-    pub(super) fn force_one_unlink(&self, lhs_dart_id: DartIdType) {
-        atomically(|trans| self.betas.one_unlink_core(trans, lhs_dart_id));
+    pub(super) fn force_one_unlink(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.betas.one_unlink_core(trans, lhs_dart_id))
     }
 }

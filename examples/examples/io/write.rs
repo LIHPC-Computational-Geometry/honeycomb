@@ -39,17 +39,17 @@ fn main() {
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices
             // for a short time, before being merged back by the sewing ops
-            map.force_unsew::<1>(d1);
-            map.force_unsew::<1>(d3);
+            map.force_unsew::<1>(d1).unwrap();
+            map.force_unsew::<1>(d3).unwrap();
             // link the two new dart in order to
-            map.force_link::<2>(dsplit1, dsplit2);
+            map.force_link::<2>(dsplit1, dsplit2).unwrap();
             // define beta1 of the new darts, i.e. tell them where they point to
-            map.force_sew::<1>(dsplit1, d4);
-            map.force_sew::<1>(dsplit2, d2);
+            map.force_sew::<1>(dsplit1, d4).unwrap();
+            map.force_sew::<1>(dsplit2, d2).unwrap();
 
             // sew the original darts to the new darts
-            map.force_sew::<1>(d1, dsplit1);
-            map.force_sew::<1>(d3, dsplit2);
+            map.force_sew::<1>(d1, dsplit1).unwrap();
+            map.force_sew::<1>(d3, dsplit2).unwrap();
             // fuse the edges; this is where duplicated vertices are merged back together
         });
     let elapsed = now.elapsed();

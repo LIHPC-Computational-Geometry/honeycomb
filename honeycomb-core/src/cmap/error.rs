@@ -1,34 +1,34 @@
 //! Main error type
 
-use stm::StmError;
+use crate::{attributes::AttributeError, cmap::DartIdType};
 
-/// Convenience type alias
-pub type CMapResult<T> = Result<T, CMapError>;
-
-/// # Map-level error enum.
+/// Link operation error enum
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
-pub enum CMapError {
-    /// STM transaction failed.
-    #[error("transaction failed")]
-    FailedTransaction(/*#[from]*/ StmError),
-    /// Attribute merge failed due to missing value(s).
-    #[error("attribute merge failed: {0}")]
-    FailedAttributeMerge(&'static str),
-    /// Attribute split failed due to missing value.
-    #[error("attribute split failed: {0}")]
-    FailedAttributeSplit(&'static str),
-    /// Geometry predicate failed verification.
-    #[error("operation incompatible with map geometry: {0}")]
-    IncorrectGeometry(&'static str),
-    /// Accessed attribute isn't in the map storage.
-    #[error("unknown attribute: {0}")]
-    UnknownAttribute(&'static str),
+pub enum LinkError {
+    /// The base dart is not free.
+    #[error("cannot link {1} to {2}: b{0}({1}) != NULL")]
+    NonFreeBase(u8, DartIdType, DartIdType),
+    /// The image dart is not free
+    #[error("cannot link {1} to {2}: b{0}({2}) != NULL")]
+    NonFreeImage(u8, DartIdType, DartIdType),
+    /// The dart is already free.
+    #[error("cannot unlink {1}: b{0}({1}) == NULL")]
+    AlreadyFree(u8, DartIdType),
+    /// The two orbits being linked have different structures.
+    #[error("cannot 3-link {0} and {1}: faces do not have the same structure")]
+    AsymmetricalFaces(DartIdType, DartIdType),
 }
 
-// if `StmError` derived `thiserror::Error`, this would be automatically generated
-// by the commented `#[from]` macro above
-impl From<StmError> for CMapError {
-    fn from(value: StmError) -> Self {
-        Self::FailedTransaction(value)
-    }
+/// Sew operation error enum
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+pub enum SewError {
+    /// Geometry predicate failed verification.
+    #[error("cannot {0}-sew darts {1} and {2} due to geometry predicates")]
+    BadGeometry(u8, DartIdType, DartIdType),
+    /// Dart link failed.
+    #[error("inner link failed: {0}")]
+    FailedLink(#[from] LinkError),
+    /// Attribute operation failed.
+    #[error("attribute operation failed: {0}")]
+    FailedAttributeOp(#[from] AttributeError),
 }

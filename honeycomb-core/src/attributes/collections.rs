@@ -5,10 +5,15 @@
 
 // ------ IMPORTS
 
-use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::{cmap::CMapResult, prelude::DartIdType};
+use crate::attributes::{
+    AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
+};
+use crate::prelude::DartIdType;
+use crate::stm::{
+    abort, atomically, StmClosureResult, TVar, Transaction, TransactionClosureResult,
+};
+
 use num_traits::ToPrimitive;
-use stm::{atomically, StmResult, TVar, Transaction};
 
 // ------ CONTENT
 
@@ -37,17 +42,25 @@ impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
         trans: &mut Transaction,
         id: &A::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, Some(val))
     }
 
     /// Transactional read
-    fn read_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+    fn read_core(
+        &self,
+        trans: &mut Transaction,
+        id: &A::IdentifierType,
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].read(trans)
     }
 
     /// Transactional remove
-    fn remove_core(&self, trans: &mut Transaction, id: &A::IdentifierType) -> StmResult<Option<A>> {
+    fn remove_core(
+        &self,
+        trans: &mut Transaction,
+        id: &A::IdentifierType,
+    ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].replace(trans, None)
     }
 }
@@ -82,12 +95,12 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         let new_v = match (
             self.data[lhs_inp as usize].read(trans)?,
             self.data[rhs_inp as usize].read(trans)?,
         ) {
-            (Some(v1), Some(v2)) => Ok(AttributeUpdate::merge(v1, v2)),
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
             (None, None) => AttributeUpdate::merge_from_none(),
         };
@@ -107,19 +120,24 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         let new_v = match (
             self.data[lhs_inp as usize].read(trans)?,
             self.data[rhs_inp as usize].read(trans)?,
         ) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
-            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v)?,
-            (None, None) => AttributeUpdate::merge_from_none()?,
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
+            (None, None) => AttributeUpdate::merge_from_none(),
         };
-        self.data[rhs_inp as usize].write(trans, None)?;
-        self.data[lhs_inp as usize].write(trans, None)?;
-        self.data[out as usize].write(trans, Some(new_v))?;
-        Ok(())
+        match new_v {
+            Ok(v) => {
+                self.data[rhs_inp as usize].write(trans, None)?;
+                self.data[lhs_inp as usize].write(trans, None)?;
+                self.data[out as usize].write(trans, Some(v))?;
+                Ok(())
+            }
+            Err(e) => abort(e),
+        }
     }
 
     fn split(
@@ -128,9 +146,9 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> StmResult<()> {
+    ) -> StmClosureResult<()> {
         let res = if let Some(val) = self.data[inp as usize].read(trans)? {
-            Ok(AttributeUpdate::split(val))
+            AttributeUpdate::split(val)
         } else {
             AttributeUpdate::split_from_none()
         };
@@ -153,16 +171,21 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> CMapResult<()> {
-        let (lhs_val, rhs_val) = if let Some(val) = self.data[inp as usize].read(trans)? {
+    ) -> TransactionClosureResult<(), AttributeError> {
+        let res = if let Some(val) = self.data[inp as usize].read(trans)? {
             AttributeUpdate::split(val)
         } else {
-            AttributeUpdate::split_from_none()?
+            AttributeUpdate::split_from_none()
         };
-        self.data[inp as usize].write(trans, None)?;
-        self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-        self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
-        Ok(())
+        match res {
+            Ok((lhs_val, rhs_val)) => {
+                self.data[inp as usize].write(trans, None)?;
+                self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
+                self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+                Ok(())
+            }
+            Err(e) => abort(e),
+        }
     }
 }
 
@@ -176,7 +199,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
         val: A,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.write_core(trans, &id, val)
     }
 
@@ -188,7 +211,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.read_core(trans, &id)
     }
 
@@ -200,7 +223,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         &self,
         trans: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
-    ) -> StmResult<Option<A>> {
+    ) -> StmClosureResult<Option<A>> {
         self.remove_core(trans, &id)
     }
 }

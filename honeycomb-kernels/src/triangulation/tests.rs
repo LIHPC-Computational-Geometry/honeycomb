@@ -13,46 +13,46 @@ fn generate_map() -> CMap2<f64> {
     let cmap: CMap2<f64> = CMapBuilder::default().n_darts(28).build().unwrap();
 
     // topology
-    cmap.force_link::<1>(1, 2);
-    cmap.force_link::<1>(2, 3);
-    cmap.force_link::<1>(3, 4);
-    cmap.force_link::<1>(4, 5);
-    cmap.force_link::<1>(5, 6);
-    cmap.force_link::<1>(6, 1);
+    cmap.force_link::<1>(1, 2).unwrap();
+    cmap.force_link::<1>(2, 3).unwrap();
+    cmap.force_link::<1>(3, 4).unwrap();
+    cmap.force_link::<1>(4, 5).unwrap();
+    cmap.force_link::<1>(5, 6).unwrap();
+    cmap.force_link::<1>(6, 1).unwrap();
 
-    cmap.force_link::<1>(7, 8);
-    cmap.force_link::<1>(8, 9);
-    cmap.force_link::<1>(9, 10);
-    cmap.force_link::<1>(10, 11);
-    cmap.force_link::<1>(11, 12);
-    cmap.force_link::<1>(12, 7);
+    cmap.force_link::<1>(7, 8).unwrap();
+    cmap.force_link::<1>(8, 9).unwrap();
+    cmap.force_link::<1>(9, 10).unwrap();
+    cmap.force_link::<1>(10, 11).unwrap();
+    cmap.force_link::<1>(11, 12).unwrap();
+    cmap.force_link::<1>(12, 7).unwrap();
 
-    cmap.force_link::<1>(13, 14);
-    cmap.force_link::<1>(14, 15);
-    cmap.force_link::<1>(15, 16);
-    cmap.force_link::<1>(16, 13);
+    cmap.force_link::<1>(13, 14).unwrap();
+    cmap.force_link::<1>(14, 15).unwrap();
+    cmap.force_link::<1>(15, 16).unwrap();
+    cmap.force_link::<1>(16, 13).unwrap();
 
-    cmap.force_link::<1>(17, 18);
-    cmap.force_link::<1>(18, 19);
-    cmap.force_link::<1>(19, 20);
-    cmap.force_link::<1>(20, 21);
-    cmap.force_link::<1>(21, 22);
-    cmap.force_link::<1>(22, 23);
-    cmap.force_link::<1>(23, 24);
-    cmap.force_link::<1>(24, 25);
-    cmap.force_link::<1>(25, 17);
+    cmap.force_link::<1>(17, 18).unwrap();
+    cmap.force_link::<1>(18, 19).unwrap();
+    cmap.force_link::<1>(19, 20).unwrap();
+    cmap.force_link::<1>(20, 21).unwrap();
+    cmap.force_link::<1>(21, 22).unwrap();
+    cmap.force_link::<1>(22, 23).unwrap();
+    cmap.force_link::<1>(23, 24).unwrap();
+    cmap.force_link::<1>(24, 25).unwrap();
+    cmap.force_link::<1>(25, 17).unwrap();
 
-    cmap.force_link::<1>(26, 27);
-    cmap.force_link::<1>(27, 28);
-    cmap.force_link::<1>(28, 26);
+    cmap.force_link::<1>(26, 27).unwrap();
+    cmap.force_link::<1>(27, 28).unwrap();
+    cmap.force_link::<1>(28, 26).unwrap();
 
-    cmap.force_link::<2>(3, 7);
-    cmap.force_link::<2>(4, 13);
-    cmap.force_link::<2>(10, 27);
-    cmap.force_link::<2>(11, 26);
-    cmap.force_link::<2>(12, 14);
-    cmap.force_link::<2>(15, 17);
-    cmap.force_link::<2>(18, 28);
+    cmap.force_link::<2>(3, 7).unwrap();
+    cmap.force_link::<2>(4, 13).unwrap();
+    cmap.force_link::<2>(10, 27).unwrap();
+    cmap.force_link::<2>(11, 26).unwrap();
+    cmap.force_link::<2>(12, 14).unwrap();
+    cmap.force_link::<2>(15, 17).unwrap();
+    cmap.force_link::<2>(18, 28).unwrap();
 
     // geometry
     cmap.force_write_vertex(1, (1.0, 0.0));

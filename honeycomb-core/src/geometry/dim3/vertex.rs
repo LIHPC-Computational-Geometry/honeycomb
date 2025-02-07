@@ -3,6 +3,7 @@
 //! This module contains all code used to model vertices.
 
 use super::super::Vector3;
+use crate::attributes::AttributeError;
 use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdType};
 use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 
@@ -196,12 +197,16 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex3<T>> for Vertex3<T> {
 }
 
 impl<T: CoordsFloat> AttributeUpdate for Vertex3<T> {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self::average(&attr1, &attr2)
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Self::average(&attr1, &attr2))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
-        (attr, attr)
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        Ok((attr, attr))
+    }
+
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 

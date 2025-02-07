@@ -5,9 +5,9 @@
 // ------ IMPORTS
 
 use crate::grisubal::model::{Boundary, MapEdge};
-use crate::splits::{splitn_edge_transac, SplitEdgeError};
+use crate::splits::splitn_edge_transac;
 use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
-use honeycomb_core::stm::atomically;
+use honeycomb_core::stm::atomically_with_err;
 
 // ------ CONTENT
 
@@ -52,37 +52,34 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
         // remove deprecated connectivities & save what data is necessary
         let b1_start_old = cmap.beta::<1>(*start);
         let b0_end_old = cmap.beta::<0>(*end);
-        cmap.force_unlink::<1>(*start);
-        cmap.force_unlink::<1>(b0_end_old);
+        cmap.force_unlink::<1>(*start).unwrap();
+        cmap.force_unlink::<1>(b0_end_old).unwrap();
 
         let &[d_new, b2_d_new] = &dslice[0..2] else {
             unreachable!()
         };
-        cmap.force_link::<2>(d_new, b2_d_new);
+        cmap.force_link::<2>(d_new, b2_d_new).unwrap();
 
         // rebuild - this is the final construct if there are no intermediates
-        cmap.force_link::<1>(*start, d_new);
-        cmap.force_link::<1>(b2_d_new, b1_start_old);
-        cmap.force_link::<1>(d_new, *end);
-        cmap.force_link::<1>(b0_end_old, b2_d_new);
+        cmap.force_link::<1>(*start, d_new).unwrap();
+        cmap.force_link::<1>(b2_d_new, b1_start_old).unwrap();
+        cmap.force_link::<1>(d_new, *end).unwrap();
+        cmap.force_link::<1>(b0_end_old, b2_d_new).unwrap();
 
         if !intermediates.is_empty() {
             // create the topology components
             let edge_id = cmap.edge_id(d_new);
             let new_darts = &dslice[2..];
-            atomically(|trans| {
-                if let Err(SplitEdgeError::FailedTransaction(e)) = splitn_edge_transac(
+            atomically_with_err(|trans| {
+                splitn_edge_transac(
                     cmap,
                     trans,
                     edge_id,
                     new_darts,
                     &vec![T::from(0.5).unwrap(); intermediates.len()],
-                ) {
-                    Err(e)
-                } else {
-                    Ok(())
-                }
-            });
+                )
+            })
+            .unwrap();
             // replace placeholder vertices
             let mut dart_id = cmap.beta::<1>(edge_id as DartIdType);
             for v in intermediates {
