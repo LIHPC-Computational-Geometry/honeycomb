@@ -81,7 +81,7 @@ fn main() {
                         .for_each(|(e, [nd1, nd2, nd3, nd4, nd5, nd6])| {
                             let mut n_retry = 0;
                             if map.is_i_free::<2>(e as DartIdType) {
-                                let res = Transaction::with_control_and_err(
+                                let _ = Transaction::with_control_and_err(
                                     |e| match e {
                                         StmError::Failure => TransactionControl::Abort,
                                         StmError::Retry => {
@@ -108,24 +108,32 @@ fn main() {
                                             map.vertex_id_transac(trans, b1ld)?,
                                         );
                                         let new_v = Vertex2::average(
-                                            &map.read_vertex(trans, vid1)?.unwrap(),
-                                            &map.read_vertex(trans, vid2)?.unwrap(),
+                                            &map.read_vertex(trans, vid1)
+                                                .map_err(|_| StmError::Retry)?
+                                                .unwrap(),
+                                            &map.read_vertex(trans, vid2)
+                                                .map_err(|_| StmError::Retry)?
+                                                .unwrap(),
                                         );
                                         map.write_vertex(trans, nd1, new_v)?;
 
-                                        map.unsew::<1>(trans, ld)?;
-                                        map.unsew::<1>(trans, b1ld)?;
+                                        map.unsew::<1>(trans, ld).map_err(|_| StmError::Retry)?;
+                                        map.unsew::<1>(trans, b1ld).map_err(|_| StmError::Retry)?;
 
-                                        map.sew::<1>(trans, ld, nd1)?;
-                                        map.sew::<1>(trans, nd1, b0ld)?;
-                                        map.sew::<1>(trans, nd3, b1ld)?;
-                                        map.sew::<1>(trans, b1ld, nd2)?;
+                                        map.sew::<1>(trans, ld, nd1)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd1, b0ld)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd3, b1ld)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, b1ld, nd2)
+                                            .map_err(|_| StmError::Retry)?;
 
                                         Ok(())
                                     },
                                 ); // Transaction::with_control
                             } else {
-                                let res = Transaction::with_control_and_err(
+                                let _ = Transaction::with_control_and_err(
                                     |e| match e {
                                         StmError::Failure => TransactionControl::Abort,
                                         StmError::Retry => {
@@ -161,32 +169,45 @@ fn main() {
                                             map.vertex_id_transac(trans, b1ld)?,
                                         );
                                         let new_v = match (
-                                            map.read_vertex(trans, vid1)?,
-                                            map.read_vertex(trans, vid2)?,
+                                            map.read_vertex(trans, vid1)
+                                                .map_err(|_| StmError::Retry)?,
+                                            map.read_vertex(trans, vid2)
+                                                .map_err(|_| StmError::Retry)?,
                                         ) {
                                             (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
                                             _ => retry()?,
                                         };
-                                        map.write_vertex(trans, nd1, new_v)?;
+                                        map.write_vertex(trans, nd1, new_v)
+                                            .map_err(|_| StmError::Retry)?;
 
-                                        map.unsew::<2>(trans, ld)?;
-                                        map.unsew::<1>(trans, ld)?;
-                                        map.unsew::<1>(trans, b1ld)?;
-                                        map.unsew::<1>(trans, rd)?;
-                                        map.unsew::<1>(trans, b1rd)?;
+                                        map.unsew::<2>(trans, ld).map_err(|_| StmError::Retry)?;
+                                        map.unsew::<1>(trans, ld).map_err(|_| StmError::Retry)?;
+                                        map.unsew::<1>(trans, b1ld).map_err(|_| StmError::Retry)?;
+                                        map.unsew::<1>(trans, rd).map_err(|_| StmError::Retry)?;
+                                        map.unsew::<1>(trans, b1rd).map_err(|_| StmError::Retry)?;
 
-                                        map.sew::<2>(trans, ld, nd6)?;
-                                        map.sew::<2>(trans, rd, nd3)?;
+                                        map.sew::<2>(trans, ld, nd6)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<2>(trans, rd, nd3)
+                                            .map_err(|_| StmError::Retry)?;
 
-                                        map.sew::<1>(trans, ld, nd1)?;
-                                        map.sew::<1>(trans, nd1, b0ld)?;
-                                        map.sew::<1>(trans, nd3, b1ld)?;
-                                        map.sew::<1>(trans, b1ld, nd2)?;
+                                        map.sew::<1>(trans, ld, nd1)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd1, b0ld)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd3, b1ld)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, b1ld, nd2)
+                                            .map_err(|_| StmError::Retry)?;
 
-                                        map.sew::<1>(trans, rd, nd4)?;
-                                        map.sew::<1>(trans, nd4, b0rd)?;
-                                        map.sew::<1>(trans, nd6, b1rd)?;
-                                        map.sew::<1>(trans, b1rd, nd5)?;
+                                        map.sew::<1>(trans, rd, nd4)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd4, b0rd)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, nd6, b1rd)
+                                            .map_err(|_| StmError::Retry)?;
+                                        map.sew::<1>(trans, b1rd, nd5)
+                                            .map_err(|_| StmError::Retry)?;
 
                                         Ok(())
                                     },
@@ -202,13 +223,11 @@ fn main() {
             instant.elapsed().as_millis()
         );
 
-        /*
         (1..map.n_darts() as DartIdType).for_each(|d| {
             if map.is_free(d) && !map.is_unused(d) {
                 map.remove_free_dart(d);
             }
         });
-        */
 
         #[cfg(debug_assertions)] // if debug is enabled, check mesh validity
         {

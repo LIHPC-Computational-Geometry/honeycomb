@@ -35,6 +35,18 @@ impl<T: CoordsFloat> CMap2<T> {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
+    }
+
     // --- edit
 
     /// Add a new free dart to the map.
