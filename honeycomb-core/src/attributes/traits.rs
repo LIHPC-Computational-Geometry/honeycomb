@@ -24,43 +24,7 @@ use std::fmt::Debug;
 ///
 /// ## Example
 ///
-/// For an intensive property of a system (e.g. a temperature), an implementation would look
-/// like this:
-///
-/// ```ignore
-/// use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
-///
-/// #[derive(Clone, Copy, Debug, PartialEq)]
-/// pub struct Temperature {
-///     pub val: f32
-/// }
-///
-/// impl AttributeUpdate for Temperature {
-///     fn merge(attr1: Self, attr2: Self) -> Self {
-///         Temperature { val: (attr1.val + attr2.val) / 2.0 }
-///     }
-///
-///     fn split(attr: Self) -> (Self, Self) {
-///         (attr, attr)
-///     }
-///
-///     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-///         Ok(Temperature { val: attr.val / 2.0 })
-///     }
-///
-///     fn merge_from_none() -> CMapResult<Self> {
-///         Ok(Temperature { val: 0.0 })
-///     }
-/// }
-///
-/// let t1 = Temperature { val: 273.0 };
-/// let t2 = Temperature { val: 298.0 };
-///
-/// let t_new = AttributeUpdate::merge(t1, t2); // use AttributeUpdate::_
-/// let t_ref = Temperature { val: 285.5 };
-///
-/// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
-/// ```
+/// A detailed example is provided in the [user guide](TODO).
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain a new value from two existing ones.
     ///
@@ -138,42 +102,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 ///
 /// ## Example
 ///
-/// Using the same context as the for the [`AttributeUpdate`] example, we can associate temperature
-/// to faces and model a 2D heat-map:
-///
-/// ```ignore
-/// # use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
-/// use honeycomb_core::prelude::{FaceIdType, OrbitPolicy};
-/// use honeycomb_core::attributes::{AttributeBind, AttrSparseVec};
-///
-/// #[derive(Clone, Copy, Debug, PartialEq)]
-/// pub struct Temperature {
-///     pub val: f32
-/// }
-/// # impl AttributeUpdate for Temperature {
-/// #     fn merge(attr1: Self, attr2: Self) -> Self {
-/// #         Temperature { val: (attr1.val + attr2.val) / 2.0 }
-/// #     }
-/// #
-/// #     fn split(attr: Self) -> (Self, Self) {
-/// #         (attr, attr)
-/// #     }
-/// #
-/// #     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-/// #         Ok(Temperature { val: attr.val / 2.0 })
-/// #     }
-/// #
-/// #     fn merge_from_none() -> CMapResult<Self> {
-/// #         Ok(Temperature { val: 0.0 })
-/// #     }
-/// # }
-///
-/// impl AttributeBind for Temperature {
-///     type StorageType = AttrSparseVec<Self>;
-///     type IdentifierType = FaceIdType;
-///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
-/// }
-/// ```
+/// A detailed example is provided in the [user guide](TODO).
 pub trait AttributeBind: Debug + Sized + Any {
     /// Storage type used for the attribute.
     type StorageType: AttributeStorage<Self>;
