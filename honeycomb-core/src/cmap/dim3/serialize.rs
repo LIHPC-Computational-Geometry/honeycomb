@@ -22,7 +22,7 @@ impl<T: CoordsFloat> CMap3<T> {
             &mut file,
             "{} 3 {}",
             env!("CARGO_PKG_VERSION"), // indicates which version was used to generate the file
-            n_darts
+            n_darts - 1
         )
         .expect("E: couldn't write to file");
         writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
