@@ -4,7 +4,12 @@
 
 ## Entrypoint
 
+The `attributes` module of the core crate provides the necessary tools for to add custom attributes
+to given orbits of the map. Each attribute should be uniquely typed (i.e. to type aliases) as the
+maps' internal storages use `std::any::TypeId` for identification. 
 
+An attribute struct should implement both `AttributeBind` and `AttributeUpdate`. It can then be
+added to the map using the dedicated `CMapBuilder` method.
 
 ## Example
 
@@ -51,7 +56,27 @@ impl AttributeBind for Weight {
 use honeycomb_core::cmap::{CMapBuilder, CMap2};
 
 fn main() {
-    todo!();
+    let map: CMap2<f64> = CMapBuilder::default()
+        .n_darts(4)
+        .add_attribute::<Weight>()
+        .build()
+        .unwrap();
+
+    let _ = map.force_link::<2>(1, 2);
+    let _ = map.force_link::<2>(3, 4);
+    map.force_write_vertex(2, (0.0, 1.0));
+    map.force_write_vertex(3, (1.0, 1.0));
+    map.force_write_attribute::<Weight>(2, Weight(5));
+    map.force_write_attribute::<Weight>(3, Weight(6));
+
+    let _ = map.force_sew::<1>(1, 3);
+
+    assert_eq!(map.force_read_attribute::<Weight>(2), Some(Weight(11)));
+
+    let _ = map.force_unsew::<1>(1);
+
+    assert_eq!(map.force_read_attribute::<Weight>(2), Some(Weight(6)));
+    assert_eq!(map.force_read_attribute::<Weight>(3), Some(Weight(5)));
 }  
 ```
 
