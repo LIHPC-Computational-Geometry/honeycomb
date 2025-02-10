@@ -44,7 +44,7 @@ fn main() {
     faces
         .into_iter()
         .zip(nd_range.chunks(2))
-        .zip(splits.into_iter())
+        .zip(splits)
         .par_bridge()
         .for_each(|((df, sl), split)| {
             let square = df as DartIdType;
