@@ -264,6 +264,7 @@ impl AttrStorageManager {
     }
 }
 
+#[allow(unused)]
 /// Merge variants.
 impl AttrStorageManager {
     // attribute-agnostic regular
@@ -627,6 +628,7 @@ impl AttrStorageManager {
     */
 }
 
+#[allow(unused)]
 /// Split variants.
 impl AttrStorageManager {
     // attribute-agnostic regular

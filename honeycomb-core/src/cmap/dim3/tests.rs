@@ -174,12 +174,12 @@ fn example_test() {
     rebuild_edge(&map, 12);
 
     // delete old face components
-    map.force_unsew::<1>(10).unwrap();
-    map.force_unsew::<1>(11).unwrap();
-    map.force_unsew::<1>(12).unwrap();
-    map.force_unsew::<3>(10).unwrap();
-    map.force_unsew::<3>(11).unwrap();
-    map.force_unsew::<3>(12).unwrap();
+    map.force_unlink::<1>(10).unwrap();
+    map.force_unlink::<1>(11).unwrap();
+    map.force_unlink::<1>(12).unwrap();
+    map.force_unlink::<3>(10).unwrap();
+    map.force_unlink::<3>(11).unwrap();
+    map.force_unlink::<3>(12).unwrap();
     map.remove_free_dart(10);
     map.remove_free_dart(11);
     map.remove_free_dart(12);

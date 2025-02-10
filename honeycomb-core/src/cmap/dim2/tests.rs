@@ -336,7 +336,11 @@ fn two_sew_no_attributes() {
             "merge",
             std::any::type_name::<Vertex2<f64>>()
         ))));
-    assert!(map.force_sew::<1>(1, 2).is_ok());
+    assert!(map.force_sew::<1>(1, 2).is_err_and(|e| e
+        == SewError::FailedAttributeOp(AttributeError::InsufficientData(
+            "merge",
+            std::any::type_name::<Vertex2<f64>>()
+        ))));
 }
 
 #[test]
@@ -350,7 +354,11 @@ fn two_sew_no_attributes_bis() {
             "merge",
             std::any::type_name::<Vertex2<f64>>()
         ))));
-    assert!(map.force_sew::<2>(1, 3).is_ok());
+    assert!(map.force_sew::<2>(1, 3).is_err_and(|e| e
+        == SewError::FailedAttributeOp(AttributeError::InsufficientData(
+            "merge",
+            std::any::type_name::<Vertex2<f64>>()
+        ))));
 }
 
 #[test]
@@ -406,7 +414,11 @@ fn one_sew_no_attributes() {
             "merge",
             std::any::type_name::<Vertex2<f64>>()
         ))));
-    assert!(map.force_sew::<1>(1, 2).is_ok());
+    assert!(map.force_sew::<1>(1, 2).is_err_and(|e| e
+        == SewError::FailedAttributeOp(AttributeError::InsufficientData(
+            "merge",
+            std::any::type_name::<Vertex2<f64>>()
+        ))));
 }
 
 // --- IO
