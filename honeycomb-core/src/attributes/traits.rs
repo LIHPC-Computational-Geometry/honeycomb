@@ -24,7 +24,9 @@ use std::fmt::Debug;
 ///
 /// ## Example
 ///
-/// A detailed example is provided in the [user guide](TODO).
+/// A detailed example is provided in the [user guide][UG].
+///
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/user-guide/usage/attributes.html
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain a new value from two existing ones.
     ///
@@ -102,7 +104,9 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 ///
 /// ## Example
 ///
-/// A detailed example is provided in the [user guide](TODO).
+/// A detailed example is provided in the [user guide][UG].
+///
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/user-guide/usage/attributes.html
 pub trait AttributeBind: Debug + Sized + Any {
     /// Storage type used for the attribute.
     type StorageType: AttributeStorage<Self>;

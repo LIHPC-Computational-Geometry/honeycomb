@@ -22,7 +22,7 @@ pub enum AttributeError {
     /// implementations.
     #[error("cannot split attribute {0}: {1}")]
     FailedSplit(&'static str, &'static str),
-    /// Default return for fallback functions of [`AttributUpdate`].
+    /// Default return for fallback functions of [`AttributeUpdate`].
     #[error("insufficient data to complete {0} operation on {1}")]
     InsufficientData(&'static str, &'static str),
 }
