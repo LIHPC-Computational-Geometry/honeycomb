@@ -1,6 +1,5 @@
 use crate::capture::{Capture, CaptureList};
 use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
-use bevy::pbr::PbrPlugin;
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
 use honeycomb_core::prelude::{CMap2, CoordsFloat};
@@ -40,14 +39,11 @@ impl Default for App {
         app.insert_resource(Msaa::Sample4)
             .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
         // plugins
-        app.add_plugins(DefaultPlugins.set(PbrPlugin {
-            prepass_enabled: false,
-            ..default()
-        }))
-        .add_plugins(OptionsPlugin)
-        .add_plugins(GuiPlugin)
-        .add_plugins(ScenePlugin)
-        .add_plugins(CapturePlugin);
+        app.add_plugins(DefaultPlugins)
+            .add_plugins(OptionsPlugin)
+            .add_plugins(GuiPlugin)
+            .add_plugins(ScenePlugin)
+            .add_plugins(CapturePlugin);
         Self {
             app,
             capture_list: CaptureList(Vec::new()),
