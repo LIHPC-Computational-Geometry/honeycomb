@@ -13,6 +13,7 @@
 # Usage
 
 - [Parallelization: STM](./usage/stm.md)
+- [Serialization](./usage/serialization.md)
 
 # Kernels
 

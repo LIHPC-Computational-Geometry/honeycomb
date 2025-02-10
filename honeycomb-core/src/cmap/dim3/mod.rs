@@ -9,11 +9,10 @@ pub mod basic_ops;
 pub mod embed;
 pub mod links;
 pub mod orbits;
+pub mod serialize;
 pub mod sews;
 pub mod structure;
 pub mod utils;
-
-// pub mod io;
 
 /// Number of beta functions defined for [`CMap3`].
 const CMAP3_BETA: usize = 4;
