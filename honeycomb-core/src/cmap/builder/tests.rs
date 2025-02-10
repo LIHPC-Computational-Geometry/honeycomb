@@ -367,11 +367,29 @@ fn splitsquare_cmap2_correctness() {
 
 #[cfg(test)]
 mod cmap {
-    use crate::cmap::builder::io::CMapFile;
-    use crate::cmap::VertexIdType;
+    use crate::cmap::{BuilderError, VertexIdType};
 
-    use super::super::io::build_2d_from_cmap_file;
+    use super::super::io::{build_2d_from_cmap_file, parse_meta, CMapFile};
     use super::*;
+
+    #[test]
+    fn bad_headers() {
+        assert!(parse_meta(BAD_METAS[0])
+            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
+        assert!(parse_meta(BAD_METAS[1])
+            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
+        assert!(parse_meta(BAD_METAS[2])
+            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension")));
+        assert!(parse_meta(BAD_METAS[3])
+            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dart number")));
+        assert!(parse_meta(BAD_METAS[4])
+            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension")));
+        assert!(parse_meta(BAD_METAS[5])
+            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
+        assert!(parse_meta(BAD_METAS[6]).is_err());
+        assert!(parse_meta(BAD_METAS[7]).is_err());
+        assert!(parse_meta(BAD_METAS[8]).is_err());
+    }
 
     #[test]
     fn wr_identity() {
@@ -406,6 +424,21 @@ mod cmap {
 
         assert_eq!(in_file.as_str(), buff.as_str());
     }
+
+    #[cfg(test)]
+    const BAD_METAS: [&'static str; 9] = [
+        "0.7.0 2",                // 2 elems
+        "0.7.0 2 18 23",          // 4 elems
+        "0.7.0 2.5 18",           // bad dim
+        "0.7.0 2 hi",             // bad darts
+        "0.7.0 bye 18",           // bad dim again
+        "super super bad header", // ...
+        "  ",                     // "" + ' ' + "" + ' ' + ""
+        "",                       // empty
+        "
+
+             ",          // multiline
+    ];
 
     #[cfg(test)]
     const MAP: &[u8] = b"[META]

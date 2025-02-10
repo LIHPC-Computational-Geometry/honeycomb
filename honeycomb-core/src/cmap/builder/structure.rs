@@ -17,7 +17,7 @@ use super::io::CMapFile;
 ///
 /// This enum is used to describe all non-panic errors that can occur when using the builder
 /// structure.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum BuilderError {
     // grid-related variants
     /// One or multiple of the specified grid characteristics are invalid.

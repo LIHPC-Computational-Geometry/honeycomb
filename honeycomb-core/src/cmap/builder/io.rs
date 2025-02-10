@@ -17,7 +17,7 @@ pub(crate) struct CMapFile {
     pub vertices: Option<String>,
 }
 
-fn parse_meta(meta_line: &str) -> Result<(String, usize, usize), BuilderError> {
+pub(crate) fn parse_meta(meta_line: &str) -> Result<(String, usize, usize), BuilderError> {
     let parts: Vec<&str> = meta_line.split_whitespace().collect();
     if parts.len() != 3 {
         return Err(BuilderError::BadMetaData("incorrect format"));
