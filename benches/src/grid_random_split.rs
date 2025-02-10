@@ -1,10 +1,7 @@
 use std::{fs::File, time::Instant};
 
 use honeycomb::{
-    core::{
-        cmap::CMapError,
-        stm::{atomically, StmError},
-    },
+    core::stm::atomically_with_err,
     prelude::{CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy},
 };
 
@@ -16,42 +13,19 @@ use rand::{
 
 use rayon::prelude::*;
 
-macro_rules! process_unsew {
-    ($op: expr) => {
-        if let Err(e) = $op {
-            return match e {
-                CMapError::FailedTransaction(e) => Err(e),
-                CMapError::FailedAttributeSplit(_) => Err(StmError::Retry),
-                CMapError::FailedAttributeMerge(_)
-                | CMapError::IncorrectGeometry(_)
-                | CMapError::UnknownAttribute(_) => unreachable!(),
-            };
-        }
-    };
-}
-
-macro_rules! process_sew {
-    ($op: expr) => {
-        if let Err(e) = $op {
-            return match e {
-                CMapError::FailedTransaction(e) => Err(e),
-                CMapError::FailedAttributeMerge(_) => Err(StmError::Retry),
-                CMapError::FailedAttributeSplit(_)
-                | CMapError::IncorrectGeometry(_)
-                | CMapError::UnknownAttribute(_) => unreachable!(),
-            };
-        }
-    };
-}
-const N_SQUARE: usize = 128;
-const N_DIAG: usize = N_SQUARE.pow(2);
 const P_BERNOULLI: f64 = 0.6;
 const SEED: u64 = 9_817_498_146_784;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let n_square = args
+        .get(1)
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(128);
+    let n_diag = n_square.pow(2);
     let mut instant = Instant::now();
     // (a) generate the grid
-    let mut map: CMap2<f64> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
+    let mut map: CMap2<f64> = CMapBuilder::unit_grid(n_square).build().unwrap();
     // collect these now so additional darts don't mess up the iterator
     let faces = map.iter_faces().collect::<Vec<_>>();
     println!("grid built in {}ms", instant.elapsed().as_millis());
@@ -60,10 +34,10 @@ fn main() {
     // sample diag orientation
     let rng = SmallRng::seed_from_u64(SEED);
     let dist = Bernoulli::new(P_BERNOULLI).unwrap();
-    let splits: Vec<bool> = dist.sample_iter(rng).take(N_DIAG).collect();
+    let splits: Vec<bool> = dist.sample_iter(rng).take(n_diag).collect();
     // allocate diag darts
-    let nd = map.add_free_darts(N_DIAG * 2);
-    let nd_range = (nd..nd + (N_DIAG * 2) as DartIdType).collect::<Vec<_>>();
+    let nd = map.add_free_darts(n_diag * 2);
+    let nd_range = (nd..nd + (n_diag * 2) as DartIdType).collect::<Vec<_>>();
 
     instant = Instant::now();
     // build diags
@@ -85,18 +59,20 @@ fn main() {
             } else {
                 (dright, dleft, ddown, dup)
             };
-            map.force_link::<2>(dsplit1, dsplit2);
+            let _ = map.force_link::<2>(dsplit1, dsplit2);
 
-            atomically(|trans| {
-                process_unsew!(map.unsew::<1>(trans, dbefore1));
-                process_unsew!(map.unsew::<1>(trans, dbefore2));
-                process_sew!(map.sew::<1>(trans, dsplit1, dafter1));
-                process_sew!(map.sew::<1>(trans, dsplit2, dafter2));
+            while atomically_with_err(|trans| {
+                map.unsew::<1>(trans, dbefore1)?;
+                map.unsew::<1>(trans, dbefore2)?;
+                map.sew::<1>(trans, dsplit1, dafter1)?;
+                map.sew::<1>(trans, dsplit2, dafter2)?;
 
-                process_sew!(map.sew::<1>(trans, dbefore1, dsplit1));
-                process_sew!(map.sew::<1>(trans, dbefore2, dsplit2));
+                map.sew::<1>(trans, dbefore1, dsplit1)?;
+                map.sew::<1>(trans, dbefore2, dsplit2)?;
                 Ok(())
-            });
+            })
+            .is_err()
+            {}
         });
     println!("diagonals split in {}ms", instant.elapsed().as_millis());
 
