@@ -12,6 +12,7 @@
 
 # Usage
 
+- [Adding generic attributes to maps](./usage/attributes.md)
 - [Parallelization: STM](./usage/stm.md)
 - [Serialization](./usage/serialization.md)
 
