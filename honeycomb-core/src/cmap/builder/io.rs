@@ -106,13 +106,21 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
     f: CMapFile,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
 ) -> Result<CMap2<T>, BuilderError> {
+    if f.meta.1 != 2 {
+        // mismatched dim
+        return Err(BuilderError::BadMetaData(
+            "mismatch between requested dimension and header",
+        ));
+    }
     let mut map = CMap2::new_with_undefined_attributes(f.meta.2, manager);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();
     if betas.len() != 3 {
         // mismatched dim
-        todo!()
+        return Err(BuilderError::InconsistentData(
+            "wrong number of beta functions",
+        ));
     }
     let b0 = betas[0]
         .split_whitespace()
@@ -129,13 +137,19 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 
     // mismatched dart number
     if b0.len() != f.meta.2 + 1 {
-        todo!()
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 0 function",
+        ));
     }
     if b1.len() != f.meta.2 + 1 {
-        todo!()
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 1 function",
+        ));
     }
     if b2.len() != f.meta.2 + 1 {
-        todo!()
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 2 function",
+        ));
     }
 
     for (d, b0d, b1d, b2d) in multizip((
@@ -144,15 +158,17 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
         b1.into_iter().skip(1),
         b2.into_iter().skip(1),
     )) {
-        let b0d = b0d.map_err(|_| todo!())?;
-        let b1d = b1d.map_err(|_| todo!())?;
-        let b2d = b2d.map_err(|_| todo!())?;
+        let b0d = b0d.map_err(|_| BuilderError::BadValue("could not parse a b0 value"))?;
+        let b1d = b1d.map_err(|_| BuilderError::BadValue("could not parse a b1 value"))?;
+        let b2d = b2d.map_err(|_| BuilderError::BadValue("could not parse a b2 value"))?;
         map.set_betas(d as DartIdType, [b0d, b1d, b2d]);
     }
 
     if let Some(unused) = f.unused {
         for u in unused.split_whitespace() {
-            let d = u.parse().map_err(|_| todo!())?;
+            let d = u
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse an unused ID"))?;
             map.remove_free_dart(d);
         }
     }

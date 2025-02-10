@@ -37,6 +37,9 @@ pub enum BuilderError {
     /// The file contains a duplicated section.
     #[error("duplicated section in cmap file - {0}")]
     DuplicatedSection(String),
+    /// The file contains contradicting data.
+    #[error("inconsistent data - {0}")]
+    InconsistentData(&'static str),
     /// A required section is missing from the file.
     #[error("required section missing in cmap file - {0}")]
     MissingSection(&'static str),
@@ -172,10 +175,6 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     pub fn build(self) -> Result<CMap2<T>, BuilderError> {
         if let Some(cfile) = self.cmap_file {
             // build from our custom format
-            if cfile.meta.1 != 2 {
-                // mismatched dim
-                todo!()
-            }
             return super::io::build_2d_from_cmap_file(cfile, self.attributes);
         }
         if let Some(vfile) = self.vtk_file {
