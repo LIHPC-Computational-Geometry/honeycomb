@@ -23,8 +23,15 @@ impl<T: CoordsFloat> CMap3<T> {
         match (b1ld == NULL_DART_ID, b1rd == NULL_DART_ID) {
             // trivial case, no update needed
             (true, true) => {
+                let eid_l = self.edge_id_transac(trans, ld)?;
+                let eid_r = self.edge_id_transac(trans, b1rd)?;
                 try_or_coerce!(self.betas.two_link_core(trans, ld, rd), SewError);
-                // FIXME: merge edge attributes
+                let eid_new = self.edge_id_transac(trans, ld)?;
+                try_or_coerce!(
+                    self.attributes
+                        .try_merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                    SewError
+                );
             }
             // update vertex associated to b1rhs/lhs
             (true, false) => {

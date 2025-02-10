@@ -1,3 +1,4 @@
+use crate::cmap::EdgeIdType;
 use crate::stm::{abort, try_or_coerce, Transaction, TransactionClosureResult};
 
 use crate::{
@@ -27,7 +28,16 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
                     SewError
                 );
-                // FIXME: merge edge attributes
+                let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
+                try_or_coerce!(
+                    self.attributes.try_merge_edge_attributes(
+                        trans,
+                        eid_new,
+                        lhs_dart_id as EdgeIdType,
+                        rhs_dart_id as EdgeIdType,
+                    ),
+                    SewError
+                );
             }
             // update vertex associated to b1rhs/lhs
             (true, false) => {
