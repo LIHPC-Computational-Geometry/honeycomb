@@ -96,7 +96,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
             if let Some(val) = self.force_read_vertex(v) {
                 writeln!(
                     writer,
-                    "{v} {} {}",
+                    "{v} {} {}",
                     val.0.to_f64().unwrap(),
                     val.1.to_f64().unwrap(),
                 )
