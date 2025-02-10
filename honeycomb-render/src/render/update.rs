@@ -20,7 +20,7 @@ pub fn dart_mat_handle(
     render_color: Res<DartRenderColor>,
 ) {
     let mat = materials.get_mut(&handle.0).expect("unreachable");
-    *mat = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array())).into();
+    mat.base_color = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array()));
 }
 
 /// Dart render color and status update system.
@@ -175,7 +175,7 @@ pub fn vertices_mat_handle(
     render_color: Res<VertexRenderColor>,
 ) {
     let mat = materials.get_mut(&handle.0).expect("unreachable");
-    *mat = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array())).into();
+    mat.base_color = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array()));
 }
 
 // --- edges
@@ -220,5 +220,5 @@ pub fn edges_mat_handle(
     render_color: Res<EdgeRenderColor>,
 ) {
     let mat = materials.get_mut(&handle.0).expect("unreachable");
-    *mat = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array())).into();
+    mat.base_color = Color::Srgba(Srgba::from_u8_array(render_color.1.to_array()));
 }
