@@ -13,14 +13,15 @@ use std::{fs::File, time::Instant};
 
 use rayon::prelude::*;
 
-const INPUT_MAP: &str = "grid_split.vtk";
 const TARGET_LENGTH: f64 = 0.1;
 const MAX_RETRY: u8 = 10;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let input_map = args.get(1).expect("E: no input file specified");
     // load map from file
     let mut instant = Instant::now();
-    let mut map: CMap2<f64> = CMapBuilder::from(INPUT_MAP).build().unwrap();
+    let mut map: CMap2<f64> = CMapBuilder::from(input_map).build().unwrap();
     println!("map built in {}ms", instant.elapsed().as_millis());
     instant = Instant::now();
     assert!(
@@ -31,10 +32,13 @@ fn main() {
     println!("topology checked in {}ms", instant.elapsed().as_millis());
 
     let backend = if std::env::var("BACKEND").is_ok_and(|s| &s == "rayon") {
+        println!("backend set to use rayon par_iter");
         Backend::Rayon
     } else if std::env::var("BACKEND").is_ok_and(|s| &s == "chunks") {
+        println!("backend set to use rayon par_chunks");
         Backend::RayonChunks
     } else {
+        println!("backend set to use std::thread");
         Backend::StdThreads
     };
     let n_threads = std::thread::available_parallelism()
@@ -46,10 +50,11 @@ fn main() {
     // compute first batch
     instant = Instant::now();
     let mut edges: Vec<EdgeIdType> = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
-    let mut nd = map.add_free_darts(6 * edges.len()); // 2 for edge split + 2*2 for new edges in neighbor tets
-    let mut darts: Vec<DartIdType> = (nd..nd + 6 * edges.len() as DartIdType).collect();
+    let n_e = edges.len();
+    let mut nd = map.add_free_darts(6 * n_e); // 2 for edge split + 2*2 for new edges in neighbor tets
+    let mut darts: Vec<DartIdType> = (nd..nd + 6 * n_e as DartIdType).collect();
     println!(
-        "[B{}] computed in {}ms",
+        "[B{}] computed in {}ms | {n_e} edges to process",
         step,
         instant.elapsed().as_millis()
     );
@@ -125,14 +130,15 @@ fn main() {
         instant = Instant::now();
         step += 1;
         // TRADEOFF: par compute & reallocate each round vs eq compute & extend
-        edges = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
+        // edges = fetch_edges_to_process(&map, &TARGET_LENGTH).collect();
+        edges.extend(fetch_edges_to_process(&map, &TARGET_LENGTH));
         let n_e = edges.len();
         nd = map.add_free_darts(6 * n_e);
         darts.par_drain(..); // is there a better way?
         darts.extend(nd..nd + 6 * n_e as DartIdType);
         if n_e != 0 {
             println!(
-                "[B{}] computed in {}ms",
+                "[B{}] computed in {}ms | {n_e} edges to process",
                 step,
                 instant.elapsed().as_millis()
             );
@@ -177,11 +183,11 @@ fn main() {
 fn fetch_edges_to_process<'a, 'b, T: CoordsFloat>(
     map: &'a CMap2<T>,
     length: &'b T,
-) -> impl ParallelIterator<Item = EdgeIdType> + 'a
+) -> impl Iterator<Item = EdgeIdType> + 'a
 where
     'b: 'a,
 {
-    map.iter_edges().par_bridge().filter(|&e| {
+    map.iter_edges().filter(|&e| {
         let (vid1, vid2) = (
             map.vertex_id(e as DartIdType),
             map.vertex_id(map.beta::<1>(e as DartIdType)),
