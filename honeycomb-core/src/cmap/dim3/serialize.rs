@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::Write;
-
 use crate::{
     cmap::{CMap3, DartIdType},
     prelude::CoordsFloat,
@@ -13,21 +10,21 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Serialize the map under a custom format.
     ///
     /// The format specification is described in the [user guide]().
-    pub fn serialize(&self, name: &str) {
-        let mut file = File::create(name).expect("E: couldn't create file");
+    pub fn serialize(&self, mut writer: impl std::fmt::Write) {
         let n_darts = self.n_darts();
 
-        writeln!(&mut file, "[META]").expect("E: couldn't write to file");
+        writeln!(writer, "[META]").expect("E: couldn't write to file");
         writeln!(
-            &mut file,
-            "{} 3 {}",
+            writer,
+            "{} {} {}",
             env!("CARGO_PKG_VERSION"), // indicates which version was used to generate the file
+            3,
             n_darts - 1
         )
         .expect("E: couldn't write to file");
-        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
+        writeln!(writer).expect("E: couldn't write to file"); // not required, but nice
 
-        writeln!(&mut file, "[BETAS]").expect("E: couldn't write to file");
+        writeln!(writer, "[BETAS]").expect("E: couldn't write to file");
         let width = n_darts.to_string().len();
         let mut b0 = String::with_capacity(self.n_darts() * 2);
         let mut b1 = String::with_capacity(self.n_darts() * 2);
@@ -75,28 +72,28 @@ impl<T: CoordsFloat> CMap3<T> {
                 });
             });
         });
-        writeln!(&mut file, "{}", b0.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file, "{}", b1.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file, "{}", b2.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file, "{}", b3.trim()).expect("E: couldn't write to file");
-        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
+        writeln!(writer, "{}", b0.trim()).expect("E: couldn't write to file");
+        writeln!(writer, "{}", b1.trim()).expect("E: couldn't write to file");
+        writeln!(writer, "{}", b2.trim()).expect("E: couldn't write to file");
+        writeln!(writer, "{}", b3.trim()).expect("E: couldn't write to file");
+        writeln!(writer).expect("E: couldn't write to file"); // not required, but nice
 
-        writeln!(&mut file, "[UNUSED]").expect("E: couldn't write to file");
+        writeln!(writer, "[UNUSED]").expect("E: couldn't write to file");
         self.unused_darts
             .iter()
             .enumerate()
             .filter(|(_, v)| v.read_atomic())
             .for_each(|(i, _)| {
-                write!(&mut file, "{i} ").unwrap();
+                write!(writer, "{i} ").unwrap();
             });
-        writeln!(&mut file).expect("E: couldn't write to file"); // required
-        writeln!(&mut file).expect("E: couldn't write to file"); // not required, but nice
+        writeln!(writer).expect("E: couldn't write to file"); // required
+        writeln!(writer).expect("E: couldn't write to file"); // not required, but nice
 
-        writeln!(&mut file, "[VERTICES]").expect("E: couldn't write to file");
+        writeln!(writer, "[VERTICES]").expect("E: couldn't write to file");
         self.iter_vertices().for_each(|v| {
             if let Some(val) = self.force_read_vertex(v) {
                 writeln!(
-                    &mut file,
+                    writer,
                     "{v} {} {} {}",
                     val.0.to_f64().unwrap(),
                     val.1.to_f64().unwrap(),
