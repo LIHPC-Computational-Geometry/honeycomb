@@ -24,9 +24,9 @@ ensure another thread will not use one of these as the starting point for anothe
 We choose to use Software Transactional Memory (STM) to handle high-level synchronization of
 the structure. 
 
-Note that while this could possibly be enforced using aggressive lock strategies, STM has much
-better composability and allows users of the crate to define "atomic" segments in their own
-algorithms.
+Note that while synchronization could possibly be enforced using aggressive lock strategies, STM
+has much better composability and allows users of the crate to define "atomic" segments in their
+own algorithms.
 
 Exposing an API that allows users to handle synchronization also means that the implementation
 isn't bound to a given parallelization framework. Instead of relying on predefinite parallel
@@ -85,7 +85,7 @@ fn main() {
             }
         })
         .collect();
-        
+
     // main loop
     let mut round = 0;
     loop {
@@ -163,8 +163,8 @@ fn main() {
         // create batches & move a copy to dispatched thread
         let batches = units.chunks(1 + units.len() / N_THREADS);
         for b in batches {
-            let locb = b.to_vec();
             s.spawn(|| {
+                let locb = b.to_vec();
                 locb.into_iter().for_each(|(df, sl)| {
                     let square = df as DartIdType;
                     let &[dsplit1, dsplit2] = sl else {
