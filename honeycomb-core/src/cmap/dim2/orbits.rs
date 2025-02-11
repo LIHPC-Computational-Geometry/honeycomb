@@ -3,14 +3,10 @@
 //! This module contains all code used to model orbits, a notion defined
 //! along the structure of combinatorial maps.
 
-// ------ IMPORTS
-
 use std::collections::{BTreeSet, VecDeque};
 
 use crate::cmap::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
 use crate::geometry::CoordsFloat;
-
-// ------ CONTENT
 
 /// # Generic 2D orbit implementation
 ///

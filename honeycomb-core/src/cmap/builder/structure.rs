@@ -1,5 +1,3 @@
-// ------ IMPORTS
-
 use std::fs::File;
 use std::io::Read;
 
@@ -11,8 +9,6 @@ use crate::cmap::{CMap2, GridDescriptor};
 use crate::geometry::CoordsFloat;
 
 use super::io::CMapFile;
-
-// ------ CONTENT
 
 /// # Builder-level error enum
 ///

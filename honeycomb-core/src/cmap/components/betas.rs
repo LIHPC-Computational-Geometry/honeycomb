@@ -1,13 +1,9 @@
-// ------ IMPORTS
-
 use std::ops::{Index, IndexMut};
 
 use crate::cmap::{LinkError, NULL_DART_ID};
 use crate::stm::{abort, TVar, Transaction, TransactionClosureResult};
 
 use super::identifiers::DartIdType;
-
-// ------ CONTENT
 
 /// Beta functions storage.
 ///

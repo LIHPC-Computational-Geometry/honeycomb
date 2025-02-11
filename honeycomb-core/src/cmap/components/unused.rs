@@ -1,5 +1,3 @@
-// ------ IMPORTS
-
 use std::{
     ops::{Index, IndexMut},
     slice::Iter,
@@ -8,8 +6,6 @@ use std::{
 use crate::stm::TVar;
 
 use super::identifiers::DartIdType;
-
-// ------ CONTENT
 
 /// Unused dart tracking structure.
 pub struct UnusedDarts(Vec<TVar<bool>>);

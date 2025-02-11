@@ -1,13 +1,9 @@
-// ------ IMPORTS
-
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap2, CMapBuilder, LinkError, Orbit2, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex2,
     stm::{atomically, atomically_with_err, StmError, TransactionError},
 };
-
-// ------ CONTENT
 
 // --- GENERAL
 

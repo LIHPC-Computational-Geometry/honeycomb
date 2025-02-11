@@ -17,7 +17,5 @@ pub mod utils;
 /// Number of beta functions defined for [`CMap3`].
 const CMAP3_BETA: usize = 4;
 
-// -- tests
-
 #[cfg(test)]
 mod tests;

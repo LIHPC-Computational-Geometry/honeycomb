@@ -4,16 +4,12 @@
 //! map. This includes operations regarding vertices as well as (in the future) user-defined
 //! generic attributes
 
-// ------ IMPORT
-
 use crate::attributes::{
     AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
 use crate::cmap::{CMap3, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex3};
 use crate::stm::{StmClosureResult, Transaction};
-
-// ------ CONTENT
 
 /// ## **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap3<T> {

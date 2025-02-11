@@ -3,19 +3,15 @@
 //! This module contains all code used to handle attribute genericity in the context of mesh
 //! representation through combinatorial maps embedded data.
 
-// ------ IMPORTS
-
-use crate::attributes::AttributeError;
-use crate::cmap::{DartIdType, OrbitPolicy};
-use crate::stm::{atomically, StmClosureResult, Transaction};
+use std::any::{type_name, Any};
+use std::fmt::Debug;
 
 use downcast_rs::{impl_downcast, Downcast};
 use fast_stm::TransactionClosureResult;
 
-use std::any::{type_name, Any};
-use std::fmt::Debug;
-
-// ------ CONTENT
+use crate::attributes::AttributeError;
+use crate::cmap::{DartIdType, OrbitPolicy};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 
 /// # Generic attribute trait
 ///

@@ -7,8 +7,6 @@
 //! - Beta function interfaces
 //! - i-cell computations
 
-// ------ IMPORTS
-
 use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
@@ -18,8 +16,6 @@ use crate::cmap::{
 };
 use crate::geometry::CoordsFloat;
 use crate::stm::{atomically, StmClosureResult, StmError, Transaction};
-
-// ------ CONTENT
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap3<T> {

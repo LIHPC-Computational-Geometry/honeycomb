@@ -2,15 +2,11 @@
 //!
 //! This module contains utility code for the [`CMap3`] structure.
 
-// ------ IMPORTS
-
 use crate::cmap::{CMap3, DartIdType};
 use crate::geometry::CoordsFloat;
 use crate::stm::atomically;
 
 use super::CMAP3_BETA;
-
-// ------ CONTENT
 
 /// **Utilities**
 impl<T: CoordsFloat> CMap3<T> {

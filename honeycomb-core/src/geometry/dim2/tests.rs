@@ -1,7 +1,3 @@
-// ------ IMPORTS
-
-// ------ CONTENT
-
 use crate::geometry::{CoordsFloat, Vector2};
 
 // --- common

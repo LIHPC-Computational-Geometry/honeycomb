@@ -1,13 +1,9 @@
-// ------ IMPORTS
-
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap3, DartIdType, Orbit3, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
     stm::{atomically, atomically_with_err, StmError, TVar, TransactionError},
 };
-
-// ------ CONTENT
 
 #[test]
 fn example_test() {
