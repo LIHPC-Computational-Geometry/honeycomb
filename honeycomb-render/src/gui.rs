@@ -1,10 +1,11 @@
-use crate::systems::{draw_inspected_data, draw_options};
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy::window::PrimaryWindow;
 use bevy_egui::egui::{Ui, WidgetText};
 use bevy_egui::{EguiContext, EguiPlugin, EguiSet};
 use egui_dock::{DockArea, DockState, NodeIndex, Style, Tree};
+
+use crate::systems::{draw_inspected_data, draw_options};
 
 // --- plugin
 

@@ -1,13 +1,14 @@
+use bevy::color::Color;
+use bevy::prelude::*;
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
+use bevy_mod_picking::PickableBundle;
+
 use crate::capture::{CaptureList, FocusedCapture};
 use crate::resources::{
     DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink, DartWidth,
     EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceNormals, FaceRenderColor,
     FaceShrink, MapVertices, VertexHandle, VertexMatHandle, VertexRenderColor, VertexWidth,
 };
-use bevy::color::Color;
-use bevy::prelude::*;
-use bevy_mod_outline::{OutlineBundle, OutlineVolume};
-use bevy_mod_picking::PickableBundle;
 
 /// System used to generate dart entities in the ECS.
 #[allow(clippy::too_many_arguments)]

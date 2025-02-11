@@ -1,7 +1,7 @@
-use bevy::prelude::*;
-
 pub mod resource;
 pub mod tab;
+
+use bevy::prelude::*;
 
 /// Plugin handling rendering options.
 pub struct OptionsPlugin;

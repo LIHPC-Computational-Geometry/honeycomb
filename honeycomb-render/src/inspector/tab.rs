@@ -1,8 +1,9 @@
-use crate::capture::ecs_data::{DartBody, DartId, EdgeId, FaceId, VertexId};
-use crate::components::{Beta, Edge, Face, Vertex, Volume};
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use bevy_egui::egui;
+
+use crate::capture::ecs_data::{DartBody, DartId, EdgeId, FaceId, VertexId};
+use crate::components::{Beta, Edge, Face, Vertex, Volume};
 
 /// Inspection panel drawing function.
 pub fn draw_inspected_data(
