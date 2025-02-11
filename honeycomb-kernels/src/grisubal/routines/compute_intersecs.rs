@@ -6,13 +6,17 @@
 
 // ------ IMPORTS
 
-use super::Segments;
-use crate::grisubal::model::{Geometry2, GeometryVertex, GridCellId};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType, Vertex2, NULL_DART_ID};
 use std::{
     cmp::{max, min},
     collections::VecDeque,
 };
+
+use honeycomb_core::cmap::{CMap2, DartIdType, NULL_DART_ID};
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+
+use crate::grisubal::model::{Geometry2, GeometryVertex, GridCellId};
+
+use super::Segments;
 
 macro_rules! make_geometry_vertex {
     ($g: ident, $vid: ident) => {

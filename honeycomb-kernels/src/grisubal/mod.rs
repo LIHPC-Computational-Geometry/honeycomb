@@ -58,6 +58,13 @@ pub(crate) mod timers;
 
 // ------ IMPORTS
 
+use honeycomb_core::{
+    cmap::{CMap2, CMapBuilder, GridDescriptor},
+    geometry::CoordsFloat,
+};
+use thiserror::Error;
+use vtkio::Vtk;
+
 use crate::grisubal::{
     model::{Boundary, Geometry2},
     routines::{
@@ -68,12 +75,6 @@ use crate::grisubal::{
     },
     timers::{finish, start_timer, unsafe_time_section},
 };
-use honeycomb_core::{
-    cmap::{CMapBuilder, GridDescriptor},
-    prelude::{CMap2, CoordsFloat},
-};
-use thiserror::Error;
-use vtkio::Vtk;
 
 // ------ CONTENT
 

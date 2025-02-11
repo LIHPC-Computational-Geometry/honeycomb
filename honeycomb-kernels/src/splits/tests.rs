@@ -2,8 +2,7 @@
 
 use super::*;
 use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
-use honeycomb_core::geometry::Vertex2;
-use honeycomb_core::prelude::CoordsFloat;
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 fn newmap<T: CoordsFloat>(n: usize) -> CMap2<T> {
     CMapBuilder::default().n_darts(n).build().unwrap()

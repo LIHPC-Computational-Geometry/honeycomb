@@ -39,9 +39,11 @@ pub(crate) use clip::{clip_left, clip_right};
 
 // ------ IMPORTS
 
-use crate::grisubal::model::GeometryVertex;
-use honeycomb_core::prelude::{DartIdType, EdgeIdType};
 use std::collections::HashMap;
+
+use honeycomb_core::cmap::{DartIdType, EdgeIdType};
+
+use crate::grisubal::model::GeometryVertex;
 
 // ------ CONTENT
 

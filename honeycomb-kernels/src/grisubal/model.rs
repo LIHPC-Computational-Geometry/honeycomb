@@ -6,15 +6,15 @@
 
 // ------ IMPORTS
 
-use crate::grisubal::GrisubalError;
-use honeycomb_core::attributes::{AttrSparseVec, AttributeError};
-use honeycomb_core::prelude::{
-    AttributeBind, AttributeUpdate, CoordsFloat, DartIdType, OrbitPolicy, Vertex2,
-};
+use honeycomb_core::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use honeycomb_core::cmap::{DartIdType, OrbitPolicy};
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
 };
+
+use crate::grisubal::GrisubalError;
 
 // ------ CONTENT
 

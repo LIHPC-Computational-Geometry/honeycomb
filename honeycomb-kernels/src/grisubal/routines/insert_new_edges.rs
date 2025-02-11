@@ -4,10 +4,12 @@
 
 // ------ IMPORTS
 
+use honeycomb_core::cmap::{CMap2, DartIdType};
+use honeycomb_core::geometry::CoordsFloat;
+use honeycomb_core::stm::atomically_with_err;
+
 use crate::grisubal::model::{Boundary, MapEdge};
 use crate::splits::splitn_edge_transac;
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
-use honeycomb_core::stm::atomically_with_err;
 
 // ------ CONTENT
 

@@ -4,12 +4,11 @@
 
 // ------ IMPORTS
 
-use super::{DartSlices, IntersectionsPerEdge};
+use honeycomb_core::{cmap::CMap2, geometry::CoordsFloat, stm::atomically_with_err};
+
 use crate::splits::splitn_edge_transac;
-use honeycomb_core::{
-    prelude::{CMap2, CoordsFloat},
-    stm::atomically_with_err,
-};
+
+use super::{DartSlices, IntersectionsPerEdge};
 
 // ------ CONTENT
 

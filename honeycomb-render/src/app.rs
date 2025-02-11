@@ -1,8 +1,10 @@
-use crate::capture::{Capture, CaptureList};
-use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
-use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use honeycomb_core::cmap::CMap2;
+use honeycomb_core::geometry::CoordsFloat;
+
+use crate::capture::{Capture, CaptureList};
+use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
 
 /// Default render structure.
 ///

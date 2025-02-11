@@ -6,9 +6,12 @@
 
 // ------ IMPORTS
 
-use super::Segments;
+use honeycomb_core::cmap::{CMap2, DartIdType};
+use honeycomb_core::geometry::CoordsFloat;
+
 use crate::grisubal::model::{Geometry2, GeometryVertex, MapEdge};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType};
+
+use super::Segments;
 
 // ------ CONTENT
 

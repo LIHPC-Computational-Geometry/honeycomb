@@ -6,7 +6,7 @@
 
 use std::collections::HashSet;
 
-use honeycomb_core::prelude::{CoordsFloat, Vertex2};
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::{
     model::{Geometry2, GridCellId},
