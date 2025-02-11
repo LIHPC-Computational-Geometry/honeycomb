@@ -6,14 +6,12 @@
 
 // ------ IMPORT
 
-use crate::stm::{StmClosureResult, Transaction};
-
-use crate::prelude::{AttributeBind, AttributeUpdate, VertexIdType};
-use crate::{
-    attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::CMap3,
-    geometry::{CoordsFloat, Vertex3},
+use crate::attributes::{
+    AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
+use crate::cmap::{CMap3, VertexIdType};
+use crate::geometry::{CoordsFloat, Vertex3};
+use crate::stm::{StmClosureResult, Transaction};
 
 // ------ CONTENT
 

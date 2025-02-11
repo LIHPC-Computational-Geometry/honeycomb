@@ -1,11 +1,9 @@
 mod one;
 mod two;
 
-use crate::{
-    cmap::{CMap2, DartIdType, SewError},
-    prelude::CoordsFloat,
-    stm::{atomically_with_err, Transaction, TransactionClosureResult},
-};
+use crate::cmap::{CMap2, DartIdType, SewError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{atomically_with_err, Transaction, TransactionClosureResult};
 
 /// # **Sew implementations**
 impl<T: CoordsFloat> CMap2<T> {

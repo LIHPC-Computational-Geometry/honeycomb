@@ -6,7 +6,7 @@
 // ------ IMPORTS
 
 use crate::attributes::AttributeError;
-use crate::prelude::{DartIdType, OrbitPolicy};
+use crate::cmap::{DartIdType, OrbitPolicy};
 use crate::stm::{atomically, StmClosureResult, Transaction};
 
 use downcast_rs::{impl_downcast, Downcast};

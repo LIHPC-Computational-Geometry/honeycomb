@@ -2,9 +2,9 @@
 //!
 //! This module contains all code used to model vertices.
 
-use crate::attributes::AttributeError;
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vector2, VertexIdType};
-use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
+use crate::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use crate::cmap::{OrbitPolicy, VertexIdType};
+use crate::geometry::{CoordsFloat, Vector2};
 
 /// # 2D vertex structure
 ///

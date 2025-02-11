@@ -1,13 +1,9 @@
 mod one;
 mod two;
 
-use crate::cmap::error::LinkError;
+use crate::cmap::{CMap2, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult};
-
-use crate::{
-    cmap::{CMap2, DartIdType},
-    prelude::CoordsFloat,
-};
 
 /// # **Link operations**
 impl<T: CoordsFloat> CMap2<T> {

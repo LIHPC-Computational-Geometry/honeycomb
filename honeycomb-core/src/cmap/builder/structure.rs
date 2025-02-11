@@ -3,11 +3,12 @@
 use std::fs::File;
 use std::io::Read;
 
-use crate::prelude::{AttributeBind, CMap2, GridDescriptor};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-
 use thiserror::Error;
 use vtkio::Vtk;
+
+use crate::attributes::{AttrStorageManager, AttributeBind};
+use crate::cmap::{CMap2, GridDescriptor};
+use crate::geometry::CoordsFloat;
 
 use super::io::CMapFile;
 

@@ -2,7 +2,7 @@
 //!
 //! This module contains all code used to model vectors.
 
-use super::super::{CoordsError, CoordsFloat};
+use crate::geometry::{CoordsError, CoordsFloat};
 
 /// # 2D vector structure
 ///

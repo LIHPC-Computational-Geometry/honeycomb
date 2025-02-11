@@ -1,5 +1,6 @@
-use crate::prelude::{BuilderError, CMap2, DartIdType, Vector2, Vertex2};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
+use crate::attributes::AttrStorageManager;
+use crate::cmap::{BuilderError, CMap2, DartIdType};
+use crate::geometry::{CoordsFloat, Vector2, Vertex2};
 
 // --- grid descriptor
 

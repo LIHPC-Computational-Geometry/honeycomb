@@ -5,13 +5,13 @@
 
 // ------ IMPORTS
 
-use crate::stm::{StmClosureResult, Transaction, TransactionClosureResult};
+use std::{any::TypeId, collections::HashMap};
 
-use super::{
+use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
-use crate::prelude::{DartIdType, OrbitPolicy};
-use std::{any::TypeId, collections::HashMap};
+use crate::cmap::{DartIdType, OrbitPolicy};
+use crate::stm::{StmClosureResult, Transaction, TransactionClosureResult};
 
 // ------ CONTENT
 

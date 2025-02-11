@@ -1,12 +1,8 @@
 //! 3D link implementations
 
-use fast_stm::abort;
-
-use crate::{
-    cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID},
-    prelude::CoordsFloat,
-    stm::{atomically_with_err, Transaction, TransactionClosureResult},
-};
+use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
+use crate::geometry::CoordsFloat;
+use crate::stm::{abort, atomically_with_err, Transaction, TransactionClosureResult};
 
 /// 3-links
 impl<T: CoordsFloat> CMap3<T> {

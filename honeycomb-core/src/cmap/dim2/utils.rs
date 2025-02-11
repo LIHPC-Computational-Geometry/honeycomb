@@ -2,10 +2,11 @@
 
 // ------ IMPORTS
 
-use super::CMAP2_BETA;
+use crate::cmap::{CMap2, DartIdType};
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdType};
 use crate::stm::atomically;
+
+use super::CMAP2_BETA;
 
 // ------ CONTENT
 

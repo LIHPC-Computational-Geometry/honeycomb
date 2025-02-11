@@ -1,12 +1,13 @@
-use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdType, Vertex2, VertexIdType};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-
 use std::collections::{BTreeMap, HashMap};
 
 use itertools::multizip;
 use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
+
+use crate::attributes::AttrStorageManager;
+use crate::cmap::{BuilderError, CMap2, CMapBuilder, DartIdType, VertexIdType};
+use crate::geometry::{CoordsFloat, Vertex2};
 
 // --- Custom
 

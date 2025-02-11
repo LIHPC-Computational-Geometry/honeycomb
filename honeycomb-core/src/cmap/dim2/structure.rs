@@ -5,14 +5,11 @@
 
 // ------ IMPORTS
 
+use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
+use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
+use crate::geometry::{CoordsFloat, Vertex2};
+
 use super::CMAP2_BETA;
-use crate::cmap::components::betas::BetaFunctions;
-use crate::cmap::components::unused::UnusedDarts;
-use crate::prelude::Vertex2;
-use crate::{
-    attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
-    geometry::CoordsFloat,
-};
 
 // ------ CONTENT
 

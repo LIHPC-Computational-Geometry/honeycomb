@@ -1,7 +1,3 @@
-use crate::cmap::{EdgeIdType, FaceIdType};
-use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID};
-
 use std::{any::TypeId, collections::BTreeMap};
 
 use vtkio::{
@@ -10,6 +6,11 @@ use vtkio::{
     },
     IOBuffer,
 };
+
+use crate::cmap::{
+    CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+};
+use crate::geometry::CoordsFloat;
 
 /// **Serialization methods**
 impl<T: CoordsFloat + 'static> CMap2<T> {

@@ -1,7 +1,7 @@
-use crate::attributes::AttrStorageManager;
-use crate::prelude::{CMap2, CMapBuilder, DartIdType, GridDescriptor, Orbit2, OrbitPolicy};
-
 use vtkio::Vtk;
+
+use crate::attributes::AttrStorageManager;
+use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, Orbit2, OrbitPolicy};
 
 // --- basic
 

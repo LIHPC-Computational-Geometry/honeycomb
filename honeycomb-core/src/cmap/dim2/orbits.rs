@@ -5,10 +5,10 @@
 
 // ------ IMPORTS
 
-use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
-
 use std::collections::{BTreeSet, VecDeque};
+
+use crate::cmap::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
+use crate::geometry::CoordsFloat;
 
 // ------ CONTENT
 

@@ -2,7 +2,6 @@
 
 use std::any::Any;
 
-use crate::stm::{atomically, StmError, Transaction, TransactionControl};
 use loom::sync::Arc;
 
 use crate::{
@@ -10,8 +9,9 @@ use crate::{
         AttrSparseVec, AttrStorageManager, AttributeBind, AttributeError, AttributeStorage,
         AttributeUpdate, UnknownAttributeStorage,
     },
-    cmap::EdgeIdType,
-    prelude::{CMap2, CMapBuilder, FaceIdType, OrbitPolicy, Vertex2, VertexIdType},
+    cmap::{CMap2, CMapBuilder, EdgeIdType, FaceIdType, OrbitPolicy, VertexIdType},
+    geometry::Vertex2,
+    stm::{atomically, StmError, Transaction, TransactionControl},
 };
 
 // ------ CONTENT

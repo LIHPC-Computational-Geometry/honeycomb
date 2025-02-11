@@ -1,4 +1,4 @@
-use crate::prelude::{CoordsError, CoordsFloat, Vector2};
+use crate::geometry::{CoordsError, CoordsFloat, Vector2};
 
 /// # 3D vector structure
 ///

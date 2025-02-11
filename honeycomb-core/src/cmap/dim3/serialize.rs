@@ -1,6 +1,6 @@
 use crate::{
     cmap::{CMap3, DartIdType},
-    prelude::CoordsFloat,
+    geometry::CoordsFloat,
 };
 
 /// **Serialization methods**

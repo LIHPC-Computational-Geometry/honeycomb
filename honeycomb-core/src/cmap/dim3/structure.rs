@@ -5,12 +5,13 @@
 
 // ------ IMPORTS
 
-use super::CMAP3_BETA;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::components::{betas::BetaFunctions, unused::UnusedDarts},
     geometry::{CoordsFloat, Vertex3},
 };
+
+use super::CMAP3_BETA;
 
 // ------ CONTENT
 

@@ -3,11 +3,10 @@
 //! This module contains all code used to model orbits, a notion defined
 //! along the structure of combinatorial maps.
 
-use crate::cmap::CMap3;
-use crate::geometry::CoordsFloat;
-use crate::prelude::{DartIdType, OrbitPolicy, NULL_DART_ID};
-
 use std::collections::{HashSet, VecDeque};
+
+use crate::cmap::{CMap3, DartIdType, OrbitPolicy, NULL_DART_ID};
+use crate::geometry::CoordsFloat;
 
 #[derive(Clone)]
 pub struct Orbit3<'a, T: CoordsFloat> {

@@ -4,10 +4,11 @@
 
 // ------ IMPORTS
 
-use super::CMAP3_BETA;
+use crate::cmap::{CMap3, DartIdType};
 use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap3, DartIdType};
 use crate::stm::atomically;
+
+use super::CMAP3_BETA;
 
 // ------ CONTENT
 

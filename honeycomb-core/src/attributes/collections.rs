@@ -8,7 +8,7 @@
 use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
-use crate::prelude::DartIdType;
+use crate::cmap::DartIdType;
 use crate::stm::{
     abort, atomically, StmClosureResult, TVar, Transaction, TransactionClosureResult,
 };

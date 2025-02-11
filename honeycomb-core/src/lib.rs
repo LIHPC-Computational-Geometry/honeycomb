@@ -31,6 +31,3 @@ pub mod geometry;
 
 // re-export since we use their items in the API
 pub use fast_stm as stm;
-
-/// commonly used items
-pub mod prelude;

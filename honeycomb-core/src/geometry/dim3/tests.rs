@@ -1,6 +1,6 @@
 // ------ IMPORTS
 
-use super::super::{CoordsFloat, Vector3, Vertex3};
+use crate::geometry::{CoordsFloat, Vector3, Vertex3};
 
 // ------ CONTENT
 
@@ -39,7 +39,7 @@ macro_rules! almost_equals {
 // --- vector
 mod vector {
     use super::*;
-    use crate::prelude::CoordsError;
+    use crate::geometry::CoordsError;
 
     // tests
     macro_rules! generate_dot_prod_test {

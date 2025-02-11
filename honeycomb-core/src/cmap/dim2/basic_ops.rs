@@ -11,11 +11,12 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use crate::prelude::{
+use crate::attributes::UnknownAttributeStorage;
+use crate::cmap::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
+use crate::geometry::CoordsFloat;
 use crate::stm::{atomically, StmClosureResult, Transaction};
-use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
 
 // ------ CONTENT
 
