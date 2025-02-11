@@ -1,5 +1,3 @@
-// ------ IMPORTS
-
 use honeycomb_core::cmap::{CMapBuilder, GridDescriptor, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::Vertex2;
 use vtkio::Vtk;
@@ -9,8 +7,6 @@ use crate::grisubal::routines::{
     compute_intersection_ids, generate_edge_data, generate_intersection_data,
     group_intersections_per_edge, insert_edges_in_map, insert_intersections,
 };
-
-// ------ CONTENT
 
 // --- geometry building
 

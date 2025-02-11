@@ -4,8 +4,6 @@
 //! the geometry intersected with the grid: For each segment, if both vertices
 //! do not belong to the same cell, we break it into sub-segments until it is the case.
 
-// ------ IMPORTS
-
 use std::{
     cmp::{max, min},
     collections::VecDeque,
@@ -55,8 +53,6 @@ macro_rules! up_intersec {
         (s, (($vdart.x() - $va.x()) - ($vb.x() - $va.x()) * s) / $cx)
     }};
 }
-
-// ------ CONTENT
 
 #[allow(
     clippy::too_many_lines,

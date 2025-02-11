@@ -4,8 +4,6 @@
 //!
 //! Content description if needed
 
-// ------ IMPORTS
-
 use honeycomb_core::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
 use honeycomb_core::cmap::{DartIdType, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
@@ -15,8 +13,6 @@ use vtkio::{
 };
 
 use crate::grisubal::GrisubalError;
-
-// ------ CONTENT
 
 /// Structure used to index the overlapping grid's cases.
 ///

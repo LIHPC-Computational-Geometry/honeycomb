@@ -1,15 +1,12 @@
 //! standard and no-alloc variants of the `split_edge` functions
 
-// ------ IMPORTS
-
-use crate::splits::SplitEdgeError;
 use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{
     abort, atomically_with_err, try_or_coerce, Transaction, TransactionClosureResult,
 };
 
-// ------ CONTENT
+use crate::splits::SplitEdgeError;
 
 #[allow(clippy::missing_errors_doc)]
 /// Split an edge into two segments.

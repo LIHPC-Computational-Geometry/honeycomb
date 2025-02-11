@@ -4,8 +4,6 @@
 //!
 //! Content description if needed
 
-// ------ MODULES
-
 mod clip;
 mod compute_intersecs;
 mod compute_new_edges;
@@ -13,8 +11,6 @@ mod insert_intersecs;
 mod insert_new_edges;
 mod pre_processing;
 mod process_intersecs_data;
-
-// ------ RE-EXPORTS
 
 // step 0
 pub(crate) use pre_processing::*;
@@ -37,15 +33,11 @@ pub(crate) use insert_new_edges::*;
 // optional clipping routines
 pub(crate) use clip::{clip_left, clip_right};
 
-// ------ IMPORTS
-
 use std::collections::HashMap;
 
 use honeycomb_core::cmap::{DartIdType, EdgeIdType};
 
 use crate::grisubal::model::GeometryVertex;
-
-// ------ CONTENT
 
 pub type Segments = HashMap<GeometryVertex, GeometryVertex>;
 
