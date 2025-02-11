@@ -1,9 +1,5 @@
 //! Step 0 implementation
 
-// ------ IMPORTS
-
-// ------ CONTENT
-
 use std::collections::HashSet;
 
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};

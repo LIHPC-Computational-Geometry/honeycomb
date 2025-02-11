@@ -1,10 +1,7 @@
-// ------ IMPORTS
-
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use honeycomb::prelude::CMap2;
+use honeycomb::prelude::{CMap2, CMapBuilder};
+
 use honeycomb_benches::FloatType;
-use honeycomb_core::cmap::CMapBuilder;
-// ------ CONTENT
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("builder-grid-size");

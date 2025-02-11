@@ -1,3 +1,6 @@
+use bevy::math::{Quat, Vec3};
+use bevy::prelude::*;
+
 use crate::capture::ecs_data::{
     CaptureId, DartBody, DartHead, DartId, Edge, FaceId, FaceNormals, MapVertices, Vertex,
 };
@@ -7,8 +10,6 @@ use crate::options::resource::{
     EdgeMatHandle, EdgeRenderColor, EdgeWidth, VertexHandle, VertexMatHandle, VertexRenderColor,
     VertexWidth,
 };
-use bevy::math::{Quat, Vec3};
-use bevy::prelude::*;
 
 // --- darts
 

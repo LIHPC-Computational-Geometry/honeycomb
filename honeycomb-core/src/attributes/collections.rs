@@ -3,7 +3,7 @@
 //! This module contains all code used to describe custom collections used to store attributes
 //! (see [`AttributeBind`], [`AttributeUpdate`]).
 
-// ------ IMPORTS
+use num_traits::ToPrimitive;
 
 use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
@@ -12,10 +12,6 @@ use crate::cmap::DartIdType;
 use crate::stm::{
     abort, atomically, StmClosureResult, TVar, Transaction, TransactionClosureResult,
 };
-
-use num_traits::ToPrimitive;
-
-// ------ CONTENT
 
 /// Custom storage structure
 ///

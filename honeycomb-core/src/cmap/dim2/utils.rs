@@ -1,14 +1,10 @@
 //! [`CMap2`] utilities implementations
 
-// ------ IMPORTS
-
 use crate::cmap::{CMap2, DartIdType};
 use crate::geometry::CoordsFloat;
 use crate::stm::atomically;
 
 use super::CMAP2_BETA;
-
-// ------ CONTENT
 
 /// **Utilities**
 impl<T: CoordsFloat> CMap2<T> {

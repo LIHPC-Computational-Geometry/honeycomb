@@ -1,5 +1,3 @@
-// ------ IMPORTS
-
 use std::any::Any;
 
 use loom::sync::Arc;
@@ -13,8 +11,6 @@ use crate::{
     geometry::Vertex2,
     stm::{atomically, StmError, Transaction, TransactionControl},
 };
-
-// ------ CONTENT
 
 // --- basic structure implementation
 

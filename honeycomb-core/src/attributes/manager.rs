@@ -3,8 +3,6 @@
 //! this module contains all code used to implement a manager struct, used to handle generic
 //! attributes embedded in a given combinatorial map.
 
-// ------ IMPORTS
-
 use std::{any::TypeId, collections::HashMap};
 
 use crate::attributes::{
@@ -12,8 +10,6 @@ use crate::attributes::{
 };
 use crate::cmap::{DartIdType, OrbitPolicy};
 use crate::stm::{StmClosureResult, Transaction, TransactionClosureResult};
-
-// ------ CONTENT
 
 // convenience macros
 

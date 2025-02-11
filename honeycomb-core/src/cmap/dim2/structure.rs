@@ -3,15 +3,11 @@
 //! This module contains the main structure definition ([`CMap2`]) as well as its constructor
 //! implementation.
 
-// ------ IMPORTS
-
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
 use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
 use crate::geometry::{CoordsFloat, Vertex2};
 
 use super::CMAP2_BETA;
-
-// ------ CONTENT
 
 /// # 2D combinatorial map implementation
 ///

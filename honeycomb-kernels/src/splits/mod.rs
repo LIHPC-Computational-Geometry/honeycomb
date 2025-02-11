@@ -5,12 +5,8 @@
 //! have "no-alloc" variants: these take additional darts as argument in order not to
 //! allocate darts during the process.
 
-// ------ MODULE DECLARATIONS
-
 mod edge_multiple;
 mod edge_single;
-
-// ------ PUBLIC RE-EXPORTS
 
 pub use edge_multiple::{splitn_edge, splitn_edge_transac};
 pub use edge_single::{split_edge, split_edge_transac};
@@ -19,8 +15,6 @@ use honeycomb_core::{
     attributes::AttributeError,
     cmap::{LinkError, SewError},
 };
-
-// ------ CONTENT
 
 /// Error-modeling enum for edge-splitting routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -54,8 +48,6 @@ impl From<AttributeError> for SplitEdgeError {
         Self::FailedCoreOp(value.into())
     }
 }
-
-// ------ TESTS
 
 #[cfg(test)]
 mod tests;

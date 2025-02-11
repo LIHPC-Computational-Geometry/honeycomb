@@ -2,16 +2,12 @@
 //
 //! Use the information computed at step 4 and insert all new edges into the map.
 
-// ------ IMPORTS
-
 use honeycomb_core::cmap::{CMap2, DartIdType};
 use honeycomb_core::geometry::CoordsFloat;
 use honeycomb_core::stm::atomically_with_err;
 
 use crate::grisubal::model::{Boundary, MapEdge};
 use crate::splits::splitn_edge_transac;
-
-// ------ CONTENT
 
 pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     // FIXME: minimize allocs & redundant operations

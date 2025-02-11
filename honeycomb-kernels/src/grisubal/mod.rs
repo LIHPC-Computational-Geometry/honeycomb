@@ -50,13 +50,9 @@
 //!
 //! The `Boundary` attribute is then removed from the map before return.
 
-// ------ MODULE DECLARATIONS
-
 pub(crate) mod model;
 pub(crate) mod routines;
 pub(crate) mod timers;
-
-// ------ IMPORTS
 
 use honeycomb_core::{
     cmap::{CMap2, CMapBuilder, GridDescriptor},
@@ -75,8 +71,6 @@ use crate::grisubal::{
     },
     timers::{finish, start_timer, unsafe_time_section},
 };
-
-// ------ CONTENT
 
 /// Post-processing clip operation.
 ///
@@ -259,8 +253,6 @@ pub fn grisubal<T: CoordsFloat>(
 
     Ok(cmap)
 }
-
-// ------ TESTS
 
 #[cfg(test)]
 mod tests;

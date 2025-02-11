@@ -2,15 +2,11 @@
 //!
 //! Insert the intersections into the map.
 
-// ------ IMPORTS
-
 use honeycomb_core::{cmap::CMap2, geometry::CoordsFloat, stm::atomically_with_err};
 
 use crate::splits::splitn_edge_transac;
 
 use super::{DartSlices, IntersectionsPerEdge};
-
-// ------ CONTENT
 
 pub(crate) fn insert_intersections<T: CoordsFloat>(
     cmap: &CMap2<T>,

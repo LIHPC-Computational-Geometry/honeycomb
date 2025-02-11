@@ -1,7 +1,5 @@
 //! clipping operation routines
 
-// ------ IMPORTS
-
 use std::collections::{HashSet, VecDeque};
 
 use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy, NULL_DART_ID};
@@ -9,8 +7,6 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::model::Boundary;
 use crate::grisubal::GrisubalError;
-
-// ------ CONTENT
 
 /// Clip content on the left side of the boundary.
 pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {

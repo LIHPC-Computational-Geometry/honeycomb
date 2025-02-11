@@ -11,18 +11,12 @@
 //! - ear clipping -- this method isn't algorithmically efficient, but (a) we operate on small
 //!   cells, and (b) it covers our needs (non-fannable polygons without holes)
 
-// ------ MODULE DECLARATIONS
-
 mod ear_clipping;
 mod fan;
-
-// ------ PUBLIC RE-EXPORTS
 
 pub use ear_clipping::process_cell as earclip_cell;
 pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
-
-// ------ CONTENT
 
 use honeycomb_core::cmap::{CMap2, DartIdType};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
@@ -131,8 +125,6 @@ fn fetch_face_vertices<T: CoordsFloat>(
 fn crossp_from_verts<T: CoordsFloat>(v1: &Vertex2<T>, v2: &Vertex2<T>, v3: &Vertex2<T>) -> T {
     (v2.x() - v1.x()) * (v3.y() - v2.y()) - (v2.y() - v1.y()) * (v3.x() - v2.x())
 }
-
-// ------ TESTS
 
 #[cfg(test)]
 mod tests;

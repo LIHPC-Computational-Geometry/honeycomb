@@ -1,8 +1,4 @@
-// ------ IMPORTS
-
 use crate::geometry::{CoordsFloat, Vector3, Vertex3};
-
-// ------ CONTENT
 
 // --- common
 // scalar equality function

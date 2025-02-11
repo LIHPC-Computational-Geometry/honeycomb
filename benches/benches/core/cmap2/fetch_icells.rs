@@ -1,11 +1,7 @@
-// ------ IMPORTS
-
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use honeycomb::prelude::CMap2;
-use honeycomb_benches::FloatType;
-use honeycomb_core::cmap::CMapBuilder;
+use honeycomb::core::cmap::{CMap2, CMapBuilder};
 
-// ------ CONTENT
+use honeycomb_benches::FloatType;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let n_square = 512;

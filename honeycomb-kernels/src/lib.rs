@@ -6,14 +6,10 @@
 //! [UG]:https://lihpc-computational-geometry.github.io/honeycomb/
 //!
 
-// ------ CUSTOM LINTS
-
 #![warn(missing_docs)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
-
-// ------ MODULE DECLARATIONS
 
 pub mod grisubal;
 pub mod splits;
