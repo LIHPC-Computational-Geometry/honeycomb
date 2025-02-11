@@ -39,7 +39,8 @@ use honeycomb_core::stm::{
 /// # Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::{CMap2, CMapBuilder, NULL_DART_ID, Vertex2};
+/// # use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
+/// # use honeycomb_core::geometry::Vertex2;
 /// # use honeycomb_kernels::splits::splitn_edge;
 /// // before
 /// //    <--2---

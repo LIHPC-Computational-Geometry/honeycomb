@@ -22,9 +22,9 @@ use crate::geometry::{CoordsFloat, Vector2};
 /// ## Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::CoordsError;
+/// # use honeycomb_core::geometry::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::prelude::{Vector2, Vertex2};
+/// use honeycomb_core::geometry::{Vector2, Vertex2};
 ///
 /// let v1 = Vertex2(1.0, 0.0);
 /// let v2 = Vertex2(1.0, 1.0);
@@ -81,7 +81,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// # Example
     ///
     /// ```rust
-    /// use honeycomb_core::prelude::Vertex2;
+    /// use honeycomb_core::geometry::Vertex2;
     ///
     /// let far_far_away: Vertex2<f64> = Vertex2(2.0, 2.0);
     /// let origin: Vertex2<f64> = Vertex2::default();

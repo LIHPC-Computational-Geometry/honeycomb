@@ -62,9 +62,9 @@ pub enum BuilderError {
 /// ## Example
 ///
 /// ```rust
-/// # use honeycomb_core::prelude::BuilderError;
+/// # use honeycomb_core::cmap::BuilderError;
 /// # fn main() -> Result<(), BuilderError> {
-/// use honeycomb_core::prelude::{CMap2, CMapBuilder};
+/// use honeycomb_core::cmap::{CMap2, CMapBuilder};
 ///
 /// let builder = CMapBuilder::default().n_darts(10);
 /// let map: CMap2<f64> = builder.build()?;

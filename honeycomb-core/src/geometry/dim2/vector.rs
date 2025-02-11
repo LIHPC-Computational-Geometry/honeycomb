@@ -13,9 +13,9 @@ use crate::geometry::{CoordsError, CoordsFloat};
 /// ## Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::CoordsError;
+/// # use honeycomb_core::geometry::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::prelude::Vector2;
+/// use honeycomb_core::geometry::Vector2;
 ///
 /// let unit_x = Vector2::unit_x();
 /// let unit_y = Vector2::unit_y();

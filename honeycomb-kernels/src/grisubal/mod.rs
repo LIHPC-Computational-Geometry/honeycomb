@@ -148,7 +148,7 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # use honeycomb_core::prelude::CMap2;
+/// # use honeycomb_core::cmap::CMap2;
 /// # use honeycomb_kernels::grisubal::*;
 /// # fn main() -> Result<(), GrisubalError>{
 /// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
