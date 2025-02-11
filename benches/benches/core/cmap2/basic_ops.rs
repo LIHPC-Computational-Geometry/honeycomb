@@ -9,19 +9,14 @@
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
 
-// ------ IMPORTS
-
 use std::hint::black_box;
 
-use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType};
-use honeycomb_core::geometry::Vertex2;
+use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
 
 use honeycomb_benches::FloatType;
-
-// ------ CONTENT
 
 // --- common
 

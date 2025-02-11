@@ -1,13 +1,10 @@
-// ------ IMPORTS
-
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use honeycomb::prelude::{
     triangulation::{earclip_cell, fan_cell, TriangulateError},
     CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy,
 };
-use honeycomb_benches::FloatType;
 
-// ------ CONTENT
+use honeycomb_benches::FloatType;
 
 const PATH: &str = "../examples/quads.vtk";
 
