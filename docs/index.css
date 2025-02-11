@@ -1,124 +1,215 @@
-:root {
-    /* Light mode colors */
-    --background-color: #f5f5f5;
-    --body-background: white;
-    --text-color: #34495e;
-    --heading-color: #2c3e50;
-    --link-color: #3498db;
-    --border-color: #eee;
-    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+@import url("https://fonts.cdnfonts.com/css/jetbrains-mono-2");
+body[a="dark"] {
+  background-color:#212121;
+  color:#fafafa
 }
-
-/* Dark mode colors */
-.dark-mode {
-    --background-color: #1a1a1a;
-    --body-background: #121212;
-    --text-color: #c0c0c0;
-    --heading-color: #e0e0e0;
-    --link-color: #4da6ff;
-    --border-color: #333;
-    --box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+body[a="dark"] a {
+  color:#0071bc
 }
-
+body[a="dark"] a:visited {
+  color:#a359e9
+}
+body[a="dark"] details {
+  border:thin solid #fafafa
+}
+body[a="dark"] details summary {
+  color:#fafafa
+}
+body[a="dark"] details[open] summary {
+  border-bottom:1px solid #fafafa
+}
+body[a="dark"] pre {
+  background:#212121
+}
+body[a="dark"] code:not(pre>code) {
+  background-color:#fafafa;
+  color:#212121
+}
+body[a="dark"] *:target {
+  background:#ff0;
+  color:#fafafa
+}
+body[a="dark"] table,
+body[a="dark"] th,
+body[a="dark"] td {
+  border:thin solid #fafafa
+}
+body[a="dark"] .toc {
+  border:thin solid #fafafa;
+  padding:1rem
+}
+body[a="dark"] figcaption {
+  color:#000
+}
+body[a="dark"] blockquote {
+  border:thin solid #fafafa
+}
+body[a="light"] {
+  background-color:#fff;
+  color:#212121
+}
+body[a="light"] a {
+  color:#1e70bf
+}
+body[a="light"] a:visited {
+  color:#921292
+}
+body[a="light"] details {
+  border:thin solid #212121
+}
+body[a="light"] details summary {
+  color:#212121
+}
+body[a="light"] details[open] summary {
+  border-bottom:1px solid #212121
+}
+body[a="light"] pre {
+  background:#fff
+}
+body[a="light"] code:not(pre>code) {
+  background-color:#212121;
+  color:#fff
+}
+body[a="light"] *:target {
+  background:#ff0;
+  color:#212121
+}
+body[a="light"] table,
+body[a="light"] th,
+body[a="light"] td {
+  border:thin solid #212121
+}
+body[a="light"] .toc {
+  border:thin solid #212121;
+  padding:1rem
+}
+body[a="light"] figcaption {
+  color:#666
+}
+body[a="light"] blockquote {
+  border:thin solid #212121
+}
+@media (prefers-color-scheme: dark) {
+  body[a="auto"] {
+    background-color:#212121;
+    color:#fafafa
+  }
+  body[a="auto"] a {
+    color:#0071bc
+  }
+  body[a="auto"] a:visited {
+    color:#a359e9
+  }
+  body[a="auto"] details {
+    border:thin solid #fafafa
+  }
+  body[a="auto"] details summary {
+    color:#fafafa
+  }
+  body[a="auto"] details[open] summary {
+    border-bottom:1px solid #fafafa
+  }
+  body[a="auto"] pre {
+    background:#212121
+  }
+  body[a="auto"] code:not(pre>code) {
+    background-color:#fafafa;
+    color:#212121
+  }
+  body[a="auto"] *:target {
+    background:#ff0;
+    color:#fafafa
+  }
+  body[a="auto"] table,
+  body[a="auto"] th,
+  body[a="auto"] td {
+    border:thin solid #fafafa
+  }
+  body[a="auto"] .toc {
+    border:thin solid #fafafa;
+    padding:1rem
+  }
+  body[a="auto"] figcaption {
+    color:#000
+  }
+  body[a="auto"] blockquote {
+    border:thin solid #fafafa
+  }
+}
+@media (prefers-color-scheme: light) {
+  body[a="auto"] {
+    background-color:#fff;
+    color:#212121
+  }
+  body[a="auto"] a {
+    color:#1e70bf
+  }
+  body[a="auto"] a:visited {
+    color:#921292
+  }
+  body[a="auto"] details {
+    border:thin solid #212121
+  }
+  body[a="auto"] details summary {
+    color:#212121
+  }
+  body[a="auto"] details[open] summary {
+    border-bottom:1px solid #212121
+  }
+  body[a="auto"] pre {
+    background:#fff
+  }
+  body[a="auto"] code:not(pre>code) {
+    background-color:#212121;
+    color:#fff
+  }
+  body[a="auto"] *:target {
+    background:#ff0;
+    color:#212121
+  }
+  body[a="auto"] table,
+  body[a="auto"] th,
+  body[a="auto"] td {
+    border:thin solid #212121
+  }
+  body[a="auto"] .toc {
+    border:thin solid #212121;
+    padding:1rem
+  }
+  body[a="auto"] figcaption {
+    color:#666
+  }
+  body[a="auto"] blockquote {
+    border:thin solid #212121
+  }
+}
 html {
-    background-color: var(--background-color);
-    height: 100%;
-    transition: background-color 0.3s;
+  height:100%
 }
-
 body {
-    max-width: 65ch;
-    margin: 1rem auto;
-    padding: 1.5rem;
-    line-height: 1.6;
-    background-color: var(--body-background);
-    height: auto;
-    box-shadow: var(--box-shadow);
-    border-radius: 8px;
-    color: var(--text-color);
-    transition: background-color 0.3s, color 0.3s;
-    position: relative; /* Added to help with positioning */
+  font-family:"JetBrains Mono", monospace;
+  font-size:16px;
+  line-height:1.2;
+  margin:0;
+  min-height:100%;
+  overflow-wrap:break-word;
+  hyphens:auto
 }
-
-h1, h2, h3 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--heading-color);
-    margin-bottom: 1rem;
-    transition: color 0.3s;
+h2, h3, h4, h5, h6 {
+  margin-top:1.5rem
 }
-
-h1 {
-    font-size: 2rem;
-    border-bottom: 2px solid var(--border-color);
-    margin-top: 0.1rem;
-    padding-bottom: 0.5rem;
-    transition: border-color 0.3s;
-    position: relative; /* Added to help with positioning */
+p {
+  margin:1rem 0
 }
-
-h2 {
-    font-size: 1.5rem;
-    margin-top: 1rem;
+li {
+  margin:0.4rem 0
 }
-
-p, li {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--text-color);
-    margin-bottom: 1rem;
-    transition: color 0.3s;
+a {
+  text-decoration:none
 }
-
-a:link, a:visited {
-    color: var(--link-color);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s ease, color 0.3s;
-}
-
 a:hover {
-    border-bottom-color: var(--link-color);
+  text-decoration:underline
 }
+.centered { margin: 0 auto; max-width: 768px; }
 
-/* Theme toggle styles */
-.theme-switch {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    display: flex;
-    align-items: center;
-}
 
-.theme-switch input {
-    display: none;
-}
-
-.theme-switch-label {
-    cursor: pointer;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    background-color: var(--border-color);
-    border-radius: 12px;
-    position: relative;
-    transition: background-color 0.3s;
-}
-
-.theme-switch-label::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: var(--text-color);
-    top: 2px;
-    left: 2px;
-    transition: transform 0.3s;
-}
-
-.theme-switch input:checked + .theme-switch-label {
-    background-color: var(--link-color);
-}
-
-.theme-switch input:checked + .theme-switch-label::after {
-    transform: translateX(26px);
-}
