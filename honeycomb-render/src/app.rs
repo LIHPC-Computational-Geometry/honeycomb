@@ -36,7 +36,8 @@ impl Default for App {
     fn default() -> Self {
         let mut app = BevyApp::new();
         // resource
-        app.insert_resource(Msaa::Sample4);
+        app.insert_resource(Msaa::Sample4)
+            .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
         // plugins
         app.add_plugins(DefaultPlugins)
             .add_plugins(OptionsPlugin)

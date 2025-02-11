@@ -8,6 +8,7 @@ use crate::resources::{
     DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
     VertexRenderColor, VertexWidth,
 };
+use bevy::input::common_conditions::input_just_released;
 use bevy::prelude::*;
 use bevy_mod_outline::OutlinePlugin;
 use bevy_mod_picking::selection::SelectionPluginSettings;
@@ -42,7 +43,8 @@ impl Plugin for ScenePlugin {
             )
                 .run_if(
                     resource_changed::<FocusedCapture>
-                        .and_then(not(resource_added::<FocusedCapture>)),
+                        .and_then(not(resource_added::<FocusedCapture>))
+                        .and_then(input_just_released(MouseButton::Left)),
                 ),
         );
 
@@ -59,9 +61,11 @@ impl Plugin for ScenePlugin {
             update::dart_heads_handle.run_if(
                 resource_changed::<DartWidth>
                     .and_then(not(resource_added::<DartWidth>))
+                    .and_then(input_just_released(MouseButton::Left))
                     .or_else(
                         resource_changed::<DartHeadMul>
-                            .and_then(not(resource_added::<DartHeadMul>)),
+                            .and_then(not(resource_added::<DartHeadMul>))
+                            .and_then(input_just_released(MouseButton::Left)),
                     ),
             ),
         );
@@ -70,15 +74,21 @@ impl Plugin for ScenePlugin {
             update::dart_bodies_handles.run_if(
                 resource_changed::<DartWidth>
                     .and_then(not(resource_added::<DartWidth>))
+                    .and_then(input_just_released(MouseButton::Left))
                     .or_else(
-                        resource_changed::<DartShrink>.and_then(not(resource_added::<DartShrink>)),
+                        resource_changed::<DartShrink>
+                            .and_then(not(resource_added::<DartShrink>))
+                            .and_then(input_just_released(MouseButton::Left)),
                     ),
             ),
         );
         app.add_systems(
             Update,
-            (update::dart_heads_transform, update::dart_bodies_transform)
-                .run_if(resource_changed::<DartShrink>.and_then(not(resource_added::<DartShrink>))),
+            (update::dart_heads_transform, update::dart_bodies_transform).run_if(
+                resource_changed::<DartShrink>
+                    .and_then(not(resource_added::<DartShrink>))
+                    .and_then(input_just_released(MouseButton::Left)),
+            ),
         );
 
         // vertex updates
@@ -92,7 +102,9 @@ impl Plugin for ScenePlugin {
         app.add_systems(
             Update,
             update::vertices_handle.run_if(
-                resource_changed::<VertexWidth>.and_then(not(resource_added::<VertexWidth>)),
+                resource_changed::<VertexWidth>
+                    .and_then(not(resource_added::<VertexWidth>))
+                    .and_then(input_just_released(MouseButton::Left)),
             ),
         );
         // edge updates
@@ -105,8 +117,11 @@ impl Plugin for ScenePlugin {
         );
         app.add_systems(
             Update,
-            update::edges_handle
-                .run_if(resource_changed::<EdgeWidth>.and_then(not(resource_added::<EdgeWidth>))),
+            update::edges_handle.run_if(
+                resource_changed::<EdgeWidth>
+                    .and_then(not(resource_added::<EdgeWidth>))
+                    .and_then(input_just_released(MouseButton::Left)),
+            ),
         );
     }
 }
