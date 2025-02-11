@@ -282,7 +282,11 @@ fn test_orbit_specific_merges() {
     manager.force_write_attribute(1, Temperature::from(30.0));
 
     // Test vertex-specific merge
-    atomically(|trans| manager.merge_vertex_attributes(trans, 2, 0, 1));
+    atomically(|trans| {
+        manager
+            .try_merge_vertex_attributes(trans, 2, 0, 1)
+            .map_err(|_| StmError::Failure)
+    });
 
     assert!(manager.force_read_attribute::<Temperature>(2).is_some());
 }
@@ -296,7 +300,11 @@ fn test_orbit_specific_splits() {
     manager.force_write_attribute(0, Temperature::from(25.0));
 
     // Test vertex-specific split
-    atomically(|trans| manager.split_vertex_attributes(trans, 1, 2, 0));
+    atomically(|trans| {
+        manager
+            .try_split_vertex_attributes(trans, 1, 2, 0)
+            .map_err(|_| StmError::Failure)
+    });
 
     assert!(manager.force_read_attribute::<Temperature>(1).is_some());
     assert!(manager.force_read_attribute::<Temperature>(2).is_some());
@@ -319,7 +327,11 @@ fn test_merge_vertex_attributes() {
     manager.force_write_attribute(0, Temperature::from(20.0));
     manager.force_write_attribute(1, Temperature::from(30.0));
 
-    atomically(|trans| manager.merge_vertex_attributes(trans, 2, 0, 1));
+    atomically(|trans| {
+        manager
+            .try_merge_vertex_attributes(trans, 2, 0, 1)
+            .map_err(|_| StmError::Failure)
+    });
 
     // Verify merged result
     let merged = manager.force_read_attribute::<Temperature>(2);
@@ -334,7 +346,11 @@ fn test_split_vertex_attributes() {
     // Set initial value
     manager.force_write_attribute(0, Temperature::from(20.0));
 
-    atomically(|trans| manager.split_vertex_attributes(trans, 1, 2, 0));
+    atomically(|trans| {
+        manager
+            .try_split_vertex_attributes(trans, 1, 2, 0)
+            .map_err(|_| StmError::Failure)
+    });
 
     // Verify split results
     let split1 = manager.force_read_attribute::<Temperature>(1);
@@ -805,18 +821,24 @@ fn manager_ordering() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c1.merge_vertex_attributes(trans, 2, 1, 3)?;
-                c1.merge_edge_attributes(trans, 2, 1, 3)?;
-                c1.merge_face_attributes(trans, 2, 1, 3)?;
+                c1.try_merge_vertex_attributes(trans, 2, 1, 3)
+                    .map_err(|_| StmError::Retry)?;
+                c1.try_merge_edge_attributes(trans, 2, 1, 3)
+                    .map_err(|_| StmError::Retry)?;
+                c1.try_merge_face_attributes(trans, 2, 1, 3)
+                    .map_err(|_| StmError::Retry)?;
                 Ok(())
             });
         });
 
         let t2 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c2.split_vertex_attributes(trans, 2, 3, 2)?;
-                c2.split_edge_attributes(trans, 2, 3, 2)?;
-                c2.split_face_attributes(trans, 2, 3, 2)?;
+                c2.try_split_vertex_attributes(trans, 2, 3, 2)
+                    .map_err(|_| StmError::Retry)?;
+                c2.try_split_edge_attributes(trans, 2, 3, 2)
+                    .map_err(|_| StmError::Retry)?;
+                c2.try_split_face_attributes(trans, 2, 3, 2)
+                    .map_err(|_| StmError::Retry)?;
                 Ok(())
             });
         });

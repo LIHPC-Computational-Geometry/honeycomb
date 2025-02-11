@@ -260,162 +260,8 @@ impl AttrStorageManager {
     }
 }
 
-#[allow(unused)]
 /// Merge variants.
 impl AttrStorageManager {
-    // attribute-agnostic regular
-
-    /*
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a merging operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn merge_attributes(
-        &self,
-        trans: &mut Transaction,
-        orbit_policy: &OrbitPolicy,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Edge => self.merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs),
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-    */
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a merging operation on all attributes associated with vertices for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn merge_vertex_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.vertices.values() {
-            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a merging operation on all attributes associated with edges for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn merge_edge_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.edges.values() {
-            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a merging operation on all attributes associated with faces for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn merge_face_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.faces.values() {
-            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    /*
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a merging operation on all attributes associated with volumes for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn merge_volume_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
-        for storage in self.volumes.values() {
-            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-    */
-
     // attribute-agnostic try
 
     /*
@@ -624,163 +470,8 @@ impl AttrStorageManager {
     */
 }
 
-#[allow(unused)]
 /// Split variants.
 impl AttrStorageManager {
-    // attribute-agnostic regular
-
-    /*
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn split_attributes(
-        &self,
-        trans: &mut Transaction,
-        orbit_policy: &OrbitPolicy,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmResult<()> {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Edge => self.split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in),
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-    */
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with vertices
-    /// for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn split_vertex_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.vertices.values() {
-            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with edges for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn split_edge_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.edges.values() {
-            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with faces for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn split_face_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmClosureResult<()> {
-        for storage in self.faces.values() {
-            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    /*
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with volumes for specified cells.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    pub fn split_volume_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmResult<()> {
-        for storage in self.volumes.values() {
-            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-    */
-
     // attribute-agnostic try
 
     /*
@@ -824,6 +515,13 @@ impl AttrStorageManager {
 
     /// Execute a splitting operation on all attributes associated with vertices for specified cells.
     ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
     /// # Errors
     ///
     /// This method will fail, returning an error, if:
@@ -848,6 +546,13 @@ impl AttrStorageManager {
 
     /// Execute a splitting operation on all attributes associated with edges for specified cells.
     ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
     /// # Errors
     ///
     /// This method will fail, returning an error, if:
@@ -871,6 +576,13 @@ impl AttrStorageManager {
     }
 
     /// Execute a splitting operation on all attributes associated with faces for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
     /// # Errors
     ///
