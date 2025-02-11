@@ -1,6 +1,7 @@
-use honeycomb_core::prelude::{CMap2, CMapBuilder};
-use honeycomb_render::App;
 use std::env;
+
+use honeycomb_core::cmap::{CMap2, CMapBuilder};
+use honeycomb_render::App;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

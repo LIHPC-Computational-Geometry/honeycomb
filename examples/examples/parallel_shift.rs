@@ -21,9 +21,10 @@
 //! - overwrite current vertex value with computed average
 //!
 
-use honeycomb_core::prelude::{
-    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
+use honeycomb_core::cmap::{
+    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
+use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::stm::atomically;
 use rayon::prelude::*;
 

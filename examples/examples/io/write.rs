@@ -1,10 +1,11 @@
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdType};
+use std::time::Instant;
+
+use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType};
 use rand::{
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
     SeedableRng,
 };
-use std::time::Instant;
 
 fn main() {
     const N_SQUARE: usize = 16;
