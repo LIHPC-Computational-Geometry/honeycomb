@@ -77,9 +77,6 @@ pub mod systems {
     pub use crate::inspector::tab::draw_inspected_data;
     pub use crate::options::tab::draw_options;
     pub use crate::render::{
-        camera::{cursor_in_render, update_camera},
-        picking::update_picking,
-        scene::setup_scene,
-        update::*,
+        camera::update_camera, picking::update_picking, scene::setup_scene, update::*,
     };
 }

@@ -7,35 +7,28 @@ use bevy::prelude::*;
 use bevy_mod_picking::picking_core::PickingPluginsSettings;
 use bevy_mod_picking::selection::SelectionPluginSettings;
 use egui_dock::egui;
-// --- main function
-
-/// rendering options drawing function.
-pub fn draw_options(ui: &mut egui::Ui, world: &mut World) {
-    draw_map_options(ui, world);
-
-    ui.separator(); // ---
-
-    draw_picking_options(ui, world);
-}
 
 // --- map options
 
-macro_rules! opt_rendercol {
-    ($ui: ident, $world: ident, $param: ident) => {{
-        let mut rendercol = $world.resource_mut::<$param>();
-        $ui.checkbox(&mut rendercol.0, "");
-        $ui.add_enabled_ui(rendercol.0, |ui| draw_color_picker(ui, &mut rendercol.1));
-    }};
-}
-
-macro_rules! opt_dragvalue {
-    ($ui: ident, $world: ident, $param: ident) => {{
-        let mut val = $world.resource_mut::<$param>();
-        $ui.add(egui::DragValue::new(&mut val.0).speed(0.01));
-    }};
-}
-
-fn draw_map_options(ui: &mut egui::Ui, world: &mut World) {
+/// rendering options drawing function.
+#[allow(clippy::too_many_arguments)]
+pub fn draw_options(
+    ui: &mut egui::Ui,
+    mut drc: ResMut<DartRenderColor>,
+    mut ds: ResMut<DartShrink>,
+    mut dw: ResMut<DartWidth>,
+    mut dhm: ResMut<DartHeadMul>,
+    mut brc: ResMut<BetaRenderColor>,
+    mut bw: ResMut<BetaWidth>,
+    mut verc: ResMut<VertexRenderColor>,
+    mut vew: ResMut<VertexWidth>,
+    mut edrc: ResMut<EdgeRenderColor>,
+    mut edw: ResMut<EdgeWidth>,
+    mut farc: ResMut<FaceRenderColor>,
+    mut fas: ResMut<FaceShrink>,
+    mut vorc: ResMut<VolumeRenderColor>,
+    mut vos: ResMut<VolumeShrink>,
+) {
     ui.label(egui::RichText::new("Map Rendering").size(15.));
     ui.separator(); // ---
 
@@ -52,38 +45,52 @@ fn draw_map_options(ui: &mut egui::Ui, world: &mut World) {
             ui.end_row();
             // darts
             ui.label("Darts");
-            opt_rendercol!(ui, world, DartRenderColor);
-            opt_dragvalue!(ui, world, DartShrink);
-            opt_dragvalue!(ui, world, DartWidth);
-            opt_dragvalue!(ui, world, DartHeadMul);
+            ui.checkbox(&mut drc.0, "");
+            ui.add_enabled_ui(drc.0, |ui| draw_color_picker(ui, &mut drc.1));
+            ui.add(egui::DragValue::new(&mut ds.0).speed(0.01));
+            ui.add(egui::DragValue::new(&mut dw.0).speed(0.01));
+            ui.add(egui::DragValue::new(&mut dhm.0).speed(0.01));
             ui.end_row();
+
             // betas
             ui.label("Beta Functions");
-            opt_rendercol!(ui, world, BetaRenderColor);
+            ui.label("Darts");
+            ui.checkbox(&mut brc.0, "");
+            ui.add_enabled_ui(brc.0, |ui| draw_color_picker(ui, &mut brc.1));
             ui.label("");
-            opt_dragvalue!(ui, world, BetaWidth);
+            ui.add(egui::DragValue::new(&mut bw.0).speed(0.01));
             ui.end_row();
+
             // vertices
             ui.label("Vertices");
-            opt_rendercol!(ui, world, VertexRenderColor);
+            ui.checkbox(&mut verc.0, "");
+            ui.add_enabled_ui(verc.0, |ui| draw_color_picker(ui, &mut verc.1));
             ui.label("");
-            opt_dragvalue!(ui, world, VertexWidth);
+            ui.add(egui::DragValue::new(&mut vew.0).speed(0.01));
             ui.end_row();
+
             // edges
             ui.label("Edges");
-            opt_rendercol!(ui, world, EdgeRenderColor);
+            ui.checkbox(&mut edrc.0, "");
+            ui.add_enabled_ui(edrc.0, |ui| draw_color_picker(ui, &mut edrc.1));
             ui.label("");
-            opt_dragvalue!(ui, world, EdgeWidth);
+            ui.add(egui::DragValue::new(&mut edw.0).speed(0.01));
             ui.end_row();
+
             // faces
             ui.label("Faces");
-            opt_rendercol!(ui, world, FaceRenderColor);
-            opt_dragvalue!(ui, world, FaceShrink);
+            ui.checkbox(&mut farc.0, "");
+            ui.add_enabled_ui(farc.0, |ui| draw_color_picker(ui, &mut farc.1));
+            ui.label("");
+            ui.add(egui::DragValue::new(&mut fas.0).speed(0.01));
             ui.end_row();
+
             // faces
             ui.label("Volumes");
-            opt_rendercol!(ui, world, VolumeRenderColor);
-            opt_dragvalue!(ui, world, VolumeShrink);
+            ui.checkbox(&mut vorc.0, "");
+            ui.add_enabled_ui(vorc.0, |ui| draw_color_picker(ui, &mut vorc.1));
+            ui.label("");
+            ui.add(egui::DragValue::new(&mut vos.0).speed(0.01));
             ui.end_row();
         });
 }
@@ -111,6 +118,7 @@ fn draw_color_picker(ui: &mut egui::Ui, color: &mut egui::Color32) {
 
 // --- picking options
 
+#[allow(unused)]
 fn draw_picking_options(ui: &mut egui::Ui, world: &mut World) {
     ui.label(egui::RichText::new("Picking").size(15.));
     ui.separator(); // ---

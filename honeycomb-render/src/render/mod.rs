@@ -4,6 +4,7 @@ pub mod scene;
 pub mod update;
 
 use crate::capture::FocusedCapture;
+use crate::gui::WindowVisible;
 use crate::resources::{
     DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
     VertexRenderColor, VertexWidth,
@@ -20,9 +21,14 @@ pub struct ScenePlugin;
 impl Plugin for ScenePlugin {
     fn build(&self, app: &mut App) {
         // camera
-        app.add_systems(Startup, scene::setup_scene).add_systems(
+        app.insert_resource(AmbientLight {
+            color: Color::NONE,
+            brightness: 0.0,
+        })
+        .add_systems(Startup, scene::setup_scene)
+        .add_systems(
             Update,
-            camera::update_camera.run_if(camera::cursor_in_render),
+            camera::update_camera.run_if(|window_visible: Res<WindowVisible>| !window_visible.0),
         );
 
         // picking
