@@ -229,6 +229,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `read_attribute`, but internally uses a transaction that will be
     /// retried until validated.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn force_read_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
@@ -240,6 +241,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `write_attribute`, but internally uses a transaction that will be
     /// retried until validated.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn force_write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
@@ -252,6 +254,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `remove_attribute`, but internally uses a transaction that
     /// will be retried until validated.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn force_remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
