@@ -268,6 +268,14 @@ impl AttrStorageManager {
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
     /// # Errors
     ///
     /// This method will fail, returning an error, if:
@@ -305,6 +313,13 @@ impl AttrStorageManager {
 
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
     ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
     /// # Errors
     ///
     /// This method will fail, returning an error, if:
@@ -328,6 +343,13 @@ impl AttrStorageManager {
     }
 
     /// Execute a merging operation on all attributes associated with edges for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
     /// # Errors
     ///
@@ -353,6 +375,13 @@ impl AttrStorageManager {
 
     /// Execute a merging operation on all attributes associated with faces for specified cells.
     ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
     /// # Errors
     ///
     /// This method will fail, returning an error, if:
@@ -377,6 +406,13 @@ impl AttrStorageManager {
 
     /*
     /// Execute a merging operation on all attributes associated with volumes for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
     /// # Errors
     ///
@@ -404,6 +440,14 @@ impl AttrStorageManager {
     // attribute-specific
 
     /// Merge given attribute values.
+    ///
+    /// # Arguments
+    ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to merge values of.
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
     /// # Errors
     ///
@@ -442,6 +486,14 @@ impl AttrStorageManager {
     /*
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
+    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
+    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
     /// # Errors
     ///
@@ -603,6 +655,7 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to split value of.
     /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
