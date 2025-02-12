@@ -403,41 +403,6 @@ impl AttrStorageManager {
 
     // attribute-specific
 
-    #[allow(clippy::missing_errors_doc)]
-    /// Merge given attribute values.
-    ///
-    /// # Arguments
-    ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
-    /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    #[cfg(test)]
-    pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.merge(trans, id_out, id_in_lhs, id_in_rhs)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
-        }
-    }
-
-    /*
     /// Merge given attribute values.
     ///
     /// # Errors
@@ -449,13 +414,14 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[cfg(test)]
     pub fn try_merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.try_merge(trans, id_out, id_in_lhs, id_in_rhs)
@@ -467,7 +433,6 @@ impl AttrStorageManager {
             Ok(())
         }
     }
-    */
 }
 
 /// Split variants.
@@ -634,7 +599,6 @@ impl AttrStorageManager {
 
     // attribute-specific
 
-    #[allow(clippy::missing_errors_doc)]
     /// Split given attribute value.
     ///
     /// # Arguments
@@ -643,33 +607,6 @@ impl AttrStorageManager {
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
-    #[cfg(test)]
-    pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> StmClosureResult<()> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.split(trans, id_out_lhs, id_out_rhs, id_in)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
-        }
-    }
-
-    /*
-    /// Split given attribute value.
     ///
     /// # Errors
     ///
@@ -680,13 +617,14 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
+    #[cfg(test)]
     pub fn try_split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.try_split(trans, id_out_lhs, id_out_rhs, id_in)
@@ -698,7 +636,6 @@ impl AttrStorageManager {
             Ok(())
         }
     }
-    */
 }
 
 /// **Attribute read & write methods**
@@ -824,61 +761,6 @@ impl AttrStorageManager {
                 std::any::type_name::<A>()
             );
             Ok(None)
-        }
-    }
-
-    /// Get the value of an attribute.
-    ///
-    /// This variant is equivalent to `read_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_read_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_read(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Set the value of an attribute, and return the old one.
-    ///
-    /// This variant is equivalent to `write_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_write_attribute<A: AttributeBind>(
-        &self,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_write(id, val)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Remove the an item from an attribute storage, and return it.
-    ///
-    /// This variant is equivalent to `remove_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_remove_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_remove(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
         }
     }
 }

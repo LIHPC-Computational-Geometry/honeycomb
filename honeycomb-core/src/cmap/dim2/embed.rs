@@ -5,7 +5,7 @@
 //! generic attributes
 
 use crate::cmap::{CMap2, VertexIdType};
-use crate::stm::{StmClosureResult, Transaction};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 use crate::{
     attributes::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage},
     geometry::{CoordsFloat, Vertex2},
@@ -109,7 +109,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be
     /// retried until validated.
     pub fn force_read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
-        self.vertices.force_read(vertex_id)
+        atomically(|t| self.vertices.read(t, vertex_id))
     }
 
     /// Replace the vertex associated to a given identifier and return its old value.
@@ -121,7 +121,8 @@ impl<T: CoordsFloat> CMap2<T> {
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
     ) -> Option<Vertex2<T>> {
-        self.vertices.force_write(vertex_id, vertex.into())
+        let tmp = vertex.into();
+        atomically(|t| self.vertices.write(t, vertex_id, tmp))
     }
 
     #[allow(clippy::must_use_candidate)]
@@ -130,7 +131,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will
     /// be retried until validated.
     pub fn force_remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
-        self.vertices.force_remove(vertex_id)
+        atomically(|t| self.vertices.remove(t, vertex_id))
     }
 }
 
@@ -231,7 +232,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        self.attributes.force_read_attribute::<A>(id)
+        atomically(|t| self.attributes.read_attribute::<A>(t, id.clone()))
     }
 
     /// Replace the attribute `A` value associated to a given identifier and return its old value.
@@ -243,7 +244,7 @@ impl<T: CoordsFloat> CMap2<T> {
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
-        self.attributes.force_write_attribute::<A>(id, val)
+        atomically(|t| self.attributes.write_attribute::<A>(t, id.clone(), val))
     }
 
     /// Remove the attribute `A` value associated to a given identifier and return it.
@@ -254,7 +255,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        self.attributes.force_remove_attribute::<A>(id)
+        atomically(|t| self.attributes.remove_attribute::<A>(t, id.clone()))
     }
 
     // --- big guns

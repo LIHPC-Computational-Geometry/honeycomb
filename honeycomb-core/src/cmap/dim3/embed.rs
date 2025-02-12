@@ -9,7 +9,7 @@ use crate::attributes::{
 };
 use crate::cmap::{CMap3, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex3};
-use crate::stm::{StmClosureResult, Transaction};
+use crate::stm::{atomically, StmClosureResult, Transaction};
 
 /// ## **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap3<T> {
@@ -110,7 +110,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// retried until validated.
     #[must_use = "unused return value"]
     pub fn force_read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex3<T>> {
-        self.vertices.force_read(vertex_id)
+        atomically(|t| self.vertices.read(t, vertex_id))
     }
 
     /// Write a vertex to a given identifier, and return its old value.
@@ -122,7 +122,8 @@ impl<T: CoordsFloat> CMap3<T> {
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex3<T>>,
     ) -> Option<Vertex3<T>> {
-        self.vertices.force_write(vertex_id, vertex.into())
+        let tmp = vertex.into();
+        atomically(|t| self.vertices.write(t, vertex_id, tmp))
     }
 
     #[allow(clippy::must_use_candidate)]
@@ -131,7 +132,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will
     /// be retried until validated.
     pub fn force_remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex3<T>> {
-        self.vertices.force_remove(vertex_id)
+        atomically(|t| self.vertices.remove(t, vertex_id))
     }
 }
 
@@ -232,7 +233,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        self.attributes.force_read_attribute::<A>(id)
+        atomically(|t| self.attributes.read_attribute::<A>(t, id.clone()))
     }
 
     /// Replace the attribute `A` value associated to a given identifier and return its old value.
@@ -244,7 +245,7 @@ impl<T: CoordsFloat> CMap3<T> {
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
-        self.attributes.force_write_attribute::<A>(id, val)
+        atomically(|t| self.attributes.write_attribute::<A>(t, id.clone(), val))
     }
 
     /// Remove the attribute `A` value associated to a given identifier and return it.
@@ -255,7 +256,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        self.attributes.force_remove_attribute::<A>(id)
+        atomically(|t| self.attributes.remove_attribute::<A>(t, id.clone()))
     }
     // --- big guns
 
