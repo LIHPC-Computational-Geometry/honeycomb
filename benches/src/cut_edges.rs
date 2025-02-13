@@ -27,7 +27,7 @@ fn main() {
     let n_threads = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    let target_len = args.get(3).map(|s| s.parse().ok()).flatten().unwrap_or(0.1);
+    let target_len = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(0.1);
 
     // load map from file
     let mut instant = Instant::now();
@@ -172,10 +172,8 @@ fn dispatch_rayon<T: CoordsFloat>(
             if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
                 unreachable!()
             }
-        } else {
-            if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                unreachable!()
-            }
+        } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
+            unreachable!()
         }
     }); // par_for_each
 }
@@ -193,16 +191,14 @@ fn dispatch_rayon_chunks<T: CoordsFloat>(
         .map(|(e, sl)| (e, sl.try_into().unwrap()))
         .collect();
     units.par_chunks(1 + units.len() / n_threads).for_each(|c| {
-        c.into_iter().for_each(|&(e, new_darts)| {
+        c.iter().for_each(|&(e, new_darts)| {
             let mut n_retry = 0;
             if map.is_i_free::<2>(e as DartIdType) {
                 if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
                     unreachable!()
                 }
-            } else {
-                if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                    unreachable!()
-                }
+            } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
+                unreachable!()
             }
         })
     }); // par_for_each
@@ -223,16 +219,14 @@ fn dispatch_std_threads<T: CoordsFloat>(
     std::thread::scope(|s| {
         for wl in units.chunks(1 + units.len() / n_threads) {
             s.spawn(|| {
-                wl.into_iter().for_each(|&(e, new_darts)| {
+                wl.iter().for_each(|&(e, new_darts)| {
                     let mut n_retry = 0;
                     if map.is_i_free::<2>(e as DartIdType) {
                         if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
                             unreachable!()
                         }
-                    } else {
-                        if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                            unreachable!()
-                        }
+                    } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
+                        unreachable!()
                     }
                 });
             }); // s.spawn
