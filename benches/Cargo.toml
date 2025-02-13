@@ -5,7 +5,7 @@ license.workspace = true
 version.workspace = true
 homepage.workspace = true
 repository.workspace = true
-description = "Core structure benchmarks"
+description = "Honeycomb structures and algorithms benchmarks"
 authors.workspace = true
 publish = false
 
@@ -15,6 +15,7 @@ _single_precision = []
 # deps
 
 [dependencies]
+clap = { workspace =true, features = ["derive"] }
 cfg-if.workspace = true
 honeycomb.workspace = true
 rayon.workspace = true
@@ -26,37 +27,14 @@ criterion = { workspace = true, features = ["html_reports"] }
 iai-callgrind.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
 
-# binaries
-
 [[bin]]
-name = "builder"
-path = "src/builder.rs"
+name = "hc-bench"
+path = "src/main.rs"
 doc = false
 
-[[bin]]
-name = "cut-edges"
-path = "src/cut_edges.rs"
-doc = false
-
-[[bin]]
-name = "grid-random-split"
-path = "src/grid_random_split.rs"
-doc = false
-
-[[bin]]
-name = "grisubal"
-path = "src/grisubal.rs"
-doc = false
-
-[[bin]]
-name = "shift"
-path = "src/shift.rs"
-doc = false
-
-[[bin]]
-name = "shift-nc"
-path = "src/shift_no_conflict.rs"
-doc = false
+[lib]
+name = "honeycomb_benches"
+path = "src/lib.rs"
 
 # benches
 

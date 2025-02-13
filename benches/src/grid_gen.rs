@@ -1,46 +1,53 @@
-use std::{fs::File, time::Instant};
+use std::time::{Duration, Instant};
 
 use honeycomb::{
     core::stm::atomically_with_err,
-    prelude::{CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy},
+    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, GridDescriptor, Orbit2, OrbitPolicy},
 };
-
 use rand::{
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
     SeedableRng,
 };
-
 use rayon::prelude::*;
 
-const P_BERNOULLI: f64 = 0.6;
-const SEED: u64 = 9_817_498_146_784;
+use crate::cli::{Generate2dGridArgs, Split};
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let n_square = args
-        .get(1)
-        .and_then(|s| s.parse::<usize>().ok())
-        .unwrap_or(128);
-    let n_diag = n_square.pow(2);
+pub fn bench_generate_2d_grid<T: CoordsFloat>(args: Generate2dGridArgs) -> CMap2<T> {
+    let descriptor = GridDescriptor::default()
+        .n_cells_x(args.nx.get())
+        .n_cells_y(args.ny.get())
+        .len_per_cell_x(T::from(args.lx).unwrap())
+        .len_per_cell_y(T::from(args.ly).unwrap())
+        .split_quads(args.split.is_some_and(|s| s == Split::Uniform));
+
+    let mut map = CMapBuilder::from(descriptor).build().unwrap();
+
+    if args.split.is_some_and(|s| s == Split::Random) {
+        let _ = split_faces_randomly(&mut map, 0.6, 9_817_498_146_784);
+    }
+
+    map
+}
+
+fn split_faces_randomly<T: CoordsFloat>(
+    map: &mut CMap2<T>,
+    p_bernoulli: f64,
+    seed: u64,
+) -> (Duration, Duration) {
+    // sample
     let mut instant = Instant::now();
-    // (a) generate the grid
-    let mut map: CMap2<f64> = CMapBuilder::unit_grid(n_square).build().unwrap();
-    // collect these now so additional darts don't mess up the iterator
     let faces = map.iter_faces().collect::<Vec<_>>();
-    println!("grid built in {}ms", instant.elapsed().as_millis());
-
-    // (b) split diagonals one way or the other
-    // sample diag orientation
-    let rng = SmallRng::seed_from_u64(SEED);
-    let dist = Bernoulli::new(P_BERNOULLI).unwrap();
+    let n_diag = faces.len();
+    let rng = SmallRng::seed_from_u64(seed);
+    let dist = Bernoulli::new(p_bernoulli).unwrap();
     let splits: Vec<bool> = dist.sample_iter(rng).take(n_diag).collect();
-    // allocate diag darts
+    let sample_time = instant.elapsed();
+
+    // build diags
+    instant = Instant::now();
     let nd = map.add_free_darts(n_diag * 2);
     let nd_range = (nd..nd + (n_diag * 2) as DartIdType).collect::<Vec<_>>();
-
-    instant = Instant::now();
-    // build diags
     faces
         .into_iter()
         .zip(nd_range.chunks(2))
@@ -74,11 +81,5 @@ fn main() {
             .is_err()
             {}
         });
-    println!("diagonals split in {}ms", instant.elapsed().as_millis());
-
-    instant = Instant::now();
-    // (c) save the map
-    let mut f = File::create("grid_split.vtk").unwrap();
-    map.to_vtk_binary(&mut f);
-    println!("map saved in {}ms", instant.elapsed().as_millis());
+    (sample_time, instant.elapsed())
 }

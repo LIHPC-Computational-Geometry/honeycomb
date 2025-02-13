@@ -8,31 +8,22 @@ use honeycomb::{
     prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Vertex2},
 };
 
-use honeycomb_benches::hash_file;
+use crate::{cli::CutEdgesArgs, utils::hash_file};
 
 // const MAX_RETRY: u8 = 10;
 
-fn main() {
-    // read args; the only required is the input file
-    let args: Vec<String> = std::env::args().collect();
-    let input_map = args.get(1).expect("E: no input file specified");
-    let backend = args.get(2);
-    let backend = if backend.is_some_and(|s| s == "rayon") {
-        Backend::Rayon
-    } else if backend.is_some_and(|s| s == "chunks") {
-        Backend::RayonChunks
-    } else {
-        Backend::StdThreads
-    };
+pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
+    let input_map = args.input.to_str().unwrap();
+    let target_len = T::from(args.target_length).unwrap();
+
     let n_threads = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    let target_len = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(0.1);
 
     // load map from file
     let mut instant = Instant::now();
     let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
-    let mut map: CMap2<f64> = CMapBuilder::from(input_map).build().unwrap();
+    let mut map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
     #[cfg(debug_assertions)] // check input
     {
         use honeycomb::prelude::{Orbit2, OrbitPolicy};
@@ -43,9 +34,12 @@ fn main() {
         );
     }
     println!("Run information");
-    println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
-    println!("|-> backend    : {backend:?} with {n_threads} thread(s)");
-    println!("|-> target size: {target_len}");
+    println!("|-> input      : {input_map} (hash: {input_hash:#0x})",);
+    println!(
+        "|-> backend    : {:?} with {n_threads} thread(s)",
+        args.backend
+    );
+    println!("|-> target size: {target_len:?}");
     println!("|-> init time  : {}ms", instant.elapsed().as_millis());
 
     println!(" Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry");
@@ -77,10 +71,14 @@ fn main() {
     while !edges.is_empty() {
         // process batch
         instant = Instant::now();
-        let n_retry = match backend {
-            Backend::Rayon => dispatch_rayon(&map, &mut edges, &darts),
-            Backend::RayonChunks => dispatch_rayon_chunks(&map, &mut edges, &darts, n_threads),
-            Backend::StdThreads => dispatch_std_threads(&map, &mut edges, &darts, n_threads),
+        let n_retry = match args.backend {
+            crate::cli::Backend::RayonIter => dispatch_rayon(&map, &mut edges, &darts),
+            crate::cli::Backend::RayonChunks => {
+                dispatch_rayon_chunks(&map, &mut edges, &darts, n_threads)
+            }
+            crate::cli::Backend::StdThreads => {
+                dispatch_std_threads(&map, &mut edges, &darts, n_threads)
+            }
         };
         print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_process_batch
         println!("| {n_retry:>15}",); // n_transac_retry
@@ -120,40 +118,7 @@ fn main() {
         }
     }
 
-    #[cfg(debug_assertions)] // check output
-    {
-        use honeycomb::prelude::{Orbit2, OrbitPolicy};
-        assert!(map
-            .iter_edges()
-            .filter_map(|e| {
-                let (vid1, vid2) = (
-                    map.vertex_id(e as DartIdType),
-                    map.vertex_id(map.beta::<1>(e as DartIdType)),
-                );
-                match (map.force_read_vertex(vid1), map.force_read_vertex(vid2)) {
-                    (Some(v1), Some(v2)) => Some((v2 - v1).norm()),
-                    (_, _) => None,
-                }
-            })
-            .all(|norm| norm <= target_len));
-        assert!(map
-            .iter_vertices()
-            .all(|v| map.force_read_vertex(v).is_some()));
-        assert!(
-            map.iter_faces()
-                .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
-            "Input mesh isn't a triangle mesh"
-        );
-    }
-
-    std::hint::black_box(map);
-}
-
-#[derive(Debug)]
-enum Backend {
-    Rayon,
-    RayonChunks,
-    StdThreads,
+    map
 }
 
 #[inline]
