@@ -48,7 +48,7 @@ fn main() {
     println!("|-> target size: {target_len}");
     println!("|-> init time  : {}ms", instant.elapsed().as_millis());
 
-    println!(" Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s)");
+    println!(" Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry");
 
     let mut step = 0;
     print!(" {step:>4} "); // Step
@@ -77,12 +77,13 @@ fn main() {
     while !edges.is_empty() {
         // process batch
         instant = Instant::now();
-        match backend {
+        let n_retry = match backend {
             Backend::Rayon => dispatch_rayon(&map, &mut edges, &darts),
             Backend::RayonChunks => dispatch_rayon_chunks(&map, &mut edges, &darts, n_threads),
             Backend::StdThreads => dispatch_std_threads(&map, &mut edges, &darts, n_threads),
         };
-        println!("| {:>18.6e}", instant.elapsed().as_secs_f64()); // t_process_batch
+        print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_process_batch
+        println!("| {n_retry:>15}",); // n_transac_retry
 
         (1..map.n_darts() as DartIdType).for_each(|d| {
             if map.is_free(d) && !map.is_unused(d) {
@@ -160,38 +161,15 @@ fn dispatch_rayon<T: CoordsFloat>(
     map: &CMap2<T>,
     edges: &mut Vec<EdgeIdType>,
     darts: &[DartIdType],
-) {
+) -> u32 {
     let units: Vec<(u32, [u32; 6])> = edges
         .drain(..)
         .zip(darts.chunks(6))
         .map(|(e, sl)| (e, sl.try_into().unwrap()))
         .collect();
-    units.into_par_iter().for_each(|(e, new_darts)| {
-        let mut n_retry = 0;
-        if map.is_i_free::<2>(e as DartIdType) {
-            if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                unreachable!()
-            }
-        } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-            unreachable!()
-        }
-    }); // par_for_each
-}
-
-#[inline]
-fn dispatch_rayon_chunks<T: CoordsFloat>(
-    map: &CMap2<T>,
-    edges: &mut Vec<EdgeIdType>,
-    darts: &[DartIdType],
-    n_threads: usize,
-) {
-    let units: Vec<(u32, [u32; 6])> = edges
-        .drain(..)
-        .zip(darts.chunks(6))
-        .map(|(e, sl)| (e, sl.try_into().unwrap()))
-        .collect();
-    units.par_chunks(1 + units.len() / n_threads).for_each(|c| {
-        c.iter().for_each(|&(e, new_darts)| {
+    units
+        .into_par_iter()
+        .map(|(e, new_darts)| {
             let mut n_retry = 0;
             if map.is_i_free::<2>(e as DartIdType) {
                 if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
@@ -200,8 +178,41 @@ fn dispatch_rayon_chunks<T: CoordsFloat>(
             } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
                 unreachable!()
             }
-        })
-    }); // par_for_each
+            n_retry as u32
+        }) // par_map
+        .sum()
+}
+
+#[inline]
+fn dispatch_rayon_chunks<T: CoordsFloat>(
+    map: &CMap2<T>,
+    edges: &mut Vec<EdgeIdType>,
+    darts: &[DartIdType],
+    n_threads: usize,
+) -> u32 {
+    let units: Vec<(u32, [u32; 6])> = edges
+        .drain(..)
+        .zip(darts.chunks(6))
+        .map(|(e, sl)| (e, sl.try_into().unwrap()))
+        .collect();
+    units
+        .par_chunks(1 + units.len() / n_threads)
+        .map(|c| {
+            let mut n = 0;
+            c.iter().for_each(|&(e, new_darts)| {
+                let mut n_retry = 0;
+                if map.is_i_free::<2>(e as DartIdType) {
+                    if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
+                        unreachable!()
+                    }
+                } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
+                    unreachable!()
+                }
+                n += n_retry as u32;
+            });
+            n as u32
+        }) // par_for_each
+        .sum()
 }
 
 #[inline]
@@ -210,15 +221,17 @@ fn dispatch_std_threads<T: CoordsFloat>(
     edges: &mut Vec<EdgeIdType>,
     darts: &[DartIdType],
     n_threads: usize,
-) {
+) -> u32 {
     let units: Vec<(u32, [u32; 6])> = edges
         .drain(..)
         .zip(darts.chunks(6))
         .map(|(e, sl)| (e, sl.try_into().unwrap()))
         .collect();
     std::thread::scope(|s| {
+        let mut handles = Vec::new();
         for wl in units.chunks(1 + units.len() / n_threads) {
-            s.spawn(|| {
+            handles.push(s.spawn(|| {
+                let mut n = 0;
                 wl.iter().for_each(|&(e, new_darts)| {
                     let mut n_retry = 0;
                     if map.is_i_free::<2>(e as DartIdType) {
@@ -228,10 +241,13 @@ fn dispatch_std_threads<T: CoordsFloat>(
                     } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
                         unreachable!()
                     }
+                    n += n_retry as u32;
                 });
-            }); // s.spawn
+                n
+            })); // s.spawn
         } // for wl in workloads
-    }); // std::thread::scope
+        handles.into_iter().map(|h| h.join().unwrap()).sum()
+    }) // std::thread::scope
 }
 
 #[inline]
