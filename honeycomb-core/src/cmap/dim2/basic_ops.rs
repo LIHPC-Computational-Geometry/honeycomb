@@ -32,6 +32,28 @@ impl<T: CoordsFloat> CMap2<T> {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
+    /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    #[must_use = "unused return value"]
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
+    }
+
     // --- edit
 
     /// Add a new free dart to the map.
