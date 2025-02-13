@@ -55,7 +55,7 @@ fn split_faces_randomly<T: CoordsFloat>(
         .par_bridge()
         .for_each(|((df, sl), split)| {
             let square = df as DartIdType;
-            assert_eq!(Orbit2::new(&map, OrbitPolicy::FaceLinear, df).count(), 4);
+            assert_eq!(Orbit2::new(map, OrbitPolicy::FaceLinear, df).count(), 4);
             let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
 
             let &[dsplit1, dsplit2] = sl else {

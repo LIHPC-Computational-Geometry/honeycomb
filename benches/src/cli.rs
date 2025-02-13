@@ -40,14 +40,19 @@ pub enum Benches {
 
 #[derive(Args)]
 pub struct Generate2dGridArgs {
+    /// Number of cells along the X-axis
     #[arg(required(true))]
     pub nx: NonZero<usize>,
+    /// Number of cells along the Y-axis
     #[arg(required(true))]
     pub ny: NonZero<usize>,
+    /// Length of cells along the X-axis
     #[arg(required(true), allow_negative_numbers(false))]
     pub lx: f64,
+    /// Length of cells along the Y-axis
     #[arg(required(true), allow_negative_numbers(false))]
     pub ly: f64,
+    /// If present, split diagonal according to the specified option
     #[arg(short, long, value_enum)]
     pub split: Option<Split>,
 }
@@ -60,10 +65,13 @@ pub enum Split {
 
 #[derive(Args)]
 pub struct CutEdgesArgs {
+    /// Input map as a VTK file
     #[arg(short, long, required(true))]
     pub input: PathBuf,
+    /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`
     #[arg(long, value_enum, default_value_t = Backend::StdThreads)]
     pub backend: Backend,
+    /// Target threshold for edge length; any edge equal or above is split in half
     #[arg(
         short('l'),
         long("target-length"),
@@ -82,12 +90,16 @@ pub enum Backend {
 
 #[derive(Args)]
 pub struct GrisubalArgs {
+    /// Input mesh as a VTK file
     #[arg(required(true))]
     pub input: PathBuf,
+    /// Length of cells along the X-axis of the overlapping grid
     #[arg(required(true), allow_negative_numbers(false))]
     pub lx: f64,
+    /// Length of cells along the Y-axis of the overlapping grid
     #[arg(required(true), allow_negative_numbers(false))]
     pub ly: f64,
+    /// If present, clip cells on one side of the captured boundary
     #[arg(long, value_enum, value_name("SIDE"))]
     pub clip: Option<Clip>,
 }
@@ -100,10 +112,13 @@ pub enum Clip {
 
 #[derive(Args)]
 pub struct ShiftArgs {
+    /// Input map as a VTK file
     #[arg(short, long, required(true))]
     pub input: PathBuf,
+    /// Number of applications of the relaxation algorithm
     #[arg(long = "n-rounds", default_value_t = 100)]
     pub n_rounds: usize,
+    /// UNIMPLEMENTED - Use a partitioning algorithm to avoid conflicts between transactions
     #[arg(long = "no-conflict")]
     pub no_conflict: bool,
 }
