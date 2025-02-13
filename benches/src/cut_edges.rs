@@ -210,7 +210,7 @@ fn dispatch_rayon_chunks<T: CoordsFloat>(
                 }
                 n += n_retry as u32;
             });
-            n as u32
+            n
         }) // par_for_each
         .sum()
 }
