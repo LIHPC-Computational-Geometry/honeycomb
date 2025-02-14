@@ -29,7 +29,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 let eid_new = self.edge_id_transac(trans, ld)?;
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
                     SewError
                 );
             }
@@ -46,17 +46,17 @@ impl<T: CoordsFloat> CMap3<T> {
                 let vid_l_new = self.vertex_id_transac(trans, ld)?;
                 let eid_new = self.edge_id_transac(trans, ld)?;
                 try_or_coerce!(
-                    self.vertices.try_merge(trans, vid_l_new, vid_l, vid_b1r),
+                    self.vertices.merge(trans, vid_l_new, vid_l, vid_b1r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
+                        .merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
                     SewError
                 );
             }
@@ -73,17 +73,17 @@ impl<T: CoordsFloat> CMap3<T> {
                 let vid_r_new = self.vertex_id_transac(trans, rd)?;
                 let eid_new = self.edge_id_transac(trans, ld)?;
                 try_or_coerce!(
-                    self.vertices.try_merge(trans, vid_r_new, vid_b1l, vid_r),
+                    self.vertices.merge(trans, vid_r_new, vid_b1l, vid_r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
+                        .merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
                     SewError
                 );
             }
@@ -132,26 +132,26 @@ impl<T: CoordsFloat> CMap3<T> {
                 let vid_r_new = self.vertex_id_transac(trans, rd)?;
                 let eid_new = self.edge_id_transac(trans, ld)?;
                 try_or_coerce!(
-                    self.vertices.try_merge(trans, vid_l_new, vid_l, vid_b1r),
+                    self.vertices.merge(trans, vid_l_new, vid_l, vid_b1r),
                     SewError
                 );
                 try_or_coerce!(
-                    self.vertices.try_merge(trans, vid_r_new, vid_b1l, vid_r),
-                    SewError
-                );
-                try_or_coerce!(
-                    self.attributes
-                        .try_merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
+                    self.vertices.merge(trans, vid_r_new, vid_b1l, vid_r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
+                        .merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                        .merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.attributes
+                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
                     SewError
                 );
             }
@@ -179,7 +179,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.attributes
-                        .try_split_edge_attributes(trans, ld, rd, eid_old),
+                        .split_edge_attributes(trans, ld, rd, eid_old),
                     SewError
                 );
             }
@@ -193,7 +193,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.attributes
-                        .try_split_edge_attributes(trans, ld, rd, eid_old),
+                        .split_edge_attributes(trans, ld, rd, eid_old),
                     SewError
                 );
                 let (vid_l_newl, vid_l_newr) = (
@@ -202,7 +202,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
+                        .split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
                     SewError
                 );
             }
@@ -216,7 +216,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.attributes
-                        .try_split_edge_attributes(trans, ld, rd, eid_old),
+                        .split_edge_attributes(trans, ld, rd, eid_old),
                     SewError
                 );
                 let (vid_r_newl, vid_r_newr) = (
@@ -225,7 +225,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
+                        .split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
                     SewError
                 );
             }
@@ -240,7 +240,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.attributes
-                        .try_split_edge_attributes(trans, ld, rd, eid_old),
+                        .split_edge_attributes(trans, ld, rd, eid_old),
                     SewError
                 );
                 let (vid_l_newl, vid_l_newr) = (
@@ -253,12 +253,12 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
+                        .split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes
-                        .try_split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
+                        .split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
                     SewError
                 );
             }
