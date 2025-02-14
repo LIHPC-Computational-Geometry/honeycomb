@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use clap::Parser;
 use honeycomb::prelude::CMap2;
 
@@ -25,8 +27,17 @@ fn main() {
         // we may have to move this to match arms if this changes
         if let Some(f) = cli.save_as {
             match f {
-                Format::Cmap => map.serialize("out.cmap"),
-                Format::Vtk => map.to_vtk_binary("out.vtk"),
+                Format::Cmap => {
+                    // FIXME: update serialize sig
+                    let mut out = String::new();
+                    let mut file = std::fs::File::create("out.cmap").unwrap();
+                    map.serialize(&mut out);
+                    file.write_all(out.as_bytes()).unwrap();
+                }
+                Format::Vtk => {
+                    let mut file = std::fs::File::create("out.vtk").unwrap();
+                    map.to_vtk_binary(&mut file);
+                }
             }
         } else {
             std::hint::black_box(map);
