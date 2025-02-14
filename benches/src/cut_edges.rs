@@ -33,7 +33,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
             "Input mesh isn't a triangle mesh"
         );
     }
-    println!("Run information");
+    println!("| cut-edges benchmark");
     println!("|-> input      : {input_map} (hash: {input_hash:#0x})",);
     println!(
         "|-> backend    : {:?} with {n_threads} thread(s)",
