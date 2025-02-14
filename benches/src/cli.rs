@@ -116,8 +116,8 @@ pub struct ShiftArgs {
     #[arg(short, long, required(true))]
     pub input: PathBuf,
     /// Number of applications of the relaxation algorithm
-    #[arg(long = "n-rounds", default_value_t = 100)]
-    pub n_rounds: usize,
+    #[arg(long = "n-rounds", default_value_t = NonZero::new(100).unwrap())]
+    pub n_rounds: NonZero<usize>,
     /// UNIMPLEMENTED - Use a partitioning algorithm to avoid conflicts between transactions
     #[arg(long = "no-conflict")]
     pub no_conflict: bool,

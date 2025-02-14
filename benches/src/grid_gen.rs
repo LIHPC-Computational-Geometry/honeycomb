@@ -24,6 +24,8 @@ pub fn bench_generate_2d_grid<T: CoordsFloat>(args: Generate2dGridArgs) -> CMap2
     let mut map = CMapBuilder::from(descriptor).build().unwrap();
 
     if args.split.is_some_and(|s| s == Split::Random) {
+        // fixed probability and seed value from  the original binary
+        // this can be made into a CL arg if necessary
         let _ = split_faces_randomly(&mut map, 0.6, 9_817_498_146_784);
     }
 

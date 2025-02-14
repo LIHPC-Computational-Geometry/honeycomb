@@ -67,7 +67,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
             });
 
             round += 1;
-            if round >= args.n_rounds {
+            if round >= args.n_rounds.get() {
                 break;
             }
         }
