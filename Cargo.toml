@@ -35,6 +35,7 @@ honeycomb-examples = { version = "0.7.0", path = "./examples" }
 honeycomb-render = { version = "0.7.0", path = "./honeycomb-render" }
 
 # common
+clap = "4.5.29"
 cfg-if = "1"
 itertools = "0.14.0"
 rayon = "1.10.0"
