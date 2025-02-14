@@ -29,7 +29,7 @@
 
 use rayon::prelude::*;
 
-use honeycomb::core::stm::atomically;
+use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
     CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
 };
@@ -46,8 +46,11 @@ fn main() {
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(100);
 
+    let mut instant = std::time::Instant::now();
     let map: CMap2<f64> = CMapBuilder::unit_grid(n_squares).build().unwrap();
+    let build_time = instant.elapsed();
 
+    instant = std::time::Instant::now();
     // fetch all vertices that are not on the boundary of the map
     let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
         .iter_vertices()
@@ -66,22 +69,61 @@ fn main() {
             }
         })
         .collect();
+    let n_v = tmp.len();
+    let graph_time = instant.elapsed();
+    let n_threads = std::thread::available_parallelism()
+        .map(|v| v.get())
+        .unwrap_or(1);
+
+    println!("| cut-edges benchmark");
+    // println!("|-> input      : {input_map} (hash: {input_hash:#0x})"); // FIXME: merge master into branch & uncomment
+    println!(
+        "|-> backend    : {} with {n_threads} thread(s)",
+        "rayon-iter"
+    );
+    println!("|-> # of rounds: {n_rounds}");
+    println!("|-+ init time  :");
+    println!("| |->   map built in {}ms", build_time.as_millis());
+    println!("| |-> graph built in {}ms", graph_time.as_millis());
+
+    println!(" Round | process_time | throughput(vertex/s) | n_transac_retry");
     // main loop
     let mut round = 0;
+    let mut process_time;
     loop {
-        tmp.par_iter().for_each(|(vid, neigh)| {
-            atomically(|trans| {
-                let mut new_val = Vertex2::default();
-                for v in neigh {
-                    let vertex = map.read_vertex(trans, *v)?.unwrap();
-                    new_val.0 += vertex.0;
-                    new_val.1 += vertex.1;
-                }
-                new_val.0 /= neigh.len() as f64;
-                new_val.1 /= neigh.len() as f64;
-                map.write_vertex(trans, *vid, new_val)
-            });
-        });
+        instant = std::time::Instant::now();
+        let n_retry: u32 = tmp
+            .par_iter()
+            .map(|(vid, neigh)| {
+                let mut n = 0;
+                Transaction::with_control(
+                    |_| {
+                        n += 1;
+                        TransactionControl::Retry
+                    },
+                    |trans| {
+                        let mut new_val = Vertex2::default();
+                        for v in neigh {
+                            let vertex = map.read_vertex(trans, *v)?.unwrap();
+                            new_val.0 += vertex.0;
+                            new_val.1 += vertex.1;
+                        }
+                        new_val.0 /= neigh.len() as f64;
+                        new_val.1 /= neigh.len() as f64;
+                        map.write_vertex(trans, *vid, new_val)
+                    },
+                ); // Transaction::with_control
+                n
+            })
+            .sum();
+        process_time = instant.elapsed().as_secs_f64();
+        println!(
+            " {:>5} | {:>12.6e} | {:>20.6e} | {:>15}",
+            round,
+            process_time,
+            n_v as f64 / process_time,
+            n_retry,
+        );
 
         round += 1;
         if round >= n_rounds {

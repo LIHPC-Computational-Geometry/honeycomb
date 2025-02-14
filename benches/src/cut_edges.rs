@@ -42,7 +42,7 @@ fn main() {
             "Input mesh isn't a triangle mesh"
         );
     }
-    println!("Run information");
+    println!("| cut-edges benchmark");
     println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
     println!("|-> backend    : {backend:?} with {n_threads} thread(s)");
     println!("|-> target size: {target_len}");
