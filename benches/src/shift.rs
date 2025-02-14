@@ -61,7 +61,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
             .map(|v| v.get())
             .unwrap_or(1);
 
-        println!("| cut-edges benchmark");
+        println!("| shift benchmark");
         println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
         println!("|-> backend    : rayon-iter with {n_threads} thread(s)",);
         println!("|-> # of rounds: {}", args.n_rounds.get());
