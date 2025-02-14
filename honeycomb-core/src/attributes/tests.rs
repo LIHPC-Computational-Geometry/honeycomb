@@ -237,7 +237,7 @@ fn test_merge_attributes() {
     // Test merge
     atomically(|trans| {
         manager
-            .try_merge_attribute::<Temperature>(trans, 2, 0, 1)
+            .merge_attribute::<Temperature>(trans, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -260,7 +260,7 @@ fn test_split_attributes() {
     // Test split
     atomically(|trans| {
         manager
-            .try_split_attribute::<Temperature>(trans, 1, 2, 0)
+            .split_attribute::<Temperature>(trans, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -308,7 +308,7 @@ fn test_orbit_specific_merges() {
     // Test vertex-specific merge
     atomically(|trans| {
         manager
-            .try_merge_vertex_attributes(trans, 2, 0, 1)
+            .merge_vertex_attributes(trans, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -329,7 +329,7 @@ fn test_orbit_specific_splits() {
     // Test vertex-specific split
     atomically(|trans| {
         manager
-            .try_split_vertex_attributes(trans, 1, 2, 0)
+            .split_vertex_attributes(trans, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -364,7 +364,7 @@ fn test_merge_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .try_merge_vertex_attributes(trans, 2, 0, 1)
+            .merge_vertex_attributes(trans, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -383,7 +383,7 @@ fn test_split_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .try_split_vertex_attributes(trans, 1, 2, 0)
+            .split_vertex_attributes(trans, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -455,7 +455,7 @@ fn test_merge_attribute() {
 
     atomically(|trans| {
         manager
-            .try_merge_attribute::<Temperature>(trans, 2, 0, 1)
+            .merge_attribute::<Temperature>(trans, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -473,7 +473,7 @@ fn test_split_attribute() {
 
     atomically(|trans| {
         manager
-            .try_split_attribute::<Temperature>(trans, 1, 2, 0)
+            .split_attribute::<Temperature>(trans, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -597,7 +597,7 @@ fn sparse_vec_merge() {
         atomically(|t| storage.read(t, 8)),
         Some(Temperature::from(289.0))
     );
-    atomically(|t| storage.try_merge(t, 8, 3, 6).map_err(|_| StmError::Failure));
+    atomically(|t| storage.merge(t, 8, 3, 6).map_err(|_| StmError::Failure));
     assert_eq!(atomically(|t| storage.read(t, 3)), None);
     assert_eq!(atomically(|t| storage.read(t, 6)), None);
     assert_eq!(
@@ -622,7 +622,7 @@ fn sparse_vec_merge_undefined() {
         Some(Temperature::from(289.0))
     );
     // merge from two undefined value
-    atomically(|t| storage.try_merge(t, 8, 3, 6).map_err(|_| StmError::Failure));
+    atomically(|t| storage.merge(t, 8, 3, 6).map_err(|_| StmError::Failure));
     assert_eq!(atomically(|t| storage.read(t, 3)), None);
     assert_eq!(atomically(|t| storage.read(t, 6)), None);
     assert_eq!(
@@ -634,7 +634,7 @@ fn sparse_vec_merge_undefined() {
         atomically(|t| storage.read(t, 4)),
         Some(Temperature::from(281.0))
     );
-    atomically(|t| storage.try_merge(t, 6, 3, 4).map_err(|_| StmError::Failure));
+    atomically(|t| storage.merge(t, 6, 3, 4).map_err(|_| StmError::Failure));
     assert_eq!(atomically(|t| storage.read(t, 3)), None);
     assert_eq!(atomically(|t| storage.read(t, 4)), None);
     assert_eq!(
@@ -658,7 +658,7 @@ fn sparse_vec_split() {
         atomically(|t| storage.read(t, 8)),
         Some(Temperature::from(289.0))
     );
-    atomically(|t| storage.try_split(t, 3, 6, 8).map_err(|_| StmError::Failure));
+    atomically(|t| storage.split(t, 3, 6, 8).map_err(|_| StmError::Failure));
     assert_eq!(
         atomically(|t| storage.read(t, 3)),
         Some(Temperature::from(289.0))
@@ -856,7 +856,7 @@ fn manager_merge_attribute() {
             Some(Temperature::from(289.0))
         );
         manager
-            .try_merge_attribute::<Temperature>(t, 8, 3, 6)
+            .merge_attribute::<Temperature>(t, 8, 3, 6)
             .map_err(|_| StmError::Failure)?;
         assert_eq!(manager.read_attribute::<Temperature>(t, 3)?, None);
         assert_eq!(manager.read_attribute::<Temperature>(t, 6)?, None);
@@ -886,7 +886,7 @@ fn manager_merge_undefined_attribute() {
         );
         // merge from two undefined value
         manager
-            .try_merge_attribute::<Temperature>(t, 8, 3, 6)
+            .merge_attribute::<Temperature>(t, 8, 3, 6)
             .map_err(|_| StmError::Failure)?;
         assert_eq!(manager.read_attribute::<Temperature>(t, 3)?, None);
         assert_eq!(manager.read_attribute::<Temperature>(t, 6)?, None);
@@ -897,7 +897,7 @@ fn manager_merge_undefined_attribute() {
             Some(Temperature::from(281.0))
         );
         manager
-            .try_merge_attribute::<Temperature>(t, 6, 3, 4)
+            .merge_attribute::<Temperature>(t, 6, 3, 4)
             .map_err(|_| StmError::Failure)?;
         assert_eq!(manager.read_attribute::<Temperature>(t, 3)?, None);
         assert_eq!(manager.read_attribute::<Temperature>(t, 4)?, None);
@@ -926,7 +926,7 @@ fn manager_split_attribute() {
             Some(Temperature::from(289.0))
         );
         manager
-            .try_split_attribute::<Temperature>(t, 3, 6, 8)
+            .split_attribute::<Temperature>(t, 3, 6, 8)
             .map_err(|_| StmError::Failure)?;
         assert_eq!(
             manager.read_attribute(t, 3)?,
@@ -981,11 +981,11 @@ fn manager_ordering() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c1.try_merge_vertex_attributes(trans, 2, 1, 3)
+                c1.merge_vertex_attributes(trans, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.try_merge_edge_attributes(trans, 2, 1, 3)
+                c1.merge_edge_attributes(trans, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.try_merge_face_attributes(trans, 2, 1, 3)
+                c1.merge_face_attributes(trans, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });
@@ -993,11 +993,11 @@ fn manager_ordering() {
 
         let t2 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c2.try_split_vertex_attributes(trans, 2, 3, 2)
+                c2.split_vertex_attributes(trans, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.try_split_edge_attributes(trans, 2, 3, 2)
+                c2.split_edge_attributes(trans, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.try_split_face_attributes(trans, 2, 3, 2)
+                c2.split_face_attributes(trans, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });

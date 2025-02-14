@@ -52,7 +52,7 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
             .count()
     }
 
-    fn try_merge(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
@@ -78,7 +78,7 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         }
     }
 
-    fn try_split(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,

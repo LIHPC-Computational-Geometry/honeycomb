@@ -285,7 +285,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_attributes(
+    pub fn merge_attributes(
         &self,
         trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
@@ -295,16 +295,16 @@ impl AttrStorageManager {
     ) -> CMapResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.try_merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+                self.merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Edge => {
-                self.try_merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+                self.merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.try_merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+                self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.try_merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+                self.merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
@@ -329,7 +329,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_vertex_attributes(
+    pub fn merge_vertex_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -337,7 +337,7 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -360,7 +360,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_edge_attributes(
+    pub fn merge_edge_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -368,7 +368,7 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -391,7 +391,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_face_attributes(
+    pub fn merge_face_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -399,7 +399,7 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -423,7 +423,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_volume_attributes(
+    pub fn merge_volume_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -431,7 +431,7 @@ impl AttrStorageManager {
         id_in_rhs: DartIdType,
     ) -> CMapResult<()> {
         for storage in self.volumes.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -459,7 +459,7 @@ impl AttrStorageManager {
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
     #[cfg(test)]
-    pub fn try_merge_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
@@ -468,7 +468,7 @@ impl AttrStorageManager {
     ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.try_merge(trans, id_out, id_in_lhs, id_in_rhs)
+            st.merge(trans, id_out, id_in_lhs, id_in_rhs)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
@@ -504,7 +504,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_attributes(
+    pub fn split_attributes(
         &self,
         trans: &mut Transaction,
         orbit_policy: &OrbitPolicy,
@@ -514,16 +514,16 @@ impl AttrStorageManager {
     ) -> CMapResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.try_split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+                self.split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Edge => {
-                self.try_split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+                self.split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.try_split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+                self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.try_split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+                self.split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
             OrbitPolicy::Custom(_) => unimplemented!(),
         }
@@ -548,7 +548,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_vertex_attributes(
+    pub fn split_vertex_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
@@ -556,7 +556,7 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -579,7 +579,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_edge_attributes(
+    pub fn split_edge_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
@@ -587,7 +587,7 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -610,7 +610,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_face_attributes(
+    pub fn split_face_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
@@ -618,7 +618,7 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -635,7 +635,7 @@ impl AttrStorageManager {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_volume_attributes(
+    pub fn split_volume_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
@@ -643,7 +643,7 @@ impl AttrStorageManager {
         id_in: DartIdType,
     ) -> CMapResult<()> {
         for storage in self.volumes.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -671,7 +671,7 @@ impl AttrStorageManager {
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
     #[cfg(test)]
-    pub fn try_split_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
@@ -680,7 +680,7 @@ impl AttrStorageManager {
     ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.try_split(trans, id_out_lhs, id_out_rhs, id_in)
+            st.split(trans, id_out_lhs, id_out_rhs, id_in)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",

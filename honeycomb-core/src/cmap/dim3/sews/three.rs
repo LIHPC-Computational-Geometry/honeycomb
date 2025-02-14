@@ -102,7 +102,7 @@ impl<T: CoordsFloat> CMap3<T> {
         // merge face, edge, vertex attributes
         try_or_coerce!(
             self.attributes
-                .try_merge_face_attributes(trans, l_face.min(r_face), l_face, r_face),
+                .merge_face_attributes(trans, l_face.min(r_face), l_face, r_face),
             SewError
         );
 
@@ -111,7 +111,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }) {
             try_or_coerce!(
                 self.attributes
-                    .try_merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r),
+                    .merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r),
                 SewError
             );
         }
@@ -119,13 +119,12 @@ impl<T: CoordsFloat> CMap3<T> {
             vid_l != vid_r && vid_l != NULL_DART_ID && vid_r != NULL_DART_ID
         }) {
             try_or_coerce!(
-                self.vertices
-                    .try_merge(trans, vid_l.min(vid_r), vid_l, vid_r),
+                self.vertices.merge(trans, vid_l.min(vid_r), vid_l, vid_r),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r),
+                    .merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r),
                 SewError
             );
         }
@@ -151,7 +150,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let r_face = r_side.clone().min().expect("E: unreachable");
         try_or_coerce!(
             self.attributes
-                .try_split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
+                .split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
             SewError
         );
 
@@ -163,7 +162,7 @@ impl<T: CoordsFloat> CMap3<T> {
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r)),
+                    .split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r)),
                 SewError
             );
 
@@ -175,13 +174,12 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.vertex_id_transac(trans, r)?,
             );
             try_or_coerce!(
-                self.vertices
-                    .try_split(trans, vid_l, vid_r, vid_l.max(vid_r)),
+                self.vertices.split(trans, vid_l, vid_r, vid_l.max(vid_r)),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_vertex_attributes(trans, vid_l, vid_r, vid_l.max(vid_r)),
+                    .split_vertex_attributes(trans, vid_l, vid_r, vid_l.max(vid_r)),
                 SewError
             );
             if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
@@ -193,11 +191,11 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 try_or_coerce!(
                     self.vertices
-                        .try_split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r)),
+                        .split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r)),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.try_split_vertex_attributes(
+                    self.attributes.split_vertex_attributes(
                         trans,
                         lvid_l,
                         lvid_r,
