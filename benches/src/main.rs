@@ -25,8 +25,8 @@ fn main() {
         // we may have to move this to match arms if this changes
         if let Some(f) = cli.save_as {
             match f {
-                Format::Cmap => todo!(),
-                Format::Vtk => todo!(),
+                Format::Cmap => map.serialize("out.cmap"),
+                Format::Vtk => map.to_vtk_binary("out.vtk"),
             }
         } else {
             std::hint::black_box(map);
