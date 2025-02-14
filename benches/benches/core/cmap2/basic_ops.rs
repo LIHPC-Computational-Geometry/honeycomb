@@ -16,7 +16,7 @@ use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
 
-use honeycomb_benches::FloatType;
+use honeycomb_benches::utils::FloatType;
 
 // --- common
 

@@ -4,7 +4,7 @@ use honeycomb::prelude::{
     CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy,
 };
 
-use honeycomb_benches::FloatType;
+use honeycomb_benches::utils::FloatType;
 
 const PATH: &str = "../examples/quads.vtk";
 
