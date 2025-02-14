@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SplitEdgeError"],"fn":["split_edge","split_edge_transac","splitn_edge","splitn_edge_transac"]};

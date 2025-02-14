@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TriangulateError"],"fn":["check_requirements","earclip_cell","fan_cell","fan_convex_cell"]};
