@@ -148,8 +148,6 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     #[must_use = "unused return value"]
     fn n_attributes(&self) -> usize;
 
-    // try
-
     /// Merge attributes to specified index
     ///
     /// # Arguments
@@ -179,7 +177,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    fn try_merge(
+    fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
@@ -214,7 +212,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    fn try_split(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
