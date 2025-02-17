@@ -160,6 +160,69 @@ impl<T: CoordsFloat> GridDescriptor<T> {
             (_, _, _) => Err(BuilderError::MissingGridParameters),
         }
     }
+
+    /// Parse provided grid parameters to provide what's used to actually generate the grid.
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn parse_3d(self) -> Result<(Vertex3<T>, [usize; 3], [T; 3]), BuilderError> {
+        match (self.n_cells, self.len_per_cell, self.lens) {
+            // from # cells and lengths per cell
+            (Some([nx, ny, nz]), Some([lpx, lpy, lpz]), lens) => {
+                if lens.is_some() {
+                    eprintln!("W: All three grid parameters were specified, total lengths will be ignored");
+                }
+                #[rustfmt::skip]
+                check_parameters!(lpx, "length per x cell is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpy, "length per y cell is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpz, "length per z cell is null or negative");
+                Ok((self.origin, [nx, ny, nz], [lpx, lpy, lpz]))
+            }
+            // from # cells and total lengths
+            (Some([nx, ny, nz]), None, Some([lx, ly, lz])) => {
+                #[rustfmt::skip]
+                check_parameters!(lx, "grid length along x is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(ly, "grid length along y is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lz, "grid length along z is null or negative");
+                Ok((
+                    self.origin,
+                    [nx, ny, nz],
+                    [
+                        lx / T::from(nx).unwrap(),
+                        ly / T::from(ny).unwrap(),
+                        lz / T::from(nz).unwrap(),
+                    ],
+                ))
+            }
+            // from lengths per cell and total lengths
+            (None, Some([lpx, lpy, lpz]), Some([lx, ly, lz])) => {
+                #[rustfmt::skip]
+                check_parameters!(lpx, "length per x cell is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpy, "length per y cell is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lpz, "length per z cell is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lx, "grid length along x is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(ly, "grid length along y is null or negative");
+                #[rustfmt::skip]
+                check_parameters!(lz, "grid length along z is null or negative");
+                Ok((
+                    self.origin,
+                    [
+                        (lx / lpx).ceil().to_usize().unwrap(),
+                        (ly / lpy).ceil().to_usize().unwrap(),
+                        (lz / lpz).ceil().to_usize().unwrap(),
+                    ],
+                    [lpx, lpy, lpz],
+                ))
+            }
+            (_, _, _) => Err(BuilderError::MissingGridParameters),
+        }
+    }
 }
 
 // --- building routines
