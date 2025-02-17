@@ -64,7 +64,8 @@ where
                 break;
             }
         }
-        let ideal_theta = T::from((cnt - 2) as f64 * std::f64::consts::PI / cnt as f64).unwrap();
+        let ideal_theta =
+            T::from(f64::from(cnt - 2) * std::f64::consts::PI / f64::from(cnt)).unwrap();
 
         ((max_theta - ideal_theta) / (T::from(std::f64::consts::PI).unwrap() - ideal_theta))
             .max((ideal_theta - min_theta) / ideal_theta)
@@ -146,7 +147,8 @@ where
                 break;
             }
         }
-        let ideal_theta = T::from((cnt - 2) as f64 * std::f64::consts::PI / cnt as f64).unwrap();
+        let ideal_theta =
+            T::from(f64::from(cnt - 2) * std::f64::consts::PI / f64::from(cnt)).unwrap();
 
         ((max_theta - ideal_theta) / (T::from(std::f64::consts::PI).unwrap() - ideal_theta))
             .max((ideal_theta - min_theta) / ideal_theta)
