@@ -50,13 +50,16 @@
 //!
 //! The `Boundary` attribute is then removed from the map before return.
 
-// ------ MODULE DECLARATIONS
-
 pub(crate) mod model;
 pub(crate) mod routines;
 pub(crate) mod timers;
 
-// ------ IMPORTS
+use honeycomb_core::{
+    cmap::{CMap2, CMapBuilder, GridDescriptor},
+    geometry::CoordsFloat,
+};
+use thiserror::Error;
+use vtkio::Vtk;
 
 use crate::grisubal::{
     model::{Boundary, Geometry2},
@@ -68,14 +71,6 @@ use crate::grisubal::{
     },
     timers::{finish, start_timer, unsafe_time_section},
 };
-use honeycomb_core::{
-    cmap::{CMapBuilder, GridDescriptor},
-    prelude::{CMap2, CoordsFloat},
-};
-use thiserror::Error;
-use vtkio::Vtk;
-
-// ------ CONTENT
 
 /// Post-processing clip operation.
 ///
@@ -147,7 +142,7 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # use honeycomb_core::prelude::CMap2;
+/// # use honeycomb_core::cmap::CMap2;
 /// # use honeycomb_kernels::grisubal::*;
 /// # fn main() -> Result<(), GrisubalError>{
 /// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
@@ -258,8 +253,6 @@ pub fn grisubal<T: CoordsFloat>(
 
     Ok(cmap)
 }
-
-// ------ TESTS
 
 #[cfg(test)]
 mod tests;

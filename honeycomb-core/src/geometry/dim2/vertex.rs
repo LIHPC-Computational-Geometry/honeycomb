@@ -2,8 +2,9 @@
 //!
 //! This module contains all code used to model vertices.
 
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vector2, VertexIdType};
-use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
+use crate::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use crate::cmap::{OrbitPolicy, VertexIdType};
+use crate::geometry::{CoordsFloat, Vector2};
 
 /// # 2D vertex structure
 ///
@@ -21,9 +22,9 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 /// ## Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::CoordsError;
+/// # use honeycomb_core::geometry::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
-/// use honeycomb_core::prelude::{Vector2, Vertex2};
+/// use honeycomb_core::geometry::{Vector2, Vertex2};
 ///
 /// let v1 = Vertex2(1.0, 0.0);
 /// let v2 = Vertex2(1.0, 1.0);
@@ -80,7 +81,7 @@ impl<T: CoordsFloat> Vertex2<T> {
     /// # Example
     ///
     /// ```rust
-    /// use honeycomb_core::prelude::Vertex2;
+    /// use honeycomb_core::geometry::Vertex2;
     ///
     /// let far_far_away: Vertex2<f64> = Vertex2(2.0, 2.0);
     /// let origin: Vertex2<f64> = Vertex2::default();
@@ -180,12 +181,17 @@ impl<T: CoordsFloat> std::ops::Sub<Vertex2<T>> for Vertex2<T> {
 }
 
 impl<T: CoordsFloat> AttributeUpdate for Vertex2<T> {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        Self::average(&attr1, &attr2)
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(Self::average(&attr1, &attr2))
     }
 
-    fn split(attr: Self) -> (Self, Self) {
-        (attr, attr)
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        Ok((attr, attr))
+    }
+
+    // override default impl
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
     }
 }
 

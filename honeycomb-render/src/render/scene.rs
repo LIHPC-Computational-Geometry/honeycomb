@@ -1,18 +1,6 @@
-use crate::components::PanOrbitCamera;
 use bevy::prelude::*;
 
-macro_rules! spawn_plight {
-    ($cmd: ident, $x: expr, $y: expr, $z: expr) => {
-        $cmd.spawn(PointLightBundle {
-            point_light: PointLight {
-                shadows_enabled: true,
-                ..default()
-            },
-            transform: Transform::from_xyz($x, $y, $z),
-            ..default()
-        });
-    };
-}
+use crate::components::PanOrbitCamera;
 
 /// Scene setup routine.
 pub fn setup_scene(mut commands: Commands) {
@@ -28,10 +16,4 @@ pub fn setup_scene(mut commands: Commands) {
             ..default()
         },
     ));
-
-    spawn_plight!(commands, 0.0, 0.0, 6.0);
-    spawn_plight!(commands, 10.0, 0.0, 4.0);
-    spawn_plight!(commands, 0.0, 10.0, 4.0);
-    spawn_plight!(commands, -10.0, 0.0, 4.0);
-    spawn_plight!(commands, 0.0, -10.0, 4.0);
 }

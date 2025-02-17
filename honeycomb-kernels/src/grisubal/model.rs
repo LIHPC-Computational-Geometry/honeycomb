@@ -4,20 +4,15 @@
 //!
 //! Content description if needed
 
-// ------ IMPORTS
-
-use crate::grisubal::GrisubalError;
-use honeycomb_core::attributes::AttrSparseVec;
-use honeycomb_core::cmap::CMapResult;
-use honeycomb_core::prelude::{
-    AttributeBind, AttributeUpdate, CoordsFloat, DartIdType, OrbitPolicy, Vertex2,
-};
+use honeycomb_core::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use honeycomb_core::cmap::{DartIdType, OrbitPolicy};
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use vtkio::{
     model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
 };
 
-// ------ CONTENT
+use crate::grisubal::GrisubalError;
 
 /// Structure used to index the overlapping grid's cases.
 ///
@@ -252,19 +247,23 @@ pub enum Boundary {
 }
 
 impl AttributeUpdate for Boundary {
-    fn merge(attr1: Self, attr2: Self) -> Self {
-        if attr1 == attr2 {
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        Ok(if attr1 == attr2 {
             attr1
         } else {
             Boundary::None
-        }
+        })
     }
 
-    fn split(_attr: Self) -> (Self, Self) {
+    fn split(_attr: Self) -> Result<(Self, Self), AttributeError> {
         unreachable!()
     }
 
-    fn merge_from_none() -> CMapResult<Self> {
+    fn merge_incomplete(attr: Self) -> Result<Self, AttributeError> {
+        Ok(attr)
+    }
+
+    fn merge_from_none() -> Result<Self, AttributeError> {
         Ok(Boundary::None)
     }
 }

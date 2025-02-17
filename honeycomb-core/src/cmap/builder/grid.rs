@@ -1,9 +1,6 @@
-use std::usize;
-
-use crate::cmap::{CMap3, VertexIdType};
-use crate::geometry::{Vector3, Vertex3};
-use crate::prelude::{BuilderError, CMap2, DartIdType, Vector2, Vertex2};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
+use crate::attributes::AttrStorageManager;
+use crate::cmap::{BuilderError, CMap2, CMap3, DartIdType, VertexIdType};
+use crate::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 
 // --- grid descriptor
 

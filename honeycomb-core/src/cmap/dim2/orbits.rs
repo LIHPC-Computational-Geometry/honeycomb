@@ -3,14 +3,10 @@
 //! This module contains all code used to model orbits, a notion defined
 //! along the structure of combinatorial maps.
 
-// ------ IMPORTS
-
-use crate::geometry::CoordsFloat;
-use crate::prelude::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
-
 use std::collections::{BTreeSet, VecDeque};
 
-// ------ CONTENT
+use crate::cmap::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
+use crate::geometry::CoordsFloat;
 
 /// # Generic 2D orbit implementation
 ///
@@ -178,23 +174,23 @@ mod tests {
     fn simple_map() -> CMap2<f64> {
         let mut map: CMap2<f64> = CMap2::new(11);
         // tri1
-        map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3);
-        map.force_link::<1>(3, 1);
+        map.force_link::<1>(1, 2).unwrap();
+        map.force_link::<1>(2, 3).unwrap();
+        map.force_link::<1>(3, 1).unwrap();
         // tri2
-        map.force_link::<1>(4, 5);
-        map.force_link::<1>(5, 6);
-        map.force_link::<1>(6, 4);
+        map.force_link::<1>(4, 5).unwrap();
+        map.force_link::<1>(5, 6).unwrap();
+        map.force_link::<1>(6, 4).unwrap();
         // pent on top
-        map.force_link::<1>(7, 8);
-        map.force_link::<1>(8, 9);
-        map.force_link::<1>(9, 10);
-        map.force_link::<1>(10, 11);
-        map.force_link::<1>(11, 7);
+        map.force_link::<1>(7, 8).unwrap();
+        map.force_link::<1>(8, 9).unwrap();
+        map.force_link::<1>(9, 10).unwrap();
+        map.force_link::<1>(10, 11).unwrap();
+        map.force_link::<1>(11, 7).unwrap();
 
         // link all
-        map.force_link::<2>(2, 4);
-        map.force_link::<2>(6, 7);
+        map.force_link::<2>(2, 4).unwrap();
+        map.force_link::<2>(6, 7).unwrap();
 
         assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
         assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());

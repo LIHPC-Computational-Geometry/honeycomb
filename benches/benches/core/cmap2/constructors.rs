@@ -11,16 +11,14 @@
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
 
-// ------ IMPORTS
+use std::hint::black_box;
 
-use honeycomb_benches::FloatType;
-use honeycomb_core::prelude::{CMap2, CMapBuilder};
+use honeycomb::core::cmap::{CMap2, CMapBuilder};
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
 };
-use std::hint::black_box;
 
-// ------ CONTENT
+use honeycomb_benches::utils::FloatType;
 
 // --- common
 

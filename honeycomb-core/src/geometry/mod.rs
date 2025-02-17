@@ -6,14 +6,12 @@
 mod dim2;
 mod dim3;
 
+pub use dim2::{vector::Vector2, vertex::Vertex2};
+pub use dim3::{vector::Vector3, vertex::Vertex3};
+
 use std::fmt::Debug;
 use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 use thiserror::Error;
-
-//
-
-pub use dim2::{vector::Vector2, vertex::Vertex2};
-pub use dim3::{vector::Vector3, vertex::Vertex3};
 
 /// # Coordinates-level error enum
 #[derive(Error, Debug, PartialEq)]

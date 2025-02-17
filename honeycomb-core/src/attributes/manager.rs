@@ -3,18 +3,13 @@
 //! this module contains all code used to implement a manager struct, used to handle generic
 //! attributes embedded in a given combinatorial map.
 
-// ------ IMPORTS
-
-use crate::stm::{StmClosureResult, Transaction};
-
-use super::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage};
-use crate::{
-    cmap::CMapResult,
-    prelude::{DartIdType, OrbitPolicy},
-};
 use std::{any::TypeId, collections::HashMap};
 
-// ------ CONTENT
+use crate::attributes::{
+    AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
+};
+use crate::cmap::{DartIdType, OrbitPolicy};
+use crate::stm::{StmClosureResult, Transaction, TransactionClosureResult};
 
 // convenience macros
 
@@ -267,10 +262,9 @@ impl AttrStorageManager {
 
 /// Merge variants.
 impl AttrStorageManager {
-    // attribute-agnostic regular
+    // attribute-agnostic try
 
     /*
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -282,10 +276,15 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_attributes(
         &self,
         trans: &mut Transaction,
@@ -293,12 +292,14 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> CMapResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
-            OrbitPolicy::Edge => self.merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs),
+            OrbitPolicy::Edge => {
+                self.merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
+            }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
             }
@@ -310,7 +311,6 @@ impl AttrStorageManager {
     }
     */
 
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with vertices for specified cells.
     ///
     /// # Arguments
@@ -320,24 +320,28 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_vertex_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with edges for specified cells.
     ///
     /// # Arguments
@@ -347,24 +351,28 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_edge_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with faces for specified cells.
     ///
     /// # Arguments
@@ -374,17 +382,22 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_face_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
@@ -392,7 +405,6 @@ impl AttrStorageManager {
     }
 
     /*
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a merging operation on all attributes associated with volumes for specified cells.
     ///
     /// # Arguments
@@ -402,158 +414,24 @@ impl AttrStorageManager {
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_volume_attributes(
         &self,
         trans: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmResult<()> {
+    ) -> CMapResult<()> {
         for storage in self.volumes.values() {
             storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-    */
-
-    // attribute-agnostic try
-
-    /*
-    /// Execute a merging operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_attributes(
-        &self,
-        trans: &mut Transaction,
-        orbit_policy: &OrbitPolicy,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.try_merge_vertex_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Edge => {
-                self.try_merge_edge_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.try_merge_face_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.try_merge_volume_attributes(trans, id_out, id_in_lhs, id_in_rhs)
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-    */
-
-    /// Execute a merging operation on all attributes associated with vertices for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_vertex_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.vertices.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    /// Execute a merging operation on all attributes associated with edges for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_edge_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.edges.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    /// Execute a merging operation on all attributes associated with faces for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_face_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.faces.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
-        }
-        Ok(())
-    }
-
-    /*
-    /// Execute a merging operation on all attributes associated with volumes for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_volume_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.volumes.values() {
-            storage.try_merge(trans, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -561,20 +439,25 @@ impl AttrStorageManager {
 
     // attribute-specific
 
-    #[allow(clippy::missing_errors_doc)]
     /// Merge given attribute values.
     ///
     /// # Arguments
     ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to merge values of.
     /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     #[cfg(test)]
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
@@ -582,7 +465,7 @@ impl AttrStorageManager {
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.merge(trans, id_out, id_in_lhs, id_in_rhs)
@@ -594,46 +477,13 @@ impl AttrStorageManager {
             Ok(())
         }
     }
-
-    /*
-    /// Merge given attribute values.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_merge_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        trans: &mut Transaction,
-        id_out: DartIdType,
-        id_in_lhs: DartIdType,
-        id_in_rhs: DartIdType,
-    ) -> CMapResult<()> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.try_merge(trans, id_out, id_in_lhs, id_in_rhs)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
-        }
-    }
-    */
 }
 
 /// Split variants.
 impl AttrStorageManager {
-    // attribute-agnostic regular
+    // attribute-agnostic try
 
     /*
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// for specified cells.
     ///
@@ -645,10 +495,15 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn split_attributes(
         &self,
         trans: &mut Transaction,
@@ -656,12 +511,14 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> CMapResult<()> {
         match orbit_policy {
             OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
                 self.split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
-            OrbitPolicy::Edge => self.split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in),
+            OrbitPolicy::Edge => {
+                self.split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
+            }
             OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
                 self.split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
             }
@@ -673,9 +530,7 @@ impl AttrStorageManager {
     }
     */
 
-    #[allow(clippy::missing_errors_doc)]
-    /// Execute a splitting operation on all attributes associated with vertices
-    /// for specified cells.
+    /// Execute a splitting operation on all attributes associated with vertices for specified cells.
     ///
     /// # Arguments
     ///
@@ -684,24 +539,28 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn split_vertex_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.vertices.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with edges for specified cells.
     ///
     /// # Arguments
@@ -711,24 +570,28 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn split_edge_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.edges.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with faces for specified cells.
     ///
     /// # Arguments
@@ -738,17 +601,22 @@ impl AttrStorageManager {
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn split_face_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.faces.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
@@ -756,168 +624,26 @@ impl AttrStorageManager {
     }
 
     /*
-    #[allow(clippy::missing_errors_doc)]
     /// Execute a splitting operation on all attributes associated with volumes for specified cells.
     ///
-    /// # Arguments
+    /// # Errors
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
-    /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
-    /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - a split fails (e.g. because there is no value to split from)
     ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     pub fn split_volume_attributes(
         &self,
         trans: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmResult<()> {
+    ) -> CMapResult<()> {
         for storage in self.volumes.values() {
             storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-    */
-
-    // attribute-agnostic try
-
-    /*
-    /// Execute a splitting operation on all attributes associated with a given orbit
-    /// for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_attributes(
-        &self,
-        trans: &mut Transaction,
-        orbit_policy: &OrbitPolicy,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        match orbit_policy {
-            OrbitPolicy::Vertex | OrbitPolicy::VertexLinear => {
-                self.try_split_vertex_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Edge => {
-                self.try_split_edge_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Face | OrbitPolicy::FaceLinear => {
-                self.try_split_face_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
-                self.try_split_volume_attributes(trans, id_out_lhs, id_out_rhs, id_in)
-            }
-            OrbitPolicy::Custom(_) => unimplemented!(),
-        }
-    }
-    */
-
-    /// Execute a splitting operation on all attributes associated with vertices for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_vertex_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.vertices.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    /// Execute a splitting operation on all attributes associated with edges for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_edge_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.edges.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    /// Execute a splitting operation on all attributes associated with faces for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_face_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.faces.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
-        }
-        Ok(())
-    }
-
-    /*
-    /// Execute a splitting operation on all attributes associated with volumes for specified cells.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - a split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_volume_attributes(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        for storage in self.volumes.values() {
-            storage.try_split(trans, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -925,20 +651,25 @@ impl AttrStorageManager {
 
     // attribute-specific
 
-    #[allow(clippy::missing_errors_doc)]
     /// Split given attribute value.
     ///
     /// # Arguments
     ///
+    /// - `A: AttributeBind + AttributeUpdate` -- Attribute to split value of.
     /// - `trans: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. The result should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the split fails (e.g. because there is no value to split from)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     #[cfg(test)]
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
@@ -946,7 +677,7 @@ impl AttrStorageManager {
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
             st.split(trans, id_out_lhs, id_out_rhs, id_in)
@@ -958,38 +689,6 @@ impl AttrStorageManager {
             Ok(())
         }
     }
-
-    /*
-    /// Split given attribute value.
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the split fails (e.g. because there is no value to split from)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    pub fn try_split_attribute<A: AttributeBind + AttributeUpdate>(
-        &self,
-        trans: &mut Transaction,
-        id_out_lhs: DartIdType,
-        id_out_rhs: DartIdType,
-        id_in: DartIdType,
-    ) -> CMapResult<()> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.try_split(trans, id_out_lhs, id_out_rhs, id_in)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            Ok(())
-        }
-    }
-    */
 }
 
 /// **Attribute read & write methods**
@@ -1115,61 +814,6 @@ impl AttrStorageManager {
                 std::any::type_name::<A>()
             );
             Ok(None)
-        }
-    }
-
-    /// Get the value of an attribute.
-    ///
-    /// This variant is equivalent to `read_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_read_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_read(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Set the value of an attribute, and return the old one.
-    ///
-    /// This variant is equivalent to `write_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_write_attribute<A: AttributeBind>(
-        &self,
-        id: A::IdentifierType,
-        val: A,
-    ) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_write(id, val)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
-        }
-    }
-
-    /// Remove the an item from an attribute storage, and return it.
-    ///
-    /// This variant is equivalent to `remove_attribute`, but internally uses a transaction
-    /// that will be retried until validated.
-    pub fn force_remove_attribute<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
-        get_storage!(self, storage);
-        if let Some(st) = storage {
-            st.force_remove(id)
-        } else {
-            eprintln!(
-                "W: could not update storage of attribute {} - storage not found",
-                std::any::type_name::<A>()
-            );
-            None
         }
     }
 }

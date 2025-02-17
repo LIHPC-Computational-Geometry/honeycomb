@@ -1,13 +1,14 @@
+use bevy::color::Color;
+use bevy::prelude::*;
+use bevy_mod_outline::{OutlineBundle, OutlineVolume};
+use bevy_mod_picking::PickableBundle;
+
 use crate::capture::{CaptureList, FocusedCapture};
 use crate::resources::{
     DartHeadHandle, DartHeadMul, DartMatHandle, DartRenderColor, DartShrink, DartWidth,
     EdgeMatHandle, EdgeRenderColor, EdgeWidth, FaceMatHandle, FaceNormals, FaceRenderColor,
     FaceShrink, MapVertices, VertexHandle, VertexMatHandle, VertexRenderColor, VertexWidth,
 };
-use bevy::color::Color;
-use bevy::prelude::*;
-use bevy_mod_outline::{OutlineBundle, OutlineVolume};
-use bevy_mod_picking::PickableBundle;
 
 /// System used to generate dart entities in the ECS.
 #[allow(clippy::too_many_arguments)]
@@ -64,7 +65,7 @@ pub fn populate_darts(
                     body.clone(),
                     PbrBundle {
                         mesh: meshes.add(Cylinder::new(
-                            dart_width.0,
+                            dart_width.0 / 2.,
                             // FIXME: clunky
                             len * (1. - dart_shrink.0.abs()),
                         )),
@@ -134,9 +135,11 @@ pub fn populate_vertices(
     vertex_width: Res<VertexWidth>,
 ) {
     let vertex_handle = meshes.add(Sphere::new(vertex_width.0 / 2.));
-    let vertex_mat = materials.add(Color::Srgba(Srgba::from_u8_array(
-        vertex_render_color.1.to_array(),
-    )));
+    let vertex_mat = materials.add(StandardMaterial {
+        unlit: true,
+        base_color: Color::Srgba(Srgba::from_u8_array(vertex_render_color.1.to_array())),
+        ..default()
+    });
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let visibility =
@@ -183,9 +186,11 @@ pub fn populate_edges(
     edge_render_color: Res<EdgeRenderColor>,
     edge_width: Res<EdgeWidth>,
 ) {
-    let edge_mat = materials.add(Color::Srgba(Srgba::from_u8_array(
-        edge_render_color.1.to_array(),
-    )));
+    let edge_mat = materials.add(StandardMaterial {
+        unlit: true,
+        base_color: Color::Srgba(Srgba::from_u8_array(edge_render_color.1.to_array())),
+        ..default()
+    });
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let visibility =

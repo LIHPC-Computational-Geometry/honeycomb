@@ -1,9 +1,9 @@
 // split_edge
 
-use super::*;
 use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
-use honeycomb_core::geometry::Vertex2;
-use honeycomb_core::prelude::CoordsFloat;
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+
+use super::*;
 
 fn newmap<T: CoordsFloat>(n: usize) -> CMap2<T> {
     CMapBuilder::default().n_darts(n).build().unwrap()
@@ -19,13 +19,13 @@ mod standard {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3);
-        map.force_link::<1>(4, 5);
-        map.force_link::<1>(5, 6);
-        map.force_link::<2>(1, 6);
-        map.force_link::<2>(2, 5);
-        map.force_link::<2>(3, 4);
+        map.force_link::<1>(1, 2).unwrap();
+        map.force_link::<1>(2, 3).unwrap();
+        map.force_link::<1>(4, 5).unwrap();
+        map.force_link::<1>(5, 6).unwrap();
+        map.force_link::<2>(1, 6).unwrap();
+        map.force_link::<2>(2, 5).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         map.force_write_vertex(3, (2.0, 0.0));
@@ -61,7 +61,7 @@ mod standard {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
@@ -89,7 +89,7 @@ mod standard {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2);
+        map.force_link::<1>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
@@ -108,7 +108,7 @@ mod standard {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
@@ -124,13 +124,13 @@ mod standard {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3);
-        map.force_link::<1>(4, 5);
-        map.force_link::<1>(5, 6);
-        map.force_link::<2>(1, 6);
-        map.force_link::<2>(2, 5);
-        map.force_link::<2>(3, 4);
+        map.force_link::<1>(1, 2).unwrap();
+        map.force_link::<1>(2, 3).unwrap();
+        map.force_link::<1>(4, 5).unwrap();
+        map.force_link::<1>(5, 6).unwrap();
+        map.force_link::<2>(1, 6).unwrap();
+        map.force_link::<2>(2, 5).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         map.force_write_vertex(3, (2.0, 0.0));
@@ -174,7 +174,7 @@ mod standard {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
@@ -211,7 +211,7 @@ mod standard {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2);
+        map.force_link::<1>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
@@ -245,7 +245,7 @@ mod standard {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
@@ -255,7 +255,7 @@ mod standard {
 }
 
 mod noalloc {
-    use honeycomb_core::stm::atomically;
+    use honeycomb_core::stm::atomically_with_err;
 
     use super::*;
 
@@ -266,32 +266,21 @@ mod noalloc {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3);
-        map.force_link::<1>(4, 5);
-        map.force_link::<1>(5, 6);
-        map.force_link::<2>(1, 6);
-        map.force_link::<2>(2, 5);
-        map.force_link::<2>(3, 4);
+        map.force_link::<1>(1, 2).unwrap();
+        map.force_link::<1>(2, 3).unwrap();
+        map.force_link::<1>(4, 5).unwrap();
+        map.force_link::<1>(5, 6).unwrap();
+        map.force_link::<2>(1, 6).unwrap();
+        map.force_link::<2>(2, 5).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         map.force_write_vertex(3, (2.0, 0.0));
         map.force_write_vertex(4, (3.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
-        let res = atomically(|trans| {
-            if let Err(e) = split_edge_transac(&map, trans, 2, (nds, nds + 1), None) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
-        });
+        let res =
+            atomically_with_err(|trans| split_edge_transac(&map, trans, 2, (nds, nds + 1), None));
         assert!(res.is_ok());
         // after
         //    <--6---   <8- <5-   <--4---
@@ -322,23 +311,13 @@ mod noalloc {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(2);
-        let res = atomically(|trans| {
-            if let Err(e) = split_edge_transac(&map, trans, 1, (nds, nds + 1), Some(0.6)) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+        let res = atomically_with_err(|trans| {
+            split_edge_transac(&map, trans, 1, (nds, nds + 1), Some(0.6))
         });
         assert!(res.is_ok());
         // after
@@ -364,23 +343,13 @@ mod noalloc {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2);
+        map.force_link::<1>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nd = map.add_free_dart(); // a single dart is enough in this case
-        let res = atomically(|trans| {
-            if let Err(e) = split_edge_transac(&map, trans, 1, (nd, NULL_DART_ID), None) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+        let res = atomically_with_err(|trans| {
+            split_edge_transac(&map, trans, 1, (nd, NULL_DART_ID), None)
         });
         assert!(res.is_ok());
         // after
@@ -397,24 +366,13 @@ mod noalloc {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(2);
-        let res = atomically(|trans| {
-            if let Err(e) = split_edge_transac(&map, trans, 1, (nds, nds + 1), None) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
-        });
+        let res =
+            atomically_with_err(|trans| split_edge_transac(&map, trans, 1, (nds, nds + 1), None));
         assert!(res.is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
     }
 
@@ -427,13 +385,13 @@ mod noalloc {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3);
-        map.force_link::<1>(4, 5);
-        map.force_link::<1>(5, 6);
-        map.force_link::<2>(1, 6);
-        map.force_link::<2>(2, 5);
-        map.force_link::<2>(3, 4);
+        map.force_link::<1>(1, 2).unwrap();
+        map.force_link::<1>(2, 3).unwrap();
+        map.force_link::<1>(4, 5).unwrap();
+        map.force_link::<1>(5, 6).unwrap();
+        map.force_link::<2>(1, 6).unwrap();
+        map.force_link::<2>(2, 5).unwrap();
+        map.force_link::<2>(3, 4).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         map.force_write_vertex(3, (2.0, 0.0));
@@ -441,18 +399,8 @@ mod noalloc {
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        let res = atomically(|trans| {
-            if let Err(e) = splitn_edge_transac(&map, trans, 2, &new_darts, &[0.25, 0.50, 0.75]) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+        let res = atomically_with_err(|trans| {
+            splitn_edge_transac(&map, trans, 2, &new_darts, &[0.25, 0.50, 0.75])
         });
         assert!(res.is_ok());
         // after
@@ -487,24 +435,14 @@ mod noalloc {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
-        let res = atomically(|trans| {
-            if let Err(e) = splitn_edge_transac(&map, trans, 1, &new_darts, &[0.25, 0.50, 0.75]) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+        let res = atomically_with_err(|trans| {
+            splitn_edge_transac(&map, trans, 1, &new_darts, &[0.25, 0.50, 0.75])
         });
         assert!(res.is_ok());
         // after
@@ -537,13 +475,13 @@ mod noalloc {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2);
+        map.force_link::<1>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         map.force_write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.add_free_darts(3);
-        let res = atomically(|trans| {
-            if let Err(e) = splitn_edge_transac(
+        let res = atomically_with_err(|trans| {
+            splitn_edge_transac(
                 &map,
                 trans,
                 1,
@@ -556,17 +494,7 @@ mod noalloc {
                     NULL_DART_ID,
                 ],
                 &[0.25, 0.50, 0.75],
-            ) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+            )
         });
         assert!(res.is_ok());
         // after
@@ -593,29 +521,19 @@ mod noalloc {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2);
+        map.force_link::<2>(1, 2).unwrap();
         map.force_write_vertex(1, (0.0, 0.0));
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.add_free_darts(6);
-        let res = atomically(|trans| {
-            if let Err(e) = splitn_edge_transac(
+        let res = atomically_with_err(|trans| {
+            splitn_edge_transac(
                 &map,
                 trans,
                 1,
                 &[nds, nds + 1, nds + 2, nds + 3, nds + 4, nds + 5],
                 &[0.25, 0.50, 0.75],
-            ) {
-                match e {
-                    SplitEdgeError::FailedTransaction(stme) => Err(stme),
-                    SplitEdgeError::UndefinedEdge
-                    | SplitEdgeError::VertexBound
-                    | SplitEdgeError::InvalidDarts(_)
-                    | SplitEdgeError::WrongAmountDarts(_, _) => Ok(Err(e)),
-                }
-            } else {
-                Ok(Ok(()))
-            }
+            )
         });
         assert!(res.is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
     }

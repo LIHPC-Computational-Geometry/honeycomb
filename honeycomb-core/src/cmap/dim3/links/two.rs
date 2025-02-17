@@ -1,11 +1,8 @@
 //! 2D link implementations
 
-use crate::stm::{atomically, StmClosureResult, Transaction};
-
-use crate::{
-    cmap::{CMap3, DartIdType},
-    prelude::CoordsFloat,
-};
+use crate::cmap::{CMap3, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{atomically_with_err, Transaction, TransactionClosureResult};
 
 /// 2-links
 impl<T: CoordsFloat> CMap3<T> {
@@ -15,13 +12,17 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id)
     }
 
     /// 2-link operation.
-    pub(crate) fn force_two_link(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
-        atomically(|trans| self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id));
+    pub(crate) fn force_two_link(
+        &self,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
+    ) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id))
     }
 }
 
@@ -32,12 +33,12 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         self.betas.two_unlink_core(trans, lhs_dart_id)
     }
 
     /// 2-unlink operation.
-    pub(crate) fn force_two_unlink(&self, lhs_dart_id: DartIdType) {
-        atomically(|trans| self.betas.two_unlink_core(trans, lhs_dart_id));
+    pub(crate) fn force_two_unlink(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|trans| self.betas.two_unlink_core(trans, lhs_dart_id))
     }
 }

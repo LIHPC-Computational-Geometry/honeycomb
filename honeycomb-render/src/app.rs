@@ -1,8 +1,10 @@
-use crate::capture::{Capture, CaptureList};
-use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
 use bevy::prelude::App as BevyApp;
 use bevy::prelude::*;
-use honeycomb_core::prelude::{CMap2, CoordsFloat};
+use honeycomb_core::cmap::CMap2;
+use honeycomb_core::geometry::CoordsFloat;
+
+use crate::capture::{Capture, CaptureList};
+use crate::plugins::{CapturePlugin, GuiPlugin, OptionsPlugin, ScenePlugin};
 
 /// Default render structure.
 ///
@@ -36,7 +38,8 @@ impl Default for App {
     fn default() -> Self {
         let mut app = BevyApp::new();
         // resource
-        app.insert_resource(Msaa::Sample4);
+        app.insert_resource(Msaa::Sample4)
+            .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
         // plugins
         app.add_plugins(DefaultPlugins)
             .add_plugins(OptionsPlugin)

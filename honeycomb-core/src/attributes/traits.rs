@@ -3,18 +3,15 @@
 //! This module contains all code used to handle attribute genericity in the context of mesh
 //! representation through combinatorial maps embedded data.
 
-// ------ IMPORTS
-
-use crate::stm::{atomically, StmClosureResult, Transaction};
-use crate::{
-    cmap::{CMapError, CMapResult},
-    prelude::{DartIdType, OrbitPolicy},
-};
-use downcast_rs::{impl_downcast, Downcast};
 use std::any::{type_name, Any};
 use std::fmt::Debug;
 
-// ------ CONTENT
+use downcast_rs::{impl_downcast, Downcast};
+use fast_stm::TransactionClosureResult;
+
+use crate::attributes::AttributeError;
+use crate::cmap::{DartIdType, OrbitPolicy};
+use crate::stm::{StmClosureResult, Transaction};
 
 /// # Generic attribute trait
 ///
@@ -23,49 +20,25 @@ use std::fmt::Debug;
 ///
 /// ## Example
 ///
-/// For an intensive property of a system (e.g. a temperature), an implementation would look
-/// like this:
+/// A detailed example is provided in the [user guide][UG].
 ///
-/// ```rust
-/// use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
-///
-/// #[derive(Clone, Copy, Debug, PartialEq)]
-/// pub struct Temperature {
-///     pub val: f32
-/// }
-///
-/// impl AttributeUpdate for Temperature {
-///     fn merge(attr1: Self, attr2: Self) -> Self {
-///         Temperature { val: (attr1.val + attr2.val) / 2.0 }
-///     }
-///
-///     fn split(attr: Self) -> (Self, Self) {
-///         (attr, attr)
-///     }
-///
-///     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-///         Ok(Temperature { val: attr.val / 2.0 })
-///     }
-///
-///     fn merge_from_none() -> CMapResult<Self> {
-///         Ok(Temperature { val: 0.0 })
-///     }
-/// }
-///
-/// let t1 = Temperature { val: 273.0 };
-/// let t2 = Temperature { val: 298.0 };
-///
-/// let t_new = AttributeUpdate::merge(t1, t2); // use AttributeUpdate::_
-/// let t_ref = Temperature { val: 285.5 };
-///
-/// assert_eq!(Temperature::split(t_new), (t_ref, t_ref)); // or Temperature::_
-/// ```
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/user-guide/usage/attributes.html
 pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// Merging routine, i.e. how to obtain a new value from two existing ones.
-    fn merge(attr1: Self, attr2: Self) -> Self;
+    ///
+    /// # Errors
+    ///
+    /// You may use [`AttributeError::FailedMerge`] to model a possible failure in your attribute
+    /// mergin process.
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError>;
 
     /// Splitting routine, i.e. how to obtain the two new values from a single one.
-    fn split(attr: Self) -> (Self, Self);
+    ///
+    /// # Errors
+    ///
+    /// You may use [`AttributeError::FailedSplit`] to model a possible failure in your attribute
+    /// mergin process.
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from a single existing one.
@@ -76,12 +49,16 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Return / Errors
     ///
-    /// The default implementation succeeds and simply returns the passed value.
-    fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-        Ok(attr)
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`]. You may
+    /// override the implementation and use [`AttributeError::FailedMerge`] to model another
+    /// possible failure.
+    fn merge_incomplete(_: Self) -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
-    #[allow(clippy::missing_errors_doc)]
     /// Fallback merging routine, i.e. how to obtain a new value from no existing one.
     ///
     /// The returned value directly affects the behavior of sewing methods: For example, if this
@@ -90,10 +67,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Errors
     ///
-    /// The default implementation fails with `Err(CMapError::FailedAttributeMerge)`.
-    #[allow(clippy::must_use_candidate)]
-    fn merge_from_none() -> CMapResult<Self> {
-        Err(CMapError::FailedAttributeMerge(type_name::<Self>()))
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`].
+    fn merge_from_none() -> Result<Self, AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "merge",
+            type_name::<Self>(),
+        ))
     }
 
     /// Fallback splitting routine, i.e. how to obtain two new values from no existing one.
@@ -105,9 +84,12 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     ///
     /// # Errors
     ///
-    /// The default implementation fails with `Err(CMapError::FailedAttributeSplit)`.
-    fn split_from_none() -> CMapResult<(Self, Self)> {
-        Err(CMapError::FailedAttributeSplit(type_name::<Self>()))
+    /// The default implementation fails and returns [`AttributeError::InsufficientData`].
+    fn split_from_none() -> Result<(Self, Self), AttributeError> {
+        Err(AttributeError::InsufficientData(
+            "split",
+            type_name::<Self>(),
+        ))
     }
 }
 
@@ -118,42 +100,9 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
 ///
 /// ## Example
 ///
-/// Using the same context as the for the [`AttributeUpdate`] example, we can associate temperature
-/// to faces and model a 2D heat-map:
+/// A detailed example is provided in the [user guide][UG].
 ///
-/// ```rust
-/// # use honeycomb_core::prelude::{AttributeUpdate, CMapResult};
-/// use honeycomb_core::prelude::{FaceIdType, OrbitPolicy};
-/// use honeycomb_core::attributes::{AttributeBind, AttrSparseVec};
-///
-/// #[derive(Clone, Copy, Debug, PartialEq)]
-/// pub struct Temperature {
-///     pub val: f32
-/// }
-/// # impl AttributeUpdate for Temperature {
-/// #     fn merge(attr1: Self, attr2: Self) -> Self {
-/// #         Temperature { val: (attr1.val + attr2.val) / 2.0 }
-/// #     }
-/// #
-/// #     fn split(attr: Self) -> (Self, Self) {
-/// #         (attr, attr)
-/// #     }
-/// #
-/// #     fn merge_incomplete(attr: Self) -> CMapResult<Self> {
-/// #         Ok(Temperature { val: attr.val / 2.0 })
-/// #     }
-/// #
-/// #     fn merge_from_none() -> CMapResult<Self> {
-/// #         Ok(Temperature { val: 0.0 })
-/// #     }
-/// # }
-///
-/// impl AttributeBind for Temperature {
-///     type StorageType = AttrSparseVec<Self>;
-///     type IdentifierType = FaceIdType;
-///     const BIND_POLICY: OrbitPolicy = OrbitPolicy::Face;
-/// }
-/// ```
+/// [UG]: https://lihpc-computational-geometry.github.io/honeycomb/user-guide/usage/attributes.html
 pub trait AttributeBind: Debug + Sized + Any {
     /// Storage type used for the attribute.
     type StorageType: AttributeStorage<Self>;
@@ -170,24 +119,6 @@ pub trait AttributeBind: Debug + Sized + Any {
 ///
 /// This trait defines attribute-agnostic functions & methods. The documentation describes the
 /// expected behavior of each item. “ID” and “index” are used interchangeably.
-///
-/// ### Note on force / regular / try semantics
-///
-/// <div class="warning">
-/// This will be simplified in the near future, most likely with the deletion of force variants.
-/// </div>
-///
-/// We define three variants of split and merge methods (same as sews / unsews): `force`, regular,
-/// and `try`. Their goal is to provide different degrees of control vs convenience when using
-/// these operations. Documentation of each method shortly explains their individual quirks,
-/// below is a table summarizing the differences:
-///
-/// | variant | description |
-/// |---------| ----------- |
-/// | `try`   | defensive impl, only succeding if the attribute operation is successful & the transaction isn't invalidated |
-/// | regular | regular impl, which uses attribute fallback policies and will fail only if the transaction is invalidated   |
-/// | `force` | convenience impl, which wraps the regular impl in a transaction that retries until success                  |
-///
 pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// Constructor
     ///
@@ -217,9 +148,6 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     #[must_use = "unused return value"]
     fn n_attributes(&self) -> usize;
 
-    // regular
-
-    #[allow(clippy::missing_errors_doc)]
     /// Merge attributes to specified index
     ///
     /// # Arguments
@@ -240,19 +168,23 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes.set(out, new_val);
     /// ```
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. Errors should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmClosureResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 
-    #[allow(clippy::missing_errors_doc)]
     /// Split attribute to specified indices
     ///
     /// # Arguments
@@ -268,60 +200,8 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
+    ///
     /// ```
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. Errors should not be processed manually.
-    fn split(
-        &self,
-        trans: &mut Transaction,
-        lhs_out: DartIdType,
-        rhs_out: DartIdType,
-        inp: DartIdType,
-    ) -> StmClosureResult<()>;
-
-    // force
-
-    /// Merge attributes to specified index
-    ///
-    /// This variant is equivalent to `merge`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
-        atomically(|trans| self.merge(trans, out, lhs_inp, rhs_inp));
-    }
-
-    /// Split attribute to specified indices
-    ///
-    /// This variant is equivalent to `split`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
-        atomically(|trans| self.split(trans, lhs_out, rhs_out, inp));
-    }
-
-    // try
-
-    /// Merge attributes to specified index
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    fn try_merge(
-        &self,
-        trans: &mut Transaction,
-        out: DartIdType,
-        lhs_inp: DartIdType,
-        rhs_inp: DartIdType,
-    ) -> CMapResult<()>;
-
-    /// Split attribute to specified indices
     ///
     /// # Errors
     ///
@@ -332,13 +212,13 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    fn try_split(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
-    ) -> CMapResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 }
 
 impl_downcast!(UnknownAttributeStorage);
@@ -347,10 +227,6 @@ impl_downcast!(UnknownAttributeStorage);
 ///
 /// This trait defines attribute-specific methods. The documentation describes the expected behavior
 /// of each method. "ID" and "index" are used interchangeably.
-///
-/// Aside from the regular (transactional) read / write / remove methods, we provide `force`
-/// variants which wraps regular methods in a transaction that retries until success. The main
-/// purpose of these variants is to allow omitting transactions when they're not needed.
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     #[allow(clippy::missing_errors_doc)]
     /// Read the value of an element at a given index.
@@ -421,26 +297,4 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, trans: &mut Transaction, id: A::IdentifierType)
         -> StmClosureResult<Option<A>>;
-
-    /// Read the value of an element at a given index.
-    ///
-    /// This variant is equivalent to `read`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_read(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.read(trans, id.clone()))
-    }
-
-    /// Write the value of an element at a given index and return the old value.
-    ///
-    /// This variant is equivalent to `write`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_write(&self, id: A::IdentifierType, val: A) -> Option<A>;
-
-    /// Remove the value at a given index and return it.
-    ///
-    /// This variant is equivalent to `remove`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_remove(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.remove(trans, id.clone()))
-    }
 }

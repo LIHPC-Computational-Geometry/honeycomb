@@ -1,4 +1,4 @@
-use crate::prelude::{CoordsError, CoordsFloat, Vector2};
+use crate::geometry::{CoordsError, CoordsFloat, Vector2};
 
 /// # 3D vector structure
 ///
@@ -9,7 +9,7 @@ use crate::prelude::{CoordsError, CoordsFloat, Vector2};
 /// ## Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::CoordsError;
+/// # use honeycomb_core::geometry::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
 /// use honeycomb_core::geometry::Vector3;
 ///

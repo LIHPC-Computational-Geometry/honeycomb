@@ -1,12 +1,9 @@
 mod one;
 mod two;
 
-use crate::stm::{StmClosureResult, Transaction};
-
-use crate::{
-    cmap::{CMap2, DartIdType},
-    prelude::CoordsFloat,
-};
+use crate::cmap::{CMap2, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{Transaction, TransactionClosureResult};
 
 /// # **Link operations**
 impl<T: CoordsFloat> CMap2<T> {
@@ -44,7 +41,7 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -89,7 +86,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         trans: &mut Transaction,
         ld: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -100,12 +97,12 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// `I`-link operator.
     ///
     /// This variant is equivalent to [`link`][Self::link], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_link<const I: u8>(&self, ld: DartIdType, rd: DartIdType) {
+    pub fn force_link<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -116,12 +113,12 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// # `I`-unlink operator.
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
-    pub fn force_unlink<const I: u8>(&self, ld: DartIdType) {
+    pub fn force_unlink<const I: u8>(&self, ld: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);

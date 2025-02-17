@@ -7,22 +7,15 @@
 //! - Beta function interfaces
 //! - i-cell computations
 
-// ------ IMPORTS
-
-use crate::stm::{atomically, StmClosureResult, StmError, Transaction};
-
 use std::collections::{HashSet, VecDeque};
 
-use crate::{
-    attributes::UnknownAttributeStorage,
-    cmap::{
-        CMap3, DartIdType, EdgeIdType, FaceIdType, Orbit3, OrbitPolicy, VertexIdType, VolumeIdType,
-        NULL_DART_ID,
-    },
-    geometry::CoordsFloat,
+use crate::attributes::UnknownAttributeStorage;
+use crate::cmap::{
+    CMap3, DartIdType, EdgeIdType, FaceIdType, Orbit3, OrbitPolicy, VertexIdType, VolumeIdType,
+    NULL_DART_ID,
 };
-
-// ------ CONTENT
+use crate::geometry::CoordsFloat;
+use crate::stm::{atomically, StmClosureResult, StmError, Transaction};
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap3<T> {

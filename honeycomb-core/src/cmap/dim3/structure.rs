@@ -3,16 +3,13 @@
 //! This module contains the main structure definition ([`CMap3`]) as well as its constructor
 //! implementation.
 
-// ------ IMPORTS
-
-use super::CMAP3_BETA;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::components::{betas::BetaFunctions, unused::UnusedDarts},
     geometry::{CoordsFloat, Vertex3},
 };
 
-// ------ CONTENT
+use super::CMAP3_BETA;
 
 /// Main map object.
 pub struct CMap3<T: CoordsFloat> {

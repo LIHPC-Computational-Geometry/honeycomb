@@ -1,18 +1,20 @@
-// ------ IMPORTS
-
-use crate::prelude::{AttributeBind, CMap2, GridDescriptor};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
+use std::fs::File;
+use std::io::Read;
 
 use thiserror::Error;
 use vtkio::Vtk;
 
-// ------ CONTENT
+use crate::attributes::{AttrStorageManager, AttributeBind};
+use crate::cmap::{CMap2, GridDescriptor};
+use crate::geometry::CoordsFloat;
+
+use super::io::CMapFile;
 
 /// # Builder-level error enum
 ///
 /// This enum is used to describe all non-panic errors that can occur when using the builder
 /// structure.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum BuilderError {
     // grid-related variants
     /// One or multiple of the specified grid characteristics are invalid.
@@ -21,6 +23,26 @@ pub enum BuilderError {
     /// The builder is missing one or multiple parameters to generate the grid.
     #[error("insufficient parameters - please specifiy at least 2")]
     MissingGridParameters,
+
+    // custom format variants
+    /// A value could not be parsed.
+    #[error("error parsing a value in one of the cmap file section - {0}")]
+    BadValue(&'static str),
+    /// The meta section of the file is incorrect.
+    #[error("error parsing the cmap file meta section - {0}")]
+    BadMetaData(&'static str),
+    /// The file contains a duplicated section.
+    #[error("duplicated section in cmap file - {0}")]
+    DuplicatedSection(String),
+    /// The file contains contradicting data.
+    #[error("inconsistent data - {0}")]
+    InconsistentData(&'static str),
+    /// A required section is missing from the file.
+    #[error("required section missing in cmap file - {0}")]
+    MissingSection(&'static str),
+    /// The file contains an unrecognized section header.
+    #[error("unknown header in cmap file - {0}")]
+    UnknownHeader(String),
 
     // vtk-related variants
     /// Specified VTK file contains inconsistent data.
@@ -36,9 +58,9 @@ pub enum BuilderError {
 /// ## Example
 ///
 /// ```rust
-/// # use honeycomb_core::prelude::BuilderError;
+/// # use honeycomb_core::cmap::BuilderError;
 /// # fn main() -> Result<(), BuilderError> {
-/// use honeycomb_core::prelude::{CMap2, CMapBuilder};
+/// use honeycomb_core::cmap::{CMap2, CMapBuilder};
 ///
 /// let builder = CMapBuilder::default().n_darts(10);
 /// let map: CMap2<f64> = builder.build()?;
@@ -53,6 +75,7 @@ pub struct CMapBuilder<T>
 where
     T: CoordsFloat,
 {
+    pub(super) cmap_file: Option<CMapFile>,
     pub(super) vtk_file: Option<Vtk>,
     pub(super) grid_descriptor: Option<GridDescriptor<T>>,
     pub(super) attributes: AttrStorageManager,
@@ -84,6 +107,22 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     #[must_use = "unused builder object"]
     pub fn grid_descriptor(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
         self.grid_descriptor = Some(grid_descriptor);
+        self
+    }
+
+    /// Set the `cmap` file that will be used when building the map.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if the file cannot be loaded, or basic section parsing fails.
+    #[must_use = "unused builder object"]
+    pub fn cmap_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+        let mut f = File::open(file_path).expect("E: could not open specified file");
+        let mut buf = String::new();
+        f.read_to_string(&mut buf)
+            .expect("E: could not read content from file");
+        let cmap_file = CMapFile::try_from(buf).unwrap();
+        self.cmap_file = Some(cmap_file);
         self
     }
 
@@ -131,9 +170,12 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
     pub fn build(self) -> Result<CMap2<T>, BuilderError> {
+        if let Some(cfile) = self.cmap_file {
+            // build from our custom format
+            return super::io::build_2d_from_cmap_file(cfile, self.attributes);
+        }
         if let Some(vfile) = self.vtk_file {
             // build from vtk
-            // this routine should return a Result instead of the map directly
             return super::io::build_2d_from_vtk(vfile, self.attributes);
         }
         if let Some(gridb) = self.grid_descriptor {

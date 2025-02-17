@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::prelude::{DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType};
+use honeycomb_core::cmap::{DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType};
 
 // --- shared data
 

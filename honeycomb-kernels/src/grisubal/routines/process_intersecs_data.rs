@@ -6,9 +6,12 @@
 
 // ------ IMPORTS
 
-use super::{DartSlices, IntersectionsPerEdge};
-use honeycomb_core::prelude::{CMap2, CoordsFloat, DartIdType, EdgeIdType, NULL_DART_ID};
 use std::collections::HashMap;
+
+use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
+use honeycomb_core::geometry::CoordsFloat;
+
+use super::{DartSlices, IntersectionsPerEdge};
 
 // ------ CONTENT
 

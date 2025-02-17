@@ -2,12 +2,9 @@ mod one;
 mod three;
 mod two;
 
-use crate::stm::{StmClosureResult, Transaction};
-
-use crate::{
-    cmap::{CMap3, DartIdType},
-    prelude::CoordsFloat,
-};
+use crate::cmap::{CMap3, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{Transaction, TransactionClosureResult};
 
 /// # **Link operations**
 impl<T: CoordsFloat> CMap3<T> {
@@ -45,7 +42,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -91,7 +88,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         trans: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> StmClosureResult<()> {
+    ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -107,7 +104,11 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`link`][Self::link], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_link<const I: u8>(&self, lhs_dart_id: DartIdType, rhs_dart_id: DartIdType) {
+    pub fn force_link<const I: u8>(
+        &self,
+        lhs_dart_id: DartIdType,
+        rhs_dart_id: DartIdType,
+    ) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -123,7 +124,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
-    pub fn force_unlink<const I: u8>(&self, lhs_dart_id: DartIdType) {
+    pub fn force_unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);

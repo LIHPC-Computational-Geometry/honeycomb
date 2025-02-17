@@ -12,7 +12,9 @@
 
 # Usage
 
-- [Parallelization: STM](./usage/stm.md)
+- [Adding generic attributes to maps](./usage/attributes.md)
+- [Concurrency / Parallelism](./usage/stm.md)
+- [Serialization](./usage/serialization.md)
 
 # Kernels
 

@@ -1,8 +1,9 @@
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
+use honeycomb_core::geometry::CoordsFloat;
+
 use crate::triangulation::{
     check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
 };
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
-use honeycomb_core::geometry::CoordsFloat;
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -115,13 +116,13 @@ pub fn process_cell<T: CoordsFloat>(
         ndart_id += 2;
         // FIXME: using link methods only works if new identifiers are greater than all existing
         // FIXME: using sew methods in parallel could crash bc of the panic when no vertex defined
-        cmap.force_unlink::<1>(b0_d_ear1);
-        cmap.force_unlink::<1>(d_ear2);
-        cmap.force_link::<1>(d_ear2, nd1);
-        cmap.force_link::<1>(nd1, d_ear1);
-        cmap.force_link::<1>(b0_d_ear1, nd2);
-        cmap.force_link::<1>(nd2, b1_d_ear2);
-        cmap.force_link::<2>(nd1, nd2);
+        cmap.force_unlink::<1>(b0_d_ear1).unwrap();
+        cmap.force_unlink::<1>(d_ear2).unwrap();
+        cmap.force_link::<1>(d_ear2, nd1).unwrap();
+        cmap.force_link::<1>(nd1, d_ear1).unwrap();
+        cmap.force_link::<1>(b0_d_ear1, nd2).unwrap();
+        cmap.force_link::<1>(nd2, b1_d_ear2).unwrap();
+        cmap.force_link::<2>(nd1, nd2).unwrap();
 
         // edit existing vectors
         darts.remove((ear + 1) % n);

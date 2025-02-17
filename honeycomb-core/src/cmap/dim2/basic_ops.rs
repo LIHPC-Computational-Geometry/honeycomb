@@ -7,17 +7,14 @@
 //! - Beta function interfaces
 //! - i-cell computations
 
-// ------ IMPORTS
-
 use std::collections::{HashSet, VecDeque};
 
-use crate::prelude::{
+use crate::attributes::UnknownAttributeStorage;
+use crate::cmap::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
 };
+use crate::geometry::CoordsFloat;
 use crate::stm::{atomically, StmClosureResult, Transaction};
-use crate::{attributes::UnknownAttributeStorage, geometry::CoordsFloat};
-
-// ------ CONTENT
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap2<T> {
@@ -33,6 +30,28 @@ impl<T: CoordsFloat> CMap2<T> {
     #[must_use = "unused return value"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
+    }
+
+    /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    #[must_use = "unused return value"]
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
     }
 
     // --- edit

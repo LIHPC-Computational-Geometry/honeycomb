@@ -2,12 +2,9 @@ mod one;
 mod three;
 mod two;
 
-use crate::stm::Transaction;
-
-use crate::{
-    cmap::{CMap3, CMapResult, DartIdType},
-    prelude::CoordsFloat,
-};
+use crate::cmap::{CMap3, DartIdType, SewError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{atomically_with_err, Transaction, TransactionClosureResult};
 
 /// # **Sew operations**
 impl<T: CoordsFloat> CMap3<T> {
@@ -52,7 +49,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
-    ) -> CMapResult<()> {
+    ) -> TransactionClosureResult<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -64,6 +61,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    /// `I`-unsew operator.
     ///
     /// # Description
     ///
@@ -84,7 +82,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// The second dart ID is fetched using `I` and `ld`.
     ///
-    /// # Errors
+    /// # Errors    
     ///
     /// This variant will abort the unsew operation and raise an error if:
     /// - the transaction cannot be completed,
@@ -99,7 +97,11 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unsew<const I: u8>(&self, trans: &mut Transaction, ld: DartIdType) -> CMapResult<()> {
+    pub fn unsew<const I: u8>(
+        &self,
+        trans: &mut Transaction,
+        ld: DartIdType,
+    ) -> TransactionClosureResult<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -111,34 +113,36 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// `I`-sew operator.
     ///
     /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) {
+    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_sew(ld, rd),
-            2 => self.force_two_sew(ld, rd),
-            3 => self.force_three_sew(ld, rd),
+            1 => atomically_with_err(|trans| self.one_sew(trans, ld, rd)),
+            2 => atomically_with_err(|trans| self.two_sew(trans, ld, rd)),
+            3 => atomically_with_err(|trans| self.three_sew(trans, ld, rd)),
             _ => unreachable!(),
         }
     }
 
+    #[allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
     /// `I`-unsew operator.
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) {
+    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_unsew(ld),
-            2 => self.force_two_unsew(ld),
-            3 => self.force_three_unsew(ld),
+            1 => atomically_with_err(|trans| self.one_unsew(trans, ld)),
+            2 => atomically_with_err(|trans| self.two_unsew(trans, ld)),
+            3 => atomically_with_err(|trans| self.three_unsew(trans, ld)),
             _ => unreachable!(),
         }
     }

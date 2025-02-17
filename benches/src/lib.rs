@@ -28,16 +28,9 @@
 //! - `shift-nc` - Run a simple vertex relaxation algorithm in parallel (using independent set of
 //!   vertices)
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "_single_precision")] {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f32;
-    } else {
-        /// Floating-point type alias.
-        ///
-        /// This is mostly used to run tests using both `f64` and `f32`.
-        pub type FloatType = f64;
-    }
-}
+pub mod cli;
+pub mod cut_edges;
+pub mod grid_gen;
+pub mod grisubal;
+pub mod shift;
+pub mod utils;
