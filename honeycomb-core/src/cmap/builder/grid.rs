@@ -169,6 +169,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
         }
     }
 
+    #[allow(unused)]
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
     #[allow(clippy::type_complexity)]
     pub(crate) fn parse_3d(self) -> Result<(Vertex3<T>, [usize; 3], [T; 3]), BuilderError> {
@@ -455,6 +456,7 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
 
 // ------ 3D
 
+#[allow(unused)]
 /// Internal grid-building routine
 #[allow(clippy::too_many_lines)]
 pub fn build_3d_grid<T: CoordsFloat>(
