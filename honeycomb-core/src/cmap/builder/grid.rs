@@ -17,7 +17,8 @@ use crate::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 /// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
 #[derive(Default, Clone)]
 pub struct GridDescriptor<T: CoordsFloat> {
-    pub(crate) origin: Vertex2<T>,
+    pub(crate) origin2: Vertex2<T>,
+    pub(crate) origin3: Vertex3<T>,
     pub(crate) n_cells: Option<[usize; 3]>,
     pub(crate) len_per_cell: Option<[T; 3]>,
     pub(crate) lens: Option<[T; 3]>,
@@ -87,8 +88,15 @@ impl<T: CoordsFloat> GridDescriptor<T> {
 
     /// Set origin (most bottom-left vertex) of the grid
     #[must_use = "unused builder object"]
-    pub fn origin(mut self, origin: Vertex2<T>) -> Self {
-        self.origin = origin;
+    pub fn origin_2d(mut self, origin: Vertex2<T>) -> Self {
+        self.origin2 = origin;
+        self
+    }
+
+    /// Set origin (most bottom-left vertex) of the grid
+    #[must_use = "unused builder object"]
+    pub fn origin_3d(mut self, origin: Vertex3<T>) -> Self {
+        self.origin3 = origin;
         self
     }
 
@@ -124,7 +132,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 check_parameters!(lpx, "length per x cell is null or negative");
                 #[rustfmt::skip]
                 check_parameters!(lpy, "length per y cell is null or negative");
-                Ok((self.origin, [nx, ny], [lpx, lpy]))
+                Ok((self.origin2, [nx, ny], [lpx, lpy]))
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
@@ -133,7 +141,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
-                    self.origin,
+                    self.origin2,
                     [nx, ny],
                     [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
                 ))
@@ -149,7 +157,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
-                    self.origin,
+                    self.origin2,
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
                         (ly / lpy).ceil().to_usize().unwrap(),
@@ -176,7 +184,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 check_parameters!(lpy, "length per y cell is null or negative");
                 #[rustfmt::skip]
                 check_parameters!(lpz, "length per z cell is null or negative");
-                Ok((self.origin, [nx, ny, nz], [lpx, lpy, lpz]))
+                Ok((self.origin3, [nx, ny, nz], [lpx, lpy, lpz]))
             }
             // from # cells and total lengths
             (Some([nx, ny, nz]), None, Some([lx, ly, lz])) => {
@@ -187,7 +195,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(lz, "grid length along z is null or negative");
                 Ok((
-                    self.origin,
+                    self.origin3,
                     [nx, ny, nz],
                     [
                         lx / T::from(nx).unwrap(),
@@ -211,7 +219,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(lz, "grid length along z is null or negative");
                 Ok((
-                    self.origin,
+                    self.origin3,
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
                         (ly / lpy).ceil().to_usize().unwrap(),
@@ -572,7 +580,14 @@ fn generate_hex_beta_values(
     })
 }
 
-#[allow(clippy::inline_always, unused)]
+// FIXME: merge match arms once there are tests
+#[allow(
+    clippy::inline_always,
+    unused,
+    clippy::match_same_arms,
+    clippy::too_many_lines,
+    clippy::many_single_char_names
+)]
 #[inline(always)]
 fn generate_hex_offset<T: CoordsFloat>(
     dart: DartIdType,
