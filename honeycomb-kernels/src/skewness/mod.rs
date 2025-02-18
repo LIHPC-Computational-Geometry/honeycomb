@@ -23,7 +23,7 @@ use honeycomb_core::{
 /// # Panics
 ///
 /// This function will panic if a topological vertex has no associated coordinates.
-pub fn compute_cell_skewness_2d<'a, 'b, T: CoordsFloat>(
+pub fn compute_cells_skewness_2d<'a, 'b, T: CoordsFloat>(
     map: &'a CMap2<T>,
 ) -> impl Iterator<Item = T> + 'b
 where
@@ -91,7 +91,7 @@ where
 /// This function will panic if:
 /// - `I` is not `2` (or `3`, at the moment),
 /// - a topological vertex has no associated coordinates.
-pub fn compute_cell_skewness_3d<'a, 'b, const N: u8, T: CoordsFloat>(
+pub fn compute_cells_skewness_3d<'a, 'b, const N: u8, T: CoordsFloat>(
     map: &'a CMap3<T>,
 ) -> impl Iterator<Item = T> + 'b
 where
@@ -106,7 +106,7 @@ where
     }
 }
 
-fn compute_face_skewness_3d<'a, 'b, T: CoordsFloat>(
+fn compute_faces_skewness_3d<'a, 'b, T: CoordsFloat>(
     map: &'a CMap3<T>,
 ) -> impl Iterator<Item = T> + 'b
 where

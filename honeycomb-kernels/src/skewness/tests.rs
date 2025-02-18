@@ -6,8 +6,8 @@ use crate::skewness::compute_cell_skewness_2d;
 fn skewtest() {
     // squares are equiangular
     let map: CMap2<f32> = CMapBuilder::unit_grid(2).build().unwrap();
-    assert!(compute_cell_skewness_2d(&map).all(|s| s == 0.0));
+    assert!(compute_cells_skewness_2d(&map).all(|s| s == 0.0));
     // triangles aren't; their angles are 90, 45, 45
     let map: CMap2<f32> = CMapBuilder::unit_triangles(2).build().unwrap();
-    assert!(compute_cell_skewness_2d(&map).all(|s| s == 0.25));
+    assert!(compute_cells_skewness_2d(&map).all(|s| s == 0.25));
 }
