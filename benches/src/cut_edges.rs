@@ -116,7 +116,8 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
         } else {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
-            println!("| {:>18.6e} ", 0.0); // t_process_batch
+            print!("| {:>18.6e} ", 0.0); // t_process_batch
+            println!("| {:>15}", 0); // n_transac_retry
         }
     }
 
