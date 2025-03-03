@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeSet, VecDeque};
 
-use crate::cmap::{CMap2, DartIdType, OrbitPolicy, NULL_DART_ID};
+use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy};
 use crate::geometry::CoordsFloat;
 
 /// # Generic 2D orbit implementation

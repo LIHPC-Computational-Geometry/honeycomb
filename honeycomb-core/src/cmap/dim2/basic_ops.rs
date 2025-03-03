@@ -11,10 +11,10 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
 use crate::cmap::{
-    CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+    CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
 };
 use crate::geometry::CoordsFloat;
-use crate::stm::{atomically, StmClosureResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction, atomically};
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap2<T> {
@@ -404,20 +404,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let vid = self.vertex_id(d);
-                if d == vid {
-                    Some(vid)
-                } else {
-                    None
-                }
+                if d == vid { Some(vid) } else { None }
             })
     }
 
@@ -428,20 +420,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let eid = self.edge_id(d);
-                if d == eid {
-                    Some(eid)
-                } else {
-                    None
-                }
+                if d == eid { Some(eid) } else { None }
             })
     }
 
@@ -452,20 +436,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let fid = self.face_id(d);
-                if d == fid {
-                    Some(fid)
-                } else {
-                    None
-                }
+                if d == fid { Some(fid) } else { None }
             })
     }
 }

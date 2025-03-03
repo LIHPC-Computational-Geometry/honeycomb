@@ -1,10 +1,10 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use honeycomb::prelude::{
-    grisubal::{grisubal, Clip},
     CMap2,
+    grisubal::{Clip, grisubal},
 };
 
-use honeycomb_benches::FloatType;
+use honeycomb_benches::utils::FloatType;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     // passing args to cargo bench filters bench instead of actually reading args;

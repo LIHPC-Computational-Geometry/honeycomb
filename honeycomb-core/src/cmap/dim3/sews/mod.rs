@@ -4,7 +4,7 @@ mod two;
 
 use crate::cmap::{CMap3, DartIdType, SewError};
 use crate::geometry::CoordsFloat;
-use crate::stm::{atomically_with_err, Transaction, TransactionClosureResult};
+use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 
 /// # **Sew operations**
 impl<T: CoordsFloat> CMap3<T> {

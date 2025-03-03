@@ -2,9 +2,9 @@
 
 use crate::{
     attributes::UnknownAttributeStorage,
-    cmap::{CMap3, DartIdType, SewError, NULL_DART_ID, NULL_VERTEX_ID},
+    cmap::{CMap3, DartIdType, NULL_DART_ID, NULL_VERTEX_ID, SewError},
     geometry::CoordsFloat,
-    stm::{try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, try_or_coerce},
 };
 
 #[doc(hidden)]

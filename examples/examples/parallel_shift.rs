@@ -22,7 +22,7 @@
 //!
 
 use honeycomb_core::cmap::{
-    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+    CMap2, CMapBuilder, DartIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
 };
 use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::stm::atomically;

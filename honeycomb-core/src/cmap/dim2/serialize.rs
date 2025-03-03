@@ -1,14 +1,14 @@
 use std::{any::TypeId, collections::BTreeMap};
 
 use vtkio::{
+    IOBuffer,
     model::{
         ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
     },
-    IOBuffer,
 };
 
 use crate::cmap::{
-    CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+    CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
 };
 use crate::geometry::CoordsFloat;
 

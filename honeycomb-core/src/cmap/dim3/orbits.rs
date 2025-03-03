@@ -5,7 +5,7 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use crate::cmap::{CMap3, DartIdType, OrbitPolicy, NULL_DART_ID};
+use crate::cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy};
 use crate::geometry::CoordsFloat;
 
 #[derive(Clone)]

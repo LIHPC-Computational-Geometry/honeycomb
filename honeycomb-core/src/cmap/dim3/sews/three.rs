@@ -3,10 +3,10 @@
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
     cmap::{
-        CMap3, DartIdType, EdgeIdType, Orbit3, OrbitPolicy, SewError, VertexIdType, NULL_DART_ID,
+        CMap3, DartIdType, EdgeIdType, NULL_DART_ID, Orbit3, OrbitPolicy, SewError, VertexIdType,
     },
     geometry::CoordsFloat,
-    stm::{abort, try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 /// **3-(un)sews internals**

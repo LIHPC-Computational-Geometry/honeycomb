@@ -2,9 +2,9 @@ use std::time::Instant;
 
 use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType};
 use rand::{
+    SeedableRng,
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
-    SeedableRng,
 };
 
 fn main() {

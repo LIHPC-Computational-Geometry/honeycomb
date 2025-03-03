@@ -13,10 +13,10 @@ use std::hint::black_box;
 
 use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
 use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
+    FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
 };
 
-use honeycomb_benches::FloatType;
+use honeycomb_benches::utils::FloatType;
 
 // --- common
 

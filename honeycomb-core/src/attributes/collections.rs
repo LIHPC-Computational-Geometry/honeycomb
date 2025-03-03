@@ -9,7 +9,7 @@ use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
 use crate::cmap::DartIdType;
-use crate::stm::{abort, StmClosureResult, TVar, Transaction, TransactionClosureResult};
+use crate::stm::{StmClosureResult, TVar, Transaction, TransactionClosureResult, abort};
 
 /// Custom storage structure
 ///
