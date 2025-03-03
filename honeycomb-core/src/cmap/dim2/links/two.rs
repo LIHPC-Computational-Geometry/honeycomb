@@ -1,6 +1,6 @@
 use crate::cmap::{CMap2, DartIdType, LinkError};
 use crate::geometry::CoordsFloat;
-use crate::stm::{atomically_with_err, Transaction, TransactionClosureResult};
+use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 
 #[doc(hidden)]
 /// 2-links

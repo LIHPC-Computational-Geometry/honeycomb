@@ -2,7 +2,7 @@ use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap2, CMapBuilder, LinkError, Orbit2, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex2,
-    stm::{atomically, atomically_with_err, StmError, TransactionError},
+    stm::{StmError, TransactionError, atomically, atomically_with_err},
 };
 
 // --- GENERAL
@@ -292,12 +292,14 @@ fn two_sew_incomplete() {
 fn link_twice() {
     let mut map: CMap2<f64> = CMap2::new(3);
     assert!(map.force_link::<1>(1, 2).is_ok());
-    assert!(map
-        .force_link::<1>(1, 3)
-        .is_err_and(|e| e == LinkError::NonFreeBase(1, 1, 3)));
-    assert!(map
-        .force_link::<1>(3, 2)
-        .is_err_and(|e| e == LinkError::NonFreeImage(0, 3, 2)));
+    assert!(
+        map.force_link::<1>(1, 3)
+            .is_err_and(|e| e == LinkError::NonFreeBase(1, 1, 3))
+    );
+    assert!(
+        map.force_link::<1>(3, 2)
+            .is_err_and(|e| e == LinkError::NonFreeImage(0, 3, 2))
+    );
 }
 
 #[test]
@@ -307,9 +309,10 @@ fn sew_twice() {
     map.force_write_vertex(3, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 0.0));
     assert!(map.force_sew::<1>(1, 2).is_ok());
-    assert!(map
-        .force_sew::<1>(1, 2)
-        .is_err_and(|e| e == SewError::FailedLink(LinkError::NonFreeBase(1, 1, 2))));
+    assert!(
+        map.force_sew::<1>(1, 2)
+            .is_err_and(|e| e == SewError::FailedLink(LinkError::NonFreeBase(1, 1, 2)))
+    );
 }
 
 #[test]
@@ -366,9 +369,10 @@ fn two_sew_bad_orientation() {
     map.force_write_vertex(2, (0.0, 1.0)); // 1->2 goes up
     map.force_write_vertex(3, (1.0, 0.0));
     map.force_write_vertex(4, (1.0, 1.0)); // 3->4 also goes up
-    assert!(map
-        .force_sew::<2>(1, 3)
-        .is_err_and(|e| e == SewError::BadGeometry(2, 1, 3)));
+    assert!(
+        map.force_sew::<2>(1, 3)
+            .is_err_and(|e| e == SewError::BadGeometry(2, 1, 3))
+    );
 }
 
 #[test]

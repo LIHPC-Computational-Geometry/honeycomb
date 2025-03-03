@@ -249,8 +249,10 @@ mod standard {
         map.force_write_vertex(1, (0.0, 0.0));
         // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
-        assert!(splitn_edge(&mut map, 1, [0.25, 0.50, 0.75])
-            .is_err_and(|e| e == SplitEdgeError::UndefinedEdge));
+        assert!(
+            splitn_edge(&mut map, 1, [0.25, 0.50, 0.75])
+                .is_err_and(|e| e == SplitEdgeError::UndefinedEdge)
+        );
     }
 }
 

@@ -5,9 +5,9 @@ use honeycomb::{
     prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, GridDescriptor, Orbit2, OrbitPolicy},
 };
 use rand::{
+    SeedableRng,
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
-    SeedableRng,
 };
 use rayon::prelude::*;
 

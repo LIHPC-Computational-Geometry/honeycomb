@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use crate::cmap::{LinkError, NULL_DART_ID};
-use crate::stm::{abort, TVar, Transaction, TransactionClosureResult};
+use crate::stm::{TVar, Transaction, TransactionClosureResult, abort};
 
 use super::identifiers::DartIdType;
 

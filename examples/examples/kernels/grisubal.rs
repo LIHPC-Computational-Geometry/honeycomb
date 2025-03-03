@@ -26,6 +26,8 @@ fn main() {
         app.add_capture(&map);
         app.run()
     } else {
-        println!("No input geometry specified - you can pass a path to a vtk input as command line argument")
+        println!(
+            "No input geometry specified - you can pass a path to a vtk input as command line argument"
+        )
     }
 }
