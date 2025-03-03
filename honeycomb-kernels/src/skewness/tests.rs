@@ -1,13 +1,21 @@
 use honeycomb_core::cmap::{CMap2, CMapBuilder};
 
-use crate::skewness::compute_cell_skewness_2d;
+use crate::skewness::compute_face_skewness_2d;
 
 #[test]
-fn skewtest() {
+fn dim2_grids() {
     // squares are equiangular
     let map: CMap2<f32> = CMapBuilder::unit_grid(2).build().unwrap();
-    assert!(compute_cell_skewness_2d(&map).all(|s| s == 0.0));
+    assert!(
+        map.iter_faces()
+            .map(|fid| compute_face_skewness_2d(&map, fid))
+            .all(|s| s == 0.0)
+    );
     // triangles aren't; their angles are 90, 45, 45
     let map: CMap2<f32> = CMapBuilder::unit_triangles(2).build().unwrap();
-    assert!(compute_cell_skewness_2d(&map).all(|s| s == 0.25));
+    assert!(
+        map.iter_faces()
+            .map(|fid| compute_face_skewness_2d(&map, fid))
+            .all(|s| s == 0.25)
+    );
 }
