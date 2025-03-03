@@ -25,6 +25,7 @@ use honeycomb_core::{
 ///
 /// This function will panic if a topological vertex has no associated coordinates.
 // #[inline] // bench and adjust
+#[must_use = "unused return value"]
 pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType) -> T {
     let (mut d1, mut d2, mut d3) = (
         fid as DartIdType,
@@ -80,6 +81,7 @@ pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType)
 ///
 /// This function will panic if a topological vertex has no associated coordinates.
 // #[inline] // bench and adjust
+#[must_use = "unused return value"]
 pub fn compute_face_skewness_3d<T: CoordsFloat>(map: &CMap3<T>, fid: FaceIdType) -> T {
     let (mut d1, mut d2, mut d3) = (
         fid as DartIdType,
