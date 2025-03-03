@@ -279,7 +279,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
         | DataSet::RectilinearGrid { .. }
         | DataSet::PolyData { .. }
         | DataSet::Field { .. } => {
-            return Err(BuilderError::UnsupportedVtkData("dataset not supported"))
+            return Err(BuilderError::UnsupportedVtkData("dataset not supported"));
         }
         DataSet::UnstructuredGrid { pieces, .. } => {
             let mut tmp = pieces.iter().map(|piece| {
@@ -297,7 +297,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                     _ => {
                         return Err(BuilderError::UnsupportedVtkData(
                             "unsupported coordinate type",
-                        ))
+                        ));
                     }
                 };
 
@@ -388,7 +388,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d0).unwrap(); // edge d2 links vertices vids[2] & vids[0]
-                                                                               // record a trace of the built cell for future 2-sew
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[0]), d2);
@@ -449,7 +449,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d3).unwrap(); // edge d2 links vertices vids[2] & vids[3]
                                         cmap.force_link::<1>(d3, d0).unwrap(); // edge d3 links vertices vids[3] & vids[0]
-                                                                               // record a trace of the built cell for future 2-sew
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[3]), d2);

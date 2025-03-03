@@ -2,7 +2,7 @@ use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap3, DartIdType, Orbit3, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
-    stm::{atomically, atomically_with_err, StmError, TVar, TransactionError},
+    stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
 
 #[test]
@@ -500,9 +500,10 @@ fn two_sew_bad_orientation() {
     map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
     map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
     map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(map
-        .force_sew::<2>(1, 5)
-        .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5)));
+    assert!(
+        map.force_sew::<2>(1, 5)
+            .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5))
+    );
 }
 
 #[test]
@@ -524,9 +525,10 @@ fn three_sew_bad_orientation() {
     map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
     map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
     map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(map
-        .force_sew::<3>(1, 5)
-        .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5)));
+    assert!(
+        map.force_sew::<3>(1, 5)
+            .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
+    );
 }
 
 // --- PARALLEL

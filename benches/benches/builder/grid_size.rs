@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 use honeycomb::prelude::{CMap2, CMapBuilder};
 
 use honeycomb_benches::utils::FloatType;

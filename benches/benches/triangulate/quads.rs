@@ -1,7 +1,7 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use honeycomb::prelude::{
-    triangulation::{earclip_cell, fan_cell, TriangulateError},
     CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy,
+    triangulation::{TriangulateError, earclip_cell, fan_cell},
 };
 
 use honeycomb_benches::utils::FloatType;

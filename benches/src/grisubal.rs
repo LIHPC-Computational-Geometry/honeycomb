@@ -1,6 +1,6 @@
 use honeycomb::prelude::{
-    grisubal::{grisubal, Clip},
     CMap2, CoordsFloat,
+    grisubal::{Clip, grisubal},
 };
 
 use crate::cli::GrisubalArgs;

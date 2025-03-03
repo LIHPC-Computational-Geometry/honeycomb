@@ -9,7 +9,7 @@ use crate::{
     },
     cmap::{CMap2, CMapBuilder, EdgeIdType, FaceIdType, OrbitPolicy, VertexIdType},
     geometry::Vertex2,
-    stm::{atomically, StmError, Transaction, TransactionControl},
+    stm::{StmError, Transaction, TransactionControl, atomically},
 };
 
 // --- basic structure implementation

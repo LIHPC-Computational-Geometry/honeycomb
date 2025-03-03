@@ -2,7 +2,7 @@ use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
 
 use crate::triangulation::{
-    check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
+    TriangulateError, check_requirements, crossp_from_verts, fetch_face_vertices,
 };
 
 #[allow(clippy::missing_panics_doc)]

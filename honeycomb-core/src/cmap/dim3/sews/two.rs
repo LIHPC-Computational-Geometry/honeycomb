@@ -2,9 +2,9 @@
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap3, DartIdType, SewError, NULL_DART_ID},
+    cmap::{CMap3, DartIdType, NULL_DART_ID, SewError},
     geometry::CoordsFloat,
-    stm::{abort, try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 /// **2-(un)sews internals**

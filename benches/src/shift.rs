@@ -19,8 +19,8 @@ use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType,
-    NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, Orbit2, OrbitPolicy, Vertex2,
+    VertexIdType,
 };
 
 use crate::cli::ShiftArgs;

@@ -4,7 +4,7 @@ use rayon::prelude::*;
 
 use honeycomb::{
     core::cmap::LinkError,
-    core::stm::{retry, StmError, Transaction, TransactionControl, TransactionResult},
+    core::stm::{StmError, Transaction, TransactionControl, TransactionResult, retry},
     prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Vertex2},
 };
 
@@ -42,7 +42,9 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     println!("|-> target size: {target_len:?}");
     println!("|-> init time  : {}ms", instant.elapsed().as_millis());
 
-    println!(" Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry");
+    println!(
+        " Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry"
+    );
 
     let mut step = 0;
     print!(" {step:>4} "); // Step

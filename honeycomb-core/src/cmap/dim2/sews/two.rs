@@ -1,7 +1,7 @@
 use crate::attributes::{AttributeStorage, UnknownAttributeStorage};
-use crate::cmap::{CMap2, DartIdType, EdgeIdType, SewError, NULL_DART_ID};
+use crate::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, SewError};
 use crate::geometry::CoordsFloat;
-use crate::stm::{abort, try_or_coerce, Transaction, TransactionClosureResult};
+use crate::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 
 #[doc(hidden)]
 /// **2-(un)sews internals**
