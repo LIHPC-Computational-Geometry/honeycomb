@@ -1,10 +1,36 @@
 //!
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, LinkError},
+    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, VertexIdType},
     geometry::{CoordsFloat, Vertex2},
-    stm::{StmError, Transaction, TransactionClosureResult, retry},
+    stm::{StmClosureResult, StmError, Transaction, TransactionClosureResult, retry},
 };
+
+// -- vertex relaxation
+
+/// Move a vertex to the average of the others' values.
+pub fn move_vertex_to_average<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    vid: VertexIdType,
+    others: &[VertexIdType],
+) -> StmClosureResult<()> {
+    if others.is_empty() {
+        return Ok(());
+    }
+    let mut new_val = Vertex2::default();
+    for v in others {
+        let vertex = map.read_vertex(t, *v)?.unwrap();
+        new_val.0 += vertex.0;
+        new_val.1 += vertex.1;
+    }
+    new_val.0 /= T::from(others.len()).unwrap();
+    new_val.1 /= T::from(others.len()).unwrap();
+    map.write_vertex(t, vid, new_val)?;
+    Ok(())
+}
+
+// -- cell insertion
 
 /// Cut an edge in half and build triangles from the new vertex.
 ///
