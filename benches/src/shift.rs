@@ -15,6 +15,7 @@
 //! `taskset`. By controlling this, and the grid size, we can evaluate both strong and weak
 //! scaling characteristics.
 
+use honeycomb::kernels::remeshing::move_vertex_to_average;
 use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
@@ -84,18 +85,8 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
                             n += 1;
                             TransactionControl::Retry
                         },
-                        |trans| {
-                            let mut new_val = Vertex2::default();
-                            for v in neigh {
-                                let vertex = map.read_vertex(trans, *v)?.unwrap();
-                                new_val.0 += vertex.0;
-                                new_val.1 += vertex.1;
-                            }
-                            new_val.0 /= T::from(neigh.len()).unwrap();
-                            new_val.1 /= T::from(neigh.len()).unwrap();
-                            map.write_vertex(trans, *vid, new_val)
-                        },
-                    ); // Transaction::with_control
+                        |trans| move_vertex_to_average(trans, &map, *vid, &neigh),
+                    );
                     n
                 })
                 .sum();
