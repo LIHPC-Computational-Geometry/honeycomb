@@ -30,7 +30,15 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
     let mut instant = std::time::Instant::now();
     let input_map = args.input.to_str().unwrap();
     let input_hash = hash_file(input_map).unwrap();
-    let map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
+    let map: CMap2<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::default().cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::default().vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
     let build_time = instant.elapsed();
 
     if args.no_conflict {
