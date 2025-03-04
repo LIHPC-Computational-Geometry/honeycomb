@@ -68,7 +68,7 @@ pub fn move_vertex_to_average<T: CoordsFloat>(
 /// This function takes an edge of the map's boundary as argument, cut it in half, and build two
 /// triangles from the new vertex.
 ///
-/// ```
+/// ```text
 ///
 ///       +                   +
 ///      / \                 /|\
@@ -142,7 +142,7 @@ pub fn cut_outer_edge<T: CoordsFloat>(
 /// This function takes an edge of the map's as argument, cut it in half, and build four triangles
 /// from the new vertex.
 ///
-/// ```
+/// ```text
 ///
 ///       +                   +
 ///      / \                 /|\
