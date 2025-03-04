@@ -4,7 +4,7 @@ use rayon::prelude::*;
 
 use honeycomb::{
     core::{
-        cmap::LinkError,
+        cmap::SewError,
         stm::{Transaction, TransactionControl, TransactionResult},
     },
     kernels::remeshing::{cut_inner_edge, cut_outer_edge},
@@ -227,7 +227,7 @@ fn process_outer_edge<T: CoordsFloat>(
     n_retry: &mut u8,
     e: EdgeIdType,
     [nd1, nd2, nd3, _, _, _]: [DartIdType; 6],
-) -> TransactionResult<(), LinkError> {
+) -> TransactionResult<(), SewError> {
     Transaction::with_control_and_err(
         |_| {
             *n_retry += 1;
@@ -243,7 +243,7 @@ fn process_inner_edge<T: CoordsFloat>(
     n_retry: &mut u8,
     e: EdgeIdType,
     nds: [DartIdType; 6],
-) -> TransactionResult<(), LinkError> {
+) -> TransactionResult<(), SewError> {
     Transaction::with_control_and_err(
         |_| {
             *n_retry += 1;

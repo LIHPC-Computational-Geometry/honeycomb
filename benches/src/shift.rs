@@ -20,8 +20,7 @@ use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, Orbit2, OrbitPolicy, Vertex2,
-    VertexIdType,
+    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
 };
 
 use crate::cli::ShiftArgs;
@@ -85,7 +84,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
                             n += 1;
                             TransactionControl::Retry
                         },
-                        |trans| move_vertex_to_average(trans, &map, *vid, &neigh),
+                        |trans| move_vertex_to_average(trans, &map, *vid, neigh),
                     );
                     n
                 })
