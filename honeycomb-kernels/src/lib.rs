@@ -13,5 +13,6 @@
 
 pub mod grisubal;
 pub mod remeshing;
+pub mod skewness;
 pub mod splits;
 pub mod triangulation;
