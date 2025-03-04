@@ -12,6 +12,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod grisubal;
+pub mod remeshing;
 pub mod skewness;
 pub mod splits;
 pub mod triangulation;
