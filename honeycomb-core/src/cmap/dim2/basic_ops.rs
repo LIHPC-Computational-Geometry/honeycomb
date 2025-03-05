@@ -396,27 +396,6 @@ impl<T: CoordsFloat> CMap2<T> {
         })
     }
 
-    /// Return the orbit defined by a dart and its `I`-cell.
-    ///
-    /// # Usage
-    ///
-    /// The [`Orbit2`] can be iterated upon to retrieve all dart member of the cell. Note that
-    /// **the dart passed as an argument is included as the first element of the returned orbit**.
-    ///
-    /// # Panics
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    #[must_use = "unused return value"]
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit2<T> {
-        assert!(I < 3);
-        match I {
-            0 => Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id),
-            _ => unreachable!(),
-        }
-    }
-
     /// Return an iterator over IDs of all the map's vertices.
     #[must_use = "unused return value"]
     pub fn iter_vertices(&self) -> impl Iterator<Item = VertexIdType> + '_ {
