@@ -33,6 +33,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// ephemeral allocations, but [it would require a guard mechanism][PR].
     ///
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
+    #[allow(clippy::needless_for_each)]
+    #[rustfmt::skip]
     pub fn orbit(
         &self,
         opolicy: OrbitPolicy,
@@ -50,68 +52,55 @@ impl<T: CoordsFloat> CMap2<T> {
                 // compute the next images
                 match opolicy {
                     OrbitPolicy::Vertex => {
-                        // THIS CODE IS ONLY VALID IN 2D
-                        let image1 = self.beta::<1>(self.beta::<2>(d));
-                        if marked.insert(image1) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<2>(self.beta::<0>(d));
-                        if marked.insert(image2) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image2);
-                        }
+                        [
+                            self.beta::<1>(self.beta::<2>(d)),
+                            self.beta::<2>(self.beta::<0>(d)),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                // if true, we did not see this dart yet
+                                // i.e. we need to visit it later
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     OrbitPolicy::VertexLinear => {
-                        // THIS CODE IS ONLY VALID IN 2D
-                        let image = self.beta::<1>(self.beta::<2>(d));
-                        if marked.insert(image) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image);
+                        let im = self.beta::<1>(self.beta::<2>(d));
+                        if marked.insert(im) {
+                            pending.push_back(im);
                         }
                     }
                     OrbitPolicy::Edge => {
-                        // THIS CODE IS ONLY VALID IN 2D
-                        let image = self.beta::<2>(d);
-                        if marked.insert(image) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image);
+                        let im = self.beta::<2>(d);
+                        if marked.insert(im) {
+                            pending.push_back(im);
                         }
                     }
                     OrbitPolicy::Face => {
-                        // THIS CODE IS ONLY VALID IN 2D
-                        let image1 = self.beta::<1>(d);
-                        if marked.insert(image1) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<0>(d);
-                        if marked.insert(image2) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image2);
-                        }
+                        [
+                            self.beta::<1>(d),
+                            self.beta::<0>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                // if true, we did not see this dart yet
+                                // i.e. we need to visit it later
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     OrbitPolicy::FaceLinear => {
-                        // THIS CODE IS ONLY VALID IN 2D
-                        let image = self.beta::<1>(d);
-                        if marked.insert(image) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image);
+                        let im = self.beta::<1>(d);
+                        if marked.insert(im) {
+                            pending.push_back(im);
                         }
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
                             let image = self.beta_rt(*beta_id, d);
                             if marked.insert(image) {
-                                // if true, we did not see this dart yet
-                                // i.e. we need to visit it later
                                 pending.push_back(image);
                             }
                         }

@@ -32,7 +32,8 @@ impl<T: CoordsFloat> CMap3<T> {
     /// ephemeral allocations, but [it would require a guard mechanism][PR].
     ///
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
-    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::needless_for_each,clippy::too_many_lines)]
+    #[rustfmt::skip]
     pub fn orbit(
         &self,
         opolicy: OrbitPolicy,
@@ -51,112 +52,100 @@ impl<T: CoordsFloat> CMap3<T> {
                 match opolicy {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
                     OrbitPolicy::Vertex => {
-                        // b3(b2(d))
-                        let image1 = self.beta::<3>(self.beta::<2>(d));
-                        if marked.insert(image1) {
-                            // if true, we did not see this dart yet
-                            // i.e. we need to visit it later
-                            pending.push_back(image1);
-                        }
-                        // b1(b3(d))
-                        let image2 = self.beta::<1>(self.beta::<3>(d));
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
-                        // b1(b2(d))
-                        let image3 = self.beta::<1>(self.beta::<2>(d));
-                        if marked.insert(image3) {
-                            pending.push_back(image3);
-                        }
-                        // b3(b0(d))
-                        let image4 = self.beta::<3>(self.beta::<0>(d));
-                        if marked.insert(image4) {
-                            pending.push_back(image4);
-                        }
-                        // b2(b0(d))
-                        let image5 = self.beta::<2>(self.beta::<0>(d));
-                        if marked.insert(image5) {
-                            pending.push_back(image5);
-                        }
+                        [
+                            self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
+                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
+                            self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
+                            self.beta::<3>(self.beta::<0>(d)), // b3(b0(d))
+                            self.beta::<2>(self.beta::<0>(d)), // b2(b0(d))
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B3oB2, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
-                        let image1 = self.beta::<3>(self.beta::<2>(d));
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<1>(self.beta::<3>(d));
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
-                        // b1(b2(d))
-                        let image3 = self.beta::<1>(self.beta::<2>(d));
-                        if marked.insert(image3) {
-                            pending.push_back(image3);
-                        }
+                        [
+                            self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
+                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
+                            self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B2, B3
                     OrbitPolicy::Edge => {
-                        let image1 = self.beta::<2>(d);
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<3>(d);
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
+                        [
+                            self.beta::<2>(d),
+                            self.beta::<3>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B1, B0, B3
                     OrbitPolicy::Face => {
-                        let image1 = self.beta::<1>(d);
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<0>(d);
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
-                        let image3 = self.beta::<3>(d);
-                        if marked.insert(image3) {
-                            pending.push_back(image3);
-                        }
+                        [
+                            self.beta::<1>(d),
+                            self.beta::<0>(d),
+                            self.beta::<3>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B1, B3
                     OrbitPolicy::FaceLinear => {
-                        let image1 = self.beta::<1>(d);
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<3>(d);
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
+                        [
+                            self.beta::<1>(d),
+                            self.beta::<3>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B1, B0, B2
                     OrbitPolicy::Volume => {
-                        let image1 = self.beta::<1>(d);
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<0>(d);
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
-                        let image3 = self.beta::<2>(d);
-                        if marked.insert(image3) {
-                            pending.push_back(image3);
-                        }
+                        [
+                            self.beta::<1>(d),
+                            self.beta::<0>(d),
+                            self.beta::<2>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     // B1, B2
                     OrbitPolicy::VolumeLinear => {
-                        let image1 = self.beta::<1>(d);
-                        if marked.insert(image1) {
-                            pending.push_back(image1);
-                        }
-                        let image2 = self.beta::<2>(d);
-                        if marked.insert(image2) {
-                            pending.push_back(image2);
-                        }
+                        [
+                            self.beta::<1>(d),
+                            self.beta::<2>(d),
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
