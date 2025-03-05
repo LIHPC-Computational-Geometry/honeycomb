@@ -46,7 +46,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // FIXME: move the match block out of the iterator
         std::iter::from_fn(move || {
-            while let Some(d) = pending.pop_front() {
+            if let Some(d) = pending.pop_front() {
                 // compute the next images
                 match opolicy {
                     OrbitPolicy::Vertex => {

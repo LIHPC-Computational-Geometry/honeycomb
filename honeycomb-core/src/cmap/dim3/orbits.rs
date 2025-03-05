@@ -32,6 +32,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// ephemeral allocations, but [it would require a guard mechanism][PR].
     ///
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
+    #[allow(clippy::too_many_lines)]
     pub fn orbit(
         &self,
         opolicy: OrbitPolicy,
@@ -45,7 +46,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
         // FIXME: move the match block out of the iterator
         std::iter::from_fn(move || {
-            while let Some(d) = pending.pop_front() {
+            if let Some(d) = pending.pop_front() {
                 // compute the next images
                 match opolicy {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
