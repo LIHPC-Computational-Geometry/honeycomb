@@ -7,6 +7,7 @@
 //! - Beta function interfaces
 //! - i-cell computations
 
+use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
@@ -16,6 +17,13 @@ use crate::cmap::{
 };
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, StmError, Transaction, atomically};
+
+// use thread local hashset and queue for orbit traversal of ID comp.
+// not applied to orbit currently bc they are lazily onsumed, and therefore require dedicated
+// instances to be robust
+thread_local! {
+    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::with_capacity(10)));
+}
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap3<T> {
@@ -224,29 +232,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
     #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        let mut marked = HashSet::new();
-        let mut queue = VecDeque::new();
-        marked.insert(NULL_DART_ID);
-        queue.push_front(dart_id);
-        let mut min = dart_id;
-
-        while let Some(d) = queue.pop_front() {
-            if marked.insert(d) {
-                min = min.min(d);
-                let (b0, b2, b3) = (
-                    self.beta::<0>(d), // ?
-                    self.beta::<2>(d),
-                    self.beta::<3>(d),
-                );
-                queue.push_back(self.beta::<1>(b3));
-                queue.push_back(self.beta::<3>(b2));
-                queue.push_back(self.beta::<1>(b2));
-                queue.push_back(self.beta::<3>(b0)); // ?
-                queue.push_back(self.beta::<2>(b0)); // ?
-            }
-        }
-
-        min
+        atomically(|t| self.vertex_id_transac(t, dart_id))
     }
 
     /// Compute the ID of the vertex a given dart is part of, transactionally.
@@ -263,29 +249,35 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VertexIdType, StmError> {
-        let mut marked = HashSet::new();
-        let mut queue = VecDeque::new();
-        marked.insert(NULL_DART_ID);
-        queue.push_front(dart_id);
-        let mut min = dart_id;
+        AUXILIARIES.with(|t| {
+            let (pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            pending.clear();
+            marked.clear();
+            // initialize
+            pending.push_front(dart_id);
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-        while let Some(d) = queue.pop_front() {
-            if marked.insert(d) {
-                min = min.min(d);
-                let (b0, b2, b3) = (
-                    self.beta_transac::<0>(trans, d)?, // ?
-                    self.beta_transac::<2>(trans, d)?,
-                    self.beta_transac::<3>(trans, d)?,
-                );
-                queue.push_back(self.beta_transac::<1>(trans, b3)?);
-                queue.push_back(self.beta_transac::<3>(trans, b2)?);
-                queue.push_back(self.beta_transac::<1>(trans, b2)?);
-                queue.push_back(self.beta_transac::<3>(trans, b0)?); // ?
-                queue.push_back(self.beta_transac::<2>(trans, b0)?); // ?
+            let mut min = dart_id;
+
+            while let Some(d) = pending.pop_front() {
+                if marked.insert(d) {
+                    min = min.min(d);
+                    let (b0, b2, b3) = (
+                        self.beta_transac::<0>(trans, d)?, // ?
+                        self.beta_transac::<2>(trans, d)?,
+                        self.beta_transac::<3>(trans, d)?,
+                    );
+                    pending.push_back(self.beta_transac::<1>(trans, b3)?);
+                    pending.push_back(self.beta_transac::<3>(trans, b2)?);
+                    pending.push_back(self.beta_transac::<1>(trans, b2)?);
+                    pending.push_back(self.beta_transac::<3>(trans, b0)?); // ?
+                    pending.push_back(self.beta_transac::<2>(trans, b0)?); // ?
+                }
             }
-        }
 
-        Ok(min)
+            Ok(min)
+        })
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -293,28 +285,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
     #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID);
-        let (mut lb, mut rb) = (dart_id, self.beta::<3>(dart_id));
-        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
-        let mut alt = true;
-
-        while marked.insert(lb) || marked.insert(rb) {
-            (lb, rb) = if alt {
-                (self.beta::<2>(lb), self.beta::<2>(rb))
-            } else {
-                (self.beta::<3>(lb), self.beta::<3>(rb))
-            };
-            if lb != NULL_DART_ID {
-                min = min.min(lb);
-            }
-            if rb != NULL_DART_ID {
-                min = min.min(rb);
-            }
-            alt = !alt;
-        }
-
-        min
+        atomically(|t| self.edge_id_transac(t, dart_id))
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -331,34 +302,40 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<EdgeIdType, StmError> {
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID);
-        let (mut lb, mut rb) = (dart_id, self.beta_transac::<3>(trans, dart_id)?);
-        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
-        let mut alt = true;
+        AUXILIARIES.with(|t| {
+            let (_pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            marked.clear();
+            // initialize
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-        while marked.insert(lb) || marked.insert(rb) {
-            (lb, rb) = if alt {
-                (
-                    self.beta_transac::<2>(trans, lb)?,
-                    self.beta_transac::<2>(trans, rb)?,
-                )
-            } else {
-                (
-                    self.beta_transac::<3>(trans, lb)?,
-                    self.beta_transac::<3>(trans, rb)?,
-                )
-            };
-            if lb != NULL_DART_ID {
-                min = min.min(lb);
-            }
-            if rb != NULL_DART_ID {
-                min = min.min(rb);
-            }
-            alt = !alt;
-        }
+            let (mut lb, mut rb) = (dart_id, self.beta_transac::<3>(trans, dart_id)?);
+            let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
+            let mut alt = true;
 
-        Ok(min)
+            while marked.insert(lb) || marked.insert(rb) {
+                (lb, rb) = if alt {
+                    (
+                        self.beta_transac::<2>(trans, lb)?,
+                        self.beta_transac::<2>(trans, rb)?,
+                    )
+                } else {
+                    (
+                        self.beta_transac::<3>(trans, lb)?,
+                        self.beta_transac::<3>(trans, rb)?,
+                    )
+                };
+                if lb != NULL_DART_ID {
+                    min = min.min(lb);
+                }
+                if rb != NULL_DART_ID {
+                    min = min.min(rb);
+                }
+                alt = !alt;
+            }
+
+            Ok(min)
+        })
     }
 
     /// Compute the ID of the face a given dart is part of.
@@ -366,36 +343,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
     #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID);
-        let b3_dart_id = self.beta::<3>(dart_id);
-        let (mut lb, mut rb) = (dart_id, b3_dart_id);
-        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
-
-        while marked.insert(lb) || marked.insert(rb) {
-            (lb, rb) = (self.beta::<1>(lb), self.beta::<0>(rb));
-            if lb != NULL_DART_ID {
-                min = min.min(lb);
-            }
-            if rb != NULL_DART_ID {
-                min = min.min(rb);
-            }
-        }
-        // face is open, we need to iterate in the other direction
-        if lb == NULL_DART_ID || rb == NULL_DART_ID {
-            (lb, rb) = (self.beta::<0>(dart_id), self.beta::<1>(b3_dart_id));
-            while marked.insert(lb) || marked.insert(rb) {
-                (lb, rb) = (self.beta::<0>(lb), self.beta::<1>(rb));
-                if lb != NULL_DART_ID {
-                    min = min.min(lb);
-                }
-                if rb != NULL_DART_ID {
-                    min = min.min(rb);
-                }
-            }
-        }
-
-        min
+        atomically(|t| self.face_id_transac(t, dart_id))
     }
 
     /// Compute the ID of the face a given dart is part of.
@@ -412,34 +360,21 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<FaceIdType, StmError> {
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID);
-        let b3_dart_id = self.beta_transac::<3>(trans, dart_id)?;
-        let (mut lb, mut rb) = (dart_id, b3_dart_id);
-        let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
+        AUXILIARIES.with(|t| {
+            let (_pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            marked.clear();
+            // initialize
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-        while marked.insert(lb) || marked.insert(rb) {
-            (lb, rb) = (
-                self.beta_transac::<1>(trans, lb)?,
-                self.beta_transac::<0>(trans, rb)?,
-            );
-            if lb != NULL_DART_ID {
-                min = min.min(lb);
-            }
-            if rb != NULL_DART_ID {
-                min = min.min(rb);
-            }
-        }
-        // face is open, we need to iterate in the other direction
-        if lb == NULL_DART_ID || rb == NULL_DART_ID {
-            (lb, rb) = (
-                self.beta_transac::<0>(trans, dart_id)?,
-                self.beta_transac::<1>(trans, b3_dart_id)?,
-            );
+            let b3_dart_id = self.beta_transac::<3>(trans, dart_id)?;
+            let (mut lb, mut rb) = (dart_id, b3_dart_id);
+            let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
+
             while marked.insert(lb) || marked.insert(rb) {
                 (lb, rb) = (
-                    self.beta_transac::<0>(trans, lb)?,
-                    self.beta_transac::<1>(trans, rb)?,
+                    self.beta_transac::<1>(trans, lb)?,
+                    self.beta_transac::<0>(trans, rb)?,
                 );
                 if lb != NULL_DART_ID {
                     min = min.min(lb);
@@ -448,9 +383,28 @@ impl<T: CoordsFloat> CMap3<T> {
                     min = min.min(rb);
                 }
             }
-        }
+            // face is open, we need to iterate in the other direction
+            if lb == NULL_DART_ID || rb == NULL_DART_ID {
+                (lb, rb) = (
+                    self.beta_transac::<0>(trans, dart_id)?,
+                    self.beta_transac::<1>(trans, b3_dart_id)?,
+                );
+                while marked.insert(lb) || marked.insert(rb) {
+                    (lb, rb) = (
+                        self.beta_transac::<0>(trans, lb)?,
+                        self.beta_transac::<1>(trans, rb)?,
+                    );
+                    if lb != NULL_DART_ID {
+                        min = min.min(lb);
+                    }
+                    if rb != NULL_DART_ID {
+                        min = min.min(rb);
+                    }
+                }
+            }
 
-        Ok(min)
+            Ok(min)
+        })
     }
 
     /// Compute the ID of the volume a given dart is part of.
@@ -458,22 +412,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 3-cell orbit.
     #[must_use = "unused return value"]
     pub fn volume_id(&self, dart_id: DartIdType) -> VolumeIdType {
-        let mut marked = HashSet::new();
-        let mut queue = VecDeque::new();
-        marked.insert(NULL_DART_ID);
-        queue.push_front(dart_id);
-        let mut min = dart_id;
-
-        while let Some(d) = queue.pop_front() {
-            if marked.insert(d) {
-                min = min.min(d);
-                queue.push_back(self.beta::<1>(d));
-                queue.push_back(self.beta::<0>(d)); // ?
-                queue.push_back(self.beta::<2>(d));
-            }
-        }
-
-        min
+        atomically(|t| self.volume_id_transac(t, dart_id))
     }
 
     /// Compute the ID of the volume a given dart is part of.
@@ -490,22 +429,28 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VolumeIdType, StmError> {
-        let mut marked = HashSet::new();
-        let mut queue = VecDeque::new();
-        marked.insert(NULL_DART_ID);
-        queue.push_front(dart_id);
-        let mut min = dart_id;
+        AUXILIARIES.with(|t| {
+            let (pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            pending.clear();
+            marked.clear();
+            // initialize
+            pending.push_front(dart_id);
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-        while let Some(d) = queue.pop_front() {
-            if marked.insert(d) {
-                min = min.min(d);
-                queue.push_back(self.beta_transac::<1>(trans, d)?);
-                queue.push_back(self.beta_transac::<0>(trans, d)?); // ?
-                queue.push_back(self.beta_transac::<2>(trans, d)?);
+            let mut min = dart_id;
+
+            while let Some(d) = pending.pop_front() {
+                if marked.insert(d) {
+                    min = min.min(d);
+                    pending.push_back(self.beta_transac::<1>(trans, d)?);
+                    pending.push_back(self.beta_transac::<0>(trans, d)?); // ?
+                    pending.push_back(self.beta_transac::<2>(trans, d)?);
+                }
             }
-        }
 
-        Ok(min)
+            Ok(min)
+        })
     }
 
     /// Return the orbit defined by a dart and its `I`-cell.
