@@ -11,9 +11,7 @@ use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
-use crate::cmap::{
-    CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
-};
+use crate::cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType};
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, Transaction, atomically};
 

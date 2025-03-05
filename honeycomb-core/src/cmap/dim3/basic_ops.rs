@@ -12,8 +12,7 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
 use crate::cmap::{
-    CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, Orbit3, OrbitPolicy, VertexIdType,
-    VolumeIdType,
+    CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
 };
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, StmError, Transaction, atomically};

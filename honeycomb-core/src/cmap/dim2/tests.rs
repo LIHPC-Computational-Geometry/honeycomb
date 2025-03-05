@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap2, CMapBuilder, LinkError, Orbit2, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap2, CMapBuilder, LinkError, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex2,
     stm::{StmError, TransactionError, atomically, atomically_with_err},
 };
@@ -22,11 +22,13 @@ fn example_test() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-    assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(1));
+        assert_eq!(face.next(), Some(2));
+        assert_eq!(face.next(), Some(3));
+        assert_eq!(face.next(), None);
+    }
 
     // build a second triangle
     map.add_free_darts(3);
@@ -40,11 +42,13 @@ fn example_test() {
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
-    assert_eq!(face.next(), Some(4));
-    assert_eq!(face.next(), Some(5));
-    assert_eq!(face.next(), Some(6));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(4));
+        assert_eq!(face.next(), Some(5));
+        assert_eq!(face.next(), Some(6));
+        assert_eq!(face.next(), None);
+    }
 
     // sew both triangles
     map.force_sew::<2>(2, 4).unwrap();
@@ -123,11 +127,13 @@ fn example_test_transactional() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-    assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(1));
+        assert_eq!(face.next(), Some(2));
+        assert_eq!(face.next(), Some(3));
+        assert_eq!(face.next(), None);
+    }
 
     // build a second triangle
     map.add_free_darts(3);
@@ -145,11 +151,13 @@ fn example_test_transactional() {
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
-    assert_eq!(face.next(), Some(4));
-    assert_eq!(face.next(), Some(5));
-    assert_eq!(face.next(), Some(6));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(4));
+        assert_eq!(face.next(), Some(5));
+        assert_eq!(face.next(), Some(6));
+        assert_eq!(face.next(), None);
+    }
 
     // sew both triangles
     atomically(|trans| {
@@ -560,7 +568,7 @@ fn sew_ordering() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         assert_eq!(arc.force_read_vertex(2), None);
         assert_eq!(arc.force_read_vertex(3), None);
         assert_eq!(arc.force_read_vertex(5), None);
@@ -638,7 +646,7 @@ fn sew_ordering_with_transactions() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|trans| {
             assert_eq!(arc.read_vertex(trans, 2)?, None);
             assert_eq!(arc.read_vertex(trans, 3)?, None);
