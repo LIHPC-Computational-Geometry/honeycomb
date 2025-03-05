@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap2, CMapBuilder, LinkError, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap2, CMapBuilder, DartIdType, LinkError, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex2,
     stm::{StmError, TransactionError, atomically, atomically_with_err},
 };
@@ -427,6 +427,119 @@ fn one_sew_no_attributes() {
             "merge",
             std::any::type_name::<Vertex2<f64>>()
         ))));
+}
+
+// --- ORBITS
+
+fn simple_map() -> CMap2<f64> {
+    let mut map: CMap2<f64> = CMap2::new(11);
+    // tri1
+    map.force_link::<1>(1, 2).unwrap();
+    map.force_link::<1>(2, 3).unwrap();
+    map.force_link::<1>(3, 1).unwrap();
+    // tri2
+    map.force_link::<1>(4, 5).unwrap();
+    map.force_link::<1>(5, 6).unwrap();
+    map.force_link::<1>(6, 4).unwrap();
+    // pent on top
+    map.force_link::<1>(7, 8).unwrap();
+    map.force_link::<1>(8, 9).unwrap();
+    map.force_link::<1>(9, 10).unwrap();
+    map.force_link::<1>(10, 11).unwrap();
+    map.force_link::<1>(11, 7).unwrap();
+
+    // link all
+    map.force_link::<2>(2, 4).unwrap();
+    map.force_link::<2>(6, 7).unwrap();
+
+    assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
+    assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());
+    assert!(map.force_write_vertex(6, (1.0, 1.0)).is_none());
+    assert!(map.force_write_vertex(3, (0.0, 1.0)).is_none());
+    assert!(map.force_write_vertex(9, (1.5, 1.5)).is_none());
+    assert!(map.force_write_vertex(10, (0.5, 2.0)).is_none());
+    assert!(map.force_write_vertex(11, (-0.5, 1.5)).is_none());
+
+    map
+}
+
+#[test]
+fn full_map_from_orbit() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Custom(&[1, 2]), 3);
+    let darts: Vec<DartIdType> = orbit.collect();
+    assert_eq!(darts.len(), 11);
+    // because the algorithm is consistent, we can predict the exact layout
+    assert_eq!(&darts, &[3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]);
+}
+
+#[test]
+fn orbit_variants() {
+    let map = simple_map();
+
+    // face is complete, so everything works
+    let face: Vec<DartIdType> = map.orbit(OrbitPolicy::Face, 7).collect();
+    let face_linear: Vec<DartIdType> = map.orbit(OrbitPolicy::FaceLinear, 7).collect();
+    let face_custom: Vec<DartIdType> = map.orbit(OrbitPolicy::Custom(&[0, 1]), 7).collect();
+    assert_eq!(&face, &[7, 8, 11, 9, 10]);
+    assert_eq!(&face_linear, &[7, 8, 9, 10, 11]);
+    assert_eq!(&face_custom, &[7, 11, 8, 10, 9]);
+
+    // vertex is incomplete, so using the linear variant will yield an incomplete orbit
+    let vertex: Vec<DartIdType> = map.orbit(OrbitPolicy::Vertex, 4).collect();
+    let vertex_linear: Vec<DartIdType> = map.orbit(OrbitPolicy::VertexLinear, 4).collect();
+    assert_eq!(&vertex, &[4, 3, 7]);
+    assert_eq!(&vertex_linear, &[4, 3]);
+}
+
+#[test]
+fn face_from_orbit() {
+    let map = simple_map();
+    let face_orbit = map.orbit(OrbitPolicy::Face, 1);
+    let darts: Vec<DartIdType> = face_orbit.collect();
+    assert_eq!(darts.len(), 3);
+    assert_eq!(&darts, &[1, 2, 3]);
+    let other_face_orbit = map.orbit(OrbitPolicy::Custom(&[1]), 5);
+    let other_darts: Vec<DartIdType> = other_face_orbit.collect();
+    assert_eq!(other_darts.len(), 3);
+    assert_eq!(&other_darts, &[5, 6, 4]);
+}
+
+#[test]
+fn edge_from_orbit() {
+    let map = simple_map();
+    let face_orbit = map.orbit(OrbitPolicy::Edge, 1);
+    let darts: Vec<DartIdType> = face_orbit.collect();
+    assert_eq!(darts.len(), 1);
+    assert_eq!(&darts, &[1]); // dart 1 is on the boundary
+    let other_face_orbit = map.orbit(OrbitPolicy::Custom(&[2]), 4);
+    let other_darts: Vec<DartIdType> = other_face_orbit.collect();
+    assert_eq!(other_darts.len(), 2);
+    assert_eq!(&other_darts, &[4, 2]);
+}
+
+#[test]
+fn vertex_from_orbit() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Vertex, 4);
+    let darts: Vec<DartIdType> = orbit.collect();
+    assert_eq!(darts.len(), 3);
+    assert_eq!(&darts, &[4, 3, 7]);
+}
+
+#[test]
+fn empty_orbit_policy() {
+    let map = simple_map();
+    let darts: Vec<DartIdType> = map.orbit(OrbitPolicy::Custom(&[]), 3).collect();
+    assert_eq!(&darts, &[3]);
+}
+
+#[test]
+#[should_panic(expected = "assertion failed: i < 3")]
+fn invalid_orbit_policy() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Custom(&[6]), 3);
+    let _: Vec<DartIdType> = orbit.collect();
 }
 
 // --- IO
