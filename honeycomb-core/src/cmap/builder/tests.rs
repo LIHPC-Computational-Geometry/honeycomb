@@ -1,7 +1,7 @@
 use vtkio::Vtk;
 
 use crate::attributes::AttrStorageManager;
-use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, Orbit2, OrbitPolicy};
+use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
 
 // --- basic
 
@@ -499,7 +499,7 @@ mod vtk {
 
         let mut n_vertices_per_face: Vec<usize> = faces
             .iter()
-            .map(|id| Orbit2::new(&cmap, OrbitPolicy::Face, *id as DartIdType).count())
+            .map(|id| cmap.orbit(OrbitPolicy::Face, *id as DartIdType).count())
             .collect();
         let (mut three_count, mut four_count, mut six_count): (usize, usize, usize) = (0, 0, 0);
         while let Some(n) = n_vertices_per_face.pop() {

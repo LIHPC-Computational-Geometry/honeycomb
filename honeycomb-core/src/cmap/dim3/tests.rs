@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, DartIdType, Orbit3, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap3, DartIdType, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
@@ -566,7 +566,7 @@ fn sew_ordering() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         assert!(arc.force_read_vertex(2).is_none());
         assert!(arc.force_read_vertex(3).is_none());
         assert!(arc.force_read_vertex(5).is_none());
@@ -646,7 +646,7 @@ fn sew_ordering_with_transactions() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|trans| {
             assert!(arc.read_vertex(trans, 2)?.is_none());
             assert!(arc.read_vertex(trans, 3)?.is_none());

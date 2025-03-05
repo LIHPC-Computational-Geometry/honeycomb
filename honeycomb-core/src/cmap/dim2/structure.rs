@@ -44,7 +44,7 @@ use super::CMAP2_BETA;
 /// ```
 /// # fn main() {
 /// use honeycomb_core::{
-///     cmap::{CMap2, CMapBuilder, Orbit2, OrbitPolicy},
+///     cmap::{CMap2, CMapBuilder, OrbitPolicy},
 ///     geometry::Vertex2
 /// };
 ///
@@ -58,11 +58,13 @@ use super::CMAP2_BETA;
 /// map.force_write_vertex(3, (0.0, 1.0));
 ///
 /// // we can go through the face using an orbit
-/// let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-/// assert_eq!(face.next(), Some(1));
-/// assert_eq!(face.next(), Some(2));
-/// assert_eq!(face.next(), Some(3));
-/// assert_eq!(face.next(), None);
+/// {
+///     let mut face = map.orbit(OrbitPolicy::Face, 1);
+///     assert_eq!(face.next(), Some(1));
+///     assert_eq!(face.next(), Some(2));
+///     assert_eq!(face.next(), Some(3));
+///     assert_eq!(face.next(), None);
+/// }
 ///
 /// // build a second triangle (B)
 /// let first_added_dart_id = map.add_free_darts(3);
