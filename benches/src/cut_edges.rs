@@ -29,10 +29,10 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     let mut map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
     #[cfg(debug_assertions)] // check input
     {
-        use honeycomb::prelude::{Orbit2, OrbitPolicy};
+        use honeycomb::prelude::OrbitPolicy;
         assert!(
             map.iter_faces()
-                .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
+                .all(|f| { map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3 }),
             "Input mesh isn't a triangle mesh"
         );
     }
