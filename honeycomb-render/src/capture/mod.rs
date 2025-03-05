@@ -3,7 +3,7 @@ pub mod system;
 
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy, VertexIdType};
 use honeycomb_core::geometry::CoordsFloat;
 
 use crate::bundles::{DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle};
@@ -102,10 +102,10 @@ impl Capture {
         let faces: Vec<FaceBundle> = map_faces
             .iter()
             .map(|id| {
-                let vertex_ids: Vec<usize> =
-                    Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdType)
-                        .map(|dart_id| index_map[&cmap.vertex_id(dart_id)])
-                        .collect();
+                let vertex_ids: Vec<usize> = cmap
+                    .orbit(OrbitPolicy::Custom(&[1]), *id as DartIdType)
+                    .map(|dart_id| index_map[&cmap.vertex_id(dart_id)])
+                    .collect();
                 let n_v = vertex_ids.len();
                 let mut loc_normals = vec![{
                     let (ver_in, ver, ver_out) =
@@ -146,7 +146,8 @@ impl Capture {
                 normals.insert(*id, loc_normals);
 
                 // common dart iterator
-                let mut tmp = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdType)
+                let mut tmp = cmap
+                    .orbit(OrbitPolicy::Custom(&[1]), *id as DartIdType)
                     .enumerate()
                     .map(|(idx, dart_id)| (dart_id, index_map[&cmap.vertex_id(dart_id)], idx))
                     .collect::<Vec<_>>();
