@@ -62,7 +62,7 @@ pub enum BuilderError {
 /// # fn main() -> Result<(), BuilderError> {
 /// use honeycomb_core::cmap::{CMap2, CMapBuilder};
 ///
-/// let builder = CMapBuilder::default().n_darts(10);
+/// let builder = CMapBuilder::from_n_darts(10);
 /// let map: CMap2<f64> = builder.build()?;
 ///
 /// assert_eq!(map.n_darts(), 11); // 10 + null dart = 11

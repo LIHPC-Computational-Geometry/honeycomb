@@ -31,9 +31,9 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
     let input_hash = hash_file(input_map).unwrap();
     let map: CMap2<T> = if input_map.ends_with(".cmap") {
-        CMapBuilder::default().cmap_file(input_map).build().unwrap()
+        CMapBuilder::from_cmap_file(input_map).build().unwrap()
     } else if input_map.ends_with(".vtk") {
-        CMapBuilder::default().vtk_file(input_map).build().unwrap()
+        CMapBuilder::from_vtk_file(input_map).build().unwrap()
     } else {
         panic!(
             "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"

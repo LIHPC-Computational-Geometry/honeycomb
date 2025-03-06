@@ -7,7 +7,7 @@ use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
 
 #[test]
 fn example_test() {
-    let builder = CMapBuilder::default().n_darts(10);
+    let builder = CMapBuilder::from_n_darts(10);
     let cmap: CMap2<f64> = builder.build().unwrap();
     assert_eq!(cmap.n_darts(), 11);
 }
@@ -115,7 +115,9 @@ fn square_cmap2_correctness() {
     let descriptor = GridDescriptor::default()
         .n_cells([2, 2, 2])
         .len_per_cell([1., 1., 1.]);
-    let cmap: CMap2<f64> = CMapBuilder::from(descriptor).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::from_grid_descriptor(descriptor)
+        .build()
+        .unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction

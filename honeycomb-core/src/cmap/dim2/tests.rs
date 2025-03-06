@@ -10,7 +10,7 @@ use crate::{
 #[test]
 fn example_test() {
     // build a triangle
-    let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
+    let mut map: CMap2<f64> = CMapBuilder::from_n_darts(3).build().unwrap();
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(2, 3).unwrap();
     map.force_link::<1>(3, 1).unwrap();
@@ -111,7 +111,7 @@ fn example_test() {
 #[test]
 fn example_test_transactional() {
     // build a triangle
-    let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap();
+    let mut map: CMap2<f64> = CMapBuilder::from_n_darts(3).build().unwrap();
     let res = atomically_with_err(|trans| {
         map.link::<1>(trans, 1, 2)?;
         map.link::<1>(trans, 2, 3)?;
@@ -650,7 +650,7 @@ impl AttributeBind for Weight {
 fn sew_ordering() {
     loom::model(|| {
         // setup the map
-        let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
+        let map: CMap2<f64> = CMapBuilder::from_n_darts(5).build().unwrap();
         map.force_link::<2>(1, 2).unwrap();
         map.force_link::<1>(4, 5).unwrap();
         map.force_write_vertex(2, Vertex2(1.0, 1.0));
@@ -697,7 +697,7 @@ fn sew_ordering() {
 fn sew_ordering_with_transactions() {
     loom::model(|| {
         // setup the map
-        let map: CMap2<f64> = CMapBuilder::default().n_darts(5).build().unwrap();
+        let map: CMap2<f64> = CMapBuilder::from_n_darts(5).build().unwrap();
         let res = atomically_with_err(|trans| {
             map.link::<2>(trans, 1, 2)?;
             map.link::<1>(trans, 4, 5)?;
@@ -778,8 +778,7 @@ fn sew_ordering_with_transactions() {
 fn unsew_ordering() {
     loom::model(|| {
         // setup the map
-        let map: CMap2<f64> = CMapBuilder::default()
-            .n_darts(5)
+        let map: CMap2<f64> = CMapBuilder::from_n_darts(5)
             .add_attribute::<Weight>()
             .build()
             .unwrap();
@@ -832,8 +831,7 @@ fn unsew_ordering() {
 fn unsew_ordering_with_transactions() {
     loom::model(|| {
         // setup the map
-        let map: CMap2<f64> = CMapBuilder::default()
-            .n_darts(5)
+        let map: CMap2<f64> = CMapBuilder::from_n_darts(5)
             .add_attribute::<Weight>()
             .build()
             .unwrap();
