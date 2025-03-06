@@ -26,7 +26,16 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     // load map from file
     let mut instant = Instant::now();
     let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
-    let mut map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
+
+    let mut map: CMap2<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::default().cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::default().vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
     #[cfg(debug_assertions)] // check input
     {
         use honeycomb::prelude::{Orbit2, OrbitPolicy};

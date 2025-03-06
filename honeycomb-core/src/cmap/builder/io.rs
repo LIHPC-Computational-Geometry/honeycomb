@@ -6,7 +6,7 @@ use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
 use crate::attributes::AttrStorageManager;
-use crate::cmap::{BuilderError, CMap2, CMapBuilder, DartIdType, VertexIdType};
+use crate::cmap::{BuilderError, CMap2, DartIdType, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex2};
 
 // --- Custom
@@ -204,24 +204,6 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 
 // --- VTK
 
-/// Create a [`CMapBuilder`] from the VTK file specified by the path.
-///
-/// # Panics
-///
-/// This function may panic if the file cannot be loaded.
-impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CMapBuilder<T> {
-    fn from(value: P) -> Self {
-        let vtk_file =
-            Vtk::import(value).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        CMapBuilder {
-            vtk_file: Some(vtk_file),
-            ..Default::default()
-        }
-    }
-}
-
-// ------ building routine
-
 macro_rules! if_predicate_return_err {
     ($pr: expr, $er: expr) => {
         if $pr {
@@ -245,6 +227,8 @@ macro_rules! build_vertices {
             .collect()
     }};
 }
+
+// ------ building routine
 
 #[allow(clippy::too_many_lines)]
 /// Internal building routine for [`CMap2::from_vtk_file`].
