@@ -8,7 +8,7 @@ fn main() {
     let map = CMapBuilder::default()
         .grid_descriptor(
             GridDescriptor::default()
-                .origin_2d(Vertex2(1.5, 1.5))
+                .origin(Vertex2(1.5, 1.5))
                 .n_cells_x(4)
                 .n_cells_y(4)
                 .len_per_cell_x(1.)

@@ -87,7 +87,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
 
     /// Set origin (most bottom-left vertex) of the grid
     #[must_use = "unused builder object"]
-    pub fn origin_2d(mut self, origin: Vertex2<T>) -> Self {
+    pub fn origin(mut self, origin: Vertex2<T>) -> Self {
         self.origin = origin;
         self
     }

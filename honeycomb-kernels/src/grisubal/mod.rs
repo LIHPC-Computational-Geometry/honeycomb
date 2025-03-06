@@ -184,7 +184,7 @@ pub fn grisubal<T: CoordsFloat>(
         .n_cells_y(ny)
         .len_per_cell_x(cx)
         .len_per_cell_y(cy)
-        .origin_2d(origin);
+        .origin(origin);
     unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
     //----/
 
