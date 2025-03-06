@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["grisubal","remeshing","skewness","splits","triangulation"]};

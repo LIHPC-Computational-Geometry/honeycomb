@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["bundles","components","plugins","resources","systems"],"struct":["App"]};
