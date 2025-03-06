@@ -70,23 +70,23 @@ pub enum BuilderError {
 /// # Ok(())
 /// # }
 /// ```
-pub struct CMapBuilder<T>
+pub struct CMapBuilder<const D: usize, T>
 where
     T: CoordsFloat,
 {
-    builder_kind: BuilderType<T>,
+    builder_kind: BuilderType<D, T>,
     attributes: AttrStorageManager,
 }
 
-enum BuilderType<T: CoordsFloat> {
+enum BuilderType<const D: usize, T: CoordsFloat> {
     CMap(CMapFile),
     FreeDarts(usize),
-    Grid(GridDescriptor<T>),
+    Grid(GridDescriptor<D, T>),
     Vtk(Vtk),
 }
 
 /// # Regular methods
-impl<T: CoordsFloat> CMapBuilder<T> {
+impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     /// Set the number of dart that the created map will contain.
     #[must_use = "unused builder object"]
     pub fn from_n_darts(n_darts: usize) -> Self {
@@ -98,7 +98,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 
     /// Set the [`GridDescriptor`] that will be used when building the map.
     #[must_use = "unused builder object"]
-    pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<T>) -> Self {
+    pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<D, T>) -> Self {
         Self {
             builder_kind: BuilderType::Grid(grid_descriptor),
             attributes: AttrStorageManager::default(),
@@ -193,7 +193,7 @@ impl<T: CoordsFloat> CMapBuilder<T> {
 }
 
 /// # Pre-definite structures
-impl<T: CoordsFloat> CMapBuilder<T> {
+impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     ///
     /// # Arguments
@@ -214,8 +214,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         Self {
             builder_kind: BuilderType::Grid(
                 GridDescriptor::default()
-                    .n_cells([n_square; 3])
-                    .len_per_cell([T::one(); 3]),
+                    .n_cells([n_square; D])
+                    .len_per_cell([T::one(); D]),
             ),
             attributes: AttrStorageManager::default(),
         }
@@ -242,8 +242,8 @@ impl<T: CoordsFloat> CMapBuilder<T> {
         Self {
             builder_kind: BuilderType::Grid(
                 GridDescriptor::default()
-                    .n_cells([n_square; 3])
-                    .len_per_cell([T::one(); 3])
+                    .n_cells([n_square; D])
+                    .len_per_cell([T::one(); D])
                     .split_quads(true),
             ),
             attributes: AttrStorageManager::default(),
