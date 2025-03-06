@@ -17,8 +17,7 @@ use crate::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 /// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
 #[derive(Default, Clone)]
 pub struct GridDescriptor<T: CoordsFloat> {
-    pub(crate) origin2: Vertex2<T>,
-    pub(crate) origin3: Vertex3<T>,
+    pub(crate) origin: Vertex2<T>,
     pub(crate) n_cells: Option<[usize; 3]>,
     pub(crate) len_per_cell: Option<[T; 3]>,
     pub(crate) lens: Option<[T; 3]>,
@@ -89,14 +88,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
     /// Set origin (most bottom-left vertex) of the grid
     #[must_use = "unused builder object"]
     pub fn origin_2d(mut self, origin: Vertex2<T>) -> Self {
-        self.origin2 = origin;
-        self
-    }
-
-    /// Set origin (most bottom-left vertex) of the grid
-    #[must_use = "unused builder object"]
-    pub fn origin_3d(mut self, origin: Vertex3<T>) -> Self {
-        self.origin3 = origin;
+        self.origin = origin;
         self
     }
 
@@ -134,7 +126,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 check_parameters!(lpx, "length per x cell is null or negative");
                 #[rustfmt::skip]
                 check_parameters!(lpy, "length per y cell is null or negative");
-                Ok((self.origin2, [nx, ny], [lpx, lpy]))
+                Ok((self.origin, [nx, ny], [lpx, lpy]))
             }
             // from # cells and total lengths
             (Some([nx, ny, _]), None, Some([lx, ly, _])) => {
@@ -143,7 +135,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
-                    self.origin2,
+                    self.origin,
                     [nx, ny],
                     [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
                 ))
@@ -159,7 +151,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
                 #[rustfmt::skip]
                 check_parameters!(ly, "grid length along y is null or negative");
                 Ok((
-                    self.origin2,
+                    self.origin,
                     [
                         (lx / lpx).ceil().to_usize().unwrap(),
                         (ly / lpy).ceil().to_usize().unwrap(),
@@ -171,7 +163,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
         }
     }
 
-    #[allow(unused)]
+    /*
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
     #[allow(clippy::type_complexity)]
     pub(crate) fn parse_3d(self) -> Result<(Vertex3<T>, [usize; 3], [T; 3]), BuilderError> {
@@ -179,7 +171,9 @@ impl<T: CoordsFloat> GridDescriptor<T> {
             // from # cells and lengths per cell
             (Some([nx, ny, nz]), Some([lpx, lpy, lpz]), lens) => {
                 if lens.is_some() {
-                    eprintln!("W: All three grid parameters were specified, total lengths will be ignored");
+                    eprintln!(
+                        "W: All three grid parameters were specified, total lengths will be ignored"
+                    );
                 }
                 #[rustfmt::skip]
                 check_parameters!(lpx, "length per x cell is null or negative");
@@ -234,6 +228,7 @@ impl<T: CoordsFloat> GridDescriptor<T> {
             (_, _, _) => Err(BuilderError::MissingGridParameters),
         }
     }
+    */
 }
 
 // --- building routines
@@ -463,18 +458,18 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
 #[allow(clippy::too_many_lines)]
 pub fn build_3d_grid<T: CoordsFloat>(
     origin: Vertex3<T>,
-    ns: [usize; 3],
-    lens: [T; 3],
+    n_cells_per_axis: [usize; 3],
+    lengths: [T; 3],
     manager: AttrStorageManager,
 ) -> CMap3<T> {
-    let [n_square_x, n_square_y, n_square_z] = ns;
+    let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 24 * n_square_x * n_square_y * n_square_z;
 
     let map: CMap3<T> = CMap3::new_with_undefined_attributes(n_darts, manager);
 
     // init beta functions
     (1..=n_darts as DartIdType)
-        .zip(generate_hex_beta_values(ns))
+        .zip(generate_hex_beta_values(n_cells_per_axis))
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
@@ -483,7 +478,7 @@ pub fn build_3d_grid<T: CoordsFloat>(
     (1..=n_darts as DartIdType)
         .filter(|d| *d as VertexIdType == map.vertex_id(*d))
         .for_each(|d| {
-            let v = origin + generate_hex_offset(d, ns, lens);
+            let v = origin + generate_hex_offset(d, n_cells_per_axis, lengths);
             map.force_write_vertex(d as VertexIdType, v);
         });
 
@@ -499,29 +494,22 @@ pub fn build_3d_grid<T: CoordsFloat>(
 }
 
 //
-//    y+
-// z+ |
-// \  |
-//  \ |
-//   \|
-//    +------x+
+// y+
+// |
+// |
+// |
+// +------x+
+//  \
+//   \
+//    z+
 //
-//
-// +------+
-// |\     |\
-// | \13    \
-// |  \ 21|  \
-// |17 +------+
-// +- -|- + 9 |
-//  \  |   \  |
-//   \ |1 5   |
-//    \|     \|
-//     +------+
-//
-// down: 1
-// sides: 5, 9, 13, 17
-// up: 21
-//
+// faces:
+// y-: 1
+// y+: 21
+// z-: 5
+// z+: 13
+// x-: 17
+// x+: 9
 #[allow(clippy::inline_always, unused)]
 #[rustfmt::skip]
 #[inline(always)]
@@ -611,38 +599,38 @@ fn generate_hex_offset<T: CoordsFloat>(
         // d1 to d24
         // y- face
         1 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         2 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         3 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
         4 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
         // z- face
         5 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         6 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         7 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
@@ -655,31 +643,31 @@ fn generate_hex_offset<T: CoordsFloat>(
         9 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
+            T::from(z + 1).unwrap() * lz,
         ),
         10 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
+            T::from(z).unwrap() * lz,
         ),
         11 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
+            T::from(z).unwrap() * lz,
         ),
         12 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
+            T::from(z + 1).unwrap() * lz,
         ),
         // z+ face
         13 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
         14 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
@@ -697,41 +685,41 @@ fn generate_hex_offset<T: CoordsFloat>(
         17 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
+            T::from(z).unwrap() * lz,
         ),
         18 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
+            T::from(z + 1).unwrap() * lz,
         ),
         19 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
+            T::from(z + 1).unwrap() * lz,
         ),
         20 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
+            T::from(z).unwrap() * lz,
         ),
         // y+ face
         21 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         22 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
         23 => Vector3(
-            T::from(x + 1).unwrap() * lx,
+            T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
         0 => Vector3(
-            T::from(x).unwrap() * lx,
+            T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
