@@ -2,7 +2,7 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, NULL_DART_ID, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, NULL_DART_ID, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::GrisubalError;
@@ -54,14 +54,14 @@ fn mark_faces<T: CoordsFloat>(
         // mark faces
         if marked.insert(face_id) {
             // detect orientation issues / open geometries
-            let mut darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
+            let mut darts = cmap.orbit(OrbitPolicy::Face, face_id as DartIdType);
             if darts.any(|did| cmap.force_read_attribute::<Boundary>(did) == Some(other)) {
                 return Err(GrisubalError::InconsistentOrientation(
                     "between-boundary inconsistency",
                 ));
             }
             // find neighbor faces where entry darts aren't tagged
-            let darts = Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType);
+            let darts = cmap.orbit(OrbitPolicy::Face, face_id as DartIdType);
             queue.extend(darts.filter_map(|dart_id| {
                 if matches!(
                     cmap.force_read_attribute::<Boundary>(cmap.beta::<2>(dart_id)),
@@ -97,8 +97,9 @@ fn delete_darts<T: CoordsFloat>(
         .collect();
 
     for face_id in marked {
-        let darts: Vec<DartIdType> =
-            Orbit2::new(cmap, OrbitPolicy::Face, face_id as DartIdType).collect();
+        let darts: Vec<DartIdType> = cmap
+            .orbit(OrbitPolicy::Face, face_id as DartIdType)
+            .collect();
         for &dart in &darts {
             let _ = cmap.force_remove_vertex(cmap.vertex_id(dart));
             cmap.set_betas(dart, [NULL_DART_ID; 3]);

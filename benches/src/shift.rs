@@ -20,7 +20,7 @@ use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, Orbit2, OrbitPolicy, VertexIdType,
+    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
 
 use crate::cli::ShiftArgs;
@@ -49,14 +49,15 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
         let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
             .iter_vertices()
             .filter_map(|v| {
-                if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                if map
+                    .orbit(OrbitPolicy::Vertex, v as DartIdType)
                     .any(|d| map.beta::<2>(d) == NULL_DART_ID)
                 {
                     None
                 } else {
                     Some((
                         v,
-                        Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                        map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                             .map(|d| map.vertex_id(map.beta::<2>(d)))
                             .collect(),
                     ))

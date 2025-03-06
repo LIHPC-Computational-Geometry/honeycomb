@@ -12,8 +12,7 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
 use crate::cmap::{
-    CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, Orbit3, OrbitPolicy, VertexIdType,
-    VolumeIdType,
+    CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
 };
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, StmError, Transaction, atomically};
@@ -451,28 +450,6 @@ impl<T: CoordsFloat> CMap3<T> {
 
             Ok(min)
         })
-    }
-
-    /// Return the orbit defined by a dart and its `I`-cell.
-    ///
-    /// # Usage
-    ///
-    /// The [`Orbit3`] can be iterated upon to retrieve all dart members of the cell. Note that
-    /// **the dart passed as an argument is included as the first element of the returned orbit**.
-    ///
-    /// # Panics
-    ///
-    /// The method will panic if *I* is not 0, 1, 2, or 3.
-    #[must_use = "unused return value"]
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit3<'_, T> {
-        assert!(I < 4);
-        match I {
-            0 => Orbit3::new(self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit3::new(self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit3::new(self, OrbitPolicy::Face, dart_id),
-            3 => todo!(),
-            _ => unreachable!(),
-        }
     }
 
     /// Return an iterator over IDs of all the map's vertices.
