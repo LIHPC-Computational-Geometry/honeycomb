@@ -5,7 +5,7 @@ use thiserror::Error;
 use vtkio::Vtk;
 
 use crate::attributes::{AttrStorageManager, AttributeBind};
-use crate::cmap::{CMap2, GridDescriptor};
+use crate::cmap::{CMap2, CMap3, GridDescriptor};
 use crate::geometry::CoordsFloat;
 
 use super::io::CMapFile;
@@ -85,6 +85,56 @@ enum BuilderType<const D: usize, T: CoordsFloat> {
     Vtk(Vtk),
 }
 
+trait Builder {
+    type MapType;
+    fn build(self) -> Result<Self::MapType, BuilderError>;
+}
+
+impl<T: CoordsFloat> Builder for CMapBuilder<2, T> {
+    type MapType = CMap2<T>;
+
+    fn build(self) -> Result<Self::MapType, BuilderError> {
+        match self.builder_kind {
+            BuilderType::CMap(cfile) => super::io::build_2d_from_cmap_file(cfile, self.attributes),
+            BuilderType::FreeDarts(n_darts) => Ok(CMap2::new_with_undefined_attributes(
+                n_darts,
+                self.attributes,
+            )),
+            BuilderType::Grid(gridb) => {
+                let split = gridb.split_quads;
+                gridb.parse_2d().map(|(origin, ns, lens)| {
+                    if split {
+                        super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
+                    } else {
+                        super::grid::build_2d_grid(origin, ns, lens, self.attributes)
+                    }
+                })
+            }
+            BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
+        }
+    }
+}
+
+impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
+    type MapType = CMap3<T>;
+
+    fn build(self) -> Result<Self::MapType, BuilderError> {
+        match self.builder_kind {
+            BuilderType::CMap(_cfile) => unimplemented!(),
+            BuilderType::FreeDarts(n_darts) => Ok(CMap3::new_with_undefined_attributes(
+                n_darts,
+                self.attributes,
+            )),
+            BuilderType::Grid(gridb) => {
+                // let split = gridb.split_quads;
+                gridb.parse_3d().map(|(origin, ns, lens)| {
+                    super::grid::build_3d_grid(origin, ns, lens, self.attributes)
+                })
+            }
+            BuilderType::Vtk(_vfile) => unimplemented!(),
+        }
+    }
+}
 /// # Regular methods
 impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     /// Set the number of dart that the created map will contain.
@@ -170,25 +220,12 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     /// # Panics
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
-    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
-        match self.builder_kind {
-            BuilderType::CMap(cfile) => super::io::build_2d_from_cmap_file(cfile, self.attributes),
-            BuilderType::FreeDarts(n_darts) => Ok(CMap2::new_with_undefined_attributes(
-                n_darts,
-                self.attributes,
-            )),
-            BuilderType::Grid(gridb) => {
-                let split = gridb.split_quads;
-                gridb.parse_2d().map(|(origin, ns, lens)| {
-                    if split {
-                        super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
-                    } else {
-                        super::grid::build_2d_grid(origin, ns, lens, self.attributes)
-                    }
-                })
-            }
-            BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
-        }
+    #[allow(private_interfaces, private_bounds)]
+    pub fn build(self) -> Result<<Self as Builder>::MapType, BuilderError>
+    where
+        Self: Builder,
+    {
+        Builder::build(self)
     }
 }
 
