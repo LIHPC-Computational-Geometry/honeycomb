@@ -26,15 +26,13 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_link_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::default()
-        .n_darts(n_square.pow(2) * 4)
+    CMapBuilder::from_n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap()
 }
 
 fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
-    let map = CMapBuilder::default()
-        .n_darts(n_square.pow(2) * 4)
+    let map = CMapBuilder::from_n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap();
     map.force_write_vertex(4, (0.0, 0.0));

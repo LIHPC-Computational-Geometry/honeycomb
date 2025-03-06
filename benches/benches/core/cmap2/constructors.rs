@@ -32,8 +32,7 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn new(n_squares: usize) -> CMap2<FloatType> {
     black_box(
-        CMapBuilder::default()
-            .n_darts(n_squares.pow(2) * 4)
+        CMapBuilder::from_n_darts(n_squares.pow(2) * 4)
             .build()
             .unwrap(),
     )

@@ -179,13 +179,13 @@ impl<T: CoordsFloat> CMapBuilder<T> {
             )),
             BuilderType::Grid(gridb) => {
                 let split = gridb.split_quads;
-                return gridb.parse_2d().map(|(origin, ns, lens)| {
+                gridb.parse_2d().map(|(origin, ns, lens)| {
                     if split {
                         super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
                     } else {
                         super::grid::build_2d_grid(origin, ns, lens, self.attributes)
                     }
-                });
+                })
             }
             BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
         }

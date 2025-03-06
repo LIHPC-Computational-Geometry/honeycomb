@@ -39,7 +39,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
 
 fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
     (
-        CMapBuilder::default().build().unwrap(),
+        CMapBuilder::from_n_darts(0).build().unwrap(),
         n_squares.pow(2) * 4,
     )
 }
@@ -85,9 +85,9 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdType {
 }
 
 #[library_benchmark]
-#[bench::small(&mut CMapBuilder::default().n_darts(16_usize.pow(2) * 4).build().unwrap())]
-#[bench::medium(&mut CMapBuilder::default().n_darts(64_usize.pow(2) * 4).build().unwrap())]
-#[bench::large(&mut CMapBuilder::default().n_darts(256_usize.pow(2) * 4).build().unwrap())]
+#[bench::small(&mut CMapBuilder::from_n_darts(16_usize.pow(2) * 4).build().unwrap())]
+#[bench::medium(&mut CMapBuilder::from_n_darts(64_usize.pow(2) * 4).build().unwrap())]
+#[bench::large(&mut CMapBuilder::from_n_darts(256_usize.pow(2) * 4).build().unwrap())]
 fn remove_dart(map: &mut CMap2<FloatType>) {
     map.remove_free_dart(5);
     black_box(map);
