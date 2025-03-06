@@ -3,7 +3,7 @@
 use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 use honeycomb_core::stm::{
-    abort, atomically_with_err, try_or_coerce, Transaction, TransactionClosureResult,
+    Transaction, TransactionClosureResult, abort, atomically_with_err, try_or_coerce,
 };
 
 use crate::splits::SplitEdgeError;

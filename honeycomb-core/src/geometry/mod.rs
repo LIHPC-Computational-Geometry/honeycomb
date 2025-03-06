@@ -43,16 +43,16 @@ pub trait CoordsFloat:
 }
 
 impl<
-        T: num_traits::Float
-            + Default
-            + AddAssign
-            + SubAssign
-            + MulAssign
-            + DivAssign
-            + Debug
-            + Send
-            + Sync
-            + 'static,
-    > CoordsFloat for T
+    T: num_traits::Float
+        + Default
+        + AddAssign
+        + SubAssign
+        + MulAssign
+        + DivAssign
+        + Debug
+        + Send
+        + Sync
+        + 'static,
+> CoordsFloat for T
 {
 }

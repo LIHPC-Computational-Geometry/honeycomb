@@ -3,10 +3,10 @@
 //! This module contains all code used to handle attribute genericity in the context of mesh
 //! representation through combinatorial maps embedded data.
 
-use std::any::{type_name, Any};
+use std::any::{Any, type_name};
 use std::fmt::Debug;
 
-use downcast_rs::{impl_downcast, Downcast};
+use downcast_rs::{Downcast, impl_downcast};
 use fast_stm::TransactionClosureResult;
 
 use crate::attributes::AttributeError;
@@ -296,5 +296,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, trans: &mut Transaction, id: A::IdentifierType)
-        -> StmClosureResult<Option<A>>;
+    -> StmClosureResult<Option<A>>;
 }

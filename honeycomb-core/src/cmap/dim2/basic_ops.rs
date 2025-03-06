@@ -7,14 +7,20 @@
 //! - Beta function interfaces
 //! - i-cell computations
 
+use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
 use crate::attributes::UnknownAttributeStorage;
-use crate::cmap::{
-    CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
-};
+use crate::cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType};
 use crate::geometry::CoordsFloat;
-use crate::stm::{atomically, StmClosureResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction, atomically};
+
+// use thread local hashset and queue for orbit traversal of ID comp.
+// not applied to orbit currently bc they are lazily onsumed, and therefore require dedicated
+// instances to be robust
+thread_local! {
+    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::with_capacity(10)));
+}
 
 /// **Dart-related methods**
 impl<T: CoordsFloat> CMap2<T> {
@@ -263,36 +269,42 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<VertexIdType> {
-        // min encountered / current dart
-        let mut min = dart_id;
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
-        marked.insert(dart_id); // we're starting here, so we mark it beforehand
-        let mut pending = VecDeque::from([dart_id]);
+        AUXILIARIES.with(|t| {
+            let (pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            pending.clear();
+            marked.clear();
+            // initialize
+            pending.push_back(dart_id);
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+            marked.insert(dart_id); // we're starting here, so we mark it beforehand
 
-        while let Some(d) = pending.pop_front() {
-            // THIS CODE IS ONLY VALID IN 2D
-            let (b2d, b0d) = (
-                self.beta_transac::<2>(trans, d)?,
-                self.beta_transac::<0>(trans, d)?,
-            );
-            let image1 = self.beta_transac::<1>(trans, b2d)?;
-            if marked.insert(image1) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image1);
-                pending.push_back(image1);
-            }
-            let image2 = self.beta_transac::<2>(trans, b0d)?;
-            if marked.insert(image2) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image2);
-                pending.push_back(image2);
-            }
-        }
+            let mut min = dart_id;
 
-        Ok(min)
+            while let Some(d) = pending.pop_front() {
+                // THIS CODE IS ONLY VALID IN 2D
+                let (b2d, b0d) = (
+                    self.beta_transac::<2>(trans, d)?,
+                    self.beta_transac::<0>(trans, d)?,
+                );
+                let image1 = self.beta_transac::<1>(trans, b2d)?;
+                if marked.insert(image1) {
+                    // if true, we did not see this dart yet
+                    // i.e. we need to visit it later
+                    min = min.min(image1);
+                    pending.push_back(image1);
+                }
+                let image2 = self.beta_transac::<2>(trans, b0d)?;
+                if marked.insert(image2) {
+                    // if true, we did not see this dart yet
+                    // i.e. we need to visit it later
+                    min = min.min(image2);
+                    pending.push_back(image2);
+                }
+            }
+
+            Ok(min)
+        })
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -348,53 +360,38 @@ impl<T: CoordsFloat> CMap2<T> {
         trans: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<FaceIdType> {
-        // min encountered / current dart
-        let mut min = dart_id;
-        let mut marked = HashSet::new();
-        marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
-        marked.insert(dart_id); // we're starting here, so we mark it beforehand
-        let mut pending = VecDeque::from([dart_id]);
+        AUXILIARIES.with(|t| {
+            let (pending, marked) = &mut *t.borrow_mut();
+            // clear from previous computations
+            pending.clear();
+            marked.clear();
+            // initialize
+            pending.push_back(dart_id);
+            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+            marked.insert(dart_id); // we're starting here, so we mark it beforehand
 
-        while let Some(d) = pending.pop_front() {
-            // THIS CODE IS ONLY VALID IN 2D
-            let image1 = self.beta_transac::<1>(trans, d)?;
-            if marked.insert(image1) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image1);
-                pending.push_back(image1);
+            let mut min = dart_id;
+
+            while let Some(d) = pending.pop_front() {
+                // THIS CODE IS ONLY VALID IN 2D
+                let image1 = self.beta_transac::<1>(trans, d)?;
+                if marked.insert(image1) {
+                    // if true, we did not see this dart yet
+                    // i.e. we need to visit it later
+                    min = min.min(image1);
+                    pending.push_back(image1);
+                }
+                let image2 = self.beta_transac::<0>(trans, d)?;
+                if marked.insert(image2) {
+                    // if true, we did not see this dart yet
+                    // i.e. we need to visit it later
+                    min = min.min(image2);
+                    pending.push_back(image2);
+                }
             }
-            let image2 = self.beta_transac::<0>(trans, d)?;
-            if marked.insert(image2) {
-                // if true, we did not see this dart yet
-                // i.e. we need to visit it later
-                min = min.min(image2);
-                pending.push_back(image2);
-            }
-        }
 
-        Ok(min)
-    }
-
-    /// Return the orbit defined by a dart and its `I`-cell.
-    ///
-    /// # Usage
-    ///
-    /// The [`Orbit2`] can be iterated upon to retrieve all dart member of the cell. Note that
-    /// **the dart passed as an argument is included as the first element of the returned orbit**.
-    ///
-    /// # Panics
-    ///
-    /// The method will panic if *I* is not 0, 1 or 2.
-    #[must_use = "unused return value"]
-    pub fn i_cell<const I: u8>(&self, dart_id: DartIdType) -> Orbit2<T> {
-        assert!(I < 3);
-        match I {
-            0 => Orbit2::<'_, T>::new(self, OrbitPolicy::Vertex, dart_id),
-            1 => Orbit2::<'_, T>::new(self, OrbitPolicy::Edge, dart_id),
-            2 => Orbit2::<'_, T>::new(self, OrbitPolicy::Face, dart_id),
-            _ => unreachable!(),
-        }
+            Ok(min)
+        })
     }
 
     /// Return an iterator over IDs of all the map's vertices.
@@ -404,20 +401,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let vid = self.vertex_id(d);
-                if d == vid {
-                    Some(vid)
-                } else {
-                    None
-                }
+                if d == vid { Some(vid) } else { None }
             })
     }
 
@@ -428,20 +417,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let eid = self.edge_id(d);
-                if d == eid {
-                    Some(eid)
-                } else {
-                    None
-                }
+                if d == eid { Some(eid) } else { None }
             })
     }
 
@@ -452,20 +433,12 @@ impl<T: CoordsFloat> CMap2<T> {
             .zip(self.unused_darts.iter().skip(1))
             .filter_map(
                 |(d, unused)| {
-                    if unused.read_atomic() {
-                        None
-                    } else {
-                        Some(d)
-                    }
+                    if unused.read_atomic() { None } else { Some(d) }
                 },
             )
             .filter_map(|d| {
                 let fid = self.face_id(d);
-                if d == fid {
-                    Some(fid)
-                } else {
-                    None
-                }
+                if d == fid { Some(fid) } else { None }
             })
     }
 }

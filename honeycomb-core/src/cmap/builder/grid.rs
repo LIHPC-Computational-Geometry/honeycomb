@@ -126,7 +126,9 @@ impl<T: CoordsFloat> GridDescriptor<T> {
             // from # cells and lengths per cell
             (Some([nx, ny, _]), Some([lpx, lpy, _]), lens) => {
                 if lens.is_some() {
-                    eprintln!("W: All three grid parameters were specified, total lengths will be ignored");
+                    eprintln!(
+                        "W: All three grid parameters were specified, total lengths will be ignored"
+                    );
                 }
                 #[rustfmt::skip]
                 check_parameters!(lpx, "length per x cell is null or negative");

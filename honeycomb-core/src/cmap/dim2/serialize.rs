@@ -1,14 +1,14 @@
 use std::{any::TypeId, collections::BTreeMap};
 
 use vtkio::{
+    IOBuffer,
     model::{
         ByteOrder, CellType, DataSet, Piece, UnstructuredGridPiece, Version, VertexNumbers, Vtk,
     },
-    IOBuffer,
 };
 
 use crate::cmap::{
-    CMap2, DartIdType, EdgeIdType, FaceIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+    CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
 use crate::geometry::CoordsFloat;
 
@@ -187,7 +187,8 @@ where
     let face_data = face_ids.into_iter().map(|id| {
         let mut count: u32 = 0;
         // VecDeque will be useful later
-        let orbit: Vec<u32> = Orbit2::new(map, OrbitPolicy::Custom(&[1]), id as DartIdType)
+        let orbit: Vec<u32> = map
+            .orbit(OrbitPolicy::Custom(&[1]), id as DartIdType)
             .map(|dart_id| {
                 count += 1;
                 id_map[&map.vertex_id(dart_id)] as u32

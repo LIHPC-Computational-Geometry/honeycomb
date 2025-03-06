@@ -1,8 +1,8 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap2, CMapBuilder, LinkError, Orbit2, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap2, CMapBuilder, DartIdType, LinkError, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex2,
-    stm::{atomically, atomically_with_err, StmError, TransactionError},
+    stm::{StmError, TransactionError, atomically, atomically_with_err},
 };
 
 // --- GENERAL
@@ -22,11 +22,13 @@ fn example_test() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-    assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(1));
+        assert_eq!(face.next(), Some(2));
+        assert_eq!(face.next(), Some(3));
+        assert_eq!(face.next(), None);
+    }
 
     // build a second triangle
     map.add_free_darts(3);
@@ -40,11 +42,13 @@ fn example_test() {
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
-    assert_eq!(face.next(), Some(4));
-    assert_eq!(face.next(), Some(5));
-    assert_eq!(face.next(), Some(6));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(4));
+        assert_eq!(face.next(), Some(5));
+        assert_eq!(face.next(), Some(6));
+        assert_eq!(face.next(), None);
+    }
 
     // sew both triangles
     map.force_sew::<2>(2, 4).unwrap();
@@ -123,11 +127,13 @@ fn example_test_transactional() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-    assert_eq!(face.next(), Some(1));
-    assert_eq!(face.next(), Some(2));
-    assert_eq!(face.next(), Some(3));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(1));
+        assert_eq!(face.next(), Some(2));
+        assert_eq!(face.next(), Some(3));
+        assert_eq!(face.next(), None);
+    }
 
     // build a second triangle
     map.add_free_darts(3);
@@ -145,11 +151,13 @@ fn example_test_transactional() {
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
-    let mut face = Orbit2::new(&map, OrbitPolicy::Face, 4);
-    assert_eq!(face.next(), Some(4));
-    assert_eq!(face.next(), Some(5));
-    assert_eq!(face.next(), Some(6));
-    assert_eq!(face.next(), None);
+    {
+        let mut face = map.orbit(OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(4));
+        assert_eq!(face.next(), Some(5));
+        assert_eq!(face.next(), Some(6));
+        assert_eq!(face.next(), None);
+    }
 
     // sew both triangles
     atomically(|trans| {
@@ -292,12 +300,14 @@ fn two_sew_incomplete() {
 fn link_twice() {
     let mut map: CMap2<f64> = CMap2::new(3);
     assert!(map.force_link::<1>(1, 2).is_ok());
-    assert!(map
-        .force_link::<1>(1, 3)
-        .is_err_and(|e| e == LinkError::NonFreeBase(1, 1, 3)));
-    assert!(map
-        .force_link::<1>(3, 2)
-        .is_err_and(|e| e == LinkError::NonFreeImage(0, 3, 2)));
+    assert!(
+        map.force_link::<1>(1, 3)
+            .is_err_and(|e| e == LinkError::NonFreeBase(1, 1, 3))
+    );
+    assert!(
+        map.force_link::<1>(3, 2)
+            .is_err_and(|e| e == LinkError::NonFreeImage(0, 3, 2))
+    );
 }
 
 #[test]
@@ -307,9 +317,10 @@ fn sew_twice() {
     map.force_write_vertex(3, (0.0, 0.0));
     map.force_write_vertex(2, (0.0, 0.0));
     assert!(map.force_sew::<1>(1, 2).is_ok());
-    assert!(map
-        .force_sew::<1>(1, 2)
-        .is_err_and(|e| e == SewError::FailedLink(LinkError::NonFreeBase(1, 1, 2))));
+    assert!(
+        map.force_sew::<1>(1, 2)
+            .is_err_and(|e| e == SewError::FailedLink(LinkError::NonFreeBase(1, 1, 2)))
+    );
 }
 
 #[test]
@@ -366,9 +377,10 @@ fn two_sew_bad_orientation() {
     map.force_write_vertex(2, (0.0, 1.0)); // 1->2 goes up
     map.force_write_vertex(3, (1.0, 0.0));
     map.force_write_vertex(4, (1.0, 1.0)); // 3->4 also goes up
-    assert!(map
-        .force_sew::<2>(1, 3)
-        .is_err_and(|e| e == SewError::BadGeometry(2, 1, 3)));
+    assert!(
+        map.force_sew::<2>(1, 3)
+            .is_err_and(|e| e == SewError::BadGeometry(2, 1, 3))
+    );
 }
 
 #[test]
@@ -415,6 +427,119 @@ fn one_sew_no_attributes() {
             "merge",
             std::any::type_name::<Vertex2<f64>>()
         ))));
+}
+
+// --- ORBITS
+
+fn simple_map() -> CMap2<f64> {
+    let mut map: CMap2<f64> = CMap2::new(11);
+    // tri1
+    map.force_link::<1>(1, 2).unwrap();
+    map.force_link::<1>(2, 3).unwrap();
+    map.force_link::<1>(3, 1).unwrap();
+    // tri2
+    map.force_link::<1>(4, 5).unwrap();
+    map.force_link::<1>(5, 6).unwrap();
+    map.force_link::<1>(6, 4).unwrap();
+    // pent on top
+    map.force_link::<1>(7, 8).unwrap();
+    map.force_link::<1>(8, 9).unwrap();
+    map.force_link::<1>(9, 10).unwrap();
+    map.force_link::<1>(10, 11).unwrap();
+    map.force_link::<1>(11, 7).unwrap();
+
+    // link all
+    map.force_link::<2>(2, 4).unwrap();
+    map.force_link::<2>(6, 7).unwrap();
+
+    assert!(map.force_write_vertex(1, (0.0, 0.0)).is_none());
+    assert!(map.force_write_vertex(2, (1.0, 0.0)).is_none());
+    assert!(map.force_write_vertex(6, (1.0, 1.0)).is_none());
+    assert!(map.force_write_vertex(3, (0.0, 1.0)).is_none());
+    assert!(map.force_write_vertex(9, (1.5, 1.5)).is_none());
+    assert!(map.force_write_vertex(10, (0.5, 2.0)).is_none());
+    assert!(map.force_write_vertex(11, (-0.5, 1.5)).is_none());
+
+    map
+}
+
+#[test]
+fn full_map_from_orbit() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Custom(&[1, 2]), 3);
+    let darts: Vec<DartIdType> = orbit.collect();
+    assert_eq!(darts.len(), 11);
+    // because the algorithm is consistent, we can predict the exact layout
+    assert_eq!(&darts, &[3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]);
+}
+
+#[test]
+fn orbit_variants() {
+    let map = simple_map();
+
+    // face is complete, so everything works
+    let face: Vec<DartIdType> = map.orbit(OrbitPolicy::Face, 7).collect();
+    let face_linear: Vec<DartIdType> = map.orbit(OrbitPolicy::FaceLinear, 7).collect();
+    let face_custom: Vec<DartIdType> = map.orbit(OrbitPolicy::Custom(&[0, 1]), 7).collect();
+    assert_eq!(&face, &[7, 8, 11, 9, 10]);
+    assert_eq!(&face_linear, &[7, 8, 9, 10, 11]);
+    assert_eq!(&face_custom, &[7, 11, 8, 10, 9]);
+
+    // vertex is incomplete, so using the linear variant will yield an incomplete orbit
+    let vertex: Vec<DartIdType> = map.orbit(OrbitPolicy::Vertex, 4).collect();
+    let vertex_linear: Vec<DartIdType> = map.orbit(OrbitPolicy::VertexLinear, 4).collect();
+    assert_eq!(&vertex, &[4, 3, 7]);
+    assert_eq!(&vertex_linear, &[4, 3]);
+}
+
+#[test]
+fn face_from_orbit() {
+    let map = simple_map();
+    let face_orbit = map.orbit(OrbitPolicy::Face, 1);
+    let darts: Vec<DartIdType> = face_orbit.collect();
+    assert_eq!(darts.len(), 3);
+    assert_eq!(&darts, &[1, 2, 3]);
+    let other_face_orbit = map.orbit(OrbitPolicy::Custom(&[1]), 5);
+    let other_darts: Vec<DartIdType> = other_face_orbit.collect();
+    assert_eq!(other_darts.len(), 3);
+    assert_eq!(&other_darts, &[5, 6, 4]);
+}
+
+#[test]
+fn edge_from_orbit() {
+    let map = simple_map();
+    let face_orbit = map.orbit(OrbitPolicy::Edge, 1);
+    let darts: Vec<DartIdType> = face_orbit.collect();
+    assert_eq!(darts.len(), 1);
+    assert_eq!(&darts, &[1]); // dart 1 is on the boundary
+    let other_face_orbit = map.orbit(OrbitPolicy::Custom(&[2]), 4);
+    let other_darts: Vec<DartIdType> = other_face_orbit.collect();
+    assert_eq!(other_darts.len(), 2);
+    assert_eq!(&other_darts, &[4, 2]);
+}
+
+#[test]
+fn vertex_from_orbit() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Vertex, 4);
+    let darts: Vec<DartIdType> = orbit.collect();
+    assert_eq!(darts.len(), 3);
+    assert_eq!(&darts, &[4, 3, 7]);
+}
+
+#[test]
+fn empty_orbit_policy() {
+    let map = simple_map();
+    let darts: Vec<DartIdType> = map.orbit(OrbitPolicy::Custom(&[]), 3).collect();
+    assert_eq!(&darts, &[3]);
+}
+
+#[test]
+#[should_panic(expected = "assertion failed: i < 3")]
+fn invalid_orbit_policy() {
+    let map = simple_map();
+    let orbit = map.orbit(OrbitPolicy::Custom(&[6]), 3);
+    let _: Vec<DartIdType> = orbit.collect();
 }
 
 // --- IO
@@ -556,7 +681,7 @@ fn sew_ordering() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         assert_eq!(arc.force_read_vertex(2), None);
         assert_eq!(arc.force_read_vertex(3), None);
         assert_eq!(arc.force_read_vertex(5), None);
@@ -634,7 +759,7 @@ fn sew_ordering_with_transactions() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit2::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|trans| {
             assert_eq!(arc.read_vertex(trans, 2)?, None);
             assert_eq!(arc.read_vertex(trans, 3)?, None);

@@ -8,8 +8,8 @@ use honeycomb_core::attributes::{AttrSparseVec, AttributeBind, AttributeError, A
 use honeycomb_core::cmap::{DartIdType, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use vtkio::{
-    model::{CellType, DataSet, VertexNumbers},
     IOBuffer, Vtk,
+    model::{CellType, DataSet, VertexNumbers},
 };
 
 use crate::grisubal::GrisubalError;

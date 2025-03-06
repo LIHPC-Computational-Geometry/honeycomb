@@ -1,7 +1,7 @@
 use vtkio::Vtk;
 
 use crate::attributes::AttrStorageManager;
-use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, Orbit2, OrbitPolicy};
+use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
 
 // --- basic
 
@@ -56,18 +56,24 @@ fn build_lpc_l() {
 
 #[test]
 fn build_incomplete() {
-    assert!(GridDescriptor::default()
-        .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-        .parse_2d()
-        .is_err());
-    assert!(<GridDescriptor<f64>>::default()
-        .n_cells([4, 4, 0])
-        .parse_2d()
-        .is_err());
-    assert!(GridDescriptor::default()
-        .lens([4.0_f64, 4.0_f64, 4.0_f64])
-        .parse_2d()
-        .is_err());
+    assert!(
+        GridDescriptor::default()
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .parse_2d()
+            .is_err()
+    );
+    assert!(
+        <GridDescriptor<f64>>::default()
+            .n_cells([4, 4, 0])
+            .parse_2d()
+            .is_err()
+    );
+    assert!(
+        GridDescriptor::default()
+            .lens([4.0_f64, 4.0_f64, 4.0_f64])
+            .parse_2d()
+            .is_err()
+    );
 }
 
 #[test]
@@ -369,23 +375,35 @@ fn splitsquare_cmap2_correctness() {
 mod cmap {
     use crate::cmap::{BuilderError, VertexIdType};
 
-    use super::super::io::{build_2d_from_cmap_file, parse_meta, CMapFile};
+    use super::super::io::{CMapFile, build_2d_from_cmap_file, parse_meta};
     use super::*;
 
     #[test]
     fn bad_headers() {
-        assert!(parse_meta(BAD_METAS[0])
-            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
-        assert!(parse_meta(BAD_METAS[1])
-            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
-        assert!(parse_meta(BAD_METAS[2])
-            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension")));
-        assert!(parse_meta(BAD_METAS[3])
-            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dart number")));
-        assert!(parse_meta(BAD_METAS[4])
-            .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension")));
-        assert!(parse_meta(BAD_METAS[5])
-            .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format")));
+        assert!(
+            parse_meta(BAD_METAS[0])
+                .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format"))
+        );
+        assert!(
+            parse_meta(BAD_METAS[1])
+                .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format"))
+        );
+        assert!(
+            parse_meta(BAD_METAS[2])
+                .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension"))
+        );
+        assert!(
+            parse_meta(BAD_METAS[3])
+                .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dart number"))
+        );
+        assert!(
+            parse_meta(BAD_METAS[4])
+                .is_err_and(|e| e == BuilderError::BadMetaData("could not parse dimension"))
+        );
+        assert!(
+            parse_meta(BAD_METAS[5])
+                .is_err_and(|e| e == BuilderError::BadMetaData("incorrect format"))
+        );
         assert!(parse_meta(BAD_METAS[6]).is_err());
         assert!(parse_meta(BAD_METAS[7]).is_err());
         assert!(parse_meta(BAD_METAS[8]).is_err());
@@ -481,7 +499,7 @@ mod vtk {
 
         let mut n_vertices_per_face: Vec<usize> = faces
             .iter()
-            .map(|id| Orbit2::new(&cmap, OrbitPolicy::Face, *id as DartIdType).count())
+            .map(|id| cmap.orbit(OrbitPolicy::Face, *id as DartIdType).count())
             .collect();
         let (mut three_count, mut four_count, mut six_count): (usize, usize, usize) = (0, 0, 0);
         while let Some(n) = n_vertices_per_face.pop() {

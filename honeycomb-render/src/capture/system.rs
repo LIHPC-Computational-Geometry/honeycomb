@@ -35,7 +35,7 @@ pub fn populate_darts(
         let vertices = &capture.vertex_vals;
         let normals = &capture.normals;
         let visibility =
-            if focused_capture.0 .0 == capture.metadata.capture_id && dart_render_color.0 {
+            if focused_capture.0.0 == capture.metadata.capture_id && dart_render_color.0 {
                 Visibility::Visible
             } else {
                 Visibility::Hidden
@@ -143,7 +143,7 @@ pub fn populate_vertices(
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let visibility =
-            if focused_capture.0 .0 == capture.metadata.capture_id && vertex_render_color.0 {
+            if focused_capture.0.0 == capture.metadata.capture_id && vertex_render_color.0 {
                 Visibility::Visible
             } else {
                 Visibility::Hidden
@@ -194,7 +194,7 @@ pub fn populate_edges(
     for capture in &captures.0 {
         let vertices = &capture.vertex_vals;
         let visibility =
-            if focused_capture.0 .0 == capture.metadata.capture_id && edge_render_color.0 {
+            if focused_capture.0.0 == capture.metadata.capture_id && edge_render_color.0 {
                 Visibility::Visible
             } else {
                 Visibility::Hidden
@@ -253,7 +253,7 @@ pub fn populate_faces(
         let vertices = &capture.vertex_vals;
         let normals = &capture.normals;
         let visibility =
-            if focused_capture.0 .0 == capture.metadata.capture_id && face_render_color.0 {
+            if focused_capture.0.0 == capture.metadata.capture_id && face_render_color.0 {
                 Visibility::Visible
             } else {
                 Visibility::Hidden

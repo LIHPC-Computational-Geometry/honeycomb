@@ -15,12 +15,12 @@
 //! `taskset`. By controlling this, and the grid size, we can evaluate both strong and weak
 //! scaling characteristics.
 
+use honeycomb::kernels::remeshing::move_vertex_to_average;
 use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
-    CMap2, CMapBuilder, CoordsFloat, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType,
-    NULL_DART_ID,
+    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
 
 use crate::cli::ShiftArgs;
@@ -30,7 +30,15 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
     let mut instant = std::time::Instant::now();
     let input_map = args.input.to_str().unwrap();
     let input_hash = hash_file(input_map).unwrap();
-    let map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
+    let map: CMap2<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::default().cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::default().vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
     let build_time = instant.elapsed();
 
     if args.no_conflict {
@@ -41,14 +49,15 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
         let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
             .iter_vertices()
             .filter_map(|v| {
-                if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                if map
+                    .orbit(OrbitPolicy::Vertex, v as DartIdType)
                     .any(|d| map.beta::<2>(d) == NULL_DART_ID)
                 {
                     None
                 } else {
                     Some((
                         v,
-                        Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                        map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                             .map(|d| map.vertex_id(map.beta::<2>(d)))
                             .collect(),
                     ))
@@ -84,18 +93,8 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
                             n += 1;
                             TransactionControl::Retry
                         },
-                        |trans| {
-                            let mut new_val = Vertex2::default();
-                            for v in neigh {
-                                let vertex = map.read_vertex(trans, *v)?.unwrap();
-                                new_val.0 += vertex.0;
-                                new_val.1 += vertex.1;
-                            }
-                            new_val.0 /= T::from(neigh.len()).unwrap();
-                            new_val.1 /= T::from(neigh.len()).unwrap();
-                            map.write_vertex(trans, *vid, new_val)
-                        },
-                    ); // Transaction::with_control
+                        |trans| move_vertex_to_average(trans, &map, *vid, neigh),
+                    );
                     n
                 })
                 .sum();

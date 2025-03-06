@@ -9,7 +9,7 @@ use crate::attributes::{
 };
 use crate::cmap::{CMap3, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex3};
-use crate::stm::{atomically, StmClosureResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction, atomically};
 
 /// ## **Built-in vertex-related methods**
 impl<T: CoordsFloat> CMap3<T> {

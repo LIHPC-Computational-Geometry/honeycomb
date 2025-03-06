@@ -22,7 +22,7 @@
 //!
 
 use honeycomb_core::cmap::{
-    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, VertexIdType, NULL_DART_ID,
+    CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
 use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::stm::atomically;
@@ -51,7 +51,8 @@ fn main() {
         .iter_vertices()
         .filter_map(|v| {
             // the condition detects if we're on the boundary
-            if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+            if map
+                .orbit(OrbitPolicy::Vertex, v as DartIdType)
                 .any(|d| map.beta::<2>(d) == NULL_DART_ID)
             {
                 None
@@ -59,7 +60,7 @@ fn main() {
                 // the orbit transformation yields neighbor IDs
                 Some((
                     v,
-                    Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                    map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                         .map(|d| map.vertex_id(map.beta::<2>(d)))
                         .collect(),
                 ))

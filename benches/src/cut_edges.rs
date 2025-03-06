@@ -3,9 +3,12 @@ use std::time::Instant;
 use rayon::prelude::*;
 
 use honeycomb::{
-    core::cmap::LinkError,
-    core::stm::{retry, StmError, Transaction, TransactionControl, TransactionResult},
-    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType, Vertex2},
+    core::{
+        cmap::SewError,
+        stm::{Transaction, TransactionControl, TransactionResult},
+    },
+    kernels::remeshing::{cut_inner_edge, cut_outer_edge},
+    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType},
 };
 
 use crate::{cli::CutEdgesArgs, utils::hash_file};
@@ -23,13 +26,22 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     // load map from file
     let mut instant = Instant::now();
     let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
-    let mut map: CMap2<T> = CMapBuilder::from(input_map).build().unwrap();
+
+    let mut map: CMap2<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::default().cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::default().vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
     #[cfg(debug_assertions)] // check input
     {
-        use honeycomb::prelude::{Orbit2, OrbitPolicy};
+        use honeycomb::prelude::OrbitPolicy;
         assert!(
             map.iter_faces()
-                .all(|f| { Orbit2::new(&map, OrbitPolicy::Face, f as DartIdType).count() == 3 }),
+                .all(|f| { map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3 }),
             "Input mesh isn't a triangle mesh"
         );
     }
@@ -42,7 +54,9 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     println!("|-> target size: {target_len:?}");
     println!("|-> init time  : {}ms", instant.elapsed().as_millis());
 
-    println!(" Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry");
+    println!(
+        " Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry"
+    );
 
     let mut step = 0;
     print!(" {step:>4} "); // Step
@@ -114,7 +128,8 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
         } else {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
-            println!("| {:>18.6e} ", 0.0); // t_process_batch
+            print!("| {:>18.6e} ", 0.0); // t_process_batch
+            println!("| {:>15}", 0); // n_transac_retry
         }
     }
 
@@ -221,47 +236,13 @@ fn process_outer_edge<T: CoordsFloat>(
     n_retry: &mut u8,
     e: EdgeIdType,
     [nd1, nd2, nd3, _, _, _]: [DartIdType; 6],
-) -> TransactionResult<(), LinkError> {
+) -> TransactionResult<(), SewError> {
     Transaction::with_control_and_err(
         |_| {
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| {
-            // unfallible
-            map.link::<2>(trans, nd1, nd2)?;
-            map.link::<1>(trans, nd2, nd3)?;
-
-            let ld = e as DartIdType;
-            let (b0ld, b1ld) = (
-                map.beta_transac::<0>(trans, ld)?,
-                map.beta_transac::<1>(trans, ld)?,
-            );
-
-            let (vid1, vid2) = (
-                map.vertex_id_transac(trans, ld)?,
-                map.vertex_id_transac(trans, b1ld)?,
-            );
-            let new_v = match (map.read_vertex(trans, vid1)?, map.read_vertex(trans, vid2)?) {
-                (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
-                _ => retry()?,
-            };
-            map.write_vertex(trans, nd1, new_v)?;
-
-            map.unsew::<1>(trans, ld).map_err(|_| StmError::Failure)?;
-            map.unsew::<1>(trans, b1ld).map_err(|_| StmError::Failure)?;
-
-            map.sew::<1>(trans, ld, nd1)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd1, b0ld)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd3, b1ld)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, b1ld, nd2)
-                .map_err(|_| StmError::Failure)?;
-
-            Ok(())
-        },
+        |trans| cut_outer_edge(trans, map, e, [nd1, nd2, nd3]),
     ) // Transaction::with_control
 }
 
@@ -270,73 +251,13 @@ fn process_inner_edge<T: CoordsFloat>(
     map: &CMap2<T>,
     n_retry: &mut u8,
     e: EdgeIdType,
-    [nd1, nd2, nd3, nd4, nd5, nd6]: [DartIdType; 6],
-) -> TransactionResult<(), LinkError> {
+    nds: [DartIdType; 6],
+) -> TransactionResult<(), SewError> {
     Transaction::with_control_and_err(
         |_| {
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| {
-            // unfallible
-            map.link::<2>(trans, nd1, nd2)?;
-            map.link::<1>(trans, nd2, nd3)?;
-            map.link::<2>(trans, nd4, nd5)?;
-            map.link::<1>(trans, nd5, nd6)?;
-
-            let (ld, rd) = (
-                e as DartIdType,
-                map.beta_transac::<2>(trans, e as DartIdType)?,
-            );
-            let (b0ld, b1ld) = (
-                map.beta_transac::<0>(trans, ld)?,
-                map.beta_transac::<1>(trans, ld)?,
-            );
-            let (b0rd, b1rd) = (
-                map.beta_transac::<0>(trans, rd)?,
-                map.beta_transac::<1>(trans, rd)?,
-            );
-
-            let (vid1, vid2) = (
-                map.vertex_id_transac(trans, ld)?,
-                map.vertex_id_transac(trans, b1ld)?,
-            );
-            let new_v = match (map.read_vertex(trans, vid1)?, map.read_vertex(trans, vid2)?) {
-                (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
-                _ => retry()?,
-            };
-            map.write_vertex(trans, nd1, new_v)?;
-
-            map.unsew::<2>(trans, ld).map_err(|_| StmError::Failure)?;
-            map.unsew::<1>(trans, ld).map_err(|_| StmError::Failure)?;
-            map.unsew::<1>(trans, b1ld).map_err(|_| StmError::Failure)?;
-            map.unsew::<1>(trans, rd).map_err(|_| StmError::Failure)?;
-            map.unsew::<1>(trans, b1rd).map_err(|_| StmError::Failure)?;
-
-            map.sew::<2>(trans, ld, nd6)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<2>(trans, rd, nd3)
-                .map_err(|_| StmError::Failure)?;
-
-            map.sew::<1>(trans, ld, nd1)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd1, b0ld)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd3, b1ld)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, b1ld, nd2)
-                .map_err(|_| StmError::Failure)?;
-
-            map.sew::<1>(trans, rd, nd4)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd4, b0rd)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, nd6, b1rd)
-                .map_err(|_| StmError::Failure)?;
-            map.sew::<1>(trans, b1rd, nd5)
-                .map_err(|_| StmError::Failure)?;
-
-            Ok(())
-        },
+        |trans| cut_inner_edge(trans, map, e, nds),
     ) // Transaction::with_control
 }

@@ -1,8 +1,8 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, DartIdType, Orbit3, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap3, DartIdType, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
-    stm::{atomically, atomically_with_err, StmError, TVar, TransactionError},
+    stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
 
 #[test]
@@ -500,9 +500,10 @@ fn two_sew_bad_orientation() {
     map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
     map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
     map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(map
-        .force_sew::<2>(1, 5)
-        .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5)));
+    assert!(
+        map.force_sew::<2>(1, 5)
+            .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5))
+    );
 }
 
 #[test]
@@ -524,9 +525,10 @@ fn three_sew_bad_orientation() {
     map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
     map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
     map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(map
-        .force_sew::<3>(1, 5)
-        .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5)));
+    assert!(
+        map.force_sew::<3>(1, 5)
+            .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
+    );
 }
 
 // --- PARALLEL
@@ -564,7 +566,7 @@ fn sew_ordering() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         assert!(arc.force_read_vertex(2).is_none());
         assert!(arc.force_read_vertex(3).is_none());
         assert!(arc.force_read_vertex(5).is_none());
@@ -644,7 +646,7 @@ fn sew_ordering_with_transactions() {
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
-        assert_eq!(Orbit3::new(arc.as_ref(), OrbitPolicy::Vertex, 2).count(), 3);
+        assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|trans| {
             assert!(arc.read_vertex(trans, 2)?.is_none());
             assert!(arc.read_vertex(trans, 3)?.is_none());

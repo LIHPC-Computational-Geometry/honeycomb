@@ -2,7 +2,7 @@
 
 use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
 use crate::geometry::CoordsFloat;
-use crate::stm::{abort, atomically_with_err, Transaction, TransactionClosureResult};
+use crate::stm::{Transaction, TransactionClosureResult, abort, atomically_with_err};
 
 /// 1-links
 impl<T: CoordsFloat> CMap3<T> {

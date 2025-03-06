@@ -2,11 +2,9 @@
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{
-        CMap3, DartIdType, EdgeIdType, Orbit3, OrbitPolicy, SewError, VertexIdType, NULL_DART_ID,
-    },
+    cmap::{CMap3, DartIdType, EdgeIdType, NULL_DART_ID, OrbitPolicy, SewError, VertexIdType},
     geometry::CoordsFloat,
-    stm::{abort, try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 /// **3-(un)sews internals**
@@ -20,15 +18,22 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), SewError> {
         // using these custom orbits, I can get both dart of all sides, directly ordered
         // for the merges
-        let l_side = Orbit3::new(self, OrbitPolicy::Custom(&[1, 0]), ld);
-        let r_side = Orbit3::new(self, OrbitPolicy::Custom(&[0, 1]), rd);
-        let l_face = l_side.clone().min().expect("E: unreachable");
-        let r_face = r_side.clone().min().expect("E: unreachable");
+        let l_face = self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .min()
+            .expect("E: unreachable");
+        let r_face = self
+            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
+            .min()
+            .expect("E: unreachable");
         let mut edges: Vec<(EdgeIdType, EdgeIdType)> = Vec::with_capacity(10);
         let mut vertices: Vec<(VertexIdType, VertexIdType)> = Vec::with_capacity(10);
 
         // read edge + vertex on the b1ld side. if b0ld == NULL, we need to read the left vertex
-        for (l, r) in l_side.zip(r_side) {
+        for (l, r) in self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
+        {
             edges.push((
                 self.edge_id_transac(trans, l)?,
                 self.edge_id_transac(trans, r)?,
@@ -142,19 +147,25 @@ impl<T: CoordsFloat> CMap3<T> {
 
         try_or_coerce!(self.unlink::<3>(trans, ld), SewError);
 
-        let l_side = Orbit3::new(self, OrbitPolicy::Custom(&[1, 0]), ld);
-        let r_side = Orbit3::new(self, OrbitPolicy::Custom(&[0, 1]), rd);
-
         // faces
-        let l_face = l_side.clone().min().expect("E: unreachable");
-        let r_face = r_side.clone().min().expect("E: unreachable");
+        let l_face = self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .min()
+            .expect("E: unreachable");
+        let r_face = self
+            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
+            .min()
+            .expect("E: unreachable");
         try_or_coerce!(
             self.attributes
                 .split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
             SewError
         );
 
-        for (l, r) in l_side.zip(r_side) {
+        for (l, r) in self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
+        {
             // edge
             let (eid_l, eid_r) = (
                 self.edge_id_transac(trans, l)?,

@@ -2,12 +2,12 @@ use std::time::{Duration, Instant};
 
 use honeycomb::{
     core::stm::atomically_with_err,
-    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, GridDescriptor, Orbit2, OrbitPolicy},
+    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, GridDescriptor, OrbitPolicy},
 };
 use rand::{
+    SeedableRng,
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
-    SeedableRng,
 };
 use rayon::prelude::*;
 
@@ -57,7 +57,7 @@ fn split_faces_randomly<T: CoordsFloat>(
         .par_bridge()
         .for_each(|((df, sl), split)| {
             let square = df as DartIdType;
-            assert_eq!(Orbit2::new(map, OrbitPolicy::FaceLinear, df).count(), 4);
+            assert_eq!(map.orbit(OrbitPolicy::FaceLinear, df).count(), 4);
             let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
 
             let &[dsplit1, dsplit2] = sl else {

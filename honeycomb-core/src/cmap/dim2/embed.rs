@@ -5,7 +5,7 @@
 //! generic attributes
 
 use crate::cmap::{CMap2, VertexIdType};
-use crate::stm::{atomically, StmClosureResult, Transaction};
+use crate::stm::{StmClosureResult, Transaction, atomically};
 use crate::{
     attributes::{AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage},
     geometry::{CoordsFloat, Vertex2},
