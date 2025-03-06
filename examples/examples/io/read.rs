@@ -7,7 +7,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if let Some(path) = args.get(1) {
-        let map: CMap2<f32> = match CMapBuilder::default().vtk_file(path).build() {
+        let map: CMap2<f32> = match CMapBuilder::from_vtk_file(path).build() {
             Ok(cmap) => cmap,
             Err(e) => panic!("Error while building map: {e:?}"),
         };

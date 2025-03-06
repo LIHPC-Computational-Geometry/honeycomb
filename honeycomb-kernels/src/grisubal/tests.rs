@@ -114,7 +114,7 @@ fn build_valid_geometry() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn regular_intersections() {
-    let mut cmap = CMapBuilder::from(
+    let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
             .len_per_cell([1.0; 3])
             .n_cells([2; 3]),
@@ -262,7 +262,7 @@ fn regular_intersections() {
 fn corner_intersection() {
     use num_traits::Float;
 
-    let mut cmap = CMapBuilder::from(
+    let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
             .len_per_cell([1.0; 3])
             .n_cells([2; 3]),
@@ -406,7 +406,7 @@ fn corner_intersection() {
 #[allow(clippy::too_many_lines)]
 #[test]
 pub fn successive_straight_intersections() {
-    let mut cmap = CMapBuilder::from(
+    let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
             .len_per_cell([1.0; 3])
             .n_cells([3; 3]),
@@ -688,7 +688,7 @@ pub fn successive_straight_intersections() {
 #[allow(clippy::too_many_lines)]
 #[test]
 pub fn successive_diag_intersections() {
-    let mut cmap = CMapBuilder::from(
+    let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
             .len_per_cell([1.0; 3])
             .n_cells([3; 3]),

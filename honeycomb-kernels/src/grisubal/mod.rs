@@ -197,8 +197,7 @@ pub fn grisubal<T: CoordsFloat>(
     start_timer!(kernel);
 
     // --- BUILD THE GRID
-    let mut cmap = CMapBuilder::default()
-        .grid_descriptor(ogrid)
+    let mut cmap = CMapBuilder::from_grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: unreachable"); // unreachable because grid dims are valid
