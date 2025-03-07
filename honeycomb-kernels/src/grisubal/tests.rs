@@ -116,8 +116,8 @@ fn build_valid_geometry() {
 fn regular_intersections() {
     let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
-            .len_per_cell([1.0; 3])
-            .n_cells([2; 3]),
+            .len_per_cell([1.0, 1.0])
+            .n_cells([2, 2]),
     )
     .add_attribute::<Boundary>()
     .build()
@@ -264,8 +264,8 @@ fn corner_intersection() {
 
     let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
-            .len_per_cell([1.0; 3])
-            .n_cells([2; 3]),
+            .len_per_cell([1.0, 1.0])
+            .n_cells([2, 2]),
     )
     .add_attribute::<Boundary>()
     .build()
@@ -408,8 +408,8 @@ fn corner_intersection() {
 pub fn successive_straight_intersections() {
     let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
-            .len_per_cell([1.0; 3])
-            .n_cells([3; 3]),
+            .len_per_cell([1.0, 1.0])
+            .n_cells([3, 3]),
     )
     .add_attribute::<Boundary>()
     .build()
@@ -690,8 +690,8 @@ pub fn successive_straight_intersections() {
 pub fn successive_diag_intersections() {
     let mut cmap = CMapBuilder::from_grid_descriptor(
         GridDescriptor::default()
-            .len_per_cell([1.0; 3])
-            .n_cells([3; 3]),
+            .len_per_cell([1.0, 1.0])
+            .n_cells([3, 3]),
     )
     .add_attribute::<Boundary>()
     .build()

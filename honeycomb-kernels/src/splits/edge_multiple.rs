@@ -43,7 +43,7 @@ use crate::splits::SplitEdgeError;
 /// //    <--2---
 /// //  1         2
 /// //    ---1-->
-/// let mut map: CMap2<f64> = CMapBuilder::from_n_darts(2)
+/// let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(2)
 ///                             .build()
 ///                             .unwrap();
 /// map.force_link::<2>(1, 2);

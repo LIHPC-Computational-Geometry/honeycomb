@@ -6,7 +6,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use super::*;
 
 fn newmap<T: CoordsFloat>(n: usize) -> CMap2<T> {
-    CMapBuilder::from_n_darts(n).build().unwrap()
+    CMapBuilder::<2, T>::from_n_darts(n).build().unwrap()
 }
 
 mod standard {
