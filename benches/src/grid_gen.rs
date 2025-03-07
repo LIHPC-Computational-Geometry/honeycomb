@@ -17,7 +17,7 @@ pub fn bench_generate_2d_grid<T: CoordsFloat>(args: Generate2dGridArgs) -> CMap2
     let descriptor = GridDescriptor::<2, T>::default()
         .n_cells([args.nx.get(), args.ny.get()])
         .len_per_cell([T::from(args.lx).unwrap(), T::from(args.ly).unwrap()])
-        .split_quads(args.split.is_some_and(|s| s == Split::Uniform));
+        .split_cells(args.split.is_some_and(|s| s == Split::Uniform));
 
     let mut map = CMapBuilder::from_grid_descriptor(descriptor)
         .build()

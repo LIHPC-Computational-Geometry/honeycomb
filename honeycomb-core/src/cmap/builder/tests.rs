@@ -21,7 +21,7 @@ fn build_nc_lpc_l() {
         .len_per_cell([1.0_f64, 1.0_f64])
         .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
+    assert!(descriptor.split_cells(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn build_nc_lpc() {
         .n_cells([4, 4])
         .len_per_cell([1.0_f64, 1.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
+    assert!(descriptor.split_cells(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn build_nc_l() {
         .n_cells([4, 4])
         .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
+    assert!(descriptor.split_cells(true).parse_2d().is_ok());
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn build_lpc_l() {
         .len_per_cell([1.0_f64, 1.0_f64])
         .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
+    assert!(descriptor.split_cells(true).parse_2d().is_ok());
 }
 
 #[test]

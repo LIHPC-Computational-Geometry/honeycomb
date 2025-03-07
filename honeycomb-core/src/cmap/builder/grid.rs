@@ -21,7 +21,7 @@ pub struct GridDescriptor<const D: usize, T: CoordsFloat> {
     pub(crate) n_cells: Option<[usize; D]>,
     pub(crate) len_per_cell: Option<[T; D]>,
     pub(crate) lens: Option<[T; D]>,
-    pub(crate) split_quads: bool,
+    pub(crate) split_cells: bool,
 }
 
 impl<const D: usize, T: CoordsFloat> Default for GridDescriptor<D, T> {
@@ -31,7 +31,7 @@ impl<const D: usize, T: CoordsFloat> Default for GridDescriptor<D, T> {
             n_cells: None,
             len_per_cell: None,
             lens: None,
-            split_quads: false,
+            split_cells: false,
         }
     }
 }
@@ -67,8 +67,8 @@ impl<const D: usize, T: CoordsFloat> GridDescriptor<D, T> {
 
     /// Indicate whether to split quads of the grid
     #[must_use = "unused builder object"]
-    pub fn split_quads(mut self, split: bool) -> Self {
-        self.split_quads = split;
+    pub fn split_cells(mut self, split: bool) -> Self {
+        self.split_cells = split;
         self
     }
 }

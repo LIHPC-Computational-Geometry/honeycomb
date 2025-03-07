@@ -85,6 +85,7 @@ enum BuilderType<const D: usize, T: CoordsFloat> {
     Vtk(Vtk),
 }
 
+#[doc(hidden)]
 pub trait Builder {
     type MapType;
     fn build(self) -> Result<Self::MapType, BuilderError>;
@@ -101,7 +102,7 @@ impl<T: CoordsFloat> Builder for CMapBuilder<2, T> {
                 self.attributes,
             )),
             BuilderType::Grid(gridb) => {
-                let split = gridb.split_quads;
+                let split = gridb.split_cells;
                 gridb.parse_2d().map(|(origin, ns, lens)| {
                     if split {
                         super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
@@ -126,9 +127,13 @@ impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
                 self.attributes,
             )),
             BuilderType::Grid(gridb) => {
-                // let split = gridb.split_quads;
+                let split = gridb.split_cells;
                 gridb.parse_3d().map(|(origin, ns, lens)| {
-                    super::grid::build_3d_grid(origin, ns, lens, self.attributes)
+                    if split {
+                        unimplemented!()
+                    } else {
+                        super::grid::build_3d_grid(origin, ns, lens, self.attributes)
+                    }
                 })
             }
             BuilderType::Vtk(_vfile) => unimplemented!(),
@@ -230,7 +235,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
 }
 
 /// # Pre-definite structures
-impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
+impl<T: CoordsFloat> CMapBuilder<2, T> {
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     ///
     /// # Arguments
@@ -251,8 +256,8 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
         Self {
             builder_kind: BuilderType::Grid(
                 GridDescriptor::default()
-                    .n_cells([n_square; D])
-                    .len_per_cell([T::one(); D]),
+                    .n_cells([n_square; 2])
+                    .len_per_cell([T::one(); 2]),
             ),
             attributes: AttrStorageManager::default(),
         }
@@ -279,9 +284,37 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
         Self {
             builder_kind: BuilderType::Grid(
                 GridDescriptor::default()
-                    .n_cells([n_square; D])
-                    .len_per_cell([T::one(); D])
-                    .split_quads(true),
+                    .n_cells([n_square; 2])
+                    .len_per_cell([T::one(); 2])
+                    .split_cells(true),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
+    }
+}
+
+/// # Pre-definite structures
+impl<T: CoordsFloat> CMapBuilder<3, T> {
+    #[must_use = "unused builder object"]
+    pub fn hex_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_cells_per_axis; 3])
+                    .len_per_cell([cell_length; 3]),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
+    }
+
+    #[must_use = "unused builder object"]
+    pub fn tet_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_cells_per_axis; 3])
+                    .len_per_cell([cell_length; 3])
+                    .split_cells(true),
             ),
             attributes: AttrStorageManager::default(),
         }
