@@ -85,7 +85,7 @@ enum BuilderType<const D: usize, T: CoordsFloat> {
     Vtk(Vtk),
 }
 
-trait Builder {
+pub trait Builder {
     type MapType;
     fn build(self) -> Result<Self::MapType, BuilderError>;
 }

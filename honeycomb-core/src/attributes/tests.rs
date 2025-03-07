@@ -140,7 +140,7 @@ impl AttributeBind for Color {
 #[test]
 fn temperature_map() {
     // build the map
-    let builder = CMapBuilder::from_n_darts(6).add_attribute::<Temperature>();
+    let builder = CMapBuilder::<2, _>::from_n_darts(6).add_attribute::<Temperature>();
     let map: CMap2<f64> = builder.build().unwrap();
 
     map.force_link::<2>(1, 2).unwrap();

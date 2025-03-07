@@ -7,7 +7,7 @@ use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
 
 #[test]
 fn example_test() {
-    let builder = CMapBuilder::from_n_darts(10);
+    let builder = CMapBuilder::<2, _>::from_n_darts(10);
     let cmap: CMap2<f64> = builder.build().unwrap();
     assert_eq!(cmap.n_darts(), 11);
 }
@@ -17,9 +17,9 @@ fn example_test() {
 #[test]
 fn build_nc_lpc_l() {
     let descriptor = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-        .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        .n_cells([4, 4])
+        .len_per_cell([1.0_f64, 1.0_f64])
+        .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
     assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
@@ -27,8 +27,8 @@ fn build_nc_lpc_l() {
 #[test]
 fn build_nc_lpc() {
     let descriptor = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64]);
+        .n_cells([4, 4])
+        .len_per_cell([1.0_f64, 1.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
     assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
@@ -36,9 +36,8 @@ fn build_nc_lpc() {
 #[test]
 fn build_nc_l() {
     let descriptor = GridDescriptor::default()
-        .n_cells_x(4)
-        .n_cells_y(4)
-        .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        .n_cells([4, 4])
+        .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
     assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
@@ -46,10 +45,8 @@ fn build_nc_l() {
 #[test]
 fn build_lpc_l() {
     let descriptor = GridDescriptor::default()
-        .len_per_cell_x(1.0_f64)
-        .len_per_cell_y(1.0_f64)
-        .lens_x(4.0)
-        .lens_y(4.0);
+        .len_per_cell([1.0_f64, 1.0_f64])
+        .lens([4.0_f64, 4.0_f64]);
     assert!(descriptor.clone().parse_2d().is_ok());
     assert!(descriptor.split_quads(true).parse_2d().is_ok());
 }
@@ -58,19 +55,19 @@ fn build_lpc_l() {
 fn build_incomplete() {
     assert!(
         GridDescriptor::default()
-            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .len_per_cell([1.0_f64, 1.0_f64])
             .parse_2d()
             .is_err()
     );
     assert!(
-        <GridDescriptor<f64>>::default()
-            .n_cells([4, 4, 0])
+        GridDescriptor::<2, f64>::default()
+            .n_cells([4, 4])
             .parse_2d()
             .is_err()
     );
     assert!(
         GridDescriptor::default()
-            .lens([4.0_f64, 4.0_f64, 4.0_f64])
+            .lens([4.0_f64, 4.0_f64])
             .parse_2d()
             .is_err()
     );
@@ -80,8 +77,8 @@ fn build_incomplete() {
 #[should_panic(expected = "length per y cell is null or negative")]
 fn build_neg_lpc() {
     let tmp = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
+        .n_cells([4, 4])
+        .len_per_cell([1.0_f64, -1.0_f64])
         .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
@@ -90,8 +87,8 @@ fn build_neg_lpc() {
 #[should_panic(expected = "grid length along x is null or negative")]
 fn build_null_l() {
     let tmp = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .lens([0.0_f64, 4.0_f64, 4.0_f64])
+        .n_cells([4, 4])
+        .lens([0.0_f64, 4.0_f64])
         .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
@@ -102,8 +99,8 @@ fn build_neg_lpc_neg_l() {
     // lpc are parsed first so their panic msg should be the one to pop
     // x val is parsed first so ...
     let tmp = GridDescriptor::default()
-        .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
-        .lens([0.0_f64, 4.0_f64, 4.0_f64])
+        .len_per_cell([-1.0_f64, -1.0_f64])
+        .lens([0.0_f64, 4.0_f64])
         .parse_2d();
     let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
 }
@@ -113,8 +110,8 @@ fn build_neg_lpc_neg_l() {
 #[test]
 fn square_cmap2_correctness() {
     let descriptor = GridDescriptor::default()
-        .n_cells([2, 2, 2])
-        .len_per_cell([1., 1., 1.]);
+        .n_cells([2, 2])
+        .len_per_cell([1., 1.]);
     let cmap: CMap2<f64> = CMapBuilder::from_grid_descriptor(descriptor)
         .build()
         .unwrap();
@@ -219,7 +216,7 @@ fn square_cmap2_correctness() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn splitsquare_cmap2_correctness() {
-    let cmap: CMap2<f64> = CMapBuilder::unit_triangles(2).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::<2, _>::unit_triangles(2).build().unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction
@@ -413,7 +410,7 @@ mod cmap {
 
     #[test]
     fn wr_identity() {
-        let map: CMap2<f32> = CMapBuilder::unit_grid(1).build().unwrap();
+        let map: CMap2<f32> = CMapBuilder::<2, _>::unit_grid(1).build().unwrap();
         let mut buff = String::new();
         map.serialize(&mut buff);
         let cmap_file = CMapFile::try_from(buff).unwrap();
