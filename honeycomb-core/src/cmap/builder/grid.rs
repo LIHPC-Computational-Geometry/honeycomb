@@ -434,7 +434,6 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
 
 // ------ 3D
 
-#[allow(unused)]
 /// Internal grid-building routine
 #[allow(clippy::too_many_lines)]
 pub fn build_3d_grid<T: CoordsFloat>(
@@ -491,7 +490,7 @@ pub fn build_3d_grid<T: CoordsFloat>(
 // z+: 13
 // x-: 17
 // x+: 9
-#[allow(clippy::inline_always, unused)]
+#[allow(clippy::inline_always)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_hex_beta_values(
@@ -511,8 +510,8 @@ fn generate_hex_beta_values(
                     d1 + 16, d1 + 17, d1 + 18, d1 + 19, d1 + 20, d1 + 21, d1 + 22, d1 + 23,
                 );
                 let noffset_x = 24;
-                let noffset_y = 24 * n_x as DartIdType;
-                let noffset_z = 24 * (n_x * n_y ) as DartIdType;
+                let noffset_y = noffset_x * n_x as DartIdType;
+                let noffset_z = noffset_y * n_y  as DartIdType;
 
                 // beta images of the cube (tm)
                 [
@@ -556,7 +555,6 @@ fn generate_hex_beta_values(
 // FIXME: merge match arms once there are tests
 #[allow(
     clippy::inline_always,
-    unused,
     clippy::match_same_arms,
     clippy::too_many_lines,
     clippy::many_single_char_names

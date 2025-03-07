@@ -105,7 +105,7 @@ library_benchmark_group!(
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn zero_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<0>(5));
+    black_box(map.i_cell::<0>(5).collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -113,7 +113,7 @@ fn zero_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn one_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<1>(5));
+    black_box(map.i_cell::<1>(5).collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -121,7 +121,7 @@ fn one_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn two_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<2>(5));
+    black_box(map.i_cell::<2>(5).collect::<Vec<_>>());
 }
 
 library_benchmark_group!(
