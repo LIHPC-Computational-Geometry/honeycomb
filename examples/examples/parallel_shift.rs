@@ -44,7 +44,9 @@ fn main() {
         .build_global()
         .unwrap();
 
-    let map: CMap2<f64> = CMapBuilder::unit_triangles(N_SQUARES).build().unwrap();
+    let map: CMap2<f64> = CMapBuilder::<2, _>::unit_triangles(N_SQUARES)
+        .build()
+        .unwrap();
 
     // fetch all vertices that are not on the boundary of the map
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = map

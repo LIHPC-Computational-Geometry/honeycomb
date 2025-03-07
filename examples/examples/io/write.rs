@@ -15,7 +15,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<f32> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
+    let mut map: CMap2<f32> = CMapBuilder::<2, _>::unit_grid(N_SQUARE).build().unwrap();
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 

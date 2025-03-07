@@ -23,7 +23,9 @@ use honeycomb_benches::utils::FloatType;
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::unit_grid(n_square).build().unwrap()
+    CMapBuilder::<2, FloatType>::unit_grid(n_square)
+        .build()
+        .unwrap()
 }
 
 // --- constructor group
@@ -32,7 +34,7 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn new(n_squares: usize) -> CMap2<FloatType> {
     black_box(
-        CMapBuilder::from_n_darts(n_squares.pow(2) * 4)
+        CMapBuilder::<2, FloatType>::from_n_darts(n_squares.pow(2) * 4)
             .build()
             .unwrap(),
     )
@@ -41,13 +43,17 @@ fn new(n_squares: usize) -> CMap2<FloatType> {
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn grid(n_squares: usize) -> CMap2<FloatType> {
-    black_box(CMapBuilder::unit_grid(n_squares).build().unwrap())
+    black_box(CMapBuilder::<2, _>::unit_grid(n_squares).build().unwrap())
 }
 
 #[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512])]
 fn tet_grid(n_squares: usize) -> CMap2<FloatType> {
-    black_box(CMapBuilder::unit_triangles(n_squares).build().unwrap())
+    black_box(
+        CMapBuilder::<2, _>::unit_triangles(n_squares)
+            .build()
+            .unwrap(),
+    )
 }
 
 library_benchmark_group!(
@@ -99,7 +105,7 @@ library_benchmark_group!(
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn zero_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<0>(5));
+    black_box(map.i_cell::<0>(5).collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -107,7 +113,7 @@ fn zero_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn one_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<1>(5));
+    black_box(map.i_cell::<1>(5).collect::<Vec<_>>());
 }
 
 #[library_benchmark]
@@ -115,7 +121,7 @@ fn one_cell(map: &CMap2<FloatType>) {
 #[bench::medium(&get_map(64))]
 #[bench::large(&get_map(256))]
 fn two_cell(map: &CMap2<FloatType>) {
-    black_box(map.i_cell::<2>(5));
+    black_box(map.i_cell::<2>(5).collect::<Vec<_>>());
 }
 
 library_benchmark_group!(

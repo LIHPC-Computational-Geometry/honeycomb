@@ -180,11 +180,9 @@ pub fn grisubal<T: CoordsFloat>(
     let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
     let [cx, cy] = grid_cell_sizes;
     let ogrid = GridDescriptor::default()
-        .n_cells_x(nx)
-        .n_cells_y(ny)
-        .len_per_cell_x(cx)
-        .len_per_cell_y(cy)
-        .origin(origin);
+        .n_cells([nx, ny])
+        .len_per_cell([cx, cy])
+        .origin([origin.0, origin.1]);
     unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
     //----/
 
