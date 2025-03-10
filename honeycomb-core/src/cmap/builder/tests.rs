@@ -476,7 +476,11 @@ fn hex_cmap3_correctness() {
         .build()
         .unwrap();
 
-    // TODO: complete with assertions
+    assert_eq!(cmap.n_darts(), 1 + 24 * 8); // 24 darts per volume, and the null dart
+    assert_eq!(cmap.iter_volumes().count(), 8); // 2*2*2 volumes
+    assert_eq!(cmap.iter_faces().count(), 24 + 12); // 24 on the boundaries + 12 inside
+    assert_eq!(cmap.iter_edges().count(), 54); // trust me
+    assert_eq!(cmap.iter_vertices().count(), 27); // 9 * 3 vertices
 }
 
 // --- IO
