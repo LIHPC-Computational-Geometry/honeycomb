@@ -8,12 +8,13 @@ use crate::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 ///
 /// The user must specify two out of these three characteristics (third is deduced):
 ///
-/// - `n_cells: [usize; 3]` -- The number of cells per axis
-/// - `len_per_cell: [T; 3]` -- The dimensions of cells per axis
-/// - `lens: [T; 3]` -- The total dimensions of the grid per axis
+/// - `n_cells: [usize; D]` -- The number of cells per axis
+/// - `len_per_cell: [T; D]` -- The dimensions of cells per axis
+/// - `lens: [T; D]` -- The total dimensions of the grid per axis
 ///
 /// ## Generics
 ///
+/// - `const D: usize` -- Dimension of the grid. Should be 2 or 3.
 /// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
 #[derive(Clone)]
 pub struct GridDescriptor<const D: usize, T: CoordsFloat> {

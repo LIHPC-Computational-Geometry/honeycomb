@@ -60,13 +60,15 @@ pub enum BuilderError {
 /// ```rust
 /// # use honeycomb_core::cmap::BuilderError;
 /// # fn main() -> Result<(), BuilderError> {
-/// use honeycomb_core::cmap::{CMap2, CMapBuilder};
+/// use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder};
 ///
-/// let builder = CMapBuilder::<2, _>::from_n_darts(10);
-/// let map: CMap2<f64> = builder.build()?;
+/// let builder_2d = CMapBuilder::<2, _>::from_n_darts(10);
+/// let map_2d: CMap2<f64> = builder_2d.build()?;
+/// assert_eq!(map_2d.n_darts(), 11); // 10 + null dart = 11
 ///
-/// assert_eq!(map.n_darts(), 11); // 10 + null dart = 11
-///
+/// let builder_3d = CMapBuilder::<3, _>::from_n_darts(10);
+/// let map_3d: CMap3<f64> = builder_3d.build()?;
+/// assert_eq!(map_3d.n_darts(), 11); // 10 + null dart = 11
 /// # Ok(())
 /// # }
 /// ```
@@ -142,7 +144,7 @@ impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
 }
 /// # Regular methods
 impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
-    /// Set the number of dart that the created map will contain.
+    /// Create a builder structure for a map with a set number of darts.
     #[must_use = "unused builder object"]
     pub fn from_n_darts(n_darts: usize) -> Self {
         Self {
@@ -151,7 +153,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
         }
     }
 
-    /// Set the [`GridDescriptor`] that will be used when building the map.
+    /// Create a builder structure from a [`GridDescriptor`].
     #[must_use = "unused builder object"]
     pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<D, T>) -> Self {
         Self {
@@ -160,7 +162,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
         }
     }
 
-    /// Set the `cmap` file that will be used when building the map.
+    /// Create a builder structure from a `cmap` file.
     ///
     /// # Panics
     ///
@@ -179,7 +181,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
         }
     }
 
-    /// Set the VTK file that will be used when building the map.
+    /// Create a builder structure from a VTK file.
     ///
     /// # Panics
     ///
@@ -214,13 +216,18 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     }
 
     #[allow(clippy::missing_errors_doc)]
-    /// Consumes the builder and produce a [`CMap2`] object.
+    /// Consumes the builder and produce a combinatorial map object.
     ///
     /// # Return / Errors
     ///
     /// This method return a `Result` taking the following values:
-    /// - `Ok(map: CMap2)` if generation was successful,
+    /// - `Ok(map: _)` if generation was successful,
     /// - `Err(BuilderError)` otherwise. See [`BuilderError`] for possible failures.
+    ///
+    /// Depending on the dimension `D` associated with this structure, the map will either be a
+    /// `CMap2` or `CMap3`. If `D` isn't 2 or 3, this method will not be available as it uses a
+    /// trait not implemented for other values of `D`. This is necessary to handle the multiple
+    /// return types as Rust is slightlty lacking in terms of comptime capabilities.
     ///
     /// # Panics
     ///
@@ -234,7 +241,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     }
 }
 
-/// # Pre-definite structures
+/// # 2D pre-definite structures
 impl<T: CoordsFloat> CMapBuilder<2, T> {
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     ///
@@ -293,13 +300,13 @@ impl<T: CoordsFloat> CMapBuilder<2, T> {
     }
 }
 
-/// # Pre-definite structures
+/// # 3D pre-definite structures
 impl<T: CoordsFloat> CMapBuilder<3, T> {
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     ///
     /// # Arguments
     ///
-    /// - `n_square: usize` -- Number of cells along each axis.
+    /// - `n_cells_per_axis: usize` -- Number of cells along each axis.
     ///
     /// # Return
     ///
