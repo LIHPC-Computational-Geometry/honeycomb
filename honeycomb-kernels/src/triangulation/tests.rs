@@ -147,7 +147,7 @@ fn earclip_cells() {
     // the hex will be split in 4
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert!(earclip_cell(&mut map, hex1, &new_darts).is_ok());
+    assert_eq!(earclip_cell(&mut map, hex1, &new_darts), Ok(()));
 
     assert_eq!(map.i_cell::<2>(hex1 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(3).count(), 3);

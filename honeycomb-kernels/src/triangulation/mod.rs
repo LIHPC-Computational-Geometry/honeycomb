@@ -18,6 +18,7 @@ pub use ear_clipping::process_cell as earclip_cell;
 pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
 
+use honeycomb_core::cmap::SewError;
 use honeycomb_core::cmap::{CMap2, DartIdType};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use thiserror::Error;
@@ -45,6 +46,9 @@ pub enum TriangulateError {
     /// The face is not fit for triangulation. The `String` contains information about the reason.
     #[error("face isn't defined correctly - {0}")]
     UndefinedFace(&'static str),
+    /// An internal sew or link failed
+    #[error("an internal operation failed - {0}")]
+    OpFailed(#[from] SewError),
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -108,7 +112,7 @@ pub fn check_requirements(
 fn fetch_face_vertices<T: CoordsFloat>(
     cmap: &CMap2<T>,
     darts: &[DartIdType],
-) -> Result<Vec<Vertex2<T>>, TriangulateError> {
+) -> Result<impl Iterator<Item = Vertex2<T>>, TriangulateError> {
     let tmp = darts
         .iter()
         .map(|dart_id| cmap.force_read_vertex(cmap.vertex_id(*dart_id)));
@@ -117,7 +121,7 @@ fn fetch_face_vertices<T: CoordsFloat>(
             "one or more undefined vertices",
         ))
     } else {
-        Ok(tmp.map(Option::unwrap).collect()) // safe unwrap due to if
+        Ok(tmp.map(Option::unwrap)) // safe unwrap due to if
     }
 }
 
