@@ -7,6 +7,7 @@ use std::collections::{HashSet, VecDeque};
 
 use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy};
 use crate::geometry::CoordsFloat;
+use crate::stm::{StmClosureResult, StmError, Transaction};
 
 /// **Orbits**
 impl<T: CoordsFloat> CMap2<T> {
@@ -111,6 +112,116 @@ impl<T: CoordsFloat> CMap2<T> {
                 }
 
                 return Some(d);
+            }
+            None // queue is empty, we're done
+        })
+    }
+
+    /// Generic orbit transactional implementation.
+    pub fn orbit_transac(
+        &self,
+        t: &mut Transaction,
+        opolicy: OrbitPolicy,
+        dart_id: DartIdType,
+    ) -> impl Iterator<Item = StmClosureResult<DartIdType>> {
+        let mut pending = VecDeque::new();
+        let mut marked: HashSet<DartIdType> = HashSet::new();
+        pending.push_back(dart_id);
+        marked.insert(NULL_DART_ID);
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+
+        std::iter::from_fn(move || {
+            if let Some(d) = pending.pop_front() {
+                // compute the next images
+                match opolicy {
+                    OrbitPolicy::Vertex => {
+                        match (self.beta_transac::<2>(t, d), self.beta_transac::<0>(t, d)) {
+                            (Ok(b2), Ok(b0)) => {
+                                match (self.beta_transac::<1>(t, b2), self.beta_transac::<2>(t, b0))
+                                {
+                                    (Ok(im1), Ok(im2)) => {
+                                        if marked.insert(im1) {
+                                            // if true, we did not see this dart yet
+                                            // i.e. we need to visit it later
+                                            pending.push_back(im1);
+                                        }
+                                        if marked.insert(im2) {
+                                            // if true, we did not see this dart yet
+                                            // i.e. we need to visit it later
+                                            pending.push_back(im2);
+                                        }
+                                    }
+                                    _ => return Some(Err(StmError::Failure)),
+                                }
+                            }
+                            _ => return Some(Err(StmError::Failure)),
+                        }
+                    }
+                    OrbitPolicy::VertexLinear => {
+                        if let Ok(b2) = self.beta_transac::<2>(t, d) {
+                            if let Ok(im) = self.beta_transac::<1>(t, b2) {
+                                if marked.insert(im) {
+                                    pending.push_back(im);
+                                }
+                            } else {
+                                return Some(Err(StmError::Failure));
+                            }
+                        } else {
+                            return Some(Err(StmError::Failure));
+                        }
+                    }
+                    OrbitPolicy::Edge => {
+                        if let Ok(im) = self.beta_transac::<2>(t, d) {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        } else {
+                            return Some(Err(StmError::Failure));
+                        }
+                    }
+                    OrbitPolicy::Face => {
+                        match (self.beta_transac::<1>(t, d), self.beta_transac::<0>(t, d)) {
+                            (Ok(im1), Ok(im2)) => {
+                                if marked.insert(im1) {
+                                    // if true, we did not see this dart yet
+                                    // i.e. we need to visit it later
+                                    pending.push_back(im1);
+                                }
+                                if marked.insert(im2) {
+                                    // if true, we did not see this dart yet
+                                    // i.e. we need to visit it later
+                                    pending.push_back(im2);
+                                }
+                            }
+                            _ => return Some(Err(StmError::Failure)),
+                        }
+                    }
+                    OrbitPolicy::FaceLinear => {
+                        if let Ok(im) = self.beta_transac::<1>(t, d) {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        } else {
+                            return Some(Err(StmError::Failure));
+                        }
+                    }
+                    OrbitPolicy::Custom(beta_slice) => {
+                        for beta_id in beta_slice {
+                            if let Ok(im) = self.beta_rt_transac(t, *beta_id, d) {
+                                if marked.insert(im) {
+                                    pending.push_back(im);
+                                }
+                            } else {
+                                return Some(Err(StmError::Failure));
+                            }
+                        }
+                    }
+                    OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
+                        unimplemented!("3-cells aren't defined for 2-maps")
+                    }
+                }
+
+                return Some(Ok(d));
             }
             None // queue is empty, we're done
         })
