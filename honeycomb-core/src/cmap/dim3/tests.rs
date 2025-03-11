@@ -96,6 +96,20 @@ fn example_test() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
@@ -297,6 +311,20 @@ fn example_test_transactional() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
