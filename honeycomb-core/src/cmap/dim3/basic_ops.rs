@@ -302,35 +302,28 @@ impl<T: CoordsFloat> CMap3<T> {
         dart_id: DartIdType,
     ) -> Result<EdgeIdType, StmError> {
         AUXILIARIES.with(|t| {
-            let (_pending, marked) = &mut *t.borrow_mut();
+            let (pending, marked) = &mut *t.borrow_mut();
             // clear from previous computations
+            pending.clear();
             marked.clear();
             // initialize
-            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+            pending.push_back(dart_id);
+            marked.insert(NULL_DART_ID);
 
-            let (mut lb, mut rb) = (dart_id, self.beta_transac::<3>(trans, dart_id)?);
-            let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
-            let mut alt = true;
+            let mut min = dart_id;
 
-            while marked.insert(lb) || marked.insert(rb) {
-                (lb, rb) = if alt {
-                    (
-                        self.beta_transac::<2>(trans, lb)?,
-                        self.beta_transac::<2>(trans, rb)?,
-                    )
-                } else {
-                    (
-                        self.beta_transac::<3>(trans, lb)?,
-                        self.beta_transac::<3>(trans, rb)?,
-                    )
-                };
-                if lb != NULL_DART_ID {
-                    min = min.min(lb);
+            while let Some(d) = pending.pop_front() {
+                if marked.insert(d) {
+                    min = min.min(d);
+                    [
+                        self.beta_transac::<2>(trans, d)?,
+                        self.beta_transac::<3>(trans, d)?,
+                    ]
+                    .into_iter()
+                    .for_each(|im| {
+                        pending.push_back(im);
+                    });
                 }
-                if rb != NULL_DART_ID {
-                    min = min.min(rb);
-                }
-                alt = !alt;
             }
 
             Ok(min)
