@@ -523,12 +523,12 @@ fn generate_hex_beta_values(
                     [d3 , d1 , d17, if iy == 0       { 0 } else { d22 - noffset_y }],
                     // side (5 , z-)
                     [d8 , d6 , d1 , if iz == 0       { 0 } else { d13 - noffset_z }],
-                    [d5 , d7 , d10, if iz == 0       { 0 } else { d16 - noffset_z }],
+                    [d5 , d7 , d20, if iz == 0       { 0 } else { d16 - noffset_z }],
                     [d6 , d8 , d21, if iz == 0       { 0 } else { d15 - noffset_z }],
-                    [d7 , d5 , d20, if iz == 0       { 0 } else { d14 - noffset_z }],
+                    [d7 , d5 , d10, if iz == 0       { 0 } else { d14 - noffset_z }],
                     // side (9 , x+)
                     [d12, d10, d2 , if ix == n_x - 1 { 0 } else { d17 + noffset_x }],
-                    [d9 , d11, d6 , if ix == n_x - 1 { 0 } else { d20 + noffset_x }],
+                    [d9 , d11, d8 , if ix == n_x - 1 { 0 } else { d20 + noffset_x }],
                     [d10, d12, d24, if ix == n_x - 1 { 0 } else { d19 + noffset_x }],
                     [d11, d9 , d14, if ix == n_x - 1 { 0 } else { d18 + noffset_x }],
                     // side (13, z+)
@@ -540,10 +540,10 @@ fn generate_hex_beta_values(
                     [d20, d18, d4 , if ix == 0       { 0 } else { d9  - noffset_x }],
                     [d17, d19, d16, if ix == 0       { 0 } else { d12 - noffset_x }],
                     [d18, d20, d22, if ix == 0       { 0 } else { d11 - noffset_x }],
-                    [d19, d17, d8 , if ix == 0       { 0 } else { d10 - noffset_x }],
+                    [d19, d17, d6 , if ix == 0       { 0 } else { d10 - noffset_x }],
                     // up   (21, y+)
                     [d24, d22, d7 , if iy == n_y - 1 { 0 } else { d1  + noffset_y }],
-                    [d21, d23, d14, if iy == n_y - 1 { 0 } else { d4  + noffset_y }],
+                    [d21, d23, d19, if iy == n_y - 1 { 0 } else { d4  + noffset_y }],
                     [d22, d24, d15, if iy == n_y - 1 { 0 } else { d3  + noffset_y }],
                     [d23, d21, d11, if iy == n_y - 1 { 0 } else { d2  + noffset_y }],
                 ]
