@@ -315,14 +315,12 @@ impl<T: CoordsFloat> CMap3<T> {
             while let Some(d) = pending.pop_front() {
                 if marked.insert(d) {
                     min = min.min(d);
-                    [
+                    for im in [
                         self.beta_transac::<2>(trans, d)?,
                         self.beta_transac::<3>(trans, d)?,
-                    ]
-                    .into_iter()
-                    .for_each(|im| {
+                    ] {
                         pending.push_back(im);
-                    });
+                    }
                 }
             }
 
