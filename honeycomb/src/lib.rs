@@ -67,7 +67,7 @@ pub mod prelude {
     // ------ KERNELS RE-EXPORTS
 
     #[cfg(feature = "kernels")]
-    pub use honeycomb_kernels::{grisubal, splits, triangulation};
+    pub use honeycomb_kernels::{cell_insertion, grisubal, triangulation};
 
     // ------ RENDER RE-EXPORTS
 
