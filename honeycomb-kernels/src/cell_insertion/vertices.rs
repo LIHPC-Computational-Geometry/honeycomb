@@ -44,21 +44,18 @@ impl From<AttributeError> for VertexInsertionError {
 
 // -- routines
 
-/// Split an edge into two segments.
+/// Insert a vertex in an edge, cutting it into two segments.
 ///
 /// <div class="warning">
 /// This implementation is 2D specific.
 /// </div>
 ///
-/// This method takes all darts of an edge and rebuild connections in order to create a new
-/// point on this edge. The position of the point defaults to the midway point, but it can
-/// optionally be specified.
-///
 /// # Arguments
 ///
 /// - `cmap: &mut CMap2<T>` -- Reference to the modified map.
-/// - `edge_id: EdgeIdentifier` -- Edge to split in two.
-/// - `new_darts: (DartIdentifier, DartIdentifier)` -- Dart IDs used to build the new segments.
+/// - `trans: &mut Transaction` -- Associated transaction.
+/// - `edge_id: EdgeIdentifier` -- Target edge.
+/// - `new_darts: (DartIdentifier, DartIdentifier)` -- Dart IDs used to build the new vertex/segments.
 /// - `midpoint_vertex: Option<T>` -- Relative position of the new vertex, starting from the
 ///   vertex of the dart sharing `edge_id` as its identifier.
 ///
@@ -82,19 +79,6 @@ impl From<AttributeError> for VertexInsertionError {
 /// The returned error can be used in conjunction with transaction control to avoid any
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
-///
-/// # Example
-///
-/// Given an edge made of darts `1` and `2`, these darts respectively encoding vertices
-/// `(0.0, 0.0)` and `(2.0, 0.0)`, calling `map.split_edge(1, Some(0.2))` would result in the
-/// creation of two new darts, a new vertex (ID `3`) at position `(0.4, 0.0)` and the following
-/// topology:
-///
-/// ```text
-///    +----1---->              +-1-> +-3->     |
-///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
-///    <----2----+              <-4-- <-2-+     |
-/// ```
 #[allow(clippy::too_many_lines)]
 pub fn insert_vertex_in_edge<T: CoordsFloat>(
     cmap: &CMap2<T>,
@@ -144,8 +128,6 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
         if b1d1_old != NULL_DART_ID {
             try_or_coerce!(cmap.unlink::<1>(trans, base_dart1), VertexInsertionError);
         }
-        // cmap.set_beta::<1>(base_dart1, 0);
-        // cmap.set_beta::<0>(b1d1_old, 0);
         // rebuild the edge
         try_or_coerce!(
             cmap.link::<1>(trans, base_dart1, b1d1_new),
@@ -232,7 +214,7 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 }
 
 #[allow(clippy::missing_errors_doc)]
-/// Split an edge into `n` segments.
+/// Insert `n` vertices in an edge, cutting it into `n+1` segments.
 ///
 /// <div class="warning">
 /// This implementation is 2D specific.
@@ -241,8 +223,9 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 /// # Arguments
 ///
 /// - `cmap: &mut CMap2<T>` -- Reference to the modified map.
-/// - `edge_id: EdgeIdentifier` -- Edge to split in two.
-/// - `new_darts: &[DartIdentifier]` -- Dart IDs used to build the new segments.
+/// - `trans: &mut Transaction` -- Associated transaction.
+/// - `edge_id: EdgeIdentifier` -- Target edge.
+/// - `new_darts: &[DartIdentifier]` -- Dart IDs used to build the new vertices/segments.
 /// - `midpoint_vertices: &[T]` -- Relative positions of new vertices, starting from the
 ///   vertex of the dart sharing `edge_id` as its identifier.
 ///

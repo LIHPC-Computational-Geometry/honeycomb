@@ -1,9 +1,8 @@
-//! Cell splitting functions
+//! Cell insertion functions
 //!
-//! This module contains implementations of cell splitting methods. We currently define
-//! two edge-splitting methods, depending on the number of splits done. Both functions
-//! have "no-alloc" variants: these take additional darts as argument in order not to
-//! allocate darts during the process.
+//! This module contains implementations of cell insertion methods. Due to definition issues, we
+//! only implement insertion of `N-1`-cell into `N`-cell, for example vertex (0-cell) in edge
+//! (1-cell).
 
 mod vertices;
 
