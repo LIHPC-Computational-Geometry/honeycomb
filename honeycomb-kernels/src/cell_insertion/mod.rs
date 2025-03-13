@@ -5,20 +5,18 @@
 //! have "no-alloc" variants: these take additional darts as argument in order not to
 //! allocate darts during the process.
 
-mod edge_multiple;
-mod edge_single;
+mod vertices;
 
-pub use edge_multiple::{splitn_edge, splitn_edge_transac};
-pub use edge_single::{split_edge, split_edge_transac};
+pub use vertices::{insert_vertex_in_edge, insert_vertices_in_edge};
 
 use honeycomb_core::{
     attributes::AttributeError,
     cmap::{LinkError, SewError},
 };
 
-/// Error-modeling enum for edge-splitting routines.
+/// Error-modeling enum for vertex insertion routines.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
-pub enum SplitEdgeError {
+pub enum VertexInsertionError {
     /// A core operation failed.
     #[error("core operation failed: {0}")]
     FailedCoreOp(#[from] SewError),
@@ -37,13 +35,13 @@ pub enum SplitEdgeError {
     WrongAmountDarts(usize, usize),
 }
 
-impl From<LinkError> for SplitEdgeError {
+impl From<LinkError> for VertexInsertionError {
     fn from(value: LinkError) -> Self {
         Self::FailedCoreOp(value.into())
     }
 }
 
-impl From<AttributeError> for SplitEdgeError {
+impl From<AttributeError> for VertexInsertionError {
     fn from(value: AttributeError) -> Self {
         Self::FailedCoreOp(value.into())
     }
