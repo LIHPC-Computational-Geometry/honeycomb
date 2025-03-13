@@ -36,7 +36,6 @@ impl<T: CoordsFloat> CMap2<T> {
     /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
     #[allow(clippy::needless_for_each)]
-    #[rustfmt::skip]
     pub fn orbit(
         &self,
         opolicy: OrbitPolicy,
@@ -51,60 +50,44 @@ impl<T: CoordsFloat> CMap2<T> {
         // FIXME: move the match block out of the iterator
         std::iter::from_fn(move || {
             if let Some(d) = pending.pop_front() {
+                // I have to define the closure here due to mutability constraints
+                let mut check = |d: DartIdType| {
+                    if marked.insert(d) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        pending.push_back(d);
+                    }
+                };
                 // compute the next images
                 match opolicy {
                     OrbitPolicy::Vertex => {
-                        [
-                            self.beta::<1>(self.beta::<2>(d)),
-                            self.beta::<2>(self.beta::<0>(d)),
-                        ]
-                        .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                // if true, we did not see this dart yet
-                                // i.e. we need to visit it later
-                                pending.push_back(im);
-                            }
-                        });
+                        let im1 = self.beta::<1>(self.beta::<2>(d));
+                        let im2 = self.beta::<2>(self.beta::<0>(d));
+                        check(im1);
+                        check(im2);
                     }
                     OrbitPolicy::VertexLinear => {
                         let im = self.beta::<1>(self.beta::<2>(d));
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im);
                     }
                     OrbitPolicy::Edge => {
                         let im = self.beta::<2>(d);
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im);
                     }
                     OrbitPolicy::Face => {
-                        [
-                            self.beta::<1>(d),
-                            self.beta::<0>(d),
-                        ]
-                        .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                // if true, we did not see this dart yet
-                                // i.e. we need to visit it later
-                                pending.push_back(im);
-                            }
-                        });
+                        let im1 = self.beta::<1>(d);
+                        let im2 = self.beta::<0>(d);
+                        check(im1);
+                        check(im2);
                     }
                     OrbitPolicy::FaceLinear => {
                         let im = self.beta::<1>(d);
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im)
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
-                            let image = self.beta_rt(*beta_id, d);
-                            if marked.insert(image) {
-                                pending.push_back(image);
-                            }
+                            let im = self.beta_rt(*beta_id, d);
+                            check(im);
                         }
                     }
                     OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
@@ -134,69 +117,55 @@ impl<T: CoordsFloat> CMap2<T> {
 
         try_from_fn(move || {
             if let Some(d) = pending.pop_front() {
-                // Compute next images based on policy, using ? for error handling
+                // I have to define the closure here due to mutability constraints
+                let mut check = |d: DartIdType| {
+                    if marked.insert(d) {
+                        // if true, we did not see this dart yet
+                        // i.e. we need to visit it later
+                        pending.push_back(d);
+                    }
+                };
                 match opolicy {
                     OrbitPolicy::Vertex => {
                         let b2 = self.beta_transac::<2>(t, d)?;
                         let b0 = self.beta_transac::<0>(t, d)?;
-                        [
-                            self.beta_transac::<1>(t, b2)?,
-                            self.beta_transac::<2>(t, b0)?,
-                        ]
-                        .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                // if true, we did not see this dart yet
-                                // i.e. we need to visit it later
-                                pending.push_back(im);
-                            }
-                        });
+                        let im1 = self.beta_transac::<1>(t, b2)?;
+                        let im2 = self.beta_transac::<2>(t, b0)?;
+                        check(im1);
+                        check(im2);
                     }
                     OrbitPolicy::VertexLinear => {
                         let b2 = self.beta_transac::<2>(t, d)?;
                         let im = self.beta_transac::<1>(t, b2)?;
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im);
                     }
                     OrbitPolicy::Edge => {
                         let im = self.beta_transac::<2>(t, d)?;
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im);
                     }
                     OrbitPolicy::Face => {
-                        [self.beta_transac::<1>(t, d)?, self.beta_transac::<0>(t, d)?]
-                            .into_iter()
-                            .for_each(|im| {
-                                if marked.insert(im) {
-                                    // if true, we did not see this dart yet
-                                    // i.e. we need to visit it later
-                                    pending.push_back(im);
-                                }
-                            });
+                        let im1 = self.beta_transac::<1>(t, d)?;
+                        let im2 = self.beta_transac::<0>(t, d)?;
+                        check(im1);
+                        check(im2);
                     }
                     OrbitPolicy::FaceLinear => {
                         let im = self.beta_transac::<1>(t, d)?;
-                        if marked.insert(im) {
-                            pending.push_back(im);
-                        }
+                        check(im)
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
                             let im = self.beta_rt_transac(t, *beta_id, d)?;
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
+                            check(im);
                         }
                     }
                     OrbitPolicy::Volume | OrbitPolicy::VolumeLinear => {
                         unimplemented!("3-cells aren't defined for 2-maps")
                     }
                 }
-                return Ok(Some(d)); // Yield the current dart as Ok
+                return Ok(Some(d));
             }
-            Ok(None) // Queue empty, done
+            Ok(None) // queue is empty, we're done
         })
     }
 
