@@ -222,23 +222,39 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 /// ```
 /// # use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
 /// # use honeycomb_core::geometry::Vertex2;
+/// # use honeycomb_core::stm::atomically_with_err;
 /// # use honeycomb_kernels::cell_insertion::insert_vertices_in_edge;
 /// // before
 /// //    <--2---
 /// //  1         2
 /// //    ---1-->
+///
 /// let mut map: CMap2<f64> = CMapBuilder::from_n_darts(2)
 ///                             .build()
 ///                             .unwrap();
 /// map.force_link::<2>(1, 2);
 /// map.force_write_vertex(1, (0.0, 0.0));
 /// map.force_write_vertex(2, (1.0, 0.0));
+///
+/// let nd = map.add_free_darts(6);
+///
 /// // split
-/// assert!(insert_vertices_in_edge(&mut map, 1, [0.25, 0.50, 0.75]).is_ok());
+/// assert!(
+///     atomically_with_err(|t| insert_vertices_in_edge(
+///         &map,
+///         t,
+///         1,
+///         &[nd, nd + 1, nd + 2, nd + 3, nd + 4, nd + 5],
+///         &[0.25, 0.50, 0.75],
+///     )).is_ok()
+/// );
+///
 /// // after
 /// //    <-<-<-<
 /// //  1 -3-4-5- 2
 /// //    >->->->
+///
+/// // checks
 /// let new_darts = [
 ///     map.beta::<1>(1),
 ///     map.beta::<1>(map.beta::<1>(1)),
