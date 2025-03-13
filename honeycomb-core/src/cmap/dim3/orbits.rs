@@ -34,7 +34,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
-    #[allow(clippy::needless_for_each,clippy::too_many_lines)]
+    #[allow(clippy::needless_for_each, clippy::too_many_lines)]
     #[rustfmt::skip]
     pub fn orbit(
         &self,
@@ -50,6 +50,11 @@ impl<T: CoordsFloat> CMap3<T> {
         // FIXME: move the match block out of the iterator
         std::iter::from_fn(move || {
             if let Some(d) = pending.pop_front() {
+                let mut check = |d: DartIdType| {
+                    if marked.insert(d) {
+                        pending.push_back(d);
+                    }
+                };
                 // compute the next images
                 match opolicy {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
@@ -62,11 +67,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<2>(self.beta::<0>(d)), // b2(b0(d))
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B3oB2, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
@@ -76,11 +77,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B2, B3
                     OrbitPolicy::Edge => {
@@ -89,11 +86,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<3>(d),
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B0, B3
                     OrbitPolicy::Face => {
@@ -103,11 +96,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<3>(d),
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B3
                     OrbitPolicy::FaceLinear => {
@@ -116,11 +105,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<3>(d),
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B0, B2
                     OrbitPolicy::Volume => {
@@ -130,11 +115,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<2>(d),
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B2
                     OrbitPolicy::VolumeLinear => {
@@ -143,18 +124,12 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta::<2>(d),
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
-                            let image = self.beta_rt(*beta_id, d);
-                            if marked.insert(image) {
-                                pending.push_back(image);
-                            }
+                            let im = self.beta_rt(*beta_id, d);
+                            check(im);
                         }
                     }
                 }
@@ -167,6 +142,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
     /// Generic orbit transactional implementation.
     #[allow(clippy::needless_for_each, clippy::too_many_lines)]
+    #[rustfmt::skip]
     pub fn orbit_transac(
         &self,
         t: &mut Transaction,
@@ -182,6 +158,11 @@ impl<T: CoordsFloat> CMap3<T> {
         // FIXME: move the match block out of the iterator
         try_from_fn(move || {
             if let Some(d) = pending.pop_front() {
+                let mut check = |d: DartIdType| {
+                    if marked.insert(d) {
+                        pending.push_back(d);
+                    }
+                };
                 // compute the next images
                 match opolicy {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
@@ -199,11 +180,7 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta_transac::<2>(t, b0)?, // b2(b0(d))
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B3oB2, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
@@ -215,21 +192,13 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta_transac::<1>(t, b2)?, // b1(b2(d))
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B2, B3
                     OrbitPolicy::Edge => {
                         [self.beta_transac::<2>(t, d)?, self.beta_transac::<3>(t, d)?]
                             .into_iter()
-                            .for_each(|im| {
-                                if marked.insert(im) {
-                                    pending.push_back(im);
-                                }
-                            });
+                            .for_each(check);
                     }
                     // B1, B0, B3
                     OrbitPolicy::Face => {
@@ -239,21 +208,16 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta_transac::<3>(t, d)?,
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B3
                     OrbitPolicy::FaceLinear => {
-                        [self.beta_transac::<1>(t, d)?, self.beta_transac::<3>(t, d)?]
-                            .into_iter()
-                            .for_each(|im| {
-                                if marked.insert(im) {
-                                    pending.push_back(im);
-                                }
-                            });
+                        [
+                            self.beta_transac::<1>(t, d)?,
+                            self.beta_transac::<3>(t, d)?,
+                        ]
+                        .into_iter()
+                        .for_each(check);
                     }
                     // B1, B0, B2
                     OrbitPolicy::Volume => {
@@ -263,28 +227,18 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta_transac::<2>(t, d)?,
                         ]
                         .into_iter()
-                        .for_each(|im| {
-                            if marked.insert(im) {
-                                pending.push_back(im);
-                            }
-                        });
+                        .for_each(check);
                     }
                     // B1, B2
                     OrbitPolicy::VolumeLinear => {
                         [self.beta_transac::<1>(t, d)?, self.beta_transac::<2>(t, d)?]
                             .into_iter()
-                            .for_each(|im| {
-                                if marked.insert(im) {
-                                    pending.push_back(im);
-                                }
-                            });
+                            .for_each(check);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
-                            let image = self.beta_rt_transac(t, *beta_id, d)?;
-                            if marked.insert(image) {
-                                pending.push_back(image);
-                            }
+                            let im = self.beta_rt_transac(t, *beta_id, d)?;
+                            check(im);
                         }
                     }
                 }
