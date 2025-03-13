@@ -199,7 +199,7 @@ mod vertices {
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
         let res = atomically_with_err(|trans| {
-            insert_vertices_in_edge(&map, trans, 1, &new_darts, &[0.25, 0.50, 0.75])
+            insert_vertices_on_edge(&map, trans, 1, &new_darts, &[0.25, 0.50, 0.75])
         });
         assert!(res.is_ok());
         // after
