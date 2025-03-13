@@ -112,7 +112,7 @@ pub fn process_cell<T: CoordsFloat>(
             cmap.write_vertex(t, vid, v0)?;
         } else {
             // println!("W: face {face_id} isn't fannable -- skipping triangulation");
-            abort(TriangulateError::NonFannable)?
+            abort(TriangulateError::NonFannable)?;
         }
 
         Ok(())
