@@ -5,8 +5,9 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use crate::cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy};
+use crate::cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, try_from_fn};
 use crate::geometry::CoordsFloat;
+use crate::stm::{StmClosureResult, Transaction};
 
 impl<T: CoordsFloat> CMap3<T> {
     /// Generic orbit implementation.
@@ -31,6 +32,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// and a `HashSet`. There is a possibility to use static thread-local instances to avoid
     /// ephemeral allocations, but [it would require a guard mechanism][PR].
     ///
+    /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
     #[allow(clippy::needless_for_each,clippy::too_many_lines)]
     #[rustfmt::skip]
@@ -163,11 +165,141 @@ impl<T: CoordsFloat> CMap3<T> {
         })
     }
 
+    /// Generic orbit transactional implementation.
+    #[allow(clippy::needless_for_each, clippy::too_many_lines)]
+    pub fn orbit_transac(
+        &self,
+        t: &mut Transaction,
+        opolicy: OrbitPolicy,
+        dart_id: DartIdType,
+    ) -> impl Iterator<Item = StmClosureResult<DartIdType>> {
+        let mut pending = VecDeque::new();
+        let mut marked: HashSet<DartIdType> = HashSet::new();
+        pending.push_back(dart_id);
+        marked.insert(NULL_DART_ID);
+        marked.insert(dart_id); // we're starting here, so we mark it beforehand
+
+        // FIXME: move the match block out of the iterator
+        try_from_fn(move || {
+            if let Some(d) = pending.pop_front() {
+                // compute the next images
+                match opolicy {
+                    // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
+                    OrbitPolicy::Vertex => {
+                        let (b0, b2, b3) = (
+                            self.beta_transac::<0>(t, d)?,
+                            self.beta_transac::<2>(t, d)?,
+                            self.beta_transac::<3>(t, d)?,
+                        );
+                        [
+                            self.beta_transac::<3>(t, b2)?, // b3(b2(d))
+                            self.beta_transac::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_transac::<1>(t, b2)?, // b1(b2(d))
+                            self.beta_transac::<3>(t, b0)?, // b3(b0(d))
+                            self.beta_transac::<2>(t, b0)?, // b2(b0(d))
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
+                    }
+                    // B3oB2, B1oB3, B1oB2
+                    OrbitPolicy::VertexLinear => {
+                        let (b2, b3) =
+                            (self.beta_transac::<2>(t, d)?, self.beta_transac::<3>(t, d)?);
+                        [
+                            self.beta_transac::<3>(t, b2)?, // b3(b2(d))
+                            self.beta_transac::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_transac::<1>(t, b2)?, // b1(b2(d))
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
+                    }
+                    // B2, B3
+                    OrbitPolicy::Edge => {
+                        [self.beta_transac::<2>(t, d)?, self.beta_transac::<3>(t, d)?]
+                            .into_iter()
+                            .for_each(|im| {
+                                if marked.insert(im) {
+                                    pending.push_back(im);
+                                }
+                            });
+                    }
+                    // B1, B0, B3
+                    OrbitPolicy::Face => {
+                        [
+                            self.beta_transac::<1>(t, d)?,
+                            self.beta_transac::<0>(t, d)?,
+                            self.beta_transac::<3>(t, d)?,
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
+                    }
+                    // B1, B3
+                    OrbitPolicy::FaceLinear => {
+                        [self.beta_transac::<1>(t, d)?, self.beta_transac::<3>(t, d)?]
+                            .into_iter()
+                            .for_each(|im| {
+                                if marked.insert(im) {
+                                    pending.push_back(im);
+                                }
+                            });
+                    }
+                    // B1, B0, B2
+                    OrbitPolicy::Volume => {
+                        [
+                            self.beta_transac::<1>(t, d)?,
+                            self.beta_transac::<0>(t, d)?,
+                            self.beta_transac::<2>(t, d)?,
+                        ]
+                        .into_iter()
+                        .for_each(|im| {
+                            if marked.insert(im) {
+                                pending.push_back(im);
+                            }
+                        });
+                    }
+                    // B1, B2
+                    OrbitPolicy::VolumeLinear => {
+                        [self.beta_transac::<1>(t, d)?, self.beta_transac::<2>(t, d)?]
+                            .into_iter()
+                            .for_each(|im| {
+                                if marked.insert(im) {
+                                    pending.push_back(im);
+                                }
+                            });
+                    }
+                    OrbitPolicy::Custom(beta_slice) => {
+                        for beta_id in beta_slice {
+                            let image = self.beta_rt_transac(t, *beta_id, d)?;
+                            if marked.insert(image) {
+                                pending.push_back(image);
+                            }
+                        }
+                    }
+                }
+
+                return Ok(Some(d));
+            }
+            Ok(None) // queue is empty, we're done
+        })
+    }
+
     /// Return the orbit defined by a dart and its `I`-cell.
     ///
     /// # Usage
     ///
-    /// The [`Orbit3`] can be iterated upon to retrieve all dart members of the cell. Note that
+    /// The returned item can be iterated upon to retrieve all dart members of the cell. Note that
     /// **the dart passed as an argument is included as the first element of the returned orbit**.
     ///
     /// # Panics

@@ -33,6 +33,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// and a `HashSet`. There is a possibility to use static thread-local instances to avoid
     /// ephemeral allocations, but [it would require a guard mechanism][PR].
     ///
+    /// [WIKIBFS]: https://en.wikipedia.org/wiki/Breadth-first_search
     /// [PR]: https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
     #[allow(clippy::needless_for_each)]
     #[rustfmt::skip]
@@ -118,6 +119,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Generic orbit transactional implementation.
+    #[allow(clippy::needless_for_each)]
     pub fn orbit_transac(
         &self,
         t: &mut Transaction,
