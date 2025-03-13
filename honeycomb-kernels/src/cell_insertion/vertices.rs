@@ -80,7 +80,7 @@ impl From<AttributeError> for VertexInsertionError {
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
 #[allow(clippy::too_many_lines)]
-pub fn insert_vertex_in_edge<T: CoordsFloat>(
+pub fn insert_vertex_on_edge<T: CoordsFloat>(
     cmap: &CMap2<T>,
     trans: &mut Transaction,
     edge_id: EdgeIdType,
@@ -257,13 +257,13 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 /// # use honeycomb_core::cmap::{CMap2, CMapBuilder, NULL_DART_ID};
 /// # use honeycomb_core::geometry::Vertex2;
 /// # use honeycomb_core::stm::atomically_with_err;
-/// # use honeycomb_kernels::cell_insertion::insert_vertices_in_edge;
+/// # use honeycomb_kernels::cell_insertion::insert_vertices_on_edge;
 /// // before
 /// //    <--2---
 /// //  1         2
 /// //    ---1-->
 ///
-/// let mut map: CMap2<f64> = CMapBuilder::from_n_darts(2)
+/// let mut map: CMap2<_> = CMapBuilder::<2, _>::from_n_darts(2)
 ///                             .build()
 ///                             .unwrap();
 /// map.force_link::<2>(1, 2);
@@ -274,7 +274,7 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 ///
 /// // split
 /// assert!(
-///     atomically_with_err(|t| insert_vertices_in_edge(
+///     atomically_with_err(|t| insert_vertices_on_edge(
 ///         &map,
 ///         t,
 ///         1,
@@ -314,7 +314,7 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 /// assert_eq!(map.beta::<2>(4), 6);
 /// assert_eq!(map.beta::<2>(5), 2);
 /// ```
-pub fn insert_vertices_in_edge<T: CoordsFloat>(
+pub fn insert_vertices_on_edge<T: CoordsFloat>(
     cmap: &CMap2<T>,
     trans: &mut Transaction,
     edge_id: EdgeIdType,

@@ -4,7 +4,7 @@
 
 use honeycomb_core::{cmap::CMap2, geometry::CoordsFloat, stm::atomically_with_err};
 
-use crate::cell_insertion::insert_vertices_in_edge;
+use crate::cell_insertion::insert_vertices_on_edge;
 
 use super::{DartSlices, IntersectionsPerEdge};
 
@@ -15,7 +15,7 @@ pub(crate) fn insert_intersections<T: CoordsFloat>(
 ) {
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
         atomically_with_err(|trans| {
-            insert_vertices_in_edge(
+            insert_vertices_on_edge(
                 cmap,
                 trans,
                 *edge_id,

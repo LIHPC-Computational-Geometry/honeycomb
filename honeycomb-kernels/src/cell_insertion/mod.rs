@@ -6,7 +6,7 @@
 
 mod vertices;
 
-pub use vertices::{VertexInsertionError, insert_vertex_in_edge, insert_vertices_in_edge};
+pub use vertices::{VertexInsertionError, insert_vertex_on_edge, insert_vertices_on_edge};
 
 #[cfg(test)]
 mod tests;

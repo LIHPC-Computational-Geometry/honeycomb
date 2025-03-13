@@ -35,7 +35,7 @@ mod vertices {
         // split
         let nds = map.add_free_darts(2);
         let res = atomically_with_err(|trans| {
-            insert_vertex_in_edge(&map, trans, 2, (nds, nds + 1), None)
+            insert_vertex_on_edge(&map, trans, 2, (nds, nds + 1), None)
         });
         assert!(res.is_ok());
         // after
@@ -73,7 +73,7 @@ mod vertices {
         // split
         let nds = map.add_free_darts(2);
         let res = atomically_with_err(|trans| {
-            insert_vertex_in_edge(&map, trans, 1, (nds, nds + 1), Some(0.6))
+            insert_vertex_on_edge(&map, trans, 1, (nds, nds + 1), Some(0.6))
         });
         assert!(res.is_ok());
         // after
@@ -105,7 +105,7 @@ mod vertices {
         // split
         let nd = map.add_free_dart(); // a single dart is enough in this case
         let res = atomically_with_err(|trans| {
-            insert_vertex_in_edge(&map, trans, 1, (nd, NULL_DART_ID), None)
+            insert_vertex_on_edge(&map, trans, 1, (nd, NULL_DART_ID), None)
         });
         assert!(res.is_ok());
         // after
@@ -128,7 +128,7 @@ mod vertices {
         // split
         let nds = map.add_free_darts(2);
         let res = atomically_with_err(|trans| {
-            insert_vertex_in_edge(&map, trans, 1, (nds, nds + 1), None)
+            insert_vertex_on_edge(&map, trans, 1, (nds, nds + 1), None)
         });
         assert!(res.is_err_and(|e| e == VertexInsertionError::UndefinedEdge));
     }
@@ -157,7 +157,7 @@ mod vertices {
         let nds = map.add_free_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
         let res = atomically_with_err(|trans| {
-            insert_vertices_in_edge(&map, trans, 2, &new_darts, &[0.25, 0.50, 0.75])
+            insert_vertices_on_edge(&map, trans, 2, &new_darts, &[0.25, 0.50, 0.75])
         });
         assert!(res.is_ok());
         // after
@@ -238,7 +238,7 @@ mod vertices {
         // split
         let nds = map.add_free_darts(3);
         let res = atomically_with_err(|trans| {
-            insert_vertices_in_edge(
+            insert_vertices_on_edge(
                 &map,
                 trans,
                 1,
@@ -284,7 +284,7 @@ mod vertices {
         // split
         let nds = map.add_free_darts(6);
         let res = atomically_with_err(|trans| {
-            insert_vertices_in_edge(
+            insert_vertices_on_edge(
                 &map,
                 trans,
                 1,
