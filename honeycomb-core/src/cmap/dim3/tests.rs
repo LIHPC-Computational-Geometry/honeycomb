@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, DartIdType, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap3, CMapBuilder, DartIdType, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
@@ -8,7 +8,7 @@ use crate::{
 #[test]
 fn example_test() {
     // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
+    let mut map: CMap3<f64> = CMapBuilder::<3, _>::from_n_darts(12).build().unwrap(); // 3*4 darts
 
     // face z- (base)
     map.force_link::<1>(1, 2).unwrap();
@@ -96,6 +96,20 @@ fn example_test() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
@@ -297,6 +311,20 @@ fn example_test_transactional() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
