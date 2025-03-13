@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `honeycomb-kernels/src/triangulation/ear_clipping.rs`."><title>ear_clipping.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="honeycomb_kernels" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (249cb8431 2025-03-12)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../../static.files/storage-d8ac8691.js"></script><script defer src="../../../static.files/src-script-b8d3f215.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a7bf3405.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">honeycomb_kernels/triangulation/</div>ear_clipping.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
+<a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>honeycomb_core::geometry::CoordsFloat;
+<a href=#3 id=3 data-nosnippet>3</a>
+<a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::triangulation::{
+<a href=#5 id=5 data-nosnippet>5</a>    TriangulateError, check_requirements, crossp_from_verts, fetch_face_vertices,
+<a href=#6 id=6 data-nosnippet>6</a>};
+<a href=#7 id=7 data-nosnippet>7</a>
+<a href=#8 id=8 data-nosnippet>8</a><span class="attr">#[allow(clippy::missing_panics_doc)]
+<a href=#9 id=9 data-nosnippet>9</a></span><span class="doccomment">/// Triangulates a face using the ear clipping method.
+<a href=#10 id=10 data-nosnippet>10</a>///
+<a href=#11 id=11 data-nosnippet>11</a>/// This function triangulates a cell (face) of a 2D combinatorial map by iteratively
+<a href=#12 id=12 data-nosnippet>12</a>/// clipping ears (triangles) from the polygon until only a single triangle remains.
+<a href=#13 id=13 data-nosnippet>13</a>///
+<a href=#14 id=14 data-nosnippet>14</a>/// Note that:
+<a href=#15 id=15 data-nosnippet>15</a>/// - the function assumes that the polygon is simple (no self-intersections or holes) and that the
+<a href=#16 id=16 data-nosnippet>16</a>///   interior is lcoated on the LEFT SIDE of the cross-product.
+<a href=#17 id=17 data-nosnippet>17</a>/// - the implementation might need adjustments for parallel operations or when working with
+<a href=#18 id=18 data-nosnippet>18</a>///   identifiers not greater than existing ones.
+<a href=#19 id=19 data-nosnippet>19</a>///
+<a href=#20 id=20 data-nosnippet>20</a>/// # Arguments
+<a href=#21 id=21 data-nosnippet>21</a>///
+<a href=#22 id=22 data-nosnippet>22</a>/// - `cmap: &amp;mut CMap2` - A mutable reference to the modified `CMap2`.
+<a href=#23 id=23 data-nosnippet>23</a>/// - `face_id: FaceIdentifier` - Identifier of the face to triangulate within the map.
+<a href=#24 id=24 data-nosnippet>24</a>/// - `new_darts: &amp;[DartIdentifier]` - Identifiers of pre-allocated darts for the new edges;
+<a href=#25 id=25 data-nosnippet>25</a>///   the slice length should match the expected number of edges created by the triangulation. For
+<a href=#26 id=26 data-nosnippet>26</a>///   an `n`-sided polygon, the number of created edge is `n-3`, so the number of dart is `(n-3)*2`.
+<a href=#27 id=27 data-nosnippet>27</a>///
+<a href=#28 id=28 data-nosnippet>28</a>/// # Behavior
+<a href=#29 id=29 data-nosnippet>29</a>///
+<a href=#30 id=30 data-nosnippet>30</a>/// - The function begins by checking if the face has 3 or fewer vertices, in which case
+<a href=#31 id=31 data-nosnippet>31</a>///   it's already triangulated or cannot be further processed.
+<a href=#32 id=32 data-nosnippet>32</a>/// - It ensures that the number of new darts provided matches the triangulation requirement.
+<a href=#33 id=33 data-nosnippet>33</a>/// - Iteratively finds an 'ear' of the polygon, where an ear is defined by three consecutive
+<a href=#34 id=34 data-nosnippet>34</a>///   vertices where the triangle formed by these vertices is inside the original polygon.
+<a href=#35 id=35 data-nosnippet>35</a>/// - Clips this ear by updating the combinatorial map's structure, effectively removing one
+<a href=#36 id=36 data-nosnippet>36</a>///   vertex from the polygon per iteration.
+<a href=#37 id=37 data-nosnippet>37</a>/// - Updates the list of darts and vertices accordingly after each ear clip.
+<a href=#38 id=38 data-nosnippet>38</a>/// - Continues until the polygon is reduced to a triangle.
+<a href=#39 id=39 data-nosnippet>39</a>///
+<a href=#40 id=40 data-nosnippet>40</a>/// # Errors
+<a href=#41 id=41 data-nosnippet>41</a>///
+<a href=#42 id=42 data-nosnippet>42</a>/// This function will return an error if the face wasn't triangulated. There can be multiple
+<a href=#43 id=43 data-nosnippet>43</a>/// reason for this:
+<a href=#44 id=44 data-nosnippet>44</a>/// - The face is incompatible with the operation (made of 1, 2 or 3 vertices)
+<a href=#45 id=45 data-nosnippet>45</a>/// - The number of pre-allocated darts did not match the expected number (see [#arguments])
+<a href=#46 id=46 data-nosnippet>46</a>/// - The face contains one or more undefined vertices
+<a href=#47 id=47 data-nosnippet>47</a>/// - The face does not contain an ear
+<a href=#48 id=48 data-nosnippet>48</a>///
+<a href=#49 id=49 data-nosnippet>49</a>/// Note that in all cases except the last, the face will remain the same as it was before the
+<a href=#50 id=50 data-nosnippet>50</a>/// function call.
+<a href=#51 id=51 data-nosnippet>51</a>///
+<a href=#52 id=52 data-nosnippet>52</a>/// Because the ear clipping algorithm works iteratively, the face may be modified a few times
+<a href=#53 id=53 data-nosnippet>53</a>/// before reaching a state where no ear can be found. Note, however, that this cannot occur if
+<a href=#54 id=54 data-nosnippet>54</a>/// the face satisfies requirements mentionned above because of the [Two ears theorem][TET].
+<a href=#55 id=55 data-nosnippet>55</a>///
+<a href=#56 id=56 data-nosnippet>56</a>/// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
+<a href=#57 id=57 data-nosnippet>57</a></span><span class="kw">pub fn </span>process_cell&lt;T: CoordsFloat&gt;(
+<a href=#58 id=58 data-nosnippet>58</a>    cmap: <span class="kw-2">&amp;mut </span>CMap2&lt;T&gt;,
+<a href=#59 id=59 data-nosnippet>59</a>    face_id: FaceIdType,
+<a href=#60 id=60 data-nosnippet>60</a>    new_darts: <span class="kw-2">&amp;</span>[DartIdType],
+<a href=#61 id=61 data-nosnippet>61</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), TriangulateError&gt; {
+<a href=#62 id=62 data-nosnippet>62</a>    <span class="comment">// fetch darts using a custom orbit so that they're ordered
+<a href=#63 id=63 data-nosnippet>63</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>darts: Vec&lt;<span class="kw">_</span>&gt; = cmap
+<a href=#64 id=64 data-nosnippet>64</a>        .orbit(OrbitPolicy::Custom(<span class="kw-2">&amp;</span>[<span class="number">1</span>]), face_id <span class="kw">as </span>DartIdType)
+<a href=#65 id=65 data-nosnippet>65</a>        .collect();
+<a href=#66 id=66 data-nosnippet>66</a>
+<a href=#67 id=67 data-nosnippet>67</a>    <span class="kw">let </span><span class="kw-2">mut </span>n = darts.len();
+<a href=#68 id=68 data-nosnippet>68</a>
+<a href=#69 id=69 data-nosnippet>69</a>    <span class="comment">// early checks - check # of darts &amp; face size
+<a href=#70 id=70 data-nosnippet>70</a>    </span>check_requirements(n, new_darts.len())<span class="question-mark">?</span>;
+<a href=#71 id=71 data-nosnippet>71</a>
+<a href=#72 id=72 data-nosnippet>72</a>    <span class="comment">// get associated vertices - check for undefined vertices
+<a href=#73 id=73 data-nosnippet>73</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>vertices = fetch_face_vertices(cmap, <span class="kw-2">&amp;</span>darts)<span class="question-mark">?</span>;
+<a href=#74 id=74 data-nosnippet>74</a>
+<a href=#75 id=75 data-nosnippet>75</a>    <span class="kw">let </span><span class="kw-2">mut </span>ndart_id = new_darts[<span class="number">0</span>];
+<a href=#76 id=76 data-nosnippet>76</a>    <span class="kw">while </span>n &gt; <span class="number">3 </span>{
+<a href=#77 id=77 data-nosnippet>77</a>        <span class="kw">let </span><span class="prelude-val">Some</span>(ear) = (<span class="number">0</span>..n).find(|idx| {
+<a href=#78 id=78 data-nosnippet>78</a>            <span class="comment">// we're checking whether ABC is an ear or not
+<a href=#79 id=79 data-nosnippet>79</a>            </span><span class="kw">let </span>v1 = <span class="kw-2">&amp;</span>vertices[<span class="kw-2">*</span>idx]; <span class="comment">// A
+<a href=#80 id=80 data-nosnippet>80</a>            </span><span class="kw">let </span>v2 = <span class="kw-2">&amp;</span>vertices[(<span class="kw-2">*</span>idx + <span class="number">1</span>) % n]; <span class="comment">// B
+<a href=#81 id=81 data-nosnippet>81</a>            </span><span class="kw">let </span>v3 = <span class="kw-2">&amp;</span>vertices[(<span class="kw-2">*</span>idx + <span class="number">2</span>) % n]; <span class="comment">// C
+<a href=#82 id=82 data-nosnippet>82</a>
+<a href=#83 id=83 data-nosnippet>83</a>            // we assume the interior of the polygon is on the left side
+<a href=#84 id=84 data-nosnippet>84</a>            </span><span class="kw">let </span>is_inside = {
+<a href=#85 id=85 data-nosnippet>85</a>                <span class="kw">let </span>tmp = crossp_from_verts(v1, v2, v3);
+<a href=#86 id=86 data-nosnippet>86</a>                tmp &gt; T::epsilon()
+<a href=#87 id=87 data-nosnippet>87</a>            };
+<a href=#88 id=88 data-nosnippet>88</a>
+<a href=#89 id=89 data-nosnippet>89</a>            <span class="kw">let </span>no_overlap = vertices
+<a href=#90 id=90 data-nosnippet>90</a>                .iter()
+<a href=#91 id=91 data-nosnippet>91</a>                .filter(|v| (<span class="kw-2">**</span>v != <span class="kw-2">*</span>v1) &amp;&amp; (<span class="kw-2">**</span>v != <span class="kw-2">*</span>v2) &amp;&amp; (<span class="kw-2">**</span>v != <span class="kw-2">*</span>v3))
+<a href=#92 id=92 data-nosnippet>92</a>                .all(|v| {
+<a href=#93 id=93 data-nosnippet>93</a>                    <span class="kw">let </span>sig12v = crossp_from_verts(v1, v2, v);
+<a href=#94 id=94 data-nosnippet>94</a>                    <span class="kw">let </span>sig23v = crossp_from_verts(v2, v3, v);
+<a href=#95 id=95 data-nosnippet>95</a>                    <span class="kw">let </span>sig31v = crossp_from_verts(v3, v1, v);
+<a href=#96 id=96 data-nosnippet>96</a>
+<a href=#97 id=97 data-nosnippet>97</a>                    <span class="kw">let </span>has_pos =
+<a href=#98 id=98 data-nosnippet>98</a>                        (sig12v &gt; T::zero()) || (sig23v &gt; T::zero()) || (sig31v &gt; T::zero());
+<a href=#99 id=99 data-nosnippet>99</a>                    <span class="kw">let </span>has_neg =
+<a href=#100 id=100 data-nosnippet>100</a>                        (sig12v &lt; T::zero()) || (sig23v &lt; T::zero()) || (sig31v &lt; T::zero());
+<a href=#101 id=101 data-nosnippet>101</a>
+<a href=#102 id=102 data-nosnippet>102</a>                    has_pos &amp;&amp; has_neg
+<a href=#103 id=103 data-nosnippet>103</a>                });
+<a href=#104 id=104 data-nosnippet>104</a>            is_inside &amp;&amp; no_overlap
+<a href=#105 id=105 data-nosnippet>105</a>        }) <span class="kw">else </span>{
+<a href=#106 id=106 data-nosnippet>106</a>            <span class="comment">// println!("W: could not find ear to triangulate cell - skipping face {face_id}");
+<a href=#107 id=107 data-nosnippet>107</a>            </span><span class="kw">return </span><span class="prelude-val">Err</span>(TriangulateError::NoEar);
+<a href=#108 id=108 data-nosnippet>108</a>        };
+<a href=#109 id=109 data-nosnippet>109</a>
+<a href=#110 id=110 data-nosnippet>110</a>        <span class="comment">// edit cell; we use the nd1/nd2 edge to create a triangle from the ear
+<a href=#111 id=111 data-nosnippet>111</a>        // nd1 is on the side of the tri, nd2 on the side of the rest of the cell
+<a href=#112 id=112 data-nosnippet>112</a>        </span><span class="kw">let </span>d_ear1 = darts[ear];
+<a href=#113 id=113 data-nosnippet>113</a>        <span class="kw">let </span>d_ear2 = darts[(ear + <span class="number">1</span>) % n];
+<a href=#114 id=114 data-nosnippet>114</a>        <span class="kw">let </span>b0_d_ear1 = cmap.beta::&lt;<span class="number">0</span>&gt;(d_ear1);
+<a href=#115 id=115 data-nosnippet>115</a>        <span class="kw">let </span>b1_d_ear2 = cmap.beta::&lt;<span class="number">1</span>&gt;(d_ear2);
+<a href=#116 id=116 data-nosnippet>116</a>        <span class="kw">let </span>nd1 = ndart_id;
+<a href=#117 id=117 data-nosnippet>117</a>        <span class="kw">let </span>nd2 = ndart_id + <span class="number">1</span>;
+<a href=#118 id=118 data-nosnippet>118</a>        ndart_id += <span class="number">2</span>;
+<a href=#119 id=119 data-nosnippet>119</a>        <span class="comment">// FIXME: using link methods only works if new identifiers are greater than all existing
+<a href=#120 id=120 data-nosnippet>120</a>        // FIXME: using sew methods in parallel could crash bc of the panic when no vertex defined
+<a href=#121 id=121 data-nosnippet>121</a>        </span>cmap.force_unlink::&lt;<span class="number">1</span>&gt;(b0_d_ear1).unwrap();
+<a href=#122 id=122 data-nosnippet>122</a>        cmap.force_unlink::&lt;<span class="number">1</span>&gt;(d_ear2).unwrap();
+<a href=#123 id=123 data-nosnippet>123</a>        cmap.force_link::&lt;<span class="number">1</span>&gt;(d_ear2, nd1).unwrap();
+<a href=#124 id=124 data-nosnippet>124</a>        cmap.force_link::&lt;<span class="number">1</span>&gt;(nd1, d_ear1).unwrap();
+<a href=#125 id=125 data-nosnippet>125</a>        cmap.force_link::&lt;<span class="number">1</span>&gt;(b0_d_ear1, nd2).unwrap();
+<a href=#126 id=126 data-nosnippet>126</a>        cmap.force_link::&lt;<span class="number">1</span>&gt;(nd2, b1_d_ear2).unwrap();
+<a href=#127 id=127 data-nosnippet>127</a>        cmap.force_link::&lt;<span class="number">2</span>&gt;(nd1, nd2).unwrap();
+<a href=#128 id=128 data-nosnippet>128</a>
+<a href=#129 id=129 data-nosnippet>129</a>        <span class="comment">// edit existing vectors
+<a href=#130 id=130 data-nosnippet>130</a>        </span>darts.remove((ear + <span class="number">1</span>) % n);
+<a href=#131 id=131 data-nosnippet>131</a>        darts.push(nd2);
+<a href=#132 id=132 data-nosnippet>132</a>        darts.swap_remove(ear);
+<a href=#133 id=133 data-nosnippet>133</a>        vertices.remove((ear + <span class="number">1</span>) % n);
+<a href=#134 id=134 data-nosnippet>134</a>
+<a href=#135 id=135 data-nosnippet>135</a>        <span class="comment">// update n
+<a href=#136 id=136 data-nosnippet>136</a>        </span>n = cmap.orbit(OrbitPolicy::Custom(<span class="kw-2">&amp;</span>[<span class="number">1</span>]), nd2).count();
+<a href=#137 id=137 data-nosnippet>137</a>    }
+<a href=#138 id=138 data-nosnippet>138</a>
+<a href=#139 id=139 data-nosnippet>139</a>    <span class="prelude-val">Ok</span>(())
+<a href=#140 id=140 data-nosnippet>140</a>}</code></pre></div></section></main></body></html>

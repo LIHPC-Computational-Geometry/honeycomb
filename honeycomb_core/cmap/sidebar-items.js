@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NULL_DART_ID","NULL_EDGE_ID","NULL_FACE_ID","NULL_VERTEX_ID","NULL_VOLUME_ID"],"enum":["BuilderError","LinkError","OrbitPolicy","SewError"],"struct":["CMap2","CMap3","CMapBuilder","GridDescriptor"],"type":["DartIdType","EdgeIdType","FaceIdType","VertexIdType","VolumeIdType"]};
