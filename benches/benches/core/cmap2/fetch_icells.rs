@@ -5,7 +5,7 @@ use honeycomb_benches::utils::FloatType;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let n_square = 512;
-    let map: CMap2<FloatType> = CMapBuilder::unit_grid(n_square).build().unwrap();
+    let map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_grid(n_square).build().unwrap();
 
     let mut group = c.benchmark_group("fetch-icells");
 

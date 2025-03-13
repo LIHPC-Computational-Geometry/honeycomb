@@ -1,111 +1,209 @@
 use vtkio::Vtk;
 
 use crate::attributes::AttrStorageManager;
-use crate::cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
+use crate::cmap::{CMap2, CMap3, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy};
 
 // --- basic
 
 #[test]
 fn example_test() {
-    let builder = CMapBuilder::from_n_darts(10);
-    let cmap: CMap2<f64> = builder.build().unwrap();
-    assert_eq!(cmap.n_darts(), 11);
+    let builder_2d = CMapBuilder::<2, _>::from_n_darts(10);
+    let cmap_2d: CMap2<f64> = builder_2d.build().unwrap();
+    assert_eq!(cmap_2d.n_darts(), 11);
+
+    let builder_3d = CMapBuilder::<3, _>::from_n_darts(10);
+    let cmap_3d: CMap3<f64> = builder_3d.build().unwrap();
+    assert_eq!(cmap_3d.n_darts(), 11);
 }
 
-// --- grid
+mod grid_descriptor_2d {
+    use super::*;
 
-#[test]
-fn build_nc_lpc_l() {
-    let descriptor = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-        .lens([4.0_f64, 4.0_f64, 4.0_f64]);
-    assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
+    #[test]
+    fn build_nc_lpc_l() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4])
+            .len_per_cell([1.0_f64, 1.0_f64])
+            .lens([4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_2d().is_ok());
+        assert!(descriptor.split_cells(true).parse_2d().is_ok());
+    }
+
+    #[test]
+    fn build_nc_lpc() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4])
+            .len_per_cell([1.0_f64, 1.0_f64]);
+        assert!(descriptor.clone().parse_2d().is_ok());
+        assert!(descriptor.split_cells(true).parse_2d().is_ok());
+    }
+
+    #[test]
+    fn build_nc_l() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4])
+            .lens([4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_2d().is_ok());
+        assert!(descriptor.split_cells(true).parse_2d().is_ok());
+    }
+
+    #[test]
+    fn build_lpc_l() {
+        let descriptor = GridDescriptor::default()
+            .len_per_cell([1.0_f64, 1.0_f64])
+            .lens([4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_2d().is_ok());
+        assert!(descriptor.split_cells(true).parse_2d().is_ok());
+    }
+
+    #[test]
+    fn build_incomplete() {
+        assert!(
+            GridDescriptor::default()
+                .len_per_cell([1.0_f64, 1.0_f64])
+                .parse_2d()
+                .is_err()
+        );
+        assert!(
+            GridDescriptor::<2, f64>::default()
+                .n_cells([4, 4])
+                .parse_2d()
+                .is_err()
+        );
+        assert!(
+            GridDescriptor::default()
+                .lens([4.0_f64, 4.0_f64])
+                .parse_2d()
+                .is_err()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "length per y cell is null or negative")]
+    fn build_neg_lpc() {
+        let tmp = GridDescriptor::default()
+            .n_cells([4, 4])
+            .len_per_cell([1.0_f64, -1.0_f64])
+            .parse_2d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
+
+    #[test]
+    #[should_panic(expected = "grid length along x is null or negative")]
+    fn build_null_l() {
+        let tmp = GridDescriptor::default()
+            .n_cells([4, 4])
+            .lens([0.0_f64, 4.0_f64])
+            .parse_2d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
+
+    #[test]
+    #[should_panic(expected = "length per x cell is null or negative")]
+    fn build_neg_lpc_neg_l() {
+        // lpc are parsed first so their panic msg should be the one to pop
+        // x val is parsed first so ...
+        let tmp = GridDescriptor::default()
+            .len_per_cell([-1.0_f64, -1.0_f64])
+            .lens([0.0_f64, 4.0_f64])
+            .parse_2d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
 }
 
-#[test]
-fn build_nc_lpc() {
-    let descriptor = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64]);
-    assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
-}
+mod grid_descriptor_3d {
+    use super::*;
 
-#[test]
-fn build_nc_l() {
-    let descriptor = GridDescriptor::default()
-        .n_cells_x(4)
-        .n_cells_y(4)
-        .lens([4.0_f64, 4.0_f64, 4.0_f64]);
-    assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
-}
-
-#[test]
-fn build_lpc_l() {
-    let descriptor = GridDescriptor::default()
-        .len_per_cell_x(1.0_f64)
-        .len_per_cell_y(1.0_f64)
-        .lens_x(4.0)
-        .lens_y(4.0);
-    assert!(descriptor.clone().parse_2d().is_ok());
-    assert!(descriptor.split_quads(true).parse_2d().is_ok());
-}
-
-#[test]
-fn build_incomplete() {
-    assert!(
-        GridDescriptor::default()
+    #[test]
+    fn build_nc_lpc_l() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4, 4])
             .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
-            .parse_2d()
-            .is_err()
-    );
-    assert!(
-        <GridDescriptor<f64>>::default()
-            .n_cells([4, 4, 0])
-            .parse_2d()
-            .is_err()
-    );
-    assert!(
-        GridDescriptor::default()
-            .lens([4.0_f64, 4.0_f64, 4.0_f64])
-            .parse_2d()
-            .is_err()
-    );
-}
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_3d().is_ok());
+        assert!(descriptor.split_cells(true).parse_3d().is_ok());
+    }
 
-#[test]
-#[should_panic(expected = "length per y cell is null or negative")]
-fn build_neg_lpc() {
-    let tmp = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
-        .parse_2d();
-    let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
-}
+    #[test]
+    fn build_nc_lpc() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4, 4])
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64]);
+        assert!(descriptor.clone().parse_3d().is_ok());
+        assert!(descriptor.split_cells(true).parse_3d().is_ok());
+    }
 
-#[test]
-#[should_panic(expected = "grid length along x is null or negative")]
-fn build_null_l() {
-    let tmp = GridDescriptor::default()
-        .n_cells([4, 4, 0])
-        .lens([0.0_f64, 4.0_f64, 4.0_f64])
-        .parse_2d();
-    let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
-}
+    #[test]
+    fn build_nc_l() {
+        let descriptor = GridDescriptor::default()
+            .n_cells([4, 4, 4])
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_3d().is_ok());
+        assert!(descriptor.split_cells(true).parse_3d().is_ok());
+    }
 
-#[test]
-#[should_panic(expected = "length per x cell is null or negative")]
-fn build_neg_lpc_neg_l() {
-    // lpc are parsed first so their panic msg should be the one to pop
-    // x val is parsed first so ...
-    let tmp = GridDescriptor::default()
-        .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
-        .lens([0.0_f64, 4.0_f64, 4.0_f64])
-        .parse_2d();
-    let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    #[test]
+    fn build_lpc_l() {
+        let descriptor = GridDescriptor::default()
+            .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+            .lens([4.0_f64, 4.0_f64, 4.0_f64]);
+        assert!(descriptor.clone().parse_3d().is_ok());
+        assert!(descriptor.split_cells(true).parse_3d().is_ok());
+    }
+
+    #[test]
+    fn build_incomplete() {
+        assert!(
+            GridDescriptor::default()
+                .len_per_cell([1.0_f64, 1.0_f64, 1.0_f64])
+                .parse_3d()
+                .is_err()
+        );
+        assert!(
+            GridDescriptor::<3, f64>::default()
+                .n_cells([4, 4, 4])
+                .parse_3d()
+                .is_err()
+        );
+        assert!(
+            GridDescriptor::default()
+                .lens([4.0_f64, 4.0_f64, 4.0_f64])
+                .parse_3d()
+                .is_err()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "length per y cell is null or negative")]
+    fn build_neg_lpc() {
+        let tmp = GridDescriptor::default()
+            .n_cells([4, 4, 4])
+            .len_per_cell([1.0_f64, -1.0_f64, 1.0_f64])
+            .parse_3d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
+
+    #[test]
+    #[should_panic(expected = "grid length along x is null or negative")]
+    fn build_null_l() {
+        let tmp = GridDescriptor::default()
+            .n_cells([4, 4, 4])
+            .lens([0.0_f64, 4.0_f64, 4.0_f64])
+            .parse_3d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
+
+    #[test]
+    #[should_panic(expected = "length per x cell is null or negative")]
+    fn build_neg_lpc_neg_l() {
+        // lpc are parsed first so their panic msg should be the one to pop
+        // x val is parsed first so ...
+        let tmp = GridDescriptor::default()
+            .len_per_cell([-1.0_f64, -1.0_f64, 1.0_f64])
+            .lens([0.0_f64, 4.0_f64, 4.0_f64])
+            .parse_3d();
+        let _ = tmp.unwrap(); // panic on Err(BuilderError::InvalidParameters)
+    }
 }
 
 // --- grid building
@@ -113,8 +211,8 @@ fn build_neg_lpc_neg_l() {
 #[test]
 fn square_cmap2_correctness() {
     let descriptor = GridDescriptor::default()
-        .n_cells([2, 2, 2])
-        .len_per_cell([1., 1., 1.]);
+        .n_cells([2, 2])
+        .len_per_cell([1., 1.]);
     let cmap: CMap2<f64> = CMapBuilder::from_grid_descriptor(descriptor)
         .build()
         .unwrap();
@@ -219,7 +317,7 @@ fn square_cmap2_correctness() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn splitsquare_cmap2_correctness() {
-    let cmap: CMap2<f64> = CMapBuilder::unit_triangles(2).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::<2, _>::unit_triangles(2).build().unwrap();
 
     // hardcoded because using a generic loop & dim would just mean
     // reusing the same pattern as the one used during construction
@@ -369,6 +467,22 @@ fn splitsquare_cmap2_correctness() {
     assert_eq!(cmap.beta::<2>(24), 0);
 }
 
+#[test]
+fn hex_cmap3_correctness() {
+    let descriptor = GridDescriptor::default()
+        .n_cells([2, 2, 2])
+        .len_per_cell([1., 1., 1.]);
+    let cmap: CMap3<f64> = CMapBuilder::from_grid_descriptor(descriptor)
+        .build()
+        .unwrap();
+
+    assert_eq!(cmap.n_darts(), 1 + 24 * 8); // 24 darts per volume, and the null dart
+    assert_eq!(cmap.iter_volumes().count(), 8); // 2*2*2 volumes
+    assert_eq!(cmap.iter_faces().count(), 24 + 12); // 24 on the boundaries + 12 inside
+    assert_eq!(cmap.iter_edges().count(), 54); // 4 * 6faces + 6 inside + 3 * 8corners
+    assert_eq!(cmap.iter_vertices().count(), 27); // 9 * 3 vertices
+}
+
 // --- IO
 
 // ------ CMAP
@@ -413,7 +527,7 @@ mod cmap {
 
     #[test]
     fn wr_identity() {
-        let map: CMap2<f32> = CMapBuilder::unit_grid(1).build().unwrap();
+        let map: CMap2<f32> = CMapBuilder::<2, _>::unit_grid(1).build().unwrap();
         let mut buff = String::new();
         map.serialize(&mut buff);
         let cmap_file = CMapFile::try_from(buff).unwrap();
