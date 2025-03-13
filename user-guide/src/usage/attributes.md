@@ -56,8 +56,7 @@ impl AttributeBind for Weight {
 use honeycomb_core::cmap::{CMapBuilder, CMap2};
 
 fn main() {
-    let map: CMap2<f64> = CMapBuilder::default()
-        .n_darts(4)
+    let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(4)
         .add_attribute::<Weight>()
         .build()
         .unwrap();
