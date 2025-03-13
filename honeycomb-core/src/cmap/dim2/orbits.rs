@@ -82,7 +82,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     }
                     OrbitPolicy::FaceLinear => {
                         let im = self.beta::<1>(d);
-                        check(im)
+                        check(im);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
@@ -151,7 +151,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     }
                     OrbitPolicy::FaceLinear => {
                         let im = self.beta_transac::<1>(t, d)?;
-                        check(im)
+                        check(im);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
