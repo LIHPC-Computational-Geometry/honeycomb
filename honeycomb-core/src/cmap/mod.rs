@@ -18,3 +18,5 @@ pub use components::{
 pub use dim2::structure::CMap2;
 pub use dim3::structure::CMap3;
 pub use error::{LinkError, SewError};
+
+pub(crate) use components::orbits::{TryFromFn, try_from_fn};
