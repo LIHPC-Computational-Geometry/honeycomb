@@ -1,12 +1,48 @@
-//!
+//! Vertex isnertion routines
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID},
+    attributes::AttributeError,
+    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError},
     geometry::{CoordsFloat, Vertex2},
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
-use crate::cell_insertion::VertexInsertionError;
+// -- error type
+
+/// Error-modeling enum for vertex insertion routines.
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum VertexInsertionError {
+    /// A core operation failed.
+    #[error("core operation failed: {0}")]
+    FailedCoreOp(#[from] SewError),
+    /// Relative position of the new vertex isn't located on the edge.
+    #[error("vertex placement for split is not in ]0;1[")]
+    VertexBound,
+    /// One or both vertices of the edge are undefined.
+    #[error("edge isn't defined correctly")]
+    UndefinedEdge,
+    /// Darts passed to the function do not match requirements.
+    #[error("passed darts should be free & non-null - {0}")]
+    InvalidDarts(&'static str),
+    /// The number of darts passed to create the new segments is too low. The `usize` value
+    /// is the number of missing darts.
+    #[error("wrong # of darts - expected `{0}`, got {1}")]
+    WrongAmountDarts(usize, usize),
+}
+
+impl From<LinkError> for VertexInsertionError {
+    fn from(value: LinkError) -> Self {
+        Self::FailedCoreOp(value.into())
+    }
+}
+
+impl From<AttributeError> for VertexInsertionError {
+    fn from(value: AttributeError) -> Self {
+        Self::FailedCoreOp(value.into())
+    }
+}
+
+// -- routines
 
 /// Split an edge into two segments.
 ///
@@ -36,9 +72,16 @@ use crate::cell_insertion::VertexInsertionError;
 ///   if that is not the case, the second dart ID can be `NULL_DART_ID`.
 /// - both of these darts should be free
 ///
-/// # Return / Errors
+/// # Errors
 ///
-/// TODO
+/// This function will abort and raise an error if:
+/// - the transaction cannot be completed,
+/// - a hypothesis over input isn't verified (see [`VertexInsertionError`]),
+/// - an internal operation failed.
+///
+/// The returned error can be used in conjunction with transaction control to avoid any
+/// modifications in case of failure at attribute level. The user can then choose to retry or
+/// abort as he wishes using `Transaction::with_control_and_err`.
 ///
 /// # Example
 ///
@@ -52,6 +95,7 @@ use crate::cell_insertion::VertexInsertionError;
 ///  1             2    =>    1      3      2   | + denote darts that encode vertex IDs
 ///    <----2----+              <-4-- <-2-+     |
 /// ```
+#[allow(clippy::too_many_lines)]
 pub fn insert_vertex_in_edge<T: CoordsFloat>(
     cmap: &CMap2<T>,
     trans: &mut Transaction,
@@ -213,9 +257,16 @@ pub fn insert_vertex_in_edge<T: CoordsFloat>(
 ///   if that is not the case, the second half IDs can all be `NULL_DART_ID`s.
 /// - all of these darts should be free
 ///
-/// # Return / Errors
+/// # Errors
 ///
-/// TODO
+/// This function will abort and raise an error if:
+/// - the transaction cannot be completed,
+/// - a hypothesis over input isn't verified (see [`VertexInsertionError`]),
+/// - an internal operation failed.
+///
+/// The returned error can be used in conjunction with transaction control to avoid any
+/// modifications in case of failure at attribute level. The user can then choose to retry or
+/// abort as he wishes using `Transaction::with_control_and_err`.
 ///
 /// # Example
 ///
