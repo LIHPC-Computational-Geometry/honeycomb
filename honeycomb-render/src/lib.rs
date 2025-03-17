@@ -43,6 +43,10 @@ use honeycomb_core::geometry::CoordsFloat;
 pub fn render_2d_map<T: CoordsFloat>(cmap: CMap2<T>) {
     let mut app = App::new();
     app.insert_resource(resources::Map(cmap));
+    app.init_gizmo_group::<resources::DartGizmos>()
+        .init_gizmo_group::<resources::VertexGizmos>()
+        .init_gizmo_group::<resources::EdgeGizmos>();
+    app.add_systems(Startup, import_map::extract_data_from_map::<T>);
     // resource
     app.insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
@@ -51,6 +55,8 @@ pub fn render_2d_map<T: CoordsFloat>(cmap: CMap2<T>) {
         .add_plugins(plugins::OptionsPlugin)
         .add_plugins(plugins::GuiPlugin)
         .add_plugins(plugins::ScenePlugin);
+
+    app.run();
 }
 
 // item for custom composition

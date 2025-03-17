@@ -238,6 +238,9 @@ pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<M
     commands.insert_resource(MapVertices(vertex_vals));
     commands.insert_resource(FaceNormals(face_normals));
 
+    darts.into_iter().for_each(|bundle| {
+        commands.spawn(bundle);
+    });
     vertices.into_iter().for_each(|bundle| {
         commands.spawn(bundle);
     });
