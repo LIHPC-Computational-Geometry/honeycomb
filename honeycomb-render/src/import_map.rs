@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use honeycomb_core::{
-    cmap::CMap2,
-    prelude::{CoordsFloat, DartIdType, EdgeIdType, FaceIdType, VertexIdType, VolumeIdType},
+    cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, OrbitPolicy, VertexIdType, VolumeIdType},
+    geometry::CoordsFloat,
 };
 
 // --- shared data
 
 #[derive(Resource)]
-pub struct Map<T: CoordsFloat>(CMap2<T>);
+pub struct Map<T: CoordsFloat>(pub CMap2<T>);
 
 /// Collection of a map's vertices.
 #[derive(Resource)]
@@ -106,7 +106,7 @@ pub struct Volume;
 
 // --- startup routine
 
-pub fn extract_data_from_map<T: CoordsFloat>(cmap: Res<Map<T>>) {
+pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<Map<T>>) {
     let cmap = &cmap.0;
     let map_vertices: Vec<_> = cmap.iter_vertices().collect();
     let map_edges: Vec<_> = cmap.iter_edges().collect();
@@ -146,23 +146,23 @@ pub fn extract_data_from_map<T: CoordsFloat>(cmap: Res<Map<T>>) {
             };
             EdgeBundle {
                 id: EdgeId(*id),
-                edge: Edge(index_map[&v1id], index_map[&v1id]),
+                edge: Edge(index_map[&v1id], index_map[&v2id]),
             }
         })
         .collect();
 
-    let mut normals = HashMap::new();
+    let mut face_normals = HashMap::new();
     let mut darts: Vec<DartBundle> = Vec::new();
 
     let faces: Vec<FaceBundle> = map_faces
         .iter()
         .map(|id| {
-            let vertex_ids: Vec<usize> =
-                Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdType)
-                    .map(|dart_id| index_map[&cmap.vertex_id(dart_id)])
-                    .collect();
+            let vertex_ids: Vec<usize> = cmap
+                .orbit(OrbitPolicy::Custom(&[1]), *id as DartIdType)
+                .map(|dart_id| index_map[&cmap.vertex_id(dart_id)])
+                .collect();
             let n_v = vertex_ids.len();
-            let mut loc_normals = vec![{
+            {
                 let (ver_in, ver, ver_out) = (&vertex_ids[n_v - 1], &vertex_ids[0], &vertex_ids[1]);
                 let (vec_in, vec_out) = (
                     vertex_vals[*ver] - vertex_vals[*ver_in],
@@ -170,9 +170,12 @@ pub fn extract_data_from_map<T: CoordsFloat>(cmap: Res<Map<T>>) {
                 );
                 // vec_in/out belong to X/Y plane => .cross(Z) == normal in the plane
                 // a firts normalization is required because both edges should weight equally
-                (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize()).normalize()
-            }];
-            loc_normals.extend(vertex_ids.windows(3).map(|wdw| {
+                let normal = (vec_in.cross(Vec3::Z).normalize()
+                    + vec_out.cross(Vec3::Z).normalize())
+                .normalize();
+                face_normals.insert((*id, *ver), normal);
+            }
+            vertex_ids.windows(3).for_each(|wdw| {
                 let [ver_in, ver, ver_out] = wdw else {
                     unreachable!("i kneel");
                 };
@@ -180,63 +183,68 @@ pub fn extract_data_from_map<T: CoordsFloat>(cmap: Res<Map<T>>) {
                     vertex_vals[*ver] - vertex_vals[*ver_in],
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
-                (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize()).normalize()
-            }));
-            loc_normals.push({
+                let normal = (vec_in.cross(Vec3::Z).normalize()
+                    + vec_out.cross(Vec3::Z).normalize())
+                .normalize();
+                face_normals.insert((*id, *ver), normal);
+            });
+            {
                 let (ver_in, ver, ver_out) =
                     (&vertex_ids[n_v - 2], &vertex_ids[n_v - 1], &vertex_ids[0]);
                 let (vec_in, vec_out) = (
                     vertex_vals[*ver] - vertex_vals[*ver_in],
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
-                (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize()).normalize()
-            });
-
-            assert_eq!(loc_normals.len(), n_v);
-
-            normals.insert(*id, loc_normals);
+                let normal = (vec_in.cross(Vec3::Z).normalize()
+                    + vec_out.cross(Vec3::Z).normalize())
+                .normalize();
+                face_normals.insert((*id, *ver), normal);
+            }
 
             // common dart iterator
-            let mut tmp = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), *id as DartIdType)
-                .enumerate()
-                .map(|(idx, dart_id)| (dart_id, index_map[&cmap.vertex_id(dart_id)], idx))
+            let mut tmp = cmap
+                .orbit(OrbitPolicy::Custom(&[1]), *id as DartIdType)
+                .map(|dart_id| (dart_id, index_map[&cmap.vertex_id(dart_id)]))
                 .collect::<Vec<_>>();
             tmp.push(tmp[0]); // trick for the `.windows` call
 
             // dart bodies
             let bodies = tmp.windows(2).map(|wd| {
-                let [(dart_id, v1_id, v1n_id), (_, v2_id, v2n_id)] = wd else {
+                let [(dart_id, v1_id), (_, v2_id)] = wd else {
                     unreachable!("i kneel");
                 };
-                DartBodyBundle::new(
-                    cap_id,
-                    *dart_id,
-                    cmap.vertex_id(*dart_id),
-                    cmap.edge_id(*dart_id),
-                    *id,
-                    (*v1_id, *v2_id),
-                    (*v1n_id, *v2n_id),
-                )
+
+                DartBundle {
+                    id: DartId(*dart_id),
+                    vertex_id: VertexId(cmap.vertex_id(*dart_id)),
+                    edge_id: EdgeId(cmap.edge_id(*dart_id)),
+                    face_id: FaceId(*id),
+                    dart: Dart {
+                        start: *v1_id,
+                        end: *v2_id,
+                    },
+                }
             });
 
-            let heads = tmp.windows(2).map(|wd| {
-                let [(dart_id, v1_id, v1n_id), (_, v2_id, v2n_id)] = wd else {
-                    unreachable!("i kneel");
-                };
-                DartHeadBundle::new(
-                    cap_id,
-                    *dart_id,
-                    cmap.vertex_id(*dart_id),
-                    cmap.edge_id(*dart_id),
-                    *id,
-                    (*v1_id, *v2_id),
-                    (*v1n_id, *v2n_id),
-                )
-            });
+            darts.extend(bodies);
 
-            darts.extend(heads.zip(bodies));
-
-            FaceBundle::new(cap_id, *id, vertex_ids)
+            FaceBundle {
+                id: FaceId(*id),
+                face: Face(vertex_ids),
+            }
         })
         .collect();
+
+    commands.insert_resource(MapVertices(vertex_vals));
+    commands.insert_resource(FaceNormals(face_normals));
+
+    vertices.into_iter().for_each(|bundle| {
+        commands.spawn(bundle);
+    });
+    edges.into_iter().for_each(|bundle| {
+        commands.spawn(bundle);
+    });
+    faces.into_iter().for_each(|bundle| {
+        commands.spawn(bundle);
+    });
 }

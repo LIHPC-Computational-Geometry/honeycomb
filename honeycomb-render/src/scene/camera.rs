@@ -2,7 +2,7 @@ use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::math::vec2;
 use bevy::prelude::*;
 
-use crate::gui::{CustomTab, UiState};
+// use crate::gui::{CustomTab, UiState};
 
 /// Taken from the bevy
 /// [cheatbook](https://bevy-cheatbook.github.io/cookbook/pan-orbit-camera.html).
