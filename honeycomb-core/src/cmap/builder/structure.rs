@@ -1,17 +1,14 @@
-// ------ IMPORTS
-
 use std::fs::File;
 use std::io::Read;
-
-use crate::prelude::{AttributeBind, CMap2, GridDescriptor};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
 
 use thiserror::Error;
 use vtkio::Vtk;
 
-use super::io::CMapFile;
+use crate::attributes::{AttrStorageManager, AttributeBind};
+use crate::cmap::{CMap2, CMap3, GridDescriptor};
+use crate::geometry::CoordsFloat;
 
-// ------ CONTENT
+use super::io::CMapFile;
 
 /// # Builder-level error enum
 ///
@@ -61,85 +58,143 @@ pub enum BuilderError {
 /// ## Example
 ///
 /// ```rust
-/// # use honeycomb_core::prelude::BuilderError;
+/// # use honeycomb_core::cmap::BuilderError;
 /// # fn main() -> Result<(), BuilderError> {
-/// use honeycomb_core::prelude::{CMap2, CMapBuilder};
+/// use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder};
 ///
-/// let builder = CMapBuilder::default().n_darts(10);
-/// let map: CMap2<f64> = builder.build()?;
+/// let builder_2d = CMapBuilder::<2, _>::from_n_darts(10);
+/// let map_2d: CMap2<f64> = builder_2d.build()?;
+/// assert_eq!(map_2d.n_darts(), 11); // 10 + null dart = 11
 ///
-/// assert_eq!(map.n_darts(), 11); // 10 + null dart = 11
-///
+/// let builder_3d = CMapBuilder::<3, _>::from_n_darts(10);
+/// let map_3d: CMap3<f64> = builder_3d.build()?;
+/// assert_eq!(map_3d.n_darts(), 11); // 10 + null dart = 11
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default)]
-pub struct CMapBuilder<T>
+pub struct CMapBuilder<const D: usize, T>
 where
     T: CoordsFloat,
 {
-    pub(super) cmap_file: Option<CMapFile>,
-    pub(super) vtk_file: Option<Vtk>,
-    pub(super) grid_descriptor: Option<GridDescriptor<T>>,
-    pub(super) attributes: AttrStorageManager,
-    pub(super) n_darts: usize,
-    pub(super) coordstype: std::marker::PhantomData<T>,
+    builder_kind: BuilderType<D, T>,
+    attributes: AttrStorageManager,
 }
 
-// --- `From` impls & predefinite values
+enum BuilderType<const D: usize, T: CoordsFloat> {
+    CMap(CMapFile),
+    FreeDarts(usize),
+    Grid(GridDescriptor<D, T>),
+    Vtk(Vtk),
+}
 
-impl<T: CoordsFloat> From<GridDescriptor<T>> for CMapBuilder<T> {
-    fn from(value: GridDescriptor<T>) -> Self {
-        CMapBuilder {
-            grid_descriptor: Some(value),
-            ..Default::default()
+#[doc(hidden)]
+pub trait Builder {
+    type MapType;
+    fn build(self) -> Result<Self::MapType, BuilderError>;
+}
+
+impl<T: CoordsFloat> Builder for CMapBuilder<2, T> {
+    type MapType = CMap2<T>;
+
+    fn build(self) -> Result<Self::MapType, BuilderError> {
+        match self.builder_kind {
+            BuilderType::CMap(cfile) => super::io::build_2d_from_cmap_file(cfile, self.attributes),
+            BuilderType::FreeDarts(n_darts) => Ok(CMap2::new_with_undefined_attributes(
+                n_darts,
+                self.attributes,
+            )),
+            BuilderType::Grid(gridb) => {
+                let split = gridb.split_cells;
+                gridb.parse_2d().map(|(origin, ns, lens)| {
+                    if split {
+                        super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
+                    } else {
+                        super::grid::build_2d_grid(origin, ns, lens, self.attributes)
+                    }
+                })
+            }
+            BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
         }
     }
 }
 
+impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
+    type MapType = CMap3<T>;
+
+    fn build(self) -> Result<Self::MapType, BuilderError> {
+        match self.builder_kind {
+            BuilderType::CMap(_cfile) => unimplemented!(),
+            BuilderType::FreeDarts(n_darts) => Ok(CMap3::new_with_undefined_attributes(
+                n_darts,
+                self.attributes,
+            )),
+            BuilderType::Grid(gridb) => {
+                let split = gridb.split_cells;
+                gridb.parse_3d().map(|(origin, ns, lens)| {
+                    if split {
+                        unimplemented!()
+                    } else {
+                        super::grid::build_3d_grid(origin, ns, lens, self.attributes)
+                    }
+                })
+            }
+            BuilderType::Vtk(_vfile) => unimplemented!(),
+        }
+    }
+}
 /// # Regular methods
-impl<T: CoordsFloat> CMapBuilder<T> {
-    /// Set the number of dart that the created map will contain.
+impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
+    /// Create a builder structure for a map with a set number of darts.
     #[must_use = "unused builder object"]
-    pub fn n_darts(mut self, n_darts: usize) -> Self {
-        self.n_darts = n_darts;
-        self
+    pub fn from_n_darts(n_darts: usize) -> Self {
+        Self {
+            builder_kind: BuilderType::FreeDarts(n_darts),
+            attributes: AttrStorageManager::default(),
+        }
     }
 
-    /// Set the [`GridDescriptor`] that will be used when building the map.
+    /// Create a builder structure from a [`GridDescriptor`].
     #[must_use = "unused builder object"]
-    pub fn grid_descriptor(mut self, grid_descriptor: GridDescriptor<T>) -> Self {
-        self.grid_descriptor = Some(grid_descriptor);
-        self
+    pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<D, T>) -> Self {
+        Self {
+            builder_kind: BuilderType::Grid(grid_descriptor),
+            attributes: AttrStorageManager::default(),
+        }
     }
 
-    /// Set the `cmap` file that will be used when building the map.
+    /// Create a builder structure from a `cmap` file.
     ///
     /// # Panics
     ///
     /// This function may panic if the file cannot be loaded, or basic section parsing fails.
     #[must_use = "unused builder object"]
-    pub fn cmap_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+    pub fn from_cmap_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         let mut f = File::open(file_path).expect("E: could not open specified file");
         let mut buf = String::new();
         f.read_to_string(&mut buf)
             .expect("E: could not read content from file");
         let cmap_file = CMapFile::try_from(buf).unwrap();
-        self.cmap_file = Some(cmap_file);
-        self
+
+        Self {
+            builder_kind: BuilderType::CMap(cmap_file),
+            attributes: AttrStorageManager::default(),
+        }
     }
 
-    /// Set the VTK file that will be used when building the map.
+    /// Create a builder structure from a VTK file.
     ///
     /// # Panics
     ///
     /// This function may panic if the file cannot be loaded.
     #[must_use = "unused builder object"]
-    pub fn vtk_file(mut self, file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+    pub fn from_vtk_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
         let vtk_file =
             Vtk::import(file_path).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        self.vtk_file = Some(vtk_file);
-        self
+
+        Self {
+            builder_kind: BuilderType::Vtk(vtk_file),
+            attributes: AttrStorageManager::default(),
+        }
     }
 
     /// Add the attribute `A` to the attributes the created map will contain.
@@ -156,51 +211,38 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// and [here](https://doc.rust-lang.org/rust-by-example/generics/new_types.html)
     #[must_use = "unused builder object"]
     pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
-        self.attributes.add_storage::<A>(self.n_darts);
+        self.attributes.add_storage::<A>(1);
         self
     }
 
     #[allow(clippy::missing_errors_doc)]
-    /// Consumes the builder and produce a [`CMap2`] object.
+    /// Consumes the builder and produce a combinatorial map object.
     ///
     /// # Return / Errors
     ///
     /// This method return a `Result` taking the following values:
-    /// - `Ok(map: CMap2)` if generation was successful,
+    /// - `Ok(map: _)` if generation was successful,
     /// - `Err(BuilderError)` otherwise. See [`BuilderError`] for possible failures.
+    ///
+    /// Depending on the dimension `D` associated with this structure, the map will either be a
+    /// `CMap2` or `CMap3`. If `D` isn't 2 or 3, this method will not be available as it uses a
+    /// trait not implemented for other values of `D`. This is necessary to handle the multiple
+    /// return types as Rust is slightlty lacking in terms of comptime capabilities.
     ///
     /// # Panics
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
-    pub fn build(self) -> Result<CMap2<T>, BuilderError> {
-        if let Some(cfile) = self.cmap_file {
-            // build from our custom format
-            return super::io::build_2d_from_cmap_file(cfile, self.attributes);
-        }
-        if let Some(vfile) = self.vtk_file {
-            // build from vtk
-            return super::io::build_2d_from_vtk(vfile, self.attributes);
-        }
-        if let Some(gridb) = self.grid_descriptor {
-            // build from grid descriptor
-            let split = gridb.split_quads;
-            return gridb.parse_2d().map(|(origin, ns, lens)| {
-                if split {
-                    super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
-                } else {
-                    super::grid::build_2d_grid(origin, ns, lens, self.attributes)
-                }
-            });
-        }
-        Ok(CMap2::new_with_undefined_attributes(
-            self.n_darts,
-            self.attributes,
-        ))
+    #[allow(private_interfaces, private_bounds)]
+    pub fn build(self) -> Result<<Self as Builder>::MapType, BuilderError>
+    where
+        Self: Builder,
+    {
+        Builder::build(self)
     }
 }
 
-/// # Pre-definite structures
-impl<T: CoordsFloat> CMapBuilder<T> {
+/// # 2D pre-definite structures
+impl<T: CoordsFloat> CMapBuilder<2, T> {
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
     ///
     /// # Arguments
@@ -218,10 +260,14 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid.svg)
     #[must_use = "unused builder object"]
     pub fn unit_grid(n_square: usize) -> Self {
-        GridDescriptor::default()
-            .n_cells([n_square; 3])
-            .len_per_cell([T::one(); 3])
-            .into()
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_square; 2])
+                    .len_per_cell([T::one(); 2]),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
     }
 
     /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
@@ -242,10 +288,54 @@ impl<T: CoordsFloat> CMapBuilder<T> {
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid_tri.svg)
     #[must_use = "unused builder object"]
     pub fn unit_triangles(n_square: usize) -> Self {
-        GridDescriptor::default()
-            .n_cells([n_square; 3])
-            .len_per_cell([T::one(); 3])
-            .split_quads(true)
-            .into()
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_square; 2])
+                    .len_per_cell([T::one(); 2])
+                    .split_cells(true),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
+    }
+}
+
+/// # 3D pre-definite structures
+impl<T: CoordsFloat> CMapBuilder<3, T> {
+    /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_cells_per_axis: usize` -- Number of cells along each axis.
+    ///
+    /// # Return
+    ///
+    /// The map generated by this pre-definite value corresponds to an orthogonal mesh, with an
+    /// equal number of cells along each axis:
+    ///
+    /// TODO: add a figure
+    pub fn hex_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_cells_per_axis; 3])
+                    .len_per_cell([cell_length; 3]),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
+    }
+
+    /// **UNIMPLEMENTED**
+    #[must_use = "unused builder object"]
+    pub fn tet_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
+        Self {
+            builder_kind: BuilderType::Grid(
+                GridDescriptor::default()
+                    .n_cells([n_cells_per_axis; 3])
+                    .len_per_cell([cell_length; 3])
+                    .split_cells(true),
+            ),
+            attributes: AttrStorageManager::default(),
+        }
     }
 }

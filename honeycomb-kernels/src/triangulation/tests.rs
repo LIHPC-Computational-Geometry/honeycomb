@@ -1,6 +1,6 @@
-use crate::triangulation::{earclip_cell, fan_cell, TriangulateError};
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType};
-use honeycomb_core::prelude::CMapBuilder;
+use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType, FaceIdType};
+
+use crate::triangulation::{TriangulateError, earclip_cell, fan_cell};
 
 // you can copy paste this function into the render example to see what the mesh looks like
 // it contains:
@@ -10,7 +10,7 @@ use honeycomb_core::prelude::CMapBuilder;
 // - one triangle
 // - one non-fannable n-gon
 fn generate_map() -> CMap2<f64> {
-    let cmap: CMap2<f64> = CMapBuilder::default().n_darts(28).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(28).build().unwrap();
 
     // topology
     cmap.force_link::<1>(1, 2).unwrap();

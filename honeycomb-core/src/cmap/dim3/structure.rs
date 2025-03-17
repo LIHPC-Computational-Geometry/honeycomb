@@ -3,16 +3,13 @@
 //! This module contains the main structure definition ([`CMap3`]) as well as its constructor
 //! implementation.
 
-// ------ IMPORTS
-
-use super::CMAP3_BETA;
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::components::{betas::BetaFunctions, unused::UnusedDarts},
     geometry::{CoordsFloat, Vertex3},
 };
 
-// ------ CONTENT
+use super::CMAP3_BETA;
 
 /// Main map object.
 pub struct CMap3<T: CoordsFloat> {
@@ -89,7 +86,6 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// We expect the passed storages to be defined but empty, i.e. attributes are known,
     /// but no space has been used/ allocated yet.
-    #[allow(unused)] // FIXME: remove once the structure is integrated to the builder
     #[must_use = "unused return value"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,

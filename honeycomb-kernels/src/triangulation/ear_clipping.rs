@@ -1,8 +1,9 @@
-use crate::triangulation::{
-    check_requirements, crossp_from_verts, fetch_face_vertices, TriangulateError,
-};
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, Orbit2, OrbitPolicy};
+use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
 use honeycomb_core::geometry::CoordsFloat;
+
+use crate::triangulation::{
+    TriangulateError, check_requirements, crossp_from_verts, fetch_face_vertices,
+};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -59,8 +60,10 @@ pub fn process_cell<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> Result<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
-    let mut darts: Vec<_> =
-        Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), face_id as DartIdType).collect();
+    let mut darts: Vec<_> = cmap
+        .orbit(OrbitPolicy::Custom(&[1]), face_id as DartIdType)
+        .collect();
+
     let mut n = darts.len();
 
     // early checks - check # of darts & face size
@@ -130,7 +133,7 @@ pub fn process_cell<T: CoordsFloat>(
         vertices.remove((ear + 1) % n);
 
         // update n
-        n = Orbit2::new(cmap, OrbitPolicy::Custom(&[1]), nd2).count();
+        n = cmap.orbit(OrbitPolicy::Custom(&[1]), nd2).count();
     }
 
     Ok(())

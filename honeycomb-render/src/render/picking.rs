@@ -1,7 +1,8 @@
-use crate::gui::UiState;
 use bevy::prelude::*;
 use bevy_mod_outline::OutlineVolume;
 use bevy_mod_picking::prelude::PickSelection;
+
+use crate::gui::UiState;
 
 /// Picking update routine.
 pub fn update_picking(

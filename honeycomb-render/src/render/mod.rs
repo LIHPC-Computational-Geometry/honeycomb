@@ -3,17 +3,18 @@ pub mod picking;
 pub mod scene;
 pub mod update;
 
+use bevy::input::common_conditions::input_just_released;
+use bevy::prelude::*;
+use bevy_mod_outline::OutlinePlugin;
+use bevy_mod_picking::DefaultPickingPlugins;
+use bevy_mod_picking::selection::SelectionPluginSettings;
+
 use crate::capture::FocusedCapture;
 use crate::gui::WindowVisible;
 use crate::resources::{
     DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
     VertexRenderColor, VertexWidth,
 };
-use bevy::input::common_conditions::input_just_released;
-use bevy::prelude::*;
-use bevy_mod_outline::OutlinePlugin;
-use bevy_mod_picking::selection::SelectionPluginSettings;
-use bevy_mod_picking::DefaultPickingPlugins;
 
 /// Plugin handling scene setup and updates.
 pub struct ScenePlugin;

@@ -1,10 +1,11 @@
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdType};
+use std::time::Instant;
+
+use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType};
 use rand::{
+    SeedableRng,
     distr::{Bernoulli, Distribution},
     rngs::SmallRng,
-    SeedableRng,
 };
-use std::time::Instant;
 
 fn main() {
     const N_SQUARE: usize = 16;
@@ -14,7 +15,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<f32> = CMapBuilder::unit_grid(N_SQUARE).build().unwrap();
+    let mut map: CMap2<f32> = CMapBuilder::<2, _>::unit_grid(N_SQUARE).build().unwrap();
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 

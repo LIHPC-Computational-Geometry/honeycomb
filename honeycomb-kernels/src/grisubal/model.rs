@@ -4,19 +4,15 @@
 //!
 //! Content description if needed
 
-// ------ IMPORTS
+use honeycomb_core::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use honeycomb_core::cmap::{DartIdType, OrbitPolicy};
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+use vtkio::{
+    IOBuffer, Vtk,
+    model::{CellType, DataSet, VertexNumbers},
+};
 
 use crate::grisubal::GrisubalError;
-use honeycomb_core::attributes::{AttrSparseVec, AttributeError};
-use honeycomb_core::prelude::{
-    AttributeBind, AttributeUpdate, CoordsFloat, DartIdType, OrbitPolicy, Vertex2,
-};
-use vtkio::{
-    model::{CellType, DataSet, VertexNumbers},
-    IOBuffer, Vtk,
-};
-
-// ------ CONTENT
 
 /// Structure used to index the overlapping grid's cases.
 ///

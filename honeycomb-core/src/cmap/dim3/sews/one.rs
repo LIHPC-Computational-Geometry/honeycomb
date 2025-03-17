@@ -2,9 +2,9 @@
 
 use crate::{
     attributes::UnknownAttributeStorage,
-    cmap::{CMap3, DartIdType, SewError, NULL_DART_ID, NULL_VERTEX_ID},
+    cmap::{CMap3, DartIdType, NULL_DART_ID, NULL_VERTEX_ID, SewError},
     geometry::CoordsFloat,
-    stm::{try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, try_or_coerce},
 };
 
 #[doc(hidden)]
@@ -36,13 +36,12 @@ impl<T: CoordsFloat> CMap3<T> {
         if vid_l_old != NULL_VERTEX_ID {
             let new_vid = vid_r_old.min(vid_l_old); // is this correct?
             try_or_coerce!(
-                self.vertices
-                    .try_merge(trans, new_vid, vid_l_old, vid_r_old),
+                self.vertices.merge(trans, new_vid, vid_l_old, vid_r_old),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_merge_vertex_attributes(trans, new_vid, vid_l_old, vid_r_old),
+                    .merge_vertex_attributes(trans, new_vid, vid_l_old, vid_r_old),
                 SewError
             );
         }
@@ -77,13 +76,12 @@ impl<T: CoordsFloat> CMap3<T> {
         // perf: branch miss vs redundancy
         if vid_l_new != vid_r_new {
             try_or_coerce!(
-                self.vertices
-                    .try_split(trans, vid_l_new, vid_r_new, vid_old),
+                self.vertices.split(trans, vid_l_new, vid_r_new, vid_old),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_vertex_attributes(trans, vid_l_new, vid_r_new, vid_old),
+                    .split_vertex_attributes(trans, vid_l_new, vid_r_new, vid_old),
                 SewError
             );
         }

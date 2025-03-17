@@ -10,33 +10,31 @@
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
 
-// ------ IMPORTS
-
-use honeycomb_benches::FloatType;
-use honeycomb_core::prelude::{CMap2, CMapBuilder};
-use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
-};
 use std::hint::black_box;
 
-// ------ CONTENT
+use honeycomb::core::cmap::{CMap2, CMapBuilder};
+use iai_callgrind::{
+    FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
+};
+
+use honeycomb_benches::utils::FloatType;
 
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::unit_grid(n_square).build().unwrap()
+    CMapBuilder::<2, FloatType>::unit_grid(n_square)
+        .build()
+        .unwrap()
 }
 
 fn get_link_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::default()
-        .n_darts(n_square.pow(2) * 4)
+    CMapBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap()
 }
 
 fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
-    let map = CMapBuilder::default()
-        .n_darts(n_square.pow(2) * 4)
+    let map = CMapBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap();
     map.force_write_vertex(4, (0.0, 0.0));

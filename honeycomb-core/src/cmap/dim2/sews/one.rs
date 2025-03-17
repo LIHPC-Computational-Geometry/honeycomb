@@ -1,10 +1,7 @@
-use crate::stm::{try_or_coerce, Transaction, TransactionClosureResult};
-
-use crate::{
-    attributes::UnknownAttributeStorage,
-    cmap::{CMap2, DartIdType, SewError, NULL_DART_ID},
-    prelude::CoordsFloat,
-};
+use crate::attributes::UnknownAttributeStorage;
+use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, SewError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{Transaction, TransactionClosureResult, try_or_coerce};
 
 #[doc(hidden)]
 /// **1-(un)sews internals**
@@ -35,16 +32,12 @@ impl<T: CoordsFloat> CMap2<T> {
 
             try_or_coerce!(
                 self.vertices
-                    .try_merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old),
+                    .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.try_merge_vertex_attributes(
-                    trans,
-                    new_vid,
-                    b2lhs_vid_old,
-                    rhs_vid_old,
-                ),
+                self.attributes
+                    .merge_vertex_attributes(trans, new_vid, b2lhs_vid_old, rhs_vid_old,),
                 SewError
             );
         }
@@ -72,12 +65,12 @@ impl<T: CoordsFloat> CMap2<T> {
                 self.vertex_id_transac(trans, rhs_dart_id)?,
             );
             try_or_coerce!(
-                self.vertices.try_split(trans, new_lhs, new_rhs, vid_old),
+                self.vertices.split(trans, new_lhs, new_rhs, vid_old),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_vertex_attributes(trans, new_lhs, new_rhs, vid_old),
+                    .split_vertex_attributes(trans, new_lhs, new_rhs, vid_old),
                 SewError
             );
         }

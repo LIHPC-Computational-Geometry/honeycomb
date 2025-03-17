@@ -9,25 +9,27 @@
 //!
 //! Each benchmark is repeated on CMap2 of different sizes.
 
-// ------ IMPORTS
-
-use honeycomb_benches::FloatType;
-use honeycomb_core::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
-use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, FlamegraphConfig, LibraryBenchmarkConfig,
-};
 use std::hint::black_box;
 
-// ------ CONTENT
+use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
+use iai_callgrind::{
+    FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
+};
+
+use honeycomb_benches::utils::FloatType;
 
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::unit_grid(n_square).build().unwrap()
+    CMapBuilder::<2, FloatType>::unit_grid(n_square)
+        .build()
+        .unwrap()
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = CMapBuilder::unit_grid(n_square).build().unwrap();
+    let mut map = CMapBuilder::<2, FloatType>::unit_grid(n_square)
+        .build()
+        .unwrap();
     map.set_betas(5, [0; 3]); // free dart 5
     map.remove_free_dart(5);
     // because of the way we built the map in the square_cmap2 function & the ID computation
@@ -41,7 +43,9 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
 
 fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
     (
-        CMapBuilder::default().build().unwrap(),
+        CMapBuilder::<2, FloatType>::from_n_darts(0)
+            .build()
+            .unwrap(),
         n_squares.pow(2) * 4,
     )
 }
@@ -87,9 +91,9 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdType {
 }
 
 #[library_benchmark]
-#[bench::small(&mut CMapBuilder::default().n_darts(16_usize.pow(2) * 4).build().unwrap())]
-#[bench::medium(&mut CMapBuilder::default().n_darts(64_usize.pow(2) * 4).build().unwrap())]
-#[bench::large(&mut CMapBuilder::default().n_darts(256_usize.pow(2) * 4).build().unwrap())]
+#[bench::small(&mut CMapBuilder::<2, FloatType>::from_n_darts(16_usize.pow(2) * 4).build().unwrap())]
+#[bench::medium(&mut CMapBuilder::<2, FloatType>::from_n_darts(64_usize.pow(2) * 4).build().unwrap())]
+#[bench::large(&mut CMapBuilder::<2, FloatType>::from_n_darts(256_usize.pow(2) * 4).build().unwrap())]
 fn remove_dart(map: &mut CMap2<FloatType>) {
     map.remove_free_dart(5);
     black_box(map);

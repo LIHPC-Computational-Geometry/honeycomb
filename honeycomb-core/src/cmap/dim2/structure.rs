@@ -3,18 +3,11 @@
 //! This module contains the main structure definition ([`CMap2`]) as well as its constructor
 //! implementation.
 
-// ------ IMPORTS
+use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
+use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
+use crate::geometry::{CoordsFloat, Vertex2};
 
 use super::CMAP2_BETA;
-use crate::cmap::components::betas::BetaFunctions;
-use crate::cmap::components::unused::UnusedDarts;
-use crate::prelude::Vertex2;
-use crate::{
-    attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
-    geometry::CoordsFloat,
-};
-
-// ------ CONTENT
 
 /// # 2D combinatorial map implementation
 ///
@@ -51,12 +44,12 @@ use crate::{
 /// ```
 /// # fn main() {
 /// use honeycomb_core::{
-///     cmap::{CMap2, CMapBuilder, Orbit2, OrbitPolicy},
+///     cmap::{CMap2, CMapBuilder, OrbitPolicy},
 ///     geometry::Vertex2
 /// };
 ///
 /// // build a triangle (A)
-/// let mut map: CMap2<f64> = CMapBuilder::default().n_darts(3).build().unwrap(); // three darts
+/// let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap(); // three darts
 /// map.force_link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
 /// map.force_link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
 /// map.force_link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3
@@ -65,11 +58,13 @@ use crate::{
 /// map.force_write_vertex(3, (0.0, 1.0));
 ///
 /// // we can go through the face using an orbit
-/// let mut face = Orbit2::new(&map, OrbitPolicy::Face, 1);
-/// assert_eq!(face.next(), Some(1));
-/// assert_eq!(face.next(), Some(2));
-/// assert_eq!(face.next(), Some(3));
-/// assert_eq!(face.next(), None);
+/// {
+///     let mut face = map.orbit(OrbitPolicy::Face, 1);
+///     assert_eq!(face.next(), Some(1));
+///     assert_eq!(face.next(), Some(2));
+///     assert_eq!(face.next(), Some(3));
+///     assert_eq!(face.next(), None);
+/// }
 ///
 /// // build a second triangle (B)
 /// let first_added_dart_id = map.add_free_darts(3);

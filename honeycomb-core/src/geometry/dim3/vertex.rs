@@ -2,10 +2,9 @@
 //!
 //! This module contains all code used to model vertices.
 
-use super::super::Vector3;
-use crate::attributes::AttributeError;
-use crate::prelude::{AttributeBind, AttributeUpdate, OrbitPolicy, Vertex2, VertexIdType};
-use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
+use crate::attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate};
+use crate::cmap::{OrbitPolicy, VertexIdType};
+use crate::geometry::{CoordsFloat, Vector3, Vertex2};
 
 /// # 2D vertex structure
 ///
@@ -23,7 +22,7 @@ use crate::{attributes::AttrSparseVec, geometry::CoordsFloat};
 /// ## Example
 ///
 /// ```
-/// # use honeycomb_core::prelude::CoordsError;
+/// # use honeycomb_core::geometry::CoordsError;
 /// # fn main() -> Result<(), CoordsError> {
 /// use honeycomb_core::geometry::{Vector3, Vertex3};
 ///
@@ -69,7 +68,7 @@ impl<T: CoordsFloat> Vertex3<T> {
         self.0
     }
 
-    /// Return the value of the `y` coordinate of the vertex.
+    /// Return the value of the `y` coordinate of the ver, Otex.
     pub fn y(&self) -> T {
         self.1
     }

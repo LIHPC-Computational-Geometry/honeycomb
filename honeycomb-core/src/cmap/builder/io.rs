@@ -1,12 +1,13 @@
-use crate::prelude::{BuilderError, CMap2, CMapBuilder, DartIdType, Vertex2, VertexIdType};
-use crate::{attributes::AttrStorageManager, geometry::CoordsFloat};
-
 use std::collections::{BTreeMap, HashMap};
 
 use itertools::multizip;
 use num_traits::Zero;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
+
+use crate::attributes::AttrStorageManager;
+use crate::cmap::{BuilderError, CMap2, DartIdType, VertexIdType};
+use crate::geometry::{CoordsFloat, Vertex2};
 
 // --- Custom
 
@@ -203,24 +204,6 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 
 // --- VTK
 
-/// Create a [`CMapBuilder`] from the VTK file specified by the path.
-///
-/// # Panics
-///
-/// This function may panic if the file cannot be loaded.
-impl<T: CoordsFloat, P: AsRef<std::path::Path> + std::fmt::Debug> From<P> for CMapBuilder<T> {
-    fn from(value: P) -> Self {
-        let vtk_file =
-            Vtk::import(value).unwrap_or_else(|e| panic!("E: failed to load file: {e:?}"));
-        CMapBuilder {
-            vtk_file: Some(vtk_file),
-            ..Default::default()
-        }
-    }
-}
-
-// ------ building routine
-
 macro_rules! if_predicate_return_err {
     ($pr: expr, $er: expr) => {
         if $pr {
@@ -244,6 +227,8 @@ macro_rules! build_vertices {
             .collect()
     }};
 }
+
+// ------ building routine
 
 #[allow(clippy::too_many_lines)]
 /// Internal building routine for [`CMap2::from_vtk_file`].
@@ -278,7 +263,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
         | DataSet::RectilinearGrid { .. }
         | DataSet::PolyData { .. }
         | DataSet::Field { .. } => {
-            return Err(BuilderError::UnsupportedVtkData("dataset not supported"))
+            return Err(BuilderError::UnsupportedVtkData("dataset not supported"));
         }
         DataSet::UnstructuredGrid { pieces, .. } => {
             let mut tmp = pieces.iter().map(|piece| {
@@ -296,7 +281,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                     _ => {
                         return Err(BuilderError::UnsupportedVtkData(
                             "unsupported coordinate type",
-                        ))
+                        ));
                     }
                 };
 
@@ -387,7 +372,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d0).unwrap(); // edge d2 links vertices vids[2] & vids[0]
-                                                                               // record a trace of the built cell for future 2-sew
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[0]), d2);
@@ -448,7 +433,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d3).unwrap(); // edge d2 links vertices vids[2] & vids[3]
                                         cmap.force_link::<1>(d3, d0).unwrap(); // edge d3 links vertices vids[3] & vids[0]
-                                                                               // record a trace of the built cell for future 2-sew
+                                        // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[3]), d2);

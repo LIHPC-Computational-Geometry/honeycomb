@@ -2,11 +2,9 @@
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{
-        CMap3, DartIdType, EdgeIdType, Orbit3, OrbitPolicy, SewError, VertexIdType, NULL_DART_ID,
-    },
+    cmap::{CMap3, DartIdType, EdgeIdType, NULL_DART_ID, OrbitPolicy, SewError, VertexIdType},
     geometry::CoordsFloat,
-    stm::{abort, try_or_coerce, Transaction, TransactionClosureResult},
+    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 /// **3-(un)sews internals**
@@ -20,15 +18,22 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), SewError> {
         // using these custom orbits, I can get both dart of all sides, directly ordered
         // for the merges
-        let l_side = Orbit3::new(self, OrbitPolicy::Custom(&[1, 0]), ld);
-        let r_side = Orbit3::new(self, OrbitPolicy::Custom(&[0, 1]), rd);
-        let l_face = l_side.clone().min().expect("E: unreachable");
-        let r_face = r_side.clone().min().expect("E: unreachable");
+        let l_face = self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .min()
+            .expect("E: unreachable");
+        let r_face = self
+            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
+            .min()
+            .expect("E: unreachable");
         let mut edges: Vec<(EdgeIdType, EdgeIdType)> = Vec::with_capacity(10);
         let mut vertices: Vec<(VertexIdType, VertexIdType)> = Vec::with_capacity(10);
 
         // read edge + vertex on the b1ld side. if b0ld == NULL, we need to read the left vertex
-        for (l, r) in l_side.zip(r_side) {
+        for (l, r) in self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
+        {
             edges.push((
                 self.edge_id_transac(trans, l)?,
                 self.edge_id_transac(trans, r)?,
@@ -102,7 +107,7 @@ impl<T: CoordsFloat> CMap3<T> {
         // merge face, edge, vertex attributes
         try_or_coerce!(
             self.attributes
-                .try_merge_face_attributes(trans, l_face.min(r_face), l_face, r_face),
+                .merge_face_attributes(trans, l_face.min(r_face), l_face, r_face),
             SewError
         );
 
@@ -111,7 +116,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }) {
             try_or_coerce!(
                 self.attributes
-                    .try_merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r),
+                    .merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r),
                 SewError
             );
         }
@@ -119,13 +124,12 @@ impl<T: CoordsFloat> CMap3<T> {
             vid_l != vid_r && vid_l != NULL_DART_ID && vid_r != NULL_DART_ID
         }) {
             try_or_coerce!(
-                self.vertices
-                    .try_merge(trans, vid_l.min(vid_r), vid_l, vid_r),
+                self.vertices.merge(trans, vid_l.min(vid_r), vid_l, vid_r),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r),
+                    .merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r),
                 SewError
             );
         }
@@ -143,19 +147,25 @@ impl<T: CoordsFloat> CMap3<T> {
 
         try_or_coerce!(self.unlink::<3>(trans, ld), SewError);
 
-        let l_side = Orbit3::new(self, OrbitPolicy::Custom(&[1, 0]), ld);
-        let r_side = Orbit3::new(self, OrbitPolicy::Custom(&[0, 1]), rd);
-
         // faces
-        let l_face = l_side.clone().min().expect("E: unreachable");
-        let r_face = r_side.clone().min().expect("E: unreachable");
+        let l_face = self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .min()
+            .expect("E: unreachable");
+        let r_face = self
+            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
+            .min()
+            .expect("E: unreachable");
         try_or_coerce!(
             self.attributes
-                .try_split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
+                .split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
             SewError
         );
 
-        for (l, r) in l_side.zip(r_side) {
+        for (l, r) in self
+            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
+            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
+        {
             // edge
             let (eid_l, eid_r) = (
                 self.edge_id_transac(trans, l)?,
@@ -163,7 +173,7 @@ impl<T: CoordsFloat> CMap3<T> {
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r)),
+                    .split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r)),
                 SewError
             );
 
@@ -175,13 +185,12 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.vertex_id_transac(trans, r)?,
             );
             try_or_coerce!(
-                self.vertices
-                    .try_split(trans, vid_l, vid_r, vid_l.max(vid_r)),
+                self.vertices.split(trans, vid_l, vid_r, vid_l.max(vid_r)),
                 SewError
             );
             try_or_coerce!(
                 self.attributes
-                    .try_split_vertex_attributes(trans, vid_l, vid_r, vid_l.max(vid_r)),
+                    .split_vertex_attributes(trans, vid_l, vid_r, vid_l.max(vid_r)),
                 SewError
             );
             if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
@@ -193,11 +202,11 @@ impl<T: CoordsFloat> CMap3<T> {
                 );
                 try_or_coerce!(
                     self.vertices
-                        .try_split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r)),
+                        .split(trans, lvid_l, lvid_r, lvid_l.max(lvid_r)),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.try_split_vertex_attributes(
+                    self.attributes.split_vertex_attributes(
                         trans,
                         lvid_l,
                         lvid_r,

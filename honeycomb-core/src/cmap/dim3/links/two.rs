@@ -1,10 +1,8 @@
 //! 2D link implementations
 
-use crate::{
-    cmap::{CMap3, DartIdType, LinkError},
-    prelude::CoordsFloat,
-    stm::{atomically_with_err, Transaction, TransactionClosureResult},
-};
+use crate::cmap::{CMap3, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 
 /// 2-links
 impl<T: CoordsFloat> CMap3<T> {

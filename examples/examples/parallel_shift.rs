@@ -21,9 +21,10 @@
 //! - overwrite current vertex value with computed average
 //!
 
-use honeycomb_core::prelude::{
-    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
+use honeycomb_core::cmap::{
+    CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
+use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::stm::atomically;
 use rayon::prelude::*;
 
@@ -43,14 +44,17 @@ fn main() {
         .build_global()
         .unwrap();
 
-    let map: CMap2<f64> = CMapBuilder::unit_triangles(N_SQUARES).build().unwrap();
+    let map: CMap2<f64> = CMapBuilder::<2, _>::unit_triangles(N_SQUARES)
+        .build()
+        .unwrap();
 
     // fetch all vertices that are not on the boundary of the map
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = map
         .iter_vertices()
         .filter_map(|v| {
             // the condition detects if we're on the boundary
-            if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+            if map
+                .orbit(OrbitPolicy::Vertex, v as DartIdType)
                 .any(|d| map.beta::<2>(d) == NULL_DART_ID)
             {
                 None
@@ -58,7 +62,7 @@ fn main() {
                 // the orbit transformation yields neighbor IDs
                 Some((
                     v,
-                    Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                    map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                         .map(|d| map.vertex_id(map.beta::<2>(d)))
                         .collect(),
                 ))

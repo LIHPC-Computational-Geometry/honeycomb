@@ -1,12 +1,13 @@
+use bevy::prelude::*;
+use bevy_mod_picking::picking_core::PickingPluginsSettings;
+use bevy_mod_picking::selection::SelectionPluginSettings;
+use egui_dock::egui;
+
 use crate::resources::{
     BetaRenderColor, BetaWidth, DartHeadMul, DartRenderColor, DartShrink, DartWidth,
     EdgeRenderColor, EdgeWidth, FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth,
     VolumeRenderColor, VolumeShrink,
 };
-use bevy::prelude::*;
-use bevy_mod_picking::picking_core::PickingPluginsSettings;
-use bevy_mod_picking::selection::SelectionPluginSettings;
-use egui_dock::egui;
 
 // --- map options
 

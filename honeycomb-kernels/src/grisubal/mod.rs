@@ -50,13 +50,16 @@
 //!
 //! The `Boundary` attribute is then removed from the map before return.
 
-// ------ MODULE DECLARATIONS
-
 pub(crate) mod model;
 pub(crate) mod routines;
 pub(crate) mod timers;
 
-// ------ IMPORTS
+use honeycomb_core::{
+    cmap::{CMap2, CMapBuilder, GridDescriptor},
+    geometry::CoordsFloat,
+};
+use thiserror::Error;
+use vtkio::Vtk;
 
 use crate::grisubal::{
     model::{Boundary, Geometry2},
@@ -68,14 +71,6 @@ use crate::grisubal::{
     },
     timers::{finish, start_timer, unsafe_time_section},
 };
-use honeycomb_core::{
-    cmap::{CMapBuilder, GridDescriptor},
-    prelude::{CMap2, CoordsFloat},
-};
-use thiserror::Error;
-use vtkio::Vtk;
-
-// ------ CONTENT
 
 /// Post-processing clip operation.
 ///
@@ -147,7 +142,7 @@ pub enum GrisubalError {
 /// # Example
 ///
 /// ```no_run
-/// # use honeycomb_core::prelude::CMap2;
+/// # use honeycomb_core::cmap::CMap2;
 /// # use honeycomb_kernels::grisubal::*;
 /// # fn main() -> Result<(), GrisubalError>{
 /// let cmap: CMap2<f64> = grisubal("some/path/to/geometry.vtk", [1., 1.], Clip::default())?;
@@ -185,11 +180,9 @@ pub fn grisubal<T: CoordsFloat>(
     let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
     let [cx, cy] = grid_cell_sizes;
     let ogrid = GridDescriptor::default()
-        .n_cells_x(nx)
-        .n_cells_y(ny)
-        .len_per_cell_x(cx)
-        .len_per_cell_y(cy)
-        .origin(origin);
+        .n_cells([nx, ny])
+        .len_per_cell([cx, cy])
+        .origin([origin.0, origin.1]);
     unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
     //----/
 
@@ -202,8 +195,7 @@ pub fn grisubal<T: CoordsFloat>(
     start_timer!(kernel);
 
     // --- BUILD THE GRID
-    let mut cmap = CMapBuilder::default()
-        .grid_descriptor(ogrid)
+    let mut cmap = CMapBuilder::from_grid_descriptor(ogrid)
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: unreachable"); // unreachable because grid dims are valid
@@ -258,8 +250,6 @@ pub fn grisubal<T: CoordsFloat>(
 
     Ok(cmap)
 }
-
-// ------ TESTS
 
 #[cfg(test)]
 mod tests;

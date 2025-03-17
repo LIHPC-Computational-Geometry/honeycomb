@@ -59,15 +59,15 @@ pub mod prelude {
     pub use honeycomb_core::attributes::{AttributeBind, AttributeUpdate};
     pub use honeycomb_core::cmap::{
         BuilderError, CMap2, CMapBuilder, DartIdType, EdgeIdType, FaceIdType, GridDescriptor,
-        Orbit2, OrbitPolicy, VertexIdType, VolumeIdType, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID,
-        NULL_VERTEX_ID, NULL_VOLUME_ID,
+        NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID, OrbitPolicy,
+        VertexIdType, VolumeIdType,
     };
     pub use honeycomb_core::geometry::{CoordsError, CoordsFloat, Vector2, Vertex2};
 
     // ------ KERNELS RE-EXPORTS
 
     #[cfg(feature = "kernels")]
-    pub use honeycomb_kernels::{grisubal, splits, triangulation};
+    pub use honeycomb_kernels::{cell_insertion, grisubal, triangulation};
 
     // ------ RENDER RE-EXPORTS
 

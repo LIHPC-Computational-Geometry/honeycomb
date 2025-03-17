@@ -3,19 +3,15 @@
 //! This module contains all code used to handle attribute genericity in the context of mesh
 //! representation through combinatorial maps embedded data.
 
-// ------ IMPORTS
-
-use crate::attributes::AttributeError;
-use crate::prelude::{DartIdType, OrbitPolicy};
-use crate::stm::{atomically, StmClosureResult, Transaction};
-
-use downcast_rs::{impl_downcast, Downcast};
-use fast_stm::TransactionClosureResult;
-
-use std::any::{type_name, Any};
+use std::any::{Any, type_name};
 use std::fmt::Debug;
 
-// ------ CONTENT
+use downcast_rs::{Downcast, impl_downcast};
+use fast_stm::TransactionClosureResult;
+
+use crate::attributes::AttributeError;
+use crate::cmap::{DartIdType, OrbitPolicy};
+use crate::stm::{StmClosureResult, Transaction};
 
 /// # Generic attribute trait
 ///
@@ -123,24 +119,6 @@ pub trait AttributeBind: Debug + Sized + Any {
 ///
 /// This trait defines attribute-agnostic functions & methods. The documentation describes the
 /// expected behavior of each item. “ID” and “index” are used interchangeably.
-///
-/// ### Note on force / regular / try semantics
-///
-/// <div class="warning">
-/// This will be simplified in the near future, most likely with the deletion of force variants.
-/// </div>
-///
-/// We define three variants of split and merge methods (same as sews / unsews): `force`, regular,
-/// and `try`. Their goal is to provide different degrees of control vs convenience when using
-/// these operations. Documentation of each method shortly explains their individual quirks,
-/// below is a table summarizing the differences:
-///
-/// | variant | description |
-/// |---------| ----------- |
-/// | `try`   | defensive impl, only succeding if the attribute operation is successful & the transaction isn't invalidated |
-/// | regular | regular impl, which uses attribute fallback policies and will fail only if the transaction is invalidated   |
-/// | `force` | convenience impl, which wraps the regular impl in a transaction that retries until success                  |
-///
 pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// Constructor
     ///
@@ -170,9 +148,6 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     #[must_use = "unused return value"]
     fn n_attributes(&self) -> usize;
 
-    // regular
-
-    #[allow(clippy::missing_errors_doc)]
     /// Merge attributes to specified index
     ///
     /// # Arguments
@@ -193,19 +168,23 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// attributes.set(out, new_val);
     /// ```
     ///
-    /// # Return / Errors
+    /// # Errors
     ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. Errors should not be processed manually.
+    /// This method will fail, returning an error, if:
+    /// - the transaction cannot be completed
+    /// - the merge fails (e.g. because one merging value is missing)
+    ///
+    /// The returned error can be used in conjunction with transaction control to avoid any
+    /// modifications in case of failure at attribute level. The user can then choose, through its
+    /// transaction control policy, to retry or abort as he wishes.
     fn merge(
         &self,
         trans: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
-    ) -> StmClosureResult<()>;
+    ) -> TransactionClosureResult<(), AttributeError>;
 
-    #[allow(clippy::missing_errors_doc)]
     /// Split attribute to specified indices
     ///
     /// # Arguments
@@ -221,60 +200,8 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// (val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
     /// attributes[lhs_out] = val_lhs;
     /// attributes[rhs_out] = val_rhs;
+    ///
     /// ```
-    ///
-    /// # Return / Errors
-    ///
-    /// This method is meant to be called in a context where the returned `Result` is used to
-    /// validate the transaction passed as argument. Errors should not be processed manually.
-    fn split(
-        &self,
-        trans: &mut Transaction,
-        lhs_out: DartIdType,
-        rhs_out: DartIdType,
-        inp: DartIdType,
-    ) -> StmClosureResult<()>;
-
-    // force
-
-    /// Merge attributes to specified index
-    ///
-    /// This variant is equivalent to `merge`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_merge(&self, out: DartIdType, lhs_inp: DartIdType, rhs_inp: DartIdType) {
-        atomically(|trans| self.merge(trans, out, lhs_inp, rhs_inp));
-    }
-
-    /// Split attribute to specified indices
-    ///
-    /// This variant is equivalent to `split`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_split(&self, lhs_out: DartIdType, rhs_out: DartIdType, inp: DartIdType) {
-        atomically(|trans| self.split(trans, lhs_out, rhs_out, inp));
-    }
-
-    // try
-
-    /// Merge attributes to specified index
-    ///
-    /// # Errors
-    ///
-    /// This method will fail, returning an error, if:
-    /// - the transaction cannot be completed
-    /// - the merge fails (e.g. because one merging value is missing)
-    ///
-    /// The returned error can be used in conjunction with transaction control to avoid any
-    /// modifications in case of failure at attribute level. The user can then choose, through its
-    /// transaction control policy, to retry or abort as he wishes.
-    fn try_merge(
-        &self,
-        trans: &mut Transaction,
-        out: DartIdType,
-        lhs_inp: DartIdType,
-        rhs_inp: DartIdType,
-    ) -> TransactionClosureResult<(), AttributeError>;
-
-    /// Split attribute to specified indices
     ///
     /// # Errors
     ///
@@ -285,7 +212,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// The returned error can be used in conjunction with transaction control to avoid any
     /// modifications in case of failure at attribute level. The user can then choose, through its
     /// transaction control policy, to retry or abort as he wishes.
-    fn try_split(
+    fn split(
         &self,
         trans: &mut Transaction,
         lhs_out: DartIdType,
@@ -300,10 +227,6 @@ impl_downcast!(UnknownAttributeStorage);
 ///
 /// This trait defines attribute-specific methods. The documentation describes the expected behavior
 /// of each method. "ID" and "index" are used interchangeably.
-///
-/// Aside from the regular (transactional) read / write / remove methods, we provide `force`
-/// variants which wraps regular methods in a transaction that retries until success. The main
-/// purpose of these variants is to allow omitting transactions when they're not needed.
 pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     #[allow(clippy::missing_errors_doc)]
     /// Read the value of an element at a given index.
@@ -373,27 +296,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, trans: &mut Transaction, id: A::IdentifierType)
-        -> StmClosureResult<Option<A>>;
-
-    /// Read the value of an element at a given index.
-    ///
-    /// This variant is equivalent to `read`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_read(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.read(trans, id.clone()))
-    }
-
-    /// Write the value of an element at a given index and return the old value.
-    ///
-    /// This variant is equivalent to `write`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_write(&self, id: A::IdentifierType, val: A) -> Option<A>;
-
-    /// Remove the value at a given index and return it.
-    ///
-    /// This variant is equivalent to `remove`, but internally uses a transaction that will be
-    /// retried until validated.
-    fn force_remove(&self, id: A::IdentifierType) -> Option<A> {
-        atomically(|trans| self.remove(trans, id.clone()))
-    }
+    -> StmClosureResult<Option<A>>;
 }

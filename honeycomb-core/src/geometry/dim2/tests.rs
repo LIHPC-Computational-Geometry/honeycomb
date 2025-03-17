@@ -1,8 +1,4 @@
-// ------ IMPORTS
-
-// ------ CONTENT
-
-use super::super::{CoordsFloat, Vector2};
+use crate::geometry::{CoordsFloat, Vector2};
 
 // --- common
 
@@ -40,7 +36,7 @@ macro_rules! almost_equals {
 
 mod vector {
     use super::*;
-    use crate::prelude::CoordsError;
+    use crate::geometry::CoordsError;
     // tests
     macro_rules! generate_dot_prod_test {
         ($id: ident, $t: ty) => {
@@ -122,7 +118,7 @@ mod vector {
 // --- vertex
 
 mod vertex {
-    use crate::prelude::{Vector2, Vertex2};
+    use crate::geometry::{Vector2, Vertex2};
     // tests
     #[test]
     fn add_vertex_vector() {

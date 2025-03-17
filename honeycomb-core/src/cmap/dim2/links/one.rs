@@ -1,10 +1,6 @@
-use crate::stm::{Transaction, TransactionClosureResult};
-use fast_stm::atomically_with_err;
-
-use crate::{
-    cmap::{error::LinkError, CMap2, DartIdType},
-    prelude::CoordsFloat,
-};
+use crate::cmap::{CMap2, DartIdType, LinkError};
+use crate::geometry::CoordsFloat;
+use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 
 #[doc(hidden)]
 /// 1-links
