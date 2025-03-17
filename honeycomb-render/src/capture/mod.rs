@@ -16,8 +16,6 @@ pub struct CapturePlugin;
 impl Plugin for CapturePlugin {
     fn build(&self, app: &mut App) {
         // resource
-        app.insert_resource(FocusedCapture::default())
-            .insert_resource(CaptureList::default());
         // systems
         app.add_systems(Startup, populate_darts)
             .add_systems(Startup, populate_vertices)
@@ -25,18 +23,6 @@ impl Plugin for CapturePlugin {
         //.add_systems(Startup, populate_faces);
     }
 }
-
-#[derive(Resource)]
-pub struct FocusedCapture(pub CaptureId);
-
-impl Default for FocusedCapture {
-    fn default() -> Self {
-        Self(CaptureId(0))
-    }
-}
-
-#[derive(Resource, Default)]
-pub struct CaptureList(pub Vec<Capture>);
 
 pub struct Capture {
     pub metadata: CaptureMD,

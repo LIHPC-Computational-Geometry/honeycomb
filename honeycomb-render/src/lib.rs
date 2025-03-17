@@ -29,6 +29,7 @@
 mod app;
 mod capture;
 mod gui;
+mod import_map;
 mod inspector;
 mod options;
 mod render;

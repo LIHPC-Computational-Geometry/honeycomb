@@ -3,7 +3,7 @@ use crate::resources::{
     EdgeRenderColor, EdgeWidth, FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth,
     VolumeRenderColor, VolumeShrink,
 };
-use crate::systems::draw_options;
+use crate::systems::{draw_inspected_data, draw_options};
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
