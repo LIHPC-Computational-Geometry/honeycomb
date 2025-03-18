@@ -115,7 +115,7 @@ impl Capture {
                         vertex_vals[*ver_out] - vertex_vals[*ver],
                     );
                     // vec_in/out belong to X/Y plane => .cross(Z) == normal in the plane
-                    // a firts normalization is required because both edges should weight equally
+                    // a first normalization is required because both edges should weight equally
                     (vec_in.cross(Vec3::Z).normalize() + vec_out.cross(Vec3::Z).normalize())
                         .normalize()
                 }];
