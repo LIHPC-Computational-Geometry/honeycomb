@@ -11,8 +11,8 @@
 #![allow(clippy::similar_names)]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod cell_insertion;
 pub mod grisubal;
 pub mod remeshing;
 pub mod skewness;
-pub mod splits;
 pub mod triangulation;

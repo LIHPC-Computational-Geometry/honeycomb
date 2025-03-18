@@ -11,15 +11,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(size.pow(2))); // throughoutput = number of cells
         group.bench_with_input(BenchmarkId::new("unit-squares", ""), &size, |b, size| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> =
-                    CMapBuilder::unit_grid(*size as usize).build().unwrap();
+                let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_grid(*size as usize)
+                    .build()
+                    .unwrap();
                 black_box(&mut map);
             })
         });
         group.bench_with_input(BenchmarkId::new("unit-triangles", ""), &size, |b, size| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> =
-                    CMapBuilder::unit_triangles(*size as usize).build().unwrap();
+                let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_triangles(*size as usize)
+                    .build()
+                    .unwrap();
                 black_box(&mut map);
             })
         });

@@ -14,13 +14,16 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_with_input(BenchmarkId::new("unit-squares", ""), &(), |b, _| {
         b.iter(|| {
-            let mut map: CMap2<FloatType> = CMapBuilder::unit_grid(n_square).build().unwrap();
+            let mut map: CMap2<FloatType> =
+                CMapBuilder::<2, _>::unit_grid(n_square).build().unwrap();
             black_box(&mut map);
         })
     });
     group.bench_with_input(BenchmarkId::new("unit-triangles", ""), &(), |b, _| {
         b.iter(|| {
-            let mut map: CMap2<FloatType> = CMapBuilder::unit_triangles(n_square).build().unwrap();
+            let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_triangles(n_square)
+                .build()
+                .unwrap();
             black_box(&mut map);
         })
     });

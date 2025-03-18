@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, DartIdType, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap3, CMapBuilder, DartIdType, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
@@ -8,7 +8,7 @@ use crate::{
 #[test]
 fn example_test() {
     // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
+    let mut map: CMap3<f64> = CMapBuilder::<3, _>::from_n_darts(12).build().unwrap(); // 3*4 darts
 
     // face z- (base)
     map.force_link::<1>(1, 2).unwrap();
@@ -42,6 +42,9 @@ fn example_test() {
         assert_eq!(vertices.next(), Some(3));
         assert_eq!(vertices.next(), Some(6));
         assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::FaceLinear, 2).collect();
+        assert_eq!(&darts, &[2, 3, 1]);
     }
 
     map.force_write_vertex(1, (1.0, 0.0, 0.0));
@@ -96,20 +99,23 @@ fn example_test() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
-
-    println!("v d10: {:?}", map.force_read_vertex(map.vertex_id(10)));
-    println!(
-        "v b1d10: {:?}",
-        map.force_read_vertex(map.vertex_id(map.beta::<1>(10)))
-    );
-    println!("v d16: {:?}", map.force_read_vertex(map.vertex_id(16)));
-    println!(
-        "v b1d16: {:?}",
-        map.force_read_vertex(map.vertex_id(map.beta::<1>(16)))
-    );
 
     assert_eq!(map.n_vertices(), 8);
     map.force_sew::<3>(10, 16).unwrap();
@@ -130,6 +136,14 @@ fn example_test() {
         assert_eq!(faces.next(), None);
         // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
         assert_eq!(map.iter_edges().count(), 9);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 10).collect();
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
     }
 
     // Adjust shared vertices (D)
@@ -237,6 +251,14 @@ fn example_test_transactional() {
         assert_eq!(vertices.next(), Some(3));
         assert_eq!(vertices.next(), Some(6));
         assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = atomically(|t| {
+            Ok(map
+                .orbit_transac(t, OrbitPolicy::FaceLinear, 2)
+                .map(Result::unwrap)
+                .collect())
+        });
+        assert_eq!(&darts, &[2, 3, 1]);
     }
 
     atomically(|trans| {
@@ -297,6 +319,20 @@ fn example_test_transactional() {
         assert_eq!(faces.next(), Some(19));
         assert_eq!(faces.next(), Some(22));
         assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
     }
 
     // Sew both tetrahedrons along a face (C)
@@ -322,6 +358,19 @@ fn example_test_transactional() {
         assert_eq!(faces.next(), None);
         // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
         assert_eq!(map.iter_edges().count(), 9);
+
+        let darts: Vec<_> = atomically(|t| {
+            Ok(map
+                .orbit_transac(t, OrbitPolicy::Face, 10)
+                .map(Result::unwrap)
+                .collect())
+        });
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
     }
 
     // Adjust shared vertices (D)

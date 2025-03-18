@@ -6,8 +6,8 @@ use honeycomb_core::cmap::{CMap2, DartIdType};
 use honeycomb_core::geometry::CoordsFloat;
 use honeycomb_core::stm::atomically_with_err;
 
+use crate::cell_insertion::insert_vertices_on_edge;
 use crate::grisubal::model::{Boundary, MapEdge};
-use crate::splits::splitn_edge_transac;
 
 pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     // FIXME: minimize allocs & redundant operations
@@ -69,7 +69,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             let edge_id = cmap.edge_id(d_new);
             let new_darts = &dslice[2..];
             atomically_with_err(|trans| {
-                splitn_edge_transac(
+                insert_vertices_on_edge(
                     cmap,
                     trans,
                     edge_id,
