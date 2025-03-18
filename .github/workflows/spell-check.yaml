@@ -1,0 +1,23 @@
+name: spell check typos
+
+# only run most recent workflow in branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+permissions: read-all
+
+jobs:
+  spell-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run typos spell check
+      uses: crate-ci/typos@v1.29.7
+      with:
+        files: README.md CHANGELOG.md CONTRIBUTING.md docs examples honeycomb honeycomb-core honeycomb-kernels honeycomb-render
+        config: ./.typos.toml
