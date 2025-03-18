@@ -21,7 +21,7 @@ pub enum BuilderError {
     #[error("invalid grid parameters - {0}")]
     InvalidGridParameters(&'static str),
     /// The builder is missing one or multiple parameters to generate the grid.
-    #[error("insufficient parameters - please specifiy at least 2")]
+    #[error("insufficient parameters - please specify at least 2")]
     MissingGridParameters,
 
     // custom format variants
@@ -227,7 +227,7 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     /// Depending on the dimension `D` associated with this structure, the map will either be a
     /// `CMap2` or `CMap3`. If `D` isn't 2 or 3, this method will not be available as it uses a
     /// trait not implemented for other values of `D`. This is necessary to handle the multiple
-    /// return types as Rust is slightlty lacking in terms of comptime capabilities.
+    /// return types as Rust is slightly lacking in terms of comptime capabilities.
     ///
     /// # Panics
     ///

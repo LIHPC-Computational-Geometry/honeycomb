@@ -142,7 +142,7 @@ pub(crate) fn generate_intersection_data<T: CoordsFloat>(
                 let v_dart = cmap
                     .force_read_vertex(cmap.vertex_id(dart_id))
                     .expect("E: found a topological vertex with no associated coordinates");
-                // compute relative position of the intersection on the interecting edges
+                // compute relative position of the intersection on the intersecting edges
                 // `s` is relative to the segment `v1v2`, `t` to the grid's segment (the origin being `v_dart`)
                 #[rustfmt::skip]
                 let (_s, t) = match diff {
