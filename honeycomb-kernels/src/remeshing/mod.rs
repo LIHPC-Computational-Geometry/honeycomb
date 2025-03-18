@@ -8,7 +8,7 @@
 //! - swap-based cell edition routines
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, SewError, VertexIdType},
+    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, SewError, VertexIdType},
     geometry::{CoordsFloat, Vertex2},
     stm::{StmClosureResult, Transaction, TransactionClosureResult, retry, try_or_coerce},
 };
@@ -232,7 +232,8 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 
 /// Tip over an edge shared by two triangles.
 ///
-/// Vertices that were shared become exclusive to each new triangle and vice versa:
+/// The edge is tipped in the clockwise direction. Vertices that were shared become exclusive
+/// to each new triangle and vice versa:
 ///
 /// ```text
 ///
@@ -262,11 +263,14 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 /// - `map: &mut CMap2` -- Edited map.
 /// - `e: EdgeIdType` -- Edge to move.
 ///
+/// # Panics
+///
+/// This function will panic if there is no cell on one side of the edge.
+///
 /// # Errors
 ///
 /// This function will abort and raise an error if:
 /// - the transaction cannot be completed,
-/// - one of the edge's vertex has no associated coordinates value,
 /// - one internal sew operation fails.
 ///
 /// The returned error can be used in conjunction with transaction control to avoid any
@@ -279,6 +283,7 @@ pub fn swap_edge<T: CoordsFloat>(
     e: EdgeIdType,
 ) -> TransactionClosureResult<(), SewError> {
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    assert_ne!(r, NULL_DART_ID);
     let (b1l, b1r) = (map.beta_transac::<1>(t, l)?, map.beta_transac::<1>(t, r)?);
     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
 
@@ -298,3 +303,6 @@ pub fn swap_edge<T: CoordsFloat>(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;
