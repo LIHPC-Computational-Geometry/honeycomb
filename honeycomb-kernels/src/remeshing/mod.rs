@@ -229,3 +229,72 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 
     Ok(())
 }
+
+/// Tip over an edge shared by two triangles.
+///
+/// Vertices that were shared become exclusive to each new triangle and vice versa:
+///
+/// ```text
+///
+///       +                   +
+///      / \                 /|\
+///     /   \               / | \
+///    /     \             /  |  \
+///   /       \           /   |   \
+///  /         \         /    |    \
+/// +-----------+  -->  +     |     +
+///  \    e    /         \    |    /
+///   \       /           \   |   /
+///    \     /             \  |  /
+///     \   /               \ | /
+///      \ /                 \|/
+///       +                   +
+///
+/// ```
+///
+/// This function expects to operate on a triangular mesh. At the moment, calling it on another type
+/// of mesh may result in non-explicit errors (e.g. an internal sew operation will consistently fail
+/// due to a dart being non-free) as there is no check on each faces' degree.
+///
+/// # Arguments
+///
+/// - `t: &mut Transaction` -- Associated transaction.
+/// - `map: &mut CMap2` -- Edited map.
+/// - `e: EdgeIdType` -- Edge to move.
+///
+/// # Errors
+///
+/// This function will abort and raise an error if:
+/// - the transaction cannot be completed,
+/// - one of the edge's vertex has no associated coordinates value,
+/// - one internal sew operation fails.
+///
+/// The returned error can be used in conjunction with transaction control to avoid any
+/// modifications in case of failure at attribute level. The user can then choose to retry or
+/// abort as he wishes using `Transaction::with_control_and_err`.
+#[inline]
+pub fn swap_edge<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    e: EdgeIdType,
+) -> TransactionClosureResult<(), SewError> {
+    let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    let (b1l, b1r) = (map.beta_transac::<1>(t, l)?, map.beta_transac::<1>(t, r)?);
+    let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
+
+    map.unsew::<1>(t, l)?;
+    map.unsew::<1>(t, r)?;
+    map.unsew::<1>(t, b0l)?;
+    map.unsew::<1>(t, b0r)?;
+    map.unsew::<1>(t, b1l)?;
+    map.unsew::<1>(t, b1r)?;
+
+    map.sew::<1>(t, l, b0r)?;
+    map.sew::<1>(t, b0r, b1l)?;
+    map.sew::<1>(t, b1l, l)?;
+    map.sew::<1>(t, r, b0l)?;
+    map.sew::<1>(t, b0l, b1r)?;
+    map.sew::<1>(t, b1r, r)?;
+
+    Ok(())
+}
