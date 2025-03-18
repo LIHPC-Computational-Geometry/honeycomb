@@ -9,9 +9,8 @@ use egui_dock::egui;
 
 use crate::components::{Beta, Dart, DartId, Edge, EdgeId, Face, FaceId, Vertex, VertexId, Volume};
 use crate::resources::{
-    BetaRenderColor, BetaWidth, DartHeadMul, DartRenderColor, DartShrink, DartWidth,
-    EdgeRenderColor, EdgeWidth, FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth,
-    VolumeRenderColor, VolumeShrink,
+    DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
+    FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth, VolumeRenderColor, VolumeShrink,
 };
 
 // --- plugin
@@ -34,6 +33,7 @@ impl Plugin for GuiPlugin {
 
 // --- system
 
+/// Configuration window status resource.
 #[derive(Resource)]
 pub struct WindowVisible(pub bool);
 
@@ -49,8 +49,6 @@ fn ui_system(
     ds: ResMut<DartShrink>,
     dw: ResMut<DartWidth>,
     dhm: ResMut<DartHeadMul>,
-    brc: ResMut<BetaRenderColor>,
-    bw: ResMut<BetaWidth>,
     verc: ResMut<VertexRenderColor>,
     vew: ResMut<VertexWidth>,
     edrc: ResMut<EdgeRenderColor>,
@@ -65,14 +63,10 @@ fn ui_system(
             .collapsible(false)
             .show(contexts.ctx_mut(), |ui| {
                 draw_options(
-                    ui, drc, ds, dw, dhm, brc, bw, verc, vew, edrc, edw, farc, fas, vorc, vos,
+                    ui, drc, ds, dw, dhm, verc, vew, edrc, edw, farc, fas, vorc, vos,
                 );
             });
     }
-}
-
-pub fn is_window_open(window_visible: Res<WindowVisible>) -> bool {
-    window_visible.0
 }
 
 // --- structs
@@ -100,8 +94,6 @@ pub fn draw_options(
     mut ds: ResMut<DartShrink>,
     mut dw: ResMut<DartWidth>,
     mut dhm: ResMut<DartHeadMul>,
-    mut brc: ResMut<BetaRenderColor>,
-    mut bw: ResMut<BetaWidth>,
     mut verc: ResMut<VertexRenderColor>,
     mut vew: ResMut<VertexWidth>,
     mut edrc: ResMut<EdgeRenderColor>,
@@ -132,15 +124,6 @@ pub fn draw_options(
             ui.add(egui::DragValue::new(&mut ds.0).speed(0.01));
             ui.add(egui::DragValue::new(&mut dw.0).speed(0.01));
             ui.add(egui::DragValue::new(&mut dhm.0).speed(0.01));
-            ui.end_row();
-
-            // betas
-            ui.label("Beta Functions");
-            ui.label("Darts");
-            ui.checkbox(&mut brc.0, "");
-            ui.add_enabled_ui(brc.0, |ui| draw_color_picker(ui, &mut brc.1));
-            ui.label("");
-            ui.add(egui::DragValue::new(&mut bw.0).speed(0.01));
             ui.end_row();
 
             // vertices

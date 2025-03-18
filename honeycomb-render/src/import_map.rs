@@ -7,6 +7,7 @@ use honeycomb_core::{
 
 // --- shared data
 
+/// Combinatorial map to render.
 #[derive(Resource)]
 pub struct Map<T: CoordsFloat>(pub CMap2<T>);
 
@@ -106,6 +107,12 @@ pub struct Volume;
 
 // --- startup routine
 
+/// Build ECS data from a combinatorial map object.
+///
+/// # Panics
+///
+/// This function will panic if there is a topological vertex with no associated coordinates.
+#[allow(clippy::too_many_lines)]
 pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<Map<T>>) {
     let cmap = &cmap.0;
     let map_vertices: Vec<_> = cmap.iter_vertices().collect();
@@ -238,16 +245,16 @@ pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<M
     commands.insert_resource(MapVertices(vertex_vals));
     commands.insert_resource(FaceNormals(face_normals));
 
-    darts.into_iter().for_each(|bundle| {
+    for bundle in darts {
         commands.spawn(bundle);
-    });
-    vertices.into_iter().for_each(|bundle| {
+    }
+    for bundle in vertices {
         commands.spawn(bundle);
-    });
-    edges.into_iter().for_each(|bundle| {
+    }
+    for bundle in edges {
         commands.spawn(bundle);
-    });
-    faces.into_iter().for_each(|bundle| {
+    }
+    for bundle in faces {
         commands.spawn(bundle);
-    });
+    }
 }

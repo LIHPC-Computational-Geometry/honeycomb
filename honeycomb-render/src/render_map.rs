@@ -8,13 +8,16 @@ use crate::{
     },
 };
 
+/// Dart gizmos configuration group.
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct DartGizmos;
 
+/// Dart rendering schedule condition.
 pub fn render_dart_enabled(drc: Res<DartRenderColor>) -> bool {
     drc.0
 }
 
+/// Dart rendering system.
 pub fn render_darts(
     mut gizmos: Gizmos<DartGizmos>,
     // common data
@@ -52,14 +55,16 @@ pub fn render_darts(
     }
 }
 
+/// Vertex gizmos configuration group.
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct VertexGizmos;
 
+/// Vertex rendering schedule condition.
 pub fn render_vertex_enabled(vrc: Res<VertexRenderColor>) -> bool {
     vrc.0
 }
 
-/// System used to generate vertex entities in the ECS.
+/// Vertex rendering system.
 pub fn render_vertices(
     mut gizmos: Gizmos<VertexGizmos>,
     vertices: Res<MapVertices>,
@@ -80,14 +85,16 @@ pub fn render_vertices(
     }
 }
 
+/// Edge gizmos configuration group.
 #[derive(Default, Reflect, GizmoConfigGroup)]
 pub struct EdgeGizmos;
 
+/// Edge rendering schedule condition.
 pub fn render_edge_enabled(erc: Res<EdgeRenderColor>) -> bool {
     erc.0
 }
 
-/// System used to generate edge entities in the ECS.
+/// Edge rendering system.
 pub fn render_edges(
     mut gizmos: Gizmos<EdgeGizmos>,
     vertices: Res<MapVertices>,
@@ -107,11 +114,11 @@ pub fn render_edges(
     }
 }
 
-/// System used to generate face entities in the ECS.
+/// Face rendering system.
 ///
 /// NOT YET IMPLEMENTED
 #[allow(unused)]
-pub fn populate_faces(
+pub fn render_faces(
     mut gizmos: Gizmos<VertexGizmos>,
     vertices: Res<MapVertices>,
     face_normals: Res<FaceNormals>,

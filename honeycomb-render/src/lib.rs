@@ -40,6 +40,7 @@ use bevy::prelude::*;
 use honeycomb_core::cmap::CMap2;
 use honeycomb_core::geometry::CoordsFloat;
 
+/// Main rendering function.
 pub fn render_2d_map<T: CoordsFloat>(cmap: CMap2<T>) {
     let mut app = App::new();
     app.insert_resource(resources::Map(cmap));
@@ -85,16 +86,16 @@ pub mod resources {
     pub use crate::gui::WindowVisible;
     pub use crate::import_map::{FaceNormals, Map, MapVertices, VolumeNormals};
     pub use crate::options::{
-        BetaRenderColor, BetaWidth, DartHeadMul, DartRenderColor, DartShrink, DartWidth,
-        EdgeRenderColor, EdgeWidth, FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth,
-        VolumeRenderColor, VolumeShrink,
+        DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
+        FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth, VolumeRenderColor,
+        VolumeShrink,
     };
     pub use crate::render_map::{DartGizmos, EdgeGizmos, VertexGizmos};
 }
 
 /// systems used to build the default [`App`]
 pub mod systems {
-    pub use crate::gui::{draw_inspected_data, draw_options, is_window_open};
+    pub use crate::gui::{draw_inspected_data, draw_options};
     pub use crate::import_map::extract_data_from_map;
     pub use crate::render_map::{
         render_dart_enabled, render_darts, render_edge_enabled, render_edges,
