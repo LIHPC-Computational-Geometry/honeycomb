@@ -3,7 +3,7 @@ use honeycomb_core::{
     stm::atomically_with_err,
 };
 
-use crate::triangulation::{TriangulateError, earclip_cell, fan_cell};
+use crate::triangulation::{TriangulateError, earclip_cell_countercw, fan_cell};
 
 // you can copy paste this function into the render example to see what the mesh looks like
 // it contains:
@@ -151,7 +151,7 @@ fn earclip_cells() {
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert_eq!(
-        atomically_with_err(|t| earclip_cell(t, &map, hex1, &new_darts)),
+        atomically_with_err(|t| earclip_cell_countercw(t, &map, hex1, &new_darts)),
         Ok(())
     );
 
@@ -163,7 +163,7 @@ fn earclip_cells() {
     // the hex will be split in 4
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert!(atomically_with_err(|t| earclip_cell(t, &map, hex2, &new_darts)).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, hex2, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(hex2 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(8).count(), 3);
@@ -173,7 +173,7 @@ fn earclip_cells() {
     // the square will be split in 2
     let nd = map.add_free_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
-    assert!(atomically_with_err(|t| earclip_cell(t, &map, squ, &new_darts)).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, squ, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(squ as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(15).count(), 3);
@@ -181,7 +181,7 @@ fn earclip_cells() {
     // 9-gon is split in 7
     let nd = map.add_free_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
-    assert!(atomically_with_err(|t| earclip_cell(t, &map, smh, &new_darts)).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, smh, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(smh as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(18).count(), 3);
@@ -192,7 +192,7 @@ fn earclip_cells() {
     assert_eq!(map.i_cell::<2>(24).count(), 3);
 
     assert_eq!(
-        atomically_with_err(|t| earclip_cell(t, &map, tri, &[])),
+        atomically_with_err(|t| earclip_cell_countercw(t, &map, tri, &[])),
         Err(TriangulateError::AlreadyTriangulated)
     );
 

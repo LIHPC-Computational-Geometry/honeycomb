@@ -14,7 +14,7 @@
 mod ear_clipping;
 mod fan;
 
-pub use ear_clipping::process_cell as earclip_cell;
+pub use ear_clipping::{earclip_cell_countercw, earclip_cell_cw};
 pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
 

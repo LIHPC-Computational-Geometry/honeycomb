@@ -3,7 +3,7 @@ use honeycomb::{
     core::stm::atomically_with_err,
     prelude::{
         CMap2, CMapBuilder, DartIdType, OrbitPolicy,
-        triangulation::{TriangulateError, earclip_cell, fan_cell},
+        triangulation::{TriangulateError, earclip_cell_countercw, fan_cell},
     },
 };
 
@@ -73,7 +73,7 @@ fn earclip_bench() -> Result<(), TriangulateError> {
         .collect();
 
     for (face_id, new_darts) in faces.iter().zip(dart_slices.iter()) {
-        atomically_with_err(|t| earclip_cell(t, &map, *face_id, new_darts))?;
+        atomically_with_err(|t| earclip_cell_countercw(t, &map, *face_id, new_darts))?;
     }
 
     Ok(())
