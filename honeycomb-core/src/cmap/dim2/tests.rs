@@ -163,7 +163,7 @@ fn example_test_transactional() {
 
     // sew both triangles
     atomically(|trans| {
-        // normally the erro should be handled, but we're in a seq context
+        // normally the error should be handled, but we're in a seq context
         assert!(map.sew::<2>(trans, 2, 4).is_ok());
         Ok(())
     });

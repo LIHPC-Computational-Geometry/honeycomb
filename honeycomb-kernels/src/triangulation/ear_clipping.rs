@@ -13,7 +13,7 @@ use crate::triangulation::{
 ///
 /// Note that:
 /// - the function assumes that the polygon is simple (no self-intersections or holes) and that the
-///   interior is lcoated on the LEFT SIDE of the cross-product.
+///   interior is located on the LEFT SIDE of the cross-product.
 /// - the implementation might need adjustments for parallel operations or when working with
 ///   identifiers not greater than existing ones.
 ///
@@ -51,7 +51,7 @@ use crate::triangulation::{
 ///
 /// Because the ear clipping algorithm works iteratively, the face may be modified a few times
 /// before reaching a state where no ear can be found. Note, however, that this cannot occur if
-/// the face satisfies requirements mentionned above because of the [Two ears theorem][TET].
+/// the face satisfies requirements mentioned above because of the [Two ears theorem][TET].
 ///
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn process_cell<T: CoordsFloat>(
