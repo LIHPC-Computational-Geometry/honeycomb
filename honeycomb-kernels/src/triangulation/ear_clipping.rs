@@ -1,11 +1,9 @@
 use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
-use honeycomb_core::stm::{abort, atomically_with_err, try_or_coerce};
+use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
 
-use crate::triangulation::{
-    TriangulateError, check_requirements, crossp_from_verts, fetch_face_vertices,
-};
+use crate::triangulation::{TriangulateError, check_requirements, crossp_from_verts};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -57,86 +55,98 @@ use crate::triangulation::{
 ///
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn process_cell<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    t: &mut Transaction,
+    cmap: &CMap2<T>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
-) -> Result<(), TriangulateError> {
-    let darts: SmallVec<DartIdType, 16> = cmap
-        .orbit(OrbitPolicy::FaceLinear, face_id as DartIdType)
-        .collect();
+) -> TransactionClosureResult<(), TriangulateError> {
+    let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
+    let mut vertices: SmallVec<Vertex2<T>, 16> = SmallVec::new();
+
+    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+        darts.push(d?);
+    }
+    for &d in &darts {
+        let vid = cmap.vertex_id_transac(t, d)?;
+        let v = if let Some(val) = cmap.read_vertex(t, vid)? {
+            val
+        } else {
+            abort(TriangulateError::UndefinedFace(
+                "one or more undefined vertices",
+            ))?
+        };
+        vertices.push(v);
+    }
 
     // early checks - check # of darts & face size
-    check_requirements(darts.len(), new_darts.len())?;
+    if let Err(e) = check_requirements(darts.len(), new_darts.len()) {
+        abort(e)?;
+    }
 
-    // get associated vertices - check for undefined vertices
-    let vertices: SmallVec<Vertex2<T>, 16> = fetch_face_vertices(cmap, &darts)?.collect();
+    let mut darts = darts.clone();
+    let mut vertices = vertices.clone();
+    let mut n = darts.len();
+    let mut ndart_id = new_darts[0];
+    while n > 3 {
+        let Some(ear) = (0..n).find(|idx| {
+            // we're checking whether ABC is an ear or not
+            let v1 = &vertices[*idx]; // A
+            let v2 = &vertices[(*idx + 1) % n]; // B
+            let v3 = &vertices[(*idx + 2) % n]; // C
 
-    atomically_with_err(|t| {
-        let mut darts = darts.clone();
-        let mut vertices = vertices.clone();
-        let mut n = darts.len();
-        let mut ndart_id = new_darts[0];
-        while n > 3 {
-            let Some(ear) = (0..n).find(|idx| {
-                // we're checking whether ABC is an ear or not
-                let v1 = &vertices[*idx]; // A
-                let v2 = &vertices[(*idx + 1) % n]; // B
-                let v3 = &vertices[(*idx + 2) % n]; // C
-
-                // we assume the interior of the polygon is on the left side
-                let is_inside = {
-                    let tmp = crossp_from_verts(v1, v2, v3);
-                    tmp > T::epsilon()
-                };
-
-                let no_overlap = vertices
-                    .iter()
-                    .filter(|v| (**v != *v1) && (**v != *v2) && (**v != *v3))
-                    .all(|v| {
-                        let sig12v = crossp_from_verts(v1, v2, v);
-                        let sig23v = crossp_from_verts(v2, v3, v);
-                        let sig31v = crossp_from_verts(v3, v1, v);
-
-                        let has_pos =
-                            (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());
-                        let has_neg =
-                            (sig12v < T::zero()) || (sig23v < T::zero()) || (sig31v < T::zero());
-
-                        has_pos && has_neg
-                    });
-                is_inside && no_overlap
-            }) else {
-                // println!("W: could not find ear to triangulate cell - skipping face {face_id}");
-                abort(TriangulateError::NoEar)?
+            // we assume the interior of the polygon is on the left side
+            let is_inside = {
+                let tmp = crossp_from_verts(v1, v2, v3);
+                tmp > T::epsilon()
             };
 
-            // edit cell; we use the nd1/nd2 edge to create a triangle from the ear
-            // nd1 is on the side of the tri, nd2 on the side of the rest of the cell
-            let d_ear1 = darts[ear];
-            let d_ear2 = darts[(ear + 1) % n];
-            let b0_d_ear1 = cmap.beta_transac::<0>(t, d_ear1)?;
-            let b1_d_ear2 = cmap.beta_transac::<1>(t, d_ear2)?;
-            let nd1 = ndart_id;
-            let nd2 = ndart_id + 1;
-            ndart_id += 2;
-            try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
-            try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, nd1, d_ear1), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, b0_d_ear1, nd2), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, nd2, b1_d_ear2), TriangulateError);
-            try_or_coerce!(cmap.sew::<2>(t, nd1, nd2), TriangulateError);
+            let no_overlap = vertices
+                .iter()
+                .filter(|v| (**v != *v1) && (**v != *v2) && (**v != *v3))
+                .all(|v| {
+                    let sig12v = crossp_from_verts(v1, v2, v);
+                    let sig23v = crossp_from_verts(v2, v3, v);
+                    let sig31v = crossp_from_verts(v3, v1, v);
 
-            // edit existing vectors
-            darts.remove((ear + 1) % n);
-            darts.push(nd2);
-            darts.swap_remove(ear);
-            vertices.remove((ear + 1) % n);
+                    let has_pos =
+                        (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());
+                    let has_neg =
+                        (sig12v < T::zero()) || (sig23v < T::zero()) || (sig31v < T::zero());
 
-            // update n
-            n -= 1;
-        }
+                    has_pos && has_neg
+                });
+            is_inside && no_overlap
+        }) else {
+            // println!("W: could not find ear to triangulate cell - skipping face {face_id}");
+            abort(TriangulateError::NoEar)?
+        };
 
-        Ok(())
-    })
+        // edit cell; we use the nd1/nd2 edge to create a triangle from the ear
+        // nd1 is on the side of the tri, nd2 on the side of the rest of the cell
+        let d_ear1 = darts[ear];
+        let d_ear2 = darts[(ear + 1) % n];
+        let b0_d_ear1 = cmap.beta_transac::<0>(t, d_ear1)?;
+        let b1_d_ear2 = cmap.beta_transac::<1>(t, d_ear2)?;
+        let nd1 = ndart_id;
+        let nd2 = ndart_id + 1;
+        ndart_id += 2;
+        try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
+        try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, nd1, d_ear1), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, b0_d_ear1, nd2), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, nd2, b1_d_ear2), TriangulateError);
+        try_or_coerce!(cmap.sew::<2>(t, nd1, nd2), TriangulateError);
+
+        // edit existing vectors
+        darts.remove((ear + 1) % n);
+        darts.push(nd2);
+        darts.swap_remove(ear);
+        vertices.remove((ear + 1) % n);
+
+        // update n
+        n -= 1;
+    }
+
+    Ok(())
 }

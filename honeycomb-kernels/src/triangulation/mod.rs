@@ -19,7 +19,6 @@ pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
 
 use honeycomb_core::cmap::SewError;
-use honeycomb_core::cmap::{CMap2, DartIdType};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use thiserror::Error;
 
@@ -107,22 +106,6 @@ pub fn check_requirements(
     }
 
     Ok(())
-}
-
-fn fetch_face_vertices<T: CoordsFloat>(
-    cmap: &CMap2<T>,
-    darts: &[DartIdType],
-) -> Result<impl Iterator<Item = Vertex2<T>>, TriangulateError> {
-    let tmp = darts
-        .iter()
-        .map(|dart_id| cmap.force_read_vertex(cmap.vertex_id(*dart_id)));
-    if tmp.clone().any(|v| v.is_none()) {
-        Err(TriangulateError::UndefinedFace(
-            "one or more undefined vertices",
-        ))
-    } else {
-        Ok(tmp.map(Option::unwrap)) // safe unwrap due to if
-    }
 }
 
 /// Compute the cross product: `v1v2 x v2v3`.

@@ -1,4 +1,7 @@
-use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType, FaceIdType};
+use honeycomb_core::{
+    cmap::{CMap2, CMapBuilder, DartIdType, FaceIdType},
+    stm::atomically_with_err,
+};
 
 use crate::triangulation::{TriangulateError, earclip_cell, fan_cell};
 
@@ -90,7 +93,7 @@ fn fan_cells() {
     // the hex will be
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert!(fan_cell(&mut map, hex1, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| fan_cell(t, &map, hex1, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(hex1 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(3).count(), 3);
@@ -100,7 +103,7 @@ fn fan_cells() {
     // the hex will be
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert!(fan_cell(&mut map, hex2, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| fan_cell(t, &map, hex2, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(hex2 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(8).count(), 3);
@@ -110,7 +113,7 @@ fn fan_cells() {
     // the square will be split in two
     let nd = map.add_free_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
-    assert!(fan_cell(&mut map, squ, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| fan_cell(t, &map, squ, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(squ as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(15).count(), 3);
@@ -119,14 +122,14 @@ fn fan_cells() {
     let nd = map.add_free_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
     assert_eq!(
-        fan_cell(&mut map, nop, &new_darts),
+        atomically_with_err(|t| fan_cell(t, &map, nop, &new_darts)),
         Err(TriangulateError::NonFannable)
     );
 
     assert_eq!(map.i_cell::<2>(nop as DartIdType).count(), 9); // unchanged
 
     assert_eq!(
-        fan_cell(&mut map, tri, &[]),
+        atomically_with_err(|t| fan_cell(t, &map, tri, &[])),
         Err(TriangulateError::AlreadyTriangulated)
     );
 
@@ -147,7 +150,10 @@ fn earclip_cells() {
     // the hex will be split in 4
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert_eq!(earclip_cell(&mut map, hex1, &new_darts), Ok(()));
+    assert_eq!(
+        atomically_with_err(|t| earclip_cell(t, &map, hex1, &new_darts)),
+        Ok(())
+    );
 
     assert_eq!(map.i_cell::<2>(hex1 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(3).count(), 3);
@@ -157,7 +163,7 @@ fn earclip_cells() {
     // the hex will be split in 4
     let nd = map.add_free_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
-    assert!(earclip_cell(&mut map, hex2, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell(t, &map, hex2, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(hex2 as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(8).count(), 3);
@@ -167,7 +173,7 @@ fn earclip_cells() {
     // the square will be split in 2
     let nd = map.add_free_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
-    assert!(earclip_cell(&mut map, squ, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell(t, &map, squ, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(squ as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(15).count(), 3);
@@ -175,7 +181,7 @@ fn earclip_cells() {
     // 9-gon is split in 7
     let nd = map.add_free_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
-    assert!(earclip_cell(&mut map, smh, &new_darts).is_ok());
+    assert!(atomically_with_err(|t| earclip_cell(t, &map, smh, &new_darts)).is_ok());
 
     assert_eq!(map.i_cell::<2>(smh as DartIdType).count(), 3);
     assert_eq!(map.i_cell::<2>(18).count(), 3);
@@ -186,7 +192,7 @@ fn earclip_cells() {
     assert_eq!(map.i_cell::<2>(24).count(), 3);
 
     assert_eq!(
-        earclip_cell(&mut map, tri, &[]),
+        atomically_with_err(|t| earclip_cell(t, &map, tri, &[])),
         Err(TriangulateError::AlreadyTriangulated)
     );
 
