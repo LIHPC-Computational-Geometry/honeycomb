@@ -8,9 +8,9 @@
 //! - swap-based cell edition routines
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, SewError, VertexIdType},
+    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, SewError, VertexIdType},
     geometry::{CoordsFloat, Vertex2},
-    stm::{StmClosureResult, Transaction, TransactionClosureResult, retry, try_or_coerce},
+    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
 
 // -- vertex relaxation
@@ -230,6 +230,23 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     Ok(())
 }
 
+/// Error-modeling enum for edge swap routine.
+#[derive(thiserror::Error, Debug, PartialEq, Eq)]
+pub enum EdgeSwapError {
+    /// A core operation failed.
+    #[error("core operation failed: {0}")]
+    FailedCoreOp(#[from] SewError),
+    /// The edge passed as argument is null.
+    #[error("cannot swap null edge")]
+    NullEdge,
+    /// The edge passed as argument is made of single dart, hence doesn't have a cell on each side.
+    #[error("cannot swap an edge adjacent to a single cell")]
+    IncompleteEdge,
+    /// One or both of the cells adjacent to the edge are not triangles.
+    #[error("cannot swap an edge adjacent to a non-triangular cell")]
+    BadTopology,
+}
+
 /// Tip over an edge shared by two triangles.
 ///
 /// The edge is tipped in the clockwise direction. Vertices that were shared become exclusive
@@ -281,25 +298,34 @@ pub fn swap_edge<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
     e: EdgeIdType,
-) -> TransactionClosureResult<(), SewError> {
+) -> TransactionClosureResult<(), EdgeSwapError> {
+    if e == NULL_EDGE_ID {
+        abort(EdgeSwapError::NullEdge)?;
+    }
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
-    assert_ne!(r, NULL_DART_ID);
+    if r == NULL_DART_ID {
+        abort(EdgeSwapError::IncompleteEdge)?;
+    }
+
     let (b1l, b1r) = (map.beta_transac::<1>(t, l)?, map.beta_transac::<1>(t, r)?);
     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
+    if map.beta_transac::<1>(t, b1l)? != b0l || map.beta_transac::<1>(t, b1r)? != b0r {
+        abort(EdgeSwapError::BadTopology)?;
+    }
 
-    map.unsew::<1>(t, l)?;
-    map.unsew::<1>(t, r)?;
-    map.unsew::<1>(t, b0l)?;
-    map.unsew::<1>(t, b0r)?;
-    map.unsew::<1>(t, b1l)?;
-    map.unsew::<1>(t, b1r)?;
+    try_or_coerce!(map.unsew::<1>(t, l), EdgeSwapError);
+    try_or_coerce!(map.unsew::<1>(t, r), EdgeSwapError);
+    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeSwapError);
+    try_or_coerce!(map.unsew::<1>(t, b0r), EdgeSwapError);
+    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeSwapError);
+    try_or_coerce!(map.unsew::<1>(t, b1r), EdgeSwapError);
 
-    map.sew::<1>(t, l, b0r)?;
-    map.sew::<1>(t, b0r, b1l)?;
-    map.sew::<1>(t, b1l, l)?;
-    map.sew::<1>(t, r, b0l)?;
-    map.sew::<1>(t, b0l, b1r)?;
-    map.sew::<1>(t, b1r, r)?;
+    try_or_coerce!(map.sew::<1>(t, l, b0r), EdgeSwapError);
+    try_or_coerce!(map.sew::<1>(t, b0r, b1l), EdgeSwapError);
+    try_or_coerce!(map.sew::<1>(t, b1l, l), EdgeSwapError);
+    try_or_coerce!(map.sew::<1>(t, r, b0l), EdgeSwapError);
+    try_or_coerce!(map.sew::<1>(t, b0l, b1r), EdgeSwapError);
+    try_or_coerce!(map.sew::<1>(t, b1r, r), EdgeSwapError);
 
     Ok(())
 }

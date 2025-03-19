@@ -3,14 +3,16 @@ use honeycomb_core::{
     stm::atomically_with_err,
 };
 
-use crate::remeshing::swap_edge;
+use crate::remeshing::{EdgeSwapError, swap_edge};
 
 #[test]
-#[should_panic] // FIXME: add a more explicit error
 fn swap_edge_boundary() {
     let map = CMapBuilder::<2, f64>::unit_triangles(1).build().unwrap();
 
-    let _ = atomically_with_err(|t| swap_edge(t, &map, 1)); // panic
+    assert!(
+        atomically_with_err(|t| swap_edge(t, &map, 1))
+            .is_err_and(|e| e == EdgeSwapError::IncompleteEdge)
+    );
 }
 
 #[test]
