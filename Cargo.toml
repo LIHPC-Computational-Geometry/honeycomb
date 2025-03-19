@@ -49,6 +49,9 @@ num-traits = "0.2.19"
 fast-stm = "0.5.0"
 vtkio = { version = "0.7.0-rc1", default-features = false }
 
+# kernels
+smallvec = "2.0.0-alpha.10"
+
 # benchmarks
 criterion = "0.5.1"
 iai-callgrind = "0.14.0"
