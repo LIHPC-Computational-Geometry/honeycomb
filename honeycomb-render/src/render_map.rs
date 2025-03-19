@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::{Dart, Edge, FaceId, Vertex},
+    import_map::Face,
     resources::{
         DartHeadMul, DartRenderColor, DartShrink, EdgeRenderColor, FaceNormals, FaceRenderColor,
         FaceShrink, MapVertices, VertexRenderColor, VertexWidth,
@@ -114,15 +115,47 @@ pub fn render_edges(
     }
 }
 
+/// Face gizmos configuration group.
+#[derive(Default, Reflect, GizmoConfigGroup)]
+pub struct FaceGizmos;
+
+/// Face rendering schedule condition.
+pub fn render_face_enabled(frc: Res<FaceRenderColor>) -> bool {
+    frc.0
+}
 /// Face rendering system.
 ///
-/// NOT YET IMPLEMENTED
-#[allow(unused)]
+/// This currently renders faces using a set of edges; the face isn't fully colored.
 pub fn render_faces(
     mut gizmos: Gizmos<VertexGizmos>,
     vertices: Res<MapVertices>,
     face_normals: Res<FaceNormals>,
     face_render_color: Res<FaceRenderColor>,
     face_shrink: Res<FaceShrink>,
+    q: Query<(&Face, &FaceId)>,
 ) {
+    let vertices = &vertices.0;
+    let normals = &face_normals.0;
+    let [red, green, blue, alpha] = face_render_color.1.to_srgba_unmultiplied();
+
+    for (Face(v), FaceId(fid)) in &q {
+        v.windows(2).for_each(|sl| {
+            let &[vid1, vid2] = sl else { unreachable!() };
+            let (n1, n2) = (&normals[&(*fid, vid1)], &normals[&(*fid, vid2)]);
+            let (ov1, ov2) = (&vertices[vid1], &vertices[vid2]);
+
+            let (v1, v2) = (*ov1 + (*n1 * face_shrink.0), *ov2 + (*n2 * face_shrink.0));
+
+            gizmos.line(v1, v2, Color::srgba_u8(red, green, blue, alpha));
+        });
+        {
+            let [vid1, vid2] = [*v.last().unwrap(), v[0]];
+            let (n1, n2) = (&normals[&(*fid, vid1)], &normals[&(*fid, vid2)]);
+            let (ov1, ov2) = (&vertices[vid1], &vertices[vid2]);
+
+            let (v1, v2) = (*ov1 + (*n1 * face_shrink.0), *ov2 + (*n2 * face_shrink.0));
+
+            gizmos.line(v1, v2, Color::srgba_u8(red, green, blue, alpha));
+        }
+    }
 }
