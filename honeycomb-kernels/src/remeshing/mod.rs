@@ -40,6 +40,7 @@ use honeycomb_core::{
 /// For an example of usage, see the `shift` [benchmark code][BENCH].
 ///
 /// [BENCH]: https://github.com/LIHPC-Computational-Geometry/honeycomb/tree/master/benches/src
+#[inline]
 pub fn move_vertex_to_average<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
