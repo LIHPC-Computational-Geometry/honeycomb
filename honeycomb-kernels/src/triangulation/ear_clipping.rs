@@ -61,8 +61,7 @@ pub fn earclip_cell_countercw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        let tmp = crossp_from_verts(v1, v2, v3);
-        tmp > T::epsilon()
+        crossp_from_verts(v1, v2, v3) > T::zero()
     })
 }
 
@@ -122,10 +121,12 @@ pub fn earclip_cell_cw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        let tmp = crossp_from_verts(v1, v2, v3);
-        tmp < T::epsilon()
+        crossp_from_verts(v1, v2, v3) < T::zero()
     })
 }
+
+// -- internals
+
 fn process_cell<T: CoordsFloat>(
     t: &mut Transaction,
     cmap: &CMap2<T>,
@@ -187,7 +188,6 @@ fn process_cell<T: CoordsFloat>(
                 });
             is_inside && no_overlap
         }) else {
-            // println!("W: could not find ear to triangulate cell - skipping face {face_id}");
             abort(TriangulateError::NoEar)?
         };
 
