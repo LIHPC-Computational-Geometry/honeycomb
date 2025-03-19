@@ -1,7 +1,7 @@
 use std::env;
 
 use honeycomb_kernels::grisubal::*;
-use honeycomb_render::App;
+use honeycomb_render::render_2d_map;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -22,9 +22,7 @@ fn main() {
 
         let map = grisubal::<f64>(path, [1., 1.], clip).unwrap();
 
-        let mut app = App::default();
-        app.add_capture(&map);
-        app.run()
+        render_2d_map(map);
     } else {
         println!(
             "No input geometry specified - you can pass a path to a vtk input as command line argument"

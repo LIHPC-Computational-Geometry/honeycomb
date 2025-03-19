@@ -72,5 +72,5 @@ pub mod prelude {
     // ------ RENDER RE-EXPORTS
 
     #[cfg(feature = "render")]
-    pub use honeycomb_render::App;
+    pub use honeycomb_render::render_2d_map;
 }

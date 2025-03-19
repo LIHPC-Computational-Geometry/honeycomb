@@ -1,9 +1,8 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::math::vec2;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 
-use crate::gui::{CustomTab, UiState};
+// use crate::gui::{CustomTab, UiState};
 
 /// Taken from the bevy
 /// [cheatbook](https://bevy-cheatbook.github.io/cookbook/pan-orbit-camera.html).
@@ -117,24 +116,4 @@ pub fn update_camera(
     }
 
     ev_motion.clear();
-}
-
-#[allow(clippy::missing_panics_doc)]
-/// Detects if the cursor is positioned in the render tab.
-///
-/// This is used to ignore camera related input when interacting with something other than the
-pub fn cursor_in_render(
-    q_windows: Query<&Window, With<PrimaryWindow>>,
-    ui_state: Res<UiState>,
-) -> bool {
-    // returns true if and only if the cursor is positioned in the render tab
-    if let Some(position) = q_windows.single().cursor_position() {
-        let tree = ui_state.tree();
-        if let Some((node_idx, _)) = tree.find_tab(&CustomTab::Render) {
-            let rect = &tree[node_idx].rect().expect("unreachable");
-            return rect.contains(position.to_array().into());
-        }
-        return false;
-    }
-    false
 }

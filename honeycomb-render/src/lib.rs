@@ -26,60 +26,79 @@
 
 // ------ MODULE DECLARATIONS
 
-mod app;
-mod capture;
 mod gui;
-mod inspector;
+mod import_map;
 mod options;
-mod render;
+mod render_map;
+mod scene;
 
 // ------ PUBLIC API
 
 // out of the box render tool
 
-pub use app::App;
+use bevy::prelude::*;
+use honeycomb_core::cmap::CMap2;
+use honeycomb_core::geometry::CoordsFloat;
+
+/// Main rendering function.
+pub fn render_2d_map<T: CoordsFloat>(cmap: CMap2<T>) {
+    let mut app = App::new();
+    app.insert_resource(resources::Map(cmap));
+    app.init_gizmo_group::<resources::DartGizmos>()
+        .init_gizmo_group::<resources::VertexGizmos>()
+        .init_gizmo_group::<resources::EdgeGizmos>();
+    app.add_systems(Startup, import_map::extract_data_from_map::<T>);
+    // resource
+    app.insert_resource(Msaa::Sample4)
+        .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
+    // plugins
+    app.add_plugins(DefaultPlugins)
+        .add_plugins(plugins::OptionsPlugin)
+        .add_plugins(plugins::GuiPlugin)
+        .add_plugins(plugins::ScenePlugin);
+
+    app.run();
+}
 
 // item for custom composition
 
 /// plugins used to build the default [`App`]
 pub mod plugins {
-    pub use crate::capture::CapturePlugin;
     pub use crate::gui::GuiPlugin;
     pub use crate::options::OptionsPlugin;
-    pub use crate::render::ScenePlugin;
+    pub use crate::scene::ScenePlugin;
 }
 
 /// bundles used to build the default [`App`]
 pub mod bundles {
-    pub use crate::capture::ecs_data::{
-        DartBodyBundle, DartHeadBundle, EdgeBundle, FaceBundle, VertexBundle,
-    };
+    pub use crate::import_map::{DartBundle, EdgeBundle, FaceBundle, VertexBundle};
 }
 
 /// components used to build the default [`App`]
 pub mod components {
-    pub use crate::capture::ecs_data::{
-        Beta, CaptureId, DartBody, DartHead, DartId, Edge, EdgeId, Face, FaceId, Vertex, VertexId,
-        Volume, VolumeId,
+    pub use crate::import_map::{
+        Beta, Dart, DartId, Edge, EdgeId, Face, FaceId, Vertex, VertexId, Volume, VolumeId,
     };
-    pub use crate::render::camera::PanOrbitCamera;
 }
 
 /// resources used to build the default [`App`]
 pub mod resources {
-    pub use crate::capture::ecs_data::{FaceNormals, MapVertices};
-    pub use crate::options::resource::*;
+    pub use crate::gui::WindowVisible;
+    pub use crate::import_map::{FaceNormals, Map, MapVertices, VolumeNormals};
+    pub use crate::options::{
+        DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
+        FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth, VolumeRenderColor,
+        VolumeShrink,
+    };
+    pub use crate::render_map::{DartGizmos, EdgeGizmos, VertexGizmos};
 }
 
 /// systems used to build the default [`App`]
 pub mod systems {
-    pub use crate::capture::system::*;
-    pub use crate::inspector::tab::draw_inspected_data;
-    pub use crate::options::tab::draw_options;
-    pub use crate::render::{
-        camera::{cursor_in_render, update_camera},
-        picking::update_picking,
-        scene::setup_scene,
-        update::*,
+    pub use crate::gui::{draw_inspected_data, draw_options};
+    pub use crate::import_map::extract_data_from_map;
+    pub use crate::render_map::{
+        render_dart_enabled, render_darts, render_edge_enabled, render_edges,
+        render_vertex_enabled, render_vertices,
     };
 }
