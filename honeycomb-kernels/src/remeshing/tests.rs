@@ -6,12 +6,22 @@ use honeycomb_core::{
 use crate::remeshing::{EdgeSwapError, swap_edge};
 
 #[test]
-fn swap_edge_boundary() {
+fn swap_edge_errs() {
     let map = CMapBuilder::<2, f64>::unit_triangles(1).build().unwrap();
 
     assert!(
+        atomically_with_err(|t| swap_edge(t, &map, 0)).is_err_and(|e| e == EdgeSwapError::NullEdge)
+    );
+    assert!(
         atomically_with_err(|t| swap_edge(t, &map, 1))
             .is_err_and(|e| e == EdgeSwapError::IncompleteEdge)
+    );
+
+    let map = CMapBuilder::<2, f64>::unit_grid(2).build().unwrap();
+
+    assert!(
+        atomically_with_err(|t| swap_edge(t, &map, 2))
+            .is_err_and(|e| e == EdgeSwapError::BadTopology)
     );
 }
 
