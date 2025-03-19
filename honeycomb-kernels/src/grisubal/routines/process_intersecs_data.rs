@@ -33,10 +33,10 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
                 t = T::one() - t;
             }
             if let Some(storage) = edge_intersec.get_mut(&edge_id) {
-                // not the first intersction with this given edge
+                // not the first intersection with this given edge
                 storage.push((idx, t, dart_id));
             } else {
-                // first intersction with this given edge
+                // first intersection with this given edge
                 edge_intersec.insert(edge_id, vec![(idx, t, dart_id)]);
             }
         });

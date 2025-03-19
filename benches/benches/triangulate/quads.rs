@@ -1,7 +1,10 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use honeycomb::prelude::{
-    CMap2, CMapBuilder, DartIdType, OrbitPolicy,
-    triangulation::{TriangulateError, earclip_cell, fan_cell},
+use honeycomb::{
+    core::stm::atomically_with_err,
+    prelude::{
+        CMap2, CMapBuilder, DartIdType, OrbitPolicy,
+        triangulation::{TriangulateError, earclip_cell_countercw, fan_cell},
+    },
 };
 
 use honeycomb_benches::utils::FloatType;
@@ -36,7 +39,7 @@ fn fan_bench() -> Result<(), TriangulateError> {
         .collect();
 
     for (face_id, new_darts) in faces.iter().zip(dart_slices.iter()) {
-        fan_cell(&mut map, *face_id, new_darts)?
+        atomically_with_err(|t| fan_cell(t, &map, *face_id, new_darts))?;
     }
 
     Ok(())
@@ -70,7 +73,7 @@ fn earclip_bench() -> Result<(), TriangulateError> {
         .collect();
 
     for (face_id, new_darts) in faces.iter().zip(dart_slices.iter()) {
-        earclip_cell(&mut map, *face_id, new_darts)?
+        atomically_with_err(|t| earclip_cell_countercw(t, &map, *face_id, new_darts))?;
     }
 
     Ok(())

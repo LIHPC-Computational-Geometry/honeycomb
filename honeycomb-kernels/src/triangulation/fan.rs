@@ -1,9 +1,9 @@
 use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
-use honeycomb_core::geometry::CoordsFloat;
+use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
+use smallvec::SmallVec;
 
-use crate::triangulation::{
-    TriangulateError, check_requirements, crossp_from_verts, fetch_face_vertices,
-};
+use crate::triangulation::{TriangulateError, check_requirements, crossp_from_verts};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using a fan triangulation method.
@@ -43,21 +43,34 @@ use crate::triangulation::{
 /// Note that in any of these cases, the face will remain the same as it was before the function
 /// call.
 pub fn process_cell<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    t: &mut Transaction,
+    cmap: &CMap2<T>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
-) -> Result<(), TriangulateError> {
+) -> TransactionClosureResult<(), TriangulateError> {
     // fetch darts using a custom orbit so that they're ordered
-    let darts: Vec<_> = cmap
-        .orbit(OrbitPolicy::Custom(&[1]), face_id as DartIdType)
-        .collect();
+    let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
+    let mut vertices: SmallVec<Vertex2<T>, 16> = SmallVec::new();
+
+    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+        darts.push(d?);
+    }
+    for &d in &darts {
+        let vid = cmap.vertex_id_transac(t, d)?;
+        let v = if let Some(val) = cmap.read_vertex(t, vid)? {
+            val
+        } else {
+            abort(TriangulateError::UndefinedFace(
+                "one or more undefined vertices",
+            ))?
+        };
+        vertices.push(v);
+    }
     let n = darts.len();
-
     // early checks - check # of darts & face size
-    check_requirements(n, new_darts.len())?;
-
-    // get associated vertices - check for undefined vertices
-    let vertices = fetch_face_vertices(cmap, &darts)?;
+    if let Err(e) = check_requirements(n, new_darts.len()) {
+        abort(e)?;
+    }
 
     // iterating by ref so that we can still access the list
     let star = darts
@@ -86,27 +99,30 @@ pub fn process_cell<T: CoordsFloat>(
     if let Some(sdart) = star {
         // if we found a dart from the previous computations, it means the polygon is "fannable"
         // THIS CANNOT BE PARALLELIZED AS IS
-        let b0_sdart = cmap.beta::<0>(*sdart);
-        let v0 = cmap.force_read_vertex(cmap.vertex_id(*sdart)).unwrap();
-        cmap.force_unsew::<1>(b0_sdart).unwrap();
+        let b0_sdart = cmap.beta_transac::<0>(t, *sdart)?;
+        let vid = cmap.vertex_id_transac(t, *sdart)?;
+        let v0 = cmap.read_vertex(t, vid)?.unwrap();
+        try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
             let [d1, d2] = sl else { unreachable!() };
-            let b1_d0 = cmap.beta::<1>(d0);
-            let b1b1_d0 = cmap.beta::<1>(cmap.beta::<1>(d0));
-            cmap.force_unsew::<1>(b1_d0).unwrap();
-            cmap.force_link::<2>(*d1, *d2).unwrap();
-            cmap.force_link::<1>(*d2, b1b1_d0).unwrap();
-            cmap.force_sew::<1>(b1_d0, *d1).unwrap();
-            cmap.force_sew::<1>(*d1, d0).unwrap();
+            let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
+            let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+            try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
+            try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
+            try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
             d0 = *d2;
         }
-        cmap.force_sew::<1>(cmap.beta::<1>(cmap.beta::<1>(d0)), d0)
-            .unwrap();
-        cmap.force_write_vertex(cmap.vertex_id(*sdart), v0);
+        let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
+        let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+        try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+        let vid = cmap.vertex_id_transac(t, *sdart)?;
+        cmap.write_vertex(t, vid, v0)?;
     } else {
         // println!("W: face {face_id} isn't fannable -- skipping triangulation");
-        return Err(TriangulateError::NonFannable);
+        abort(TriangulateError::NonFannable)?;
     }
 
     Ok(())
@@ -136,7 +152,7 @@ pub fn process_cell<T: CoordsFloat>(
 ///   it's already triangulated or cannot be further processed.
 /// - It verifies if the number of new darts matches the expected number for triangulation.
 /// - The function creates triangles by linking new darts in a fan-like structure to the first
-///   vertex of the polygon. **This is done unconditionnally, whether the polygon is convex or not**.
+///   vertex of the polygon. **This is done unconditionally, whether the polygon is convex or not**.
 ///
 /// # Errors
 ///
@@ -148,39 +164,48 @@ pub fn process_cell<T: CoordsFloat>(
 /// Note that in any of these cases, the face will remain the same as it was before the function
 /// call.
 pub fn process_convex_cell<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+    t: &mut Transaction,
+    cmap: &CMap2<T>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
-) -> Result<(), TriangulateError> {
-    let n = cmap
-        .orbit(OrbitPolicy::Custom(&[1]), face_id as DartIdType)
-        .count();
+) -> TransactionClosureResult<(), TriangulateError> {
+    // fetch darts using a custom orbit so that they're ordered
+    let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
 
-    // early rets
-    check_requirements(n, new_darts.len())?;
+    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+        darts.push(d?);
+    }
+    let n = darts.len();
+
+    // early checks - check # of darts & face size
+    if let Err(e) = check_requirements(n, new_darts.len()) {
+        abort(e)?;
+    }
 
     // we assume the polygon is convex (== starrable from any vertex)
     let sdart = face_id as DartIdType;
-
     // THIS CANNOT BE PARALLELIZED AS IS
-    let b0_sdart = cmap.beta::<0>(sdart);
-    let v0 = cmap.force_read_vertex(cmap.vertex_id(sdart)).unwrap();
-    cmap.force_unsew::<1>(b0_sdart).unwrap();
+    let b0_sdart = cmap.beta_transac::<0>(t, sdart)?;
+    let vid = cmap.vertex_id_transac(t, sdart)?;
+    let v0 = cmap.read_vertex(t, vid)?.unwrap();
+    try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
         let [d1, d2] = sl else { unreachable!() };
-        let b1_d0 = cmap.beta::<1>(d0);
-        let b1b1_d0 = cmap.beta::<1>(cmap.beta::<1>(d0));
-        cmap.force_unsew::<1>(b1_d0).unwrap();
-        cmap.force_link::<2>(*d1, *d2).unwrap();
-        cmap.force_link::<1>(*d2, b1b1_d0).unwrap();
-        cmap.force_sew::<1>(b1_d0, *d1).unwrap();
-        cmap.force_sew::<1>(*d1, d0).unwrap();
+        let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
+        let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+        try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
+        try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
         d0 = *d2;
     }
-    cmap.force_sew::<1>(cmap.beta::<1>(cmap.beta::<1>(d0)), d0)
-        .unwrap();
-    cmap.force_write_vertex(cmap.vertex_id(sdart), v0);
+    let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
+    let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+    try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+    let vid = cmap.vertex_id_transac(t, sdart)?;
+    cmap.write_vertex(t, vid, v0)?;
 
     Ok(())
 }

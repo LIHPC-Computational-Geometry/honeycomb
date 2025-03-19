@@ -55,7 +55,7 @@ use rayon::prelude::*;
 
 use honeycomb::core::stm::atomically;
 use honeycomb::prelude::{
-    CMap2, CMapBuilder, DartIdType, Orbit2, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
+    CMap2, CMapBuilder, DartIdType, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
 };
 
 const DIM_GRID: usize = 256;
@@ -63,14 +63,14 @@ const N_ROUNDS: usize = 100;
 
 fn main() {
     // generate a simple grid as input
-    let map: CMap2<f64> = CMapBuilder::unit_grid(DIM_GRID).build().unwrap();
+    let map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(DIM_GRID).build().unwrap();
 
     // build a node list from vertices that are not on the boundary
     let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
         .iter_vertices()
         .filter_map(|v| {
             // the condition detects if we're on the boundary
-            if Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+            if map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                 .any(|d| map.beta::<2>(d) == NULL_DART_ID)
             {
                 None
@@ -78,7 +78,7 @@ fn main() {
                 // the orbit transformation yields neighbor IDs
                 Some((
                     v,
-                    Orbit2::new(&map, OrbitPolicy::Vertex, v as DartIdType)
+                    map.orbit(OrbitPolicy::Vertex, v as DartIdType)
                         .map(|d| map.vertex_id(map.beta::<2>(d)))
                         .collect(),
                 ))
@@ -148,7 +148,7 @@ const DIM_GRID: usize = 256;
 const N_THREADS: usize = 8;
 
 fn main() {
-    let mut map: CMap2<f64> = CMapBuilder::unit_grid(DIM_GRID).build().unwrap();
+    let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(DIM_GRID).build().unwrap();
 
     // build individual work units
     let faces = map.iter_faces().collect::<Vec<_>>();

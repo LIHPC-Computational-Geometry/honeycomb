@@ -29,7 +29,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// # Errors
     ///
     /// You may use [`AttributeError::FailedMerge`] to model a possible failure in your attribute
-    /// mergin process.
+    /// merging process.
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError>;
 
     /// Splitting routine, i.e. how to obtain the two new values from a single one.
@@ -37,7 +37,7 @@ pub trait AttributeUpdate: Sized + Send + Sync + Clone + Copy {
     /// # Errors
     ///
     /// You may use [`AttributeError::FailedSplit`] to model a possible failure in your attribute
-    /// mergin process.
+    /// merging process.
     fn split(attr: Self) -> Result<(Self, Self), AttributeError>;
 
     #[allow(clippy::missing_errors_doc)]

@@ -50,28 +50,28 @@ pub fn update_config(
 }
 
 macro_rules! declare_newtype_resource {
-    ($nam: ident, $inr: ty) => {
+    ($name: ident, $inr: ty) => {
         /// Rendering option as a resource.
         #[derive(Resource)]
-        pub struct $nam(pub $inr);
+        pub struct $name(pub $inr);
     };
-    ($nam: ident, $inr: ty, $def: expr) => {
+    ($name: ident, $inr: ty, $def: expr) => {
         /// Rendering option as a resource.
         #[derive(Resource)]
-        pub struct $nam(pub $inr);
+        pub struct $name(pub $inr);
 
-        impl Default for $nam {
+        impl Default for $name {
             fn default() -> Self {
                 Self($def)
             }
         }
     };
-    ($nam: ident, $inr1: ty, $inr2: ty, $def: expr) => {
+    ($name: ident, $inr1: ty, $inr2: ty, $def: expr) => {
         /// Rendering option as a resource.
         #[derive(Resource)]
-        pub struct $nam(pub $inr1, pub $inr2);
+        pub struct $name(pub $inr1, pub $inr2);
 
-        impl Default for $nam {
+        impl Default for $name {
             fn default() -> Self {
                 Self($def.0, $def.1)
             }

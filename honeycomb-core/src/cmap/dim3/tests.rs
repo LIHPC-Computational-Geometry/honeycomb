@@ -42,6 +42,9 @@ fn example_test() {
         assert_eq!(vertices.next(), Some(3));
         assert_eq!(vertices.next(), Some(6));
         assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::FaceLinear, 2).collect();
+        assert_eq!(&darts, &[2, 3, 1]);
     }
 
     map.force_write_vertex(1, (1.0, 0.0, 0.0));
@@ -114,17 +117,6 @@ fn example_test() {
 
     // Sew both tetrahedrons along a face (C)
 
-    println!("v d10: {:?}", map.force_read_vertex(map.vertex_id(10)));
-    println!(
-        "v b1d10: {:?}",
-        map.force_read_vertex(map.vertex_id(map.beta::<1>(10)))
-    );
-    println!("v d16: {:?}", map.force_read_vertex(map.vertex_id(16)));
-    println!(
-        "v b1d16: {:?}",
-        map.force_read_vertex(map.vertex_id(map.beta::<1>(16)))
-    );
-
     assert_eq!(map.n_vertices(), 8);
     map.force_sew::<3>(10, 16).unwrap();
     assert_eq!(map.n_vertices(), 5);
@@ -144,11 +136,19 @@ fn example_test() {
         assert_eq!(faces.next(), None);
         // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
         assert_eq!(map.iter_edges().count(), 9);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 10).collect();
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
     }
 
     // Adjust shared vertices (D)
 
-    // this makes it a symetrical square-base pyramid
+    // this makes it a symmetrical square-base pyramid
     assert_eq!(
         map.force_write_vertex(3, (0.0, 1.0, 0.0)),
         Some(Vertex3(0.75, 1.25, 0.0))
@@ -251,6 +251,14 @@ fn example_test_transactional() {
         assert_eq!(vertices.next(), Some(3));
         assert_eq!(vertices.next(), Some(6));
         assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = atomically(|t| {
+            Ok(map
+                .orbit_transac(t, OrbitPolicy::FaceLinear, 2)
+                .map(Result::unwrap)
+                .collect())
+        });
+        assert_eq!(&darts, &[2, 3, 1]);
     }
 
     atomically(|trans| {
@@ -350,11 +358,24 @@ fn example_test_transactional() {
         assert_eq!(faces.next(), None);
         // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
         assert_eq!(map.iter_edges().count(), 9);
+
+        let darts: Vec<_> = atomically(|t| {
+            Ok(map
+                .orbit_transac(t, OrbitPolicy::Face, 10)
+                .map(Result::unwrap)
+                .collect())
+        });
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
     }
 
     // Adjust shared vertices (D)
     atomically(|trans| {
-        // this makes it a symetrical square-base pyramid
+        // this makes it a symmetrical square-base pyramid
         assert_eq!(
             map.write_vertex(trans, 3, (0.0, 1.0, 0.0))?,
             Some(Vertex3(0.75, 1.25, 0.0))
@@ -630,7 +651,7 @@ fn sew_ordering_with_transactions() {
             atomically(|trans| {
                 f1.modify(trans, |v| v + 1)?;
                 // this should be useless as the vertex is defined on this op
-                // we still have to pattern match becaue CMapError cannot be automatically
+                // we still have to pattern match because CMapError cannot be automatically
                 // coerced to StmError
                 if let Err(e) = m1.sew::<1>(trans, 1, 3) {
                     match e {

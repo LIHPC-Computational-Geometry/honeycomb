@@ -127,13 +127,14 @@ fn example_test_transactional() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
-    {
-        let mut face = map.orbit(OrbitPolicy::Face, 1);
-        assert_eq!(face.next(), Some(1));
-        assert_eq!(face.next(), Some(2));
-        assert_eq!(face.next(), Some(3));
+    atomically(|t| {
+        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 1);
+        assert_eq!(face.next(), Some(Ok(1)));
+        assert_eq!(face.next(), Some(Ok(2)));
+        assert_eq!(face.next(), Some(Ok(3)));
         assert_eq!(face.next(), None);
-    }
+        Ok(())
+    });
 
     // build a second triangle
     map.add_free_darts(3);
@@ -151,17 +152,18 @@ fn example_test_transactional() {
     // checks
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
-    {
-        let mut face = map.orbit(OrbitPolicy::Face, 4);
-        assert_eq!(face.next(), Some(4));
-        assert_eq!(face.next(), Some(5));
-        assert_eq!(face.next(), Some(6));
+    atomically(|t| {
+        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 4);
+        assert_eq!(face.next(), Some(Ok(4)));
+        assert_eq!(face.next(), Some(Ok(5)));
+        assert_eq!(face.next(), Some(Ok(6)));
         assert_eq!(face.next(), None);
-    }
+        Ok(())
+    });
 
     // sew both triangles
     atomically(|trans| {
-        // normally the erro should be handled, but we're in a seq context
+        // normally the error should be handled, but we're in a seq context
         assert!(map.sew::<2>(trans, 2, 4).is_ok());
         Ok(())
     });
@@ -471,6 +473,14 @@ fn full_map_from_orbit() {
     assert_eq!(darts.len(), 11);
     // because the algorithm is consistent, we can predict the exact layout
     assert_eq!(&darts, &[3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    let darts_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Custom(&[1, 2]), 3)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(darts, darts_t);
 }
 
 #[test]
@@ -485,11 +495,48 @@ fn orbit_variants() {
     assert_eq!(&face_linear, &[7, 8, 9, 10, 11]);
     assert_eq!(&face_custom, &[7, 11, 8, 10, 9]);
 
+    let face_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Face, 7)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(face, face_t);
+    let face_linear_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::FaceLinear, 7)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(face_linear, face_linear_t);
+    let face_custom_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Custom(&[0, 1]), 7)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(face_custom, face_custom_t);
+
     // vertex is incomplete, so using the linear variant will yield an incomplete orbit
     let vertex: Vec<DartIdType> = map.orbit(OrbitPolicy::Vertex, 4).collect();
     let vertex_linear: Vec<DartIdType> = map.orbit(OrbitPolicy::VertexLinear, 4).collect();
     assert_eq!(&vertex, &[4, 3, 7]);
     assert_eq!(&vertex_linear, &[4, 3]);
+
+    let vertex_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Vertex, 4)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(vertex, vertex_t);
+    let vertex_linear_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::VertexLinear, 4)
+            .map(Result::unwrap)
+            .collect())
+    });
+    assert_eq!(vertex_linear, vertex_linear_t);
 }
 
 #[test]
@@ -510,12 +557,26 @@ fn edge_from_orbit() {
     let map = simple_map();
     let face_orbit = map.orbit(OrbitPolicy::Edge, 1);
     let darts: Vec<DartIdType> = face_orbit.collect();
+    let darts_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Edge, 1)
+            .map(Result::unwrap)
+            .collect())
+    });
     assert_eq!(darts.len(), 1);
     assert_eq!(&darts, &[1]); // dart 1 is on the boundary
+    assert_eq!(darts, darts_t);
     let other_face_orbit = map.orbit(OrbitPolicy::Custom(&[2]), 4);
     let other_darts: Vec<DartIdType> = other_face_orbit.collect();
+    let other_darts_t: Vec<_> = atomically(|t| {
+        Ok(map
+            .orbit_transac(t, OrbitPolicy::Custom(&[2]), 4)
+            .map(Result::unwrap)
+            .collect())
+    });
     assert_eq!(other_darts.len(), 2);
     assert_eq!(&other_darts, &[4, 2]);
+    assert_eq!(other_darts, other_darts_t);
 }
 
 #[test]
