@@ -156,11 +156,9 @@ fn dispatch_rayon<T: CoordsFloat>(
         .map(|(e, new_darts)| {
             let mut n_retry = 0;
             if map.is_i_free::<2>(e as DartIdType) {
-                if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                    unreachable!()
-                }
-            } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                unreachable!()
+                while !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {}
+            } else {
+                while !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {}
             }
             n_retry as u32
         }) // par_map
@@ -186,11 +184,9 @@ fn dispatch_rayon_chunks<T: CoordsFloat>(
             c.iter().for_each(|&(e, new_darts)| {
                 let mut n_retry = 0;
                 if map.is_i_free::<2>(e as DartIdType) {
-                    if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                        unreachable!()
-                    }
-                } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                    unreachable!()
+                    while !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {}
+                } else {
+                    while !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {}
                 }
                 n += n_retry as u32;
             });
@@ -219,11 +215,9 @@ fn dispatch_std_threads<T: CoordsFloat>(
                 wl.iter().for_each(|&(e, new_darts)| {
                     let mut n_retry = 0;
                     if map.is_i_free::<2>(e as DartIdType) {
-                        if !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                            unreachable!()
-                        }
-                    } else if !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {
-                        unreachable!()
+                        while !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {}
+                    } else {
+                        while !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {}
                     }
                     n += n_retry as u32;
                 });
