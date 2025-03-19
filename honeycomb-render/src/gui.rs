@@ -50,7 +50,7 @@ fn ui_system(
     dw: ResMut<DartWidth>,
     dhm: ResMut<DartHeadMul>,
     verc: ResMut<VertexRenderColor>,
-    vew: ResMut<VertexWidth>,
+    v_width: ResMut<VertexWidth>,
     edrc: ResMut<EdgeRenderColor>,
     edw: ResMut<EdgeWidth>,
     farc: ResMut<FaceRenderColor>,
@@ -63,7 +63,7 @@ fn ui_system(
             .collapsible(false)
             .show(contexts.ctx_mut(), |ui| {
                 draw_options(
-                    ui, drc, ds, dw, dhm, verc, vew, edrc, edw, farc, fas, vorc, vos,
+                    ui, drc, ds, dw, dhm, verc, v_width, edrc, edw, farc, fas, vorc, vos,
                 );
             });
     }
@@ -95,7 +95,7 @@ pub fn draw_options(
     mut dw: ResMut<DartWidth>,
     mut dhm: ResMut<DartHeadMul>,
     mut verc: ResMut<VertexRenderColor>,
-    mut vew: ResMut<VertexWidth>,
+    mut v_width: ResMut<VertexWidth>,
     mut edrc: ResMut<EdgeRenderColor>,
     mut edw: ResMut<EdgeWidth>,
     mut farc: ResMut<FaceRenderColor>,
@@ -131,7 +131,7 @@ pub fn draw_options(
             ui.checkbox(&mut verc.0, "");
             ui.add_enabled_ui(verc.0, |ui| draw_color_picker(ui, &mut verc.1));
             ui.label("");
-            ui.add(egui::DragValue::new(&mut vew.0).speed(0.01));
+            ui.add(egui::DragValue::new(&mut v_width.0).speed(0.01));
             ui.end_row();
 
             // edges

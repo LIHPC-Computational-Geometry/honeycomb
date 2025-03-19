@@ -176,7 +176,7 @@ pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<M
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
                 // vec_in/out belong to X/Y plane => .cross(Z) == normal in the plane
-                // a firts normalization is required because both edges should weight equally
+                // a first normalization is required because both edges should weight equally
                 let normal = (vec_in.cross(Vec3::Z).normalize()
                     + vec_out.cross(Vec3::Z).normalize())
                 .normalize();

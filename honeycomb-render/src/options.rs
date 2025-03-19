@@ -40,7 +40,7 @@ impl Plugin for OptionsPlugin {
 pub fn update_config(
     mut config_store: ResMut<GizmoConfigStore>,
     dw: ResMut<DartWidth>,
-    _vew: ResMut<VertexWidth>,
+    _v_width: ResMut<VertexWidth>,
     edw: ResMut<EdgeWidth>,
 ) {
     let (dart_config, _) = config_store.config_mut::<DartGizmos>();
