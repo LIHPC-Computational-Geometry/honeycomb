@@ -28,7 +28,7 @@ impl GridCellId {
         lhs.0.abs_diff(rhs.0) + lhs.1.abs_diff(rhs.1)
     }
 
-    /// Compute the substraction between cell indices. This corresponds to an offset / movement over
+    /// Compute the subtraction between cell indices. This corresponds to an offset / movement over
     /// the grid **from `lhs` to `rhs`**.
     #[allow(clippy::cast_possible_wrap)]
     pub fn offset(lhs: &Self, rhs: &Self) -> (isize, isize) {

@@ -51,7 +51,7 @@ use crate::triangulation::{TriangulateError, check_requirements, crossp_from_ver
 ///
 /// Because the ear clipping algorithm works iteratively, the face may be modified a few times
 /// before reaching a state where no ear can be found. Note, however, that this cannot occur if
-/// the face satisfies requirements mentionned above because of the [Two ears theorem][TET].
+/// the face satisfies requirements mentioned above because of the [Two ears theorem][TET].
 ///
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
 pub fn earclip_cell_countercw<T: CoordsFloat>(
@@ -156,7 +156,7 @@ fn process_cell<T: CoordsFloat>(
     if let Err(e) = check_requirements(darts.len(), new_darts.len()) {
         abort(e)?;
     }
-
+this
     let mut darts = darts.clone();
     let mut vertices = vertices.clone();
     let mut n = darts.len();

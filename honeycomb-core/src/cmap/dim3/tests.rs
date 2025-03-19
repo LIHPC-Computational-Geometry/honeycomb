@@ -148,7 +148,7 @@ fn example_test() {
 
     // Adjust shared vertices (D)
 
-    // this makes it a symetrical square-base pyramid
+    // this makes it a symmetrical square-base pyramid
     assert_eq!(
         map.force_write_vertex(3, (0.0, 1.0, 0.0)),
         Some(Vertex3(0.75, 1.25, 0.0))
@@ -375,7 +375,7 @@ fn example_test_transactional() {
 
     // Adjust shared vertices (D)
     atomically(|trans| {
-        // this makes it a symetrical square-base pyramid
+        // this makes it a symmetrical square-base pyramid
         assert_eq!(
             map.write_vertex(trans, 3, (0.0, 1.0, 0.0))?,
             Some(Vertex3(0.75, 1.25, 0.0))
@@ -651,7 +651,7 @@ fn sew_ordering_with_transactions() {
             atomically(|trans| {
                 f1.modify(trans, |v| v + 1)?;
                 // this should be useless as the vertex is defined on this op
-                // we still have to pattern match becaue CMapError cannot be automatically
+                // we still have to pattern match because CMapError cannot be automatically
                 // coerced to StmError
                 if let Err(e) = m1.sew::<1>(trans, 1, 3) {
                     match e {

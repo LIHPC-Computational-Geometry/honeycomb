@@ -152,7 +152,7 @@ pub fn process_cell<T: CoordsFloat>(
 ///   it's already triangulated or cannot be further processed.
 /// - It verifies if the number of new darts matches the expected number for triangulation.
 /// - The function creates triangles by linking new darts in a fan-like structure to the first
-///   vertex of the polygon. **This is done unconditionnally, whether the polygon is convex or not**.
+///   vertex of the polygon. **This is done unconditionally, whether the polygon is convex or not**.
 ///
 /// # Errors
 ///
