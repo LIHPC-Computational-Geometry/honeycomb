@@ -18,10 +18,10 @@
 
 # Kernels
 
-- [DVR](./kernels/dvr.md)
+- [Cell insertions](./kernels/splits.md)
 - [Grisubal](./kernels/grisubal.md)
 - [Polygon triangulation](./kernels/triangulations.md)
-- [Splits](./kernels/splits.md)
+- [Remeshing](.kernels/remeshing.md)
 
 # Definitions
 

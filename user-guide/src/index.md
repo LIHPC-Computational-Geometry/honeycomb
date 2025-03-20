@@ -38,16 +38,16 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.7.0" } # remove tag for master branch build
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.8.0" } # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.7.0"
-honeycomb-kernels = "0.7.0"
-honeycomb-render = "0.7.0"
+honeycomb-core = "0.8.0"
+honeycomb-kernels = "0.8.0"
+honeycomb-render = "0.8.0"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
