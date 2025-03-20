@@ -1,0 +1,1311 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Honeycomb - User Guide</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Welcome</a></li><li class="chapter-item expanded affix "><li class="part-title">Project Structure</li><li class="chapter-item expanded "><a href="project-structure/workspace.html"><strong aria-hidden="true">1.</strong> Workspace</a></li><li class="chapter-item expanded "><a href="project-structure/published.html"><strong aria-hidden="true">2.</strong> Published crates</a></li><li class="chapter-item expanded "><a href="project-structure/others.html"><strong aria-hidden="true">3.</strong> Other content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="project-structure/honeycomb-benches.html"><strong aria-hidden="true">3.1.</strong> Benchmarks</a></li><li class="chapter-item expanded "><a href="project-structure/honeycomb-examples.html"><strong aria-hidden="true">3.2.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Usage</li><li class="chapter-item expanded "><a href="usage/attributes.html"><strong aria-hidden="true">4.</strong> Adding generic attributes to maps</a></li><li class="chapter-item expanded "><a href="usage/stm.html"><strong aria-hidden="true">5.</strong> Concurrency / Parallelism</a></li><li class="chapter-item expanded "><a href="usage/serialization.html"><strong aria-hidden="true">6.</strong> Serialization</a></li><li class="chapter-item expanded affix "><li class="part-title">Kernels</li><li class="chapter-item expanded "><a href="kernels/splits.html"><strong aria-hidden="true">7.</strong> Cell insertions</a></li><li class="chapter-item expanded "><a href="kernels/grisubal.html"><strong aria-hidden="true">8.</strong> Grisubal</a></li><li class="chapter-item expanded "><a href="kernels/triangulations.html"><strong aria-hidden="true">9.</strong> Polygon triangulation</a></li><li class="chapter-item expanded "><a href=".kernels/remeshing.html"><strong aria-hidden="true">10.</strong> Remeshing</a></li><li class="chapter-item expanded affix "><li class="part-title">Definitions</li><li class="chapter-item expanded "><a href="definitions/introduction.html"><strong aria-hidden="true">11.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="definitions/cmaps.html"><strong aria-hidden="true">12.</strong> Combinatorial Maps</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="definitions/darts.html"><strong aria-hidden="true">12.1.</strong> Darts</a></li><li class="chapter-item expanded "><a href="definitions/betaf.html"><strong aria-hidden="true">12.2.</strong> Beta Functions</a></li><li class="chapter-item expanded "><a href="definitions/orbits.html"><strong aria-hidden="true">12.3.</strong> Orbits</a></li><li class="chapter-item expanded "><a href="definitions/embedding.html"><strong aria-hidden="true">12.4.</strong> Embedding</a></li></ol></li><li class="chapter-item expanded "><a href="definitions/basicops.html"><strong aria-hidden="true">13.</strong> Basic Operations</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="definitions/changeNdim.html"><strong aria-hidden="true">13.1.</strong> Add / Remove a dimension</a></li><li class="chapter-item expanded "><a href="definitions/changeNdart.html"><strong aria-hidden="true">13.2.</strong> Add / Remove a free dart</a></li><li class="chapter-item expanded "><a href="definitions/sew.html"><strong aria-hidden="true">13.3.</strong> Sewing / Unsewing operation</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Honeycomb - User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="the-honeycomb-user-guide"><a class="header" href="#the-honeycomb-user-guide">The Honeycomb User Guide</a></h1>
+<p><a href="https://crates.io/crates/honeycomb-core"><img src="https://img.shields.io/crates/v/honeycomb-render?label=latest%20release" alt="Current Version" /></a>
+<a href="https://github.com/LIHPC-Computational-Geometry/honeycomb"><img src="https://img.shields.io/github/commits-since/LIHPC-Computational-Geometry/honeycomb/latest" alt="GitHub commits since latest release" /></a>
+<a href="https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml"><img src="https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml/badge.svg" alt="Build Status" /></a>
+<a href="https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml"><img src="https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg" alt="Rust Tests" /></a>
+<a href="https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb"><img src="https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb/graph/badge.svg?token=QSN0TWFXO1" alt="codecov" /></a></p>
+<hr />
+<h2 id="honeycomb"><a class="header" href="#honeycomb">Honeycomb</a></h2>
+<p>Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps for meshing applications.
+More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting GPUs
+and many-core architectures.</p>
+<p>The current objective is to</p>
+<ul>
+<li><del>write a first implementation in Rust</del></li>
+<li><del>improve the structure without having to deal with data races and similar issues, thanks to the Rust's guarantees</del></li>
+<li><del>implement basic meshing algorithms to evaluate the viability of the implementation &amp; improve our structure using
+Rust's framework to streamline the refactoring and parallelization process</del></li>
+<li><del>Benchmark and/or profile and/or parallelize our first algorithm, <strong>grisubal</strong></del></li>
+<li>Ship a first stable version of the library (see
+this <a href="https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150">issue</a>)</li>
+<li>Work on efficient parallelism</li>
+</ul>
+<h3 id="core-requirements"><a class="header" href="#core-requirements">Core Requirements</a></h3>
+<ul>
+<li><strong>Rust stable release</strong> - The MSRV may not be the latest stable release, but we do not give any guarantees for older
+versions compatibility</li>
+</ul>
+<h3 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h3>
+<h4 id="rust"><a class="header" href="#rust">Rust</a></h4>
+<p>You can add <code>honeycomb</code> as a dependency of your project by adding the following lines to its <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml"># [dependencies]
+honeycomb = { git = &quot;https://github.com/LIHPC-Computational-Geometry/honeycomb&quot;, tag = &quot;0.8.0&quot; } # remove tag for master branch build
+</code></pre>
+<p>Alternatively, you can add the sub-crates that are currently published on crates.io:</p>
+<pre><code class="language-toml"># [dependencies]
+honeycomb-core = &quot;0.8.0&quot;
+honeycomb-kernels = &quot;0.8.0&quot;
+honeycomb-render = &quot;0.8.0&quot;
+</code></pre>
+<p>Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
+version, and use the GitHub Pages documentation instead of the one hosted on docs.rs.</p>
+<h2 id="documentation"><a class="header" href="#documentation">Documentation</a></h2>
+<p>You can generate this book and the Rust documentation locally using respectively <strong>mdbook</strong> and <strong>cargo doc</strong>:</p>
+<pre><code class="language-shell">mdbook serve --open user-guide/
+</code></pre>
+<pre><code class="language-shell">cargo +nightly doc --all --all-features --no-deps
+</code></pre>
+<p>Note that generating the doc using a stable toolchain is possible, the features just won't be documented as clearly.</p>
+<h2 id="contributing"><a class="header" href="#contributing">Contributing</a></h2>
+<p>Contributions are welcome and accepted as pull requests on <a href="https://github.com/LIHPC-Computational-Geometry/honeycomb">GitHub</a>. Feel free to use issues to report bugs,
+missing documentation or suggest improvements of the project.</p>
+<p>Note that a most of the code possess documentation, including private modules / items / sections. You can generate the
+complete documentation by using the instructions <a href="index.html#Documentation">above</a> and passing the option
+<code>--document-private-items</code> to <code>cargo doc</code>.</p>
+<h2 id="license"><a class="header" href="#license">License</a></h2>
+<p>Licensed under either of</p>
+<ul>
+<li>Apache License, Version 2.0
+(<a href="https://github.com/LIHPC-Computational-Geometry/honeycomb/blob/master/LICENSE-APACHE">LICENSE-APACHE</a>
+or http://www.apache.org/licenses/LICENSE-2.0)</li>
+<li>MIT license
+(<a href="https://github.com/LIHPC-Computational-Geometry/honeycomb/blob/master/LICENSE-MIT">LICENSE-MIT</a>
+or http://opensource.org/licenses/MIT)</li>
+</ul>
+<p>at your preference.</p>
+<p>The <a href="https://spdx.dev">SPDX</a> license identifier for this project is <code>MIT OR Apache-2.0</code>.</p>
+<p>Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
+defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.</p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<h3 id="combinatorial-maps"><a class="header" href="#combinatorial-maps">Combinatorial Maps</a></h3>
+<ul>
+<li>Damiand and Lienhardt. <em>Combinatorial Maps: Efficient Data Structures for Computer Graphics and
+Image Processing</em>. Chapman&amp;Hall/CRC, 2015.
+<ul>
+<li>Provides an in-depth presentation of the structure and its variants</li>
+<li><a href="https://hal.science/hal-01090890v1">Link</a></li>
+</ul>
+</li>
+<li>The CGAL Project. <em>CGAL User and Reference Manual</em>. CGAL Editorial Board, 5.6.1 edition, 2024.
+<ul>
+<li>Provides concrete examples as well as code snippets of the CGAL implementation of the structure. The CGAL
+implementation uses a different approach than ours, &amp; support N-dimensionnal map.</li>
+<li><a href="https://doc.cgal.org/latest/Combinatorial_map/">Link</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="algorithms"><a class="header" href="#algorithms">Algorithms</a></h3>
+<ul>
+<li>Staten, Noble, and Wilson. <em>Constructing Tetrahedral Meshes No Matter How Ugly</em>. SIAM, 2024
+<ul>
+<li>Describes the logic behind an overlay grid algorithm.</li>
+<li><a href="https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf">Link</a></li>
+</ul>
+</li>
+<li>Rangarajan and Lew. <em>Provably Robust Directional Vertex Relaxation for geometric mesh optimization</em>. SIAM, 2017
+<ul>
+<li>usage TBD</li>
+<li><a href="https://epubs.siam.org/doi/abs/10.1137/16M1089101">Link</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="integration"><a class="header" href="#integration">Integration</a></h3>
+<ul>
+<li>The repository structure and workspace system is heavily inspired by
+the <a href="https://github.com/gfx-rs/wgpu">wgpu</a> and <a href="https://github.com/bevyengine/bevy">bevy</a> repositories.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="workspace"><a class="header" href="#workspace">Workspace</a></h1>
+<p>The project root is organized using Cargo workspaces at the moment. This may change when other languages are
+introduced to the project.</p>
+<p>The repository hosts both published crates (usable content) as well as complementary content such as benchmarks,
+examples or this guide.</p>
+<h2 id="published-crates"><a class="header" href="#published-crates">Published crates</a></h2>
+<ul>
+<li><a href="project-structure/../../honeycomb/index.html">honeycomb</a> <em>Main crate</em></li>
+<li><a href="project-structure/../../honeycomb_core/index.html">honeycomb-core</a> <em>Core definitions and tools for combinatorial map implementation</em></li>
+<li><a href="project-structure/../../honeycomb_kernels/index.html">honeycomb-kernels</a> <em>Meshing kernel implementations using combinatorial maps</em></li>
+<li><a href="project-structure/../../honeycomb_render/index.html">honeycomb-render</a> <em>Visualization tool for combinatorial maps</em></li>
+</ul>
+<h2 id="other-content"><a class="header" href="#other-content">Other content</a></h2>
+<ul>
+<li><a href="project-structure/../../honeycomb_benches/index.html">honeycomb-benches</a> <em>Benchmarks of the main map structures and methods</em></li>
+<li><a href="project-structure/../../honeycomb_examples/index.html">honeycomb-examples</a> <em>Examples of usage of the project's features</em></li>
+<li><a href="project-structure/../index.html">user guide</a> <em>Source files of the user guide</em></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="published-crates-1"><a class="header" href="#published-crates-1">Published crates</a></h1>
+<hr />
+<p>Several crates of this project are published on the registry <em>crates.io</em>: the main crate, <strong>honeycomb</strong> (not yet 
+published), as well as specialized crates <strong>honeycomb-core</strong>, <strong>honeycomb-kernels</strong>, and <strong>honeycomb-render</strong>.</p>
+<hr />
+<h2 id="honeycomb-1"><a class="header" href="#honeycomb-1">honeycomb</a></h2>
+<p><strong>honeycomb</strong> is the main crate provided to users and serve as the entrypoint for combinatorial map usage. It is
+exclusively made up of re-exports from the core, kernels and render crate to provide a clean, all-in-one dependency.</p>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<p>At the moment, the <code>honeycomb</code> name is not available on crates.io; this means that using this crate requires adding
+the dependency using the git repository:</p>
+<pre><code class="language-toml"># [dependencies]
+honeycomb = { git = &quot;https://github.com/LIHPC-Computational-Geometry/honeycomb&quot; }
+</code></pre>
+<hr />
+<h2 id="honeycomb-core"><a class="header" href="#honeycomb-core">honeycomb-core</a></h2>
+<p><strong>honeycomb-core</strong> is a Rust crate that provides basic structures and operations for combinatorial map manipulation.
+This includes map structures, methods implementation, type aliases and geometric modeling for mesh representation.</p>
+<h3 id="implemented-features"><a class="header" href="#implemented-features">Implemented features</a></h3>
+<ul>
+<li>a builder structure to handle map creation: <code>CMapBuilder</code>.</li>
+<li>2D and 3D combinatorial maps, usable in concurrent contexts: <code>CMap2</code>/<code>CMap3</code>. this includes:
+<ul>
+<li>all regular operations (sew, unsew, beta images, ...),</li>
+<li>a custom embedding logic to associate vertices and attributes to darts.</li>
+</ul>
+</li>
+<li>abstractions over attributes, to allow arbitrary items binding to the map using the
+same embedding logic as vertices:
+<ul>
+<li><code>AttributeBind</code> &amp; <code>AttributeUpdate</code> traits,</li>
+<li><code>AttrSparseVec</code> as a predefined collection for attributes,</li>
+<li>additional traits to describe custom collection structures.</li>
+</ul>
+</li>
+<li>geometry primitives:
+<ul>
+<li><code>Vector2</code> / <code>Vertex2</code>,</li>
+<li><code>Vector3</code> / <code>Vertex3</code>.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="honeycomb-kernels"><a class="header" href="#honeycomb-kernels">honeycomb-kernels</a></h2>
+<p><strong>honeycomb-kernels</strong> is a Rust crate that provides implementations of meshing kernels using the core crate's
+combinatorial maps. These implementations have multiple purposes:</p>
+<ol>
+<li>Writing code using n-maps from a user's perspective</li>
+<li>Covering a wide range of operations, with routines that are more topology-heavy / geometry-heavy / balanced</li>
+<li>Stressing the data structure, to identify its advantages and its pitfalls in a meshing context</li>
+<li>Testing for more unwanted behaviors / bugs</li>
+</ol>
+<p>Explanations provided in this guide focus on the overall workflow of algorithms; Implementation-specific details and
+hypothesis are listed in the documentation of the crate.</p>
+<h3 id="implemented-algorithms"><a class="header" href="#implemented-algorithms">Implemented algorithms</a></h3>
+<ul>
+<li><a href="project-structure/../kernels/dvr.html">Directional Vertex Relaxation</a></li>
+<li><a href="project-structure/../kernels/grisubal.html">Grisubal</a></li>
+<li><a href="project-structure/../kernels/triangulations.html">Polygon triangulations</a></li>
+<li><a href="project-structure/../kernels/splits.html">Cell insertions</a></li>
+</ul>
+<hr />
+<h2 id="honeycomb-render"><a class="header" href="#honeycomb-render">honeycomb-render</a></h2>
+<p><strong>honeycomb-render</strong> is a Rust crate that provides a simple visualization framework to allow the user to render their
+combinatorial map. It is designed to be used directly in the code by reading data through a reference to the map (as
+opposed to a binary that would read serialized data). This render tool can be used to debug algorithm results in a
+significantly easier way than reading internal data would.</p>
+<h3 id="usage-1"><a class="header" href="#usage-1">Usage</a></h3>
+<p>Use the <a href="project-structure/../../honeycomb_render/struct.App.html">App</a> structure to render a given combinatorial map. <strong>You may need to run
+the program in <code>release</code> mode to render large maps</strong>. All items used to build that tool are kept public to allow users
+to customize the render logic (e.g. to render a specific attribute).</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="other-content-1"><a class="header" href="#other-content-1">Other content</a></h1>
+<hr />
+<h2 id="benchmarks"><a class="header" href="#benchmarks">Benchmarks</a></h2>
+<p><strong>honeycomb-benches</strong> is the crate used to group benchmarking routines of the Rust code. It contains:</p>
+<ul>
+<li>binaries used to profile code and kernels</li>
+<li>benchmarks implemented using the <a href="https://github.com/bheisler/criterion.rs">criterion</a> crate</li>
+<li>scritps used to aggregate and (partially) process results of both</li>
+</ul>
+<hr />
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<p><strong>honeycomb-examples</strong> is the crate used to group examples &amp; snippets illustrating possible usages. It also 
+contains sample VTK files to ensure examples and benchmarks can run out-of-the-box.</p>
+<hr />
+<h2 id="user-guide"><a class="header" href="#user-guide">User guide</a></h2>
+<p>The <strong>user guide</strong> is the documentation you are currently reading right now. It is generated using mdbook. Its content
+mainly focuses on definition and feature-listing rather than technical details on implementation. The latter can be
+found in the code documentation.</p>
+<h3 id="building"><a class="header" href="#building">Building</a></h3>
+<p>You can generate this documentation locally using <strong>mdbook</strong>:</p>
+<pre><code class="language-shell">mdbook serve --open user-guide/
+</code></pre>
+<h3 id="additional-information"><a class="header" href="#additional-information">Additional Information</a></h3>
+<p>A few observations on writing documentation using <strong>mdbook</strong>:</p>
+<ul>
+<li>If you edit the user guide's content, you will have to generate the rust doc again as mdbook remove all files of its
+target folder at each update.</li>
+<li>Linking to <code>html</code> files (and not markdown) has a varying level of success when working locally. Your browser may or
+may not like links toward folders instead of explicit <code>index.html</code>.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="benchmarks-1"><a class="header" href="#benchmarks-1">Benchmarks</a></h1>
+<h2 id="binaries"><a class="header" href="#binaries">Binaries</a></h2>
+<pre><code class="language-shell">cargo run --profile=profiling --bin=&lt;BINARY&gt; -- &lt;ARGS&gt;
+</code></pre>
+<h4 id="builder"><a class="header" href="#builder"><code>builder</code></a></h4>
+<p>Generate a grid using <code>GridDescriptor</code> w.r.t. the specified arguments.
+Arguments are the following: <code>&lt;N_CELL_X&gt; &lt;N_CELL_Y&gt; &lt;SPLIT&gt;</code>, with:</p>
+<ul>
+<li><code>&lt;N_CELL_X&gt;</code>: number of cell of the grid along the X axis</li>
+<li><code>&lt;N_CELL_Y&gt;</code>: number of cell of the grid along the Y axis</li>
+<li><code>&lt;SPLIT&gt;</code>: if non-empty, the program will build a grid of
+tris instead of quads</li>
+</ul>
+<h4 id="grisubal"><a class="header" href="#grisubal"><code>grisubal</code></a></h4>
+<p>Run the <code>grisubal</code> algorithm w.r.t. the specified arguments. Arguments are the following:
+<code>&lt;INPUT_FILE&gt; &lt;LEN_CELL_X&gt; &lt;LEN_CELL_Y&gt; &lt;CLIP&gt;</code>, with:</p>
+<ul>
+<li><code>&lt;INPUT_FILE&gt;</code>: input geometry, passed as a VTK file input</li>
+<li><code>&lt;LEN_CELL_X&gt;</code>: length of the cells of the overlay grid along the X axis</li>
+<li><code>&lt;LEN_CELL_X&gt;</code>: length of the cells of the overlay grid along the Y axis</li>
+<li><code>&lt;CLIP&gt;</code>: <code>left</code> to clip the left side of the boundary, <code>right</code> the right
+side, anything else is a no-op</li>
+</ul>
+<h2 id="benchmarks-2"><a class="header" href="#benchmarks-2">Benchmarks</a></h2>
+<pre><code class="language-shell">cargo bench --bench &lt;BENCHMARK&gt;
+</code></pre>
+<p>The following benchmarks are available:</p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Source file</th></tr></thead><tbody>
+<tr><td><code>builder</code></td><td>Criterion</td><td><code>benches/builder/time.rs</code></td></tr>
+<tr><td><code>builder-grid-size</code></td><td>Criterion</td><td><code>benches/builder∕grid_size.rs</code></td></tr>
+<tr><td><code>fetch-icells</code></td><td>Criterion</td><td><code>benches/core/cmap2/fetch_icells.rs</code></td></tr>
+<tr><td><code>grisubal</code></td><td>Criterion</td><td><code>benches/grisubal/time.rs</code></td></tr>
+<tr><td><code>grisubal-grid-size</code></td><td>Criterion</td><td><code>benches/grisubal/grid_size.rs</code></td></tr>
+<tr><td><code>prof-cmap2-basic</code></td><td>Iai-callgrind</td><td><code>benches/core/cmap2/basic_ops.rs</code></td></tr>
+<tr><td><code>prof-cmap2-build</code></td><td>Iai-callgrind</td><td><code>benches/core/cmap2/constructors.rs</code></td></tr>
+<tr><td><code>prof-cmap2-sewing-unsewing</code></td><td>Iai-callgrind</td><td><code>benches/core/cmap2/link_and_sew.rs</code></td></tr>
+<tr><td><code>triangulate-quads</code></td><td>Criterion</td><td><code>benches/triangulate/quads.rs</code></td></tr>
+</tbody></table>
+</div>
+<p>A detailed explanation about the purpose of each benchmark is provided at the beginning of their respective source
+files.</p>
+<h2 id="scripts"><a class="header" href="#scripts">Scripts</a></h2>
+<h3 id="benchmarking"><a class="header" href="#benchmarking">Benchmarking</a></h3>
+<p>Both scripts provide an interactive menu with four options:</p>
+<pre><code>(0) all
+(1) fixed-size profiling
+(2) grid size scaling
+(3) thread number scaling (not yet implmented)
+</code></pre>
+<h4 id="builderpy"><a class="header" href="#builderpy"><code>builder.py</code></a></h4>
+<p>The script aggregates metrics about the grid building routines used by <code>CMapBuilder</code>. Data is collected from Criterion
+(runtime benchmarks), perf (CPU profiling), flamegraph (visualization), heaptrack (memory analysis), and across
+different grid sizes (from 128x128 to 8192x8192).</p>
+<h4 id="grisubalpy"><a class="header" href="#grisubalpy"><code>grisubal.py</code></a></h4>
+<p>The script aggregates metrics about the <code>grisubal</code> kernel. Data is collected from Criterion (runtime benchmarks),
+perf (CPU profiling), flamegraph (visualization), and heaptrack (memory analysis). Additionally, internal timers
+are implemented to measure time-per-sections of the algorithm. Measurements are done across different grid
+granularities (from <code>0.1</code> to <code>1.0</code> in <code>0.1</code> increments).</p>
+<h3 id="plotting"><a class="header" href="#plotting">Plotting</a></h3>
+<h4 id="grisubal_plotpy"><a class="header" href="#grisubal_plotpy"><code>grisubal_plot.py</code></a></h4>
+<p>This script generates a pie chart from per-section timings sampled by the <code>grisubal.py</code> script.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="examples-1"><a class="header" href="#examples-1">Examples</a></h1>
+<pre><code class="language-shell"># Run a specific example
+cargo run --example &lt;EXAMPLE&gt;
+</code></pre>
+<p>The following examples are available:</p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Source file</th></tr></thead><tbody>
+<tr><td><code>grisubal</code></td><td><code>examples/kernels/grisubal.rs</code></td></tr>
+<tr><td><code>io_read</code></td><td><code>examples/io/read.rs</code></td></tr>
+<tr><td><code>io_write</code></td><td><code>examples/io/write.rs</code></td></tr>
+<tr><td><code>memory_usage</code></td><td><code>examples/memory_usage/compute.rs</code></td></tr>
+<tr><td><code>render</code></td><td><code>examples/render.rs</code></td></tr>
+</tbody></table>
+</div>
+<p>Note that the <code>memory_usage</code> example is deprecated and should be updated along with its plotting script.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="adding-generic-attributes-to-maps"><a class="header" href="#adding-generic-attributes-to-maps">Adding generic attributes to maps</a></h1>
+<hr />
+<h2 id="entrypoint"><a class="header" href="#entrypoint">Entrypoint</a></h2>
+<p>The <code>attributes</code> module of the core crate provides the necessary tools for to add custom attributes
+to given orbits of the map. Each attribute should be uniquely typed (i.e. to type aliases) as the
+maps' internal storages use <code>std::any::TypeId</code> for identification. </p>
+<p>An attribute struct should implement both <code>AttributeBind</code> and <code>AttributeUpdate</code>. It can then be
+added to the map using the dedicated <code>CMapBuilder</code> method.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<h3 id="implementing-a-weight-attribute"><a class="header" href="#implementing-a-weight-attribute">Implementing a <code>Weight</code> attribute</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use honeycomb_core::attributes::{AttributeBind, AttributeUpdate, AttributeError, AttrSparseVec};
+use honeycomb_core::cmap::{OrbitPolicy, VertexIdType};
+
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+struct Weight(pub u32);
+
+impl AttributeUpdate for Weight {
+    // when merging two weights, we add them 
+    fn merge(attr1: Self, attr2: Self) -&gt; Result&lt;Self, AttributeError&gt; {
+        Ok(Self(attr1.0 + attr2.0))
+    }
+
+    // when splitting, we do an approximate 50/50
+    fn split(attr: Self) -&gt; Result&lt;(Self, Self), AttributeError&gt; {
+        // adding the % to keep things conservative
+        Ok((Self(attr.0 / 2 + attr.0 % 2), Self(attr.0 / 2)))
+    }
+
+    // if we have to merge from a single value, we assume the &quot;other&quot; is 0
+    fn merge_incomplete(attr: Self) -&gt; Result&lt;Self, AttributeError&gt; {
+        Ok(attr)
+    }
+}
+
+impl AttributeBind for Weight {
+    // Weight values will be stored in an `AttrSparseVec`
+    type StorageType = AttrSparseVec&lt;Self&gt;;
+    // Weights bind to vertices 
+    type IdentifierType = VertexIdType;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="map-integration"><a class="header" href="#map-integration">Map integration</a></h3>
+<pre><pre class="playground"><code class="language-rust">use honeycomb_core::cmap::{CMapBuilder, CMap2};
+
+fn main() {
+    let map: CMap2&lt;_&gt; = CMapBuilder::&lt;2, f64&gt;::from_n_darts(4)
+        .add_attribute::&lt;Weight&gt;()
+        .build()
+        .unwrap();
+
+    let _ = map.force_link::&lt;2&gt;(1, 2);
+    let _ = map.force_link::&lt;2&gt;(3, 4);
+    map.force_write_vertex(2, (0.0, 1.0));
+    map.force_write_vertex(3, (1.0, 1.0));
+    map.force_write_attribute::&lt;Weight&gt;(2, Weight(5));
+    map.force_write_attribute::&lt;Weight&gt;(3, Weight(6));
+
+    let _ = map.force_sew::&lt;1&gt;(1, 3);
+
+    assert_eq!(map.force_read_attribute::&lt;Weight&gt;(2), Some(Weight(11)));
+
+    let _ = map.force_unsew::&lt;1&gt;(1);
+
+    assert_eq!(map.force_read_attribute::&lt;Weight&gt;(2), Some(Weight(6)));
+    assert_eq!(map.force_read_attribute::&lt;Weight&gt;(3), Some(Weight(5)));
+}  </code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="using-maps-in-concurrent--parallel-contexts"><a class="header" href="#using-maps-in-concurrent--parallel-contexts">Using maps in concurrent / parallel contexts</a></h1>
+<hr />
+<h2 id="needs"><a class="header" href="#needs">Needs</a></h2>
+<p>Rust's ownership semantics require us to add synchronization mechanism to our structure if we want
+to use it in concurrent contexts. Using primitives such as atomics and mutexes would be enough to
+get programs to compile, but it would yield an incorrect implementation with undefined behaviors.</p>
+<p>This is due to the complexity of operations defined on a map, often comprising multiple steps.
+For example, the following operation is executed on all affected attributes of a sew:</p>
+<figure style="text-align:center">
+    <img src="usage/../images/attribute_merge.svg" alt="Merge Operation" />
+    <figcaption><i>Attribute merging operation. This occurs at each sew operation.</i></figcaption>
+</figure>
+<p>Because the map can go through invalid intermediate states during a single operation, we need to
+ensure another thread will not use one of these as the starting point for another operation.</p>
+<h2 id="software-transactional-memory"><a class="header" href="#software-transactional-memory">Software Transactional Memory</a></h2>
+<p>We choose to use Software Transactional Memory (STM) to handle high-level synchronization of
+the structure. </p>
+<p>Note that while synchronization could possibly be enforced using aggressive lock strategies, STM
+has much better composability and allows users of the crate to define &quot;atomic&quot; segments in their
+own algorithms.</p>
+<p>Exposing an API that allows users to handle synchronization also means that the implementation
+isn't bound to a given parallelization framework. Instead of relying on predefinite parallel
+routines (e.g. a provided <code>parallel_for</code> on given cells), the structure can integrate seemlessly
+in existing algorithm. </p>
+<h2 id="examples-2"><a class="header" href="#examples-2">Examples</a></h2>
+<p>To illustrate all of this, we provide two examples: one using <code>rayon</code>, and the other using
+<code>std::thread</code> items. The former focus exclusively on avoiding conflicts while the latter includes
+transactions fallible due to operation errors.</p>
+<h3 id="move-all-vertices-to-the-average-of-their-neighbors"><a class="header" href="#move-all-vertices-to-the-average-of-their-neighbors">Move all vertices to the average of their neighbors</a></h3>
+<p>In the following routine, we shift each vertex that's not on a boundary to the average of its
+neighbors posisitions. In this case, transactions allow us to ensure we won't compute a new
+position from a value that has been replaced since the start of the computation.</p>
+<h4 id="code"><a class="header" href="#code">Code</a></h4>
+<pre><pre class="playground"><code class="language-rust">use rayon::prelude::*;
+
+use honeycomb::core::stm::atomically;
+use honeycomb::prelude::{
+    CMap2, CMapBuilder, DartIdType, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
+};
+
+const DIM_GRID: usize = 256;
+const N_ROUNDS: usize = 100;
+
+fn main() {
+    // generate a simple grid as input
+    let map: CMap2&lt;_&gt; = CMapBuilder::&lt;2, f64&gt;::unit_grid(DIM_GRID).build().unwrap();
+
+    // build a node list from vertices that are not on the boundary
+    let tmp: Vec&lt;(VertexIdType, Vec&lt;VertexIdType&gt;)&gt; = map
+        .iter_vertices()
+        .filter_map(|v| {
+            // the condition detects if we're on the boundary
+            if map.orbit(OrbitPolicy::Vertex, v as DartIdType)
+                .any(|d| map.beta::&lt;2&gt;(d) == NULL_DART_ID)
+            {
+                None
+            } else {
+                // the orbit transformation yields neighbor IDs
+                Some((
+                    v,
+                    map.orbit(OrbitPolicy::Vertex, v as DartIdType)
+                        .map(|d| map.vertex_id(map.beta::&lt;2&gt;(d)))
+                        .collect(),
+                ))
+            }
+        })
+        .collect();
+
+    // main loop
+    let mut round = 0;
+    loop {
+        // process nodes in parallel
+        tmp.par_iter().for_each(|(vid, neigh)| {
+            // we need a transaction here to avoid UBs, since there's
+            // no guarantee we won't process neighbor nodes concurrently
+            atomically(|trans| {
+                let mut new_val = Vertex2::default();
+                for v in neigh {
+                    let vertex = map.read_vertex(trans, *v)?.unwrap();
+                    new_val.0 += vertex.0;
+                    new_val.1 += vertex.1;
+                }
+                new_val.0 /= neigh.len() as f64;
+                new_val.1 /= neigh.len() as f64;
+                map.write_vertex(trans, *vid, new_val)
+            });
+            // the transaction will ensure that we do not validate an operation
+            // where inputs changed due to instruction interleaving between threads
+            // here, it will retry the transaction until it can be validated
+        });
+
+        round += 1;
+        if round &gt;= N_ROUNDS {
+            break;
+        }
+    }
+
+    std::hint::black_box(map);
+}</code></pre></pre>
+<h4 id="breakdown"><a class="header" href="#breakdown">Breakdown</a></h4>
+<p>The main map structure, <code>CMap2</code>, can be edited in parallel using transactions to ensure algorithm
+correctness.</p>
+<p>In the main computation loop, we use a transaction to ensure each new vertex value is computed from
+the current neighbor's values. The errors generated by <code>read_vertex</code> and <code>write_vertex</code> are used to
+(early) detect any changes to the data used in the transaction, here, the list of <code>neigh</code> vertices.</p>
+<p>At the end of the transaction block, the commit routine will check again if any used data has been
+altered. If not, results of the transaction will be validated and written to memory.</p>
+<h3 id="cut-all-squares-of-a-grid-into-triangles"><a class="header" href="#cut-all-squares-of-a-grid-into-triangles">Cut all squares of a grid into triangles</a></h3>
+<p>In the following routine, we generate an orthogonal grid and split all of its cells diagonally.
+While no beta values should be edited concurrently, synchronization is necessary to protect the
+integrity of <em>I</em>-cells and their bound attributes (here, spatial coordinates).</p>
+<h4 id="code-1"><a class="header" href="#code-1">Code</a></h4>
+<pre><pre class="playground"><code class="language-rust">use honeycomb::core::stm::atomically_with_err;
+use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType};
+
+const DIM_GRID: usize = 256;
+const N_THREADS: usize = 8;
+
+fn main() {
+    let mut map: CMap2&lt;_&gt; = CMapBuilder::&lt;2, f64&gt;::unit_grid(DIM_GRID).build().unwrap();
+
+    // build individual work units
+    let faces = map.iter_faces().collect::&lt;Vec&lt;_&gt;&gt;();
+    let nd = map.add_free_darts(faces.len() * 2);
+    let nd_range = (nd..nd + (faces.len() * 2) as DartIdType).collect::&lt;Vec&lt;_&gt;&gt;();
+    let units = faces
+        .into_iter()
+        .zip(nd_range.chunks(2))
+        .collect::&lt;Vec&lt;_&gt;&gt;();
+
+    std::thread::scope(|s| {
+        // create batches &amp; move a copy to dispatched thread
+        let batches = units.chunks(1 + units.len() / N_THREADS);
+        for b in batches {
+            s.spawn(|| {
+                let locb = b.to_vec();
+                locb.into_iter().for_each(|(df, sl)| {
+                    let square = df as DartIdType;
+                    let &amp;[dsplit1, dsplit2] = sl else {
+                        unreachable!()
+                    };
+                    // we know dart numbering since we constructed a regular grid
+                    let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
+                    let (dbefore1, dbefore2, dafter1, dafter2) = (ddown, dup, dleft, dright);
+
+                    let _ = map.force_link::&lt;2&gt;(dsplit1, dsplit2); // infallible
+
+                    // internal operations can fail, so we retry until success
+                    while atomically_with_err(|trans| {
+                        map.unsew::&lt;1&gt;(trans, dbefore1)?;
+                        map.unsew::&lt;1&gt;(trans, dbefore2)?;
+                        map.sew::&lt;1&gt;(trans, dsplit1, dafter1)?;
+                        map.sew::&lt;1&gt;(trans, dsplit2, dafter2)?;
+
+                        map.sew::&lt;1&gt;(trans, dbefore1, dsplit1)?;
+                        map.sew::&lt;1&gt;(trans, dbefore2, dsplit2)?;
+                        Ok(())
+                    })
+                    .is_err()
+                    {}
+                });
+            });
+        }
+    });
+
+    std::hint::black_box(map);
+}</code></pre></pre>
+<h4 id="breakdown-1"><a class="header" href="#breakdown-1">Breakdown</a></h4>
+<p>In this example, we create batches of work for each thread to process. The exact reason we require
+transactions here is due to STM implementation specificities. While some STM algorithms fully
+prevent operating on invalid data, others will not detect this until there is an attempt to commit
+the transaction. The implementation we use is among the latter.</p>
+<p>This implies that, if conflicting operations are executed concurrently, any check for invariants
+we do in our algorithm can fail due to an inconsistent data state. Practically, we can simply
+use a fallible transaction (that's <code>atomically_with_err</code>) to define our atomic segment, and handle
+the error like any other.</p>
+<p>In the above example, transactions are retried until success, since we can guarantee that only
+valid data states are commited; that implies transactions will eventually succeed, albeit after
+many retries.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="deserialization"><a class="header" href="#deserialization">(De)Serialization</a></h1>
+<hr />
+<p>Our crate implements two different serialization logics. We use a custom format for combinatorial
+map representation, while we use the VTK format for mesh representation. The latter can also be
+hijacked to initialize maps by restraining the range of supported data.</p>
+<p>Serialization is available directly as map structures methods, while deserialization is available
+through the usage of the builder structure.</p>
+<h2 id="custom-serialization"><a class="header" href="#custom-serialization">Custom serialization</a></h2>
+<h3 id="format-specification"><a class="header" href="#format-specification">Format specification</a></h3>
+<p>The file should contain 4 sections:</p>
+<ul>
+<li><code>[META]</code>: header with miscellaneous data to help parsing / checking</li>
+<li><code>[BETAS]</code>: values of beta functions</li>
+<li><code>[UNUSED]</code>: unused darts</li>
+<li><code>[VERTICES]</code>: vertex identifiers and values</li>
+</ul>
+<p>Single line comments are supproted using the <code>#</code> character.</p>
+<h4 id="meta"><a class="header" href="#meta">META</a></h4>
+<p>Single line section specifying:</p>
+<ul>
+<li>format version,</li>
+<li>map dimension,</li>
+<li>number of darts.</li>
+</ul>
+<p>The format version is the same as the crate's version; it serves as a hint to use the correct
+crate version with a file you did not generate.</p>
+<h4 id="betas"><a class="header" href="#betas">BETAS</a></h4>
+<p>Values of beta functions organized as one line per beta functions. The number of line should be
+equal to dimension <strong>plus one</strong>.</p>
+<p>All lines should:</p>
+<ul>
+<li>have the same length</li>
+<li>have a length equal the number of darts specified in the header <strong>plus one</strong> (for the null dart)</li>
+</ul>
+<p>Values on a single line are separated by a space, and the first value of each line should be <code>0</code>
+as they corresponds to beta images of the null dart.</p>
+<h4 id="unused-optional"><a class="header" href="#unused-optional">UNUSED (optional)</a></h4>
+<p>Single line, optional section listing all unused darts. Unused darts should be free.</p>
+<h4 id="vertices"><a class="header" href="#vertices">VERTICES</a></h4>
+<p>List of identifiers and corresponding vertex values. Vertices should have correct dimension (e.g.
+x, y, and z coordinates for a 3-map).</p>
+<h3 id="examples-3"><a class="header" href="#examples-3">Examples</a></h3>
+<h4 id="2d"><a class="header" href="#2d">2D</a></h4>
+<pre><code class="language-toml"># unit square
+[META] 
+0.8.0 2 4 # &lt;VERSION&gt; &lt;DIM&gt; &lt;N_DARTS_EXCL_0&gt;
+
+[BETAS] # 3 beta functions for 2D, 5 columns = 4 darts + the null dart
+0 4 1 2 3 # b0 
+0 1 3 4 1 # b1
+0 0 0 0 0 # b2
+
+[VERTICES]
+1 0.0 0.0 # &lt;ID&gt; &lt;X&gt; &lt;Y&gt;
+2 1.0 0.0
+3 1.0 1.0
+4 0.0 1.0
+</code></pre>
+<h4 id="3d"><a class="header" href="#3d">3D</a></h4>
+<pre><code class="language-toml"># simple tetrahedron
+[META]
+0.8.0 3 14
+
+[BETAS] 
+0 3 1 2 6 4 5 9 7 8 12 10 11 0 0 # columns don't have to be aligned,
+0 2 3 1 5 6 4 8 9 7 11 12 10 0 0 # though our routines will align items
+0 4 7 10 1 12 8 2 6 11 3 9 5 0 0
+
+[UNUSED]
+13 14
+
+[VERTICES]
+1 0.0 0.0 0.0 # &lt;ID&gt; &lt;X&gt; &lt;Y&gt; &lt;Z&gt;
+2 1.0 0.0 0.0
+3 1.0 1.0 0.0
+6 0.5 0.5 1.0
+</code></pre>
+<h2 id="vtk-serialization"><a class="header" href="#vtk-serialization">VTK serialization</a></h2>
+<p>We use the <a href="https://github.com/elrnv/vtkio"><code>vtkio</code></a> crate to handle file IO. Only the legacy
+format is supported, in both its binary or ASCII form.</p>
+<h3 id="expected-input-for-deserialization"><a class="header" href="#expected-input-for-deserialization">Expected input for deserialization</a></h3>
+<p>Using a VTK file to initialize a map can fail for two main reason:</p>
+<ul>
+<li>The file contains general inconsistencies:
+<ul>
+<li>the number of coordinates cannot be divided by <code>3</code>, meaning a tuple is incomplete</li>
+<li>the number of <code>Cells</code> and <code>CellTypes</code> isn't equal,</li>
+<li>a given cell has an inconsistent number of vertices with its specified cell type.</li>
+</ul>
+</li>
+<li>The file contains unsupported data:
+<ul>
+<li>file format isn't Legacy,</li>
+<li>data set is something other than <code>UnstructuredGrid</code>,</li>
+<li>coordinate representation type isn't <code>float</code> or <code>double</code>,</li>
+<li>mesh contains unsupported cell types (<code>PolyVertex</code>, <code>PolyLine</code>, ...,  or anything 3D for
+a 2D map for example).</li>
+</ul>
+</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cell-insertions"><a class="header" href="#cell-insertions">Cell insertions</a></h1>
+<hr />
+<p>Cell insertion routinesare implemented in <a href="kernels/../../honeycomb_kernels/cell_insertion/index.html">this</a> module. For
+consistency reasons, we limit our implementations to inserting cell of dimension <code>N-1</code> in cellof dimension <code>N</code>.</p>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="edges"><a class="header" href="#edges">Edges</a></h3>
+<p>Two splitting functions are implemented over edges, each having a no-allocation variant:</p>
+<ul>
+<li><code>insert_vertex_on_edge</code>: insert a vertex on an edge, effectively splitting it into 2 segments.</li>
+<li><code>insert_vertices_on_edge</code>: insert <code>n</code> vertices on an edge, effectively splitting it into <code>n+1</code> segments.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="honeycomb-kernels---grisubal"><a class="header" href="#honeycomb-kernels---grisubal">honeycomb-kernels - GRISUBAL</a></h1>
+<hr />
+<p><strong>Grisubal</strong> is a mesh generation algorithm inspired by <a href="https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf">Morph</a>. The mesh is built by capturing
+the input geometry in an overlapping grid, by first computing intersection vertices and then rebuilding
+boundaries from the captured vertices.</p>
+<p>The algorithm can be called using <a href="kernels/../../honeycomb_kernels/grisubal/fn.grisubal.html">this</a> function.</p>
+<hr />
+<h2 id="input"><a class="header" href="#input">Input</a></h2>
+<p>The algorithm expects a (2D) geometry specified via a path to a VTK legacy file. The geometry's boundaries should be
+described via segments &amp; vertices; Segments should be <em>consistently oriented</em>.</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/input.svg" alt="Input Geometry" />
+    <figcaption><i>Finely segmented input geometry</i></figcaption>
+</figure>
+<p>Some vertices can be explicitly listed as cells in order for the algorithm to interpret those as <em>Points of Interests</em>.
+This can be used to ensure irregular geometries are captured correctly by the algorithm, which uses a uniform grid size.</p>
+<h2 id="geometry-pre-processing"><a class="header" href="#geometry-pre-processing">Geometry Pre-processing</a></h2>
+<p>Before running the main algorithm, a few steps are followed to ensure correctness of later computations.</p>
+<p>First, we compute the characteristics of a grid overlapping the entire geometry. The origin is automatically computed 
+according to the input geometry and the desired cell sizes; It is then, if necessary, adjusted to avoid a few edge 
+cases that would create issues in the main algorithm.</p>
+<p>After grid characteristics are obtained, they're used along the geometry to detect and remove redundant Points of 
+Interest. These are defined as PoI that land exactly on the grid; Their removal is necessary to avoid creating duplicate
+vertices in the main algorithm (since there would be both an intersection and a PoI at this location).</p>
+<p>As a last step before calling the main kernel, we check for trivial orientation issues by ensuring no vertex is the 
+start (resp. the end) of two different segments. This detects inconsistencies per-boundary, not overall consistency.</p>
+<h2 id="grid-submersion-algorithm"><a class="header" href="#grid-submersion-algorithm">Grid Submersion Algorithm</a></h2>
+<h3 id="step-1---intersect-grid--geometry"><a class="header" href="#step-1---intersect-grid--geometry">Step 1 - Intersect Grid &amp; Geometry</a></h3>
+<p>The goal of this step is to edit and complete the segment list to obtain a list of non-dividable segments that can be
+used for reconstruction at a later step. Consider the previous geometry, submerged in an overlapping grid:</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/step1.svg" alt="Input Geometry" />
+    <figcaption><i>Input geometry with its overlapping grid</i></figcaption>
+</figure>
+<p>We check each segment of the geometry for intersection(s) with the grid, and replace the original segment with new
+ones given the result of the check. A <a href="kernels/grisubal.html#intersection-computation">dedicated section</a> goes over the method we use,
+these are the rough cases:</p>
+<ul>
+<li><strong>Both vertices belong to the same cell</strong>: the new segment is the same as the original.</li>
+<li><strong>Vertices belong to neighboring cells</strong>: there are two new segments, first from start vertex to intersection, second
+from intersection to end vertex.</li>
+<li><strong>Vertices belong to different non-neighboring cells</strong>: there are <em>d</em> new segments, first from start vertex to
+intersection, then between intersections, last from intersection to end vertex.</li>
+</ul>
+<p>Intersection information is collected and returned along with the list of non-dividable segments. The information is
+made up of a dart identifier (the intersected dart) as well as the relative position of the intersection on this dart
+(a floating-point <code>t</code> between <code>0</code> and <code>1</code>).</p>
+<p>At the same time, vertices are labeled as one of three types: <code>Regular</code>, <code>PoI</code>, or <code>Intersec</code>. This is used by the
+processing logic of the next steps.</p>
+<h3 id="step-2---transform-data-for-step-3-and-4"><a class="header" href="#step-2---transform-data-for-step-3-and-4">Step 2 - Transform data for step 3 and 4</a></h3>
+<p>This is an intermediate step which enables better implementation of the next two step. It roughly
+results in:</p>
+<ul>
+<li>the parallelization of step 3</li>
+<li>the decorrelation of step 3 from step 4, making their concurrent execution posssible</li>
+</ul>
+<p>This is achieved by:</p>
+<ol>
+<li>grouping intersection data (obtained from step 1) per edge</li>
+<li>pre-allocating darts for step 2</li>
+<li>computing each intersection's corresponding new dart</li>
+</ol>
+<h3 id="step-3---insert-intersection-vertices"><a class="header" href="#step-3---insert-intersection-vertices">Step 3 - Insert Intersection Vertices</a></h3>
+<p>Given intersection information per edge (step 2 <code>1.</code>), and pre-allocated darts (step 2 <code>2.</code>), we iterate
+through edges, building intersections into the map. Thanks to the <code>splitn_edge</code> implementation and dart
+pre-allocation, processing edges should be an embarassingly parallel section.</p>
+<h3 id="step-4---filter--rebuild-segment-data"><a class="header" href="#step-4---filter--rebuild-segment-data">Step 4 - Filter &amp; Rebuild Segment Data</a></h3>
+<p>Given information computed at step 2 <code>3.</code>, we can rebuild new segments where both ends are either
+points of interest or intersections. This corresponds to building segments using the following vertices:</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/step2.svg" alt="Intersection Types" />
+    <figcaption><i>Intersection vertices (gray) & points of interest (red)</i></figcaption>
+</figure>
+<p>This can be done in two substeps:</p>
+<ol>
+<li>Filter segments by starting vertex to only keep intersections;</li>
+<li>For each of these segments, follow through until landing on another intersection; While searching through, keep
+track of any PoI encountered.</li>
+</ol>
+<p>Using a set of data made up of starting intersection, ending intersection, and (optional) intermediates, we can build
+edges into the final 2-map.</p>
+<h3 id="step-5---insert-segments"><a class="header" href="#step-5---insert-segments">Step 5 - Insert Segments</a></h3>
+<p>Given the data built up at the last step, we can proceed with insertion into the map. At this point, only darts linking
+the first intersection to the following vertex need to be added to the map.</p>
+<p>The main work consist of fetching correct dart identifiers and update the topology by using link and sew methods. By
+following this process recursively for intermediates, we can build the final map, capturing the geometry's boundaries:</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/step3.svg" alt="Intersection Types" />
+    <figcaption><i>Captured geometry</i></figcaption>
+</figure>
+<h2 id="clipping"><a class="header" href="#clipping">Clipping</a></h2>
+<p>Optionally, some cells of the resulting combinatorial map can be removed. These cell would correspond to the inside or
+the outside of the geometry. We choose to simply consider the <em>left</em> side and the <em>right</em> side of the boundary, to 
+minimize orientation assumptions and avoid confusion.</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/left_right_darts.svg" alt="Boundary sides" />
+    <figcaption><i>
+        Boundary sides. The oriented geometry is in red, left side in purple, right side in blue.
+    </i></figcaption>
+</figure>
+<p>During the last step of the main algorithm, darts of the boundary are marked according to their respective side. From
+this, we can retrieve faces of a given side, and use them as a starting point for a coloring-like algorithm. </p>
+<p>Faces are searched and marked using a BFS; only adjacent faces with an unmarked dart are considered. If, at any point, 
+a face with a dart of the other side of the boundary is reached it means that:</p>
+<ul>
+<li>the geometry was open, or</li>
+<li>nested boundaries are inconsistently oriented.</li>
+</ul>
+<p>After this, all darts of the marked faces are deleted. The attribute used to mark boundary darts is then removed from 
+the map before it is returned.</p>
+<h2 id="appendices"><a class="header" href="#appendices">Appendices</a></h2>
+<h3 id="intersection-computation"><a class="header" href="#intersection-computation">Intersection Computation</a></h3>
+<p>Consider a given segment of the geometry. Each of the segment follow one of three cases:</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/intersec_types.svg" alt="Intersection Types" />
+    <figcaption><i>Intersection types</i></figcaption>
+</figure>
+<ul>
+<li><code>A</code> - Vertices belong to neighboring cells.</li>
+<li><code>B</code> - Vertices belong to different non-neighboring cells.</li>
+<li><code>C</code> - Both vertices belong to the same cell.</li>
+</ul>
+<p>We can identify which case we're in by computing the Manhattan distance between grid cells of the respective vertices:</p>
+<ul>
+<li><code>A</code> - Distance is equal to <code>1</code>.</li>
+<li><code>B</code> - Distance is strictly superior to <code>1</code>.</li>
+<li><code>C</code> - Distance is <code>0</code>.</li>
+</ul>
+<p>The <code>A</code> case is pretty straight forward: By considering that the segment is oriented from
+the start to its end, we can deduce which side of the cell it's intersecting, and compute the relative position of the
+intersection <code>t</code>:</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/intersec_single.svg" alt="Single Intersection" />
+    <figcaption><i>Intersection at the scale of a single cell</i></figcaption>
+</figure>
+<p>The <code>B</code> case is trickier to handle because we need to compute multiple intersections, and know their order to be able
+to build the segment back into the map.</p>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/intersec_multiple.svg" alt="Many Intersections" />
+    <figcaption><i>Repeated intersections with the grid</i></figcaption>
+</figure>
+<p>By considering the minimal subgrid containing both vertices, as well as the direction of the segment, we can list all
+edges that are potentially intersected.</p>
+<p>We can compute coefficients <code>s</code> and <code>t</code> for each of the potentially intersected segments. If the segment is actually
+intersected, both coefficients will have a value between <code>0</code> and <code>1</code>. <code>s</code> being the relative position of the
+intersection along the original segment, we can use its value to reorder all valid intersections for segment building.</p>
+<h3 id="insertion-logic"><a class="header" href="#insertion-logic">Insertion Logic</a></h3>
+<p>For a given instance of data containing:</p>
+<ul>
+<li>a starting dart: <em>d<sub>start</sub></em></li>
+<li>(optional) one or more intermediate darts: <em>{ d<sub>i</sub> } <sub>i</sub></em></li>
+<li>an ending dart: <em>d<sub>end</sub></em></li>
+</ul>
+<p>These steps are followed:</p>
+<ul>
+<li><code>1-unsew</code> <em>d<sub>start</sub></em></li>
+<li><code>0-unsew</code> <em>d<sub>end</sub></em>, i.e. <code>1-unsew</code> <em>β<sub>0</sub> (d<sub>end</sub>)</em></li>
+<li>create a pair of dart &amp; link it via <em>β<sub>2</sub></em></li>
+<li><code>1-sew</code> <em>d<sub>start</sub></em> to this pair, as well as the dart that was deconnected from <em>d<sub>start</sub></em></li>
+<li>if there's no intermediate, <code>1-sew</code> the pair to the ending dart, as well as the dart that was deconnected from
+<em>d<sub>end</sub></em></li>
+<li>if there are intermediates:
+<ul>
+<li><code>1-sew</code> the pair to the first intermediate, as well as the dart that was deconnected from <em>d<sub>start</sub></em></li>
+<li>successively <code>1-sew</code> intermediates</li>
+<li><code>1-sew</code> the last intermediate to <em>d<sub>end</sub></em>, as well as the dart that was deconnected from
+<em>d<sub>end</sub></em></li>
+</ul>
+</li>
+</ul>
+<figure style="text-align:center">
+    <img src="kernels/../images/grisubal/insertion.svg" alt="Insertion" />
+    <figcaption><i>Insertion of new edges with one intermediate</i></figcaption>
+</figure>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="polygon-triangulation"><a class="header" href="#polygon-triangulation">Polygon triangulation</a></h1>
+<hr />
+<p>We implement two functions for polygon triangulation. These are not meshing functions; our goal with
+these is to cut existing cells of an irregular mesh into triangular cells.</p>
+<p>With consideration to the above, we implement two polygon triangulation methods: <em>fanning</em>, and <em>ear-clipping</em>.
+Both implementations are designed to operate in parallel; they take pre-allocated darts as argument and do not
+create any contention over data as long as two calls are not made on the same face (2-cell).</p>
+<h2 id="fanning"><a class="header" href="#fanning">Fanning</a></h2>
+<p>Two versions of this algorithm are implemented:</p>
+<p>The first implementation is a defensive one where the function actively search for a valid vertex to fan from.</p>
+<p>The second implementation  assume the cell is convex; it fans the polygon from its first vertex. Convexity is not
+checked, so use this only if you know all your cells fit the requirements!</p>
+<h2 id="ear-clipping"><a class="header" href="#ear-clipping">Ear-clipping</a></h2>
+<p>This method isn't algorithmically efficient, but we operate on small cells, and it covers our needs: it is a potential
+fallback for non-fannable polygons without holes.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="remeshing"><a class="header" href="#remeshing">Remeshing</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<h2 id="scope"><a class="header" href="#scope">Scope</a></h2>
+<p>Because our implementation has very practical goals, the definitions 
+presented here use a more intuitive approach rather than strict 
+mathematical concepts.</p>
+<p>Our main interest at the moment being 2D and 3D combinatorial maps,
+some operations are defined with consideration to these restrictions.
+This is especially useful for orbits and sewing operations.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="combinatorial-maps-1"><a class="header" href="#combinatorial-maps-1">Combinatorial Maps</a></h1>
+<p>N-dimensional combinatorial maps, noted <em>N-map</em>, are objects made up of
+two main elements:</p>
+<ul>
+<li>A set of darts, darts being the smallest elements making up the map</li>
+<li>N beta functions, linking the darts of the map</li>
+</ul>
+<p>Additionally, we can define <em>embedded data</em> as spatial anchoring of the
+darts making up the map. While the first two elements hold topological
+information, embedded data gives information about the &quot;shape&quot; of the
+map (e.g. vertices position in a spatial domain).</p>
+<p>With these elements, we can represent and operate on meshes.</p>
+<h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
+<p>Operations on a combinatorial map can affect its topology, shape or both:</p>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_hcmap_example.svg" alt="MapMeshEquivalent" />
+    <figcaption><i>Core crate quickstart example</i></figcaption>
+</figure>
+<p>The specifics on how data is encoded is detailed in attribute-specific
+sections.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="darts"><a class="header" href="#darts">Darts</a></h1>
+<p>Darts are the finest grain composing combinatorial maps. The structure of the map is given by the relationship between
+darts, defined through beta functions. Additionally, a null dart is defined, we denote it <em>∅</em>.</p>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_darts.svg" alt="Darts" />
+    <figcaption><i>Unorganized darts</i></figcaption>
+</figure>
+<p>In our implementation, darts exist implicitly through indexing and their associated data. There are no dart <em>objects</em>
+in a strict sense, there is only a given number of dart, their associated data ordered by an array-like logic, and a
+record of &quot;unused&quot; slots that can be used for dart insertion. Because of this, we assimilate dart and dart index.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="beta-functions"><a class="header" href="#beta-functions">Beta Functions</a></h1>
+<p>Each combinatorial map of dimension <em>N</em> defines <em>N</em> beta functions linking the set of darts together (e.g. a 2-map
+contains <em>β<sub>1</sub></em> and <em>β<sub>2</sub></em>). These functions model the topology of the map, giving information about
+connections of the different cells of the map / mesh. In our case, we mostly use:</p>
+<ul>
+<li><em>β<sub>1</sub></em>, a (partial) permutation,</li>
+<li><em>β<sub>2</sub></em>, <em>β<sub>3</sub></em>, two (partial) involutions</li>
+</ul>
+<p>Additionally, we define <em>β<sub>0</sub></em> as the inverse of <em>β<sub>1</sub></em>, i.e. <em>β<sub>0</sub>(β<sub>1</sub>(d)) = d</em>.
+This comes from a practical consideration for performances and efficiency of the implementation.</p>
+<p>The <em>β<sub>i</sub></em> functions can be interpreted as navigation functions along the <em>i-th</em> dimensions: <em>β<sub>1</sub></em>
+makes you navigate along the edges, <em>β<sub>2</sub></em> along the faces, etc. This can be generalized to <em>N</em> dimensions,
+but we are only interested in 2D and 3D at the moment.</p>
+<h2 id="properties"><a class="header" href="#properties">Properties</a></h2>
+<p>For a given dart <em>d</em>, we define two properties:</p>
+<ul>
+<li><em>d</em> is <strong><em>i</em>-free</strong> if <em>β<sub>i</sub>(d) = ∅</em>, <em>∅</em> being the null dart</li>
+<li><em>d</em> is <strong>free</strong> if it is <strong><em>i</em>-free for all <em>i</em></strong></li>
+</ul>
+<h2 id="construction-example"><a class="header" href="#construction-example">Construction Example</a></h2>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_darts.svg" alt="Embed" />
+    <figcaption><i>Start from unorganized darts</i></figcaption>
+</figure>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_beta1.svg" alt="Embed" />
+    <figcaption><i>Organize those using β<sub>1</sub></i></figcaption>
+</figure>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_beta2.svg" alt="Embed" />
+    <figcaption><i>Add β<sub>2</sub> images; For details on vertices, refer to the Embedding section</i></figcaption>
+</figure>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_map.svg" alt="Embed" />
+    <figcaption><i>Build up a larger map</i></figcaption>
+</figure><div style="break-before: page; page-break-before: always;"></div><h1 id="orbits"><a class="header" href="#orbits">Orbits</a></h1>
+<p>We define orbits as a set of darts that are accessible from a given dart,
+using a certain set of beta functions. For example:</p>
+<ul>
+<li><em>⟨β<sub>1</sub>⟩(d)</em> refers to all darts accessible from <em>d</em> using
+<em>β<sub>1</sub></em> recursively any number of times.</li>
+<li><em>⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)</em> refers to all darts accessible
+from <em>d</em> using any combination of <em>β<sub>1</sub></em> and <em>β<sub>3</sub></em>.</li>
+</ul>
+<h2 id="i-cells"><a class="header" href="#i-cells"><em>i</em>-cells</a></h2>
+<p>A specific subset of orbits, referred to as <em>i</em>-cells are defined and often
+used in algorithms. The general definition is the following:</p>
+<ul>
+<li><strong>if i = 0</strong>:  <em>0-cell(d) = ⟨{ β<sub>j</sub> o β<sub>k</sub> with 1 ≤ j &lt; k ≤ N }⟩(d)</em></li>
+<li><strong>else</strong>: <em>i-cell(d) = ⟨β<sub>1</sub>, β<sub>2</sub>, ..., β<sub>i-1</sub>, β<sub>i+1</sub>, ..., β<sub>N</sub>⟩(d)</em></li>
+</ul>
+<p>In our case, we can use specialized definitions for our dimensions:</p>
+<div class="table-wrapper"><table><thead><tr><th><em>i</em></th><th>Geometry</th><th>2-map</th><th>3-map</th></tr></thead><tbody>
+<tr><td>0</td><td>Vertex</td><td><em>⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)</em> <br> <strong>or</strong> <br> <em>⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)</em></td><td><em>⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)</em> <br> <strong>or</strong> <br> <em>⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)</em></td></tr>
+<tr><td>1</td><td>Edge</td><td><em>⟨β<sub>2</sub>⟩(d)</em></td><td><em>⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)</em></td></tr>
+<tr><td>2</td><td>Face</td><td><em>⟨β<sub>1</sub>⟩(d)</em></td><td><em>⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)</em></td></tr>
+<tr><td>3</td><td>Volume</td><td>-</td><td><em>⟨β<sub>1</sub>, β<sub>2</sub>⟩(d)</em></td></tr>
+</tbody></table>
+</div>
+<h2 id="examples-4"><a class="header" href="#examples-4">Examples</a></h2>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_orbit_face.svg" alt="Embed" />
+    <figcaption>
+        <i>2-cell (face) associated to d<sub>2</sub>; 
+        Note that the 2-faces of d<sub>1</sub>, d<sub>3</sub>, d<sub>4</sub> are the same
+    </i></figcaption>
+</figure>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_orbit_edge.svg" alt="Embed" />
+    <figcaption><i>1-cell (edge) associated to d<sub>2</sub></i></figcaption>
+</figure>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_orbit_vertex.svg" alt="Embed" />
+    <figcaption><i>0-cell (vertex) associated to d<sub>7</sub></i></figcaption>
+</figure><div style="break-before: page; page-break-before: always;"></div><h1 id="embedding"><a class="header" href="#embedding">Embedding</a></h1>
+<p>Embedding, or embedded data refers to the association of topological
+entities (darts, <em>i</em>-cells) to geometrical data (spatial positions,
+vertices, faces, volumes).</p>
+<p>The embedding of geometrical data has implication for operations
+on the map. This is detailed along operation specificities in their
+dedicated sections.</p>
+<h2 id="implementation"><a class="header" href="#implementation">Implementation</a></h2>
+<p>Because embedding is defined per-application or per-needs, our combinatorial map implementation uses
+a generic system to handle this; The storage follows our own specific logic, which is detailed in
+<a href="definitions/../../honeycomb_core/cmap/struct.CMap2.html#note-on-cell-identifiers">this</a> documentation entry.</p>
+<h2 id="examples-5"><a class="header" href="#examples-5">Examples</a></h2>
+<p>Note that darts and vertex IDs are not actually stored. Formers exist implictly
+and latters are computed on the fly.</p>
+<figure style="text-align:center">
+    <img src="definitions/../images/bg_embed.svg" alt="Embed" />
+    <figcaption><i>Simple square representation</i></figcaption>
+</figure>
+<p>In the above example, data would be organized like this:</p>
+<div class="table-wrapper"><table><thead><tr><th>Storages</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>
+<tr><td>Darts</td><td>null</td><td>d1</td><td>d2</td><td>d3</td><td>d4</td></tr>
+<tr><td>Associated vertex ID</td><td>null</td><td>d1</td><td>d2</td><td>d3</td><td>d4</td></tr>
+<tr><td>Vertices</td><td>null</td><td><code>0.0, 0.0</code></td><td><code>1.0, 0.0</code></td><td><code>1.0, 1.0</code></td><td><code>0.0, 1.0</code></td></tr>
+</tbody></table>
+</div><figure style="text-align:center">
+    <img src="definitions/../images/bg_map.svg" alt="FullMap" />
+    <figcaption><i>Larger representation</i></figcaption>
+</figure>
+<p>In the above example, data would be organized like this:</p>
+<div class="table-wrapper"><table><thead><tr><th>Storages</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th></tr></thead><tbody>
+<tr><td>Darts</td><td>null</td><td>d1</td><td>d2</td><td>d3</td><td>d4</td><td>d5</td><td>d6</td><td>d7</td><td>d8</td><td>d9</td><td>d10</td><td>d11</td><td>d12</td><td>d13</td><td>d14</td><td>d15</td><td>d16</td></tr>
+<tr><td>Associated vertex ID</td><td>null</td><td>d1</td><td>d2</td><td>d3</td><td>d4</td><td>d2</td><td>d6</td><td>d3</td><td>d3</td><td>d6</td><td>d10</td><td>d4</td><td>d3</td><td>d10</td><td>d14</td><td>d15</td><td>d16</td></tr>
+<tr><td>Vertices</td><td>null</td><td><code>0.0, 0.0</code></td><td><code>1.0, 0.0</code></td><td><code>1.0, 1.0</code></td><td><code>0.0, 1.0</code></td><td>null</td><td><code>2.0, 0.0</code></td><td>null</td><td>null</td><td>null</td><td><code>2.0, 1.0</code></td><td>null</td><td>null</td><td>null</td><td><code>2.0, 2.0</code></td><td><code>1.0, 2.5</code></td><td><code>0.0, 2.0</code></td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="basic-operations"><a class="header" href="#basic-operations">Basic Operations</a></h1>
+<p>A number of basic operations are defined on combinatorial maps. In this section, we go over their definition, a simple
+example and eventual implementation specificities. Qualifies as a basic operation:</p>
+<ul>
+<li>changing the dimension of the map</li>
+<li>adding and removing free darts from the map</li>
+<li>sewing and unsewing darts</li>
+</ul>
+<p>Other operations might be defined, but these are the useful core for writing higher-level abstractions over
+the structure.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="add--remove-a-dimension"><a class="header" href="#add--remove-a-dimension">Add / Remove a dimension</a></h1>
+<p>Adding or removing a dimension on a given combinatorial maps effectively corresponds, respectively, to adding or
+removing a beta function. In the case of decreasing the dimension, this operation can result in two disjoint dart set
+in the same map.</p>
+<p>Because the current implementation only covers 2D combinatiorial maps, this operation is not implemented. When 3D maps
+are implemented, it would be possible to implement this using the <code>From</code> trait provided by the Rust language.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="add--remove-a-free-dart"><a class="header" href="#add--remove-a-free-dart">Add / Remove a free dart</a></h1>
+<h2 id="adding-darts"><a class="header" href="#adding-darts">Adding darts</a></h2>
+<p>As explained in the <a href="definitions/darts.html">Darts</a> section of this guide, these entities exist implictly through indexing of the
+internal storage structures of the map. Because of this, adding darts translates to extending internal vectors and
+storages in our implementation.</p>
+<p>An internal counter is incremented at each dart addition. This, coupled with an unused dart tracking mechanism,
+constitutes a way to keep track of attributed darts.</p>
+<h2 id="removing-darts"><a class="header" href="#removing-darts">Removing darts</a></h2>
+<p>Removing a dart would technically require us to remove an entry inside storage structures, which are often ordered,
+contiguous vectors. There are two way to approach this problem:</p>
+<ul>
+<li>Actually remove the entry
+<ul>
+<li>requires adjustments on all the structure to keep consistent indices</li>
+<li>keeps the storage compact, i.e. all allocated slots are used</li>
+</ul>
+</li>
+<li>&quot;Forget&quot; the entry
+<ul>
+<li>does not require any re-arrangements besides making sure no beta functions lands on the dart</li>
+<li>creates &quot;holes&quot; in the storage</li>
+</ul>
+</li>
+</ul>
+<p>Our implementation uses the second solution, along with a structure used to store unused slots. In turns, we can use
+these &quot;holes&quot; in the storage to reinsert darts or collapse the structure at a later point during execution.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="sewing-and-unsewing-operation"><a class="header" href="#sewing-and-unsewing-operation">Sewing and unsewing operation</a></h1>
+<h2 id="sewing"><a class="header" href="#sewing">Sewing</a></h2>
+<p>The sew operation can be divided into two parts:</p>
+<ul>
+<li>a topological update, which corresponds to linking the darts</li>
+<li>a geometrical update, which corresponds to an update of the affected embedded data, called attributes in our code</li>
+</ul>
+<p>Note that the implementation is not as simple as doing one and then the other for consistency reasons: changing the
+topology affects our ability to retrieve the embedded data, therefore the result is highly sensitive to operation
+order.</p>
+<h3 id="topology"><a class="header" href="#topology">Topology</a></h3>
+<p>The <em>i-link</em> operation corresponds to the aforementionned topological update. Given two darts <em>d<sub>a</sub></em> and
+<em>d<sub>b</sub></em>, and a given beta function <em>β<sub>i</sub></em>, a link operation corresponds to the update of the
+<em>β<sub>i</sub></em> function in order to have <em>β<sub>i</sub>(d<sub>a</sub>) = d<sub>b</sub></em> and/or
+<em>β<sub>i</sub>(d<sub>b</sub>) = d<sub>a</sub></em> depending on darts order and <em>i</em>. For example:</p>
+<ul>
+<li><em>1-link(d<sub>a</sub>,d<sub>b</sub>)</em> results in:
+<ul>
+<li><em>β<sub>1</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+<li><strong>if <em>β<sub>0</sub></em> is defined</strong>, <em>β<sub>0</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+</ul>
+</li>
+<li><em>1-link(d<sub>b</sub>,d<sub>a</sub>)</em> results in:
+<ul>
+<li><em>β<sub>1</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+<li><strong>if <em>β<sub>0</sub></em> is defined</strong>, <em>β<sub>0</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+</ul>
+</li>
+<li><em>2-link(d<sub>a</sub>,d<sub>b</sub>)</em> results in:
+<ul>
+<li><em>β<sub>2</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+<li><em>β<sub>2</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+</ul>
+</li>
+<li><em>2-link(d<sub>b</sub>,d<sub>a</sub>)</em> results in the same changes as <em>2-link(d<sub>a</sub>,d<sub>b</sub>)</em></li>
+</ul>
+<p>Exact properties of the link operation directly depends on the property of the modified beta function.</p>
+<h3 id="geometry"><a class="header" href="#geometry">Geometry</a></h3>
+<p>The <em>i-sew</em> operation corresponds to an <em>i-link</em> operation, coupled with an update of the affected attributes. <em>How</em>
+the attributes are updated is defined through trait implementation in the Rust crate (see
+<a href="definitions/../../honeycomb_core/attributes/trait.AttributeUpdate.html">AttributeUpdate</a>,
+<a href="definitions/../../honeycomb_core/attributes/trait.AttributeBind.html">AttributeBind</a>). <em>Which</em> attributes are updated can be
+deduced from the dimension <em>i</em> of the sewing operation. This is summarized in the following table:</p>
+<div class="table-wrapper"><table><thead><tr><th>Dimension</th><th>Geometrical operation</th><th>0-cell / Vertex Attributes</th><th>1-cell / Edge Attributes</th><th>2-cell / Face Attributes</th><th>3-cell / Volume Attributes</th></tr></thead><tbody>
+<tr><td>1</td><td>Fusing vertices</td><td>affected</td><td>unaffected</td><td>unaffected</td><td>unaffected</td></tr>
+<tr><td>2</td><td>Fusing edges</td><td>affected</td><td>affected</td><td>unaffected</td><td>unaffected</td></tr>
+<tr><td>3</td><td>Fusing faces</td><td>affected</td><td>affected</td><td>affected</td><td>unaffected</td></tr>
+</tbody></table>
+</div>
+<h2 id="unsewing"><a class="header" href="#unsewing">Unsewing</a></h2>
+<p>The unsew operation is the complementary to the sew operation. It behaves according to similar properties, but is used
+to remove links between darts. It does so by replacing values of the beta functions by the null dart. Geometrical
+updates are handled and defined in the same way as for the sew operation.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
