@@ -6,6 +6,155 @@
 
 ---
 
+## 0.8.0
+
+**This update contains breaking changes**
+
+### Workspace
+
+*new:*
+- add basic Dockerfile by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/270
+- add typo check to CI by @cedricchevalier19
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/303
+
+*refactor:*
+- clean and order imports by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/283
+- move to Rust 2024 edition by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/290
+
+*deps:*
+- update downcast-rs requirement from 1.2.1 to 2.0.1 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/265
+- bump codecov/codecov-action from 5.1.2 to 5.3.1 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/275
+- bump codecov/codecov-action from 5.3.1 to 5.4.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/289
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+
+- add minimal `CMap3` implementation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/249
+- add custom (de)serialization format & support by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/276
+- implement 3D grid generation internal routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/256
+- **add `CMap3`  generation to `CMapBuilder` API** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/297
+- implement transactional orbits by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/299
+
+*refactor:*
+- remove dead code from `AttributeStorageManager` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/266
+- improve `iter_<CELLS>` methods by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/271
+- **replace the STM implementation by our fork** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/274
+- **rework basic operation errors and checks** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/273
+- **delete `force_` variants internals in favor of wrapping regular impl** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/277
+- remove dead code from attribute items by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/284
+- remove `try_` prefix from `UnknownAttributeStorage` & manager merges/splits by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/286
+- use thread-local hashset and queue for cell ID computations by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/293
+- remove `From<impl Path>` implementation of `CMapBuilder` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/295
+- **remove orbit structure in favor of map methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/294
+- **update the builder structure API** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/296
+
+*fix:*
+- replace `while` with marks in 2D ID computations by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/272
+- merge edge attributes in 2-sew between isolated darts by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/281
+
+*tests:*
+- add coverage for new routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/267
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+- implement skewness computing routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/287
+- add remeshing module w/ `cut-edges` routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/292
+- add `swap_edge` remeshing operation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/302
+
+*refactor:*
+- **convert `split_edge` routines to use transactions** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/268
+- **delete `splits` module in favor of a `cell_insertion` module** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/301
+- **rewrite triangulation routines to use transactions** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/298
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*new:*
+- use white background & unlit i-cells to improve visuals by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/279
+
+*refactor:*
+- **switch to gizmos-based rendering** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/304
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+- add two new binaries to benchmark scaling by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/269
+
+*refactor:*
+- **merge all bench binaries into a single one** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/285
+- improve parity of benchmark outputs by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/288
+
+*fix:*
+- adjust last printed line of `cut-edges` output by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/291
+- various bench fixes by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/305
+
+#### honeycomb-guide
+
+<sup>**mdbook**-based user guide with information regarding usage & non-code-related
+aspects of the project</sup>
+
+- replace attribute doctests by a user guide page by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/278
+- update base page css by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/280
+- update the STM usage page by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/282
+- update UG examples with new syntax by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/300
+
+---
+
 ## 0.7.0
 
 **This update contains breaking changes**
