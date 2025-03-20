@@ -33,10 +33,9 @@ This includes map structures, methods implementation, type aliases and geometric
 ### Implemented features
 
 - a builder structure to handle map creation: `CMapBuilder`.
-- 2D combinatorial maps, usable in concurrent contexts: `CMap2`. this includes:
+- 2D and 3D combinatorial maps, usable in concurrent contexts: `CMap2`/`CMap3`. this includes:
     - all regular operations (sew, unsew, beta images, ...),
     - a custom embedding logic to associate vertices and attributes to darts.
-- 2D orbit computation: `Orbit2`.
 - abstractions over attributes, to allow arbitrary items binding to the map using the
   same embedding logic as vertices:
     - `AttributeBind` & `AttributeUpdate` traits,
@@ -67,7 +66,7 @@ hypothesis are listed in the documentation of the crate.
 - [Directional Vertex Relaxation](../kernels/dvr.md)
 - [Grisubal](../kernels/grisubal.md)
 - [Polygon triangulations](../kernels/triangulations.md)
-- [Cell splits](../kernels/splits.md)
+- [Cell insertions](../kernels/splits.md)
 
 
 ---
