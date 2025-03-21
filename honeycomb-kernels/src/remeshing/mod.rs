@@ -238,7 +238,10 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 pub enum EdgeCollapseError {
     /// A core operation failed.
     #[error("core operation failed: {0}")]
-    FailedCoreOp(#[from] SewError),
+    FailedCoreOp(SewError),
+    /// The edge passed as argument cannot be collapsed due to constraints on its vertices.
+    #[error("cannot collapse an edge where both vertices are immovable")]
+    NonCollapsableEdge,
     /// The edge passed as argument is null.
     #[error("cannot swap null edge")]
     NullEdge,
@@ -247,6 +250,50 @@ pub enum EdgeCollapseError {
     BadTopology,
 }
 
+// TODO: use a custom attribute to automatically detect non-collapsable edges
+impl From<SewError> for EdgeCollapseError {
+    fn from(value: SewError) -> Self {
+        EdgeCollapseError::FailedCoreOp(value)
+    }
+}
+
+/// Collapse an edge separating two triangles.
+///
+/// ```text
+/// +-----+-----+       +-----+-----+
+/// |    / \    |        \    |    /
+/// |   /   \   |         \  2-3  /
+/// 1  2     3  4          1  |  4
+/// | /       \ |           \ | /
+/// |/         \|            \|/
+/// +-----------+  -->        +
+/// |\    e    /|            /|\
+/// | \       / |           / | \
+/// 5  6     7  8          5  |  8
+/// |   \   /   |         /  6-7  \
+/// |    \ /    |        /    |    \
+/// +-----+-----+       +-----+-----+
+/// ```
+///
+/// This function expects to operate on a triangular mesh. At the moment, calling it on another type
+/// of mesh may result in non-explicit errors (e.g. an internal sew operation will consistently fail
+/// due to a dart being non-free) as there is no check on each faces' degree.
+///
+/// # Arguments
+///
+/// - `t: &mut Transaction` -- Associated transaction.
+/// - `map: &mut CMap2` -- Edited map.
+/// - `e: EdgeIdType` -- Edge to move.
+///
+/// # Errors
+///
+/// This function will abort and raise an error if:
+/// - the transaction cannot be completed,
+/// - one internal sew operation fails.
+///
+/// The returned error can be used in conjunction with transaction control to avoid any
+/// modifications in case of failure at attribute level. The user can then choose to retry or
+/// abort as he wishes using `Transaction::with_control_and_err`.
 pub fn collapse_edge<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,

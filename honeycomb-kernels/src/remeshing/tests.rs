@@ -5,6 +5,22 @@ use honeycomb_core::{
 
 use crate::remeshing::{EdgeSwapError, swap_edge};
 
+// -- collapse
+
+#[test]
+fn collapse_edge_errs() {
+    // call on null
+
+    // quad on one side
+
+    // quad on the other
+}
+
+#[test]
+fn collapse_edge_seq() {}
+
+// -- swap
+
 #[test]
 fn swap_edge_errs() {
     let map = CMapBuilder::<2, f64>::unit_triangles(1).build().unwrap();
