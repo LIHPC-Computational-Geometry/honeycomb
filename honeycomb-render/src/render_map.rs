@@ -123,6 +123,8 @@ pub struct FaceGizmos;
 pub fn render_face_enabled(frc: Res<FaceRenderColor>) -> bool {
     frc.0
 }
+
+#[allow(clippy::missing_panics_doc)]
 /// Face rendering system.
 ///
 /// This currently renders faces using a set of edges; the face isn't fully colored.
