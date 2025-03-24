@@ -8,10 +8,15 @@
 //! - swap-based cell edition routines
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, SewError, VertexIdType},
+    attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
+    cmap::{
+        CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, OrbitPolicy, SewError,
+        VertexIdType,
+    },
     geometry::{CoordsFloat, Vertex2},
     stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
+use smallvec::SmallVec;
 
 // -- vertex relaxation
 
@@ -254,6 +259,87 @@ pub enum EdgeCollapseError {
 impl From<SewError> for EdgeCollapseError {
     fn from(value: SewError) -> Self {
         EdgeCollapseError::FailedCoreOp(value)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)] // derive ord results in Node < Curve < Surface < Space
+enum Anchor {
+    Node,
+    Curve,
+    Surface,
+    Space,
+}
+
+impl From<Anchor> for OrbitPolicy {
+    fn from(value: Anchor) -> Self {
+        match value {
+            Anchor::Node => OrbitPolicy::Vertex,
+            Anchor::Curve => OrbitPolicy::Edge,
+            Anchor::Surface => OrbitPolicy::Face,
+            Anchor::Space => OrbitPolicy::Volume,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct AnchoredVertex2<'a, T: CoordsFloat> {
+    d: DartIdType,
+    map: &'a CMap2<T>,
+    vertex: Vertex2<T>,
+    anchor_id: usize,
+    anchor: Anchor,
+}
+
+impl<T: CoordsFloat> std::fmt::Debug for AnchoredVertex2<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
+impl<T: CoordsFloat> AttributeBind for AnchoredVertex2<'_, T> {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = VertexIdType;
+    const BIND_POLICY: OrbitPolicy = OrbitPolicy::Vertex;
+}
+
+impl<T: CoordsFloat> AttributeUpdate for AnchoredVertex2<'_, T> {
+    fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
+        let map = attr1.map;
+        let merge_logic = |low: Self, hi: Self| {
+            // low is the attribute of the lower-dimensioned anchor
+            // hi is the attribute of the higher-dimensioned anchor
+            //
+            // FIXME: nested STM
+            if map.orbit(low.anchor.into(), low.d).any(|d| {
+                map.force_read_attribute::<Self>(map.vertex_id(map.beta::<2>(d)))
+                    .is_some_and(|v| v.anchor == hi.anchor && v.anchor_id == hi.anchor_id)
+            }) {
+                Ok(Self { d: low.d })
+            } else {
+                Err(todo!())
+            }
+        };
+        match attr1.anchor.cmp(&attr2.anchor) {
+            std::cmp::Ordering::Equal => {
+                if attr1.anchor_id == attr2.anchor_id {
+                    Ok(Self {
+                        d: attr1.d.min(attr2.d),
+                        map: attr1.map,
+                        vertex: Vertex2::average(&attr1.vertex, &attr2.vertex),
+                        anchor_id: attr1.anchor_id,
+                        anchor: attr1.anchor,
+                    })
+                } else {
+                    Err(todo!())
+                }
+            }
+            std::cmp::Ordering::Less => merge_logic(attr1, attr2),
+            std::cmp::Ordering::Greater => merge_logic(attr2, attr1),
+        }
+    }
+
+    fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
+        todo!()
     }
 }
 
