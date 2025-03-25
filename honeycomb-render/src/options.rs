@@ -15,7 +15,7 @@ impl Plugin for OptionsPlugin {
             .insert_resource(FaceRenderColor::default())
             .insert_resource(VolumeRenderColor::default());
         // shrink
-        app.insert_resource(DartShrink(-0.2))
+        app.insert_resource(DartShrink::default())
             .insert_resource(FaceShrink::default())
             .insert_resource(VolumeShrink::default());
         // width
@@ -93,8 +93,8 @@ declare_newtype_resource!(VolumeRenderColor, bool, Color32, (false, Color32::DAR
 
 // -- shrink factor for objects of the given type; these are only relevant to a subset of types
 
-declare_newtype_resource!(DartShrink, f32, 0.0);
-declare_newtype_resource!(FaceShrink, f32, 0.0);
+declare_newtype_resource!(DartShrink, f32, -0.1);
+declare_newtype_resource!(FaceShrink, f32, -0.2);
 declare_newtype_resource!(VolumeShrink, f32, 0.0);
 
 // -- size for objects of the given type; these are only relevant to a subset of types
