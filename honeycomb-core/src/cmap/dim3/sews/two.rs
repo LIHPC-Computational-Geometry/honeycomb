@@ -201,6 +201,10 @@ impl<T: CoordsFloat> CMap3<T> {
                     self.vertex_id_transac(trans, b1rd)?,
                 );
                 try_or_coerce!(
+                    self.vertices.split(trans, vid_l_newl, vid_l_newr, vid_l),
+                    SewError
+                );
+                try_or_coerce!(
                     self.attributes
                         .split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
                     SewError
@@ -222,6 +226,10 @@ impl<T: CoordsFloat> CMap3<T> {
                 let (vid_r_newl, vid_r_newr) = (
                     self.vertex_id_transac(trans, b1ld)?,
                     self.vertex_id_transac(trans, rd)?,
+                );
+                try_or_coerce!(
+                    self.vertices.split(trans, vid_r_newl, vid_r_newr, vid_r),
+                    SewError
                 );
                 try_or_coerce!(
                     self.attributes
@@ -250,6 +258,14 @@ impl<T: CoordsFloat> CMap3<T> {
                 let (vid_r_newl, vid_r_newr) = (
                     self.vertex_id_transac(trans, b1ld)?,
                     self.vertex_id_transac(trans, rd)?,
+                );
+                try_or_coerce!(
+                    self.vertices.split(trans, vid_l_newl, vid_l_newr, vid_l),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.vertices.split(trans, vid_r_newl, vid_r_newr, vid_r),
+                    SewError
                 );
                 try_or_coerce!(
                     self.attributes
