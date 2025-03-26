@@ -227,6 +227,11 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, b1rhs_dart_id)?,
                 );
                 try_or_coerce!(
+                    self.vertices
+                        .split(trans, new_lv_lhs, new_lv_rhs, lhs_vid_old),
+                    SewError
+                );
+                try_or_coerce!(
                     self.attributes.split_vertex_attributes(
                         trans,
                         new_lv_lhs,
@@ -252,6 +257,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 let (new_rv_lhs, new_rv_rhs) = (
                     self.vertex_id_transac(trans, b1lhs_dart_id)?,
                     self.vertex_id_transac(trans, rhs_dart_id)?,
+                );
+                try_or_coerce!(
+                    self.vertices
+                        .split(trans, new_rv_lhs, new_rv_rhs, rhs_vid_old),
+                    SewError
                 );
                 try_or_coerce!(
                     self.attributes.split_vertex_attributes(
@@ -286,12 +296,22 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.vertex_id_transac(trans, rhs_dart_id)?,
                 );
                 try_or_coerce!(
+                    self.vertices
+                        .split(trans, new_lv_lhs, new_lv_rhs, lhs_vid_old),
+                    SewError
+                );
+                try_or_coerce!(
                     self.attributes.split_vertex_attributes(
                         trans,
                         new_lv_lhs,
                         new_lv_rhs,
                         lhs_vid_old,
                     ),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.vertices
+                        .split(trans, new_rv_lhs, new_rv_rhs, rhs_vid_old),
                     SewError
                 );
                 try_or_coerce!(
