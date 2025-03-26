@@ -146,7 +146,6 @@ pub fn draw_options(
             ui.label("Faces");
             ui.checkbox(&mut farc.0, "");
             ui.add_enabled_ui(farc.0, |ui| draw_color_picker(ui, &mut farc.1));
-            ui.label("");
             ui.add(egui::DragValue::new(&mut fas.0).speed(0.01));
             ui.end_row();
 

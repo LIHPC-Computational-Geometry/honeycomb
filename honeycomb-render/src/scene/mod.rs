@@ -8,8 +8,8 @@ use bevy_mod_picking::selection::SelectionPluginSettings;
 
 use crate::gui::WindowVisible;
 use crate::systems::{
-    render_dart_enabled, render_darts, render_edge_enabled, render_edges, render_vertex_enabled,
-    render_vertices,
+    render_dart_enabled, render_darts, render_edge_enabled, render_edges, render_face_enabled,
+    render_faces, render_vertex_enabled, render_vertices,
 };
 
 /// Plugin handling scene setup and updates.
@@ -37,7 +37,8 @@ impl Plugin for ScenePlugin {
         // content rendering
         app.add_systems(Update, render_darts.run_if(render_dart_enabled))
             .add_systems(Update, render_vertices.run_if(render_vertex_enabled))
-            .add_systems(Update, render_edges.run_if(render_edge_enabled));
+            .add_systems(Update, render_edges.run_if(render_edge_enabled))
+            .add_systems(Update, render_faces.run_if(render_face_enabled));
     }
 }
 /// Scene setup routine.

@@ -90,7 +90,7 @@ pub mod resources {
         FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth, VolumeRenderColor,
         VolumeShrink,
     };
-    pub use crate::render_map::{DartGizmos, EdgeGizmos, VertexGizmos};
+    pub use crate::render_map::{DartGizmos, EdgeGizmos, FaceGizmos, VertexGizmos};
 }
 
 /// systems used to build the default [`App`]
@@ -98,7 +98,7 @@ pub mod systems {
     pub use crate::gui::{draw_inspected_data, draw_options};
     pub use crate::import_map::extract_data_from_map;
     pub use crate::render_map::{
-        render_dart_enabled, render_darts, render_edge_enabled, render_edges,
-        render_vertex_enabled, render_vertices,
+        render_dart_enabled, render_darts, render_edge_enabled, render_edges, render_face_enabled,
+        render_faces, render_vertex_enabled, render_vertices,
     };
 }
