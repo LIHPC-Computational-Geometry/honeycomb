@@ -67,45 +67,62 @@ pub fn collapse_edge<T: CoordsFloat>(
         abort(EdgeCollapseError::NullEdge)?;
     }
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
+    let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
 
+    if map.beta_transac::<1>(t, b1l)? != b0l {
+        abort(EdgeCollapseError::BadTopology)?;
+    }
+    if r != NULL_DART_ID && map.beta_transac::<1>(t, b1r)? != b0r {
+        abort(EdgeCollapseError::BadTopology)?;
+    }
+
+    try_or_coerce!(
+        collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
+        EdgeCollapseError
+    );
+
+    Ok(())
+}
+
+// -- internals
+
+fn collapse_edge_to_midpoint<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
+    (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
+) -> TransactionClosureResult<(), SewError> {
     if r != NULL_DART_ID {
-        try_or_coerce!(map.unsew::<2>(t, r), EdgeCollapseError);
-        let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
-        if map.beta_transac::<1>(t, b1r)? != b0r {
-            abort(EdgeCollapseError::BadTopology)?;
-        }
+        map.unsew::<2>(t, r)?;
 
-        try_or_coerce!(map.unsew::<1>(t, r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b1r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b0r), EdgeCollapseError);
+        map.unsew::<1>(t, r)?;
+        map.unsew::<1>(t, b1r)?;
+        map.unsew::<1>(t, b0r)?;
         let (b2b0r, b2b1r) = (
             map.beta_transac::<2>(t, b0r)?,
             map.beta_transac::<2>(t, b1r)?,
         );
-        try_or_coerce!(map.unsew::<2>(t, b0r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<2>(t, b1r), EdgeCollapseError);
-        try_or_coerce!(map.sew::<2>(t, b2b0r, b2b1r), EdgeCollapseError);
+        map.unsew::<2>(t, b0r)?;
+        map.unsew::<2>(t, b1r)?;
+        map.sew::<2>(t, b2b0r, b2b1r)?;
         // FIXME: set as unused
         // map.remove_free_dart(r);
         // map.remove_free_dart(b0r);
         // map.remove_free_dart(b1r);
     }
     // by this points l is 2-free, whther he was at the beginning or due to the 2-unsew
-    let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
-    if map.beta_transac::<1>(t, b1l)? != b0l {
-        abort(EdgeCollapseError::BadTopology)?;
-    }
 
-    try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
+    map.unsew::<1>(t, l)?;
+    map.unsew::<1>(t, b1l)?;
+    map.unsew::<1>(t, b0l)?;
     let (b2b0l, b2b1l) = (
         map.beta_transac::<2>(t, b0l)?,
         map.beta_transac::<2>(t, b1l)?,
     );
-    try_or_coerce!(map.unsew::<2>(t, b0l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<2>(t, b1l), EdgeCollapseError);
-    try_or_coerce!(map.sew::<2>(t, b2b0l, b2b1l), EdgeCollapseError);
+    map.unsew::<2>(t, b0l)?;
+    map.unsew::<2>(t, b1l)?;
+    map.sew::<2>(t, b2b0l, b2b1l)?;
     // FIXME: set as unused
     // map.remove_free_dart(l);
     // map.remove_free_dart(b0l);
