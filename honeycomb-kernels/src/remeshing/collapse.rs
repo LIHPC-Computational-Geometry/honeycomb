@@ -111,7 +111,7 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
         // map.remove_free_dart(b0r);
         // map.remove_free_dart(b1r);
     }
-    // by this points l is 2-free, whther he was at the beginning or due to the 2-unsew
+    // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
 
     map.unsew::<1>(t, l)?;
     map.unsew::<1>(t, b1l)?;
