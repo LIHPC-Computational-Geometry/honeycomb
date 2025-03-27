@@ -412,11 +412,10 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
             let mut tmp2 = cmap
                 .orbit(OrbitPolicy::Custom(&[1]), cmap.beta::<3>(*id as DartIdType))
                 .filter_map(|dart_id| {
-                    if dart_id != NULL_DART_ID {
-                        Some((dart_id, index_map[&cmap.vertex_id(dart_id)]))
-                    } else {
-                        None
+                    if dart_id == NULL_DART_ID {
+                        return None;
                     }
+                    Some((dart_id, index_map[&cmap.vertex_id(dart_id)]))
                 })
                 .collect::<Vec<_>>();
             if !tmp2.is_empty() {
@@ -452,10 +451,8 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
 
     let mut volume_normals = HashMap::new();
 
-    map_volumes.iter().for_each(|vol| {
-        let darts: Vec<_> = cmap
-            .orbit(OrbitPolicy::Volume, *vol as DartIdType)
-            .collect();
+    for vol in map_volumes {
+        let darts: Vec<_> = cmap.orbit(OrbitPolicy::Volume, vol as DartIdType).collect();
         let norms: HashMap<_, _> = darts
             .iter()
             .unique_by(|&d| cmap.face_id(*d))
@@ -463,7 +460,7 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
                 let mut base = Vec3::default();
                 let tmp: Vec<_> = cmap
                     .orbit(OrbitPolicy::Custom(&[1]), *d as DartIdType)
-                    .chain([*d].into_iter())
+                    .chain([*d])
                     .collect();
                 tmp.windows(2).for_each(|sl| {
                     let [d1, d2] = sl else { unreachable!() };
@@ -482,16 +479,16 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
 
         // maps are cool => in the vertex/volume suborbit, there is exactly a single dart belonging
         // to each intersecting faces.
-        darts.iter().for_each(|d| {
-            let fid = cmap.face_id(*d);
-            let vid = index_map[&cmap.vertex_id(*d)];
-            if let Some(val) = volume_normals.get_mut(&(*vol, vid)) {
+        for d in darts {
+            let fid = cmap.face_id(d);
+            let vid = index_map[&cmap.vertex_id(d)];
+            if let Some(val) = volume_normals.get_mut(&(vol, vid)) {
                 *val += norms[&fid];
             } else {
-                volume_normals.insert((*vol, vid), norms[&fid]);
+                volume_normals.insert((vol, vid), norms[&fid]);
             }
-        });
-    });
+        }
+    }
     for val in volume_normals.values_mut() {
         *val = val.normalize();
     }

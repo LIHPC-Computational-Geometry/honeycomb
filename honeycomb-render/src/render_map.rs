@@ -57,6 +57,7 @@ pub fn render_darts(
 }
 
 /// Dart rendering system.
+#[allow(clippy::too_many_arguments)]
 pub fn render_darts_3d(
     mut gizmos: Gizmos<DartGizmos>,
     // common data
