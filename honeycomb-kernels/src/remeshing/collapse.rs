@@ -1,5 +1,5 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, SewError},
+    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, SewError},
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
@@ -19,6 +19,12 @@ pub enum EdgeCollapseError {
     /// One or both of the cells adjacent to the edge are not triangles.
     #[error("cannot swap an edge adjacent to a non-triangular cell")]
     BadTopology,
+}
+
+impl From<LinkError> for EdgeCollapseError {
+    fn from(value: LinkError) -> Self {
+        Self::FailedCoreOp(SewError::FailedLink(value))
+    }
 }
 
 /// Collapse an edge separating two triangles.
@@ -95,37 +101,84 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
 ) -> TransactionClosureResult<(), SewError> {
     if r != NULL_DART_ID {
         map.unsew::<2>(t, r)?;
+        collapse_halfcell(t, map, (b0r, r, b1r))?;
+    }
+    // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
+    collapse_halfcell(t, map, (b0l, l, b1l))?;
+    Ok(())
+}
 
-        map.unsew::<1>(t, r)?;
-        map.unsew::<1>(t, b1r)?;
-        map.unsew::<1>(t, b0r)?;
-        let (b2b0r, b2b1r) = (
-            map.beta_transac::<2>(t, b0r)?,
-            map.beta_transac::<2>(t, b1r)?,
-        );
-        map.unsew::<2>(t, b0r)?;
-        map.unsew::<2>(t, b1r)?;
-        map.sew::<2>(t, b2b0r, b2b1r)?;
+fn collapse_halfcell<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    (b0d, d, b1d): (DartIdType, DartIdType, DartIdType),
+) -> TransactionClosureResult<(), SewError> {
+    map.unsew::<1>(t, d)?;
+    map.unsew::<1>(t, b1d)?;
+    map.unsew::<1>(t, b0d)?;
+    let (b2b0d, b2b1d) = (
+        map.beta_transac::<2>(t, b0d)?,
+        map.beta_transac::<2>(t, b1d)?,
+    );
+    map.unsew::<2>(t, b0d)?;
+    map.unsew::<2>(t, b1d)?;
+    map.sew::<2>(t, b2b0d, b2b1d)?;
+    // FIXME: set as unused
+    // map.remove_free_dart(r);
+    // map.remove_free_dart(b0r);
+    // map.remove_free_dart(b1r);
+    TransactionClosureResult::Ok(())
+}
+
+fn collapse_edge_to_base<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
+    (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
+) -> TransactionClosureResult<(), EdgeCollapseError> {
+    if r != NULL_DART_ID {
+        let r_vid = map.vertex_id_transac(t, r)?;
+        let _ = map.remove_vertex(t, r_vid)?; // should also remove other attr?
+
+        try_or_coerce!(map.unlink::<2>(t, l), EdgeCollapseError);
+
+        let b2b0r = map.beta_transac::<2>(t, b0r)?;
+        let b0b2b0r = map.beta_transac::<0>(t, b2b0r)?;
+        let b1b2b0r = map.beta_transac::<1>(t, b2b0r)?;
+
+        try_or_coerce!(map.unsew::<1>(t, r), EdgeCollapseError);
+        try_or_coerce!(map.unsew::<1>(t, b1r), EdgeCollapseError);
+        try_or_coerce!(map.unsew::<1>(t, b0r), EdgeCollapseError);
+        try_or_coerce!(map.unsew::<1>(t, b2b0r), EdgeCollapseError);
+        try_or_coerce!(map.unsew::<1>(t, b0b2b0r), EdgeCollapseError);
+        try_or_coerce!(map.unlink::<2>(t, b0r), EdgeCollapseError);
         // FIXME: set as unused
         // map.remove_free_dart(r);
         // map.remove_free_dart(b0r);
-        // map.remove_free_dart(b1r);
+        // map.remove_free_dart(b2b0r);
+        try_or_coerce!(map.sew::<1>(t, b1r, b1b2b0r), EdgeCollapseError);
+        try_or_coerce!(map.sew::<1>(t, b0b2b0r, b1r), EdgeCollapseError);
+    } else {
+        let r_vid = map.vertex_id_transac(t, b1l)?;
+        let _ = map.remove_vertex(t, r_vid)?;
     }
-    // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
 
-    map.unsew::<1>(t, l)?;
-    map.unsew::<1>(t, b1l)?;
-    map.unsew::<1>(t, b0l)?;
-    let (b2b0l, b2b1l) = (
-        map.beta_transac::<2>(t, b0l)?,
-        map.beta_transac::<2>(t, b1l)?,
-    );
-    map.unsew::<2>(t, b0l)?;
-    map.unsew::<2>(t, b1l)?;
-    map.sew::<2>(t, b2b0l, b2b1l)?;
+    let b2b1l = map.beta_transac::<2>(t, b1l)?;
+    let b0b2b1l = map.beta_transac::<0>(t, b2b1l)?;
+    let b1b2b1l = map.beta_transac::<1>(t, b2b1l)?;
+
+    try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
+    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
+    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
+    try_or_coerce!(map.unsew::<1>(t, b2b1l), EdgeCollapseError);
+    try_or_coerce!(map.unsew::<1>(t, b0b2b1l), EdgeCollapseError);
+    try_or_coerce!(map.unlink::<2>(t, b1l), EdgeCollapseError);
     // FIXME: set as unused
     // map.remove_free_dart(l);
-    // map.remove_free_dart(b0l);
     // map.remove_free_dart(b1l);
+    // map.remove_free_dart(b2b1l);
+    try_or_coerce!(map.sew::<1>(t, b0l, b1b2b1l), EdgeCollapseError);
+    try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
+
     Ok(())
 }
