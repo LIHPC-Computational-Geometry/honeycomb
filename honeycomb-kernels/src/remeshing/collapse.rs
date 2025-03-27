@@ -136,11 +136,12 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<(), EdgeCollapseError> {
-    if r != NULL_DART_ID {
-        let r_vid = map.vertex_id_transac(t, r)?;
-        let _ = map.remove_vertex(t, r_vid)?; // should also remove other attr?
+    let l_vid = map.vertex_id_transac(t, l)?;
+    // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
+    let tmp = map.read_vertex(t, l_vid)?.expect("no vertex");
 
-        try_or_coerce!(map.unlink::<2>(t, l), EdgeCollapseError);
+    if r != NULL_DART_ID {
+        try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
 
         let b2b0r = map.beta_transac::<2>(t, b0r)?;
         let b0b2b0r = map.beta_transac::<0>(t, b2b0r)?;
@@ -149,18 +150,17 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         try_or_coerce!(map.unsew::<1>(t, r), EdgeCollapseError);
         try_or_coerce!(map.unsew::<1>(t, b1r), EdgeCollapseError);
         try_or_coerce!(map.unsew::<1>(t, b0r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b2b0r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b0b2b0r), EdgeCollapseError);
-        try_or_coerce!(map.unlink::<2>(t, b0r), EdgeCollapseError);
-        // FIXME: set as unused
-        // map.remove_free_dart(r);
-        // map.remove_free_dart(b0r);
-        // map.remove_free_dart(b2b0r);
-        try_or_coerce!(map.sew::<1>(t, b1r, b1b2b0r), EdgeCollapseError);
-        try_or_coerce!(map.sew::<1>(t, b0b2b0r, b1r), EdgeCollapseError);
-    } else {
-        let r_vid = map.vertex_id_transac(t, b1l)?;
-        let _ = map.remove_vertex(t, r_vid)?;
+        if b2b0r != NULL_DART_ID {
+            try_or_coerce!(map.unsew::<1>(t, b2b0r), EdgeCollapseError);
+            try_or_coerce!(map.unsew::<1>(t, b0b2b0r), EdgeCollapseError);
+            try_or_coerce!(map.unlink::<2>(t, b0r), EdgeCollapseError);
+            // FIXME: set as unused
+            // map.remove_free_dart(r);
+            // map.remove_free_dart(b0r);
+            // map.remove_free_dart(b2b0r);
+            try_or_coerce!(map.sew::<1>(t, b1r, b1b2b0r), EdgeCollapseError);
+            try_or_coerce!(map.sew::<1>(t, b0b2b0r, b1r), EdgeCollapseError);
+        }
     }
 
     let b2b1l = map.beta_transac::<2>(t, b1l)?;
@@ -170,15 +170,20 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b2b1l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b0b2b1l), EdgeCollapseError);
-    try_or_coerce!(map.unlink::<2>(t, b1l), EdgeCollapseError);
-    // FIXME: set as unused
-    // map.remove_free_dart(l);
-    // map.remove_free_dart(b1l);
-    // map.remove_free_dart(b2b1l);
-    try_or_coerce!(map.sew::<1>(t, b0l, b1b2b1l), EdgeCollapseError);
-    try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
+    if b2b1l != NULL_DART_ID {
+        try_or_coerce!(map.unsew::<1>(t, b2b1l), EdgeCollapseError);
+        try_or_coerce!(map.unsew::<1>(t, b0b2b1l), EdgeCollapseError);
+        try_or_coerce!(map.unlink::<2>(t, b1l), EdgeCollapseError);
+        // FIXME: set as unused
+        // map.remove_free_dart(l);
+        // map.remove_free_dart(b1l);
+        // map.remove_free_dart(b2b1l);
+        try_or_coerce!(map.sew::<1>(t, b0l, b1b2b1l), EdgeCollapseError);
+        try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
+    }
+
+    let new_vid = map.vertex_id_transac(t, b1b2b1l)?;
+    map.write_vertex(t, new_vid, tmp)?;
 
     Ok(())
 }
