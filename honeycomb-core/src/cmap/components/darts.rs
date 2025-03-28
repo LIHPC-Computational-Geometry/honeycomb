@@ -52,7 +52,7 @@ impl<const SIZE: usize, T: CoordsFloat> TryFrom<&CMap3<T>> for CompactDartBlock<
     type Error = DartAllocError;
 
     fn try_from(map: &CMap3<T>) -> Result<Self, Self::Error> {
-        for d in 1..map.n_darts() {
+        for d in 1..=map.n_darts() - SIZE {
             if let Some(start) = atomically(|t| {
                 let mut all_unused = true;
                 for db in d..d + SIZE {
