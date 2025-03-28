@@ -10,7 +10,6 @@
 use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
-use crate::attributes::UnknownAttributeStorage;
 use crate::cmap::{
     CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
 };
@@ -22,117 +21,6 @@ use crate::stm::{StmClosureResult, StmError, Transaction, atomically};
 // instances to be robust
 thread_local! {
     static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::with_capacity(10)));
-}
-
-/// **Dart-related methods**
-impl<T: CoordsFloat> CMap3<T> {
-    // --- read
-
-    /// Return the current number of darts.
-    #[must_use = "unused return value"]
-    pub fn n_darts(&self) -> usize {
-        self.unused_darts.len()
-    }
-
-    /// Return the current number of unused darts.
-    #[must_use = "unused return value"]
-    pub fn n_unused_darts(&self) -> usize {
-        self.unused_darts.iter().filter(|v| v.read_atomic()).count()
-    }
-
-    /// Set a given dart as used.
-    pub fn set_used(&self, d: DartIdType) {
-        atomically(|t| self.set_used_transac(t, d));
-    }
-
-    /// Set a given dart as used.
-    pub fn set_used_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
-        self.unused_darts[d].write(t, false)
-    }
-
-    /// Set a given dart as unused.
-    pub fn set_unused(&self, d: DartIdType) {
-        atomically(|t| self.set_unused_transac(t, d));
-    }
-
-    /// Set a given dart as unused.
-    pub fn set_unused_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
-        self.unused_darts[d].write(t, true)
-    }
-
-    // --- edit
-
-    /// Add a new free dart to the map.
-    ///
-    /// # Return
-    ///
-    /// Returns the ID of the new dart.
-    pub fn add_free_dart(&mut self) -> DartIdType {
-        let new_id = self.n_darts() as DartIdType;
-        self.betas.extend(1);
-        self.unused_darts.extend(1);
-        self.vertices.extend(1);
-        self.attributes.extend_storages(1);
-        new_id
-    }
-
-    /// Add `n_darts` new free darts to the map.
-    ///
-    /// # Return
-    ///
-    /// Returns the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
-    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdType {
-        let new_id = self.n_darts() as DartIdType;
-        self.betas.extend(n_darts);
-        self.unused_darts.extend(n_darts);
-        self.vertices.extend(n_darts);
-        self.attributes.extend_storages(n_darts);
-        new_id
-    }
-
-    /// Insert a new free dart into the map.
-    ///
-    /// This method attempts to reuse an unused dart slot if available; otherwise, it adds a new one.
-    ///
-    /// # Return
-    ///
-    /// Returns the ID of the inserted dart.
-    pub fn insert_free_dart(&mut self) -> DartIdType {
-        if let Some((new_id, _)) = self
-            .unused_darts
-            .iter()
-            .enumerate()
-            .find(|(_, u)| u.read_atomic())
-        {
-            atomically(|trans| self.unused_darts[new_id as DartIdType].write(trans, false));
-            new_id as DartIdType
-        } else {
-            self.add_free_dart()
-        }
-    }
-
-    /// Remove a free dart from the map.
-    ///
-    /// The removed dart identifier is added to the list of free darts. This way of proceeding is
-    /// necessary as the structure relies on dart indexing for encoding data, making reordering of
-    /// any sort extremely costly.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdType` -- Identifier of the dart to remove.
-    ///
-    /// # Panics
-    ///
-    /// This method may panic if:
-    /// - the dart is not free for all *i*,
-    /// - the dart is already marked as unused.
-    pub fn remove_free_dart(&mut self, dart_id: DartIdType) {
-        atomically(|trans| {
-            assert!(self.is_free(dart_id)); // all beta images are 0
-            assert!(!self.unused_darts[dart_id as DartIdType].replace(trans, true)?);
-            Ok(())
-        });
-    }
 }
 
 /// **Beta-related methods**

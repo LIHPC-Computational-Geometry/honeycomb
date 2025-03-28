@@ -4,8 +4,10 @@
 //! implementation.
 
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
+use crate::cmap::DartIdType;
 use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
 use crate::geometry::{CoordsFloat, Vertex2};
+use crate::stm::{StmClosureResult, Transaction, atomically};
 
 use super::CMAP2_BETA;
 
@@ -173,5 +175,153 @@ impl<T: CoordsFloat> CMap2<T> {
             betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
         }
+    }
+}
+
+/// **Dart-related methods**
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
+
+    /// Return the current number of darts.
+    #[must_use = "unused return value"]
+    pub fn n_darts(&self) -> usize {
+        self.n_darts
+    }
+
+    /// Return the current number of unused darts.
+    #[must_use = "unused return value"]
+    pub fn n_unused_darts(&self) -> usize {
+        self.unused_darts.iter().filter(|v| v.read_atomic()).count()
+    }
+
+    /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    #[must_use = "unused return value"]
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
+    }
+
+    /// Set a given dart as used.
+    pub fn set_used(&self, d: DartIdType) {
+        atomically(|t| self.set_used_transac(t, d));
+    }
+
+    /// Set a given dart as used.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn set_used_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].write(t, false)
+    }
+
+    /// Set a given dart as unused.
+    pub fn set_unused(&self, d: DartIdType) {
+        atomically(|t| self.set_unused_transac(t, d));
+    }
+
+    /// Set a given dart as unused.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn set_unused_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].write(t, true)
+    }
+
+    // --- edit
+
+    /// Add a new free dart to the map.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the new dart.
+    pub fn add_free_dart(&mut self) -> DartIdType {
+        let new_id = self.n_darts as DartIdType;
+        self.n_darts += 1;
+        self.betas.extend(1);
+        self.unused_darts.extend(1);
+        self.vertices.extend(1);
+        self.attributes.extend_storages(1);
+        new_id
+    }
+
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
+    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdType {
+        let new_id = self.n_darts as DartIdType;
+        self.n_darts += n_darts;
+        self.betas.extend(n_darts);
+        self.unused_darts.extend(n_darts);
+        self.vertices.extend(n_darts);
+        self.attributes.extend_storages(n_darts);
+        new_id
+    }
+
+    /// Insert a new free dart in the map.
+    ///
+    /// The dart may be inserted into an unused spot of the existing dart list. If no free spots
+    /// exist, it will be pushed to the end of the list.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the new dart.
+    pub fn insert_free_dart(&mut self) -> DartIdType {
+        if let Some((new_id, _)) = self
+            .unused_darts
+            .iter()
+            .enumerate()
+            .find(|(_, u)| u.read_atomic())
+        {
+            atomically(|trans| self.unused_darts[new_id as DartIdType].write(trans, false));
+            new_id as DartIdType
+        } else {
+            self.add_free_dart()
+        }
+    }
+
+    /// Remove a free dart from the map.
+    ///
+    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
+    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
+    /// any sort extremely costly.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - the dart is not *i*-free for all *i*,
+    /// - the dart is already marked as unused.
+    pub fn remove_free_dart(&mut self, dart_id: DartIdType) {
+        atomically(|trans| {
+            assert!(self.is_free(dart_id)); // all beta images are 0
+            assert!(!self.unused_darts[dart_id as DartIdType].replace(trans, true)?);
+            Ok(())
+        });
     }
 }
