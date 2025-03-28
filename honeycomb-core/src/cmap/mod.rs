@@ -9,6 +9,7 @@ mod error;
 
 pub use builder::{BuilderError, CMapBuilder, GridDescriptor};
 pub use components::{
+    darts::{CompactDartBlock, DartAllocError, SparseDartBlock},
     identifiers::{
         DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID,
         NULL_VERTEX_ID, NULL_VOLUME_ID, VertexIdType, VolumeIdType,

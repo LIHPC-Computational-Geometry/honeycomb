@@ -6,8 +6,12 @@
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::{
-        DartIdType,
-        components::{betas::BetaFunctions, unused::UnusedDarts},
+        DartAllocError, DartIdType,
+        components::{
+            betas::BetaFunctions,
+            darts::{CompactDartBlock, SparseDartBlock},
+            unused::UnusedDarts,
+        },
     },
     geometry::{CoordsFloat, Vertex3},
     stm::{StmClosureResult, Transaction, atomically},
@@ -121,6 +125,28 @@ impl<T: CoordsFloat> CMap3<T> {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
     }
 
+    /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    #[must_use = "unused return value"]
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
+    }
+
     /// Set a given dart as used.
     pub fn set_used(&self, d: DartIdType) {
         atomically(|t| self.set_used_transac(t, d));
@@ -142,6 +168,57 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     // --- edit
+
+    /// Add new unused darts to the map.
+    ///
+    /// This method is meant to be used with `Self::reserve_compact_dart_block` and
+    /// `Self::reserve_sparse_dart_block`. It currently allows allocations of any sizes, and
+    /// block alignment is not enforced.
+    ///
+    /// This should eventually be replaced / completed with an `allocate_dart_blocks` method,
+    /// which would handle both allocation and generation of block objects (the latter is currently
+    /// done directly in the `reserve` methods).
+    pub fn allocate_unused_darts(&mut self, n_darts: usize) {
+        // self.n_darts += n_darts;
+        self.betas.extend(n_darts);
+        self.unused_darts.extend_from_val(n_darts, true);
+        self.vertices.extend(n_darts);
+        self.attributes.extend_storages(n_darts);
+    }
+
+    /// Attempt to reserve a contiguous block of `SIZE` free darts.
+    ///
+    /// # Return
+    ///
+    /// This method may return:
+    /// - `Some(_)` if there were enough unused darts to build a contiguous block of `SIZE` darts,
+    /// - `None` otherwise.
+    ///
+    /// The block object can be used to fetch the reserved darts, which were transactionally marked
+    /// as used during the object's construction.
+    #[must_use = "unused return value"]
+    pub fn reserve_compact_dart_block<const SIZE: usize>(
+        &self,
+    ) -> Result<CompactDartBlock<SIZE>, DartAllocError> {
+        CompactDartBlock::try_from(self)
+    }
+
+    /// Attempt to reserve `SIZE` free darts.
+    ///
+    /// # Return
+    ///
+    /// This method may return:
+    /// - `Some(_)` if there were enough unused darts to build a block of `SIZE` darts,
+    /// - `None` otherwise.
+    ///
+    /// The block object can be used to fetch the reserved darts, which were transactionally marked
+    /// as used during the object's construction.
+    #[must_use = "unused return value"]
+    pub fn reserve_sparse_dart_block<const SIZE: usize>(
+        &self,
+    ) -> Result<SparseDartBlock<SIZE>, DartAllocError> {
+        SparseDartBlock::try_from(self)
+    }
 
     /// Add a new free dart to the map.
     ///

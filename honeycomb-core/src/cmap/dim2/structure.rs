@@ -4,8 +4,9 @@
 //! implementation.
 
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
-use crate::cmap::DartIdType;
+use crate::cmap::components::darts::{CompactDartBlock, SparseDartBlock};
 use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
+use crate::cmap::{DartAllocError, DartIdType};
 use crate::geometry::{CoordsFloat, Vertex2};
 use crate::stm::{StmClosureResult, Transaction, atomically};
 
@@ -249,6 +250,57 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     // --- edit
+
+    /// Add new unused darts to the map.
+    ///
+    /// This method is meant to be used with `Self::reserve_compact_dart_block` and
+    /// `Self::reserve_sparse_dart_block`. It currently allows allocations of any sizes, and
+    /// block alignment is not enforced.
+    ///
+    /// This should eventually be replaced / completed with an `allocate_dart_blocks` method,
+    /// which would handle both allocation and generation of block objects (the latter is currently
+    /// done directly in the `reserve` methods).
+    pub fn allocate_unused_darts(&mut self, n_darts: usize) {
+        self.n_darts += n_darts;
+        self.betas.extend(n_darts);
+        self.unused_darts.extend_from_val(n_darts, true);
+        self.vertices.extend(n_darts);
+        self.attributes.extend_storages(n_darts);
+    }
+
+    /// Attempt to reserve a contiguous block of `SIZE` free darts.
+    ///
+    /// # Errors
+    ///
+    /// This method may return:
+    /// - `Ok(_)` if there were enough unused darts to build a contiguous block of `SIZE` darts,
+    /// - `Err(_)` otherwise.
+    ///
+    /// The block object can be used to fetch the reserved darts, which were transactionally marked
+    /// as used during the object's construction.
+    #[must_use = "unused return value"]
+    pub fn reserve_compact_dart_block<const SIZE: usize>(
+        &self,
+    ) -> Result<CompactDartBlock<SIZE>, DartAllocError> {
+        CompactDartBlock::try_from(self)
+    }
+
+    /// Attempt to reserve `SIZE` free darts.
+    ///
+    /// # Errors
+    ///
+    /// This method may return:
+    /// - `Ok(_)` if there were enough unused darts to build a block of `SIZE` darts,
+    /// - `Err(_)` otherwise.
+    ///
+    /// The block object can be used to fetch the reserved darts, which were transactionally marked
+    /// as used during the object's construction.
+    #[must_use = "unused return value"]
+    pub fn reserve_sparse_dart_block<const SIZE: usize>(
+        &self,
+    ) -> Result<SparseDartBlock<SIZE>, DartAllocError> {
+        SparseDartBlock::try_from(self)
+    }
 
     /// Add a new free dart to the map.
     ///
