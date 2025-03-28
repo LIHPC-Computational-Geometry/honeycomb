@@ -23,7 +23,7 @@ impl<const SIZE: usize, T: CoordsFloat> TryFrom<&CMap2<T>> for CompactDartBlock<
     type Error = DartAllocError;
 
     fn try_from(map: &CMap2<T>) -> Result<Self, Self::Error> {
-        for d in 1..map.n_darts() {
+        for d in 1..=map.n_darts() - SIZE {
             if let Some(start) = atomically(|t| {
                 let mut all_unused = true;
                 for db in d..d + SIZE {
@@ -88,7 +88,7 @@ impl<const SIZE: usize> CompactDartBlock<SIZE> {
     #[must_use = "unused return value"]
     pub fn take_n(&mut self, n: usize) -> Option<Range<DartIdType>> {
         let c = self.cursor;
-        if c + n <= self.start + SIZE {
+        if n != 0 && c + n <= self.start + SIZE {
             self.cursor += n;
             Some(c as DartIdType..self.cursor as DartIdType)
         } else {
@@ -183,7 +183,7 @@ impl<const SIZE: usize> SparseDartBlock<SIZE> {
     #[must_use = "unused return value"]
     pub fn take_n(&mut self, n: usize) -> Option<&[DartIdType]> {
         let c = self.cursor;
-        if c + n <= SIZE {
+        if n != 0 && c + n <= SIZE {
             self.cursor += n;
             Some(&self.darts[c..self.cursor])
         } else {
