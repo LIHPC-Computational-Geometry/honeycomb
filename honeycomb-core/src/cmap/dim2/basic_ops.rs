@@ -60,6 +60,26 @@ impl<T: CoordsFloat> CMap2<T> {
         self.unused_darts[d].read(trans)
     }
 
+    /// Set a given dart as used.
+    pub fn set_used(&self, d: DartIdType) {
+        atomically(|t| self.set_used_transac(t, d));
+    }
+
+    /// Set a given dart as used.
+    pub fn set_used_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].write(t, false)
+    }
+
+    /// Set a given dart as unused.
+    pub fn set_unused(&self, d: DartIdType) {
+        atomically(|t| self.set_unused_transac(t, d));
+    }
+
+    /// Set a given dart as unused.
+    pub fn set_unused_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].write(t, true)
+    }
+
     // --- edit
 
     /// Add a new free dart to the map.

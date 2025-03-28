@@ -22,6 +22,11 @@ impl UnusedDarts {
         self.0.extend((0..len).map(|_| TVar::new(false)));
     }
 
+    /// Extend internal storage capacity using the passed value for new items
+    pub fn extend_from_val(&mut self, len: usize, val: bool) {
+        self.0.extend((0..len).map(|_| TVar::new(val)));
+    }
+
     /// Return internal storage length
     pub fn len(&self) -> usize {
         self.0.len()
