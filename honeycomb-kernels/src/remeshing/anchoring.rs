@@ -15,7 +15,7 @@ use honeycomb_core::{
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum VertexAnchor {
     /// Vertex is linked to a node.
     Node(usize),
@@ -108,7 +108,7 @@ impl AttributeUpdate for VertexAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum EdgeAnchor {
     /// Vertex is linked to a curve.
     Curve(usize),
@@ -185,7 +185,7 @@ impl AttributeUpdate for EdgeAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum FaceAnchor {
     /// Vertex is linked to a surface.
     Surface(usize),
