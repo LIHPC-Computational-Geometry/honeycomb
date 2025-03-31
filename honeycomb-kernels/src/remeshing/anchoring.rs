@@ -35,61 +35,50 @@ impl AttributeBind for VertexAnchor {
 
 impl AttributeUpdate for VertexAnchor {
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
-        match attr1 {
-            Self::Node(id1) => match attr2 {
-                Self::Node(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Node(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+        match (attr1, attr2) {
+            (Self::Node(id1), Self::Node(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Node(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Curve(_) | Self::Surface(_) | Self::Body(_) => Ok(attr1),
-            },
-            Self::Curve(id1) => match attr2 {
-                Self::Node(_) => Ok(attr2),
-                Self::Curve(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Curve(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Node(id), _) | (_, Self::Node(id)) => Ok(Self::Node(id)),
+            (Self::Curve(id1), Self::Curve(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Curve(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Surface(_) | Self::Body(_) => Ok(attr1),
-            },
-            Self::Surface(id1) => match attr2 {
-                Self::Node(_) | Self::Curve(_) => Ok(attr2),
-                Self::Surface(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Surface(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Curve(id), _) | (_, Self::Curve(id)) => Ok(Self::Curve(id)),
+            (Self::Surface(id1), Self::Surface(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Surface(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Body(_) => Ok(attr1),
-            },
-            Self::Body(id1) => match attr2 {
-                Self::Node(_) | Self::Curve(_) | Self::Surface(_) => Ok(attr2),
-                Self::Body(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Body(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Surface(id), _) | (_, Self::Surface(id)) => Ok(Self::Surface(id)),
+            (Self::Body(id1), Self::Body(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Body(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-            },
+            }
         }
     }
 
@@ -126,47 +115,39 @@ impl AttributeBind for EdgeAnchor {
 
 impl AttributeUpdate for EdgeAnchor {
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
-        match attr1 {
-            Self::Curve(id1) => match attr2 {
-                Self::Curve(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Curve(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+        match (attr1, attr2) {
+            (Self::Curve(id1), Self::Curve(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Curve(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Surface(_) | Self::Body(_) => Ok(attr1),
-            },
-            Self::Surface(id1) => match attr2 {
-                Self::Curve(_) => Ok(attr2),
-                Self::Surface(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Surface(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Curve(id), _) | (_, Self::Curve(id)) => Ok(Self::Curve(id)),
+            (Self::Surface(id1), Self::Surface(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Surface(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Body(_) => Ok(attr1),
-            },
-            Self::Body(id1) => match attr2 {
-                Self::Curve(_) | Self::Surface(_) => Ok(attr2),
-                Self::Body(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Body(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Surface(id), _) | (_, Self::Surface(id)) => Ok(Self::Surface(id)),
+            (Self::Body(id1), Self::Body(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Body(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-            },
+            }
         }
     }
 
@@ -201,33 +182,28 @@ impl AttributeBind for FaceAnchor {
 
 impl AttributeUpdate for FaceAnchor {
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
-        match attr1 {
-            Self::Surface(id1) => match attr2 {
-                Self::Surface(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Surface(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+        match (attr1, attr2) {
+            (Self::Surface(id1), Self::Surface(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Surface(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-                Self::Body(_) => Ok(attr1),
-            },
-            Self::Body(id1) => match attr2 {
-                Self::Surface(_) => Ok(attr2),
-                Self::Body(id2) => {
-                    if id1 == id2 {
-                        Ok(Self::Body(id1))
-                    } else {
-                        Err(AttributeError::FailedMerge(
-                            std::any::type_name::<Self>(),
-                            "anchors have the same dimension but different IDs",
-                        ))
-                    }
+            }
+            (Self::Surface(id), _) | (_, Self::Surface(id)) => Ok(Self::Surface(id)),
+            (Self::Body(id1), Self::Body(id2)) => {
+                if id1 == id2 {
+                    Ok(Self::Body(id1))
+                } else {
+                    Err(AttributeError::FailedMerge(
+                        std::any::type_name::<Self>(),
+                        "anchors have the same dimension but different IDs",
+                    ))
                 }
-            },
+            }
         }
     }
 
