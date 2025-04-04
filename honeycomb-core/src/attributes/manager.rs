@@ -429,6 +429,12 @@ impl AttrStorageManager {
             Ok(None)
         }
     }
+
+    /// Returns a boolean indicating whether an attribute is stored by the manager or not.
+    pub(crate) fn contains_attribute<A: AttributeBind + AttributeUpdate>(&self) -> bool {
+        get_storage!(self, storage);
+        storage.is_some()
+    }
 }
 
 /// Individual merge and split for tests
