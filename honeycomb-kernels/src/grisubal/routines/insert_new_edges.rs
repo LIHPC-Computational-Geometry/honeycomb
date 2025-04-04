@@ -14,30 +14,21 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
     let dart_slices = build_workload(cmap, edges);
 
     for (
-        MapEdge {
-            start,
-            intermediates,
-            end,
-        },
-        dslice,
-    ) in edges.iter().zip(dart_slices.iter())
+        i,
+        (
+            MapEdge {
+                start,
+                intermediates,
+                end,
+            },
+            dslice,
+        ),
+    ) in edges.iter().zip(dart_slices.iter()).enumerate()
     {
-        // remove deprecated connectivities & save what data is necessary
-        let b1_start_old = cmap.beta::<1>(*start);
-        let b0_end_old = cmap.beta::<0>(*end);
-        cmap.force_unlink::<1>(*start).unwrap();
-        cmap.force_unlink::<1>(b0_end_old).unwrap();
-
         let &[d_new, b2_d_new] = &dslice[0..2] else {
             unreachable!()
         };
-        cmap.force_link::<2>(d_new, b2_d_new).unwrap();
-
-        // rebuild - this is the final construct if there are no intermediates
-        cmap.force_link::<1>(*start, d_new).unwrap();
-        cmap.force_link::<1>(b2_d_new, b1_start_old).unwrap();
-        cmap.force_link::<1>(d_new, *end).unwrap();
-        cmap.force_link::<1>(b0_end_old, b2_d_new).unwrap();
+        build_base_edge(cmap, *start, *end, [d_new, b2_d_new]);
 
         if !intermediates.is_empty() {
             // create the topology components
@@ -58,16 +49,15 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
                 let _ = cmap.force_write_vertex(vid, *v);
+                if cmap.contains_attribute::<VertexAnchor>() {
+                    let _ = cmap
+                        .force_write_attribute::<VertexAnchor>(vid, VertexAnchor::Node(i as u32));
+                }
                 dart_id = cmap.beta::<1>(dart_id);
             }
         }
 
-        let mut d_boundary = cmap.beta::<1>(*start);
-        while d_boundary != *end {
-            cmap.force_write_attribute::<Boundary>(d_boundary, Boundary::Left);
-            cmap.force_write_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
-            d_boundary = cmap.beta::<1>(d_boundary);
-        }
+        mark_boundary(cmap, *start, *end);
     }
 }
 
@@ -94,4 +84,34 @@ fn build_workload<T: CoordsFloat>(
             ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
         })
         .collect()
+}
+
+fn build_base_edge<T: CoordsFloat>(
+    cmap: &CMap2<T>,
+    start: DartIdType,
+    end: DartIdType,
+    [d_new, b2_d_new]: [DartIdType; 2],
+) {
+    // remove deprecated connectivities & save what data is necessary
+    let b1_start_old = cmap.beta::<1>(start);
+    let b0_end_old = cmap.beta::<0>(end);
+    cmap.force_unlink::<1>(start).unwrap();
+    cmap.force_unlink::<1>(b0_end_old).unwrap();
+
+    cmap.force_link::<2>(d_new, b2_d_new).unwrap();
+
+    // rebuild - this is the final construct if there are no intermediates
+    cmap.force_link::<1>(start, d_new).unwrap();
+    cmap.force_link::<1>(b2_d_new, b1_start_old).unwrap();
+    cmap.force_link::<1>(d_new, end).unwrap();
+    cmap.force_link::<1>(b0_end_old, b2_d_new).unwrap();
+}
+
+fn mark_boundary<T: CoordsFloat>(cmap: &CMap2<T>, start: DartIdType, end: DartIdType) {
+    let mut d_boundary = cmap.beta::<1>(start);
+    while d_boundary != end {
+        cmap.force_write_attribute::<Boundary>(d_boundary, Boundary::Left);
+        cmap.force_write_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
+        d_boundary = cmap.beta::<1>(d_boundary);
+    }
 }
