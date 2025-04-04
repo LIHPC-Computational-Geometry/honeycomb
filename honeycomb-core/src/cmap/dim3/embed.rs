@@ -270,4 +270,9 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn remove_attribute_storage<A: AttributeBind + AttributeUpdate>(&mut self) {
         self.attributes.remove_storage::<A>();
     }
+
+    /// Return a boolean indicating if the map contains the specified attribute.
+    pub fn contains_attribute<A: AttributeBind + AttributeUpdate>(&self) -> bool {
+        self.attributes.contains_attribute::<A>()
+    }
 }
