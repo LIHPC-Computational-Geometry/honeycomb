@@ -8,6 +8,63 @@ use crate::{
 // --- GENERAL
 
 #[test]
+fn dart_allocations() {
+    let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap();
+    assert_eq!(map.n_darts(), 4); // 3 + NULL dart
+    map.add_free_darts(7);
+    assert_eq!(map.n_darts(), 11); // 3 + 7 + NULL dart
+    assert_eq!(map.n_unused_darts(), 0);
+    map.remove_free_dart(10);
+    assert_eq!(map.n_darts(), 11); // not affected
+    assert_eq!(map.n_unused_darts(), 1);
+    map.add_free_dart();
+    assert_eq!(map.n_darts(), 12);
+    map.insert_free_dart();
+    assert_eq!(map.n_darts(), 12); // insert should use the free spot
+}
+
+#[test]
+fn dart_block_allocations() {
+    let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap();
+    assert_eq!(map.n_darts(), 4); // 3 + NULL dart
+    map.allocate_unused_darts(32 * 4);
+    for i in 0..4 {
+        // get block and test operations
+        let mut block = map.reserve_compact_dart_block::<32>().unwrap();
+        assert!(
+            block
+                .take_n(24)
+                .is_some_and(|darts| darts == (32 * i + 4..32 * i + 4 + 24))
+        );
+        assert!(block.take_n(24).is_none());
+        assert_eq!(block.take_remaining(), 32 * i + 4 + 24..32 * (i + 1) + 4);
+    }
+    assert!(map.reserve_compact_dart_block::<32>().is_err());
+    for d in 1..17 {
+        map.set_unused(d);
+    }
+    for d in 33..49 {
+        map.set_unused(d);
+    }
+    assert!(map.reserve_compact_dart_block::<32>().is_err());
+    let mut block = map.reserve_sparse_dart_block::<32>().unwrap();
+    assert!(
+        block
+            .take_n(12)
+            .is_some_and(|darts| darts == &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    );
+    assert!(
+        block
+            .take_n(12)
+            .is_some_and(|darts| darts == &[13, 14, 15, 16, 33, 34, 35, 36, 37, 38, 39, 40])
+    );
+    let _ = block.take_n(8);
+    assert!(block.take_n(1).is_none());
+    assert!(block.take_n(0).is_none());
+    assert!(block.take_remaining().is_empty());
+}
+
+#[test]
 fn example_test() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap();
