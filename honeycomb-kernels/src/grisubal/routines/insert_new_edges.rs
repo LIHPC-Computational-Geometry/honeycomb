@@ -8,36 +8,11 @@ use honeycomb_core::stm::atomically_with_err;
 
 use crate::cell_insertion::insert_vertices_on_edge;
 use crate::grisubal::model::{Boundary, MapEdge};
+use crate::remeshing::VertexAnchor;
 
 pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
-    // FIXME: minimize allocs & redundant operations
-    // prealloc all darts needed
-    let n_darts_per_seg: Vec<_> = edges
-        .iter()
-        .map(|e| 2 + 2 * e.intermediates.len())
-        .collect();
-    let n_tot: usize = n_darts_per_seg.iter().sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
-    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
-    // the location of the allocated dart block (given by `tmp`)
-    // end of the slice is deduced using these values and the number of darts the current seg needs
-    let prefix_sum: Vec<usize> = n_darts_per_seg
-        .iter()
-        .scan(0, |state, &n_d| {
-            *state += n_d;
-            Some(*state - n_d) // we want an offset, not the actual sum
-        })
-        .collect();
-    #[allow(clippy::cast_possible_truncation)]
-    let dart_slices: Vec<Vec<DartIdType>> = n_darts_per_seg
-        .iter()
-        .zip(prefix_sum.iter())
-        .map(|(n_d, start)| {
-            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
-        })
-        .collect();
+    let dart_slices = build_workload(cmap, edges);
 
-    // insert new edges
     for (
         MapEdge {
             start,
@@ -94,4 +69,29 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             d_boundary = cmap.beta::<1>(d_boundary);
         }
     }
+}
+
+#[allow(clippy::cast_possible_truncation)]
+fn build_workload<T: CoordsFloat>(
+    cmap: &mut CMap2<T>,
+    edges: &[MapEdge<T>],
+) -> Vec<Vec<DartIdType>> {
+    // allocate all darts needed
+    let n_tot: usize = edges.iter().map(|e| 2 + 2 * e.intermediates.len()).sum();
+    let tmp = cmap.add_free_darts(n_tot) as usize;
+
+    // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
+    // the location of the allocated dart block (given by `tmp`)
+    // we can deduce theend of the slice from start index (prefix sum) + number of darts
+    edges
+        .iter()
+        .map(|e| 2 + 2 * e.intermediates.len())
+        .scan(0, |state, n_d| {
+            *state += n_d;
+            Some((n_d, *state - n_d)) // we want an offset, not the actual sum
+        })
+        .map(|(n_d, start)| {
+            ((tmp + start) as DartIdType..(tmp + start + n_d) as DartIdType).collect::<Vec<_>>()
+        })
+        .collect()
 }
