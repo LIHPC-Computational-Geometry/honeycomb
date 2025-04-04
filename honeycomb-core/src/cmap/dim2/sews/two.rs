@@ -118,24 +118,26 @@ impl<T: CoordsFloat> CMap2<T> {
                 let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
 
                 // check orientation
-                #[rustfmt::skip]
-                    if let (
-                        Ok(Some(l_vertex)), Ok(Some(b1r_vertex)), // (lhs/b1rhs) vertices
-                        Ok(Some(b1l_vertex)), Ok(Some(r_vertex)), // (b1lhs/rhs) vertices
-                    ) = (
-                        self.vertices.read(trans, lhs_vid_old), self.vertices.read(trans, b1rhs_vid_old),// (lhs/b1rhs)
-                        self.vertices.read(trans, b1lhs_vid_old), self.vertices.read(trans, rhs_vid_old) // (b1lhs/rhs)
-                    )
-                    {
-                        let lhs_vector = b1l_vertex - l_vertex;
-                        let rhs_vector = b1r_vertex - r_vertex;
-                        // dot product should be negative if the two darts have opposite direction
-                        // we could also put restriction on the angle made by the two darts to prevent
-                        // drastic deformation
-                        if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
-                        }
-                    };
+                if let (
+                    Ok(Some(l_vertex)),   // lhs
+                    Ok(Some(b1r_vertex)), // b1rhs
+                    Ok(Some(b1l_vertex)), // b1lhs
+                    Ok(Some(r_vertex)),   // rhs
+                ) = (
+                    self.vertices.read(trans, lhs_vid_old),   // lhs
+                    self.vertices.read(trans, b1rhs_vid_old), // b1rhs
+                    self.vertices.read(trans, b1lhs_vid_old), // b1lhs
+                    self.vertices.read(trans, rhs_vid_old),   // rhs
+                ) {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    if lhs_vector.dot(&rhs_vector) >= T::zero() {
+                        abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
+                    }
+                }
 
                 // update the topology
                 try_or_coerce!(
