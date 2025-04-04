@@ -1,0 +1,274 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Sewing / Unsewing operation - Honeycomb - User Guide</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Welcome</a></li><li class="chapter-item expanded affix "><li class="part-title">Project Structure</li><li class="chapter-item expanded "><a href="../project-structure/workspace.html"><strong aria-hidden="true">1.</strong> Workspace</a></li><li class="chapter-item expanded "><a href="../project-structure/published.html"><strong aria-hidden="true">2.</strong> Published crates</a></li><li class="chapter-item expanded "><a href="../project-structure/others.html"><strong aria-hidden="true">3.</strong> Other content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../project-structure/honeycomb-benches.html"><strong aria-hidden="true">3.1.</strong> Benchmarks</a></li><li class="chapter-item expanded "><a href="../project-structure/honeycomb-examples.html"><strong aria-hidden="true">3.2.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Usage</li><li class="chapter-item expanded "><a href="../usage/attributes.html"><strong aria-hidden="true">4.</strong> Adding generic attributes to maps</a></li><li class="chapter-item expanded "><a href="../usage/stm.html"><strong aria-hidden="true">5.</strong> Concurrency / Parallelism</a></li><li class="chapter-item expanded "><a href="../usage/serialization.html"><strong aria-hidden="true">6.</strong> Serialization</a></li><li class="chapter-item expanded affix "><li class="part-title">Kernels</li><li class="chapter-item expanded "><a href="../kernels/splits.html"><strong aria-hidden="true">7.</strong> Cell insertions</a></li><li class="chapter-item expanded "><a href="../kernels/grisubal.html"><strong aria-hidden="true">8.</strong> Grisubal</a></li><li class="chapter-item expanded "><a href="../kernels/triangulations.html"><strong aria-hidden="true">9.</strong> Polygon triangulation</a></li><li class="chapter-item expanded "><a href="../.kernels/remeshing.html"><strong aria-hidden="true">10.</strong> Remeshing</a></li><li class="chapter-item expanded affix "><li class="part-title">Definitions</li><li class="chapter-item expanded "><a href="../definitions/introduction.html"><strong aria-hidden="true">11.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../definitions/cmaps.html"><strong aria-hidden="true">12.</strong> Combinatorial Maps</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/darts.html"><strong aria-hidden="true">12.1.</strong> Darts</a></li><li class="chapter-item expanded "><a href="../definitions/betaf.html"><strong aria-hidden="true">12.2.</strong> Beta Functions</a></li><li class="chapter-item expanded "><a href="../definitions/orbits.html"><strong aria-hidden="true">12.3.</strong> Orbits</a></li><li class="chapter-item expanded "><a href="../definitions/embedding.html"><strong aria-hidden="true">12.4.</strong> Embedding</a></li></ol></li><li class="chapter-item expanded "><a href="../definitions/basicops.html"><strong aria-hidden="true">13.</strong> Basic Operations</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/changeNdim.html"><strong aria-hidden="true">13.1.</strong> Add / Remove a dimension</a></li><li class="chapter-item expanded "><a href="../definitions/changeNdart.html"><strong aria-hidden="true">13.2.</strong> Add / Remove a free dart</a></li><li class="chapter-item expanded "><a href="../definitions/sew.html" class="active"><strong aria-hidden="true">13.3.</strong> Sewing / Unsewing operation</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Honeycomb - User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="sewing-and-unsewing-operation"><a class="header" href="#sewing-and-unsewing-operation">Sewing and unsewing operation</a></h1>
+<h2 id="sewing"><a class="header" href="#sewing">Sewing</a></h2>
+<p>The sew operation can be divided into two parts:</p>
+<ul>
+<li>a topological update, which corresponds to linking the darts</li>
+<li>a geometrical update, which corresponds to an update of the affected embedded data, called attributes in our code</li>
+</ul>
+<p>Note that the implementation is not as simple as doing one and then the other for consistency reasons: changing the
+topology affects our ability to retrieve the embedded data, therefore the result is highly sensitive to operation
+order.</p>
+<h3 id="topology"><a class="header" href="#topology">Topology</a></h3>
+<p>The <em>i-link</em> operation corresponds to the aforementionned topological update. Given two darts <em>d<sub>a</sub></em> and
+<em>d<sub>b</sub></em>, and a given beta function <em>β<sub>i</sub></em>, a link operation corresponds to the update of the
+<em>β<sub>i</sub></em> function in order to have <em>β<sub>i</sub>(d<sub>a</sub>) = d<sub>b</sub></em> and/or
+<em>β<sub>i</sub>(d<sub>b</sub>) = d<sub>a</sub></em> depending on darts order and <em>i</em>. For example:</p>
+<ul>
+<li><em>1-link(d<sub>a</sub>,d<sub>b</sub>)</em> results in:
+<ul>
+<li><em>β<sub>1</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+<li><strong>if <em>β<sub>0</sub></em> is defined</strong>, <em>β<sub>0</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+</ul>
+</li>
+<li><em>1-link(d<sub>b</sub>,d<sub>a</sub>)</em> results in:
+<ul>
+<li><em>β<sub>1</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+<li><strong>if <em>β<sub>0</sub></em> is defined</strong>, <em>β<sub>0</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+</ul>
+</li>
+<li><em>2-link(d<sub>a</sub>,d<sub>b</sub>)</em> results in:
+<ul>
+<li><em>β<sub>2</sub>(d<sub>a</sub>) = d<sub>b</sub></em></li>
+<li><em>β<sub>2</sub>(d<sub>b</sub>) = d<sub>a</sub></em></li>
+</ul>
+</li>
+<li><em>2-link(d<sub>b</sub>,d<sub>a</sub>)</em> results in the same changes as <em>2-link(d<sub>a</sub>,d<sub>b</sub>)</em></li>
+</ul>
+<p>Exact properties of the link operation directly depends on the property of the modified beta function.</p>
+<h3 id="geometry"><a class="header" href="#geometry">Geometry</a></h3>
+<p>The <em>i-sew</em> operation corresponds to an <em>i-link</em> operation, coupled with an update of the affected attributes. <em>How</em>
+the attributes are updated is defined through trait implementation in the Rust crate (see
+<a href="../../honeycomb_core/attributes/trait.AttributeUpdate.html">AttributeUpdate</a>,
+<a href="../../honeycomb_core/attributes/trait.AttributeBind.html">AttributeBind</a>). <em>Which</em> attributes are updated can be
+deduced from the dimension <em>i</em> of the sewing operation. This is summarized in the following table:</p>
+<div class="table-wrapper"><table><thead><tr><th>Dimension</th><th>Geometrical operation</th><th>0-cell / Vertex Attributes</th><th>1-cell / Edge Attributes</th><th>2-cell / Face Attributes</th><th>3-cell / Volume Attributes</th></tr></thead><tbody>
+<tr><td>1</td><td>Fusing vertices</td><td>affected</td><td>unaffected</td><td>unaffected</td><td>unaffected</td></tr>
+<tr><td>2</td><td>Fusing edges</td><td>affected</td><td>affected</td><td>unaffected</td><td>unaffected</td></tr>
+<tr><td>3</td><td>Fusing faces</td><td>affected</td><td>affected</td><td>affected</td><td>unaffected</td></tr>
+</tbody></table>
+</div>
+<h2 id="unsewing"><a class="header" href="#unsewing">Unsewing</a></h2>
+<p>The unsew operation is the complementary to the sew operation. It behaves according to similar properties, but is used
+to remove links between darts. It does so by replacing values of the beta functions by the null dart. Geometrical
+updates are handled and defined in the same way as for the sew operation.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../definitions/changeNdart.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../definitions/changeNdart.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

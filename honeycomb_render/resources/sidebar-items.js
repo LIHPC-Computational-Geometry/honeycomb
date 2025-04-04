@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DartGizmos","DartHeadMul","DartRenderColor","DartShrink","DartWidth","EdgeGizmos","EdgeRenderColor","EdgeWidth","FaceGizmos","FaceNormals","FaceRenderColor","FaceShrink","Map","MapVertices","VertexGizmos","VertexRenderColor","VertexWidth","VolumeNormals","VolumeRenderColor","VolumeShrink","WindowVisible"]};

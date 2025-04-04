@@ -1,0 +1,401 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Grisubal - Honeycomb - User Guide</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../index.html">Welcome</a></li><li class="chapter-item expanded affix "><li class="part-title">Project Structure</li><li class="chapter-item expanded "><a href="../project-structure/workspace.html"><strong aria-hidden="true">1.</strong> Workspace</a></li><li class="chapter-item expanded "><a href="../project-structure/published.html"><strong aria-hidden="true">2.</strong> Published crates</a></li><li class="chapter-item expanded "><a href="../project-structure/others.html"><strong aria-hidden="true">3.</strong> Other content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../project-structure/honeycomb-benches.html"><strong aria-hidden="true">3.1.</strong> Benchmarks</a></li><li class="chapter-item expanded "><a href="../project-structure/honeycomb-examples.html"><strong aria-hidden="true">3.2.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Usage</li><li class="chapter-item expanded "><a href="../usage/attributes.html"><strong aria-hidden="true">4.</strong> Adding generic attributes to maps</a></li><li class="chapter-item expanded "><a href="../usage/stm.html"><strong aria-hidden="true">5.</strong> Concurrency / Parallelism</a></li><li class="chapter-item expanded "><a href="../usage/serialization.html"><strong aria-hidden="true">6.</strong> Serialization</a></li><li class="chapter-item expanded affix "><li class="part-title">Kernels</li><li class="chapter-item expanded "><a href="../kernels/splits.html"><strong aria-hidden="true">7.</strong> Cell insertions</a></li><li class="chapter-item expanded "><a href="../kernels/grisubal.html" class="active"><strong aria-hidden="true">8.</strong> Grisubal</a></li><li class="chapter-item expanded "><a href="../kernels/triangulations.html"><strong aria-hidden="true">9.</strong> Polygon triangulation</a></li><li class="chapter-item expanded "><a href="../.kernels/remeshing.html"><strong aria-hidden="true">10.</strong> Remeshing</a></li><li class="chapter-item expanded affix "><li class="part-title">Definitions</li><li class="chapter-item expanded "><a href="../definitions/introduction.html"><strong aria-hidden="true">11.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../definitions/cmaps.html"><strong aria-hidden="true">12.</strong> Combinatorial Maps</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/darts.html"><strong aria-hidden="true">12.1.</strong> Darts</a></li><li class="chapter-item expanded "><a href="../definitions/betaf.html"><strong aria-hidden="true">12.2.</strong> Beta Functions</a></li><li class="chapter-item expanded "><a href="../definitions/orbits.html"><strong aria-hidden="true">12.3.</strong> Orbits</a></li><li class="chapter-item expanded "><a href="../definitions/embedding.html"><strong aria-hidden="true">12.4.</strong> Embedding</a></li></ol></li><li class="chapter-item expanded "><a href="../definitions/basicops.html"><strong aria-hidden="true">13.</strong> Basic Operations</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../definitions/changeNdim.html"><strong aria-hidden="true">13.1.</strong> Add / Remove a dimension</a></li><li class="chapter-item expanded "><a href="../definitions/changeNdart.html"><strong aria-hidden="true">13.2.</strong> Add / Remove a free dart</a></li><li class="chapter-item expanded "><a href="../definitions/sew.html"><strong aria-hidden="true">13.3.</strong> Sewing / Unsewing operation</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Honeycomb - User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="honeycomb-kernels---grisubal"><a class="header" href="#honeycomb-kernels---grisubal">honeycomb-kernels - GRISUBAL</a></h1>
+<hr />
+<p><strong>Grisubal</strong> is a mesh generation algorithm inspired by <a href="https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf">Morph</a>. The mesh is built by capturing
+the input geometry in an overlapping grid, by first computing intersection vertices and then rebuilding
+boundaries from the captured vertices.</p>
+<p>The algorithm can be called using <a href="../../honeycomb_kernels/grisubal/fn.grisubal.html">this</a> function.</p>
+<hr />
+<h2 id="input"><a class="header" href="#input">Input</a></h2>
+<p>The algorithm expects a (2D) geometry specified via a path to a VTK legacy file. The geometry's boundaries should be
+described via segments &amp; vertices; Segments should be <em>consistently oriented</em>.</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/input.svg" alt="Input Geometry" />
+    <figcaption><i>Finely segmented input geometry</i></figcaption>
+</figure>
+<p>Some vertices can be explicitly listed as cells in order for the algorithm to interpret those as <em>Points of Interests</em>.
+This can be used to ensure irregular geometries are captured correctly by the algorithm, which uses a uniform grid size.</p>
+<h2 id="geometry-pre-processing"><a class="header" href="#geometry-pre-processing">Geometry Pre-processing</a></h2>
+<p>Before running the main algorithm, a few steps are followed to ensure correctness of later computations.</p>
+<p>First, we compute the characteristics of a grid overlapping the entire geometry. The origin is automatically computed 
+according to the input geometry and the desired cell sizes; It is then, if necessary, adjusted to avoid a few edge 
+cases that would create issues in the main algorithm.</p>
+<p>After grid characteristics are obtained, they're used along the geometry to detect and remove redundant Points of 
+Interest. These are defined as PoI that land exactly on the grid; Their removal is necessary to avoid creating duplicate
+vertices in the main algorithm (since there would be both an intersection and a PoI at this location).</p>
+<p>As a last step before calling the main kernel, we check for trivial orientation issues by ensuring no vertex is the 
+start (resp. the end) of two different segments. This detects inconsistencies per-boundary, not overall consistency.</p>
+<h2 id="grid-submersion-algorithm"><a class="header" href="#grid-submersion-algorithm">Grid Submersion Algorithm</a></h2>
+<h3 id="step-1---intersect-grid--geometry"><a class="header" href="#step-1---intersect-grid--geometry">Step 1 - Intersect Grid &amp; Geometry</a></h3>
+<p>The goal of this step is to edit and complete the segment list to obtain a list of non-dividable segments that can be
+used for reconstruction at a later step. Consider the previous geometry, submerged in an overlapping grid:</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/step1.svg" alt="Input Geometry" />
+    <figcaption><i>Input geometry with its overlapping grid</i></figcaption>
+</figure>
+<p>We check each segment of the geometry for intersection(s) with the grid, and replace the original segment with new
+ones given the result of the check. A <a href="#intersection-computation">dedicated section</a> goes over the method we use,
+these are the rough cases:</p>
+<ul>
+<li><strong>Both vertices belong to the same cell</strong>: the new segment is the same as the original.</li>
+<li><strong>Vertices belong to neighboring cells</strong>: there are two new segments, first from start vertex to intersection, second
+from intersection to end vertex.</li>
+<li><strong>Vertices belong to different non-neighboring cells</strong>: there are <em>d</em> new segments, first from start vertex to
+intersection, then between intersections, last from intersection to end vertex.</li>
+</ul>
+<p>Intersection information is collected and returned along with the list of non-dividable segments. The information is
+made up of a dart identifier (the intersected dart) as well as the relative position of the intersection on this dart
+(a floating-point <code>t</code> between <code>0</code> and <code>1</code>).</p>
+<p>At the same time, vertices are labeled as one of three types: <code>Regular</code>, <code>PoI</code>, or <code>Intersec</code>. This is used by the
+processing logic of the next steps.</p>
+<h3 id="step-2---transform-data-for-step-3-and-4"><a class="header" href="#step-2---transform-data-for-step-3-and-4">Step 2 - Transform data for step 3 and 4</a></h3>
+<p>This is an intermediate step which enables better implementation of the next two step. It roughly
+results in:</p>
+<ul>
+<li>the parallelization of step 3</li>
+<li>the decorrelation of step 3 from step 4, making their concurrent execution posssible</li>
+</ul>
+<p>This is achieved by:</p>
+<ol>
+<li>grouping intersection data (obtained from step 1) per edge</li>
+<li>pre-allocating darts for step 2</li>
+<li>computing each intersection's corresponding new dart</li>
+</ol>
+<h3 id="step-3---insert-intersection-vertices"><a class="header" href="#step-3---insert-intersection-vertices">Step 3 - Insert Intersection Vertices</a></h3>
+<p>Given intersection information per edge (step 2 <code>1.</code>), and pre-allocated darts (step 2 <code>2.</code>), we iterate
+through edges, building intersections into the map. Thanks to the <code>splitn_edge</code> implementation and dart
+pre-allocation, processing edges should be an embarassingly parallel section.</p>
+<h3 id="step-4---filter--rebuild-segment-data"><a class="header" href="#step-4---filter--rebuild-segment-data">Step 4 - Filter &amp; Rebuild Segment Data</a></h3>
+<p>Given information computed at step 2 <code>3.</code>, we can rebuild new segments where both ends are either
+points of interest or intersections. This corresponds to building segments using the following vertices:</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/step2.svg" alt="Intersection Types" />
+    <figcaption><i>Intersection vertices (gray) & points of interest (red)</i></figcaption>
+</figure>
+<p>This can be done in two substeps:</p>
+<ol>
+<li>Filter segments by starting vertex to only keep intersections;</li>
+<li>For each of these segments, follow through until landing on another intersection; While searching through, keep
+track of any PoI encountered.</li>
+</ol>
+<p>Using a set of data made up of starting intersection, ending intersection, and (optional) intermediates, we can build
+edges into the final 2-map.</p>
+<h3 id="step-5---insert-segments"><a class="header" href="#step-5---insert-segments">Step 5 - Insert Segments</a></h3>
+<p>Given the data built up at the last step, we can proceed with insertion into the map. At this point, only darts linking
+the first intersection to the following vertex need to be added to the map.</p>
+<p>The main work consist of fetching correct dart identifiers and update the topology by using link and sew methods. By
+following this process recursively for intermediates, we can build the final map, capturing the geometry's boundaries:</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/step3.svg" alt="Intersection Types" />
+    <figcaption><i>Captured geometry</i></figcaption>
+</figure>
+<h2 id="clipping"><a class="header" href="#clipping">Clipping</a></h2>
+<p>Optionally, some cells of the resulting combinatorial map can be removed. These cell would correspond to the inside or
+the outside of the geometry. We choose to simply consider the <em>left</em> side and the <em>right</em> side of the boundary, to 
+minimize orientation assumptions and avoid confusion.</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/left_right_darts.svg" alt="Boundary sides" />
+    <figcaption><i>
+        Boundary sides. The oriented geometry is in red, left side in purple, right side in blue.
+    </i></figcaption>
+</figure>
+<p>During the last step of the main algorithm, darts of the boundary are marked according to their respective side. From
+this, we can retrieve faces of a given side, and use them as a starting point for a coloring-like algorithm. </p>
+<p>Faces are searched and marked using a BFS; only adjacent faces with an unmarked dart are considered. If, at any point, 
+a face with a dart of the other side of the boundary is reached it means that:</p>
+<ul>
+<li>the geometry was open, or</li>
+<li>nested boundaries are inconsistently oriented.</li>
+</ul>
+<p>After this, all darts of the marked faces are deleted. The attribute used to mark boundary darts is then removed from 
+the map before it is returned.</p>
+<h2 id="appendices"><a class="header" href="#appendices">Appendices</a></h2>
+<h3 id="intersection-computation"><a class="header" href="#intersection-computation">Intersection Computation</a></h3>
+<p>Consider a given segment of the geometry. Each of the segment follow one of three cases:</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/intersec_types.svg" alt="Intersection Types" />
+    <figcaption><i>Intersection types</i></figcaption>
+</figure>
+<ul>
+<li><code>A</code> - Vertices belong to neighboring cells.</li>
+<li><code>B</code> - Vertices belong to different non-neighboring cells.</li>
+<li><code>C</code> - Both vertices belong to the same cell.</li>
+</ul>
+<p>We can identify which case we're in by computing the Manhattan distance between grid cells of the respective vertices:</p>
+<ul>
+<li><code>A</code> - Distance is equal to <code>1</code>.</li>
+<li><code>B</code> - Distance is strictly superior to <code>1</code>.</li>
+<li><code>C</code> - Distance is <code>0</code>.</li>
+</ul>
+<p>The <code>A</code> case is pretty straight forward: By considering that the segment is oriented from
+the start to its end, we can deduce which side of the cell it's intersecting, and compute the relative position of the
+intersection <code>t</code>:</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/intersec_single.svg" alt="Single Intersection" />
+    <figcaption><i>Intersection at the scale of a single cell</i></figcaption>
+</figure>
+<p>The <code>B</code> case is trickier to handle because we need to compute multiple intersections, and know their order to be able
+to build the segment back into the map.</p>
+<figure style="text-align:center">
+    <img src="../images/grisubal/intersec_multiple.svg" alt="Many Intersections" />
+    <figcaption><i>Repeated intersections with the grid</i></figcaption>
+</figure>
+<p>By considering the minimal subgrid containing both vertices, as well as the direction of the segment, we can list all
+edges that are potentially intersected.</p>
+<p>We can compute coefficients <code>s</code> and <code>t</code> for each of the potentially intersected segments. If the segment is actually
+intersected, both coefficients will have a value between <code>0</code> and <code>1</code>. <code>s</code> being the relative position of the
+intersection along the original segment, we can use its value to reorder all valid intersections for segment building.</p>
+<h3 id="insertion-logic"><a class="header" href="#insertion-logic">Insertion Logic</a></h3>
+<p>For a given instance of data containing:</p>
+<ul>
+<li>a starting dart: <em>d<sub>start</sub></em></li>
+<li>(optional) one or more intermediate darts: <em>{ d<sub>i</sub> } <sub>i</sub></em></li>
+<li>an ending dart: <em>d<sub>end</sub></em></li>
+</ul>
+<p>These steps are followed:</p>
+<ul>
+<li><code>1-unsew</code> <em>d<sub>start</sub></em></li>
+<li><code>0-unsew</code> <em>d<sub>end</sub></em>, i.e. <code>1-unsew</code> <em>β<sub>0</sub> (d<sub>end</sub>)</em></li>
+<li>create a pair of dart &amp; link it via <em>β<sub>2</sub></em></li>
+<li><code>1-sew</code> <em>d<sub>start</sub></em> to this pair, as well as the dart that was deconnected from <em>d<sub>start</sub></em></li>
+<li>if there's no intermediate, <code>1-sew</code> the pair to the ending dart, as well as the dart that was deconnected from
+<em>d<sub>end</sub></em></li>
+<li>if there are intermediates:
+<ul>
+<li><code>1-sew</code> the pair to the first intermediate, as well as the dart that was deconnected from <em>d<sub>start</sub></em></li>
+<li>successively <code>1-sew</code> intermediates</li>
+<li><code>1-sew</code> the last intermediate to <em>d<sub>end</sub></em>, as well as the dart that was deconnected from
+<em>d<sub>end</sub></em></li>
+</ul>
+</li>
+</ul>
+<figure style="text-align:center">
+    <img src="../images/grisubal/insertion.svg" alt="Insertion" />
+    <figcaption><i>Insertion of new edges with one intermediate</i></figcaption>
+</figure>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../kernels/splits.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../kernels/triangulations.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../kernels/splits.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../kernels/triangulations.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

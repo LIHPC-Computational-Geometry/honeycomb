@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EdgeAnchor","EdgeSwapError","FaceAnchor","VertexAnchor"],"fn":["cut_inner_edge","cut_outer_edge","move_vertex_to_average","swap_edge"]};
