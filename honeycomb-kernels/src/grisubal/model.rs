@@ -171,7 +171,7 @@ impl<T: CoordsFloat> TryFrom<Vtk> for Geometry2<T> {
                                 },
                             ) {
                                 return Err(err);
-                            };
+                            }
                         }
                         VertexNumbers::XML { .. } => {
                             return Err(GrisubalError::UnsupportedVtkData("XML format"));
