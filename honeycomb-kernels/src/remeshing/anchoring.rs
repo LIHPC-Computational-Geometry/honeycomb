@@ -5,6 +5,9 @@ use honeycomb_core::{
     cmap::{EdgeIdType, FaceIdType, OrbitPolicy, VertexIdType},
 };
 
+/// Geometrical cell identifier type.
+pub type GCellIdType = u32;
+
 // --- Vertex anchors
 
 /// Geometrical mesh anchor.
@@ -18,13 +21,13 @@ use honeycomb_core::{
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum VertexAnchor {
     /// Vertex is linked to a node.
-    Node(usize),
+    Node(GCellIdType),
     /// Vertex is linked to a curve.
-    Curve(usize),
+    Curve(GCellIdType),
     /// Vertex is linked to a surface.
-    Surface(usize),
+    Surface(GCellIdType),
     /// Vertex is linked to a 3D body.
-    Body(usize),
+    Body(GCellIdType),
 }
 
 impl AttributeBind for VertexAnchor {
@@ -100,11 +103,11 @@ impl AttributeUpdate for VertexAnchor {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum EdgeAnchor {
     /// Vertex is linked to a curve.
-    Curve(usize),
+    Curve(GCellIdType),
     /// Vertex is linked to a surface.
-    Surface(usize),
+    Surface(GCellIdType),
     /// Vertex is linked to a 3D body.
-    Body(usize),
+    Body(GCellIdType),
 }
 
 impl AttributeBind for EdgeAnchor {
@@ -169,9 +172,9 @@ impl AttributeUpdate for EdgeAnchor {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum FaceAnchor {
     /// Vertex is linked to a surface.
-    Surface(usize),
+    Surface(GCellIdType),
     /// Vertex is linked to a 3D body.
-    Body(usize),
+    Body(GCellIdType),
 }
 
 impl AttributeBind for FaceAnchor {
