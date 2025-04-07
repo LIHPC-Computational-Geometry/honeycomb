@@ -272,6 +272,7 @@ impl<T: CoordsFloat> CMap2<T> {
     }
 
     /// Return a boolean indicating if the map contains the specified attribute.
+    #[must_use = "unused return value"]
     pub fn contains_attribute<A: AttributeBind + AttributeUpdate>(&self) -> bool {
         self.attributes.contains_attribute::<A>()
     }
