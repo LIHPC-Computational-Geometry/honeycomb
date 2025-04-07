@@ -10,6 +10,7 @@ use crate::cell_insertion::insert_vertices_on_edge;
 use crate::grisubal::model::{Boundary, MapEdge};
 use crate::remeshing::VertexAnchor;
 
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
     let dart_slices = build_workload(cmap, edges);
 

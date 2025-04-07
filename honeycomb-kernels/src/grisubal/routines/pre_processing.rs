@@ -39,6 +39,7 @@ pub fn detect_orientation_issue<T: CoordsFloat>(
 pub fn compute_overlapping_grid<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [len_cell_x, len_cell_y]: [T; 2],
+    keep_all_poi: bool,
 ) -> Result<([usize; 2], Vertex2<T>), GrisubalError> {
     // compute the minimum bounding box
     let (mut min_x, mut max_x, mut min_y, mut max_y): (T, T, T, T) = {
@@ -76,8 +77,12 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
     let mut og_y = min_y - len_cell_y * T::from(1.5).unwrap();
     // we check for some extremely annoying cases here
     // if some are detected, the origin is incrementally shifted
-    let (mut on_corner, mut reflect) =
-        detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+    let (mut on_corner, mut reflect) = detect_overlaps(
+        geometry,
+        [len_cell_x, len_cell_y],
+        Vertex2(og_x, og_y),
+        !keep_all_poi,
+    );
     let mut i = 1;
 
     while on_corner | reflect {
@@ -86,8 +91,12 @@ pub fn compute_overlapping_grid<T: CoordsFloat>(
         );
         og_x += len_cell_x * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
         og_y += len_cell_y * T::from(1. / (2_i32.pow(i + 1) as f32)).unwrap();
-        (on_corner, reflect) =
-            detect_overlaps(geometry, [len_cell_x, len_cell_y], Vertex2(og_x, og_y));
+        (on_corner, reflect) = detect_overlaps(
+            geometry,
+            [len_cell_x, len_cell_y],
+            Vertex2(og_x, og_y),
+            !keep_all_poi,
+        );
         i += 1;
     }
 
@@ -121,14 +130,19 @@ pub fn detect_overlaps<T: CoordsFloat>(
     geometry: &Geometry2<T>,
     [cx, cy]: [T; 2],
     origin: Vertex2<T>,
+    overlap_only_corners: bool,
 ) -> (bool, bool) {
-    let on_corner = geometry
+    let on_grid = geometry
         .vertices
         .iter()
         .map(|v| {
             let on_x_axis = ((v.x() - origin.x()) % cx).is_zero();
             let on_y_axis = ((v.y() - origin.y()) % cy).is_zero();
-            on_x_axis && on_y_axis
+            if overlap_only_corners {
+                on_x_axis && on_y_axis
+            } else {
+                on_x_axis || on_y_axis
+            }
         })
         .any(|a| a);
 
@@ -194,5 +208,5 @@ pub fn detect_overlaps<T: CoordsFloat>(
         })
         .any(|a| a);
 
-    (on_corner, bad_reflection)
+    (on_grid, bad_reflection)
 }
