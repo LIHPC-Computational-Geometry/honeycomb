@@ -12,7 +12,9 @@ mod cut;
 mod relaxation;
 mod swap;
 
-pub use anchoring::{EdgeAnchor, FaceAnchor, VertexAnchor};
+pub use anchoring::{
+    BodyIdType, CurveIdType, EdgeAnchor, FaceAnchor, NodeIdType, SurfaceIdType, VertexAnchor,
+};
 pub use cut::{cut_inner_edge, cut_outer_edge};
 pub use relaxation::move_vertex_to_average;
 pub use swap::{EdgeSwapError, swap_edge};
