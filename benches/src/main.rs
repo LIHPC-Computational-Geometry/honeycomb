@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use clap::Parser;
-use honeycomb::prelude::CMap2;
+use honeycomb::prelude::{CMap2, CoordsFloat};
 
 use honeycomb_benches::{
     cli::{Benches, Cli, Format},
@@ -15,32 +15,36 @@ fn main() {
     let cli = Cli::parse();
 
     if cli.simple_precision {
-        todo!() // replace this block and the following with a macro-generated body
+        run_benchmarks::<f32>(cli);
     } else {
-        let map: CMap2<f64> = match cli.benches {
-            Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
-            Benches::CutEdges(args) => bench_cut_edges(args),
-            Benches::Grisubal(args) => bench_grisubal(args),
-            Benches::Shift(args) => bench_shift(args),
-        };
-        // all bench currently generate a map,
-        // we may have to move this to match arms if this changes
-        if let Some(f) = cli.save_as {
-            match f {
-                Format::Cmap => {
-                    // FIXME: update serialize sig
-                    let mut out = String::new();
-                    let mut file = std::fs::File::create("out.cmap").unwrap();
-                    map.serialize(&mut out);
-                    file.write_all(out.as_bytes()).unwrap();
-                }
-                Format::Vtk => {
-                    let mut file = std::fs::File::create("out.vtk").unwrap();
-                    map.to_vtk_binary(&mut file);
-                }
+        run_benchmarks::<f64>(cli);
+    }
+}
+
+fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
+    let map: CMap2<T> = match cli.benches {
+        Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
+        Benches::CutEdges(args) => bench_cut_edges(args),
+        Benches::Grisubal(args) => bench_grisubal(args),
+        Benches::Shift(args) => bench_shift(args),
+    };
+    // all bench currently generate a map,
+    // we may have to move this to match arms if this changes
+    if let Some(f) = cli.save_as {
+        match f {
+            Format::Cmap => {
+                // FIXME: update serialize sig
+                let mut out = String::new();
+                let mut file = std::fs::File::create("out.cmap").unwrap();
+                map.serialize(&mut out);
+                file.write_all(out.as_bytes()).unwrap();
             }
-        } else {
-            std::hint::black_box(map);
+            Format::Vtk => {
+                let mut file = std::fs::File::create("out.vtk").unwrap();
+                map.to_vtk_binary(&mut file);
+            }
         }
+    } else {
+        std::hint::black_box(map);
     }
 }
