@@ -205,17 +205,16 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
     let mut surface_id = 0;
     let mut queue = VecDeque::new();
     let mut marked = HashSet::new();
+    marked.insert(0);
     cmap.iter_faces()
         // does this filter item updated in the for_each block?
         // .filter(|f| cmap.force_read_attribute::<FaceAnchor>(*f).is_some())
         .for_each(|f| {
-            queue.clear();
-            queue.push_front(f);
-            marked.clear();
-            marked.insert(0);
-            while let Some(crt) = queue.pop_front() {
-                // if the filter works correctly, this if isn't useful
-                if cmap.force_read_attribute::<FaceAnchor>(f).is_none() {
+            if cmap.force_read_attribute::<FaceAnchor>(f).is_none() {
+                queue.clear();
+                queue.push_front(f);
+                while let Some(crt) = queue.pop_front() {
+                    // if the filter works correctly, this if isn't useful
                     cmap.force_write_attribute(crt, FaceAnchor::Surface(surface_id));
                     cmap.orbit(OrbitPolicy::Face, crt as DartIdType)
                         .filter(|d| {
@@ -235,15 +234,15 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
                                     cmap.vertex_id(d),
                                     VertexAnchor::Surface(surface_id),
                                 );
-                                let neighbor_face = cmap.face_id(cmap.beta::<2>(d));
-                                if marked.insert(neighbor_face) {
-                                    queue.push_back(neighbor_face);
-                                }
+                            }
+                            let neighbor_face = cmap.face_id(cmap.beta::<2>(d));
+                            if marked.insert(neighbor_face) {
+                                queue.push_back(neighbor_face);
                             }
                         });
                 }
+                surface_id += 1;
             }
-            surface_id += 1;
         });
 
     // in debug mode, ensure all entities are classified
