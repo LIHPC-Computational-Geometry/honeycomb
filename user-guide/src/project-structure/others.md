@@ -8,7 +8,7 @@
 
 - binaries used to profile code and kernels
 - benchmarks implemented using the [criterion][CRITERION] crate
-- scritps used to aggregate and (partially) process results of both
+- scripts used to aggregate and (partially) process results of both
 
 [CRITERION]: https://github.com/bheisler/criterion.rs
 
