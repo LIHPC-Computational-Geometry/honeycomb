@@ -306,7 +306,7 @@ fn test_orbit_specific_merges() {
     // Test vertex-specific merge
     atomically(|trans| {
         manager
-            .merge_vertex_attributes(trans, 2, 0, 1)
+            .merge_attributes(trans, OrbitPolicy::Vertex, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -327,7 +327,7 @@ fn test_orbit_specific_splits() {
     // Test vertex-specific split
     atomically(|trans| {
         manager
-            .split_vertex_attributes(trans, 1, 2, 0)
+            .split_attributes(trans, OrbitPolicy::Vertex, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -362,7 +362,7 @@ fn test_merge_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .merge_vertex_attributes(trans, 2, 0, 1)
+            .merge_attributes(trans, OrbitPolicy::Vertex, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -381,7 +381,7 @@ fn test_split_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .split_vertex_attributes(trans, 1, 2, 0)
+            .split_attributes(trans, OrbitPolicy::Vertex, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -979,11 +979,11 @@ fn manager_ordering() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c1.merge_vertex_attributes(trans, 2, 1, 3)
+                c1.merge_attributes(trans, OrbitPolicy::Vertex, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.merge_edge_attributes(trans, 2, 1, 3)
+                c1.merge_attributes(trans, OrbitPolicy::Edge, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.merge_face_attributes(trans, 2, 1, 3)
+                c1.merge_attributes(trans, OrbitPolicy::Face, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });
@@ -991,11 +991,11 @@ fn manager_ordering() {
 
         let t2 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c2.split_vertex_attributes(trans, 2, 3, 2)
+                c2.split_attributes(trans, OrbitPolicy::Vertex, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.split_edge_attributes(trans, 2, 3, 2)
+                c2.split_attributes(trans, OrbitPolicy::Edge, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.split_face_attributes(trans, 2, 3, 2)
+                c2.split_attributes(trans, OrbitPolicy::Face, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });

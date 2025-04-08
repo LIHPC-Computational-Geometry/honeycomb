@@ -1,5 +1,5 @@
 use crate::attributes::UnknownAttributeStorage;
-use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, SewError};
+use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy, SewError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, try_or_coerce};
 
@@ -36,8 +36,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 SewError
             );
             try_or_coerce!(
-                self.attributes
-                    .merge_vertex_attributes(trans, new_vid, b2lhs_vid_old, rhs_vid_old,),
+                self.attributes.merge_attributes(
+                    trans,
+                    OrbitPolicy::Vertex,
+                    new_vid,
+                    b2lhs_vid_old,
+                    rhs_vid_old,
+                ),
                 SewError
             );
         }
@@ -69,8 +74,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 SewError
             );
             try_or_coerce!(
-                self.attributes
-                    .split_vertex_attributes(trans, new_lhs, new_rhs, vid_old),
+                self.attributes.split_attributes(
+                    trans,
+                    OrbitPolicy::Vertex,
+                    new_lhs,
+                    new_rhs,
+                    vid_old
+                ),
                 SewError
             );
         }
