@@ -24,7 +24,7 @@ pub type BodyIdType = u32;
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum VertexAnchor {
     /// Vertex is linked to a node.
     Node(NodeIdType),
@@ -106,7 +106,7 @@ impl AttributeUpdate for VertexAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum EdgeAnchor {
     /// Vertex is linked to a curve.
     Curve(NodeIdType),
@@ -175,7 +175,7 @@ impl AttributeUpdate for EdgeAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum FaceAnchor {
     /// Vertex is linked to a surface.
     Surface(SurfaceIdType),
