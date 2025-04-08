@@ -4,6 +4,7 @@
 # Don't correct
 nd = "nd"
 iy = "iy"
+Lew = "Lew"
 
 [files]
 extend-exclude = ["*.svg"]

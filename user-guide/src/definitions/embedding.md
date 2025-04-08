@@ -16,7 +16,7 @@ a generic system to handle this; The storage follows our own specific logic, whi
 
 ## Examples
 
-Note that darts and vertex IDs are not actually stored. Formers exist implictly
+Note that darts and vertex IDs are not actually stored. Formers exist implicitly
 and latters are computed on the fly.
 
 <figure style="text-align:center">

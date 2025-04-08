@@ -13,7 +13,7 @@ order.
 
 ### Topology
 
-The *i-link* operation corresponds to the aforementionned topological update. Given two darts *d<sub>a</sub>* and
+The *i-link* operation corresponds to the aforementioned topological update. Given two darts *d<sub>a</sub>* and
 *d<sub>b</sub>*, and a given beta function *β<sub>i</sub>*, a link operation corresponds to the update of the
 *β<sub>i</sub>* function in order to have *β<sub>i</sub>(d<sub>a</sub>) = d<sub>b</sub>* and/or
 *β<sub>i</sub>(d<sub>b</sub>) = d<sub>a</sub>* depending on darts order and *i*. For example:
