@@ -177,17 +177,22 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
         curve_id = curve_id.max(i);
     }
     // check for boundaries that are not reachable from anchored vertices (e.g. a hole with no PoI)
-    while let Some(dart) = (1..cmap.n_darts() as DartIdType).find(|d| {
-        // surely this is inlined, and we benefit from left-to-right lazy evaluation? right?
-        let used = !cmap.is_unused(*d);
-        let on_boundary = cmap
-            .orbit(OrbitPolicy::Vertex, *d)
-            .any(|dd| cmap.beta::<2>(dd) == NULL_DART_ID);
-        let unclassifed = cmap
-            .force_read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
-            .is_none();
-        used && on_boundary && unclassifed
-    }) {
+    while let Some(dart) = (1..cmap.n_darts() as DartIdType)
+        .filter_map(|d| {
+            // check only used darts on the boundary
+            let used = !cmap.is_unused(d);
+            if used {
+                cmap.orbit(OrbitPolicy::Vertex, d)
+                    .find(|dd| cmap.beta::<2>(*dd) == NULL_DART_ID)
+            } else {
+                None
+            }
+        })
+        .find(|d| {
+            cmap.force_read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
+                .is_none()
+        })
+    {
         curve_id += 1; // use a new curve id
         cmap.force_write_attribute(
             cmap.vertex_id(dart),
@@ -214,7 +219,7 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
                     cmap.force_write_attribute(crt, FaceAnchor::Surface(surface_id));
                     cmap.orbit(OrbitPolicy::Face, crt as DartIdType)
                         .filter(|d| {
-                            cmap.force_read_attribute::<FaceAnchor>(cmap.edge_id(*d))
+                            cmap.force_read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
                                 .is_none()
                         })
                         .for_each(|d| {
