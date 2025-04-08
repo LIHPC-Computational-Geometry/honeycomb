@@ -1,12 +1,12 @@
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMapBuilder, OrbitPolicy},
+    cmap::{CMap2, CMapBuilder, NULL_DART_ID, OrbitPolicy},
     stm::{atomically, atomically_with_err},
 };
 
-use crate::remeshing::{EdgeSwapError, VertexAnchor, swap_edge};
+use crate::remeshing::{ClassificationError, EdgeSwapError, VertexAnchor, swap_edge};
 
-use super::{EdgeAnchor, FaceAnchor};
+use super::{EdgeAnchor, FaceAnchor, classify_capture};
 
 // --- anchors
 
@@ -342,6 +342,153 @@ fn split_anchors() {
         Ok(())
     });
 }
+
+// --- capture and classification
+
+#[test]
+fn classify_without_anchors() {
+    let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10).build().unwrap();
+    assert!(
+        classify_capture(&map)
+            .is_err_and(|e| matches!(e, ClassificationError::MissingAttribute(_)))
+    );
+
+    let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10)
+        .add_attribute::<VertexAnchor>()
+        .build()
+        .unwrap();
+    assert!(
+        classify_capture(&map)
+            .is_err_and(|e| matches!(e, ClassificationError::MissingAttribute(_)))
+    );
+
+    let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .build()
+        .unwrap();
+    assert!(
+        classify_capture(&map)
+            .is_err_and(|e| matches!(e, ClassificationError::MissingAttribute(_)))
+    );
+}
+
+#[test]
+fn classify_without_anchored_vertex_values() {
+    // classifying a map with no anchored vertices values should result in all
+    // cells being anchored to surfaces
+    let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .add_attribute::<FaceAnchor>()
+        .build()
+        .unwrap();
+    // disjoint surfaces should have different IDs
+    let d1 = map.add_free_darts(4);
+    let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
+    let _ = map.force_link::<1>(d1, d2);
+    let _ = map.force_link::<1>(d2, d3);
+    let _ = map.force_link::<1>(d3, d4);
+    let _ = map.force_link::<1>(d4, d1);
+
+    assert_eq!(classify_capture(&map), Ok(()));
+
+    // all cells are classified on surfaces except boundaries
+    let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map.iter_vertices().partition(|v| {
+        map.orbit(OrbitPolicy::Vertex, *v)
+            .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
+    });
+    assert!(on_boundary.into_iter().all(|v| matches!(
+        map.force_read_attribute::<VertexAnchor>(v),
+        Some(VertexAnchor::Curve(_))
+    )));
+    assert!(off_boundary.into_iter().all(|v| matches!(
+        map.force_read_attribute::<VertexAnchor>(v),
+        Some(VertexAnchor::Surface(_))
+    )));
+
+    let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map
+        .iter_edges()
+        .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
+    assert!(on_boundary.into_iter().all(|e| matches!(
+        map.force_read_attribute::<EdgeAnchor>(e),
+        Some(EdgeAnchor::Curve(_))
+    )));
+    assert!(off_boundary.into_iter().all(|e| matches!(
+        map.force_read_attribute::<EdgeAnchor>(e),
+        Some(EdgeAnchor::Surface(_))
+    )));
+
+    assert!(map.iter_faces().all(|f| matches!(
+        map.force_read_attribute::<FaceAnchor>(f),
+        Some(FaceAnchor::Surface(_))
+    )));
+
+    // there are two disjoint boundaries => curves
+    assert!(matches!(
+        map.force_read_attribute::<VertexAnchor>(1),
+        Some(VertexAnchor::Curve(_))
+    ));
+    assert!(matches!(
+        map.force_read_attribute::<VertexAnchor>(d1),
+        Some(VertexAnchor::Curve(_))
+    ));
+    assert_ne!(
+        map.force_read_attribute::<VertexAnchor>(1),
+        map.force_read_attribute::<VertexAnchor>(d1)
+    );
+}
+
+#[test]
+fn classify_with_anchored_vertex_values() {
+    // classifying a map with no anchored vertices values should result in all
+    // cells being anchored to surfaces
+    let map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .add_attribute::<FaceAnchor>()
+        .build()
+        .unwrap();
+    map.force_write_attribute(1, VertexAnchor::Node(1));
+    map.force_write_attribute(6, VertexAnchor::Node(2));
+    map.force_write_attribute(12, VertexAnchor::Node(3));
+    map.force_write_attribute(15, VertexAnchor::Node(4));
+
+    assert_eq!(classify_capture(&map), Ok(()));
+
+    // all cells are classified on surfaces except boundaries
+    let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map.iter_vertices().partition(|v| {
+        map.orbit(OrbitPolicy::Vertex, *v)
+            .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
+    });
+    assert!(on_boundary.into_iter().all(|v| matches!(
+        map.force_read_attribute::<VertexAnchor>(v),
+        Some(VertexAnchor::Curve(_)) | Some(VertexAnchor::Node(_)) // we have 4 nodes in there
+    )));
+    assert!(off_boundary.into_iter().all(|v| matches!(
+        map.force_read_attribute::<VertexAnchor>(v),
+        Some(VertexAnchor::Surface(_))
+    )));
+
+    let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map
+        .iter_edges()
+        .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
+    assert!(on_boundary.into_iter().all(|e| matches!(
+        map.force_read_attribute::<EdgeAnchor>(e),
+        Some(EdgeAnchor::Curve(_))
+    )));
+    assert!(off_boundary.into_iter().all(|e| matches!(
+        map.force_read_attribute::<EdgeAnchor>(e),
+        Some(EdgeAnchor::Surface(_))
+    )));
+
+    assert!(map.iter_faces().all(|f| matches!(
+        map.force_read_attribute::<FaceAnchor>(f),
+        Some(FaceAnchor::Surface(_))
+    )));
+}
+
+// --- edge swap
 
 #[test]
 fn swap_edge_errs() {
