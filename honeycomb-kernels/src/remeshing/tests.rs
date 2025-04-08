@@ -1,12 +1,17 @@
+use std::collections::HashSet;
+
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeStorage, UnknownAttributeStorage},
     cmap::{CMap2, CMapBuilder, NULL_DART_ID, OrbitPolicy},
     stm::{atomically, atomically_with_err},
 };
 
-use crate::remeshing::{ClassificationError, EdgeSwapError, VertexAnchor, swap_edge};
+use crate::{
+    grisubal::Clip,
+    remeshing::{ClassificationError, EdgeSwapError, VertexAnchor, swap_edge},
+};
 
-use super::{EdgeAnchor, FaceAnchor, classify_capture};
+use super::{EdgeAnchor, FaceAnchor, capture_geometry, classify_capture};
 
 // --- anchors
 
@@ -344,6 +349,44 @@ fn split_anchors() {
 }
 
 // --- capture and classification
+
+#[test]
+fn capture_example() {
+    // how likely is this to break?
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/shape.vtk");
+    let map = capture_geometry(path, [1.0; 2], Clip::Right).unwrap();
+
+    // there should be 13 nodes, 13 curves, and a single surface
+    assert_eq!(
+        map.iter_vertices()
+            .filter_map(|v| map.force_read_attribute::<VertexAnchor>(v))
+            .count(),
+        13
+    );
+
+    classify_capture(&map).unwrap();
+
+    let mut set = HashSet::new();
+    map.iter_edges()
+        .filter_map(|e| map.force_read_attribute::<EdgeAnchor>(e))
+        .for_each(|a| {
+            set.insert(a);
+        });
+    assert_eq!(
+        set.iter()
+            .filter(|a| matches!(*a, EdgeAnchor::Curve(_)))
+            .count(),
+        13
+    );
+    assert!(
+        set.iter()
+            .filter(|a| matches!(*a, EdgeAnchor::Surface(_)))
+            .all(|a| match a {
+                EdgeAnchor::Surface(id) => *id == 0,
+                _ => unreachable!(),
+            }),
+    );
+}
 
 #[test]
 fn classify_without_anchors() {
