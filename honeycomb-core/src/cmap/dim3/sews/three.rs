@@ -10,6 +10,7 @@ use crate::{
 /// **3-(un)sews internals**
 impl<T: CoordsFloat> CMap3<T> {
     /// 3-sew operation.
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn three_sew(
         &self,
         trans: &mut Transaction,

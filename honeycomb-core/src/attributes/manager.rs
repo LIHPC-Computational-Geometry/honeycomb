@@ -102,6 +102,7 @@ unsafe impl Sync for AttrStorageManager {}
 
 /// **General methods**
 impl AttrStorageManager {
+    #[allow(clippy::needless_pass_by_value)]
     const fn get_map(
         &self,
         orbit: OrbitPolicy,
@@ -115,6 +116,7 @@ impl AttrStorageManager {
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     const fn get_map_mut(
         &mut self,
         orbit: OrbitPolicy,

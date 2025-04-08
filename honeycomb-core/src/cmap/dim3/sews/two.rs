@@ -200,6 +200,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 2-unsew transactional operation.
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn two_unsew(
         &self,
         trans: &mut Transaction,
