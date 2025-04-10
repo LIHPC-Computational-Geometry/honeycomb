@@ -278,7 +278,6 @@ pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<M
 pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<Map3<T>>) {
     let cmap = &cmap.0;
     let map_vertices: Vec<_> = cmap.iter_vertices().collect();
-    println!("nv: {}", map_vertices.len());
     let map_edges: Vec<_> = cmap.iter_edges().collect();
     let map_faces: Vec<_> = cmap.iter_faces().collect();
     let map_volumes: Vec<_> = cmap.iter_volumes().collect();
@@ -347,10 +346,10 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
                     vertex_vals[*ver] - vertex_vals[*ver_in],
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
-                // vec_in/out belong to X/Y plane => .cross(Z) == normal in the plane
-                // a first normalization is required because both edges should weight equally
-                let normal = (vec_in.cross(Vec3::Z).normalize()
-                    + vec_out.cross(Vec3::Z).normalize())
+                // we need to compute the normql formed by the two vectors in 3D
+                let plane_normal = vec_in.cross(vec_out).normalize();
+                let normal = (vec_in.cross(plane_normal).normalize()
+                    + vec_out.cross(plane_normal).normalize())
                 .normalize();
                 face_normals.insert((*id, *ver), normal);
             }
@@ -362,8 +361,10 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
                     vertex_vals[*ver] - vertex_vals[*ver_in],
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
-                let normal = (vec_in.cross(Vec3::Z).normalize()
-                    + vec_out.cross(Vec3::Z).normalize())
+                // we need to compute the normql formed by the two vectors in 3D
+                let plane_normal = vec_in.cross(vec_out).normalize();
+                let normal = (vec_in.cross(plane_normal).normalize()
+                    + vec_out.cross(plane_normal).normalize())
                 .normalize();
                 face_normals.insert((*id, *ver), normal);
             });
@@ -374,8 +375,10 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
                     vertex_vals[*ver] - vertex_vals[*ver_in],
                     vertex_vals[*ver_out] - vertex_vals[*ver],
                 );
-                let normal = (vec_in.cross(Vec3::Z).normalize()
-                    + vec_out.cross(Vec3::Z).normalize())
+                // we need to compute the normql formed by the two vectors in 3D
+                let plane_normal = vec_in.cross(vec_out).normalize();
+                let normal = (vec_in.cross(plane_normal).normalize()
+                    + vec_out.cross(plane_normal).normalize())
                 .normalize();
                 face_normals.insert((*id, *ver), normal);
             }
