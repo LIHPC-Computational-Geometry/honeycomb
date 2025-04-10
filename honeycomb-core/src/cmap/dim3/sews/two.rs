@@ -123,7 +123,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     if lhs_vector.dot(&rhs_vector) >= T::zero() {
                         abort(SewError::BadGeometry(2, ld, rd))?;
                     }
-                };
+                }
 
                 // update the topology
                 try_or_coerce!(self.betas.two_link_core(trans, ld, rd), SewError);

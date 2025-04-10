@@ -96,7 +96,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 if lhs_vector.dot(&rhs_vector) >= T::zero() {
                     abort(SewError::BadGeometry(3, ld, rd))?;
                 }
-            };
+            }
         }
 
         // (*): these branch corresponds to incomplete merges (at best),

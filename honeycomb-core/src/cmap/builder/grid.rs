@@ -574,132 +574,47 @@ fn generate_hex_offset<T: CoordsFloat>(
     let p = dm;
     let x = (dmm - dm) / 24;
     let y = (dmmm - dmm) / (24 * n_x);
-    let z = dmmm / (24 * n_x * n_y);
+    let z = (d - dmmm) / (24 * n_x * n_y);
     match p {
         // d1 to d24
         // y- face
-        1 => Vector3(
+        1 | 6 | 17 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
-        2 => Vector3(
+        2 | 5 | 10 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
-        3 => Vector3(
+        3 | 9 | 14 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
-        4 => Vector3(
+        4 | 13 | 18 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
-        // z- face
-        5 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        6 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        7 => Vector3(
+        7 | 20 | 22 => Vector3(
             T::from(x).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
-        8 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        // x+ face
-        9 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        10 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        11 => Vector3(
+        8 | 11 | 21 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z).unwrap() * lz,
         ),
-        12 => Vector3(
+        12 | 15 | 0 => Vector3(
             T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
-        // z+ face
-        13 => Vector3(
+        16 | 19 | 23 => Vector3(
             T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        14 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        15 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        16 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        // x- face
-        17 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        18 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        19 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        20 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        // y+ face
-        21 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        22 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        23 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        0 => Vector3(
-            T::from(x + 1).unwrap() * lx,
             T::from(y + 1).unwrap() * ly,
             T::from(z + 1).unwrap() * lz,
         ),
