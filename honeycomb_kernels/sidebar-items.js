@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["cell_insertion","grisubal","remeshing","skewness","triangulation"]};

@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generic attribute storage trait"><title>AttributeStorage in honeycomb_core::attributes - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_core/index.html">honeycomb_<wbr>core</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Attribute<wbr>Storage</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#generic-attribute-storage-trait" title="Generic attribute storage trait">Generic attribute storage trait</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.read" title="read">read</a></li><li><a href="#tymethod.remove" title="remove">remove</a></li><li><a href="#tymethod.write" title="write">write</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb_<wbr>core::<wbr>attributes</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb_core</a>::<wbr><a href="index.html">attributes</a></div><h1>Trait <span class="trait">AttributeStorage</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_core/attributes/traits.rs.html#230-300">Source</a> </span></div><pre class="rust item-decl"><code>pub trait AttributeStorage&lt;A: <a class="trait" href="trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a>&gt;: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a> {
+    // Required methods
+    fn <a href="#tymethod.read" class="fn">read</a>(
+        &amp;self,
+        trans: &amp;mut Transaction,
+        id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    ) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.write" class="fn">write</a>(
+        &amp;self,
+        trans: &amp;mut Transaction,
+        id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+        val: A,
+    ) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.remove" class="fn">remove</a>(
+        &amp;self,
+        trans: &amp;mut Transaction,
+        id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    ) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="generic-attribute-storage-trait"><a class="doc-anchor" href="#generic-attribute-storage-trait">§</a>Generic attribute storage trait</h2>
+<p>This trait defines attribute-specific methods. The documentation describes the expected behavior
+of each method. “ID” and “index” are used interchangeably.</p>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.read" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#250">Source</a><h4 class="code-header">fn <a href="#tymethod.read" class="fn">read</a>(
+    &amp;self,
+    trans: &amp;mut Transaction,
+    id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;</h4></section></summary><div class="docblock"><p>Read the value of an element at a given index.</p>
+<h5 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h5>
+<ul>
+<li><code>trans: &amp;mut Transaction</code> – Transaction used for synchronization.</li>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+</ul>
+<h5 id="return--errors"><a class="doc-anchor" href="#return--errors">§</a>Return / Errors</h5>
+<p>This method is meant to be called in a context where the returned <code>Result</code> is used to
+validate the transaction passed as argument. Errors should not be processed manually,
+only processed via the <code>?</code> operator.</p>
+<h5 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.write" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#272-277">Source</a><h4 class="code-header">fn <a href="#tymethod.write" class="fn">write</a>(
+    &amp;self,
+    trans: &amp;mut Transaction,
+    id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+    val: A,
+) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;</h4></section></summary><div class="docblock"><p>Write the value of an element at a given index and return the old value.</p>
+<h5 id="arguments-1"><a class="doc-anchor" href="#arguments-1">§</a>Arguments</h5>
+<ul>
+<li><code>trans: &amp;mut Transaction</code> – Transaction used for synchronization.</li>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+<li><code>val: A</code> – Attribute value.</li>
+</ul>
+<h5 id="return--errors-1"><a class="doc-anchor" href="#return--errors-1">§</a>Return / Errors</h5>
+<p>This method is meant to be called in a context where the returned <code>Result</code> is used to
+validate the transaction passed as argument. Errors should not be processed manually,
+only processed via the <code>?</code> operator.</p>
+<h5 id="panics-1"><a class="doc-anchor" href="#panics-1">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.remove" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#298-299">Source</a><h4 class="code-header">fn <a href="#tymethod.remove" class="fn">remove</a>(
+    &amp;self,
+    trans: &amp;mut Transaction,
+    id: A::<a class="associatedtype" href="trait.AttributeBind.html#associatedtype.IdentifierType" title="type honeycomb_core::attributes::AttributeBind::IdentifierType">IdentifierType</a>,
+) -&gt; StmClosureResult&lt;<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;A&gt;&gt;</h4></section></summary><div class="docblock"><p>Remove the value at a given index and return it.</p>
+<h5 id="arguments-2"><a class="doc-anchor" href="#arguments-2">§</a>Arguments</h5>
+<ul>
+<li><code>trans: &amp;mut Transaction</code> – Transaction used for synchronization.</li>
+<li><code>index: A::IdentifierType</code> – Cell index.</li>
+</ul>
+<h5 id="return--errors-2"><a class="doc-anchor" href="#return--errors-2">§</a>Return / Errors</h5>
+<p>This method is meant to be called in a context where the returned <code>Result</code> is used to
+validate the transaction passed as argument. Errors should not be processed manually,
+only processed via the <code>?</code> operator.</p>
+<h5 id="panics-2"><a class="doc-anchor" href="#panics-2">§</a>Panics</h5>
+<p>The method:</p>
+<ul>
+<li>should panic if the index lands out of bounds</li>
+<li>may panic if the index cannot be converted to <code>usize</code></li>
+</ul>
+</div></details></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-AttributeStorage%3CA%3E-for-AttrSparseVec%3CA%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/attributes/collections.rs.html#105-130">Source</a><a href="#impl-AttributeStorage%3CA%3E-for-AttrSparseVec%3CA%3E" class="anchor">§</a><h3 class="code-header">impl&lt;A: <a class="trait" href="trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt; <a class="trait" href="trait.AttributeStorage.html" title="trait honeycomb_core::attributes::AttributeStorage">AttributeStorage</a>&lt;A&gt; for <a class="struct" href="struct.AttrSparseVec.html" title="struct honeycomb_core::attributes::AttrSparseVec">AttrSparseVec</a>&lt;A&gt;</h3></section></div><script src="../../trait.impl/honeycomb_core/attributes/traits/trait.AttributeStorage.js" async></script></section></div></main></body></html>

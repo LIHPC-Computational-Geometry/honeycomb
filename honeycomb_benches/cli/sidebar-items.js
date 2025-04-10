@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Backend","Benches","Clip","Format","Split"],"struct":["Cli","CutEdgesArgs","Generate2dGridArgs","GrisubalArgs","ShiftArgs"]};

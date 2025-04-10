@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Checks if a face meets the requirements for triangulation."><title>check_requirements in honeycomb_kernels::triangulation - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_kernels" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_kernels/index.html">honeycomb_<wbr>kernels</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">check_<wbr>requirements</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#arguments" title="Arguments">Arguments</a></li><li><a href="#return--errors" title="Return / Errors">Return / Errors</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb_<wbr>kernels::<wbr>triangulation</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb_kernels</a>::<wbr><a href="index.html">triangulation</a></div><h1>Function <span class="fn">check_requirements</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_kernels/triangulation/mod.rs.html#83-109">Source</a> </span></div><pre class="rust item-decl"><code>pub fn check_requirements(
+    n_darts_face: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    n_darts_allocated: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.TriangulateError.html" title="enum honeycomb_kernels::triangulation::TriangulateError">TriangulateError</a>&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Checks if a face meets the requirements for triangulation.</p>
+<p>This function performs several checks on a face before it can be triangulated:</p>
+<ol>
+<li>Ensures the face has at least 3 vertices.</li>
+<li>Verifies that the face is not already triangulated.</li>
+<li>Confirms that the correct number of darts have been allocated for triangulation.</li>
+</ol>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>n_darts_face</code> - The number of darts in the face to be triangulated.</li>
+<li><code>n_darts_allocated</code> - The number of darts allocated for the triangulation process.</li>
+<li><code>face_id</code> - The identifier of the face being checked.</li>
+</ul>
+<h2 id="return--errors"><a class="doc-anchor" href="#return--errors">§</a>Return / Errors</h2>
+<p>This function can return:</p>
+<ul>
+<li><code>Ok(())</code> if all checks pass and the face is ready for triangulation.</li>
+<li><code>Err(TriangulateError)</code> if any check fails, with a specific error describing the issue.</li>
+</ul>
+<p>A failed check can result in the following errors:</p>
+<ul>
+<li><code>TriangulateError::UndefinedFace</code> - If the face has fewer than 3 vertices.</li>
+<li><code>TriangulateError::AlreadyTriangulated</code> - If the face already has exactly 3 vertices.</li>
+<li><code>TriangulateError::NotEnoughDarts</code> - If there aren’t enough darts allocated for triangulation.</li>
+<li><code>TriangulateError::TooManyDarts</code> - If there are too many darts allocated for triangulation.</li>
+</ul>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="grisubal algorithm description &#38; implementation"><title>honeycomb::prelude::grisubal - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="honeycomb" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-4e99c027.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../honeycomb/index.html">honeycomb</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module grisubal</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#assumptions--hypotheses" title="Assumptions / Hypotheses">Assumptions / Hypotheses</a></li><li><a href="#algorithm" title="Algorithm">Algorithm</a><ul><li><a href="#pre-processing" title="Pre-processing">Pre-processing</a></li><li><a href="#main-kernel" title="Main kernel">Main kernel</a></li><li><a href="#post-processing-clip" title="Post-processing clip">Post-processing clip</a></li></ul></li></ul><h3><a href="#enums">Module Items</a></h3><ul class="block"><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In honeycomb::<wbr>prelude</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">honeycomb</a>::<wbr><a href="../index.html">prelude</a></div><h1>Module <span>grisubal</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/honeycomb_kernels/lib.rs.html#15">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><em>grisubal</em> algorithm description &amp; implementation</p>
+<p>This module contain all code used to implement our grid submersion algorithm, or <em>grisubal</em>
+for short.</p>
+<p>This algorithm builds the mesh of a geometry by overlapping a grid over it and intersecting
+the grid with the geometry. It is inspired by the approach described in
+<a href="https://internationalmeshingroundtable.com/assets/research-notes/imr32/2011.pdf">this</a>
+research note.</p>
+<h2 id="assumptions--hypotheses"><a class="doc-anchor" href="#assumptions--hypotheses">§</a>Assumptions / Hypotheses</h2>
+<p>Boundaries are consistently oriented, i.e.:</p>
+<ul>
+<li>normals of segments making up a boundary all point outward / inward, no mix,</li>
+<li>boundaries are closed,</li>
+<li>if there are nested boundaries, their orientation are consistent one with the other; this is
+an extension of the first condition.</li>
+</ul>
+<h2 id="algorithm"><a class="doc-anchor" href="#algorithm">§</a>Algorithm</h2>
+<p>The steps followed by the algorithm are detailed in the user guide. The following is a summary.</p>
+<h4 id="pre-processing"><a class="doc-anchor" href="#pre-processing">§</a>Pre-processing</h4>
+<ol>
+<li>Compute characteristics of a grid covering the entire geometry, avoiding exact intersection
+between the grid’s segments and the geometry’s vertices.</li>
+<li>Remove “redundant” Points of Interest to avoid duplicated vertices.</li>
+<li>Check for obvious orientation issues (open geometry &amp; orientation per boundary).</li>
+</ol>
+<h4 id="main-kernel"><a class="doc-anchor" href="#main-kernel">§</a>Main kernel</h4>
+<ol>
+<li>Compute intersection vertices between the geometry’s segments and the grid.</li>
+<li>Insert given intersections into the grid.</li>
+<li>Build new edge data by searching through the original segments.</li>
+<li>Insert new edges into the map. Mark darts on each side of the edge with the <code>Boundary</code>
+attribute.</li>
+</ol>
+<h4 id="post-processing-clip"><a class="doc-anchor" href="#post-processing-clip">§</a>Post-processing clip</h4>
+<p>Depending on the specified argument, one side (or the other) of the boundary can be clipped.
+This is specified using the <a href="enum.Clip.html" title="enum honeycomb::prelude::grisubal::Clip"><code>Clip</code></a> enum; The following steps describe the operation for
+<a href="enum.Clip.html#variant.Left" title="variant honeycomb::prelude::grisubal::Clip::Left"><code>Clip::Left</code></a>:</p>
+<ol>
+<li>Fetch all darts marked as <code>Boundary::Left</code> during the last step of the main kernel.</li>
+<li>Use these darts’ faces as starting point for a coloring algorithm. The search is done using
+a BFS and only consider adjacent faces if the adjacent dart isn’t marked as a boundary.
+This step is also used to check for orientation inconsistencies, most importantly orientation
+across distinct boundaries.</li>
+<li>Delete all darts making up the marked faces.</li>
+</ol>
+<p>The <code>Boundary</code> attribute is then removed from the map before return.</p>
+</div></details><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Clip.html" title="enum honeycomb::prelude::grisubal::Clip">Clip</a></dt><dd>Post-processing clip operation.</dd><dt><a class="enum" href="enum.GrisubalError.html" title="enum honeycomb::prelude::grisubal::GrisubalError">Grisubal<wbr>Error</a></dt><dd>Enum used to model potential errors of the <code>grisubal</code> kernel.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.grisubal.html" title="fn honeycomb::prelude::grisubal::grisubal">grisubal</a></dt><dd>Main algorithm call function.</dd></dl></section></div></main></body></html>

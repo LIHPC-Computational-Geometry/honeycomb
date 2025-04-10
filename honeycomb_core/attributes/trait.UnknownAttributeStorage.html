@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generic attribute storage trait"><title>UnknownAttributeStorage in honeycomb_core::attributes - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../honeycomb_core/index.html">honeycomb_<wbr>core</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Unknown<wbr>Attribute<wbr>Storage</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#generic-attribute-storage-trait" title="Generic attribute storage trait">Generic attribute storage trait</a></li></ul><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.extend" title="extend">extend</a></li><li><a href="#tymethod.merge" title="merge">merge</a></li><li><a href="#tymethod.n_attributes" title="n_attributes">n_attributes</a></li><li><a href="#tymethod.new" title="new">new</a></li><li><a href="#tymethod.split" title="split">split</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.downcast" title="downcast">downcast</a></li><li><a href="#method.downcast_mut" title="downcast_mut">downcast_mut</a></li><li><a href="#method.downcast_rc" title="downcast_rc">downcast_rc</a></li><li><a href="#method.downcast_ref" title="downcast_ref">downcast_ref</a></li><li><a href="#method.is" title="is">is</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb_<wbr>core::<wbr>attributes</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">honeycomb_core</a>::<wbr><a href="index.html">attributes</a></div><h1>Trait <span class="trait">UnknownAttributeStorage</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/honeycomb_core/attributes/traits.rs.html#122-222">Source</a> </span></div><pre class="rust item-decl"><code>pub trait UnknownAttributeStorage:
+    <a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a>
+    + <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>
+    + Downcast {
+    // Required methods
+    fn <a href="#tymethod.new" class="fn">new</a>(length: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Self
+       <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.extend" class="fn">extend</a>(&amp;mut self, length: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+<span class="item-spacer"></span>    fn <a href="#tymethod.n_attributes" class="fn">n_attributes</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.merge" class="fn">merge</a>(
+        &amp;self,
+        trans: &amp;mut Transaction,
+        out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+        lhs_inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+        rhs_inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    ) -&gt; TransactionClosureResult&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.AttributeError.html" title="enum honeycomb_core::attributes::AttributeError">AttributeError</a>&gt;;
+<span class="item-spacer"></span>    fn <a href="#tymethod.split" class="fn">split</a>(
+        &amp;self,
+        trans: &amp;mut Transaction,
+        lhs_out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+        rhs_out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+        inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    ) -&gt; TransactionClosureResult&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.AttributeError.html" title="enum honeycomb_core::attributes::AttributeError">AttributeError</a>&gt;;
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="generic-attribute-storage-trait"><a class="doc-anchor" href="#generic-attribute-storage-trait">§</a>Generic attribute storage trait</h2>
+<p>This trait defines attribute-agnostic functions &amp; methods. The documentation describes the
+expected behavior of each item. “ID” and “index” are used interchangeably.</p>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.new" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#135-137">Source</a><h4 class="code-header">fn <a href="#tymethod.new" class="fn">new</a>(length: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Self<div class="where">where
+    Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Constructor</p>
+<h5 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h5>
+<ul>
+<li><code>length: usize</code> – Initial length/capacity of the storage. It should correspond to
+the upper bound of IDs used to index the attribute’s values, i.e. the number of darts
+including the null dart.</li>
+</ul>
+<h5 id="return"><a class="doc-anchor" href="#return">§</a>Return</h5>
+<p>Return a <a href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">Self</a> instance which yields correct accesses over the ID range <code>0..length</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.extend" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#144">Source</a><h4 class="code-header">fn <a href="#tymethod.extend" class="fn">extend</a>(&amp;mut self, length: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)</h4></section></summary><div class="docblock"><p>Extend the storage’s length</p>
+<h5 id="arguments-1"><a class="doc-anchor" href="#arguments-1">§</a>Arguments</h5>
+<ul>
+<li><code>length: usize</code> – length of which the storage should be extended.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.n_attributes" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#149">Source</a><h4 class="code-header">fn <a href="#tymethod.n_attributes" class="fn">n_attributes</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Return the number of stored attributes, i.e. the number of used slots in the storage (not
+its length).</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.merge" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#180-186">Source</a><h4 class="code-header">fn <a href="#tymethod.merge" class="fn">merge</a>(
+    &amp;self,
+    trans: &amp;mut Transaction,
+    out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    lhs_inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    rhs_inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+) -&gt; TransactionClosureResult&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.AttributeError.html" title="enum honeycomb_core::attributes::AttributeError">AttributeError</a>&gt;</h4></section></summary><div class="docblock"><p>Merge attributes to specified index</p>
+<h5 id="arguments-2"><a class="doc-anchor" href="#arguments-2">§</a>Arguments</h5>
+<ul>
+<li><code>trans: &amp;mut Transaction</code> – Transaction used for synchronization.</li>
+<li><code>out: DartIdentifier</code> – Identifier to associate the result with.</li>
+<li><code>lhs_inp: DartIdentifier</code> – Identifier of one attribute value to merge.</li>
+<li><code>rhs_inp: DartIdentifier</code> – Identifier of the other attribute value to merge.</li>
+</ul>
+<h5 id="behavior-pseudo-code"><a class="doc-anchor" href="#behavior-pseudo-code">§</a>Behavior (pseudo-code)</h5><div class="example-wrap"><pre class="language-text"><code>let new_val = match (attributes.remove(lhs_inp), attributes.remove(rhs_inp)) {
+    (Some(v1), Some(v2)) =&gt; AttributeUpdate::merge(v1, v2),
+    (Some(v), None) | (None, Some(v)) =&gt; AttributeUpdate::merge_undefined(Some(v)),
+    None, None =&gt; AttributeUpdate::merge_undefined(None),
+}
+attributes.set(out, new_val);</code></pre></div><h5 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h5>
+<p>This method will fail, returning an error, if:</p>
+<ul>
+<li>the transaction cannot be completed</li>
+<li>the merge fails (e.g. because one merging value is missing)</li>
+</ul>
+<p>The returned error can be used in conjunction with transaction control to avoid any
+modifications in case of failure at attribute level. The user can then choose, through its
+transaction control policy, to retry or abort as he wishes.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.split" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#215-221">Source</a><h4 class="code-header">fn <a href="#tymethod.split" class="fn">split</a>(
+    &amp;self,
+    trans: &amp;mut Transaction,
+    lhs_out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    rhs_out: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+    inp: <a class="type" href="../cmap/type.DartIdType.html" title="type honeycomb_core::cmap::DartIdType">DartIdType</a>,
+) -&gt; TransactionClosureResult&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="enum" href="enum.AttributeError.html" title="enum honeycomb_core::attributes::AttributeError">AttributeError</a>&gt;</h4></section></summary><div class="docblock"><p>Split attribute to specified indices</p>
+<h5 id="arguments-3"><a class="doc-anchor" href="#arguments-3">§</a>Arguments</h5>
+<ul>
+<li><code>trans: &amp;mut Transaction</code> – Transaction used for synchronization.</li>
+<li><code>lhs_out: DartIdentifier</code> – Identifier to associate the result with.</li>
+<li><code>rhs_out: DartIdentifier</code> – Identifier to associate the result with.</li>
+<li><code>inp: DartIdentifier</code> – Identifier of the attribute value to split.</li>
+</ul>
+<h5 id="behavior-pseudo-code-1"><a class="doc-anchor" href="#behavior-pseudo-code-1">§</a>Behavior pseudo-code</h5><div class="example-wrap"><pre class="language-text"><code>(val_lhs, val_rhs) = AttributeUpdate::split(attributes.remove(inp).unwrap());
+attributes[lhs_out] = val_lhs;
+attributes[rhs_out] = val_rhs;
+</code></pre></div><h5 id="errors-1"><a class="doc-anchor" href="#errors-1">§</a>Errors</h5>
+<p>This method will fail, returning an error, if:</p>
+<ul>
+<li>the transaction cannot be completed</li>
+<li>the split fails (e.g. because there is no value to split from)</li>
+</ul>
+<p>The returned error can be used in conjunction with transaction control to avoid any
+modifications in case of failure at attribute level. The user can then choose, through its
+transaction control policy, to retry or abort as he wishes.</p>
+</div></details></div><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-dyn+UnknownAttributeStorage" class="impl"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><a href="#impl-dyn+UnknownAttributeStorage" class="anchor">§</a><h3 class="code-header">impl dyn <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.is" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><h4 class="code-header">pub fn <a href="#method.is" class="fn">is</a>&lt;__T: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a>&gt;(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Returns true if the trait object wraps an object of type <code>__T</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.downcast" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><h4 class="code-header">pub fn <a href="#method.downcast" class="fn">downcast</a>&lt;__T: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a>&gt;(
+    self: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;Self&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;__T&gt;, <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;Self&gt;&gt;</h4></section></summary><div class="docblock"><p>Returns a boxed object from a boxed trait object if the underlying object is of type
+<code>__T</code>. Returns the original boxed trait if it isn’t.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.downcast_rc" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><h4 class="code-header">pub fn <a href="#method.downcast_rc" class="fn">downcast_rc</a>&lt;__T: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a>&gt;(
+    self: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;Self&gt;,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;__T&gt;, <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html" title="struct alloc::rc::Rc">Rc</a>&lt;Self&gt;&gt;</h4></section></summary><div class="docblock"><p>Returns an <code>Rc</code>-ed object from an <code>Rc</code>-ed trait object if the underlying object is of
+type <code>__T</code>. Returns the original <code>Rc</code>-ed trait if it isn’t.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.downcast_ref" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><h4 class="code-header">pub fn <a href="#method.downcast_ref" class="fn">downcast_ref</a>&lt;__T: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a>&gt;(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;__T</a>&gt;</h4></section></summary><div class="docblock"><p>Returns a reference to the object within the trait object if it is of type <code>__T</code>, or
+<code>None</code> if it isn’t.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.downcast_mut" class="method"><a class="src rightside" href="../../src/honeycomb_core/attributes/traits.rs.html#224">Source</a><h4 class="code-header">pub fn <a href="#method.downcast_mut" class="fn">downcast_mut</a>&lt;__T: <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a>&gt;(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut __T</a>&gt;</h4></section></summary><div class="docblock"><p>Returns a mutable reference to the object within the trait object if it is of type
+<code>__T</code>, or <code>None</code> if it isn’t.</p>
+</div></details></div></details></div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-UnknownAttributeStorage-for-AttrSparseVec%3CA%3E" class="impl"><a class="src rightside" href="../../src/honeycomb_core/attributes/collections.rs.html#34-103">Source</a><a href="#impl-UnknownAttributeStorage-for-AttrSparseVec%3CA%3E" class="anchor">§</a><h3 class="code-header">impl&lt;A: <a class="trait" href="trait.AttributeBind.html" title="trait honeycomb_core::attributes::AttributeBind">AttributeBind</a> + <a class="trait" href="trait.AttributeUpdate.html" title="trait honeycomb_core::attributes::AttributeUpdate">AttributeUpdate</a>&gt; <a class="trait" href="trait.UnknownAttributeStorage.html" title="trait honeycomb_core::attributes::UnknownAttributeStorage">UnknownAttributeStorage</a> for <a class="struct" href="struct.AttrSparseVec.html" title="struct honeycomb_core::attributes::AttrSparseVec">AttrSparseVec</a>&lt;A&gt;</h3></section></div><script src="../../trait.impl/honeycomb_core/attributes/traits/trait.UnknownAttributeStorage.js" async></script></section></div></main></body></html>

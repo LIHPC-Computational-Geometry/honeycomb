@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ClassificationError","EdgeAnchor","EdgeSwapError","FaceAnchor","VertexAnchor"],"fn":["capture_geometry","classify_capture","cut_inner_edge","cut_outer_edge","move_vertex_to_average","swap_edge"],"type":["BodyIdType","CurveIdType","NodeIdType","SurfaceIdType"]};

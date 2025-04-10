@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Triangulates a face using a fan triangulation method."><title>fan_convex_cell in honeycomb::prelude::triangulation - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="honeycomb" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-4e99c027.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../honeycomb/index.html">honeycomb</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">fan_<wbr>convex_<wbr>cell</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#arguments" title="Arguments">Arguments</a></li><li><a href="#behavior" title="Behavior">Behavior</a></li><li><a href="#errors" title="Errors">Errors</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb::<wbr>prelude::<wbr>triangulation</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">honeycomb</a>::<wbr><a href="../index.html">prelude</a>::<wbr><a href="index.html">triangulation</a></div><h1>Function <span class="fn">fan_convex_cell</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/honeycomb_kernels/triangulation/fan.rs.html#166-171">Source</a> </span></div><pre class="rust item-decl"><code>pub fn fan_convex_cell&lt;T&gt;(
+    t: &amp;mut Transaction,
+    cmap: &amp;<a class="struct" href="../struct.CMap2.html" title="struct honeycomb::prelude::CMap2">CMap2</a>&lt;T&gt;,
+    face_id: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    new_darts: &amp;[<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>],
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, TransactionError&lt;<a class="enum" href="enum.TriangulateError.html" title="enum honeycomb::prelude::triangulation::TriangulateError">TriangulateError</a>&gt;&gt;<div class="where">where
+    T: <a class="trait" href="../trait.CoordsFloat.html" title="trait honeycomb::prelude::CoordsFloat">CoordsFloat</a>,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Triangulates a face using a fan triangulation method.</p>
+<p>This function triangulates a cell (face) in a 2D combinatorial map by creating a fan of
+triangles from a the first vertex of</p>
+<p><strong>Note that this function assumes the polygon is convex and correctly defined (i.e. all vertices
+are) and may fail or produce incorrect results if called on a cell that does not verify these
+requirements</strong>.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>cmap: &amp;mut CMap2</code> - A mutable reference to the modified <code>CMap2</code>.</li>
+<li><code>face_id: FaceIdentifier</code> - Identifier of the face to triangulate within the map.</li>
+<li><code>new_darts: &amp;[DartIdentifier]</code> - Identifiers of pre-allocated darts for the new edges;
+the slice length should match the expected number of edges created by the triangulation. For
+an <code>n</code>-sided polygon, the number of created edge is <code>n-3</code>, so the number of dart is <code>(n-3)*2</code>.</li>
+</ul>
+<h2 id="behavior"><a class="doc-anchor" href="#behavior">§</a>Behavior</h2>
+<ul>
+<li>The function begins by checking if the face has 3 or fewer vertices, in which case
+it’s already triangulated or cannot be further processed.</li>
+<li>It verifies if the number of new darts matches the expected number for triangulation.</li>
+<li>The function creates triangles by linking new darts in a fan-like structure to the first
+vertex of the polygon. <strong>This is done unconditionally, whether the polygon is convex or not</strong>.</li>
+</ul>
+<h2 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h2>
+<p>This function will return an error if the face wasn’t triangulated. There can be multiple
+reason for this:</p>
+<ul>
+<li>The face is incompatible with the operation (made of 1, 2 or 3 vertices)</li>
+<li>The number of pre-allocated darts did not match the expected number (see [#arguments])</li>
+</ul>
+<p>Note that in any of these cases, the face will remain the same as it was before the function
+call.</p>
+</div></details></section></div></main></body></html>

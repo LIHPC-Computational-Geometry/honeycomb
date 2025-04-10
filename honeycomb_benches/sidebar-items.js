@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["cli","cut_edges","grid_gen","grisubal","shift","utils"]};

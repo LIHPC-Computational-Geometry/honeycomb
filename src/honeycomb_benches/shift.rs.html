@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `benches/src/shift.rs`."><title>shift.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="honeycomb_benches" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">honeycomb_benches/</div>shift.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! # Description
+<a href=#2 id=2 data-nosnippet>2</a>//!
+<a href=#3 id=3 data-nosnippet>3</a>//! ## Routine
+<a href=#4 id=4 data-nosnippet>4</a>//!
+<a href=#5 id=5 data-nosnippet>5</a>//! The algorithm fetches all vertices that are not on the border of the map, fetch all identifiers
+<a href=#6 id=6 data-nosnippet>6</a>//! of each respective vertices' neighbors. Then, for all vertices:
+<a href=#7 id=7 data-nosnippet>7</a>//!
+<a href=#8 id=8 data-nosnippet>8</a>//! - compute the average between neighbors
+<a href=#9 id=9 data-nosnippet>9</a>//! - overwrite current vertex value with computed average
+<a href=#10 id=10 data-nosnippet>10</a>//!
+<a href=#11 id=11 data-nosnippet>11</a>//! ## Benchmark
+<a href=#12 id=12 data-nosnippet>12</a>//!
+<a href=#13 id=13 data-nosnippet>13</a>//! This binary is meant to be use to evaluate scalability of geometry-only kernels. It is
+<a href=#14 id=14 data-nosnippet>14</a>//! parallelized using rayon, and the number of thread used for execution can be controlled using
+<a href=#15 id=15 data-nosnippet>15</a>//! `taskset`. By controlling this, and the grid size, we can evaluate both strong and weak
+<a href=#16 id=16 data-nosnippet>16</a>//! scaling characteristics.
+<a href=#17 id=17 data-nosnippet>17</a>
+<a href=#18 id=18 data-nosnippet>18</a></span><span class="kw">use </span>honeycomb::kernels::remeshing::move_vertex_to_average;
+<a href=#19 id=19 data-nosnippet>19</a><span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
+<a href=#20 id=20 data-nosnippet>20</a>
+<a href=#21 id=21 data-nosnippet>21</a><span class="kw">use </span>honeycomb::core::stm::{Transaction, TransactionControl};
+<a href=#22 id=22 data-nosnippet>22</a><span class="kw">use </span>honeycomb::prelude::{
+<a href=#23 id=23 data-nosnippet>23</a>    CMap2, CMapBuilder, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
+<a href=#24 id=24 data-nosnippet>24</a>};
+<a href=#25 id=25 data-nosnippet>25</a>
+<a href=#26 id=26 data-nosnippet>26</a><span class="kw">use </span><span class="kw">crate</span>::cli::ShiftArgs;
+<a href=#27 id=27 data-nosnippet>27</a><span class="kw">use </span><span class="kw">crate</span>::utils::hash_file;
+<a href=#28 id=28 data-nosnippet>28</a>
+<a href=#29 id=29 data-nosnippet>29</a><span class="kw">pub fn </span>bench_shift&lt;T: CoordsFloat&gt;(args: ShiftArgs) -&gt; CMap2&lt;T&gt; {
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="kw">let </span><span class="kw-2">mut </span>instant = std::time::Instant::now();
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">let </span>input_map = args.input.to_str().unwrap();
+<a href=#32 id=32 data-nosnippet>32</a>    <span class="kw">let </span>input_hash = hash_file(input_map).unwrap();
+<a href=#33 id=33 data-nosnippet>33</a>    <span class="kw">let </span>map: CMap2&lt;T&gt; = <span class="kw">if </span>input_map.ends_with(<span class="string">".cmap"</span>) {
+<a href=#34 id=34 data-nosnippet>34</a>        CMapBuilder::&lt;<span class="number">2</span>, T&gt;::from_cmap_file(input_map)
+<a href=#35 id=35 data-nosnippet>35</a>            .build()
+<a href=#36 id=36 data-nosnippet>36</a>            .unwrap()
+<a href=#37 id=37 data-nosnippet>37</a>    } <span class="kw">else if </span>input_map.ends_with(<span class="string">".vtk"</span>) {
+<a href=#38 id=38 data-nosnippet>38</a>        CMapBuilder::&lt;<span class="number">2</span>, T&gt;::from_vtk_file(input_map)
+<a href=#39 id=39 data-nosnippet>39</a>            .build()
+<a href=#40 id=40 data-nosnippet>40</a>            .unwrap()
+<a href=#41 id=41 data-nosnippet>41</a>    } <span class="kw">else </span>{
+<a href=#42 id=42 data-nosnippet>42</a>        <span class="macro">panic!</span>(
+<a href=#43 id=43 data-nosnippet>43</a>            <span class="string">"E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+<a href=#44 id=44 data-nosnippet>44</a>        </span>);
+<a href=#45 id=45 data-nosnippet>45</a>    };
+<a href=#46 id=46 data-nosnippet>46</a>    <span class="kw">let </span>build_time = instant.elapsed();
+<a href=#47 id=47 data-nosnippet>47</a>
+<a href=#48 id=48 data-nosnippet>48</a>    <span class="kw">if </span>args.no_conflict {
+<a href=#49 id=49 data-nosnippet>49</a>        <span class="macro">todo!</span>(<span class="string">"TODO: require a partitioning algorithm"</span>)
+<a href=#50 id=50 data-nosnippet>50</a>    } <span class="kw">else </span>{
+<a href=#51 id=51 data-nosnippet>51</a>        instant = std::time::Instant::now();
+<a href=#52 id=52 data-nosnippet>52</a>        <span class="comment">// fetch all vertices that are not on the boundary of the map
+<a href=#53 id=53 data-nosnippet>53</a>        </span><span class="kw">let </span>tmp: Vec&lt;(VertexIdType, Vec&lt;VertexIdType&gt;)&gt; = map
+<a href=#54 id=54 data-nosnippet>54</a>            .iter_vertices()
+<a href=#55 id=55 data-nosnippet>55</a>            .filter_map(|v| {
+<a href=#56 id=56 data-nosnippet>56</a>                <span class="kw">if </span>map
+<a href=#57 id=57 data-nosnippet>57</a>                    .orbit(OrbitPolicy::Vertex, v <span class="kw">as </span>DartIdType)
+<a href=#58 id=58 data-nosnippet>58</a>                    .any(|d| map.beta::&lt;<span class="number">2</span>&gt;(d) == NULL_DART_ID)
+<a href=#59 id=59 data-nosnippet>59</a>                {
+<a href=#60 id=60 data-nosnippet>60</a>                    <span class="prelude-val">None
+<a href=#61 id=61 data-nosnippet>61</a>                </span>} <span class="kw">else </span>{
+<a href=#62 id=62 data-nosnippet>62</a>                    <span class="prelude-val">Some</span>((
+<a href=#63 id=63 data-nosnippet>63</a>                        v,
+<a href=#64 id=64 data-nosnippet>64</a>                        map.orbit(OrbitPolicy::Vertex, v <span class="kw">as </span>DartIdType)
+<a href=#65 id=65 data-nosnippet>65</a>                            .map(|d| map.vertex_id(map.beta::&lt;<span class="number">2</span>&gt;(d)))
+<a href=#66 id=66 data-nosnippet>66</a>                            .collect(),
+<a href=#67 id=67 data-nosnippet>67</a>                    ))
+<a href=#68 id=68 data-nosnippet>68</a>                }
+<a href=#69 id=69 data-nosnippet>69</a>            })
+<a href=#70 id=70 data-nosnippet>70</a>            .collect();
+<a href=#71 id=71 data-nosnippet>71</a>        <span class="kw">let </span>n_v = tmp.len();
+<a href=#72 id=72 data-nosnippet>72</a>        <span class="kw">let </span>graph_time = instant.elapsed();
+<a href=#73 id=73 data-nosnippet>73</a>        <span class="kw">let </span>n_threads = std::thread::available_parallelism()
+<a href=#74 id=74 data-nosnippet>74</a>            .map(|v| v.get())
+<a href=#75 id=75 data-nosnippet>75</a>            .unwrap_or(<span class="number">1</span>);
+<a href=#76 id=76 data-nosnippet>76</a>
+<a href=#77 id=77 data-nosnippet>77</a>        <span class="macro">println!</span>(<span class="string">"| shift benchmark"</span>);
+<a href=#78 id=78 data-nosnippet>78</a>        <span class="macro">println!</span>(<span class="string">"|-&gt; input      : {input_map} (hash: {input_hash:#0x})"</span>);
+<a href=#79 id=79 data-nosnippet>79</a>        <span class="macro">println!</span>(<span class="string">"|-&gt; backend    : rayon-iter with {n_threads} thread(s)"</span>,);
+<a href=#80 id=80 data-nosnippet>80</a>        <span class="macro">println!</span>(<span class="string">"|-&gt; # of rounds: {}"</span>, args.n_rounds.get());
+<a href=#81 id=81 data-nosnippet>81</a>        <span class="macro">println!</span>(<span class="string">"|-+ init time  :"</span>);
+<a href=#82 id=82 data-nosnippet>82</a>        <span class="macro">println!</span>(<span class="string">"| |-&gt;   map built in {}ms"</span>, build_time.as_millis());
+<a href=#83 id=83 data-nosnippet>83</a>        <span class="macro">println!</span>(<span class="string">"| |-&gt; graph built in {}ms"</span>, graph_time.as_millis());
+<a href=#84 id=84 data-nosnippet>84</a>
+<a href=#85 id=85 data-nosnippet>85</a>        <span class="macro">println!</span>(<span class="string">" Round | process_time | throughput(vertex/s) | n_transac_retry"</span>);
+<a href=#86 id=86 data-nosnippet>86</a>        <span class="comment">// main loop
+<a href=#87 id=87 data-nosnippet>87</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>round = <span class="number">0</span>;
+<a href=#88 id=88 data-nosnippet>88</a>        <span class="kw">let </span><span class="kw-2">mut </span>process_time;
+<a href=#89 id=89 data-nosnippet>89</a>        <span class="kw">loop </span>{
+<a href=#90 id=90 data-nosnippet>90</a>            instant = std::time::Instant::now();
+<a href=#91 id=91 data-nosnippet>91</a>            <span class="kw">let </span>n_retry: u32 = tmp
+<a href=#92 id=92 data-nosnippet>92</a>                .par_iter()
+<a href=#93 id=93 data-nosnippet>93</a>                .map(|(vid, neigh)| {
+<a href=#94 id=94 data-nosnippet>94</a>                    <span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
+<a href=#95 id=95 data-nosnippet>95</a>                    Transaction::with_control(
+<a href=#96 id=96 data-nosnippet>96</a>                        |<span class="kw">_</span>| {
+<a href=#97 id=97 data-nosnippet>97</a>                            n += <span class="number">1</span>;
+<a href=#98 id=98 data-nosnippet>98</a>                            TransactionControl::Retry
+<a href=#99 id=99 data-nosnippet>99</a>                        },
+<a href=#100 id=100 data-nosnippet>100</a>                        |trans| move_vertex_to_average(trans, <span class="kw-2">&amp;</span>map, <span class="kw-2">*</span>vid, neigh),
+<a href=#101 id=101 data-nosnippet>101</a>                    );
+<a href=#102 id=102 data-nosnippet>102</a>                    n
+<a href=#103 id=103 data-nosnippet>103</a>                })
+<a href=#104 id=104 data-nosnippet>104</a>                .sum();
+<a href=#105 id=105 data-nosnippet>105</a>            process_time = instant.elapsed().as_secs_f64();
+<a href=#106 id=106 data-nosnippet>106</a>            <span class="macro">println!</span>(
+<a href=#107 id=107 data-nosnippet>107</a>                <span class="string">" {:&gt;5} | {:&gt;12.6e} | {:&gt;20.6e} | {:&gt;15}"</span>,
+<a href=#108 id=108 data-nosnippet>108</a>                round,
+<a href=#109 id=109 data-nosnippet>109</a>                process_time,
+<a href=#110 id=110 data-nosnippet>110</a>                n_v <span class="kw">as </span>f64 / process_time,
+<a href=#111 id=111 data-nosnippet>111</a>                n_retry,
+<a href=#112 id=112 data-nosnippet>112</a>            );
+<a href=#113 id=113 data-nosnippet>113</a>
+<a href=#114 id=114 data-nosnippet>114</a>            round += <span class="number">1</span>;
+<a href=#115 id=115 data-nosnippet>115</a>            <span class="kw">if </span>round &gt;= args.n_rounds.get() {
+<a href=#116 id=116 data-nosnippet>116</a>                <span class="kw">break</span>;
+<a href=#117 id=117 data-nosnippet>117</a>            }
+<a href=#118 id=118 data-nosnippet>118</a>        }
+<a href=#119 id=119 data-nosnippet>119</a>    }
+<a href=#120 id=120 data-nosnippet>120</a>
+<a href=#121 id=121 data-nosnippet>121</a>    map
+<a href=#122 id=122 data-nosnippet>122</a>}</code></pre></div></section></main></body></html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Main algorithm call function."><title>grisubal in honeycomb::prelude::grisubal - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-de575e9a.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="honeycomb" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (934880f58 2025-04-09)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-4e99c027.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../honeycomb/index.html">honeycomb</a><span class="version">0.8.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">grisubal</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#arguments" title="Arguments">Arguments</a></li><li><a href="#return--errors" title="Return / Errors">Return / Errors</a></li><li><a href="#panics" title="Panics">Panics</a></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In honeycomb::<wbr>prelude::<wbr>grisubal</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">honeycomb</a>::<wbr><a href="../index.html">prelude</a>::<wbr><a href="index.html">grisubal</a></div><h1>Function <span class="fn">grisubal</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/honeycomb_kernels/grisubal/mod.rs.html#153-157">Source</a> </span></div><pre class="rust item-decl"><code>pub fn grisubal&lt;T&gt;(
+    file_path: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html" title="trait core::convert::AsRef">AsRef</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html" title="struct std::path::Path">Path</a>&gt;,
+    grid_cell_sizes: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.array.html">[T; 2]</a>,
+    clip: <a class="enum" href="enum.Clip.html" title="enum honeycomb::prelude::grisubal::Clip">Clip</a>,
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../struct.CMap2.html" title="struct honeycomb::prelude::CMap2">CMap2</a>&lt;T&gt;, <a class="enum" href="enum.GrisubalError.html" title="enum honeycomb::prelude::grisubal::GrisubalError">GrisubalError</a>&gt;<div class="where">where
+    T: <a class="trait" href="../trait.CoordsFloat.html" title="trait honeycomb::prelude::CoordsFloat">CoordsFloat</a>,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Main algorithm call function.</p>
+<h2 id="arguments"><a class="doc-anchor" href="#arguments">§</a>Arguments</h2>
+<ul>
+<li><code>file_path: impl AsRef&lt;Path&gt;</code> – Path to a VTK file describing input geometry.</li>
+<li><code>grid_cell_sizes: [T; 2],</code> – Desired grid cell size along the X/Y axes.</li>
+<li><code>clip: Option&lt;Clip&gt;</code> – Indicates which part of the map should be clipped, if any, in
+the post-processing phase.</li>
+</ul>
+<p>At the moment, the input geometry should be specified via a file under the VTK Legacy format.
+Just like the <code>io</code> feature provided in the core crate, there are a few additional requirements
+for the geometry to be loaded correctly:</p>
+<ul>
+<li>The geometry should have a consistent orientation, i.e. the order in which the points are
+given should form normals with a consistent direction (either pointing inward or outward the
+geometry).</li>
+<li>The geometry should be described using in an <code>UnstructuredGrid</code> data set, with supported
+cell types (<code>Vertex</code>, <code>Line</code>). Lines will be interpreted as the boundary to intersect while
+vertices will be considered as points of interests.</li>
+</ul>
+<h2 id="return--errors"><a class="doc-anchor" href="#return--errors">§</a>Return / Errors</h2>
+<p>This function returns a <code>Result</code> taking the following values:</p>
+<ul>
+<li><code>Ok(CMap2)</code> – Algorithm ran successfully.</li>
+<li><code>Err(GrisubalError)</code> – Algorithm encountered an issue. See <a href="enum.GrisubalError.html" title="enum honeycomb::prelude::grisubal::GrisubalError"><code>GrisubalError</code></a> for all
+possible errors.</li>
+</ul>
+<h2 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h2>
+<p>This function may panic if the specified file cannot be opened.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>cmap: CMap2&lt;f64&gt; = grisubal(<span class="string">"some/path/to/geometry.vtk"</span>, [<span class="number">1.</span>, <span class="number">1.</span>], Clip::default())<span class="question-mark">?</span>;</code></pre></div>
+</div></details></section></div></main></body></html>
