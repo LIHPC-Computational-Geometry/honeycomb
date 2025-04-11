@@ -1,8 +1,10 @@
 use honeycomb_core::{
     cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, SewError},
     geometry::CoordsFloat,
-    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
+    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
+
+use crate::remeshing::VertexAnchor;
 
 /// Error-modeling enum for edge swap routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -11,8 +13,8 @@ pub enum EdgeCollapseError {
     #[error("core operation failed: {0}")]
     FailedCoreOp(#[from] SewError),
     /// The edge passed as argument cannot be collapsed due to constraints on its vertices.
-    #[error("cannot collapse an edge where both vertices are immovable")]
-    NonCollapsibleEdge,
+    #[error("cannot collapse edge: {0}")]
+    NonCollapsibleEdge(&'static str),
     /// The edge passed as argument is null.
     #[error("cannot swap null edge")]
     NullEdge,
@@ -83,10 +85,29 @@ pub fn collapse_edge<T: CoordsFloat>(
         abort(EdgeCollapseError::BadTopology)?;
     }
 
-    try_or_coerce!(
-        collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
-        EdgeCollapseError
-    );
+    if map.contains_attribute::<VertexAnchor>() {
+        let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
+        let (l_anchor, r_anchor, edge_anchor) = (
+            map.read_attribute::<VertexAnchor>(t, l_vid)?,
+            map.read_attribute::<VertexAnchor>(t, r_vid)?,
+            map.read_attribute::<VertexAnchor>(t, l_vid)?,
+        );
+    }
+
+    match is_collapsible(t, map, e)? {
+        Collapsible::Average => try_or_coerce!(
+            collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
+            EdgeCollapseError
+        ),
+        Collapsible::Left => try_or_coerce!(
+            collapse_edge_to_base(t, map, (b0l, l, b1l), (b0r, r, b1r)),
+            EdgeCollapseError
+        ),
+        Collapsible::Right => try_or_coerce!(
+            collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
+            EdgeCollapseError
+        ),
+    }
 
     Ok(())
 }
@@ -138,7 +159,13 @@ fn collapse_edge_to_base<T: CoordsFloat>(
 ) -> TransactionClosureResult<(), EdgeCollapseError> {
     let l_vid = map.vertex_id_transac(t, l)?;
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
-    let tmp = map.read_vertex(t, l_vid)?.expect("no vertex");
+    let tmp_vertex = map.read_vertex(t, l_vid)?.expect("no vertex");
+    // remove condition? do we expect to use this without anchors?
+    let tmp_anchor = if map.contains_attribute::<VertexAnchor>() {
+        map.read_attribute::<VertexAnchor>(t, l_vid)?
+    } else {
+        None
+    };
 
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
@@ -183,7 +210,24 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     }
 
     let new_vid = map.vertex_id_transac(t, b1b2b1l)?;
-    map.write_vertex(t, new_vid, tmp)?;
+    map.write_vertex(t, new_vid, tmp_vertex)?;
+    if let Some(a) = tmp_anchor {
+        map.write_attribute(t, new_vid, a)?;
+    }
 
     Ok(())
+}
+
+fn is_collapsible<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    edge_id: EdgeIdType,
+) -> TransactionClosureResult<Collapsible, EdgeCollapseError> {
+    todo!()
+}
+
+enum Collapsible {
+    Average,
+    Left,
+    Right,
 }
