@@ -1,5 +1,5 @@
 use crate::attributes::{AttributeStorage, UnknownAttributeStorage};
-use crate::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, SewError};
+use crate::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, OrbitPolicy, SewError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 
@@ -26,8 +26,9 @@ impl<T: CoordsFloat> CMap2<T> {
                 );
                 let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
                 try_or_coerce!(
-                    self.attributes.merge_edge_attributes(
+                    self.attributes.merge_attributes(
                         trans,
+                        OrbitPolicy::Edge,
                         eid_new,
                         lhs_dart_id as EdgeIdType,
                         rhs_dart_id as EdgeIdType,
@@ -56,8 +57,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.merge_vertex_attributes(
+                    self.attributes.merge_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         lhs_vid_new,
                         lhs_vid_old,
                         b1rhs_vid_old,
@@ -65,8 +67,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old,),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    ),
                     SewError
                 );
             }
@@ -91,8 +98,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.merge_vertex_attributes(
+                    self.attributes.merge_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         rhs_vid_new,
                         b1lhs_vid_old,
                         rhs_vid_old,
@@ -100,8 +108,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old,),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    ),
                     SewError
                 );
             }
@@ -118,24 +131,26 @@ impl<T: CoordsFloat> CMap2<T> {
                 let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
 
                 // check orientation
-                #[rustfmt::skip]
-                    if let (
-                        Ok(Some(l_vertex)), Ok(Some(b1r_vertex)), // (lhs/b1rhs) vertices
-                        Ok(Some(b1l_vertex)), Ok(Some(r_vertex)), // (b1lhs/rhs) vertices
-                    ) = (
-                        self.vertices.read(trans, lhs_vid_old), self.vertices.read(trans, b1rhs_vid_old),// (lhs/b1rhs)
-                        self.vertices.read(trans, b1lhs_vid_old), self.vertices.read(trans, rhs_vid_old) // (b1lhs/rhs)
-                    )
-                    {
-                        let lhs_vector = b1l_vertex - l_vertex;
-                        let rhs_vector = b1r_vertex - r_vertex;
-                        // dot product should be negative if the two darts have opposite direction
-                        // we could also put restriction on the angle made by the two darts to prevent
-                        // drastic deformation
-                        if lhs_vector.dot(&rhs_vector) >= T::zero() {
-                            abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
-                        }
-                    };
+                if let (
+                    Ok(Some(l_vertex)),   // lhs
+                    Ok(Some(b1r_vertex)), // b1rhs
+                    Ok(Some(b1l_vertex)), // b1lhs
+                    Ok(Some(r_vertex)),   // rhs
+                ) = (
+                    self.vertices.read(trans, lhs_vid_old),   // lhs
+                    self.vertices.read(trans, b1rhs_vid_old), // b1rhs
+                    self.vertices.read(trans, b1lhs_vid_old), // b1lhs
+                    self.vertices.read(trans, rhs_vid_old),   // rhs
+                ) {
+                    let lhs_vector = b1l_vertex - l_vertex;
+                    let rhs_vector = b1r_vertex - r_vertex;
+                    // dot product should be negative if the two darts have opposite direction
+                    // we could also put restriction on the angle made by the two darts to prevent
+                    // drastic deformation
+                    if lhs_vector.dot(&rhs_vector) >= T::zero() {
+                        abort(SewError::BadGeometry(2, lhs_dart_id, rhs_dart_id))?;
+                    }
+                }
 
                 // update the topology
                 try_or_coerce!(
@@ -157,8 +172,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.merge_vertex_attributes(
+                    self.attributes.merge_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         lhs_vid_new,
                         lhs_vid_old,
                         b1rhs_vid_old,
@@ -166,8 +182,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.merge_vertex_attributes(
+                    self.attributes.merge_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         rhs_vid_new,
                         b1lhs_vid_old,
                         rhs_vid_old,
@@ -175,8 +192,13 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, lhs_eid_old, rhs_eid_old,),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        lhs_eid_old,
+                        rhs_eid_old,
+                    ),
                     SewError
                 );
             }
@@ -204,8 +226,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // split attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old,),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    ),
                     SewError
                 );
             }
@@ -218,8 +245,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // split vertex & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old,),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    ),
                     SewError
                 );
                 let (new_lv_lhs, new_lv_rhs) = (
@@ -232,8 +264,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_vertex_attributes(
+                    self.attributes.split_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         new_lv_lhs,
                         new_lv_rhs,
                         lhs_vid_old,
@@ -250,8 +283,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // split vertex & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old,),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    ),
                     SewError
                 );
                 let (new_rv_lhs, new_rv_rhs) = (
@@ -264,8 +302,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_vertex_attributes(
+                    self.attributes.split_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         new_rv_lhs,
                         new_rv_rhs,
                         rhs_vid_old,
@@ -283,8 +322,13 @@ impl<T: CoordsFloat> CMap2<T> {
                 // split vertices & attributes from the old ID to the new ones
                 // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, lhs_dart_id, rhs_dart_id, eid_old,),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        lhs_dart_id,
+                        rhs_dart_id,
+                        eid_old,
+                    ),
                     SewError
                 );
                 let (new_lv_lhs, new_lv_rhs) = (
@@ -301,8 +345,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_vertex_attributes(
+                    self.attributes.split_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         new_lv_lhs,
                         new_lv_rhs,
                         lhs_vid_old,
@@ -315,8 +360,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_vertex_attributes(
+                    self.attributes.split_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         new_rv_lhs,
                         new_rv_rhs,
                         rhs_vid_old,

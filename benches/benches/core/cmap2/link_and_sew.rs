@@ -3,7 +3,7 @@
 //! available computing power.
 //!
 //! This file contains benchmarks of key editing methods and constructors,
-//! classfied into three groups
+//! classified into three groups
 //!
 //! - `bench_links`: benches all variants of the `link` and `unlink` methods.
 //! - `bench_sews`: benches all variants of the `sew` and `unsew` methods.

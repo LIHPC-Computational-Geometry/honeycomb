@@ -10,6 +10,7 @@ use crate::{
 /// **3-(un)sews internals**
 impl<T: CoordsFloat> CMap3<T> {
     /// 3-sew operation.
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn three_sew(
         &self,
         trans: &mut Transaction,
@@ -96,7 +97,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 if lhs_vector.dot(&rhs_vector) >= T::zero() {
                     abort(SewError::BadGeometry(3, ld, rd))?;
                 }
-            };
+            }
         }
 
         // (*): these branch corresponds to incomplete merges (at best),
@@ -106,8 +107,13 @@ impl<T: CoordsFloat> CMap3<T> {
 
         // merge face, edge, vertex attributes
         try_or_coerce!(
-            self.attributes
-                .merge_face_attributes(trans, l_face.min(r_face), l_face, r_face),
+            self.attributes.merge_attributes(
+                trans,
+                OrbitPolicy::Face,
+                l_face.min(r_face),
+                l_face,
+                r_face
+            ),
             SewError
         );
 
@@ -115,8 +121,13 @@ impl<T: CoordsFloat> CMap3<T> {
             eid_l != eid_r && eid_l != NULL_DART_ID && eid_r != NULL_DART_ID
         }) {
             try_or_coerce!(
-                self.attributes
-                    .merge_edge_attributes(trans, eid_l.min(eid_r), eid_l, eid_r),
+                self.attributes.merge_attributes(
+                    trans,
+                    OrbitPolicy::Edge,
+                    eid_l.min(eid_r),
+                    eid_l,
+                    eid_r
+                ),
                 SewError
             );
         }
@@ -128,8 +139,13 @@ impl<T: CoordsFloat> CMap3<T> {
                 SewError
             );
             try_or_coerce!(
-                self.attributes
-                    .merge_vertex_attributes(trans, vid_l.min(vid_r), vid_l, vid_r),
+                self.attributes.merge_attributes(
+                    trans,
+                    OrbitPolicy::Vertex,
+                    vid_l.min(vid_r),
+                    vid_l,
+                    vid_r
+                ),
                 SewError
             );
         }
@@ -157,8 +173,13 @@ impl<T: CoordsFloat> CMap3<T> {
             .min()
             .expect("E: unreachable");
         try_or_coerce!(
-            self.attributes
-                .split_face_attributes(trans, l_face, r_face, l_face.max(r_face)),
+            self.attributes.split_attributes(
+                trans,
+                OrbitPolicy::Face,
+                l_face,
+                r_face,
+                l_face.max(r_face)
+            ),
             SewError
         );
 
@@ -172,8 +193,13 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.edge_id_transac(trans, r)?,
             );
             try_or_coerce!(
-                self.attributes
-                    .split_edge_attributes(trans, eid_l, eid_r, eid_l.max(eid_r)),
+                self.attributes.split_attributes(
+                    trans,
+                    OrbitPolicy::Edge,
+                    eid_l,
+                    eid_r,
+                    eid_l.max(eid_r)
+                ),
                 SewError
             );
 
@@ -189,8 +215,13 @@ impl<T: CoordsFloat> CMap3<T> {
                 SewError
             );
             try_or_coerce!(
-                self.attributes
-                    .split_vertex_attributes(trans, vid_l, vid_r, vid_l.max(vid_r)),
+                self.attributes.split_attributes(
+                    trans,
+                    OrbitPolicy::Vertex,
+                    vid_l,
+                    vid_r,
+                    vid_l.max(vid_r)
+                ),
                 SewError
             );
             if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
@@ -206,8 +237,9 @@ impl<T: CoordsFloat> CMap3<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_vertex_attributes(
+                    self.attributes.split_attributes(
                         trans,
+                        OrbitPolicy::Vertex,
                         lvid_l,
                         lvid_r,
                         lvid_l.max(lvid_r),

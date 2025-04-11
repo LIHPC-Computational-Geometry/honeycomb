@@ -106,7 +106,7 @@ defined in the Apache-2.0 license, shall be dual licensed as above, without any 
     - [Link](https://hal.science/hal-01090890v1)
 - The CGAL Project. *CGAL User and Reference Manual*. CGAL Editorial Board, 5.6.1 edition, 2024.
     - Provides concrete examples as well as code snippets of the CGAL implementation of the structure. The CGAL
-      implementation uses a different approach than ours, & support N-dimensionnal map.
+      implementation uses a different approach than ours, & support N-dimensional map.
     - [Link](https://doc.cgal.org/latest/Combinatorial_map/)
 
 ### Algorithms

@@ -177,7 +177,7 @@ pub fn grisubal<T: CoordsFloat>(
     //----/
 
     // --- FIND AN OVERLAPPING GRID
-    let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes)?;
+    let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, false)?;
     let [cx, cy] = grid_cell_sizes;
     let ogrid = GridDescriptor::default()
         .n_cells([nx, ny])

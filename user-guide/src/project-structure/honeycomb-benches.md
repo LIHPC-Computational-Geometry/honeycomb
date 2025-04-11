@@ -63,7 +63,7 @@ Both scripts provide an interactive menu with four options:
 (0) all
 (1) fixed-size profiling
 (2) grid size scaling
-(3) thread number scaling (not yet implmented)
+(3) thread number scaling (not yet implemented)
 ```
 
 #### `builder.py`
