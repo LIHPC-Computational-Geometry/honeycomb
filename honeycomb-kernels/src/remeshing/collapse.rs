@@ -1,7 +1,8 @@
 use honeycomb_core::{
     attributes::{AttributeError, AttributeUpdate},
     cmap::{
-        CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, OrbitPolicy, SewError,
+        CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, OrbitPolicy,
+        SewError, VertexIdType,
     },
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
@@ -36,6 +37,7 @@ impl From<LinkError> for EdgeCollapseError {
     }
 }
 
+#[allow(clippy::missing_errors_doc)]
 /// Collapse an edge separating two triangles.
 ///
 /// ```text
@@ -64,11 +66,16 @@ impl From<LinkError> for EdgeCollapseError {
 /// - `map: &mut CMap2` -- Edited map.
 /// - `e: EdgeIdType` -- Edge to move.
 ///
-/// # Errors
+/// # Return / Errors
+///
+/// Upon success, this function will return the ID of the new vertex formed after the collapse.
+/// Depending on the anchoring constraints, it may be placed on one of the two previously existing
+/// vertex, or to their average value.
 ///
 /// This function will abort and raise an error if:
 /// - the transaction cannot be completed,
-/// - one internal sew operation fails.
+/// - one internal sew operation fails,
+/// - the collapse cannot be completed; see [`EdgeCollapseError`] for more information.
 ///
 /// The returned error can be used in conjunction with transaction control to avoid any
 /// modifications in case of failure at attribute level. The user can then choose to retry or
@@ -78,7 +85,7 @@ pub fn collapse_edge<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
     e: EdgeIdType,
-) -> TransactionClosureResult<(), EdgeCollapseError> {
+) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
     if e == NULL_EDGE_ID {
         abort(EdgeCollapseError::NullEdge)?;
     }
@@ -165,7 +172,7 @@ pub fn collapse_edge<T: CoordsFloat>(
         }
     }
 
-    Ok(())
+    Ok(new_vid)
 }
 
 // -- internals
@@ -244,6 +251,7 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         }
     }
 
+    let b2b0l = map.beta_transac::<2>(t, b0l)?;
     let b2b1l = map.beta_transac::<2>(t, b1l)?;
     let b0b2b1l = map.beta_transac::<0>(t, b2b1l)?;
     let b1b2b1l = map.beta_transac::<1>(t, b2b1l)?;
@@ -262,7 +270,7 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
     }
 
-    let new_vid = map.vertex_id_transac(t, b1b2b1l)?;
+    let new_vid = map.vertex_id_transac(t, b2b0l)?;
     map.write_vertex(t, new_vid, tmp_vertex)?;
     if let Some(a) = tmp_anchor {
         map.write_attribute(t, new_vid, a)?;
