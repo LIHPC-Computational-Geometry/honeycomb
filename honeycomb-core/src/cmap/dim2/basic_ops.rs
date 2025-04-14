@@ -130,11 +130,25 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the dart is not *i*-free for all *i*,
     /// - the dart is already marked as unused.
     pub fn remove_free_dart(&mut self, dart_id: DartIdType) {
-        atomically(|trans| {
-            assert!(self.is_free(dart_id)); // all beta images are 0
-            assert!(!self.unused_darts[dart_id as DartIdType].replace(trans, true)?);
-            Ok(())
-        });
+        assert!(self.is_free(dart_id)); // all beta images are 0
+        assert!(!atomically(|t| self.remove_free_dart_transac(t, dart_id)));
+    }
+
+    /// Transactionally remove a free dart from the map.
+    ///
+    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
+    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
+    /// any sort extremely costly.
+    ///
+    /// # Arguments
+    ///
+    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    pub fn remove_free_dart_transac(
+        &self,
+        t: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmClosureResult<bool> {
+        Ok(self.unused_darts[dart_id].replace(t, true)?)
     }
 }
 
