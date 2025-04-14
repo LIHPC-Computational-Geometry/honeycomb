@@ -134,6 +134,7 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(!atomically(|t| self.remove_free_dart_transac(t, dart_id)));
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Transactionally remove a free dart from the map.
     ///
     /// The removed dart identifier is added to the list of free dart. This way of proceeding is
@@ -143,12 +144,20 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method return a boolean indicating whether the art was already unused or not.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn remove_free_dart_transac(
         &self,
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<bool> {
-        Ok(self.unused_darts[dart_id].replace(t, true)?)
+        self.unused_darts[dart_id].replace(t, true)
     }
 }
 
