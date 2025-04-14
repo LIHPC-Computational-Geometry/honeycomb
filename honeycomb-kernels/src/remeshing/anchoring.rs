@@ -36,6 +36,19 @@ pub enum VertexAnchor {
     Body(BodyIdType),
 }
 
+impl VertexAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Node(_) => 0,
+            Self::Curve(_) => 1,
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
+}
+
 impl AttributeBind for VertexAnchor {
     type StorageType = AttrSparseVec<Self>;
     type IdentifierType = VertexIdType;
@@ -116,6 +129,18 @@ pub enum EdgeAnchor {
     Body(SurfaceIdType),
 }
 
+impl EdgeAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Curve(_) => 1,
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
+}
+
 impl AttributeBind for EdgeAnchor {
     type StorageType = AttrSparseVec<Self>;
     type IdentifierType = EdgeIdType;
@@ -181,6 +206,17 @@ pub enum FaceAnchor {
     Surface(SurfaceIdType),
     /// Vertex is linked to a 3D body.
     Body(BodyIdType),
+}
+
+impl FaceAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
 }
 
 impl AttributeBind for FaceAnchor {

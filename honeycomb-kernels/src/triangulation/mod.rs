@@ -109,7 +109,11 @@ pub fn check_requirements(
 }
 
 /// Compute the cross product: `v1v2 x v2v3`.
-fn crossp_from_verts<T: CoordsFloat>(v1: &Vertex2<T>, v2: &Vertex2<T>, v3: &Vertex2<T>) -> T {
+pub(crate) fn crossp_from_verts<T: CoordsFloat>(
+    v1: &Vertex2<T>,
+    v2: &Vertex2<T>,
+    v3: &Vertex2<T>,
+) -> T {
     (v2.x() - v1.x()) * (v3.y() - v2.y()) - (v2.y() - v1.y()) * (v3.x() - v2.x())
 }
 

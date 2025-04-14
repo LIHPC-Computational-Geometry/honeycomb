@@ -1,10 +1,17 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, SewError},
+    attributes::{AttributeError, AttributeUpdate},
+    cmap::{
+        CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, OrbitPolicy, SewError,
+    },
     geometry::CoordsFloat,
-    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
+    stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
+use smallvec::SmallVec;
 
-use crate::remeshing::VertexAnchor;
+use crate::{
+    remeshing::{EdgeAnchor, VertexAnchor},
+    triangulation::crossp_from_verts,
+};
 
 /// Error-modeling enum for edge swap routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -66,6 +73,7 @@ impl From<LinkError> for EdgeCollapseError {
 /// The returned error can be used in conjunction with transaction control to avoid any
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
+#[allow(clippy::many_single_char_names)]
 pub fn collapse_edge<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
@@ -77,21 +85,13 @@ pub fn collapse_edge<T: CoordsFloat>(
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
     let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
     let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
+    let b2b0l = map.beta_transac::<2>(t, b0l)?; // useful for final orientation check
 
     if map.beta_transac::<1>(t, b1l)? != b0l {
         abort(EdgeCollapseError::BadTopology)?;
     }
     if r != NULL_DART_ID && map.beta_transac::<1>(t, b1r)? != b0r {
         abort(EdgeCollapseError::BadTopology)?;
-    }
-
-    if map.contains_attribute::<VertexAnchor>() {
-        let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
-        let (l_anchor, r_anchor, edge_anchor) = (
-            map.read_attribute::<VertexAnchor>(t, l_vid)?,
-            map.read_attribute::<VertexAnchor>(t, r_vid)?,
-            map.read_attribute::<VertexAnchor>(t, l_vid)?,
-        );
     }
 
     match is_collapsible(t, map, e)? {
@@ -107,6 +107,62 @@ pub fn collapse_edge<T: CoordsFloat>(
             collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
             EdgeCollapseError
         ),
+    }
+
+    let new_vid = map.vertex_id_transac(t, b2b0l)?;
+    let new_v = if let Some(v) = map.read_vertex(t, new_vid)? {
+        v
+    } else {
+        retry()?
+    };
+    let mut tmp: SmallVec<DartIdType, 10> = SmallVec::new();
+    for d in map.orbit_transac(t, OrbitPolicy::Vertex, b2b0l) {
+        tmp.push(d?);
+    }
+
+    let ref_sign = {
+        let d = tmp[0];
+        let b1d = map.beta_transac::<1>(t, d)?;
+        let b1b1d = map.beta_transac::<1>(t, b1d)?;
+        let vid1 = map.vertex_id_transac(t, b1d)?;
+        let vid2 = map.vertex_id_transac(t, b1b1d)?;
+        let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
+            v
+        } else {
+            retry()?
+        };
+        let v2 = if let Some(v) = map.read_vertex(t, vid2)? {
+            v
+        } else {
+            retry()?
+        };
+
+        let crossp = crossp_from_verts(&new_v, &v1, &v2);
+        crossp.signum()
+    };
+    for &d in &tmp[1..] {
+        let b1d = map.beta_transac::<1>(t, d)?;
+        let b1b1d = map.beta_transac::<1>(t, b1d)?;
+        let vid1 = map.vertex_id_transac(t, b1d)?;
+        let vid2 = map.vertex_id_transac(t, b1b1d)?;
+        let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
+            v
+        } else {
+            retry()?
+        };
+        let v2 = if let Some(v) = map.read_vertex(t, vid2)? {
+            v
+        } else {
+            retry()?
+        };
+
+        let crossp = crossp_from_verts(&new_v, &v1, &v2);
+
+        if ref_sign != crossp.signum() {
+            abort(EdgeCollapseError::NonCollapsibleEdge(
+                "resulting geometry is inverted",
+            ))?;
+        }
     }
 
     Ok(())
@@ -144,10 +200,9 @@ fn collapse_halfcell<T: CoordsFloat>(
     map.unsew::<2>(t, b0d)?;
     map.unsew::<2>(t, b1d)?;
     map.sew::<2>(t, b2b0d, b2b1d)?;
-    // FIXME: set as unused
-    // map.remove_free_dart(r);
-    // map.remove_free_dart(b0r);
-    // map.remove_free_dart(b1r);
+    map.remove_free_dart_transac(t, d)?;
+    map.remove_free_dart_transac(t, b0d)?;
+    map.remove_free_dart_transac(t, b1d)?;
     TransactionClosureResult::Ok(())
 }
 
@@ -181,10 +236,9 @@ fn collapse_edge_to_base<T: CoordsFloat>(
             try_or_coerce!(map.unsew::<1>(t, b2b0r), EdgeCollapseError);
             try_or_coerce!(map.unsew::<1>(t, b0b2b0r), EdgeCollapseError);
             try_or_coerce!(map.unlink::<2>(t, b0r), EdgeCollapseError);
-            // FIXME: set as unused
-            // map.remove_free_dart(r);
-            // map.remove_free_dart(b0r);
-            // map.remove_free_dart(b2b0r);
+            map.remove_free_dart_transac(t, r)?;
+            map.remove_free_dart_transac(t, b0r)?;
+            map.remove_free_dart_transac(t, b2b0r)?;
             try_or_coerce!(map.sew::<1>(t, b1r, b1b2b0r), EdgeCollapseError);
             try_or_coerce!(map.sew::<1>(t, b0b2b0r, b1r), EdgeCollapseError);
         }
@@ -201,10 +255,9 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         try_or_coerce!(map.unsew::<1>(t, b2b1l), EdgeCollapseError);
         try_or_coerce!(map.unsew::<1>(t, b0b2b1l), EdgeCollapseError);
         try_or_coerce!(map.unlink::<2>(t, b1l), EdgeCollapseError);
-        // FIXME: set as unused
-        // map.remove_free_dart(l);
-        // map.remove_free_dart(b1l);
-        // map.remove_free_dart(b2b1l);
+        map.remove_free_dart_transac(t, l)?;
+        map.remove_free_dart_transac(t, b1l)?;
+        map.remove_free_dart_transac(t, b2b1l)?;
         try_or_coerce!(map.sew::<1>(t, b0l, b1b2b1l), EdgeCollapseError);
         try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
     }
@@ -221,9 +274,53 @@ fn collapse_edge_to_base<T: CoordsFloat>(
 fn is_collapsible<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
-    edge_id: EdgeIdType,
+    e: EdgeIdType,
 ) -> TransactionClosureResult<Collapsible, EdgeCollapseError> {
-    todo!()
+    if !map.contains_attribute::<VertexAnchor>() {
+        // if there are no anchors, we'll assume we can naively collapse
+        return Ok(Collapsible::Average);
+    }
+    let (l, b1l) = (e as DartIdType, map.beta_transac::<1>(t, e as DartIdType)?);
+
+    // first check anchor predicates
+
+    let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
+    let (l_anchor, r_anchor, edge_anchor) = if let (Some(a1), Some(a2), Some(a3)) = (
+        map.read_attribute::<VertexAnchor>(t, l_vid)?,
+        map.read_attribute::<VertexAnchor>(t, r_vid)?,
+        map.read_attribute::<EdgeAnchor>(t, e)?,
+    ) {
+        (a1, a2, a3)
+    } else {
+        retry()?
+    };
+
+    match AttributeUpdate::merge(l_anchor, r_anchor) {
+        Ok(val) => {
+            // check ID too? did other checks filter that out already?
+            // does having different IDs here mean the classification is bad?
+            if edge_anchor.anchor_dim() == l_anchor.anchor_dim()
+                || edge_anchor.anchor_dim() == r_anchor.anchor_dim()
+            {
+                match (val == l_anchor, val == r_anchor) {
+                    (true, true) => Ok(Collapsible::Average),
+                    (true, false) => Ok(Collapsible::Left),
+                    (false, true) => Ok(Collapsible::Right),
+                    (false, false) => unreachable!(),
+                }
+            } else {
+                abort(EdgeCollapseError::NonCollapsibleEdge(
+                    "edge's anchor prevents collapsing these vertices",
+                ))
+            }
+        }
+        Err(AttributeError::FailedMerge(_, _)) => abort(EdgeCollapseError::NonCollapsibleEdge(
+            "vertex have incompatible anchors",
+        )),
+        Err(AttributeError::FailedSplit(_, _) | AttributeError::InsufficientData(_, _)) => {
+            unreachable!();
+        }
+    }
 }
 
 enum Collapsible {
