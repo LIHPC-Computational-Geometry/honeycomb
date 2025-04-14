@@ -67,16 +67,6 @@ cargo +nightly doc --all --all-features --no-deps
 
 Note that generating the doc using a stable toolchain is possible, the features just won't be documented as clearly.
 
-## Contributing
-
-Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues to report bugs,
-missing documentation or suggest improvements of the project.
-
-Note that a most of the code possess documentation, including private modules / items / sections. You can generate the
-complete documentation by using the instructions [above](#Documentation) and passing the option
-`--document-private-items` to `cargo doc`.
-
-[GH]: https://github.com/LIHPC-Computational-Geometry/honeycomb
 
 ## License
 
