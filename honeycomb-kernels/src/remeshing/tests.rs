@@ -585,19 +585,19 @@ fn collapse_edge_seq() {
     // this collapses to average
     assert!(matches!(
         atomically_with_err(|t| collapse_edge(t, &map, 30)),
-        Ok(())
+        Ok(24)
     ));
 
     // this collapses to left vertex
     assert!(matches!(
         atomically_with_err(|t| collapse_edge(t, &map, 5)),
-        Ok(())
+        Ok(2)
     ));
 
     // this collapses to right vertex
     assert!(matches!(
         atomically_with_err(|t| collapse_edge(t, &map, 24)),
-        Ok(())
+        Ok(21)
     ));
 }
 
