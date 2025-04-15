@@ -14,7 +14,7 @@ use crate::{
     triangulation::crossp_from_verts,
 };
 
-/// Error-modeling enum for edge swap routine.
+/// Error-modeling enum for edge collapse routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum EdgeCollapseError {
     /// A core operation failed.
@@ -28,10 +28,10 @@ pub enum EdgeCollapseError {
     #[error("collapsing would result in an inversion of geometry orientation")]
     InvertedOrientation,
     /// The edge passed as argument is null.
-    #[error("cannot swap null edge")]
+    #[error("cannot collapse null edge")]
     NullEdge,
     /// One or both of the cells adjacent to the edge are not triangles.
-    #[error("cannot swap an edge adjacent to a non-triangular cell")]
+    #[error("cannot collapse an edge adjacent to a non-triangular cell")]
     BadTopology,
 }
 
@@ -60,9 +60,10 @@ impl From<LinkError> for EdgeCollapseError {
 /// +-----+-----+       +-----+-----+
 /// ```
 ///
-/// This function expects to operate on a triangular mesh. At the moment, calling it on another type
-/// of mesh may result in non-explicit errors (e.g. an internal sew operation will consistently fail
-/// due to a dart being non-free) as there is no check on each faces' degree.
+/// This function expects to operate on a triangular mesh. The edge may be collapsed to one of
+/// the existing vertices, or to the average of their value; this is determined by the anchoring
+/// of the mesh to its geometry. If no anchoring attributes are present, the edge is always
+/// collapsed to the average value.
 ///
 /// # Arguments
 ///
@@ -84,6 +85,15 @@ impl From<LinkError> for EdgeCollapseError {
 /// The returned error can be used in conjunction with transaction control to avoid any
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
+///
+/// <div class="warning">
+/// Note that the function will return `StmError::Retry` if it attempts to read a missing vertex.
+/// If used within a transaction which retries indefinitely (e.g. `atomically_with_err`), it can
+/// lead to an infinite loop.
+///
+/// This will not happen unless the map ends up in an incorrect state where topological vertices
+/// have no associated coordiantes.
+/// </div>
 #[allow(clippy::many_single_char_names)]
 pub fn collapse_edge<T: CoordsFloat>(
     t: &mut Transaction,
