@@ -96,6 +96,25 @@ impl AttributeUpdate for VertexAnchor {
     }
 }
 
+impl From<EdgeAnchor> for VertexAnchor {
+    fn from(value: EdgeAnchor) -> Self {
+        match value {
+            EdgeAnchor::Curve(i) => VertexAnchor::Curve(i),
+            EdgeAnchor::Surface(i) => VertexAnchor::Surface(i),
+            EdgeAnchor::Body(i) => VertexAnchor::Body(i),
+        }
+    }
+}
+
+impl From<FaceAnchor> for VertexAnchor {
+    fn from(value: FaceAnchor) -> Self {
+        match value {
+            FaceAnchor::Surface(i) => VertexAnchor::Surface(i),
+            FaceAnchor::Body(i) => VertexAnchor::Body(i),
+        }
+    }
+}
+
 // --- Edge anchors
 
 /// Geometrical mesh anchor.
@@ -109,11 +128,11 @@ impl AttributeUpdate for VertexAnchor {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum EdgeAnchor {
     /// Vertex is linked to a curve.
-    Curve(NodeIdType),
+    Curve(CurveIdType),
     /// Vertex is linked to a surface.
-    Surface(CurveIdType),
+    Surface(SurfaceIdType),
     /// Vertex is linked to a 3D body.
-    Body(SurfaceIdType),
+    Body(BodyIdType),
 }
 
 impl AttributeBind for EdgeAnchor {
@@ -162,6 +181,15 @@ impl AttributeUpdate for EdgeAnchor {
 
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
+    }
+}
+
+impl From<FaceAnchor> for EdgeAnchor {
+    fn from(value: FaceAnchor) -> Self {
+        match value {
+            FaceAnchor::Surface(i) => EdgeAnchor::Surface(i),
+            FaceAnchor::Body(i) => EdgeAnchor::Body(i),
+        }
     }
 }
 
