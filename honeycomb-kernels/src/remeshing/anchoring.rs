@@ -94,6 +94,10 @@ impl AttributeUpdate for VertexAnchor {
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
     }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
+    }
 }
 
 // --- Edge anchors
@@ -163,6 +167,10 @@ impl AttributeUpdate for EdgeAnchor {
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
     }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
+    }
 }
 
 // --- Face anchors
@@ -218,5 +226,9 @@ impl AttributeUpdate for FaceAnchor {
 
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
+    }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
     }
 }
