@@ -540,6 +540,106 @@ mod capture_and_classify {
     }
 }
 
+#[cfg(test)]
+mod triangulate_and_classify {
+    use crate::triangulation::{TriangulateError, earclip_cell_countercw};
+
+    use super::*;
+
+    // should panic here because not all processed faces reach failure
+    #[test]
+    #[should_panic = "called `Result::unwrap()` on an `Err` value: OpFailed"]
+    fn tri_before_class_no_anchor_value() {
+        // classifying a map with no anchored vertices values should result in all
+        // cells being anchored to surfaces
+        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+            .add_attribute::<VertexAnchor>()
+            .add_attribute::<EdgeAnchor>()
+            .add_attribute::<FaceAnchor>()
+            .build()
+            .unwrap();
+
+        let faces = map.iter_faces().collect::<Vec<_>>();
+        for f in faces {
+            let nd = map.add_free_darts(2);
+            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+        }
+
+        // assert_eq!(classify_capture(&map), Ok(()));
+    }
+
+    #[test]
+    fn tri_before_class() {
+        // classifying a map with no anchored vertices values should result in all
+        // cells being anchored to surfaces
+        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+            .add_attribute::<VertexAnchor>()
+            .add_attribute::<EdgeAnchor>()
+            .add_attribute::<FaceAnchor>()
+            .build()
+            .unwrap();
+        map.force_write_attribute(1, VertexAnchor::Node(1));
+        map.force_write_attribute(6, VertexAnchor::Node(2));
+        map.force_write_attribute(12, VertexAnchor::Node(3));
+        map.force_write_attribute(15, VertexAnchor::Node(4));
+
+        let faces = map.iter_faces().collect::<Vec<_>>();
+        for f in faces {
+            let nd = map.add_free_darts(2);
+            assert!(
+                atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1]))
+                    .is_err_and(|e| matches!(e, TriangulateError::OpFailed(_)))
+            );
+        }
+
+        assert_eq!(classify_capture(&map), Ok(()));
+    }
+
+    #[test]
+    fn tri_after_class_no_anchor_value() {
+        // classifying a map with no anchored vertices values should result in all
+        // cells being anchored to surfaces
+        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+            .add_attribute::<VertexAnchor>()
+            .add_attribute::<EdgeAnchor>()
+            .add_attribute::<FaceAnchor>()
+            .build()
+            .unwrap();
+
+        assert_eq!(classify_capture(&map), Ok(()));
+
+        let faces = map.iter_faces().collect::<Vec<_>>();
+        for f in faces {
+            let nd = map.add_free_darts(2);
+            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+        }
+    }
+
+    #[test]
+    fn tri_after_class() {
+        // classifying a map with no anchored vertices values should result in all
+        // cells being anchored to surfaces
+        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+            .add_attribute::<VertexAnchor>()
+            .add_attribute::<EdgeAnchor>()
+            .add_attribute::<FaceAnchor>()
+            .build()
+            .unwrap();
+        map.force_write_attribute(1, VertexAnchor::Node(1));
+        map.force_write_attribute(6, VertexAnchor::Node(2));
+        map.force_write_attribute(12, VertexAnchor::Node(3));
+        map.force_write_attribute(15, VertexAnchor::Node(4));
+
+        assert_eq!(classify_capture(&map), Ok(()));
+
+        let faces = map.iter_faces().collect::<Vec<_>>();
+        for f in faces {
+            let nd = map.add_free_darts(2);
+            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+        }
+    }
+}
+
 // --- edge swap
 
 #[cfg(test)]
