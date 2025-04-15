@@ -92,7 +92,7 @@ impl From<LinkError> for EdgeCollapseError {
 /// lead to an infinite loop.
 ///
 /// This will not happen unless the map ends up in an incorrect state where topological vertices
-/// have no associated coordiantes.
+/// have no associated coordinates.
 /// </div>
 #[allow(clippy::many_single_char_names)]
 pub fn collapse_edge<T: CoordsFloat>(
@@ -193,27 +193,25 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, SewError> {
-    let mut tmp_d = NULL_DART_ID;
     if r != NULL_DART_ID {
-        tmp_d = b1r;
         map.unsew::<2>(t, r)?;
-        collapse_halfcell(t, map, (b0r, r, b1r))?;
+        collapse_halfcell_to_midpoint(t, map, (b0r, r, b1r))?;
     }
     // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
-    let b2b0l = map.beta_transac::<2>(t, b0l)?;
-    if b2b0l != NULL_DART_ID {
-        tmp_d = b2b0l;
-    }
-    collapse_halfcell(t, map, (b0l, l, b1l))?;
+    let b2b0l = map.beta_transac::<2>(t, b0l)?; // save this before left cell collapse
+    collapse_halfcell_to_midpoint(t, map, (b0l, l, b1l))?;
 
-    Ok(if tmp_d == NULL_DART_ID {
-        NULL_VERTEX_ID
+    Ok(if b2b0l != NULL_DART_ID {
+        map.vertex_id_transac(t, b2b0l)?
+    } else if r != NULL_DART_ID {
+        map.vertex_id_transac(t, b1r)?
     } else {
-        map.vertex_id_transac(t, tmp_d)?
+        // this can happen from a valid configuration, so we handle it
+        NULL_VERTEX_ID
     })
 }
 
-fn collapse_halfcell<T: CoordsFloat>(
+fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
     (b0d, d, b1d): (DartIdType, DartIdType, DartIdType),
@@ -240,75 +238,74 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
-    let l_vid = map.vertex_id_transac(t, l)?;
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
+    let l_vid = map.vertex_id_transac(t, l)?;
     let tmp_vertex = if let Some(v) = map.read_vertex(t, l_vid)? {
         v
     } else {
         retry()?
     };
-    // remove condition? do we expect to use this without anchors?
-    let tmp_anchor = if map.contains_attribute::<VertexAnchor>() {
-        map.read_attribute::<VertexAnchor>(t, l_vid)?
-    } else {
-        None
-    };
-    let mut tmp_d = NULL_DART_ID;
+    let tmp_anchor = map.read_attribute::<VertexAnchor>(t, l_vid)?;
 
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
+        try_or_coerce!(
+            collapse_halfcell_to_base(t, map, (b1r, r, b0r)),
+            EdgeCollapseError
+        );
+    }
+    // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
+    let b2b0l = map.beta_transac::<2>(t, b0l)?; // save this before left cell collapse
+    try_or_coerce!(
+        collapse_halfcell_to_base(t, map, (b0l, l, b1l)),
+        EdgeCollapseError
+    );
 
-        let b2b0r = map.beta_transac::<2>(t, b0r)?;
-        let b0b2b0r = map.beta_transac::<0>(t, b2b0r)?;
-        let b1b2b0r = map.beta_transac::<1>(t, b2b0r)?;
+    let new_vid = if b2b0l != NULL_DART_ID {
+        map.vertex_id_transac(t, b2b0l)?
+    } else if r != NULL_DART_ID {
+        map.vertex_id_transac(t, b1r)?
+    } else {
+        // this can happen from a valid configuration, so we handle it
+        NULL_VERTEX_ID
+    };
 
-        try_or_coerce!(map.unsew::<1>(t, r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b1r), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b0r), EdgeCollapseError);
-        tmp_d = b1r;
-        if b2b0r != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<1>(t, b2b0r), EdgeCollapseError);
-            try_or_coerce!(map.unsew::<1>(t, b0b2b0r), EdgeCollapseError);
-            try_or_coerce!(map.unlink::<2>(t, b0r), EdgeCollapseError);
-            map.remove_free_dart_transac(t, r)?;
-            map.remove_free_dart_transac(t, b0r)?;
-            map.remove_free_dart_transac(t, b2b0r)?;
-            try_or_coerce!(map.sew::<1>(t, b1r, b1b2b0r), EdgeCollapseError);
-            try_or_coerce!(map.sew::<1>(t, b0b2b0r, b1r), EdgeCollapseError);
+    if new_vid != NULL_VERTEX_ID {
+        map.write_vertex(t, new_vid, tmp_vertex)?;
+        if let Some(a) = tmp_anchor {
+            map.write_attribute(t, new_vid, a)?;
         }
-    }
-
-    let b2b0l = map.beta_transac::<2>(t, b0l)?;
-    if b2b0l != NULL_DART_ID {
-        tmp_d = b2b0l;
-    }
-    let b2b1l = map.beta_transac::<2>(t, b1l)?;
-    let b0b2b1l = map.beta_transac::<0>(t, b2b1l)?;
-    let b1b2b1l = map.beta_transac::<1>(t, b2b1l)?;
-
-    try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
-    if b2b1l != NULL_DART_ID {
-        try_or_coerce!(map.unsew::<1>(t, b2b1l), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b0b2b1l), EdgeCollapseError);
-        try_or_coerce!(map.unlink::<2>(t, b1l), EdgeCollapseError);
-        map.remove_free_dart_transac(t, l)?;
-        map.remove_free_dart_transac(t, b1l)?;
-        map.remove_free_dart_transac(t, b2b1l)?;
-        try_or_coerce!(map.sew::<1>(t, b0l, b1b2b1l), EdgeCollapseError);
-        try_or_coerce!(map.sew::<1>(t, b0b2b1l, b0l), EdgeCollapseError);
-    }
-
-    let new_vid = map.vertex_id_transac(t, tmp_d)?;
-    map.write_vertex(t, new_vid, tmp_vertex)?;
-    if let Some(a) = tmp_anchor {
-        map.write_attribute(t, new_vid, a)?;
     }
 
     Ok(new_vid)
 }
 
+fn collapse_halfcell_to_base<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    // d_previous_edge, d_edge, d_next_edge
+    (d_pe, d_e, d_ne): (DartIdType, DartIdType, DartIdType),
+) -> TransactionClosureResult<(), SewError> {
+    let b2d_ne = map.beta_transac::<2>(t, d_ne)?;
+    let b0b2d_ne = map.beta_transac::<0>(t, b2d_ne)?;
+    let b1b2d_ne = map.beta_transac::<1>(t, b2d_ne)?;
+
+    map.unsew::<1>(t, d_e)?;
+    map.unsew::<1>(t, d_pe)?;
+    map.unsew::<1>(t, d_ne)?;
+    if b2d_ne != NULL_DART_ID {
+        map.unsew::<1>(t, b2d_ne)?;
+        map.unsew::<1>(t, b0b2d_ne)?;
+        try_or_coerce!(map.unlink::<2>(t, d_ne), SewError);
+        map.remove_free_dart_transac(t, d_e)?;
+        map.remove_free_dart_transac(t, d_ne)?;
+        map.remove_free_dart_transac(t, b2d_ne)?;
+        map.sew::<1>(t, d_pe, b1b2d_ne)?;
+        map.sew::<1>(t, b0b2d_ne, d_pe)?;
+    }
+
+    Ok(())
+}
 fn is_collapsible<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap2<T>,
