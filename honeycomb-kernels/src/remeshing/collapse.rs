@@ -23,6 +23,10 @@ pub enum EdgeCollapseError {
     /// The edge passed as argument cannot be collapsed due to constraints on its vertices.
     #[error("cannot collapse edge: {0}")]
     NonCollapsibleEdge(&'static str),
+    /// The structure after collapse contains a triangle with inverted orientation, making the
+    /// geometry invalid.
+    #[error("collapsing would result in an inversion of geometry orientation")]
+    InvertedOrientation,
     /// The edge passed as argument is null.
     #[error("cannot swap null edge")]
     NullEdge,
@@ -164,9 +168,7 @@ pub fn collapse_edge<T: CoordsFloat>(
         let crossp = crossp_from_verts(&new_v, &v1, &v2);
 
         if ref_sign != crossp.signum() {
-            abort(EdgeCollapseError::NonCollapsibleEdge(
-                "resulting geometry is inverted",
-            ))?;
+            abort(EdgeCollapseError::InvertedOrientation)?;
         }
     }
 
@@ -336,7 +338,7 @@ fn is_collapsible<T: CoordsFloat>(
                 }
             } else {
                 abort(EdgeCollapseError::NonCollapsibleEdge(
-                    "edge's anchor prevents collapsing these vertices",
+                    "collapsing along this edge is impossible",
                 ))
             }
         }
