@@ -5,9 +5,14 @@ use honeycomb::{
     kernels::remeshing::move_vertex_to_average,
     prelude::{
         CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy,
-        grisubal::{Clip, grisubal},
+        grisubal::Clip,
+        remeshing::{
+            EdgeAnchor, EdgeCollapseError, EdgeSwapError, FaceAnchor, capture_geometry,
+            classify_capture, collapse_edge, cut_inner_edge, cut_outer_edge, swap_edge,
+        },
         triangulation::{TriangulateError, earclip_cell_countercw},
     },
+    stm::retry,
 };
 
 use crate::{cli::RemeshArgs, utils::hash_file};
@@ -25,14 +30,18 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
     // -- capture via grid overlap
     let mut instant = Instant::now();
-    // TODO: replace grisubal with `capture_geometry`
-    let mut map: CMap2<T> = grisubal(
+    let mut map: CMap2<T> = capture_geometry(
         input_map,
         [T::from(args.lx).unwrap(), T::from(args.ly).unwrap()],
         Clip::from(args.clip),
     )
     .unwrap();
     let capture_time = instant.elapsed();
+
+    // -- classification
+    instant = Instant::now();
+    classify_capture(&map).unwrap();
+    let classification_time = instant.elapsed();
 
     // -- triangulation
     instant = Instant::now();
@@ -49,22 +58,45 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             *state += n_d as DartIdType;
             Some((f, n_d, *state - n_d as DartIdType))
         })
+        .filter(|(_, n_d, _)| *n_d != 0)
         .for_each(|(f, n_d, start)| {
             let new_darts = (start..start + n_d as DartIdType).collect::<Vec<_>>();
+            let anchor = map.force_remove_attribute::<FaceAnchor>(f);
+            // make sure new edges are anchored
+            if let Some(a) = anchor {
+                atomically(|t| {
+                    for &d in &new_darts {
+                        map.write_attribute(t, d, EdgeAnchor::from(a))?;
+                    }
+                    Ok(())
+                });
+            }
             while let Err(e) =
                 atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &new_darts))
             {
                 match e {
-                    TriangulateError::AlreadyTriangulated => break,
-                    _ => continue,
+                    TriangulateError::UndefinedFace(_) | TriangulateError::OpFailed(_) => continue,
+                    TriangulateError::NoEar => panic!("E: cannot triangulate the geometry capture"),
+                    TriangulateError::AlreadyTriangulated
+                    | TriangulateError::NonFannable
+                    | TriangulateError::NotEnoughDarts(_)
+                    | TriangulateError::TooManyDarts(_) => {
+                        unreachable!()
+                    }
                 }
+            }
+            // make sure new faces are anchored
+            if let Some(a) = anchor {
+                atomically(|t| {
+                    for &d in &new_darts {
+                        let fid = map.face_id_transac(t, d)?;
+                        map.write_attribute(t, fid, a)?;
+                    }
+                    Ok(())
+                });
             }
         });
     let triangulation_time = instant.elapsed();
-
-    instant = Instant::now();
-    // classify_capture(&map)?;
-    let classification_time = instant.elapsed();
 
     // TODO: print the whole config
     println!("| remesh benchmark");
@@ -96,6 +128,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     loop {
         r = 0;
 
+        // -- relax
         instant = Instant::now();
         loop {
             map.iter_vertices()
@@ -122,6 +155,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             }
         }
         print!("{}", instant.elapsed().as_millis());
+        println!("dog");
 
         instant = Instant::now();
         if !args.disable_er {
@@ -137,7 +171,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     );
                     (v2 - v1).norm()
                 })
-                .filter(|l| (l.to_f64().unwrap() - args.target_length) / args.target_length > 0.2)
+                .filter(|l| {
+                    (l.to_f64().unwrap() - args.target_length).abs() / args.target_length
+                        > args.target_tolerance
+                })
                 .count();
             // if 95%+ edges are in the target length tolerance range, finish early
             if ((n_e_outside_tol as f32 - n_e as f32).abs() / n_e as f32) < 0.05 {
@@ -147,13 +184,109 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             }
         }
         print!(" | {}", instant.elapsed().as_millis());
+        println!("dog");
 
-        map.iter_edges().for_each(|e| {
-            let n_d = map.add_free_darts(6);
-            atomically_with_err(|t| Ok(()));
-        });
+        instant = Instant::now();
+        let edges_to_process = map
+            .iter_edges()
+            .map(|e| {
+                let (v1, v2) = (
+                    map.force_read_vertex(map.vertex_id(e as DartIdType))
+                        .unwrap(),
+                    map.force_read_vertex(map.vertex_id(map.beta::<1>(e as DartIdType)))
+                        .unwrap(),
+                );
+                let norm = (v2 - v1).norm();
+                (
+                    e,
+                    (norm.to_f64().unwrap() - args.target_length) / args.target_length,
+                )
+            })
+            .filter(|(_, diff)| diff.abs() > args.target_tolerance)
+            .collect::<Vec<_>>();
+        print!(" | {}", instant.elapsed().as_millis());
+        println!("dog");
 
-        todo!();
+        // -- cut / collapse
+        instant = Instant::now();
+        for (e, diff) in edges_to_process {
+            if diff.is_sign_positive() {
+                // edge is 20+% longer than target length => cut
+                if map.is_i_free::<2>(e as DartIdType) {
+                    let nd = map.add_free_darts(3);
+                    let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
+                    while atomically_with_err(|t| cut_outer_edge(t, &map, e, nds)).is_err() {}
+                } else {
+                    let nd = map.add_free_darts(6);
+                    let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
+                    while atomically_with_err(|t| cut_inner_edge(t, &map, e, nds)).is_err() {}
+                }
+            } else {
+                // edge is 20+% shorter than target length => collapse
+                while let Err(e) = atomically_with_err(|t| collapse_edge(t, &map, e)) {
+                    match e {
+                        EdgeCollapseError::FailedCoreOp(_) | EdgeCollapseError::BadTopology => {
+                            continue;
+                        }
+                        EdgeCollapseError::NonCollapsibleEdge(_)
+                        | EdgeCollapseError::InvertedOrientation => break,
+                        EdgeCollapseError::NullEdge => unreachable!(),
+                    }
+                }
+            }
+        }
+        print!(" | {}", instant.elapsed().as_millis());
+        println!("dog");
+
+        // -- swap
+        instant = Instant::now();
+        for (e, diff) in map
+            .iter_edges()
+            .map(|e| {
+                let (v1, v2) = (
+                    map.force_read_vertex(map.vertex_id(e as DartIdType))
+                        .unwrap(),
+                    map.force_read_vertex(map.vertex_id(map.beta::<1>(e as DartIdType)))
+                        .unwrap(),
+                );
+                let norm = (v2 - v1).norm();
+                (
+                    e,
+                    (norm.to_f64().unwrap() - args.target_length) / args.target_length,
+                )
+            })
+            .filter(|(_, diff)| diff.abs() > args.target_tolerance)
+        {
+            let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
+            if r != NULL_DART_ID {
+                while let Err(e) = atomically_with_err(|t| {
+                    let (vid1, vid2) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, r)?);
+                    let (v1, v2) = if let (Some(v1), Some(v2)) =
+                        (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
+                    {
+                        (v1, v2)
+                    } else {
+                        retry()?
+                    };
+                    let norm = (v2 - v1).norm();
+                    let new_diff =
+                        (norm.to_f64().unwrap() - args.target_length) / args.target_length;
+
+                    // if the swap gets the edge length closer to target value, do it
+                    if new_diff.abs() < diff.abs() {
+                        swap_edge(t, &map, e)?;
+                    }
+
+                    Ok(())
+                }) {
+                    match e {
+                        EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
+                        EdgeSwapError::IncompleteEdge | EdgeSwapError::NullEdge => unreachable!(),
+                    }
+                }
+            }
+        }
+        println!(" | {}", instant.elapsed().as_millis());
 
         n += 1;
         if n >= args.n_rounds.get() {

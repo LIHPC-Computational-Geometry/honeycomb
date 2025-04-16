@@ -129,7 +129,7 @@ pub struct RemeshArgs {
     pub clip: Clip,
 
     // -- remeshing args
-    /// Target value for edge length. TODO: define a tolerance
+    /// Target value for edge length.
     #[arg(
         short('l'),
         long("target-length"),
