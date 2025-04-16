@@ -30,7 +30,7 @@ impl<T: CoordsFloat> CMap2<T> {
                         trans,
                         OrbitPolicy::Edge,
                         eid_new,
-                        lhs_dart_id as EdgeIdType,
+                        lhs_dart_id as EdgeIdType, // valid in 2D
                         rhs_dart_id as EdgeIdType,
                     ),
                     SewError
@@ -39,8 +39,8 @@ impl<T: CoordsFloat> CMap2<T> {
             // update vertex associated to b1rhs/lhs
             (true, false) => {
                 // fetch vertices ID before topology update
-                let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
+                let rhs_eid_old = rhs_dart_id as EdgeIdType;
                 let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
                 // update the topology
@@ -80,8 +80,8 @@ impl<T: CoordsFloat> CMap2<T> {
             // update vertex associated to b1lhs/rhs
             (false, true) => {
                 // fetch vertices ID before topology update
-                let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
+                let rhs_eid_old = rhs_dart_id as EdgeIdType;
                 let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
                 let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
                 // update the topology
@@ -121,8 +121,8 @@ impl<T: CoordsFloat> CMap2<T> {
             // update both vertices making up the edge
             (false, false) => {
                 // fetch vertices ID before topology update
-                let lhs_eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let rhs_eid_old = self.edge_id_transac(trans, b1rhs_dart_id)?;
+                let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
+                let rhs_eid_old = rhs_dart_id as EdgeIdType;
                 // (lhs/b1rhs) vertex
                 let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
                 let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
@@ -229,8 +229,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.split_attributes(
                         trans,
                         OrbitPolicy::Edge,
-                        lhs_dart_id,
-                        rhs_dart_id,
+                        lhs_dart_id as EdgeIdType, // valid in 2D
+                        rhs_dart_id as EdgeIdType,
                         eid_old,
                     ),
                     SewError
@@ -248,8 +248,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.split_attributes(
                         trans,
                         OrbitPolicy::Edge,
-                        lhs_dart_id,
-                        rhs_dart_id,
+                        lhs_dart_id as EdgeIdType, // valid in 2D
+                        rhs_dart_id as EdgeIdType,
                         eid_old,
                     ),
                     SewError
@@ -286,8 +286,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.split_attributes(
                         trans,
                         OrbitPolicy::Edge,
-                        lhs_dart_id,
-                        rhs_dart_id,
+                        lhs_dart_id as EdgeIdType, // valid in 2D
+                        rhs_dart_id as EdgeIdType,
                         eid_old,
                     ),
                     SewError
@@ -325,8 +325,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.split_attributes(
                         trans,
                         OrbitPolicy::Edge,
-                        lhs_dart_id,
-                        rhs_dart_id,
+                        lhs_dart_id as EdgeIdType, // valid in 2D
+                        rhs_dart_id as EdgeIdType,
                         eid_old,
                     ),
                     SewError
