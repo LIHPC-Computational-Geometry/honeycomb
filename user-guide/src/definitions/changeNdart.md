@@ -2,7 +2,7 @@
 
 ## Adding darts
 
-As explained in the [Darts](darts.html) section of this guide, these entities exist implictly through indexing of the
+As explained in the [Darts](darts.html) section of this guide, these entities exist implicitly through indexing of the
 internal storage structures of the map. Because of this, adding darts translates to extending internal vectors and
 storages in our implementation.
 

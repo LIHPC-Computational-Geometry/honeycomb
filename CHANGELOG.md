@@ -6,6 +6,82 @@
 
 ---
 
+## 0.8.1
+
+### Workspace
+
+*new:*
+- add a pre-commit hook config file by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/322
+
+*refactor:*
+- update spellcheck CI by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/315
+
+*deps:*
+- bump crate-ci/typos from 1.29.7 to 1.31.1 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/313
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- add transactional dart removal by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/319
+
+*refactor:*
+- simplify attribute manager methods & update usages by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/317
+
+*fix:*
+- correct vertex values for 3D grid generation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/318
+- correct edge ID computations in 2-(un)sews by @imrn99
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+- implement geometrical anchoring attributes by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/312
+- add anchor support in cut edge routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/320
+- add a `collapse_edge` routine for remeshing by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/307
+
+
+*refactor:*
+- add anchor insertion after geometry capture by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/314
+- split the `remeshing` module into submodules by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/309
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*new:*
+- render faces using lines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/308
+- add support for `CMap3` rendering by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/310
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+- add `f32` support to `hc-bench` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/316
+
+---
+
 ## 0.8.0
 
 **This update contains breaking changes**

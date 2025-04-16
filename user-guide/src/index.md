@@ -38,16 +38,16 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.8.0" } # remove tag for master branch build
+honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.8.1" } # remove tag for master branch build
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.8.0"
-honeycomb-kernels = "0.8.0"
-honeycomb-render = "0.8.0"
+honeycomb-core = "0.8.1"
+honeycomb-kernels = "0.8.1"
+honeycomb-render = "0.8.1"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
@@ -67,16 +67,6 @@ cargo +nightly doc --all --all-features --no-deps
 
 Note that generating the doc using a stable toolchain is possible, the features just won't be documented as clearly.
 
-## Contributing
-
-Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues to report bugs,
-missing documentation or suggest improvements of the project.
-
-Note that a most of the code possess documentation, including private modules / items / sections. You can generate the
-complete documentation by using the instructions [above](#Documentation) and passing the option
-`--document-private-items` to `cargo doc`.
-
-[GH]: https://github.com/LIHPC-Computational-Geometry/honeycomb
 
 ## License
 
@@ -106,7 +96,7 @@ defined in the Apache-2.0 license, shall be dual licensed as above, without any 
     - [Link](https://hal.science/hal-01090890v1)
 - The CGAL Project. *CGAL User and Reference Manual*. CGAL Editorial Board, 5.6.1 edition, 2024.
     - Provides concrete examples as well as code snippets of the CGAL implementation of the structure. The CGAL
-      implementation uses a different approach than ours, & support N-dimensionnal map.
+      implementation uses a different approach than ours, & support N-dimensional map.
     - [Link](https://doc.cgal.org/latest/Combinatorial_map/)
 
 ### Algorithms

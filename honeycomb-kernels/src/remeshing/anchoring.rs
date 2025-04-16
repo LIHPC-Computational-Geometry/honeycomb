@@ -5,8 +5,14 @@ use honeycomb_core::{
     cmap::{EdgeIdType, FaceIdType, OrbitPolicy, VertexIdType},
 };
 
-/// Geometrical cell identifier type.
-pub type GCellIdType = u32;
+/// Geometrical 0-cell identifier type.
+pub type NodeIdType = u32;
+/// Geometrical 1-cell identifier type.
+pub type CurveIdType = u32;
+/// Geometrical 2-cell identifier type.
+pub type SurfaceIdType = u32;
+/// Geometrical 3-cell identifier type.
+pub type BodyIdType = u32;
 
 // --- Vertex anchors
 
@@ -18,16 +24,29 @@ pub type GCellIdType = u32;
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum VertexAnchor {
     /// Vertex is linked to a node.
-    Node(GCellIdType),
+    Node(NodeIdType),
     /// Vertex is linked to a curve.
-    Curve(GCellIdType),
+    Curve(CurveIdType),
     /// Vertex is linked to a surface.
-    Surface(GCellIdType),
+    Surface(SurfaceIdType),
     /// Vertex is linked to a 3D body.
-    Body(GCellIdType),
+    Body(BodyIdType),
+}
+
+impl VertexAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Node(_) => 0,
+            Self::Curve(_) => 1,
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
 }
 
 impl AttributeBind for VertexAnchor {
@@ -88,6 +107,29 @@ impl AttributeUpdate for VertexAnchor {
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
     }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
+    }
+}
+
+impl From<EdgeAnchor> for VertexAnchor {
+    fn from(value: EdgeAnchor) -> Self {
+        match value {
+            EdgeAnchor::Curve(i) => VertexAnchor::Curve(i),
+            EdgeAnchor::Surface(i) => VertexAnchor::Surface(i),
+            EdgeAnchor::Body(i) => VertexAnchor::Body(i),
+        }
+    }
+}
+
+impl From<FaceAnchor> for VertexAnchor {
+    fn from(value: FaceAnchor) -> Self {
+        match value {
+            FaceAnchor::Surface(i) => VertexAnchor::Surface(i),
+            FaceAnchor::Body(i) => VertexAnchor::Body(i),
+        }
+    }
 }
 
 // --- Edge anchors
@@ -100,14 +142,26 @@ impl AttributeUpdate for VertexAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum EdgeAnchor {
     /// Vertex is linked to a curve.
-    Curve(GCellIdType),
+    Curve(CurveIdType),
     /// Vertex is linked to a surface.
-    Surface(GCellIdType),
+    Surface(SurfaceIdType),
     /// Vertex is linked to a 3D body.
-    Body(GCellIdType),
+    Body(BodyIdType),
+}
+
+impl EdgeAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Curve(_) => 1,
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
 }
 
 impl AttributeBind for EdgeAnchor {
@@ -157,6 +211,19 @@ impl AttributeUpdate for EdgeAnchor {
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
     }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
+    }
+}
+
+impl From<FaceAnchor> for EdgeAnchor {
+    fn from(value: FaceAnchor) -> Self {
+        match value {
+            FaceAnchor::Surface(i) => EdgeAnchor::Surface(i),
+            FaceAnchor::Body(i) => EdgeAnchor::Body(i),
+        }
+    }
 }
 
 // --- Face anchors
@@ -169,12 +236,23 @@ impl AttributeUpdate for EdgeAnchor {
 /// merge two anchors. The merge-ability of two anchors also depends on their intersection; we
 /// expect this to be handled outside of the merge functor, as doing it inside would require leaking
 /// map data into the trait's methods.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum FaceAnchor {
     /// Vertex is linked to a surface.
-    Surface(GCellIdType),
+    Surface(SurfaceIdType),
     /// Vertex is linked to a 3D body.
-    Body(GCellIdType),
+    Body(BodyIdType),
+}
+
+impl FaceAnchor {
+    /// Return the dimension of the associated anchor.
+    #[must_use = "unused return value"]
+    pub const fn anchor_dim(&self) -> u8 {
+        match self {
+            Self::Surface(_) => 2,
+            Self::Body(_) => 3,
+        }
+    }
 }
 
 impl AttributeBind for FaceAnchor {
@@ -212,5 +290,9 @@ impl AttributeUpdate for FaceAnchor {
 
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
         Ok((attr, attr))
+    }
+
+    fn merge_incomplete(val: Self) -> Result<Self, AttributeError> {
+        Ok(val)
     }
 }

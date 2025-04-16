@@ -37,7 +37,7 @@ mod scene;
 // out of the box render tool
 
 use bevy::prelude::*;
-use honeycomb_core::cmap::CMap2;
+use honeycomb_core::cmap::{CMap2, CMap3};
 use honeycomb_core::geometry::CoordsFloat;
 
 /// Main rendering function.
@@ -60,6 +60,25 @@ pub fn render_2d_map<T: CoordsFloat>(cmap: CMap2<T>) {
     app.run();
 }
 
+/// Main rendering function.
+pub fn render_3d_map<T: CoordsFloat>(cmap: CMap3<T>) {
+    let mut app = App::new();
+    app.insert_resource(resources::Map3(cmap));
+    app.init_gizmo_group::<resources::DartGizmos>()
+        .init_gizmo_group::<resources::VertexGizmos>()
+        .init_gizmo_group::<resources::EdgeGizmos>();
+    app.add_systems(Startup, import_map::extract_data_from_3d_map::<T>);
+    // resource
+    app.insert_resource(Msaa::Sample4)
+        .insert_resource(ClearColor(Color::srgb(0.9, 0.9, 0.9)));
+    // plugins
+    app.add_plugins(DefaultPlugins)
+        .add_plugins(plugins::OptionsPlugin)
+        .add_plugins(plugins::GuiPlugin)
+        .add_plugins(plugins::ScenePlugin);
+
+    app.run();
+}
 // item for custom composition
 
 /// plugins used to build the default [`App`]
@@ -84,7 +103,7 @@ pub mod components {
 /// resources used to build the default [`App`]
 pub mod resources {
     pub use crate::gui::WindowVisible;
-    pub use crate::import_map::{FaceNormals, Map, MapVertices, VolumeNormals};
+    pub use crate::import_map::{FaceNormals, Map, Map3, MapVertices, VolumeNormals};
     pub use crate::options::{
         DartHeadMul, DartRenderColor, DartShrink, DartWidth, EdgeRenderColor, EdgeWidth,
         FaceRenderColor, FaceShrink, VertexRenderColor, VertexWidth, VolumeRenderColor,
@@ -96,9 +115,9 @@ pub mod resources {
 /// systems used to build the default [`App`]
 pub mod systems {
     pub use crate::gui::{draw_inspected_data, draw_options};
-    pub use crate::import_map::extract_data_from_map;
+    pub use crate::import_map::{extract_data_from_3d_map, extract_data_from_map};
     pub use crate::render_map::{
-        render_dart_enabled, render_darts, render_edge_enabled, render_edges, render_face_enabled,
-        render_faces, render_vertex_enabled, render_vertices,
+        render_dart_enabled, render_darts, render_darts_3d, render_edge_enabled, render_edges,
+        render_face_enabled, render_faces, render_vertex_enabled, render_vertices,
     };
 }

@@ -30,7 +30,7 @@ own algorithms.
 
 Exposing an API that allows users to handle synchronization also means that the implementation
 isn't bound to a given parallelization framework. Instead of relying on predefinite parallel
-routines (e.g. a provided `parallel_for` on given cells), the structure can integrate seemlessly
+routines (e.g. a provided `parallel_for` on given cells), the structure can integrate seamlessly
 in existing algorithm. 
 
 
@@ -211,5 +211,5 @@ use a fallible transaction (that's `atomically_with_err`) to define our atomic s
 the error like any other.
 
 In the above example, transactions are retried until success, since we can guarantee that only
-valid data states are commited; that implies transactions will eventually succeed, albeit after
+valid data states are committed; that implies transactions will eventually succeed, albeit after
 many retries.

@@ -19,3 +19,4 @@ bevy_egui.workspace = true
 bevy_mod_picking.workspace = true
 bevy_mod_outline.workspace = true
 egui_dock.workspace = true
+itertools.workspace = true

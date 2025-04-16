@@ -76,7 +76,7 @@ This is an intermediate step which enables better implementation of the next two
 results in:
 
 - the parallelization of step 3
-- the decorrelation of step 3 from step 4, making their concurrent execution posssible
+- the decorrelation of step 3 from step 4, making their concurrent execution possible
 
 This is achieved by:
 
@@ -88,7 +88,7 @@ This is achieved by:
 
 Given intersection information per edge (step 2 `1.`), and pre-allocated darts (step 2 `2.`), we iterate
 through edges, building intersections into the map. Thanks to the `splitn_edge` implementation and dart
-pre-allocation, processing edges should be an embarassingly parallel section.
+pre-allocation, processing edges should be an embarrassingly parallel section.
 
 ### Step 4 - Filter & Rebuild Segment Data
 

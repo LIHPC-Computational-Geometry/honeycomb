@@ -1,0 +1,35 @@
+repos:
+  - repo: local
+    hooks:
+      # Check format
+      # Only a check (vs actually formatting) to avoid mistakes
+      - id: cargo-fmt
+        name: check rust code formatting
+        entry: cargo-fmt
+        language: rust
+        files: \.rs$
+        pass_filenames: false
+        args: ["--check"]
+      # Linting with clippy
+      # Warnings are denied in the CI
+      - id: cargo-clippy
+        name: run clippy
+        entry: cargo clippy
+        language: rust
+        files: (Cargo.(toml|lock)|\.rs$)
+        pass_filenames: false
+        args: ["--workspace"]
+      # Passing tests in required
+      - id: cargo-test
+        name: run rust tests
+        entry: cargo test
+        language: rust
+        files: (Cargo.(toml|lock)|\.rs$)
+        pass_filenames: false
+      # Check for spelling mistake
+      - id: typos
+        name: run spell checker
+        entry: typos
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -2,7 +2,7 @@
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap3, DartIdType, NULL_DART_ID, SewError},
+    cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, SewError},
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
@@ -24,12 +24,17 @@ impl<T: CoordsFloat> CMap3<T> {
             // trivial case, no update needed
             (true, true) => {
                 let eid_l = self.edge_id_transac(trans, ld)?;
-                let eid_r = self.edge_id_transac(trans, b1rd)?;
+                let eid_r = self.edge_id_transac(trans, rd)?;
                 try_or_coerce!(self.betas.two_link_core(trans, ld, rd), SewError);
                 let eid_new = self.edge_id_transac(trans, ld)?;
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        eid_l,
+                        eid_r
+                    ),
                     SewError
                 );
             }
@@ -37,7 +42,7 @@ impl<T: CoordsFloat> CMap3<T> {
             (true, false) => {
                 // fetch vertices ID before topology update
                 let eid_l = self.edge_id_transac(trans, ld)?;
-                let eid_r = self.edge_id_transac(trans, b1rd)?;
+                let eid_r = self.edge_id_transac(trans, rd)?;
                 let vid_l = self.vertex_id_transac(trans, ld)?;
                 let vid_b1r = self.vertex_id_transac(trans, b1rd)?;
                 // update the topology
@@ -50,13 +55,23 @@ impl<T: CoordsFloat> CMap3<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_l_new,
+                        vid_l,
+                        vid_b1r
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        eid_l,
+                        eid_r
+                    ),
                     SewError
                 );
             }
@@ -64,7 +79,7 @@ impl<T: CoordsFloat> CMap3<T> {
             (false, true) => {
                 // fetch vertices ID before topology update
                 let eid_l = self.edge_id_transac(trans, ld)?;
-                let eid_r = self.edge_id_transac(trans, b1rd)?;
+                let eid_r = self.edge_id_transac(trans, rd)?;
                 let vid_b1l = self.vertex_id_transac(trans, b1ld)?;
                 let vid_r = self.vertex_id_transac(trans, rd)?;
                 // update the topology
@@ -77,13 +92,23 @@ impl<T: CoordsFloat> CMap3<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_r_new,
+                        vid_b1l,
+                        vid_r
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        eid_l,
+                        eid_r
+                    ),
                     SewError
                 );
             }
@@ -91,7 +116,7 @@ impl<T: CoordsFloat> CMap3<T> {
             (false, false) => {
                 // fetch vertices ID before topology update
                 let eid_l = self.edge_id_transac(trans, ld)?;
-                let eid_r = self.edge_id_transac(trans, b1rd)?;
+                let eid_r = self.edge_id_transac(trans, rd)?;
                 // (lhs/b1rhs) vertex
                 let vid_l = self.vertex_id_transac(trans, ld)?;
                 let vid_b1r = self.vertex_id_transac(trans, b1rd)?;
@@ -140,18 +165,33 @@ impl<T: CoordsFloat> CMap3<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_vertex_attributes(trans, vid_l_new, vid_l, vid_b1r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_l_new,
+                        vid_l,
+                        vid_b1r
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_vertex_attributes(trans, vid_r_new, vid_b1l, vid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_r_new,
+                        vid_b1l,
+                        vid_r
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .merge_edge_attributes(trans, eid_new, eid_l, eid_r),
+                    self.attributes.merge_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_new,
+                        eid_l,
+                        eid_r
+                    ),
                     SewError
                 );
             }
@@ -160,6 +200,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 2-unsew transactional operation.
+    #[allow(clippy::too_many_lines)]
     pub(crate) fn two_unsew(
         &self,
         trans: &mut Transaction,
@@ -176,10 +217,18 @@ impl<T: CoordsFloat> CMap3<T> {
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, ld), SewError);
                 // split attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                let (eid_newl, eid_newr) = (
+                    self.edge_id_transac(trans, ld)?,
+                    self.edge_id_transac(trans, rd)?,
+                );
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, ld, rd, eid_old),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_newl,
+                        eid_newr,
+                        eid_old
+                    ),
                     SewError
                 );
             }
@@ -190,23 +239,37 @@ impl<T: CoordsFloat> CMap3<T> {
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, ld), SewError);
                 // split vertex & attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                let (eid_newl, eid_newr) = (
+                    self.edge_id_transac(trans, ld)?,
+                    self.edge_id_transac(trans, rd)?,
+                );
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, ld, rd, eid_old),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_newl,
+                        eid_newr,
+                        eid_old
+                    ),
                     SewError
                 );
                 let (vid_l_newl, vid_l_newr) = (
                     self.vertex_id_transac(trans, ld)?,
                     self.vertex_id_transac(trans, b1rd)?,
                 );
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.vertices.split(trans, vid_l_newl, vid_l_newr, vid_l),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_l_newl,
+                        vid_l_newr,
+                        vid_l
+                    ),
                     SewError
                 );
             }
@@ -217,23 +280,37 @@ impl<T: CoordsFloat> CMap3<T> {
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, ld), SewError);
                 // split vertex & attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                let (eid_newl, eid_newr) = (
+                    self.edge_id_transac(trans, ld)?,
+                    self.edge_id_transac(trans, rd)?,
+                );
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, ld, rd, eid_old),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_newl,
+                        eid_newr,
+                        eid_old
+                    ),
                     SewError
                 );
                 let (vid_r_newl, vid_r_newr) = (
                     self.vertex_id_transac(trans, b1ld)?,
                     self.vertex_id_transac(trans, rd)?,
                 );
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.vertices.split(trans, vid_r_newl, vid_r_newr, vid_r),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_r_newl,
+                        vid_r_newr,
+                        vid_r
+                    ),
                     SewError
                 );
             }
@@ -245,10 +322,18 @@ impl<T: CoordsFloat> CMap3<T> {
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, ld), SewError);
                 // split vertices & attributes from the old ID to the new ones
-                // FIXME: VertexIdentifier should be cast to DartIdentifier
+                let (eid_newl, eid_newr) = (
+                    self.edge_id_transac(trans, ld)?,
+                    self.edge_id_transac(trans, rd)?,
+                );
                 try_or_coerce!(
-                    self.attributes
-                        .split_edge_attributes(trans, ld, rd, eid_old),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Edge,
+                        eid_newl,
+                        eid_newr,
+                        eid_old
+                    ),
                     SewError
                 );
                 let (vid_l_newl, vid_l_newr) = (
@@ -259,6 +344,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     self.vertex_id_transac(trans, b1ld)?,
                     self.vertex_id_transac(trans, rd)?,
                 );
+                // FIXME: VertexIdentifier should be cast to DartIdentifier
                 try_or_coerce!(
                     self.vertices.split(trans, vid_l_newl, vid_l_newr, vid_l),
                     SewError
@@ -268,13 +354,23 @@ impl<T: CoordsFloat> CMap3<T> {
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .split_vertex_attributes(trans, vid_l_newl, vid_l_newr, vid_l),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_l_newl,
+                        vid_l_newr,
+                        vid_l
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes
-                        .split_vertex_attributes(trans, vid_r_newl, vid_r_newr, vid_r),
+                    self.attributes.split_attributes(
+                        trans,
+                        OrbitPolicy::Vertex,
+                        vid_r_newl,
+                        vid_r_newr,
+                        vid_r
+                    ),
                     SewError
                 );
             }

@@ -19,5 +19,4 @@ jobs:
     - name: Run typos spell check
       uses: crate-ci/typos@v1.31.1
       with:
-        files: README.md CHANGELOG.md CONTRIBUTING.md docs examples honeycomb honeycomb-core honeycomb-kernels honeycomb-render
         config: ./.typos.toml

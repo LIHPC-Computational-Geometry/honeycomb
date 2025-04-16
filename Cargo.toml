@@ -13,7 +13,7 @@ members = [
 [workspace.package]
 edition = "2024"
 license = "MIT OR Apache-2.0"
-version = "0.8.0"
+version = "0.8.1"
 homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
 repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
 readme = "README.md"
@@ -27,12 +27,12 @@ authors = [
 
 [workspace.dependencies]
 # members
-honeycomb = { version = "0.8.0", path = "./honeycomb" }
-honeycomb-benches = { version = "0.8.0", path = "./benches" }
-honeycomb-core = { version = "0.8.0", path = "./honeycomb-core" }
-honeycomb-kernels = { version = "0.8.0", path = "./honeycomb-kernels" }
-honeycomb-examples = { version = "0.8.0", path = "./examples" }
-honeycomb-render = { version = "0.8.0", path = "./honeycomb-render" }
+honeycomb = { version = "0.8.1", path = "./honeycomb" }
+honeycomb-benches = { version = "0.8.1", path = "./benches" }
+honeycomb-core = { version = "0.8.1", path = "./honeycomb-core" }
+honeycomb-kernels = { version = "0.8.1", path = "./honeycomb-kernels" }
+honeycomb-examples = { version = "0.8.1", path = "./examples" }
+honeycomb-render = { version = "0.8.1", path = "./honeycomb-render" }
 
 # common
 clap = "4.5.29"

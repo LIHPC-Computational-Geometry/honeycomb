@@ -19,7 +19,7 @@ The file should contain 4 sections:
 - `[UNUSED]`: unused darts
 - `[VERTICES]`: vertex identifiers and values
 
-Single line comments are supproted using the `#` character.
+Single line comments are supported using the `#` character.
 
 #### META
 

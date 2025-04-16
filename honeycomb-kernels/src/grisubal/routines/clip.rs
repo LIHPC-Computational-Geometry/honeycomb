@@ -7,6 +7,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::GrisubalError;
 use crate::grisubal::model::Boundary;
+use crate::remeshing::VertexAnchor;
 
 /// Clip content on the left side of the boundary.
 pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
@@ -83,18 +84,24 @@ fn delete_darts<T: CoordsFloat>(
     marked: HashSet<FaceIdType>,
     kept_boundary: Boundary,
 ) {
-    let kept_boundary_components: Vec<(DartIdType, Vertex2<T>)> = (1..cmap.n_darts() as DartIdType)
-        .filter_map(|dart_id| {
-            if cmap.force_read_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
-                return Some((
-                    dart_id,
-                    cmap.force_read_vertex(cmap.vertex_id(dart_id))
-                        .expect("E: found a topological vertex with no associated coordinates"),
-                ));
-            }
-            None
-        })
-        .collect();
+    let kept_boundary_components: Vec<(DartIdType, Vertex2<T>, Option<VertexAnchor>)> =
+        (1..cmap.n_darts() as DartIdType)
+            .filter_map(|dart_id| {
+                if cmap.force_read_attribute::<Boundary>(dart_id) == Some(kept_boundary) {
+                    return Some((
+                        dart_id,
+                        cmap.force_read_vertex(cmap.vertex_id(dart_id))
+                            .expect("E: found a topological vertex with no associated coordinates"),
+                        if cmap.contains_attribute::<VertexAnchor>() {
+                            cmap.force_read_attribute(cmap.vertex_id(dart_id)) // may be Some or None
+                        } else {
+                            None
+                        },
+                    ));
+                }
+                None
+            })
+            .collect();
 
     for face_id in marked {
         let darts: Vec<DartIdType> = cmap
@@ -107,8 +114,13 @@ fn delete_darts<T: CoordsFloat>(
         }
     }
 
-    for (dart, vertex) in kept_boundary_components {
+    for (dart, vertex, anchor) in kept_boundary_components {
         cmap.set_beta::<2>(dart, NULL_DART_ID); // set beta2(dart) to 0
-        cmap.force_write_vertex(cmap.vertex_id(dart), vertex);
+        let vid = cmap.vertex_id(dart);
+        cmap.force_write_vertex(vid, vertex);
+        // if the map does not contain anchors, this branch is never taken
+        if let Some(a) = anchor {
+            cmap.force_write_attribute(vid, a);
+        }
     }
 }
