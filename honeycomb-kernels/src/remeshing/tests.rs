@@ -542,77 +542,6 @@ mod capture_and_classify {
     }
 }
 
-// -- collapse
-
-#[cfg(test)]
-mod collapse {
-    use super::*;
-
-    #[test]
-    fn collapse_edge_errs() {
-        let map = CMapBuilder::<2, f64>::unit_grid(2)
-            .add_attribute::<VertexAnchor>()
-            .add_attribute::<EdgeAnchor>()
-            .add_attribute::<FaceAnchor>()
-            .build()
-            .unwrap();
-        classify_capture(&map).unwrap();
-        // call on null
-        assert_eq!(
-            atomically_with_err(|t| collapse_edge(t, &map, NULL_DART_ID)),
-            Err(EdgeCollapseError::NullEdge)
-        );
-
-        // quad on one side
-        assert_eq!(
-            atomically_with_err(|t| collapse_edge(t, &map, 2)),
-            Err(EdgeCollapseError::BadTopology)
-        );
-
-        let map = CMapBuilder::<2, f64>::unit_triangles(2)
-            .add_attribute::<VertexAnchor>()
-            .add_attribute::<EdgeAnchor>()
-            .add_attribute::<FaceAnchor>()
-            .build()
-            .unwrap();
-        classify_capture(&map).unwrap();
-
-        assert!(matches!(
-            atomically_with_err(|t| collapse_edge(t, &map, 2)),
-            Err(EdgeCollapseError::NonCollapsibleEdge(_))
-        ));
-    }
-
-    #[test]
-    fn collapse_edge_seq() {
-        let map = CMapBuilder::<2, f64>::unit_triangles(3)
-            .add_attribute::<VertexAnchor>()
-            .add_attribute::<EdgeAnchor>()
-            .add_attribute::<FaceAnchor>()
-            .build()
-            .unwrap();
-        classify_capture(&map).unwrap();
-
-        // this collapses to average
-        assert!(matches!(
-            atomically_with_err(|t| collapse_edge(t, &map, 30)),
-            Ok(24)
-        ));
-
-        // this collapses to left vertex
-        assert!(matches!(
-            atomically_with_err(|t| collapse_edge(t, &map, 5)),
-            Ok(2)
-        ));
-
-        // this collapses to right vertex
-        assert!(matches!(
-            atomically_with_err(|t| collapse_edge(t, &map, 24)),
-            Ok(21)
-        ));
-    }
-}
-
 #[cfg(test)]
 mod triangulate_and_classify {
     use crate::triangulation::{TriangulateError, earclip_cell_countercw};
@@ -684,8 +613,47 @@ mod triangulate_and_classify {
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
             let nd = map.add_free_darts(2);
-            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+            atomically_with_err(|t| {
+                // the clean generalization would be to take each new edge (pair of new darts)
+                // and write the new anchor values
+                let anchor = map.remove_attribute::<FaceAnchor>(t, f)?;
+                if let Some(a) = anchor {
+                    map.write_attribute(t, nd, EdgeAnchor::from(a))?;
+                    // map.write_attribute(t, nd + 1, EdgeAnchor::from(a))?;
+                } else {
+                    // we only iterate on faces of the original grid, meaning they were all classified
+                    unreachable!()
+                }
+                earclip_cell_countercw(t, &map, f, &[nd, nd + 1])?;
+                if let Some(a) = anchor {
+                    let l_face_id = map.face_id_transac(t, nd)?;
+                    let r_face_id = map.face_id_transac(t, nd + 1)?;
+                    map.write_attribute(t, l_face_id, a)?;
+                    map.write_attribute(t, r_face_id, a)?;
+                } else {
+                    unreachable!()
+                }
+                Ok(())
+            })
+            .unwrap();
         }
+
+        let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map
+            .iter_edges()
+            .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
+        assert!(on_boundary.into_iter().all(|e| matches!(
+            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            EdgeAnchor::Curve(_)
+        )));
+        assert!(off_boundary.into_iter().all(|e| matches!(
+            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            EdgeAnchor::Surface(_)
+        )));
+
+        assert!(map.iter_faces().all(|f| matches!(
+            map.force_read_attribute::<FaceAnchor>(f).unwrap(),
+            FaceAnchor::Surface(_)
+        )));
     }
 
     #[test]
@@ -708,7 +676,130 @@ mod triangulate_and_classify {
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
             let nd = map.add_free_darts(2);
-            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+            atomically_with_err(|t| {
+                // the clean generalization would be to take each new edge (pair of new darts)
+                // and write the new anchor values
+                let anchor = map.remove_attribute::<FaceAnchor>(t, f)?;
+                if let Some(a) = anchor {
+                    map.write_attribute(t, nd, EdgeAnchor::from(a))?;
+                    // map.write_attribute(t, nd + 1, EdgeAnchor::from(a))?;
+                } else {
+                    // we only iterate on faces of the original grid, meaning they were all classified
+                    unreachable!()
+                }
+                earclip_cell_countercw(t, &map, f, &[nd, nd + 1])?;
+                if let Some(a) = anchor {
+                    let l_face_id = map.face_id_transac(t, nd)?;
+                    let r_face_id = map.face_id_transac(t, nd + 1)?;
+                    map.write_attribute(t, l_face_id, a)?;
+                    map.write_attribute(t, r_face_id, a)?;
+                } else {
+                    unreachable!()
+                }
+                Ok(())
+            })
+            .unwrap();
+        }
+
+        let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map.iter_vertices().partition(|v| {
+            map.orbit(OrbitPolicy::Vertex, *v)
+                .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
+        });
+        assert!(on_boundary.into_iter().all(|v| matches!(
+            map.force_read_attribute::<VertexAnchor>(v),
+            Some(VertexAnchor::Curve(_)) | Some(VertexAnchor::Node(_)) // we have 4 nodes in there
+        )));
+        assert!(off_boundary.into_iter().all(|v| matches!(
+            map.force_read_attribute::<VertexAnchor>(v),
+            Some(VertexAnchor::Surface(_))
+        )));
+
+        let (on_boundary, off_boundary): (Vec<_>, Vec<_>) = map
+            .iter_edges()
+            .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
+        assert!(on_boundary.into_iter().all(|e| matches!(
+            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            EdgeAnchor::Curve(_)
+        )));
+        assert!(off_boundary.into_iter().all(|e| matches!(
+            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            EdgeAnchor::Surface(_)
+        )));
+
+        assert!(map.iter_faces().all(|f| matches!(
+            map.force_read_attribute::<FaceAnchor>(f).unwrap(),
+            FaceAnchor::Surface(_)
+        )));
+    }
+
+    // -- collapse
+
+    #[cfg(test)]
+    mod collapse {
+        use super::*;
+
+        #[test]
+        fn collapse_edge_errs() {
+            let map = CMapBuilder::<2, f64>::unit_grid(2)
+                .add_attribute::<VertexAnchor>()
+                .add_attribute::<EdgeAnchor>()
+                .add_attribute::<FaceAnchor>()
+                .build()
+                .unwrap();
+            classify_capture(&map).unwrap();
+            // call on null
+            assert_eq!(
+                atomically_with_err(|t| collapse_edge(t, &map, NULL_DART_ID)),
+                Err(EdgeCollapseError::NullEdge)
+            );
+
+            // quad on one side
+            assert_eq!(
+                atomically_with_err(|t| collapse_edge(t, &map, 2)),
+                Err(EdgeCollapseError::BadTopology)
+            );
+
+            let map = CMapBuilder::<2, f64>::unit_triangles(2)
+                .add_attribute::<VertexAnchor>()
+                .add_attribute::<EdgeAnchor>()
+                .add_attribute::<FaceAnchor>()
+                .build()
+                .unwrap();
+            classify_capture(&map).unwrap();
+
+            assert!(matches!(
+                atomically_with_err(|t| collapse_edge(t, &map, 2)),
+                Err(EdgeCollapseError::NonCollapsibleEdge(_))
+            ));
+        }
+
+        #[test]
+        fn collapse_edge_seq() {
+            let map = CMapBuilder::<2, f64>::unit_triangles(3)
+                .add_attribute::<VertexAnchor>()
+                .add_attribute::<EdgeAnchor>()
+                .add_attribute::<FaceAnchor>()
+                .build()
+                .unwrap();
+            classify_capture(&map).unwrap();
+
+            // this collapses to average
+            assert!(matches!(
+                atomically_with_err(|t| collapse_edge(t, &map, 30)),
+                Ok(24)
+            ));
+
+            // this collapses to left vertex
+            assert!(matches!(
+                atomically_with_err(|t| collapse_edge(t, &map, 5)),
+                Ok(2)
+            ));
+
+            // this collapses to right vertex
+            assert!(matches!(
+                atomically_with_err(|t| collapse_edge(t, &map, 24)),
+                Ok(21)
+            ));
         }
     }
 }
