@@ -9,6 +9,7 @@
 
 mod anchoring;
 mod capture;
+mod collapse;
 mod cut;
 mod relaxation;
 mod swap;
@@ -17,6 +18,7 @@ pub use anchoring::{
     BodyIdType, CurveIdType, EdgeAnchor, FaceAnchor, NodeIdType, SurfaceIdType, VertexAnchor,
 };
 pub use capture::{ClassificationError, capture_geometry, classify_capture};
+pub use collapse::collapse_edge;
 pub use cut::{cut_inner_edge, cut_outer_edge};
 pub use relaxation::move_vertex_to_average;
 pub use swap::{EdgeSwapError, swap_edge};

@@ -8,10 +8,12 @@ use honeycomb_core::{
 
 use crate::{
     grisubal::Clip,
-    remeshing::{ClassificationError, EdgeSwapError, VertexAnchor, swap_edge},
+    remeshing::{
+        ClassificationError, EdgeSwapError, VertexAnchor, collapse::EdgeCollapseError, swap_edge,
+    },
 };
 
-use super::{EdgeAnchor, FaceAnchor, capture_geometry, classify_capture};
+use super::{EdgeAnchor, FaceAnchor, capture_geometry, classify_capture, collapse_edge};
 
 // --- anchors
 
@@ -532,6 +534,74 @@ fn classify_with_anchored_vertex_values() {
 }
 
 // --- edge swap
+
+// -- collapse
+
+#[test]
+fn collapse_edge_errs() {
+    let map = CMapBuilder::<2, f64>::unit_grid(2)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .add_attribute::<FaceAnchor>()
+        .build()
+        .unwrap();
+    classify_capture(&map).unwrap();
+    // call on null
+    assert_eq!(
+        atomically_with_err(|t| collapse_edge(t, &map, NULL_DART_ID)),
+        Err(EdgeCollapseError::NullEdge)
+    );
+
+    // quad on one side
+    assert_eq!(
+        atomically_with_err(|t| collapse_edge(t, &map, 2)),
+        Err(EdgeCollapseError::BadTopology)
+    );
+
+    let map = CMapBuilder::<2, f64>::unit_triangles(2)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .add_attribute::<FaceAnchor>()
+        .build()
+        .unwrap();
+    classify_capture(&map).unwrap();
+
+    assert!(matches!(
+        atomically_with_err(|t| collapse_edge(t, &map, 2)),
+        Err(EdgeCollapseError::NonCollapsibleEdge(_))
+    ));
+}
+
+#[test]
+fn collapse_edge_seq() {
+    let map = CMapBuilder::<2, f64>::unit_triangles(3)
+        .add_attribute::<VertexAnchor>()
+        .add_attribute::<EdgeAnchor>()
+        .add_attribute::<FaceAnchor>()
+        .build()
+        .unwrap();
+    classify_capture(&map).unwrap();
+
+    // this collapses to average
+    assert!(matches!(
+        atomically_with_err(|t| collapse_edge(t, &map, 30)),
+        Ok(24)
+    ));
+
+    // this collapses to left vertex
+    assert!(matches!(
+        atomically_with_err(|t| collapse_edge(t, &map, 5)),
+        Ok(2)
+    ));
+
+    // this collapses to right vertex
+    assert!(matches!(
+        atomically_with_err(|t| collapse_edge(t, &map, 24)),
+        Ok(21)
+    ));
+}
+
+// -- swap
 
 #[test]
 fn swap_edge_errs() {
