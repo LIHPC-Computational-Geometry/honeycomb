@@ -159,8 +159,9 @@ fn process_cell<T: CoordsFloat>(
     let mut darts = darts.clone();
     let mut vertices = vertices.clone();
     let mut n = darts.len();
-    let mut ndart_id = 0;
-    while n > 3 {
+    for sl in new_darts.chunks_exact(2) {
+        let &[nd1, nd2] = sl else { unreachable!() };
+
         let Some(ear) = (0..n).find(|idx| {
             // we're checking whether ABC is an ear or not
             let v1 = &vertices[*idx]; // A
@@ -196,9 +197,6 @@ fn process_cell<T: CoordsFloat>(
         let d_ear2 = darts[(ear + 1) % n];
         let b0_d_ear1 = cmap.beta_transac::<0>(t, d_ear1)?;
         let b1_d_ear2 = cmap.beta_transac::<1>(t, d_ear2)?;
-        let nd1 = new_darts[ndart_id];
-        let nd2 = new_darts[ndart_id + 1];
-        ndart_id += 2;
         try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
         try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
         try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
@@ -216,6 +214,10 @@ fn process_cell<T: CoordsFloat>(
         // update n
         n -= 1;
     }
+
+    // Given error checking inside the `for` and the check on darts at the beginning,
+    // this should ALWAYS be verified.
+    assert_eq!(n, 3, "E: unreachable");
 
     Ok(())
 }
