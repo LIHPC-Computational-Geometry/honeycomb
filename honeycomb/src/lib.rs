@@ -21,7 +21,7 @@
 //! - `render` -- content from the `honeycomb-render` crate
 //!
 //! Note that:
-//! - the `kernels` feature is enabled by default since it does not require additional dependencies.
+//! - the `kernels` feature is enabled by default since it requires minimal additional dependencies.
 //! - the `render` feature is disabled by default; enabling it significantly lengthen the
 //!   dependency tree as well as the compilation time.
 //!
@@ -31,8 +31,8 @@
 //! example(s) included in their documentation:
 //!
 //! - [`CMap2`][honeycomb_core::cmap::CMap2]
+//! - [`CMap3`][honeycomb_core::cmap::CMap3]
 //! - [`CMapBuilder`][honeycomb_core::cmap::CMapBuilder]
-//! - [`grisubal`][`honeycomb_kernels::grisubal`]
 //!
 //! [EX]: https://github.com/LIHPC-Computational-Geometry/honeycomb/tree/master/examples
 
@@ -41,6 +41,7 @@
 #![cfg_attr(nightly, feature(doc_auto_cfg))]
 
 pub use honeycomb_core as core;
+pub use honeycomb_core::stm;
 
 #[cfg(feature = "kernels")]
 pub use honeycomb_kernels as kernels;
@@ -56,21 +57,25 @@ pub use honeycomb_render as render;
 pub mod prelude {
     // ------ CORE RE-EXPORTS
 
-    pub use honeycomb_core::attributes::{AttributeBind, AttributeUpdate};
-    pub use honeycomb_core::cmap::{
-        BuilderError, CMap2, CMapBuilder, DartIdType, EdgeIdType, FaceIdType, GridDescriptor,
-        NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID, OrbitPolicy,
-        VertexIdType, VolumeIdType,
+    pub use honeycomb_core::attributes::{
+        AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate,
     };
-    pub use honeycomb_core::geometry::{CoordsError, CoordsFloat, Vector2, Vertex2};
+    pub use honeycomb_core::cmap::{
+        BuilderError, CMap2, CMap3, CMapBuilder, DartIdType, EdgeIdType, FaceIdType,
+        GridDescriptor, LinkError, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID,
+        NULL_VOLUME_ID, OrbitPolicy, SewError, VertexIdType, VolumeIdType,
+    };
+    pub use honeycomb_core::geometry::{
+        CoordsError, CoordsFloat, Vector2, Vector3, Vertex2, Vertex3,
+    };
 
     // ------ KERNELS RE-EXPORTS
 
     #[cfg(feature = "kernels")]
-    pub use honeycomb_kernels::{cell_insertion, grisubal, triangulation};
+    pub use honeycomb_kernels::{cell_insertion, grisubal, remeshing, skewness, triangulation};
 
     // ------ RENDER RE-EXPORTS
 
     #[cfg(feature = "render")]
-    pub use honeycomb_render::render_2d_map;
+    pub use honeycomb_render::{render_2d_map, render_3d_map};
 }
