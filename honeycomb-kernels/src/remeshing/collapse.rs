@@ -138,6 +138,7 @@ pub fn collapse_edge<T: CoordsFloat>(
 
 // ---- collapse criteria
 
+#[derive(Debug)]
 enum Collapsible {
     Average,
     Left,
@@ -158,14 +159,13 @@ fn is_collapsible<T: CoordsFloat>(
     // first check anchor predicates
 
     let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
-    let (l_anchor, r_anchor, edge_anchor) = if let (Some(a1), Some(a2), Some(a3)) = (
+    let (l_anchor, r_anchor, edge_anchor) = match (
         map.read_attribute::<VertexAnchor>(t, l_vid)?,
         map.read_attribute::<VertexAnchor>(t, r_vid)?,
         map.read_attribute::<EdgeAnchor>(t, e)?,
     ) {
-        (a1, a2, a3)
-    } else {
-        retry()?
+        (Some(a1), Some(a2), Some(a3)) => (a1, a2, a3),
+        _ => retry()?,
     };
 
     match AttributeUpdate::merge(l_anchor, r_anchor) {
@@ -293,9 +293,21 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
         map.beta_transac::<2>(t, b0d)?,
         map.beta_transac::<2>(t, b1d)?,
     );
-    map.unsew::<2>(t, b0d)?;
-    map.unsew::<2>(t, b1d)?;
-    map.sew::<2>(t, b2b0d, b2b1d)?;
+    match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
+        (false, false) => {
+            map.unsew::<2>(t, b0d)?;
+            map.unsew::<2>(t, b1d)?;
+            map.sew::<2>(t, b2b0d, b2b1d)?;
+        }
+        (true, false) => {
+            map.unsew::<2>(t, b1d)?;
+        }
+        (false, true) => {
+            map.unsew::<2>(t, b0d)?;
+        }
+        (true, true) => {}
+    }
+
     map.remove_free_dart_transac(t, d)?;
     map.remove_free_dart_transac(t, b0d)?;
     map.remove_free_dart_transac(t, b1d)?;
@@ -363,16 +375,19 @@ fn collapse_halfcell_to_base<T: CoordsFloat>(
     map.unsew::<1>(t, d_e)?;
     map.unsew::<1>(t, d_pe)?;
     map.unsew::<1>(t, d_ne)?;
-    if b2d_ne != NULL_DART_ID {
+    if b2d_ne == NULL_DART_ID {
+        map.unsew::<2>(t, d_pe)?;
+        map.remove_free_dart_transac(t, d_pe)?;
+    } else {
         map.unsew::<1>(t, b2d_ne)?;
         map.unsew::<1>(t, b0b2d_ne)?;
         try_or_coerce!(map.unlink::<2>(t, d_ne), SewError);
-        map.remove_free_dart_transac(t, d_e)?;
-        map.remove_free_dart_transac(t, d_ne)?;
         map.remove_free_dart_transac(t, b2d_ne)?;
         map.sew::<1>(t, d_pe, b1b2d_ne)?;
         map.sew::<1>(t, b0b2d_ne, d_pe)?;
     }
+    map.remove_free_dart_transac(t, d_e)?;
+    map.remove_free_dart_transac(t, d_ne)?;
 
     Ok(())
 }

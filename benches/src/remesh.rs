@@ -7,8 +7,9 @@ use honeycomb::{
         CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy,
         grisubal::Clip,
         remeshing::{
-            EdgeAnchor, EdgeCollapseError, EdgeSwapError, FaceAnchor, capture_geometry,
-            classify_capture, collapse_edge, cut_inner_edge, cut_outer_edge, swap_edge,
+            EdgeAnchor, EdgeCollapseError, EdgeSwapError, FaceAnchor, VertexAnchor,
+            capture_geometry, classify_capture, collapse_edge, cut_inner_edge, cut_outer_edge,
+            swap_edge,
         },
         triangulation::{TriangulateError, earclip_cell_countercw},
     },
@@ -96,6 +97,23 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 });
             }
         });
+    // these assertions check that the mesh is triangular and fully classified
+    debug_assert!(
+        map.iter_faces()
+            .all(|f| map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3)
+    );
+    debug_assert!(
+        map.iter_vertices()
+            .all(|v| map.force_read_attribute::<VertexAnchor>(v).is_some())
+    );
+    debug_assert!(
+        map.iter_edges()
+            .all(|e| map.force_read_attribute::<EdgeAnchor>(e).is_some())
+    );
+    debug_assert!(
+        map.iter_faces()
+            .all(|f| map.force_read_attribute::<FaceAnchor>(f).is_some())
+    );
     let triangulation_time = instant.elapsed();
 
     // TODO: print the whole config
@@ -116,7 +134,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         classification_time.as_millis()
     );
 
-    // TODO: print header
+    println!(
+        "Round | Relax (avg, s) | Ret cond (s) | Batch compute (s) | Cut/collapse (s) | Swap (s)"
+    );
 
     // -- main remeshing loop
     // a. relax
@@ -126,6 +146,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut n = 0;
     let mut r;
     loop {
+        print!("{:>5}", n);
         r = 0;
 
         // -- relax
@@ -145,7 +166,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     Some((v, neigh))
                 })
                 .for_each(|(vid, neighbors)| {
-                    atomically(|t| move_vertex_to_average(t, &map, vid, &neighbors));
+                    atomically(|t| {
+                        move_vertex_to_average(t, &map, vid, &neighbors)?;
+                        Ok(())
+                    });
                 });
 
             r += 1;
@@ -154,11 +178,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 break;
             }
         }
-        print!("{}", instant.elapsed().as_millis());
-        println!("dog");
+        print!(" | {:>14.6e}", instant.elapsed().as_secs_f64() / 50.0);
 
         instant = Instant::now();
-        if !args.disable_er {
+        if args.disable_er {
+            print!(" | {:>12}", "n/a");
+        } else {
             let n_e = map.iter_edges().count();
             let n_e_outside_tol = map
                 .iter_edges()
@@ -182,9 +207,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 // TODO: print the rest of the line to have a consistent output
                 break;
             }
+            print!(" | {:>12.6e}", instant.elapsed().as_secs_f64());
         }
-        print!(" | {}", instant.elapsed().as_millis());
-        println!("dog");
 
         instant = Instant::now();
         let edges_to_process = map
@@ -204,39 +228,84 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             })
             .filter(|(_, diff)| diff.abs() > args.target_tolerance)
             .collect::<Vec<_>>();
-        print!(" | {}", instant.elapsed().as_millis());
-        println!("dog");
+        print!(" | {:>17.6e}", instant.elapsed().as_secs_f64());
 
         // -- cut / collapse
         instant = Instant::now();
         for (e, diff) in edges_to_process {
-            if diff.is_sign_positive() {
-                // edge is 20+% longer than target length => cut
-                if map.is_i_free::<2>(e as DartIdType) {
-                    let nd = map.add_free_darts(3);
-                    let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
-                    while atomically_with_err(|t| cut_outer_edge(t, &map, e, nds)).is_err() {}
-                } else {
-                    let nd = map.add_free_darts(6);
-                    let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
-                    while atomically_with_err(|t| cut_inner_edge(t, &map, e, nds)).is_err() {}
-                }
-            } else {
-                // edge is 20+% shorter than target length => collapse
-                while let Err(e) = atomically_with_err(|t| collapse_edge(t, &map, e)) {
-                    match e {
-                        EdgeCollapseError::FailedCoreOp(_) | EdgeCollapseError::BadTopology => {
-                            continue;
+            if !map.is_unused(e as DartIdType) {
+                if diff.is_sign_positive() {
+                    // edge is 20+% longer than target length => cut
+                    if map.is_i_free::<2>(e as DartIdType) {
+                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
+                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
+                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                .is_some()
+                        }));
+                        let nd = map.add_free_darts(3);
+                        let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
+                        while let Err(e) = atomically_with_err(|t| cut_outer_edge(t, &map, e, nds))
+                        {
+                            eprintln!("dumbass");
+                            eprintln!("{e}");
                         }
-                        EdgeCollapseError::NonCollapsibleEdge(_)
-                        | EdgeCollapseError::InvertedOrientation => break,
-                        EdgeCollapseError::NullEdge => unreachable!(),
+                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
+                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
+                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                .is_some()
+                        }));
+                    } else {
+                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
+                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
+                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                .is_some()
+                        }));
+                        let nd = map.add_free_darts(6);
+                        let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
+                        while let Err(e) = atomically_with_err(|t| cut_inner_edge(t, &map, e, nds))
+                        {
+                            eprintln!("{e}");
+                        }
+
+                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
+                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
+                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                .is_some()
+                        }));
+                    }
+                } else {
+                    // edge is 20+% shorter than target length => collapse
+
+                    match atomically_with_err(|t| collapse_edge(t, &map, e)) {
+                        Ok(new_v) => {
+                            if new_v != 0 {
+                                assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                                    map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                        .is_some()
+                                }));
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("{e}");
+                            match e {
+                                EdgeCollapseError::FailedCoreOp(_)
+                                | EdgeCollapseError::BadTopology => {
+                                    continue;
+                                }
+                                EdgeCollapseError::NonCollapsibleEdge(_)
+                                | EdgeCollapseError::InvertedOrientation => break,
+                                EdgeCollapseError::NullEdge => unreachable!(),
+                            }
+                        }
                     }
                 }
             }
         }
-        print!(" | {}", instant.elapsed().as_millis());
-        println!("dog");
+        print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
 
         // -- swap
         instant = Instant::now();
@@ -286,7 +355,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 }
             }
         }
-        println!(" | {}", instant.elapsed().as_millis());
+        println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
         n += 1;
         if n >= args.n_rounds.get() {
