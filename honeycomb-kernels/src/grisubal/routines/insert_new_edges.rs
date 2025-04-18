@@ -8,7 +8,7 @@ use honeycomb_core::stm::atomically_with_err;
 
 use crate::cell_insertion::insert_vertices_on_edge;
 use crate::grisubal::model::{Boundary, MapEdge};
-use crate::remeshing::VertexAnchor;
+use crate::utils::VertexAnchor;
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {

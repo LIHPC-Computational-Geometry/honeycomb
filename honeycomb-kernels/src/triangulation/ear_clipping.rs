@@ -3,7 +3,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
 
-use crate::triangulation::{TriangulateError, check_requirements, crossp_from_verts};
+use crate::triangulation::{TriangulateError, check_requirements};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -61,7 +61,7 @@ pub fn earclip_cell_countercw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        crossp_from_verts(v1, v2, v3) > T::zero()
+        Vertex2::cross_product_from_vertices(v1, v2, v3) > T::zero()
     })
 }
 
@@ -121,7 +121,7 @@ pub fn earclip_cell_cw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        crossp_from_verts(v1, v2, v3) < T::zero()
+        Vertex2::cross_product_from_vertices(v1, v2, v3) < T::zero()
     })
 }
 
@@ -159,8 +159,9 @@ fn process_cell<T: CoordsFloat>(
     let mut darts = darts.clone();
     let mut vertices = vertices.clone();
     let mut n = darts.len();
-    let mut ndart_id = new_darts[0];
-    while n > 3 {
+    for sl in new_darts.chunks_exact(2) {
+        let &[nd1, nd2] = sl else { unreachable!() };
+
         let Some(ear) = (0..n).find(|idx| {
             // we're checking whether ABC is an ear or not
             let v1 = &vertices[*idx]; // A
@@ -174,9 +175,9 @@ fn process_cell<T: CoordsFloat>(
                 .iter()
                 .filter(|v| (**v != *v1) && (**v != *v2) && (**v != *v3))
                 .all(|v| {
-                    let sig12v = crossp_from_verts(v1, v2, v);
-                    let sig23v = crossp_from_verts(v2, v3, v);
-                    let sig31v = crossp_from_verts(v3, v1, v);
+                    let sig12v = Vertex2::cross_product_from_vertices(v1, v2, v);
+                    let sig23v = Vertex2::cross_product_from_vertices(v2, v3, v);
+                    let sig31v = Vertex2::cross_product_from_vertices(v3, v1, v);
 
                     let has_pos =
                         (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());
@@ -196,9 +197,6 @@ fn process_cell<T: CoordsFloat>(
         let d_ear2 = darts[(ear + 1) % n];
         let b0_d_ear1 = cmap.beta_transac::<0>(t, d_ear1)?;
         let b1_d_ear2 = cmap.beta_transac::<1>(t, d_ear2)?;
-        let nd1 = ndart_id;
-        let nd2 = ndart_id + 1;
-        ndart_id += 2;
         try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
         try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
         try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
@@ -216,6 +214,10 @@ fn process_cell<T: CoordsFloat>(
         // update n
         n -= 1;
     }
+
+    // Given error checking inside the `for` and the check on darts at the beginning,
+    // this should ALWAYS be verified.
+    assert_eq!(n, 3, "E: unreachable");
 
     Ok(())
 }

@@ -3,7 +3,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
 
-use crate::triangulation::{TriangulateError, check_requirements, crossp_from_verts};
+use crate::triangulation::{TriangulateError, check_requirements};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using a fan triangulation method.
@@ -85,7 +85,7 @@ pub fn process_cell<T: CoordsFloat>(
                 .filter(|(i_seg, _)| !((n + i_seg) % n == id || (n + i_seg - 1) % n == id))
                 .map(|(_, val)| {
                     let [v1, v2] = val else { unreachable!() };
-                    crossp_from_verts(v0, v1, v2)
+                    Vertex2::cross_product_from_vertices(v0, v1, v2)
                 });
             let signum = tmp.next().map(T::signum).unwrap();
             for v in tmp {

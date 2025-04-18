@@ -2,17 +2,13 @@ use honeycomb_core::{
     attributes::{AttributeError, AttributeUpdate},
     cmap::{
         CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, NULL_VERTEX_ID,
-        OrbitPolicy, SewError, VertexIdType,
+        SewError, VertexIdType,
     },
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
-use smallvec::SmallVec;
 
-use crate::{
-    remeshing::{EdgeAnchor, VertexAnchor},
-    triangulation::crossp_from_verts,
-};
+use crate::utils::{EdgeAnchor, VertexAnchor, is_orbit_orientation_consistent};
 
 /// Error-modeling enum for edge collapse routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -129,7 +125,9 @@ pub fn collapse_edge<T: CoordsFloat>(
         ),
     };
 
-    check_orbit_orientation(t, map, new_vid)?;
+    if !is_orbit_orientation_consistent(t, map, new_vid)? {
+        abort(EdgeCollapseError::InvertedOrientation)?;
+    }
 
     Ok(new_vid)
 }
@@ -196,65 +194,6 @@ fn is_collapsible<T: CoordsFloat>(
     }
 }
 
-fn check_orbit_orientation<T: CoordsFloat>(
-    t: &mut Transaction,
-    map: &CMap2<T>,
-    vid: VertexIdType,
-) -> TransactionClosureResult<(), EdgeCollapseError> {
-    if let Some(new_v) = map.read_vertex(t, vid)? {
-        let mut tmp: SmallVec<DartIdType, 10> = SmallVec::new();
-        for d in map.orbit_transac(t, OrbitPolicy::Vertex, vid) {
-            tmp.push(d?);
-        }
-
-        let ref_sign = {
-            let d = tmp[0];
-            let b1d = map.beta_transac::<1>(t, d)?;
-            let b1b1d = map.beta_transac::<1>(t, b1d)?;
-            let vid1 = map.vertex_id_transac(t, b1d)?;
-            let vid2 = map.vertex_id_transac(t, b1b1d)?;
-            let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
-                v
-            } else {
-                retry()?
-            };
-            let v2 = if let Some(v) = map.read_vertex(t, vid2)? {
-                v
-            } else {
-                retry()?
-            };
-
-            let crossp = crossp_from_verts(&new_v, &v1, &v2);
-            crossp.signum()
-        };
-        for &d in &tmp[1..] {
-            let b1d = map.beta_transac::<1>(t, d)?;
-            let b1b1d = map.beta_transac::<1>(t, b1d)?;
-            let vid1 = map.vertex_id_transac(t, b1d)?;
-            let vid2 = map.vertex_id_transac(t, b1b1d)?;
-            let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
-                v
-            } else {
-                retry()?
-            };
-            let v2 = if let Some(v) = map.read_vertex(t, vid2)? {
-                v
-            } else {
-                retry()?
-            };
-
-            let crossp = crossp_from_verts(&new_v, &v1, &v2);
-
-            if ref_sign != crossp.signum() {
-                abort(EdgeCollapseError::InvertedOrientation)?;
-            }
-        }
-    } else {
-        retry()?;
-    }
-
-    Ok(())
-}
 // ---- midpoint collapse
 
 fn collapse_edge_to_midpoint<T: CoordsFloat>(

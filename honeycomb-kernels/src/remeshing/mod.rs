@@ -14,9 +14,6 @@ mod cut;
 mod relaxation;
 mod swap;
 
-pub use anchoring::{
-    BodyIdType, CurveIdType, EdgeAnchor, FaceAnchor, NodeIdType, SurfaceIdType, VertexAnchor,
-};
 pub use capture::{ClassificationError, capture_geometry, classify_capture};
 pub use collapse::{EdgeCollapseError, collapse_edge};
 pub use cut::{cut_inner_edge, cut_outer_edge};

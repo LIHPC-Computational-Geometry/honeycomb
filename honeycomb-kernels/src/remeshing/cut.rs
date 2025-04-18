@@ -4,7 +4,7 @@ use honeycomb_core::{
     stm::{Transaction, TransactionClosureResult, retry, try_or_coerce},
 };
 
-use crate::remeshing::{EdgeAnchor, FaceAnchor, VertexAnchor};
+use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor};
 
 /// Cut an edge in half and build triangles from the new vertex.
 ///
