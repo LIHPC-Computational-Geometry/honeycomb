@@ -9,11 +9,11 @@ use honeycomb_core::{
 use crate::{
     grisubal::Clip,
     remeshing::{
-        ClassificationError, EdgeSwapError, VertexAnchor, collapse::EdgeCollapseError, swap_edge,
+        ClassificationError, EdgeSwapError, capture_geometry, classify_capture,
+        collapse::EdgeCollapseError, collapse_edge, swap_edge,
     },
+    utils::{EdgeAnchor, FaceAnchor, VertexAnchor},
 };
-
-use super::{EdgeAnchor, FaceAnchor, capture_geometry, classify_capture, collapse_edge};
 
 // --- anchors
 
