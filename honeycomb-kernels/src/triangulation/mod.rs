@@ -19,7 +19,6 @@ pub use fan::process_cell as fan_cell;
 pub use fan::process_convex_cell as fan_convex_cell;
 
 use honeycomb_core::cmap::SewError;
-use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use thiserror::Error;
 
 /// Error-modeling enum for triangulation routines.
@@ -106,15 +105,6 @@ pub fn check_requirements(
     }
 
     Ok(())
-}
-
-/// Compute the cross product: `v1v2 x v2v3`.
-pub(crate) fn crossp_from_verts<T: CoordsFloat>(
-    v1: &Vertex2<T>,
-    v2: &Vertex2<T>,
-    v3: &Vertex2<T>,
-) -> T {
-    (v2.x() - v1.x()) * (v3.y() - v2.y()) - (v2.y() - v1.y()) * (v3.x() - v2.x())
 }
 
 #[cfg(test)]

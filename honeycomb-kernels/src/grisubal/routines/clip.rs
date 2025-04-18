@@ -7,7 +7,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::GrisubalError;
 use crate::grisubal::model::Boundary;
-use crate::remeshing::VertexAnchor;
+use crate::utils::VertexAnchor;
 
 /// Clip content on the left side of the boundary.
 pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {

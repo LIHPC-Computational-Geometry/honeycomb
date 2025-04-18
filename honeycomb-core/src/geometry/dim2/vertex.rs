@@ -92,6 +92,11 @@ impl<T: CoordsFloat> Vertex2<T> {
         let two = T::from(2.0).unwrap();
         Vertex2((lhs.0 + rhs.0) / two, (lhs.1 + rhs.1) / two)
     }
+
+    /// Compute the scalar component of the `v1v2 x v2v3` cross product.
+    pub fn cross_product_from_vertices(v1: &Self, v2: &Self, v3: &Self) -> T {
+        (v2.x() - v1.x()) * (v3.y() - v2.y()) - (v2.y() - v1.y()) * (v3.x() - v2.x())
+    }
 }
 
 // Building trait

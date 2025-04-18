@@ -3,7 +3,7 @@ use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
 
-use crate::triangulation::{TriangulateError, check_requirements, crossp_from_verts};
+use crate::triangulation::{TriangulateError, check_requirements};
 
 #[allow(clippy::missing_panics_doc)]
 /// Triangulates a face using the ear clipping method.
@@ -61,7 +61,7 @@ pub fn earclip_cell_countercw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        crossp_from_verts(v1, v2, v3) > T::zero()
+        Vertex2::cross_product_from_vertices(v1, v2, v3) > T::zero()
     })
 }
 
@@ -121,7 +121,7 @@ pub fn earclip_cell_cw<T: CoordsFloat>(
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
     process_cell(t, cmap, face_id, new_darts, |v1, v2, v3| {
-        crossp_from_verts(v1, v2, v3) < T::zero()
+        Vertex2::cross_product_from_vertices(v1, v2, v3) < T::zero()
     })
 }
 
@@ -175,9 +175,9 @@ fn process_cell<T: CoordsFloat>(
                 .iter()
                 .filter(|v| (**v != *v1) && (**v != *v2) && (**v != *v3))
                 .all(|v| {
-                    let sig12v = crossp_from_verts(v1, v2, v);
-                    let sig23v = crossp_from_verts(v2, v3, v);
-                    let sig31v = crossp_from_verts(v3, v1, v);
+                    let sig12v = Vertex2::cross_product_from_vertices(v1, v2, v);
+                    let sig23v = Vertex2::cross_product_from_vertices(v2, v3, v);
+                    let sig31v = Vertex2::cross_product_from_vertices(v3, v1, v);
 
                     let has_pos =
                         (sig12v > T::zero()) || (sig23v > T::zero()) || (sig31v > T::zero());

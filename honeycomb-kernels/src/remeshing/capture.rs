@@ -15,8 +15,7 @@ use crate::grisubal::{
         group_intersections_per_edge, insert_edges_in_map, insert_intersections,
     },
 };
-
-use super::{CurveIdType, EdgeAnchor, FaceAnchor, VertexAnchor};
+use crate::utils::{CurveIdType, EdgeAnchor, FaceAnchor, VertexAnchor};
 
 #[allow(clippy::missing_errors_doc)]
 /// Capture the geometry specified as input using the `grisubal` algorithm.
