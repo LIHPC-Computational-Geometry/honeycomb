@@ -2,18 +2,20 @@ use std::time::Instant;
 
 use honeycomb::{
     core::stm::{atomically, atomically_with_err},
-    kernels::remeshing::move_vertex_to_average,
+    kernels::{
+        remeshing::move_vertex_to_average,
+        utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent},
+    },
     prelude::{
-        CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy,
+        CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, Vertex2,
         grisubal::Clip,
         remeshing::{
-            EdgeAnchor, EdgeCollapseError, EdgeSwapError, FaceAnchor, VertexAnchor,
-            capture_geometry, classify_capture, collapse_edge, cut_inner_edge, cut_outer_edge,
-            swap_edge,
+            EdgeCollapseError, EdgeSwapError, capture_geometry, classify_capture, collapse_edge,
+            cut_inner_edge, cut_outer_edge, swap_edge,
         },
         triangulation::{TriangulateError, earclip_cell_countercw},
     },
-    stm::retry,
+    stm::{abort, retry},
 };
 
 use crate::{cli::RemeshArgs, utils::hash_file};
@@ -166,8 +168,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     Some((v, neigh))
                 })
                 .for_each(|(vid, neighbors)| {
-                    atomically(|t| {
+                    let _ = atomically_with_err(|t| {
                         move_vertex_to_average(t, &map, vid, &neighbors)?;
+                        if !is_orbit_orientation_consistent(t, &map, vid)? {
+                            abort("E: resulting geometry is inverted")?;
+                        }
                         Ok(())
                     });
                 });
@@ -179,6 +184,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             }
         }
         print!(" | {:>14.6e}", instant.elapsed().as_secs_f64() / 50.0);
+
+        assert!(
+            map.iter_vertices()
+                .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
+        );
 
         instant = Instant::now();
         if args.disable_er {
@@ -307,6 +317,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
         print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
 
+        assert!(
+            map.iter_vertices()
+                .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
+        );
+
         // -- swap
         instant = Instant::now();
         for (e, diff) in map
@@ -346,6 +361,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         swap_edge(t, &map, e)?;
                     }
 
+                    if !is_orbit_orientation_consistent(t, &map, vid1)? {
+                        abort(EdgeSwapError::IncompleteEdge)?; // hacky for now
+                    }
+
                     Ok(())
                 }) {
                     match e {
@@ -357,11 +376,27 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
+        assert!(
+            map.iter_vertices()
+                .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
+        );
+
         n += 1;
         if n >= args.n_rounds.get() {
             break;
         }
     }
+
+    map.iter_faces().for_each(|f| {
+        assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
+        let vid1 = map.vertex_id(f);
+        let vid2 = map.vertex_id(map.beta::<1>(f));
+        let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
+        let v1 = map.force_read_vertex(vid1).unwrap();
+        let v2 = map.force_read_vertex(vid2).unwrap();
+        let v3 = map.force_read_vertex(vid3).unwrap();
+        assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) < T::zero());
+    });
 
     map
 }
