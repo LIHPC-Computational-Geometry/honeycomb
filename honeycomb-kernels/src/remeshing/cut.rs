@@ -103,6 +103,7 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     if let Some(a) = e_anchor {
         let vid = map.vertex_id_transac(t, nd1)?;
         map.write_attribute(t, vid, VertexAnchor::from(a))?;
+        map.write_attribute(t, nd3 as EdgeIdType, a)?;
     }
 
     Ok(())
@@ -173,17 +174,35 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     } else {
         None
     };
+    if let Some(a) = lf_anchor {
+        if map.contains_attribute::<EdgeAnchor>() {
+            let eid = map.edge_id_transac(t, nd1)?;
+            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        }
+    }
     let rf_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_transac(t, rd)?;
         map.remove_attribute::<FaceAnchor>(t, fid)?
     } else {
         None
     };
+    if let Some(a) = rf_anchor {
+        if map.contains_attribute::<EdgeAnchor>() {
+            let eid = map.edge_id_transac(t, nd4)?;
+            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        }
+    }
     let e_anchor = if map.contains_attribute::<EdgeAnchor>() {
         map.read_attribute::<EdgeAnchor>(t, e)?
     } else {
         None
     };
+    if let Some(a) = e_anchor {
+        let vid1 = map.vertex_id_transac(t, nd1)?;
+        let vid2 = map.vertex_id_transac(t, nd4)?;
+        map.write_attribute(t, vid1, VertexAnchor::from(a))?;
+        map.write_attribute(t, vid2, VertexAnchor::from(a))?;
+    }
 
     let (b0ld, b1ld) = (map.beta_transac::<0>(t, ld)?, map.beta_transac::<1>(t, ld)?);
     let (b0rd, b1rd) = (map.beta_transac::<0>(t, rd)?, map.beta_transac::<1>(t, rd)?);
@@ -223,24 +242,20 @@ pub fn cut_inner_edge<T: CoordsFloat>(
         let fid2 = map.face_id_transac(t, nd2)?;
         map.write_attribute(t, fid1, a)?;
         map.write_attribute(t, fid2, a)?;
-        if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_transac(t, nd1)?;
-            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
-        }
+        // if map.contains_attribute::<EdgeAnchor>() {
+        //     let eid = map.edge_id_transac(t, nd1)?;
+        //     map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        // }
     }
     if let Some(a) = rf_anchor {
         let fid4 = map.face_id_transac(t, nd4)?;
         let fid5 = map.face_id_transac(t, nd5)?;
         map.write_attribute(t, fid4, a)?;
         map.write_attribute(t, fid5, a)?;
-        if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_transac(t, nd4)?;
-            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
-        }
-    }
-    if let Some(a) = e_anchor {
-        let vid = map.vertex_id_transac(t, nd1)?;
-        map.write_attribute(t, vid, VertexAnchor::from(a))?;
+        // if map.contains_attribute::<EdgeAnchor>() {
+        //     let eid = map.edge_id_transac(t, nd4)?;
+        //     map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        // }
     }
 
     Ok(())
