@@ -344,10 +344,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                                     let v1 = map.force_read_vertex(vid1).unwrap();
                                     let v2 = map.force_read_vertex(vid2).unwrap();
                                     let v3 = map.force_read_vertex(vid3).unwrap();
-                                    assert!(
-                                        Vertex2::cross_product_from_vertices(&v1, &v2, &v3)
-                                            > T::zero()
-                                    );
+
+                                    println!("{vid1}, {vid2}, {vid3}");
+                                    let res = Vertex2::cross_product_from_vertices(&v1, &v2, &v3);
+                                    println!("{res:?}");
+                                    assert!(res > T::zero());
                                 });
                             }
                         }
@@ -393,48 +394,55 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             })
             .filter(|(_, diff)| diff.abs() > args.target_tolerance)
         {
-            let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
-            if r != NULL_DART_ID {
-                while let Err(e) = atomically_with_err(|t| {
-                    let (vid1, vid2) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, r)?);
-                    let (v1, v2) = if let (Some(v1), Some(v2)) =
-                        (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
-                    {
-                        (v1, v2)
-                    } else {
-                        retry()?
-                    };
-                    let norm = (v2 - v1).norm();
-                    let new_diff =
-                        (norm.to_f64().unwrap() - args.target_length) / args.target_length;
+            // this retry indefinitely
+            // let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
+            // if r != NULL_DART_ID {
+            //     while let Err(e) = atomically_with_err(|t| {
+            //         let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
+            //         let (vid1, vid2) = (
+            //             map.vertex_id_transac(t, b0l)?,
+            //             map.vertex_id_transac(t, b0r)?,
+            //         );
+            //         let (v1, v2) = if let (Some(v1), Some(v2)) =
+            //             (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
+            //         {
+            //             (v1, v2)
+            //         } else {
+            //             retry()?
+            //         };
+            //         let norm = (v2 - v1).norm();
+            //         let new_diff =
+            //             (norm.to_f64().unwrap() - args.target_length) / args.target_length;
 
-                    // if the swap gets the edge length closer to target value, do it
-                    if new_diff.abs() < diff.abs() {
-                        swap_edge(t, &map, e)?;
-                    }
+            //         // if the swap gets the edge length closer to target value, do it
+            //         if new_diff.abs() < diff.abs() {
+            //             swap_edge(t, &map, e)?;
+            //         }
 
-                    if !is_orbit_orientation_consistent(t, &map, vid1)? {
-                        abort(EdgeSwapError::IncompleteEdge)?; // hacky for now
-                    }
+            //         if !is_orbit_orientation_consistent(t, &map, vid1)?
+            //             || !is_orbit_orientation_consistent(t, &map, vid2)?
+            //         {
+            //             abort(EdgeSwapError::IncompleteEdge)?; // hacky for now
+            //         }
 
-                    Ok(())
-                }) {
-                    match e {
-                        EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
-                        EdgeSwapError::IncompleteEdge | EdgeSwapError::NullEdge => unreachable!(),
-                    }
-                }
-                map.iter_faces().for_each(|f| {
-                    assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
-                    let vid1 = map.vertex_id(f);
-                    let vid2 = map.vertex_id(map.beta::<1>(f));
-                    let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-                    let v1 = map.force_read_vertex(vid1).unwrap();
-                    let v2 = map.force_read_vertex(vid2).unwrap();
-                    let v3 = map.force_read_vertex(vid3).unwrap();
-                    assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
-                });
-            }
+            //         Ok(())
+            //     }) {
+            //         match e {
+            //             EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
+            //             EdgeSwapError::IncompleteEdge | EdgeSwapError::NullEdge => unreachable!(),
+            //         }
+            //     }
+            //     map.iter_faces().for_each(|f| {
+            //         assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
+            //         let vid1 = map.vertex_id(f);
+            //         let vid2 = map.vertex_id(map.beta::<1>(f));
+            //         let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
+            //         let v1 = map.force_read_vertex(vid1).unwrap();
+            //         let v2 = map.force_read_vertex(vid2).unwrap();
+            //         let v3 = map.force_read_vertex(vid3).unwrap();
+            //         assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
+            //     });
+            // }
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
