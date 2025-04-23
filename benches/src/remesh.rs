@@ -277,25 +277,29 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     }
                 } else {
                     // edge is 20+% shorter than target length => collapse
-                    match atomically_with_err(|t| collapse_edge(t, &map, e)) {
-                        Ok(new_v) => {
-                            if new_v != 0 {
-                                assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                                    map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                        .is_some()
-                                }));
-                            }
-                        }
-                        Err(e) => {
-                            // eprintln!("{e}");
-                            match e {
-                                EdgeCollapseError::FailedCoreOp(_)
-                                | EdgeCollapseError::BadTopology => {
-                                    continue;
+                    loop {
+                        match atomically_with_err(|t| collapse_edge(t, &map, e)) {
+                            Ok(new_v) => {
+                                if new_v != 0 {
+                                    assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                                        map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                            .is_some()
+                                    }));
                                 }
-                                EdgeCollapseError::NonCollapsibleEdge(_)
-                                | EdgeCollapseError::InvertedOrientation => break,
-                                EdgeCollapseError::NullEdge => unreachable!(),
+                                break;
+                            }
+                            Err(er) => {
+                                println!("{e}");
+                                eprintln!("{er}");
+                                match er {
+                                    EdgeCollapseError::FailedCoreOp(_)
+                                    | EdgeCollapseError::BadTopology => {
+                                        continue;
+                                    }
+                                    EdgeCollapseError::NonCollapsibleEdge(_)
+                                    | EdgeCollapseError::InvertedOrientation => break,
+                                    EdgeCollapseError::NullEdge => unreachable!(),
+                                }
                             }
                         }
                     }
@@ -330,45 +334,48 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         {
             // this retry indefinitely
             let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
-            while let Err(e) = atomically_with_err(|t| {
-                let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
-                let (vid1, vid2) = (
-                    map.vertex_id_transac(t, b0l)?,
-                    map.vertex_id_transac(t, b0r)?,
-                );
-                let (v1, v2) = if let (Some(v1), Some(v2)) =
-                    (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
-                {
-                    (v1, v2)
-                } else {
-                    retry()?
-                };
-                let norm = (v2 - v1).norm();
-                let new_diff = (norm.to_f64().unwrap() - args.target_length) / args.target_length;
+            if r != NULL_DART_ID {
+                while let Err(e) = atomically_with_err(|t| {
+                    let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
+                    let (vid1, vid2) = (
+                        map.vertex_id_transac(t, b0l)?,
+                        map.vertex_id_transac(t, b0r)?,
+                    );
+                    let (v1, v2) = if let (Some(v1), Some(v2)) =
+                        (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
+                    {
+                        (v1, v2)
+                    } else {
+                        println!("bruh");
+                        retry()?
+                    };
+                    let norm = (v2 - v1).norm();
+                    let new_diff =
+                        (norm.to_f64().unwrap() - args.target_length) / args.target_length;
 
-                // if the swap gets the edge length closer to target value, do it
-                if new_diff.abs() < diff.abs() {
-                    swap_edge(t, &map, e)?;
-                }
+                    // if the swap gets the edge length closer to target value, do it
+                    if new_diff.abs() < diff.abs() {
+                        swap_edge(t, &map, e)?;
+                    }
 
-                // update vertices ids
-                let (vid1, vid2) = (
-                    map.vertex_id_transac(t, b0l)?,
-                    map.vertex_id_transac(t, b0r)?,
-                );
-                if !is_orbit_orientation_consistent(t, &map, vid1)?
-                    || !is_orbit_orientation_consistent(t, &map, vid2)?
-                {
-                    abort(EdgeSwapError::IncompleteEdge)?; // hacky for now
-                }
+                    // update vertices ids
+                    let (vid1, vid2) = (
+                        map.vertex_id_transac(t, b0l)?,
+                        map.vertex_id_transac(t, b0r)?,
+                    );
+                    if !is_orbit_orientation_consistent(t, &map, vid1)?
+                        || !is_orbit_orientation_consistent(t, &map, vid2)?
+                    {
+                        abort(EdgeSwapError::NullEdge)?; // hacky for now
+                    }
 
-                Ok(())
-            }) {
-                eprintln!("{e}");
-                match e {
-                    EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
-                    EdgeSwapError::NullEdge => break,
-                    EdgeSwapError::IncompleteEdge => break,
+                    Ok(())
+                }) {
+                    match e {
+                        EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
+                        EdgeSwapError::NullEdge => break,
+                        EdgeSwapError::IncompleteEdge => unreachable!(),
+                    }
                 }
             }
         }

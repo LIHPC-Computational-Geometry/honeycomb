@@ -261,6 +261,7 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
+    println!("base");
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
     let l_vid = map.vertex_id_transac(t, l)?;
     let tmp_vertex = map.read_vertex(t, l_vid)?;
