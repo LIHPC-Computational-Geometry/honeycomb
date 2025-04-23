@@ -63,7 +63,8 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
 
             let crossp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
 
-            if ref_sign != crossp.signum() {
+            // null area face isn't valid
+            if ref_sign != crossp.signum() || crossp.is_zero() {
                 return Ok(false);
             }
         }

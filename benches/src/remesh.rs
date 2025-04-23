@@ -99,11 +99,21 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 });
             }
         });
-    // these assertions check that the mesh is triangular and fully classified
+    // check that the mesh is triangular, consistently oriented and fully classified
     debug_assert!(
         map.iter_faces()
             .all(|f| map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3)
     );
+    debug_assert!(map.iter_faces().all(|f| {
+        let vid1 = map.vertex_id(f);
+        let vid2 = map.vertex_id(map.beta::<1>(f));
+        let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
+        let v1 = map.force_read_vertex(vid1).unwrap();
+        let v2 = map.force_read_vertex(vid2).unwrap();
+        let v3 = map.force_read_vertex(vid3).unwrap();
+        map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
+            && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+    }));
     debug_assert!(
         map.iter_vertices()
             .all(|v| map.force_read_attribute::<VertexAnchor>(v).is_some())
@@ -116,6 +126,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         map.iter_faces()
             .all(|f| map.force_read_attribute::<FaceAnchor>(f).is_some())
     );
+
     let triangulation_time = instant.elapsed();
 
     // TODO: print the whole config
@@ -139,16 +150,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     println!(
         "Round | Relax (avg, s) | Ret cond (s) | Batch compute (s) | Cut/collapse (s) | Swap (s)"
     );
-    map.iter_faces().for_each(|f| {
-        assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
-        let vid1 = map.vertex_id(f);
-        let vid2 = map.vertex_id(map.beta::<1>(f));
-        let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-        let v1 = map.force_read_vertex(vid1).unwrap();
-        let v2 = map.force_read_vertex(vid2).unwrap();
-        let v3 = map.force_read_vertex(vid3).unwrap();
-        assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
-    });
     // -- main remeshing loop
     // a. relax
     // b. cut / collapse
@@ -194,21 +195,21 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
         print!(" | {:>14.6e}", instant.elapsed().as_secs_f64() / 50.0);
 
-        map.iter_faces().for_each(|f| {
-            assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
+        debug_assert!(map.iter_faces().all(|f| {
             let vid1 = map.vertex_id(f);
             let vid2 = map.vertex_id(map.beta::<1>(f));
             let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
             let v1 = map.force_read_vertex(vid1).unwrap();
             let v2 = map.force_read_vertex(vid2).unwrap();
             let v3 = map.force_read_vertex(vid3).unwrap();
-            assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
-        });
+            map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
+                && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+        }));
 
-        instant = Instant::now();
         if args.disable_er {
             print!(" | {:>12}", "n/a");
         } else {
+            instant = Instant::now();
             let n_e = map.iter_edges().count();
             let n_e_outside_tol = map
                 .iter_edges()
@@ -262,73 +263,20 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 if diff.is_sign_positive() {
                     // edge is 20+% longer than target length => cut
                     if map.is_i_free::<2>(e as DartIdType) {
-                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
-                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
-                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                .is_some()
-                        }));
                         let nd = map.add_free_darts(3);
                         let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
-                        while let Err(e) = atomically_with_err(|t| cut_outer_edge(t, &map, e, nds))
+                        while let Err(_) = atomically_with_err(|t| cut_outer_edge(t, &map, e, nds))
                         {
-                            eprintln!("dumbass");
-                            eprintln!("{e}");
                         }
-                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
-                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
-                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                .is_some()
-                        }));
-                        map.iter_faces().for_each(|f| {
-                            assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
-                            let vid1 = map.vertex_id(f);
-                            let vid2 = map.vertex_id(map.beta::<1>(f));
-                            let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-                            let v1 = map.force_read_vertex(vid1).unwrap();
-                            let v2 = map.force_read_vertex(vid2).unwrap();
-                            let v3 = map.force_read_vertex(vid3).unwrap();
-                            assert!(
-                                Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
-                            );
-                        });
                     } else {
-                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
-                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
-                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                .is_some()
-                        }));
                         let nd = map.add_free_darts(6);
                         let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
-                        while let Err(e) = atomically_with_err(|t| cut_inner_edge(t, &map, e, nds))
+                        while let Err(_) = atomically_with_err(|t| cut_inner_edge(t, &map, e, nds))
                         {
-                            eprintln!("{e}");
                         }
-
-                        assert!(map.force_read_attribute::<EdgeAnchor>(e).is_some());
-                        let new_v = map.vertex_id(map.beta::<1>(e as DartIdType));
-                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                .is_some()
-                        }));
-                        map.iter_faces().for_each(|f| {
-                            assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
-                            let vid1 = map.vertex_id(f);
-                            let vid2 = map.vertex_id(map.beta::<1>(f));
-                            let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-                            let v1 = map.force_read_vertex(vid1).unwrap();
-                            let v2 = map.force_read_vertex(vid2).unwrap();
-                            let v3 = map.force_read_vertex(vid3).unwrap();
-                            assert!(
-                                Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
-                            );
-                        });
                     }
                 } else {
                     // edge is 20+% shorter than target length => collapse
-
                     match atomically_with_err(|t| collapse_edge(t, &map, e)) {
                         Ok(new_v) => {
                             if new_v != 0 {
@@ -336,24 +284,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                                     map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
                                         .is_some()
                                 }));
-                                map.iter_faces().for_each(|f| {
-                                    assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
-                                    let vid1 = map.vertex_id(f);
-                                    let vid2 = map.vertex_id(map.beta::<1>(f));
-                                    let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-                                    let v1 = map.force_read_vertex(vid1).unwrap();
-                                    let v2 = map.force_read_vertex(vid2).unwrap();
-                                    let v3 = map.force_read_vertex(vid3).unwrap();
-
-                                    println!("{vid1}, {vid2}, {vid3}");
-                                    let res = Vertex2::cross_product_from_vertices(&v1, &v2, &v3);
-                                    println!("{res:?}");
-                                    assert!(res > T::zero());
-                                });
                             }
                         }
                         Err(e) => {
-                            eprintln!("{e}");
+                            // eprintln!("{e}");
                             match e {
                                 EdgeCollapseError::FailedCoreOp(_)
                                 | EdgeCollapseError::BadTopology => {
@@ -370,7 +304,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
         print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
 
-        assert!(
+        debug_assert!(
             map.iter_vertices()
                 .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
         );
@@ -446,16 +380,16 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
-        map.iter_faces().for_each(|f| {
-            assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
+        debug_assert!(map.iter_faces().all(|f| {
             let vid1 = map.vertex_id(f);
             let vid2 = map.vertex_id(map.beta::<1>(f));
             let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
             let v1 = map.force_read_vertex(vid1).unwrap();
             let v2 = map.force_read_vertex(vid2).unwrap();
             let v3 = map.force_read_vertex(vid3).unwrap();
-            assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
-        });
+            map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
+                && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+        }));
 
         n += 1;
         if n >= args.n_rounds.get() {
@@ -463,16 +397,15 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
     }
 
-    map.iter_faces().for_each(|f| {
-        assert!(map.orbit(OrbitPolicy::FaceLinear, f).count() == 3);
+    debug_assert!(map.iter_faces().all(|f| {
         let vid1 = map.vertex_id(f);
         let vid2 = map.vertex_id(map.beta::<1>(f));
         let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
         let v1 = map.force_read_vertex(vid1).unwrap();
         let v2 = map.force_read_vertex(vid2).unwrap();
         let v3 = map.force_read_vertex(vid3).unwrap();
-        assert!(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero());
-    });
-
+        map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
+            && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+    }));
     map
 }
