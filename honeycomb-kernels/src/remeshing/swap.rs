@@ -12,6 +12,9 @@ pub enum EdgeSwapError {
     /// A core operation failed.
     #[error("core operation failed: {0}")]
     FailedCoreOp(#[from] SewError),
+    /// The edge cannot be swapped due to geometrical or anchoring constraints.
+    #[error("cannot swap edge due to constraints: {0}")]
+    NotSwappable(&'static str),
     /// The edge passed as argument is null.
     #[error("cannot swap null edge")]
     NullEdge,
@@ -88,7 +91,9 @@ pub fn swap_edge<T: CoordsFloat>(
         let l_a = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
         let r_a = map.remove_attribute::<FaceAnchor>(t, r_fid)?;
         if l_a != r_a {
-            abort(todo!("add non-swapable error variant"))?;
+            abort(EdgeSwapError::NotSwappable(
+                "edge separates two distinct surfaces",
+            ))?;
         }
         (l_a, r_a)
     } else {

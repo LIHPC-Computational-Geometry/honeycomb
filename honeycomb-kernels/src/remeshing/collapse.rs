@@ -110,7 +110,11 @@ pub fn collapse_edge<T: CoordsFloat>(
         abort(EdgeCollapseError::BadTopology)?;
     }
 
-    let new_vid = match is_collapsible(t, map, e)? {
+    let tmp = is_collapsible(t, map, e)?;
+    println!("{tmp:?}");
+    println!("({b0l}, {l}, {b1l})");
+    println!("({b0r}, {r}, {b1r})");
+    let new_vid = match tmp {
         Collapsible::Average => try_or_coerce!(
             collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
             EdgeCollapseError
@@ -164,7 +168,7 @@ pub fn collapse_edge<T: CoordsFloat>(
         }
     };
 
-    if !is_orbit_orientation_consistent(t, map, new_vid)? {
+    if new_vid != NULL_VERTEX_ID && !is_orbit_orientation_consistent(t, map, new_vid)? {
         abort(EdgeCollapseError::InvertedOrientation)?;
     }
 
@@ -196,11 +200,12 @@ fn is_collapsible<T: CoordsFloat>(
     // first check anchor predicates
 
     let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
-    let (l_anchor, r_anchor, edge_anchor) = match (
+    let (a, b, c) = (
         map.read_attribute::<VertexAnchor>(t, l_vid)?,
         map.read_attribute::<VertexAnchor>(t, r_vid)?,
         map.read_attribute::<EdgeAnchor>(t, e)?,
-    ) {
+    );
+    let (l_anchor, r_anchor, edge_anchor) = match (a, b, c) {
         (Some(a1), Some(a2), Some(a3)) => (a1, a2, a3),
         _ => retry()?,
     };
@@ -273,14 +278,17 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     );
     match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
         (false, false) => {
+            println!("1");
             map.unsew::<2>(t, b0d)?;
             map.unsew::<2>(t, b1d)?;
             map.sew::<2>(t, b2b0d, b2b1d)?;
         }
         (true, false) => {
+            println!("2");
             map.unsew::<2>(t, b1d)?;
         }
         (false, true) => {
+            println!("3");
             map.unsew::<2>(t, b0d)?;
         }
         (true, true) => {}

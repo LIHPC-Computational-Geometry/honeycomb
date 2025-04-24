@@ -25,7 +25,7 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
             tmp.push(d?);
         }
 
-        let ref_sign = {
+        let ref_crossp = {
             let d = tmp[0];
             let b1d = map.beta_transac::<1>(t, d)?;
             let b1b1d = map.beta_transac::<1>(t, b1d)?;
@@ -42,9 +42,22 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
                 retry()?
             };
 
-            let crossp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
-            crossp.signum()
+            let tmp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
+
+            if tmp.is_zero() {
+                println!("{new_v:?}");
+                println!("{vid1:?}");
+                println!("{vid2:?}");
+                println!("{v1:?}");
+                println!("{v2:?}");
+            }
+            tmp
         };
+        if ref_crossp.is_zero() {
+            println!("{ref_crossp:?}");
+            return Ok(false);
+        }
+        let ref_sign = ref_crossp.signum();
         for &d in &tmp[1..] {
             let b1d = map.beta_transac::<1>(t, d)?;
             let b1b1d = map.beta_transac::<1>(t, b1d)?;
@@ -65,6 +78,10 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
 
             // null area face isn't valid
             if ref_sign != crossp.signum() || crossp.is_zero() {
+                println!("{new_v:?}");
+                println!("{v1:?}");
+                println!("{v2:?}");
+                println!("{crossp:?}");
                 return Ok(false);
             }
         }
