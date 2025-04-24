@@ -108,9 +108,12 @@ pub fn swap_edge<T: CoordsFloat>(
     try_or_coerce!(map.unsew::<1>(t, b1l), EdgeSwapError);
     try_or_coerce!(map.unsew::<1>(t, b1r), EdgeSwapError);
 
+    // remove vertex attributes to keep existing values unchanged
+    let l_vid = map.vertex_id_transac(t, l)?;
+    let r_vid = map.vertex_id_transac(t, r)?;
+    let _ = map.remove_vertex(t, l_vid)?;
+    let _ = map.remove_vertex(t, r_vid)?;
     if map.contains_attribute::<VertexAnchor>() {
-        let l_vid = map.vertex_id_transac(t, l)?;
-        let r_vid = map.vertex_id_transac(t, r)?;
         map.remove_attribute::<VertexAnchor>(t, l_vid)?;
         map.remove_attribute::<VertexAnchor>(t, r_vid)?;
     }

@@ -8,7 +8,7 @@ use honeycomb_core::{
     stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
 
-use crate::utils::{EdgeAnchor, VertexAnchor, is_orbit_orientation_consistent};
+use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent};
 
 /// Error-modeling enum for edge collapse routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -119,10 +119,49 @@ pub fn collapse_edge<T: CoordsFloat>(
             collapse_edge_to_base(t, map, (b0l, l, b1l), (b0r, r, b1r)),
             EdgeCollapseError
         ),
-        Collapsible::Right => try_or_coerce!(
-            collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
-            EdgeCollapseError
-        ),
+        Collapsible::Right => {
+            if r == NULL_DART_ID {
+                // just one more edge case, I swear then it's good, just one more(TM)
+                let b2b0l = map.beta_transac::<2>(t, b0l)?;
+                let b0b2b0l = map.beta_transac::<0>(t, b2b0l)?;
+                let b1b2b0l = map.beta_transac::<1>(t, b2b0l)?;
+
+                let l_fid = map.face_id_transac(t, l)?;
+                let r_fid = map.face_id_transac(t, b2b0l)?;
+                let f_a = if map.contains_attribute::<FaceAnchor>() {
+                    let _ = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
+                    map.remove_attribute::<FaceAnchor>(t, r_fid)?
+                } else {
+                    None
+                };
+
+                try_or_coerce!(map.unsew::<1>(t, b0b2b0l), EdgeCollapseError);
+                try_or_coerce!(map.unsew::<1>(t, b2b0l), EdgeCollapseError);
+                try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
+                try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
+
+                try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
+                try_or_coerce!(map.unsew::<2>(t, b2b0l), EdgeCollapseError);
+                map.remove_free_dart_transac(t, l)?;
+                map.remove_free_dart_transac(t, b0l)?;
+                map.remove_free_dart_transac(t, b2b0l)?;
+
+                try_or_coerce!(map.sew::<1>(t, b0b2b0l, b1l), EdgeCollapseError);
+                try_or_coerce!(map.sew::<1>(t, b1l, b1b2b0l), EdgeCollapseError);
+
+                if let Some(f_a) = f_a {
+                    let fid = map.face_id_transac(t, b1l)?;
+                    map.write_attribute(t, fid, f_a)?;
+                }
+
+                map.vertex_id_transac(t, b1l)?
+            } else {
+                try_or_coerce!(
+                    collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
+                    EdgeCollapseError
+                )
+            }
+        }
     };
 
     if !is_orbit_orientation_consistent(t, map, new_vid)? {
@@ -261,11 +300,18 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
-    println!("base");
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
+    let b2b1l = map.beta_transac::<2>(t, b1l)?;
+    let b1b2b1l = map.beta_transac::<1>(t, b2b1l)?;
+    let b2b0r = map.beta_transac::<2>(t, b0r)?;
+    let b0b2b0r = map.beta_transac::<0>(t, b2b0r)?;
     let l_vid = map.vertex_id_transac(t, l)?;
+    let l_fid = map.face_id_transac(t, b2b1l)?;
+    let r_fid = map.face_id_transac(t, b2b0r)?;
     let tmp_vertex = map.read_vertex(t, l_vid)?;
     let tmp_anchor = map.read_attribute::<VertexAnchor>(t, l_vid)?;
+    let l_face_anchor = map.read_attribute::<FaceAnchor>(t, l_fid)?;
+    let r_face_anchor = map.read_attribute::<FaceAnchor>(t, r_fid)?;
 
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
@@ -297,6 +343,14 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         if let Some(a) = tmp_anchor {
             map.write_attribute(t, new_vid, a)?;
         }
+    }
+    if let Some(f_a) = l_face_anchor {
+        let new_fid = map.face_id_transac(t, b1b2b1l)?;
+        map.write_attribute(t, new_fid, f_a)?;
+    }
+    if let Some(f_a) = r_face_anchor {
+        let new_fid = map.face_id_transac(t, b0b2b0r)?;
+        map.write_attribute(t, new_fid, f_a)?;
     }
 
     Ok(new_vid)

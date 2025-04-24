@@ -280,16 +280,19 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     loop {
                         match atomically_with_err(|t| collapse_edge(t, &map, e)) {
                             Ok(new_v) => {
-                                if new_v != 0 {
-                                    assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                                        map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                            .is_some()
-                                    }));
+                                // #[cfg(debug_assertions)]
+                                {
+                                    if new_v != 0 {
+                                        assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
+                                            map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                                                .is_some()
+                                        }));
+                                    }
                                 }
+
                                 break;
                             }
                             Err(er) => {
-                                println!("{e}");
                                 eprintln!("{er}");
                                 match er {
                                     EdgeCollapseError::FailedCoreOp(_)
@@ -335,7 +338,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             // this retry indefinitely
             let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
             if r != NULL_DART_ID {
-                while let Err(e) = atomically_with_err(|t| {
+                while let Err(er) = atomically_with_err(|t| {
                     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
                     let (vid1, vid2) = (
                         map.vertex_id_transac(t, b0l)?,
@@ -371,7 +374,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
                     Ok(())
                 }) {
-                    match e {
+                    eprintln!("{er}");
+                    match er {
                         EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => continue,
                         EdgeSwapError::NullEdge => break,
                         EdgeSwapError::IncompleteEdge => unreachable!(),
