@@ -110,11 +110,7 @@ pub fn collapse_edge<T: CoordsFloat>(
         abort(EdgeCollapseError::BadTopology)?;
     }
 
-    let tmp = is_collapsible(t, map, e)?;
-    println!("{tmp:?}");
-    println!("({b0l}, {l}, {b1l})");
-    println!("({b0r}, {r}, {b1r})");
-    let new_vid = match tmp {
+    let new_vid = match is_collapsible(t, map, e)? {
         Collapsible::Average => try_or_coerce!(
             collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
             EdgeCollapseError
@@ -278,17 +274,14 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     );
     match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
         (false, false) => {
-            println!("1");
             map.unsew::<2>(t, b0d)?;
             map.unsew::<2>(t, b1d)?;
             map.sew::<2>(t, b2b0d, b2b1d)?;
         }
         (true, false) => {
-            println!("2");
             map.unsew::<2>(t, b1d)?;
         }
         (false, true) => {
-            println!("3");
             map.unsew::<2>(t, b0d)?;
         }
         (true, true) => {}

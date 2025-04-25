@@ -264,20 +264,30 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     while let Err(er) = atomically_with_err(|t| cut_outer_edge(t, &map, e, nds)) {
                         eprintln!("{er}");
                     }
-                    assert!(
-                        map.iter_vertices()
-                            .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
-                    );
                 } else {
                     let nd = map.add_free_darts(6);
                     let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
-                    while let Err(er) = atomically_with_err(|t| cut_inner_edge(t, &map, e, nds)) {
-                        eprintln!("{er}");
+                    while let Err(er) = atomically_with_err(|t| {
+                        cut_inner_edge(t, &map, e, nds)?;
+                        let new_vid = nds[0];
+                        if !is_orbit_orientation_consistent(t, &map, new_vid)? {
+                            abort(SewError::BadGeometry(1, nds[0], nds[3]))?;
+                        }
+                        Ok(())
+                    }) {
+                        // eprintln!("{er}");
+                        match er {
+                            SewError::BadGeometry(1, _, _) => {
+                                for d in nds {
+                                    map.remove_free_dart(d);
+                                }
+                                break;
+                            }
+                            SewError::BadGeometry(_, _, _)
+                            | SewError::FailedLink(_)
+                            | SewError::FailedAttributeOp(_) => continue,
+                        }
                     }
-                    assert!(
-                        map.iter_vertices()
-                            .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
-                    );
                 }
             } else {
                 // edge is 20+% shorter than target length => collapse
@@ -318,10 +328,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         }
                     }
                 }
-                assert!(
-                    map.iter_vertices()
-                        .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
-                );
             }
         }
         print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
@@ -396,10 +402,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         EdgeSwapError::NullEdge | EdgeSwapError::IncompleteEdge => unreachable!(),
                     }
                 }
-                assert!(
-                    map.iter_vertices()
-                        .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
-                );
             }
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());

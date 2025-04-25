@@ -258,5 +258,17 @@ pub fn cut_inner_edge<T: CoordsFloat>(
         // }
     }
 
+    {
+        let eids = [
+            map.edge_id_transac(t, ld)?,
+            map.edge_id_transac(t, rd)?,
+            map.edge_id_transac(t, nd1)?,
+            map.edge_id_transac(t, nd4)?,
+        ];
+        for e in eids {
+            assert!(map.read_attribute::<EdgeAnchor>(t, e)?.is_some());
+        }
+    }
+
     Ok(())
 }
