@@ -11,8 +11,9 @@ use honeycomb::{
         utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent},
     },
     prelude::{CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, SewError, Vertex2},
-    stm::{abort, atomically, atomically_with_err, retry},
+    stm::{StmClosureResult, Transaction, abort, atomically, atomically_with_err, retry},
 };
+use rayon::prelude::*;
 
 use crate::{cli::RemeshArgs, utils::hash_file};
 
@@ -125,7 +126,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
     let triangulation_time = instant.elapsed();
 
-    // TODO: print the whole config
+    // TODO: print the whole config / args
     println!("| remesh benchmark");
     println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
     println!(
@@ -144,7 +145,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     );
 
     println!(
-        "Round | Relax (avg, s) | Ret cond (s) | Batch compute (s) | Cut/collapse (s) | Swap (s)"
+        "Round | Relax (tot, s) | Ret cond (s) | Batch compute (s) | Cut/collapse (s) | Swap (s)"
     );
     // -- main remeshing loop
     // a. relax
@@ -154,13 +155,13 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut n = 0;
     let mut r;
     loop {
-        print!("{:>5}", n);
         r = 0;
 
         // -- relax
         instant = Instant::now();
         loop {
             map.iter_vertices()
+                .par_bridge()
                 .filter_map(|v| {
                     let mut neigh = Vec::with_capacity(10);
                     for d in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
@@ -185,11 +186,15 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
             r += 1;
             // TODO: make the bound configurable
-            if r >= 50 {
+            if r >= 20 {
                 break;
             }
         }
-        print!(" | {:>14.6e}", instant.elapsed().as_secs_f64() / 50.0);
+        if n >= args.n_rounds.get() {
+            break;
+        }
+        print!("{:>5}", n);
+        print!(" | {:>14.6e}", instant.elapsed().as_secs_f64());
 
         debug_assert!(map.iter_faces().all(|f| {
             let vid1 = map.vertex_id(f);
@@ -261,8 +266,25 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 if map.is_i_free::<2>(e as DartIdType) {
                     let nd = map.add_free_darts(3);
                     let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
-                    while let Err(er) = atomically_with_err(|t| cut_outer_edge(t, &map, e, nds)) {
-                        eprintln!("{er}");
+                    while let Err(er) = atomically_with_err(|t| {
+                        cut_outer_edge(t, &map, e, nds)?;
+                        let new_vid = nds[0];
+                        if !is_orbit_orientation_consistent(t, &map, new_vid)? {
+                            abort(SewError::BadGeometry(1, nds[0], nds[2]))?;
+                        }
+                        Ok(())
+                    }) {
+                        match er {
+                            SewError::BadGeometry(1, _, _) => {
+                                for d in nds {
+                                    map.remove_free_dart(d);
+                                }
+                                break;
+                            }
+                            SewError::BadGeometry(_, _, _)
+                            | SewError::FailedLink(_)
+                            | SewError::FailedAttributeOp(_) => continue,
+                        }
                     }
                 } else {
                     let nd = map.add_free_darts(6);
@@ -275,7 +297,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         }
                         Ok(())
                     }) {
-                        // eprintln!("{er}");
                         match er {
                             SewError::BadGeometry(1, _, _) => {
                                 for d in nds {
@@ -291,51 +312,20 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 }
             } else {
                 // edge is 20+% shorter than target length => collapse
-                loop {
-                    match atomically_with_err(|t| collapse_edge(t, &map, e)) {
-                        Ok(new_v) => {
-                            // #[cfg(debug_assertions)]
-                            {
-                                if new_v != 0 {
-                                    assert!(map.orbit(OrbitPolicy::Vertex, new_v).all(|d| {
-                                        map.force_read_attribute::<EdgeAnchor>(map.edge_id(d))
-                                            .is_some()
-                                    }));
-                                    atomically(|t| {
-                                        assert!(is_orbit_orientation_consistent(t, &map, new_v)?);
-                                        Ok(())
-                                    });
-                                }
-                            }
-
-                            break;
+                while let Err(er) = atomically_with_err(|t| collapse_edge(t, &map, e)) {
+                    match er {
+                        EdgeCollapseError::FailedCoreOp(SewError::BadGeometry(_, _, _))
+                        | EdgeCollapseError::NonCollapsibleEdge(_)
+                        | EdgeCollapseError::InvertedOrientation => break,
+                        EdgeCollapseError::FailedCoreOp(_) | EdgeCollapseError::BadTopology => {
+                            continue;
                         }
-                        Err(er) => {
-                            match er {
-                                EdgeCollapseError::FailedCoreOp(SewError::BadGeometry(_, _, _)) => {
-                                    // this can occur for very "flat" triangles
-                                    break;
-                                }
-                                EdgeCollapseError::NonCollapsibleEdge(_)
-                                | EdgeCollapseError::InvertedOrientation => break,
-                                EdgeCollapseError::FailedCoreOp(_)
-                                | EdgeCollapseError::BadTopology => {
-                                    eprintln!("{er}");
-                                    continue;
-                                }
-                                EdgeCollapseError::NullEdge => unreachable!(),
-                            }
-                        }
+                        EdgeCollapseError::NullEdge => unreachable!(),
                     }
                 }
             }
         }
         print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
-
-        assert!(
-            map.iter_vertices()
-                .all(|v| atomically(|t| is_orbit_orientation_consistent(t, &map, v)))
-        );
 
         // -- swap
         instant = Instant::now();
@@ -356,9 +346,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             })
             .filter(|(_, diff)| diff.abs() > args.target_tolerance)
         {
-            // this retry indefinitely
             let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
             if r != NULL_DART_ID {
+                let fid1 = map.face_id(l);
+                let fid2 = map.face_id(r);
+                assert!(map.force_read_attribute::<FaceAnchor>(fid1).is_some());
+                assert!(map.force_read_attribute::<FaceAnchor>(fid2).is_some());
                 while let Err(er) = atomically_with_err(|t| {
                     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
                     let (vid1, vid2) = (
@@ -382,13 +375,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     }
 
                     // update vertices ids
-                    let (vid1, vid2) = (
-                        map.vertex_id_transac(t, b0l)?,
-                        map.vertex_id_transac(t, b0r)?,
-                    );
-                    if !is_orbit_orientation_consistent(t, &map, vid1)?
-                        || !is_orbit_orientation_consistent(t, &map, vid2)?
-                    {
+                    if !check_tri_orientation(t, &map, l)? || !check_tri_orientation(t, &map, r)? {
                         abort(EdgeSwapError::NotSwappable("swap inverts orientation"))?;
                     }
 
@@ -402,36 +389,44 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         EdgeSwapError::NullEdge | EdgeSwapError::IncompleteEdge => unreachable!(),
                     }
                 }
+
+                let fid1 = map.face_id(l);
+                let fid2 = map.face_id(r);
+                assert!(map.force_read_attribute::<FaceAnchor>(fid1).is_some());
+                assert!(map.force_read_attribute::<FaceAnchor>(fid2).is_some());
             }
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
-        assert!(map.iter_faces().all(|f| {
-            let vid1 = map.vertex_id(f);
-            let vid2 = map.vertex_id(map.beta::<1>(f));
-            let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-            let v1 = map.force_read_vertex(vid1).unwrap();
-            let v2 = map.force_read_vertex(vid2).unwrap();
-            let v3 = map.force_read_vertex(vid3).unwrap();
+        debug_assert!(map.iter_faces().all(|f| {
             map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-                && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+                && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
         }));
 
         n += 1;
-        if n >= args.n_rounds.get() {
-            break;
-        }
     }
 
-    assert!(map.iter_faces().all(|f| {
-        let vid1 = map.vertex_id(f);
-        let vid2 = map.vertex_id(map.beta::<1>(f));
-        let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-        let v1 = map.force_read_vertex(vid1).unwrap();
-        let v2 = map.force_read_vertex(vid2).unwrap();
-        let v3 = map.force_read_vertex(vid3).unwrap();
+    debug_assert!(map.iter_faces().all(|f| {
         map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-            && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+            && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
     }));
+
     map
+}
+
+#[inline]
+fn check_tri_orientation<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    d: DartIdType,
+) -> StmClosureResult<bool> {
+    let vid1 = map.vertex_id_transac(t, d)?;
+    let b1 = map.beta_transac::<1>(t, d)?;
+    let vid2 = map.vertex_id_transac(t, b1)?;
+    let b1b1 = map.beta_transac::<1>(t, b1)?;
+    let vid3 = map.vertex_id_transac(t, b1b1)?;
+    let v1 = map.read_vertex(t, vid1)?.unwrap();
+    let v2 = map.read_vertex(t, vid2)?.unwrap();
+    let v3 = map.read_vertex(t, vid3)?.unwrap();
+    Ok(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero())
 }

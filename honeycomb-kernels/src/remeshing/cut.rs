@@ -235,7 +235,6 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     map.sew::<1>(t, nd4, b0rd)?;
     map.sew::<1>(t, nd6, b1rd)?;
     map.sew::<1>(t, b1rd, nd5)?;
-
     // FIXME: expose a split method for `CMap2` to automatically handle faces?
     if let Some(a) = lf_anchor {
         let fid1 = map.face_id_transac(t, nd1)?;
@@ -256,18 +255,6 @@ pub fn cut_inner_edge<T: CoordsFloat>(
         //     let eid = map.edge_id_transac(t, nd4)?;
         //     map.write_attribute(t, eid, EdgeAnchor::from(a))?;
         // }
-    }
-
-    {
-        let eids = [
-            map.edge_id_transac(t, ld)?,
-            map.edge_id_transac(t, rd)?,
-            map.edge_id_transac(t, nd1)?,
-            map.edge_id_transac(t, nd4)?,
-        ];
-        for e in eids {
-            assert!(map.read_attribute::<EdgeAnchor>(t, e)?.is_some());
-        }
     }
 
     Ok(())

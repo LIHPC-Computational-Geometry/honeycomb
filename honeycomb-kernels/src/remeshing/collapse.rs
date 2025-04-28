@@ -106,19 +106,26 @@ pub fn collapse_edge<T: CoordsFloat>(
     if map.beta_transac::<1>(t, b1l)? != b0l {
         abort(EdgeCollapseError::BadTopology)?;
     }
+    if r == NULL_DART_ID {
+        abort(EdgeCollapseError::NonCollapsibleEdge("zefezf"))?;
+    }
     if r != NULL_DART_ID && map.beta_transac::<1>(t, b1r)? != b0r {
         abort(EdgeCollapseError::BadTopology)?;
     }
 
     let new_vid = match is_collapsible(t, map, e)? {
-        Collapsible::Average => try_or_coerce!(
-            collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
-            EdgeCollapseError
-        ),
-        Collapsible::Left => try_or_coerce!(
-            collapse_edge_to_base(t, map, (b0l, l, b1l), (b0r, r, b1r)),
-            EdgeCollapseError
-        ),
+        Collapsible::Average => {
+            try_or_coerce!(
+                collapse_edge_to_midpoint(t, map, (b0l, l, b1l), (b0r, r, b1r)),
+                EdgeCollapseError
+            )
+        }
+        Collapsible::Left => {
+            try_or_coerce!(
+                collapse_edge_to_base(t, map, (b0l, l, b1l), (b0r, r, b1r)),
+                EdgeCollapseError
+            )
+        }
         Collapsible::Right => {
             if r == NULL_DART_ID {
                 // just one more edge case, I swear then it's good, just one more(TM)
@@ -128,6 +135,12 @@ pub fn collapse_edge<T: CoordsFloat>(
 
                 let l_fid = map.face_id_transac(t, l)?;
                 let r_fid = map.face_id_transac(t, b2b0l)?;
+                let v_a = if map.contains_attribute::<VertexAnchor>() {
+                    let vid = map.vertex_id_transac(t, b1l)?;
+                    map.remove_attribute::<VertexAnchor>(t, vid)?
+                } else {
+                    None
+                };
                 let f_a = if map.contains_attribute::<FaceAnchor>() {
                     let _ = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
                     map.remove_attribute::<FaceAnchor>(t, r_fid)?
@@ -139,9 +152,9 @@ pub fn collapse_edge<T: CoordsFloat>(
                 try_or_coerce!(map.unsew::<1>(t, b2b0l), EdgeCollapseError);
                 try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
                 try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
-
                 try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
                 try_or_coerce!(map.unsew::<2>(t, b2b0l), EdgeCollapseError);
+
                 map.remove_free_dart_transac(t, l)?;
                 map.remove_free_dart_transac(t, b0l)?;
                 map.remove_free_dart_transac(t, b2b0l)?;
@@ -152,6 +165,10 @@ pub fn collapse_edge<T: CoordsFloat>(
                 if let Some(f_a) = f_a {
                     let fid = map.face_id_transac(t, b1l)?;
                     map.write_attribute(t, fid, f_a)?;
+                }
+                if let Some(v_a) = v_a {
+                    let vid = map.vertex_id_transac(t, b1l)?;
+                    map.write_attribute(t, vid, v_a)?;
                 }
 
                 map.vertex_id_transac(t, b1l)?
@@ -242,6 +259,8 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, SewError> {
+    let b2b1r = map.beta_transac::<2>(t, b1r)?;
+    let b1b2b1r = map.beta_transac::<1>(t, b2b1r)?;
     if r != NULL_DART_ID {
         map.unsew::<2>(t, r)?;
         collapse_halfcell_to_midpoint(t, map, (b0r, r, b1r))?;
@@ -253,7 +272,7 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     Ok(if b2b0l != NULL_DART_ID {
         map.vertex_id_transac(t, b2b0l)?
     } else if r != NULL_DART_ID {
-        map.vertex_id_transac(t, b1r)?
+        map.vertex_id_transac(t, b1b2b1r)?
     } else {
         // this can happen from a valid configuration, so we handle it
         NULL_VERTEX_ID
@@ -303,9 +322,7 @@ fn collapse_edge_to_base<T: CoordsFloat>(
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
     let b2b1l = map.beta_transac::<2>(t, b1l)?;
-    let b1b2b1l = map.beta_transac::<1>(t, b2b1l)?;
     let b2b0r = map.beta_transac::<2>(t, b0r)?;
-    let b0b2b0r = map.beta_transac::<0>(t, b2b0r)?;
     let l_vid = map.vertex_id_transac(t, l)?;
     let l_fid = map.face_id_transac(t, b2b1l)?;
     let r_fid = map.face_id_transac(t, b2b0r)?;
@@ -346,11 +363,13 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         }
     }
     if let Some(f_a) = l_face_anchor {
-        let new_fid = map.face_id_transac(t, b1b2b1l)?;
-        map.write_attribute(t, new_fid, f_a)?;
+        if !map.is_unused_transac(t, b0l)? {
+            let new_fid = map.face_id_transac(t, b0l)?;
+            map.write_attribute(t, new_fid, f_a)?;
+        }
     }
     if let Some(f_a) = r_face_anchor {
-        let new_fid = map.face_id_transac(t, b0b2b0r)?;
+        let new_fid = map.face_id_transac(t, b1r)?;
         map.write_attribute(t, new_fid, f_a)?;
     }
 
