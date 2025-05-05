@@ -99,15 +99,18 @@ pub fn collapse_edge<T: CoordsFloat>(
     if e == NULL_EDGE_ID {
         abort(EdgeCollapseError::NullEdge)?;
     }
+
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    if r == NULL_DART_ID {
+        abort(EdgeCollapseError::NonCollapsibleEdge(
+            "Boundary collapse are unimplemented",
+        ))?;
+    }
+
     let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
     let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
-
     if map.beta_transac::<1>(t, b1l)? != b0l {
         abort(EdgeCollapseError::BadTopology)?;
-    }
-    if r == NULL_DART_ID {
-        abort(EdgeCollapseError::NonCollapsibleEdge("zefezf"))?;
     }
     if r != NULL_DART_ID && map.beta_transac::<1>(t, b1r)? != b0r {
         abort(EdgeCollapseError::BadTopology)?;
@@ -127,57 +130,12 @@ pub fn collapse_edge<T: CoordsFloat>(
             )
         }
         Collapsible::Right => {
-            if r == NULL_DART_ID {
-                // just one more edge case, I swear then it's good, just one more(TM)
-                let b2b0l = map.beta_transac::<2>(t, b0l)?;
-                let b0b2b0l = map.beta_transac::<0>(t, b2b0l)?;
-                let b1b2b0l = map.beta_transac::<1>(t, b2b0l)?;
-
-                let l_fid = map.face_id_transac(t, l)?;
-                let r_fid = map.face_id_transac(t, b2b0l)?;
-                let v_a = if map.contains_attribute::<VertexAnchor>() {
-                    let vid = map.vertex_id_transac(t, b1l)?;
-                    map.remove_attribute::<VertexAnchor>(t, vid)?
-                } else {
-                    None
-                };
-                let f_a = if map.contains_attribute::<FaceAnchor>() {
-                    let _ = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
-                    map.remove_attribute::<FaceAnchor>(t, r_fid)?
-                } else {
-                    None
-                };
-
-                try_or_coerce!(map.unsew::<1>(t, b0b2b0l), EdgeCollapseError);
-                try_or_coerce!(map.unsew::<1>(t, b2b0l), EdgeCollapseError);
-                try_or_coerce!(map.unsew::<1>(t, b1l), EdgeCollapseError);
-                try_or_coerce!(map.unsew::<1>(t, l), EdgeCollapseError);
-                try_or_coerce!(map.unsew::<1>(t, b0l), EdgeCollapseError);
-                try_or_coerce!(map.unsew::<2>(t, b2b0l), EdgeCollapseError);
-
-                map.remove_free_dart_transac(t, l)?;
-                map.remove_free_dart_transac(t, b0l)?;
-                map.remove_free_dart_transac(t, b2b0l)?;
-
-                try_or_coerce!(map.sew::<1>(t, b0b2b0l, b1l), EdgeCollapseError);
-                try_or_coerce!(map.sew::<1>(t, b1l, b1b2b0l), EdgeCollapseError);
-
-                if let Some(f_a) = f_a {
-                    let fid = map.face_id_transac(t, b1l)?;
-                    map.write_attribute(t, fid, f_a)?;
-                }
-                if let Some(v_a) = v_a {
-                    let vid = map.vertex_id_transac(t, b1l)?;
-                    map.write_attribute(t, vid, v_a)?;
-                }
-
-                map.vertex_id_transac(t, b1l)?
-            } else {
-                try_or_coerce!(
-                    collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
-                    EdgeCollapseError
-                )
-            }
+            // FIXME: if r == NULL_DART_ID, a special case is needed
+            //        we don't hit it since collapse on boundaries are aborted
+            try_or_coerce!(
+                collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
+                EdgeCollapseError
+            )
         }
     };
 
@@ -213,12 +171,11 @@ fn is_collapsible<T: CoordsFloat>(
     // first check anchor predicates
 
     let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
-    let (a, b, c) = (
+    let (l_anchor, r_anchor, edge_anchor) = match (
         map.read_attribute::<VertexAnchor>(t, l_vid)?,
         map.read_attribute::<VertexAnchor>(t, r_vid)?,
         map.read_attribute::<EdgeAnchor>(t, e)?,
-    );
-    let (l_anchor, r_anchor, edge_anchor) = match (a, b, c) {
+    ) {
         (Some(a1), Some(a2), Some(a3)) => (a1, a2, a3),
         _ => retry()?,
     };

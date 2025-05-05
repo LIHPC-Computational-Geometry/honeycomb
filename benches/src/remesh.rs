@@ -13,7 +13,6 @@ use honeycomb::{
     prelude::{CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, SewError, Vertex2},
     stm::{StmClosureResult, Transaction, abort, atomically, atomically_with_err, retry},
 };
-use rayon::prelude::*;
 
 use crate::{cli::RemeshArgs, utils::hash_file};
 
@@ -102,14 +101,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             .all(|f| map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3)
     );
     debug_assert!(map.iter_faces().all(|f| {
-        let vid1 = map.vertex_id(f);
-        let vid2 = map.vertex_id(map.beta::<1>(f));
-        let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-        let v1 = map.force_read_vertex(vid1).unwrap();
-        let v2 = map.force_read_vertex(vid2).unwrap();
-        let v3 = map.force_read_vertex(vid3).unwrap();
         map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-            && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+            && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
     }));
     debug_assert!(
         map.iter_vertices()
@@ -161,7 +154,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         instant = Instant::now();
         loop {
             map.iter_vertices()
-                .par_bridge()
                 .filter_map(|v| {
                     let mut neigh = Vec::with_capacity(10);
                     for d in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
@@ -197,14 +189,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         print!(" | {:>14.6e}", instant.elapsed().as_secs_f64());
 
         debug_assert!(map.iter_faces().all(|f| {
-            let vid1 = map.vertex_id(f);
-            let vid2 = map.vertex_id(map.beta::<1>(f));
-            let vid3 = map.vertex_id(map.beta::<1>(map.beta::<1>(f)));
-            let v1 = map.force_read_vertex(vid1).unwrap();
-            let v2 = map.force_read_vertex(vid2).unwrap();
-            let v3 = map.force_read_vertex(vid3).unwrap();
             map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-                && Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero()
+                && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
         }));
 
         if args.disable_er {
@@ -230,8 +216,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 .count();
             // if 95%+ edges are in the target length tolerance range, finish early
             if ((n_e_outside_tol as f32 - n_e as f32).abs() / n_e as f32) < 0.05 {
-                print!(" | {}", instant.elapsed().as_millis());
-                // TODO: print the rest of the line to have a consistent output
+                print!(" | {:>12.6e}", instant.elapsed().as_millis());
+                print!(" | {:>17}", "n/a");
+                print!(" | {:>16}", "n/a");
+                println!(" | {:>8}", "n/a");
                 break;
             }
             print!(" | {:>12.6e}", instant.elapsed().as_secs_f64());
@@ -245,6 +233,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         instant = Instant::now();
         for e in edges_to_process {
             if map.is_unused(e as DartIdType) {
+                // needed as some operations may remove some edges besides the one processed
                 continue;
             }
             // filter out
@@ -352,7 +341,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 let fid2 = map.face_id(r);
                 assert!(map.force_read_attribute::<FaceAnchor>(fid1).is_some());
                 assert!(map.force_read_attribute::<FaceAnchor>(fid2).is_some());
-                while let Err(er) = atomically_with_err(|t| {
+                if let Err(er) = atomically_with_err(|t| {
                     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
                     let (vid1, vid2) = (
                         map.vertex_id_transac(t, b0l)?,
@@ -382,11 +371,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     Ok(())
                 }) {
                     match er {
-                        EdgeSwapError::FailedCoreOp(_) | EdgeSwapError::BadTopology => {
-                            eprintln!("{er}");
-                        }
-                        EdgeSwapError::NotSwappable(_) => break,
-                        EdgeSwapError::NullEdge | EdgeSwapError::IncompleteEdge => unreachable!(),
+                        EdgeSwapError::NotSwappable(_) => {} // continue
+                        EdgeSwapError::NullEdge
+                        | EdgeSwapError::IncompleteEdge
+                        | EdgeSwapError::FailedCoreOp(_)
+                        | EdgeSwapError::BadTopology => unreachable!(),
                     }
                 }
 
