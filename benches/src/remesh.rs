@@ -95,6 +95,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 });
             }
         });
+    let triangulation_time = instant.elapsed();
+
     // check that the mesh is triangular, consistently oriented and fully classified
     debug_assert!(
         map.iter_faces()
@@ -116,8 +118,6 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         map.iter_faces()
             .all(|f| map.force_read_attribute::<FaceAnchor>(f).is_some())
     );
-
-    let triangulation_time = instant.elapsed();
 
     // TODO: print the whole config / args
     println!("| remesh benchmark");
@@ -148,10 +148,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut n = 0;
     let mut r;
     loop {
-        r = 0;
+        print!("{:>5}", n);
 
         // -- relax
         instant = Instant::now();
+        r = 0;
         loop {
             map.iter_vertices()
                 .filter_map(|v| {
@@ -177,25 +178,19 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 });
 
             r += 1;
-            // TODO: make the bound configurable
-            if r >= 20 {
+            if r >= args.n_relax_rounds.get() {
                 break;
             }
         }
-        if n >= args.n_rounds.get() {
-            break;
-        }
-        print!("{:>5}", n);
         print!(" | {:>14.6e}", instant.elapsed().as_secs_f64());
 
-        debug_assert!(map.iter_faces().all(|f| {
-            map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-                && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
-        }));
+        debug_assert!(
+            map.iter_faces()
+                .all(|f| { atomically(|t| check_tri_orientation(t, &map, f as DartIdType)) })
+        );
 
-        if args.disable_er {
-            print!(" | {:>12}", "n/a");
-        } else {
+        // -- check early return conds if enabled
+        if args.enable_er {
             instant = Instant::now();
             let n_e = map.iter_edges().count();
             let n_e_outside_tol = map
@@ -223,8 +218,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 break;
             }
             print!(" | {:>12.6e}", instant.elapsed().as_secs_f64());
+        } else {
+            print!(" | {:>12}", "n/a");
         }
 
+        // -- get edges to process
         instant = Instant::now();
         let edges_to_process = map.iter_edges().collect::<Vec<_>>();
         print!(" | {:>17.6e}", instant.elapsed().as_secs_f64());
@@ -236,15 +234,10 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 // needed as some operations may remove some edges besides the one processed
                 continue;
             }
+
             // filter out
-            let (v1, v2) = (
-                map.force_read_vertex(map.vertex_id(e as DartIdType))
-                    .unwrap(),
-                map.force_read_vertex(map.vertex_id(map.beta::<1>(e as DartIdType)))
-                    .unwrap(),
-            );
-            let diff =
-                ((v2 - v1).norm().to_f64().unwrap() - args.target_length) / args.target_length;
+            let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
+            let diff = atomically(|t| compute_diff_to_target(t, &map, l, r, args.target_length));
             if diff.abs() < args.target_tolerance {
                 continue;
             }
@@ -321,49 +314,35 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         for (e, diff) in map
             .iter_edges()
             .map(|e| {
-                let (v1, v2) = (
-                    map.force_read_vertex(map.vertex_id(e as DartIdType))
-                        .unwrap(),
-                    map.force_read_vertex(map.vertex_id(map.beta::<1>(e as DartIdType)))
-                        .unwrap(),
-                );
-                let norm = (v2 - v1).norm();
-                (
-                    e,
-                    (norm.to_f64().unwrap() - args.target_length) / args.target_length,
-                )
+                let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
+                let diff =
+                    atomically(|t| compute_diff_to_target(t, &map, l, r, args.target_length));
+                (e, diff)
             })
             .filter(|(_, diff)| diff.abs() > args.target_tolerance)
         {
             let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
             if r != NULL_DART_ID {
-                let fid1 = map.face_id(l);
-                let fid2 = map.face_id(r);
-                assert!(map.force_read_attribute::<FaceAnchor>(fid1).is_some());
-                assert!(map.force_read_attribute::<FaceAnchor>(fid2).is_some());
+                debug_assert!(
+                    map.force_read_attribute::<FaceAnchor>(map.face_id(l))
+                        .is_some()
+                );
+                debug_assert!(
+                    map.force_read_attribute::<FaceAnchor>(map.face_id(r))
+                        .is_some()
+                );
                 if let Err(er) = atomically_with_err(|t| {
                     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
-                    let (vid1, vid2) = (
-                        map.vertex_id_transac(t, b0l)?,
-                        map.vertex_id_transac(t, b0r)?,
-                    );
-                    let (v1, v2) = if let (Some(v1), Some(v2)) =
-                        (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?)
-                    {
-                        (v1, v2)
-                    } else {
-                        retry()?
-                    };
-                    let norm = (v2 - v1).norm();
-                    let new_diff =
-                        (norm.to_f64().unwrap() - args.target_length) / args.target_length;
+                    let new_diff = atomically(|t| {
+                        compute_diff_to_target(t, &map, b0l, b0r, args.target_length)
+                    });
 
                     // if the swap gets the edge length closer to target value, do it
                     if new_diff.abs() < diff.abs() {
                         swap_edge(t, &map, e)?;
                     }
 
-                    // update vertices ids
+                    // ensure the swap doesn't invert geometry
                     if !check_tri_orientation(t, &map, l)? || !check_tri_orientation(t, &map, r)? {
                         abort(EdgeSwapError::NotSwappable("swap inverts orientation"))?;
                     }
@@ -379,10 +358,14 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     }
                 }
 
-                let fid1 = map.face_id(l);
-                let fid2 = map.face_id(r);
-                assert!(map.force_read_attribute::<FaceAnchor>(fid1).is_some());
-                assert!(map.force_read_attribute::<FaceAnchor>(fid2).is_some());
+                debug_assert!(
+                    map.force_read_attribute::<FaceAnchor>(map.face_id(l))
+                        .is_some()
+                );
+                debug_assert!(
+                    map.force_read_attribute::<FaceAnchor>(map.face_id(r))
+                        .is_some()
+                );
             }
         }
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
@@ -393,6 +376,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }));
 
         n += 1;
+        if n >= args.n_rounds.get() {
+            break;
+        }
     }
 
     debug_assert!(map.iter_faces().all(|f| {
@@ -401,6 +387,24 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     }));
 
     map
+}
+
+#[inline]
+fn compute_diff_to_target<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    l: DartIdType,
+    r: DartIdType,
+    target: f64,
+) -> StmClosureResult<f64> {
+    let (vid1, vid2) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, r)?);
+    let (v1, v2) =
+        if let (Some(v1), Some(v2)) = (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
+            (v1, v2)
+        } else {
+            retry()?
+        };
+    Ok(((v2 - v1).norm().to_f64().unwrap() - target) / target)
 }
 
 #[inline]

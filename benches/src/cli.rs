@@ -152,9 +152,16 @@ pub struct RemeshArgs {
         default_value_t = NonZero::new(100).unwrap()
     )]
     pub n_rounds: NonZero<usize>,
-    /// Disable early return in case target conditions are met.
-    #[arg(long = "disable-early-return")]
-    pub disable_er: bool,
+    /// Number of vertex relaxation rounds.
+    #[arg(
+        long("n-relax-rounds"),
+        allow_negative_numbers(false),
+        default_value_t = NonZero::new(5).unwrap()
+    )]
+    pub n_relax_rounds: NonZero<usize>,
+    /// Enable early return in case target conditions are met within tolerance.
+    #[arg(long = "enable-early-return")]
+    pub enable_er: bool,
     /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`
     #[arg(long, value_enum, default_value_t = Backend::RayonIter)]
     pub backend: Backend,
