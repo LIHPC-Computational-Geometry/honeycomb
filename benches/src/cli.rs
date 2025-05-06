@@ -34,6 +34,8 @@ pub enum Benches {
     CutEdges(CutEdgesArgs),
     /// `grisubal` kernel execution
     Grisubal(GrisubalArgs),
+    /// Geometry capture, triangulation and remeshing kernel
+    Remesh(RemeshArgs),
     /// Simple vertex relaxation routine
     Shift(ShiftArgs),
 }
@@ -108,6 +110,61 @@ pub struct GrisubalArgs {
 pub enum Clip {
     Left,
     Right,
+}
+
+#[derive(Args)]
+pub struct RemeshArgs {
+    // -- capture args
+    /// Input mesh as a VTK file
+    #[arg(required(true))]
+    pub input: PathBuf,
+    /// Length of cells along the X-axis of the overlapping grid
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub lx: f64,
+    /// Length of cells along the Y-axis of the overlapping grid
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub ly: f64,
+    /// If present, clip cells on one side of the captured boundary
+    #[arg(long, value_enum, value_name("SIDE"))]
+    pub clip: Clip,
+
+    // -- remeshing args
+    /// Target value for edge length.
+    #[arg(
+        short('l'),
+        long("target-length"),
+        required(true),
+        allow_negative_numbers(false)
+    )]
+    pub target_length: f64,
+    /// Tolerance for target values. This should be between 0 and 1.
+    #[arg(
+        long("target-tolerance"),
+        allow_negative_numbers(false),
+        default_value_t = 0.2
+    )]
+    pub target_tolerance: f64,
+    /// Maximum number of remeshing rounds. The program will early return if target conditions are
+    /// reached before the maximum number of rounds.
+    #[arg(
+        long("n-rounds"),
+        allow_negative_numbers(false),
+        default_value_t = NonZero::new(100).unwrap()
+    )]
+    pub n_rounds: NonZero<usize>,
+    /// Number of vertex relaxation rounds.
+    #[arg(
+        long("n-relax-rounds"),
+        allow_negative_numbers(false),
+        default_value_t = NonZero::new(5).unwrap()
+    )]
+    pub n_relax_rounds: NonZero<usize>,
+    /// Enable early return in case target conditions are met within tolerance.
+    #[arg(long = "enable-early-return")]
+    pub enable_er: bool,
+    /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`
+    #[arg(long, value_enum, default_value_t = Backend::RayonIter)]
+    pub backend: Backend,
 }
 
 #[derive(Args)]
