@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap2, CMapBuilder, NULL_DART_ID, OrbitPolicy},
+    cmap::{CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy},
     stm::{atomically, atomically_with_err},
 };
 
@@ -784,22 +784,52 @@ mod triangulate_and_classify {
             classify_capture(&map).unwrap();
 
             // this collapses to average
-            assert!(matches!(
-                atomically_with_err(|t| collapse_edge(t, &map, 30)),
-                Ok(24)
-            ));
+            let new_v = atomically_with_err(|t| collapse_edge(t, &map, 30)).unwrap();
+            assert_eq!(new_v, 24);
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .is_some())
+            );
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .is_some())
+            );
 
             // this collapses to left vertex
-            assert!(matches!(
-                atomically_with_err(|t| collapse_edge(t, &map, 5)),
-                Ok(2)
-            ));
+            let new_v = atomically_with_err(|t| collapse_edge(t, &map, 5)).unwrap();
+            assert_eq!(new_v, 2);
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .is_some())
+            );
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .is_some())
+            );
 
             // this collapses to right vertex
-            assert!(matches!(
-                atomically_with_err(|t| collapse_edge(t, &map, 24)),
-                Ok(21)
-            ));
+            let new_v = atomically_with_err(|t| collapse_edge(t, &map, 24)).unwrap();
+            assert_eq!(new_v, 21);
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .is_some())
+            );
+            assert!(
+                map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
+                    .all(|d| map
+                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .is_some())
+            );
         }
     }
 }
