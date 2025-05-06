@@ -8,7 +8,7 @@ use honeycomb_core::{
     stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
 
-use crate::utils::{EdgeAnchor, VertexAnchor, is_orbit_orientation_consistent};
+use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent};
 
 /// Error-modeling enum for edge collapse routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
@@ -99,7 +99,14 @@ pub fn collapse_edge<T: CoordsFloat>(
     if e == NULL_EDGE_ID {
         abort(EdgeCollapseError::NullEdge)?;
     }
+
     let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    if r == NULL_DART_ID {
+        abort(EdgeCollapseError::NonCollapsibleEdge(
+            "Boundary collapses are unimplemented",
+        ))?;
+    }
+
     let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
     let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
 
@@ -119,13 +126,15 @@ pub fn collapse_edge<T: CoordsFloat>(
             collapse_edge_to_base(t, map, (b0l, l, b1l), (b0r, r, b1r)),
             EdgeCollapseError
         ),
+        // FIXME: if r == NULL_DART_ID, a special case is needed for right
+        //        we don't hit it since collapse on boundaries are aborted
         Collapsible::Right => try_or_coerce!(
             collapse_edge_to_base(t, map, (b0r, r, b1r), (b0l, l, b1l)),
             EdgeCollapseError
         ),
     };
 
-    if !is_orbit_orientation_consistent(t, map, new_vid)? {
+    if new_vid != NULL_VERTEX_ID && !is_orbit_orientation_consistent(t, map, new_vid)? {
         abort(EdgeCollapseError::InvertedOrientation)?;
     }
 
@@ -202,6 +211,8 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, SewError> {
+    let b2b1r = map.beta_transac::<2>(t, b1r)?;
+    let b1b2b1r = map.beta_transac::<1>(t, b2b1r)?;
     if r != NULL_DART_ID {
         map.unsew::<2>(t, r)?;
         collapse_halfcell_to_midpoint(t, map, (b0r, r, b1r))?;
@@ -213,7 +224,7 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     Ok(if b2b0l != NULL_DART_ID {
         map.vertex_id_transac(t, b2b0l)?
     } else if r != NULL_DART_ID {
-        map.vertex_id_transac(t, b1r)?
+        map.vertex_id_transac(t, b1b2b1r)?
     } else {
         // this can happen from a valid configuration, so we handle it
         NULL_VERTEX_ID
@@ -232,9 +243,21 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
         map.beta_transac::<2>(t, b0d)?,
         map.beta_transac::<2>(t, b1d)?,
     );
-    map.unsew::<2>(t, b0d)?;
-    map.unsew::<2>(t, b1d)?;
-    map.sew::<2>(t, b2b0d, b2b1d)?;
+    match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
+        (false, false) => {
+            map.unsew::<2>(t, b0d)?;
+            map.unsew::<2>(t, b1d)?;
+            map.sew::<2>(t, b2b0d, b2b1d)?;
+        }
+        (true, false) => {
+            map.unsew::<2>(t, b1d)?;
+        }
+        (false, true) => {
+            map.unsew::<2>(t, b0d)?;
+        }
+        (true, true) => {}
+    }
+
     map.remove_free_dart_transac(t, d)?;
     map.remove_free_dart_transac(t, b0d)?;
     map.remove_free_dart_transac(t, b1d)?;
@@ -250,9 +273,15 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
+    let b2b1l = map.beta_transac::<2>(t, b1l)?;
+    let b2b0r = map.beta_transac::<2>(t, b0r)?;
     let l_vid = map.vertex_id_transac(t, l)?;
+    let l_fid = map.face_id_transac(t, b2b1l)?;
+    let r_fid = map.face_id_transac(t, b2b0r)?;
     let tmp_vertex = map.read_vertex(t, l_vid)?;
     let tmp_anchor = map.read_attribute::<VertexAnchor>(t, l_vid)?;
+    let l_face_anchor = map.read_attribute::<FaceAnchor>(t, l_fid)?;
+    let r_face_anchor = map.read_attribute::<FaceAnchor>(t, r_fid)?;
 
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
@@ -285,6 +314,16 @@ fn collapse_edge_to_base<T: CoordsFloat>(
             map.write_attribute(t, new_vid, a)?;
         }
     }
+    if let Some(f_a) = l_face_anchor {
+        if !map.is_unused_transac(t, b0l)? {
+            let new_fid = map.face_id_transac(t, b0l)?;
+            map.write_attribute(t, new_fid, f_a)?;
+        }
+    }
+    if let Some(f_a) = r_face_anchor {
+        let new_fid = map.face_id_transac(t, b1r)?;
+        map.write_attribute(t, new_fid, f_a)?;
+    }
 
     Ok(new_vid)
 }
@@ -302,16 +341,19 @@ fn collapse_halfcell_to_base<T: CoordsFloat>(
     map.unsew::<1>(t, d_e)?;
     map.unsew::<1>(t, d_pe)?;
     map.unsew::<1>(t, d_ne)?;
-    if b2d_ne != NULL_DART_ID {
+    if b2d_ne == NULL_DART_ID {
+        map.unsew::<2>(t, d_pe)?;
+        map.remove_free_dart_transac(t, d_pe)?;
+    } else {
         map.unsew::<1>(t, b2d_ne)?;
         map.unsew::<1>(t, b0b2d_ne)?;
         try_or_coerce!(map.unlink::<2>(t, d_ne), SewError);
-        map.remove_free_dart_transac(t, d_e)?;
-        map.remove_free_dart_transac(t, d_ne)?;
         map.remove_free_dart_transac(t, b2d_ne)?;
         map.sew::<1>(t, d_pe, b1b2d_ne)?;
         map.sew::<1>(t, b0b2d_ne, d_pe)?;
     }
+    map.remove_free_dart_transac(t, d_e)?;
+    map.remove_free_dart_transac(t, d_ne)?;
 
     Ok(())
 }
