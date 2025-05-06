@@ -8,6 +8,7 @@ use honeycomb_benches::{
     cut_edges::bench_cut_edges,
     grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
+    remesh::bench_remesh,
     shift::bench_shift,
 };
 
@@ -26,7 +27,7 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
         Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
         Benches::CutEdges(args) => bench_cut_edges(args),
         Benches::Grisubal(args) => bench_grisubal(args),
-        Benches::Remesh(_args) => todo!(),
+        Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),
     };
     // all bench currently generate a map,
