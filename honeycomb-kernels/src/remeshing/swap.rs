@@ -4,12 +4,17 @@ use honeycomb_core::{
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
+use crate::utils::{FaceAnchor, VertexAnchor};
+
 /// Error-modeling enum for edge swap routine.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 pub enum EdgeSwapError {
     /// A core operation failed.
     #[error("core operation failed: {0}")]
     FailedCoreOp(#[from] SewError),
+    /// The edge cannot be swapped due to geometrical or anchoring constraints.
+    #[error("cannot swap edge due to constraints: {0}")]
+    NotSwappable(&'static str),
     /// The edge passed as argument is null.
     #[error("cannot swap null edge")]
     NullEdge,
