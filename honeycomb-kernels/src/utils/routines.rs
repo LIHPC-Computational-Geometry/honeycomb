@@ -25,7 +25,7 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
             tmp.push(d?);
         }
 
-        let ref_sign = {
+        let ref_crossp = {
             let d = tmp[0];
             let b1d = map.beta_transac::<1>(t, d)?;
             let b1b1d = map.beta_transac::<1>(t, b1d)?;
@@ -42,9 +42,13 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
                 retry()?
             };
 
-            let crossp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
-            crossp.signum()
+            Vertex2::cross_product_from_vertices(&new_v, &v1, &v2)
         };
+        if ref_crossp.is_zero() {
+            return Ok(false);
+        }
+
+        let ref_sign = ref_crossp.signum();
         for &d in &tmp[1..] {
             let b1d = map.beta_transac::<1>(t, d)?;
             let b1b1d = map.beta_transac::<1>(t, b1d)?;
@@ -63,7 +67,7 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
 
             let crossp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
 
-            if ref_sign != crossp.signum() {
+            if ref_sign != crossp.signum() || crossp.is_zero() {
                 return Ok(false);
             }
         }
