@@ -239,12 +239,13 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
             let diff = atomically(|t| compute_diff_to_target(t, &map, l, r, args.target_length));
             if diff.abs() < args.target_tolerance {
+                // edge is within target length tolerance; skip the cut/process phase
                 continue;
             }
             let e = map.edge_id(e);
             // process
             if diff.is_sign_positive() {
-                // edge is 20+% longer than target length => cut
+                // edge is longer than target length => cut
                 if map.is_i_free::<2>(e as DartIdType) {
                     let nd = map.add_free_darts(3);
                     let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
@@ -293,7 +294,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     }
                 }
             } else {
-                // edge is 20+% shorter than target length => collapse
+                // edge is shorter than target length => collapse
                 while let Err(er) = atomically_with_err(|t| collapse_edge(t, &map, e)) {
                     match er {
                         EdgeCollapseError::FailedCoreOp(SewError::BadGeometry(_, _, _))
