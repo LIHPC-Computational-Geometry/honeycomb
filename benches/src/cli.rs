@@ -144,8 +144,7 @@ pub struct RemeshArgs {
         default_value_t = 0.2
     )]
     pub target_tolerance: f64,
-    /// Maximum number of remeshing rounds. The program will early return if target conditions are
-    /// reached before the maximum number of rounds.
+    /// Maximum number of remeshing rounds. Less may be executed if early return is enabled.
     #[arg(
         long("n-rounds"),
         allow_negative_numbers(false),
@@ -162,7 +161,8 @@ pub struct RemeshArgs {
     /// Enable early return in case target conditions are met within tolerance.
     #[arg(long = "enable-early-return")]
     pub enable_er: bool,
-    /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`
+    /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`.
+    /// UNIMPLEMENTED
     #[arg(long, value_enum, default_value_t = Backend::RayonIter)]
     pub backend: Backend,
 }
