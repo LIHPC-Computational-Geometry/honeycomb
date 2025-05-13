@@ -334,9 +334,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 );
                 if let Err(er) = atomically_with_err(|t| {
                     let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
-                    let new_diff = atomically(|t| {
-                        compute_diff_to_target(t, &map, b0l, b0r, args.target_length)
-                    });
+                    let new_diff = compute_diff_to_target(t, &map, b0l, b0r, args.target_length)?;
 
                     // if the swap gets the edge length closer to target value, do it
                     if new_diff.abs() < diff.abs() {
