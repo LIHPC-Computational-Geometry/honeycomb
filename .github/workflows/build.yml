@@ -26,7 +26,7 @@ jobs:
             brew install hwloc
           else
             sudo apt-get update
-            sudo apt-get libhwloc-dev
+            sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -48,7 +48,7 @@ jobs:
             brew install hwloc
           else
             sudo apt-get update
-            sudo apt-get libhwloc-dev
+            sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -70,7 +70,7 @@ jobs:
             brew install hwloc
           else
             sudo apt-get update
-            sudo apt-get libhwloc-dev
+            sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2

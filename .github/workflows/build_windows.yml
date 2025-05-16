@@ -20,7 +20,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build crates
-        run: cargo build --all --disable-default-features --features=kernel,render
+        run: cargo build --all --no-default-features --features=kernel,render
   build_examples:
     name: Build examples
     runs-on: windows-latest
@@ -31,7 +31,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build examples
-        run: cargo build --examples --disable-default-features --features=kernel,render
+        run: cargo build --examples --no-default-features --features=kernel,render
   build_benchmarks:
     name: Build benchmarks
     runs-on: windows-latest
@@ -42,4 +42,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build benchmarks
-        run: cargo build --benches --disable-default-features --features=kernel,render
+        run: cargo build --benches --no-default-features --features=kernel,render
