@@ -339,12 +339,12 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
     let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
-    if darts_fh.iter().any(|d| *d == NULL_DART_ID) {
+    if darts_fh.contains(&NULL_DART_ID) {
         abort(VertexInsertionError::InvalidDarts(
             "one dart of the first half is null",
         ))?;
     }
-    if base_dart2 != NULL_DART_ID && darts_sh.iter().any(|d| *d == NULL_DART_ID) {
+    if base_dart2 != NULL_DART_ID && darts_sh.contains(&NULL_DART_ID) {
         abort(VertexInsertionError::InvalidDarts(
             "one dart of the second half is null",
         ))?;
