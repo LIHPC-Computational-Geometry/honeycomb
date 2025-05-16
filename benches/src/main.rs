@@ -1,4 +1,6 @@
-use std::{collections::VecDeque, io::Write, sync::Arc};
+use std::io::Write;
+#[cfg(feature = "thread-binding")]
+use std::{collections::VecDeque, sync::Arc};
 
 use clap::Parser;
 use honeycomb::prelude::{CMap2, CoordsFloat};
@@ -9,7 +11,6 @@ use hwlocality::{
     object::types::ObjectType,
     topology::support::{DiscoverySupport, FeatureSupport},
 };
-#[cfg(feature = "thread-binding")]
 use rayon::ThreadPoolBuilder;
 
 use honeycomb_benches::{
@@ -95,6 +96,10 @@ fn main() {
                 builder.build_global().unwrap();
             }
         }
+    }
+    #[cfg(not(feature = "thread-binding"))]
+    {
+        builder.build_global().unwrap();
     }
 
     if cli.simple_precision {
