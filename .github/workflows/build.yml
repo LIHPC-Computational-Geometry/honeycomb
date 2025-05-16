@@ -25,7 +25,6 @@ jobs:
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             brew install hwloc
           else
-            sudo apt-get update
             sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
@@ -47,7 +46,6 @@ jobs:
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             brew install hwloc
           else
-            sudo apt-get update
             sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
@@ -69,7 +67,6 @@ jobs:
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             brew install hwloc
           else
-            sudo apt-get update
             sudo apt-get -y libhwloc-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
