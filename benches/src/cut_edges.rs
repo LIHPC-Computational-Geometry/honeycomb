@@ -1,6 +1,6 @@
+#[cfg(feature = "thread-binding")]
+use std::sync::Arc;
 use std::time::Instant;
-
-use rayon::prelude::*;
 
 use honeycomb::{
     core::{
@@ -10,18 +10,23 @@ use honeycomb::{
     kernels::remeshing::{cut_inner_edge, cut_outer_edge},
     prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType},
 };
+#[cfg(feature = "thread-binding")]
+use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
+use rayon::prelude::*;
 
+#[cfg(feature = "thread-binding")]
+use crate::utils::get_physical_cores;
 use crate::{cli::CutEdgesArgs, utils::hash_file};
 
 // const MAX_RETRY: u8 = 10;
 
-pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
+pub fn bench_cut_edges<T: CoordsFloat>(
+    args: CutEdgesArgs,
+    n_threads: usize,
+    bind_threads: bool,
+) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
     let target_len = T::from(args.target_length).unwrap();
-
-    let n_threads = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1);
 
     // load map from file
     let mut instant = Instant::now();
@@ -95,7 +100,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
                 dispatch_rayon_chunks(&map, &mut edges, &darts, n_threads)
             }
             crate::cli::Backend::StdThreads => {
-                dispatch_std_threads(&map, &mut edges, &darts, n_threads)
+                dispatch_std_threads(&map, &mut edges, &darts, n_threads, bind_threads)
             }
         };
         print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_process_batch
@@ -201,6 +206,7 @@ fn dispatch_std_threads<T: CoordsFloat>(
     edges: &mut Vec<EdgeIdType>,
     darts: &[DartIdType],
     n_threads: usize,
+    bind_threads: bool,
 ) -> u32 {
     let units: Vec<(u32, [u32; 6])> = edges
         .drain(..)
@@ -208,23 +214,113 @@ fn dispatch_std_threads<T: CoordsFloat>(
         .map(|(e, sl)| (e, sl.try_into().unwrap()))
         .collect();
     std::thread::scope(|s| {
-        let mut handles = Vec::new();
-        for wl in units.chunks(1 + units.len() / n_threads) {
-            handles.push(s.spawn(|| {
-                let mut n = 0;
-                wl.iter().for_each(|&(e, new_darts)| {
-                    let mut n_retry = 0;
-                    if map.is_i_free::<2>(e as DartIdType) {
-                        while !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {}
-                    } else {
-                        while !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {}
+        if bind_threads {
+            #[cfg(not(feature = "thread-binding"))]
+            {
+                unreachable!(); // due to CLI option only being present with the feature
+            }
+            #[cfg(feature = "thread-binding")]
+            {
+                let topology = Topology::new().unwrap();
+                let topology = Arc::new(topology);
+                match get_physical_cores(&topology) {
+                    Ok(mut cores) => {
+                        let n_t = if cores.len() < n_threads {
+                            // don't allow more than one thread per physical core
+                            // this is sane since this branch executes only if we explicitly enable binding
+                            eprintln!(
+                                "W: Less physical cores than logical threads; proceeding with one thread per core ({})",
+                                cores.len()
+                            );
+                            cores.len()
+                        } else {
+                            n_threads
+                        };
+                        let mut handles = Vec::new();
+                        for wl in units.chunks(1 + units.len() / n_t) {
+                            let topology = topology.clone();
+                            let core = cores.pop_front().expect("E: unreachable");
+                            let mut bind_to = core.cpuset().unwrap().clone_target();
+                            bind_to.singlify();
+                            handles.push(s.spawn(move || {
+                                // bind thread
+                                let tid = hwlocality::current_thread_id();
+                                topology
+                                    .bind_thread_cpu(tid, &bind_to, CpuBindingFlags::empty())
+                                    .unwrap();
+                                // execute work
+                                let mut n = 0;
+                                wl.iter().for_each(|&(e, new_darts)| {
+                                    let mut n_retry = 0;
+                                    if map.is_i_free::<2>(e as DartIdType) {
+                                        while !process_outer_edge(map, &mut n_retry, e, new_darts)
+                                            .is_validated()
+                                        {
+                                        }
+                                    } else {
+                                        while !process_inner_edge(map, &mut n_retry, e, new_darts)
+                                            .is_validated()
+                                        {
+                                        }
+                                    }
+                                    n += n_retry as u32;
+                                });
+                                n
+                            })); // s.spawn
+                        } // for wl in workloads
+                        handles.into_iter().map(|h| h.join().unwrap()).sum()
                     }
-                    n += n_retry as u32;
-                });
-                n
-            })); // s.spawn
-        } // for wl in workloads
-        handles.into_iter().map(|h| h.join().unwrap()).sum()
+                    Err(e) => {
+                        eprintln!("W: {e}");
+                        let mut handles = Vec::new();
+                        for wl in units.chunks(1 + units.len() / n_threads) {
+                            handles.push(s.spawn(|| {
+                                let mut n = 0;
+                                wl.iter().for_each(|&(e, new_darts)| {
+                                    let mut n_retry = 0;
+                                    if map.is_i_free::<2>(e as DartIdType) {
+                                        while !process_outer_edge(map, &mut n_retry, e, new_darts)
+                                            .is_validated()
+                                        {
+                                        }
+                                    } else {
+                                        while !process_inner_edge(map, &mut n_retry, e, new_darts)
+                                            .is_validated()
+                                        {
+                                        }
+                                    }
+                                    n += n_retry as u32;
+                                });
+                                n
+                            })); // s.spawn
+                        } // for wl in workloads
+                        handles.into_iter().map(|h| h.join().unwrap()).sum()
+                    }
+                }
+            }
+        } else {
+            let mut handles = Vec::new();
+            for wl in units.chunks(1 + units.len() / n_threads) {
+                handles.push(s.spawn(|| {
+                    let mut n = 0;
+                    wl.iter().for_each(|&(e, new_darts)| {
+                        let mut n_retry = 0;
+                        if map.is_i_free::<2>(e as DartIdType) {
+                            while !process_outer_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        } else {
+                            while !process_inner_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        }
+                        n += n_retry as u32;
+                    });
+                    n
+                })); // s.spawn
+            } // for wl in workloads
+            handles.into_iter().map(|h| h.join().unwrap()).sum()
+        }
     }) // std::thread::scope
 }
 
