@@ -1,4 +1,4 @@
-name: Rust Tests
+name: Build Status (Windows)
 
 on:
   push:
@@ -10,37 +10,36 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  format:
-    runs-on: ubuntu-22.04
+  build_crates:
+    name: Build crates
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Check Format
-        run: cargo fmt --all --check
-  clippy:
-    runs-on: ubuntu-22.04
+      - name: Build crates
+        run: cargo build --all --no-default-features --features=kernels,render
+  build_examples:
+    name: Build examples
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install hwloc
-        run: sudo apt-get install -y libhwloc-dev libudev-dev
-      - name: Run Clippy
-        run: cargo clippy --all-features -- -D warnings
-  tests:
-    runs-on: ubuntu-22.04
+      - name: Build examples
+        run: cargo build --examples --no-default-features --features=kernels,render
+  build_benchmarks:
+    name: Build benchmarks
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install hwloc
-        run: sudo apt-get install -y libhwloc-dev libudev-dev
-      - name: Run Tests
-        run: cargo test --all --all-features
+      - name: Build benchmarks
+        run: cargo build --benches --no-default-features --features=kernels,render

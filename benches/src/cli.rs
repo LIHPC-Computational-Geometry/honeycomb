@@ -11,6 +11,14 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 pub struct Cli {
     #[command(subcommand)]
     pub benches: Benches,
+    #[cfg(feature = "thread-binding")]
+    /// Bind threads to physical core if enabled (requires hwloc dev library and hardware support)
+    #[arg(short('b'), long("bind-threads"))]
+    pub bind_threads: bool,
+    /// Number of threads used for parallel workloads;
+    /// default to the number of physical cores or `std::thread::available_parallelism`
+    #[arg(short('t'), long("n-threads"))]
+    pub n_threads: Option<NonZero<usize>>,
     /// Serialize the map returned by the benchmark, if applicable
     #[arg(short, long("save-as"), value_enum, value_name("FORMAT"))]
     pub save_as: Option<Format>,
