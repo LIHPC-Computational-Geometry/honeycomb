@@ -17,7 +17,7 @@
 
         # Rust toolchain with extensions
         rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" "rust-analyzer" ];
+          extensions = [ "rust-src" ];
         };
 
         # Platform-specific build inputs
@@ -56,11 +56,6 @@
 
           shellHook = ''
             export LD_LIBRARY_PATH=${ldLibraryPath}:$LD_LIBRARY_PATH
-            # Initialize rustup if not already done
-            if [ ! -d "$HOME/.rustup" ]; then
-              rustup default stable
-              rustup component add rust-analyzer
-            fi
           '';
         };
       });
