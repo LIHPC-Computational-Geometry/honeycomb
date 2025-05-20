@@ -34,7 +34,7 @@ pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
 }
 
 #[cfg(feature = "profiling")]
-static mut PERF_FIFO: Option<File> = None;
+pub static mut PERF_FIFO: Option<File> = None;
 
 /// Attempt to open a fifo at the path `/tmp/hc_perf_control`.
 ///
@@ -45,7 +45,7 @@ macro_rules! prof_init {
         #[cfg(feature = "profiling")]
         {
             unsafe {
-                crate::utils::PERF_FIFO = Some(
+                $crate::utils::PERF_FIFO = Some(
                     std::fs::OpenOptions::new()
                         .write(true)
                         .open("/tmp/hc_perf_control")
@@ -68,7 +68,7 @@ macro_rules! prof_start {
             if std::env::var_os($var).is_some() {
                 use std::io::Write;
                 unsafe {
-                    if let Some(ref mut f) = crate::utils::PERF_FIFO {
+                    if let Some(ref mut f) = $crate::utils::PERF_FIFO {
                         f.write_all(b"enable\n")
                             .expect("E: failed to write to FIFO");
                         f.flush().expect("E: failed to flush FIFO");
@@ -91,10 +91,10 @@ macro_rules! prof_stop {
             if std::env::var_os($var).is_some() {
                 use std::io::Write;
                 unsafe {
-                    if let Some(ref mut f) = crate::utils::PERF_FIFO {
-                        fifo.write_all(b"disable\n")
+                    if let Some(ref mut f) = $crate::utils::PERF_FIFO {
+                        f.write_all(b"disable\n")
                             .expect("E: failed to write to FIFO");
-                        fifo.flush().expect("E: failed to flush FIFO");
+                        f.flush().expect("E: failed to flush FIFO");
                     }
                 }
             }
