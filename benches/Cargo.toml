@@ -11,6 +11,7 @@ publish = false
 
 [features]
 _single_precision = []
+profiling = []
 
 # deps
 

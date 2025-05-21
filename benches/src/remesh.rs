@@ -14,7 +14,7 @@ use honeycomb::{
     stm::{StmClosureResult, Transaction, abort, atomically, atomically_with_err, retry},
 };
 
-use crate::{cli::RemeshArgs, utils::hash_file};
+use crate::{cli::RemeshArgs, prof_start, prof_stop, utils::hash_file};
 
 pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
@@ -44,6 +44,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
     // -- triangulation
     instant = Instant::now();
+    prof_start!("HCBENCH_REMESH_TRIANGULATION");
     let n_tot = map
         .iter_faces()
         .map(|id| (map.orbit(OrbitPolicy::Face, id as DartIdType).count() - 3) * 2)
@@ -96,6 +97,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             }
         });
     let triangulation_time = instant.elapsed();
+    prof_stop!("HCBENCH_REMESH_TRIANGULATION");
 
     // check that the mesh is triangular, consistently oriented and fully classified
     debug_assert!(
@@ -145,12 +147,14 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     // b. cut / collapse
     // c. swap
     // check for ending condition after each relax
+    prof_start!("HCBENCH_REMESH_MAINLOOP");
     let mut n = 0;
     let mut r;
     loop {
         print!("{:>5}", n);
 
         // -- relax
+        prof_start!("HCBENCH_REMESH_RELAX");
         instant = Instant::now();
         r = 0;
         loop {
@@ -182,6 +186,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 break;
             }
         }
+        prof_stop!("HCBENCH_REMESH_RELAX");
         print!(" | {:>14.6e}", instant.elapsed().as_secs_f64());
 
         debug_assert!(
@@ -228,6 +233,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         print!(" | {:>17.6e}", instant.elapsed().as_secs_f64());
 
         // -- cut / collapse
+        prof_start!("HCBENCH_REMESH_CC");
         instant = Instant::now();
         for e in edges_to_process {
             if map.is_unused(e as DartIdType) {
@@ -308,9 +314,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 }
             }
         }
+        prof_stop!("HCBENCH_REMESH_CC");
         print!(" | {:>16.6e}", instant.elapsed().as_secs_f64());
 
         // -- swap
+        prof_start!("HCBENCH_REMESH_SWAP");
         instant = Instant::now();
         for (e, diff) in map
             .iter_edges()
@@ -367,6 +375,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 );
             }
         }
+        prof_stop!("HCBENCH_REMESH_SWAP");
         println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
 
         debug_assert!(map.iter_faces().all(|f| {
@@ -379,6 +388,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             break;
         }
     }
+    prof_stop!("HCBENCH_REMESH_MAINLOOP");
 
     debug_assert!(map.iter_faces().all(|f| {
         map.orbit(OrbitPolicy::FaceLinear, f).count() == 3

@@ -25,6 +25,7 @@ use honeycomb::prelude::{
 
 use crate::cli::ShiftArgs;
 use crate::utils::hash_file;
+use crate::{prof_start, prof_stop};
 
 pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
     let mut instant = std::time::Instant::now();
@@ -45,6 +46,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
     };
     let build_time = instant.elapsed();
 
+    prof_start!("HCBENCH_SHIFT");
     if args.no_conflict {
         todo!("TODO: require a partitioning algorithm")
     } else {
@@ -117,6 +119,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
             }
         }
     }
+    prof_stop!("HCBENCH_SHIFT");
 
     map
 }
