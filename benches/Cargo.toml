@@ -11,13 +11,15 @@ publish = false
 
 [features]
 _single_precision = []
+bind-threads = ["dep:hwlocality"]
 
 # deps
 
 [dependencies]
-clap = { workspace =true, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
 honeycomb.workspace = true
+hwlocality = { workspace = true, optional = true }
 rayon.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
 
