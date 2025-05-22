@@ -41,6 +41,15 @@ pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
     Ok(hasher.finish())
 }
 
+pub const NUM_THREADS_VAR: &'static str = "RAYON_NUM_THREADS";
+
+pub fn get_num_threads() -> Result<usize, String> {
+    match std::env::var(NUM_THREADS_VAR) {
+        Ok(val) => val.parse::<usize>().map_err(|e| e.to_string()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 #[cfg(feature = "bind-threads")]
 #[derive(Debug, Default)]
 pub enum BindingPolicy {
@@ -114,7 +123,7 @@ pub fn check_hwloc_support<'a>(topology: &'a Topology) -> Result<(), String> {
 ///
 /// The returned list is used by iterating over a `cycle`d version of it, which corresponds to a round robin logic.
 #[cfg(feature = "bind-threads")]
-pub fn get_proc_iterator<'a>(topology: &'a Topology) -> Option<Vec<CpuSet>> {
+pub fn get_proc_list(topology: &Topology) -> Option<Vec<CpuSet>> {
     let binding_policy = BindingPolicy::from_env();
     let core_depth = topology
         .depth_or_below_for_type(ObjectType::Core)

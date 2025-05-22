@@ -13,6 +13,41 @@ use honeycomb_benches::{
 };
 
 fn main() {
+    #[cfg(feature = "bind-threads")]
+    {
+        use std::sync::Arc;
+
+        use honeycomb_benches::utils::get_proc_list;
+        use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
+        use rayon::ThreadPoolBuilder;
+
+        let builder = ThreadPoolBuilder::new();
+        let topo = Arc::new(Topology::new().unwrap());
+        if let Some(cores) = get_proc_list(&topo) {
+            let mut cores = cores.into_iter().cycle();
+            builder
+                .spawn_handler(|t_builder| {
+                    let topo = topo.clone();
+                    let core = cores.next().expect("E: unreachable"); // due to cycle
+
+                    std::thread::spawn(move || {
+                        // bind
+                        let tid = hwlocality::current_thread_id();
+                        topo.bind_thread_cpu(tid, &core, CpuBindingFlags::empty())
+                            .unwrap();
+                        // work
+                        t_builder.run();
+                    });
+
+                    Ok(())
+                })
+                .build_global()
+                .unwrap();
+        } else {
+            builder.build_global().unwrap()
+        }
+    }
+
     let cli = Cli::parse();
 
     if cli.simple_precision {
