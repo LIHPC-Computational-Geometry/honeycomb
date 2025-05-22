@@ -10,6 +10,7 @@ authors.workspace = true
 publish = false
 
 [features]
+default = ["bind-threads"]
 _single_precision = []
 bind-threads = ["dep:hwlocality"]
 
