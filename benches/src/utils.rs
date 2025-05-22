@@ -41,7 +41,7 @@ pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
     Ok(hasher.finish())
 }
 
-pub const NUM_THREADS_VAR: &'static str = "RAYON_NUM_THREADS";
+pub const NUM_THREADS_VAR: &str = "RAYON_NUM_THREADS";
 
 pub fn get_num_threads() -> Result<usize, String> {
     match std::env::var(NUM_THREADS_VAR) {
@@ -69,7 +69,7 @@ pub enum BindingPolicy {
 ///
 /// The name of this variable and its possible values reflect the OpenMP equivalents.
 #[cfg(feature = "bind-threads")]
-pub const RAYON_PROC_BIND_VAR: &'static str = "RAYON_PROC_BIND";
+pub const RAYON_PROC_BIND_VAR: &str = "RAYON_PROC_BIND";
 
 #[cfg(feature = "bind-threads")]
 impl BindingPolicy {
