@@ -1,5 +1,5 @@
 {
-  description = "Fastiron Nix flake with Rust and hwloc support";
+  description = "Honeycomb development & build environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
