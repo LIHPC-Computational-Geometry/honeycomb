@@ -8,11 +8,47 @@ use honeycomb_benches::{
     cut_edges::bench_cut_edges,
     grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
+    prof_init, prof_start, prof_stop,
     remesh::bench_remesh,
     shift::bench_shift,
 };
 
 fn main() {
+    #[cfg(feature = "bind-threads")]
+    {
+        use std::sync::Arc;
+
+        use honeycomb_benches::utils::get_proc_list;
+        use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
+        use rayon::ThreadPoolBuilder;
+
+        let builder = ThreadPoolBuilder::new();
+        let topo = Arc::new(Topology::new().unwrap());
+        if let Some(cores) = get_proc_list(&topo) {
+            let mut cores = cores.into_iter().cycle();
+            builder
+                .spawn_handler(|t_builder| {
+                    let topo = topo.clone();
+                    let core = cores.next().expect("E: unreachable"); // due to cycle
+
+                    std::thread::spawn(move || {
+                        // bind
+                        let tid = hwlocality::current_thread_id();
+                        topo.bind_thread_cpu(tid, &core, CpuBindingFlags::empty())
+                            .unwrap();
+                        // work
+                        t_builder.run();
+                    });
+
+                    Ok(())
+                })
+                .build_global()
+                .unwrap();
+        } else {
+            builder.build_global().unwrap()
+        }
+    }
+
     let cli = Cli::parse();
 
     if cli.simple_precision {
@@ -23,6 +59,9 @@ fn main() {
 }
 
 fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
+    prof_init!();
+
+    prof_start!("HCBENCH");
     let map: CMap2<T> = match cli.benches {
         Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
         Benches::CutEdges(args) => bench_cut_edges(args),
@@ -30,6 +69,8 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
         Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),
     };
+    prof_stop!("HCBENCH");
+
     // all bench currently generate a map,
     // we may have to move this to match arms if this changes
     if let Some(f) = cli.save_as {
