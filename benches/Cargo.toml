@@ -10,7 +10,7 @@ authors.workspace = true
 publish = false
 
 [features]
-# default = ["bind-threads"] # enable back when CI is fixed with all the deps
+default = ["bind-threads"]
 _single_precision = []
 bind-threads = ["dep:hwlocality"]
 profiling = []

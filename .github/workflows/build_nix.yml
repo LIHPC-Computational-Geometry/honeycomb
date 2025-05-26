@@ -1,0 +1,76 @@
+name: Build Status (*nix)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_crates:
+    name: Build crates for ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install hwloc
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            brew install hwloc
+          else
+            sudo apt-get install -y libhwloc-dev libudev-dev
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build crates
+        run: cargo build --all --all-features
+  build_examples:
+    name: Build examples for ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install hwloc
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            brew install hwloc
+          else
+            sudo apt-get install -y libhwloc-dev libudev-dev
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build examples
+        run: cargo build --examples --all-features
+  build_benchmarks:
+    name: Build benchmarks for ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install hwloc
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            brew install hwloc
+          else
+            sudo apt-get install -y libhwloc-dev libudev-dev
+          fi
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build benchmarks
+        run: cargo build --benches --all-features
+
