@@ -10,15 +10,18 @@ authors.workspace = true
 publish = false
 
 [features]
+# default = ["bind-threads"] # enable back when CI is fixed with all the deps
 _single_precision = []
+bind-threads = ["dep:hwlocality"]
 profiling = []
 
 # deps
 
 [dependencies]
-clap = { workspace =true, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
 honeycomb.workspace = true
+hwlocality = { workspace = true, optional = true }
 rayon.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
 

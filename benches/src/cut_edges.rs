@@ -11,7 +11,11 @@ use honeycomb::{
     prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, EdgeIdType},
 };
 
-use crate::{cli::CutEdgesArgs, prof_start, prof_stop, utils::hash_file};
+use crate::{
+    cli::CutEdgesArgs,
+    prof_start, prof_stop,
+    utils::{get_num_threads, hash_file},
+};
 
 // const MAX_RETRY: u8 = 10;
 
@@ -19,9 +23,13 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
     let target_len = T::from(args.target_length).unwrap();
 
-    let n_threads = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1);
+    let n_threads = if let Ok(val) = get_num_threads() {
+        val
+    } else {
+        std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1)
+    };
 
     // load map from file
     let mut instant = Instant::now();
@@ -215,25 +223,77 @@ fn dispatch_std_threads<T: CoordsFloat>(
         .zip(darts.chunks(6))
         .map(|(e, sl)| (e, sl.try_into().unwrap()))
         .collect();
-    std::thread::scope(|s| {
-        let mut handles = Vec::new();
-        for wl in units.chunks(1 + units.len() / n_threads) {
-            handles.push(s.spawn(|| {
-                let mut n = 0;
-                wl.iter().for_each(|&(e, new_darts)| {
-                    let mut n_retry = 0;
-                    if map.is_i_free::<2>(e as DartIdType) {
-                        while !process_outer_edge(map, &mut n_retry, e, new_darts).is_validated() {}
-                    } else {
-                        while !process_inner_edge(map, &mut n_retry, e, new_darts).is_validated() {}
+
+    #[cfg(feature = "bind-threads")]
+    {
+        use std::sync::Arc;
+
+        use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
+
+        use crate::utils::get_proc_list;
+
+        let topo = Arc::new(Topology::new().unwrap());
+        let mut cores = get_proc_list(&topo).unwrap_or_default().into_iter().cycle();
+        std::thread::scope(|s| {
+            let mut handles = Vec::new();
+            for wl in units.chunks(1 + units.len() / n_threads) {
+                let topo = topo.clone();
+                let core = cores.next();
+                handles.push(s.spawn(move || {
+                    // bind
+                    if let Some(c) = core {
+                        let tid = hwlocality::current_thread_id();
+                        topo.bind_thread_cpu(tid, &c, CpuBindingFlags::empty())
+                            .unwrap();
                     }
-                    n += n_retry as u32;
-                });
-                n
-            })); // s.spawn
-        } // for wl in workloads
-        handles.into_iter().map(|h| h.join().unwrap()).sum()
-    }) // std::thread::scope
+                    // work
+                    let mut n = 0;
+                    wl.iter().for_each(|&(e, new_darts)| {
+                        let mut n_retry = 0;
+                        if map.is_i_free::<2>(e as DartIdType) {
+                            while !process_outer_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        } else {
+                            while !process_inner_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        }
+                        n += n_retry as u32;
+                    });
+                    n
+                })); // s.spawn
+            } // for wl in workloads
+            handles.into_iter().map(|h| h.join().unwrap()).sum()
+        }) // std::thread::scope
+    }
+
+    #[cfg(not(feature = "bind-threads"))]
+    {
+        std::thread::scope(|s| {
+            let mut handles = Vec::new();
+            for wl in units.chunks(1 + units.len() / n_threads) {
+                handles.push(s.spawn(|| {
+                    let mut n = 0;
+                    wl.iter().for_each(|&(e, new_darts)| {
+                        let mut n_retry = 0;
+                        if map.is_i_free::<2>(e as DartIdType) {
+                            while !process_outer_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        } else {
+                            while !process_inner_edge(map, &mut n_retry, e, new_darts)
+                                .is_validated()
+                            {}
+                        }
+                        n += n_retry as u32;
+                    });
+                    n
+                })); // s.spawn
+            } // for wl in workloads
+            handles.into_iter().map(|h| h.join().unwrap()).sum()
+        }) // std::thread::scope
+    }
 }
 
 #[inline]
