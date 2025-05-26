@@ -13,6 +13,7 @@ use honeycomb::{
 
 use crate::{
     cli::CutEdgesArgs,
+    prof_start, prof_stop,
     utils::{get_num_threads, hash_file},
 };
 
@@ -71,8 +72,10 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
 
     let mut step = 0;
     print!(" {step:>4} "); // Step
+    prof_start!("HCBENCH_CUTS");
 
     // compute first batch
+    prof_start!("HCBENCH_CUTS_COMPUTE");
     instant = Instant::now();
     let mut edges: Vec<EdgeIdType> = map.iter_edges().collect();
     print!("| {:>12} ", edges.len()); // n_edge_total
@@ -90,11 +93,13 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     print!("| {n_e:>17} "); // n_edge_to_process
     let mut nd = map.add_free_darts(6 * n_e); // 2 for edge split + 2*2 for new edges in neighbor tets
     let mut darts: Vec<DartIdType> = (nd..nd + 6 * n_e as DartIdType).collect();
+    prof_stop!("HCBENCH_CUTS_COMPUTE");
     print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
 
     // while there are edges to cut
     while !edges.is_empty() {
         // process batch
+        prof_start!("HCBENCH_CUTS_PROCESS");
         instant = Instant::now();
         let n_retry = match args.backend {
             crate::cli::Backend::RayonIter => dispatch_rayon(&map, &mut edges, &darts),
@@ -105,6 +110,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
                 dispatch_std_threads(&map, &mut edges, &darts, n_threads)
             }
         };
+        prof_stop!("HCBENCH_CUTS_PROCESS");
         print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_process_batch
         println!("| {n_retry:>15}",); // n_transac_retry
 
@@ -117,6 +123,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         // compute the new batch
         step += 1;
         print!(" {step:>4} "); // Step
+        prof_start!("HCBENCH_CUTS_COMPUTE");
         instant = Instant::now();
         edges.extend(map.iter_edges());
         print!("| {:>12} ", edges.len()); // n_edge_total
@@ -135,6 +142,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         nd = map.add_free_darts(6 * n_e);
         darts.par_drain(..); // is there a better way?
         darts.extend(nd..nd + 6 * n_e as DartIdType);
+        prof_stop!("HCBENCH_CUTS_COMPUTE");
         if n_e != 0 {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
         } else {
@@ -143,6 +151,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
             println!("| {:>15}", 0); // n_transac_retry
         }
     }
+    prof_stop!("HCBENCH_CUTS");
 
     map
 }

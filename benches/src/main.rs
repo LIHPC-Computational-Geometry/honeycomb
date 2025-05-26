@@ -8,6 +8,7 @@ use honeycomb_benches::{
     cut_edges::bench_cut_edges,
     grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
+    prof_init, prof_start, prof_stop,
     remesh::bench_remesh,
     shift::bench_shift,
 };
@@ -58,6 +59,9 @@ fn main() {
 }
 
 fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
+    prof_init!();
+
+    prof_start!("HCBENCH");
     let map: CMap2<T> = match cli.benches {
         Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
         Benches::CutEdges(args) => bench_cut_edges(args),
@@ -65,6 +69,8 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
         Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),
     };
+    prof_stop!("HCBENCH");
+
     // all bench currently generate a map,
     // we may have to move this to match arms if this changes
     if let Some(f) = cli.save_as {
