@@ -5,8 +5,8 @@ WORKDIR /builder
 # Copy files from the repo
 COPY . .
 
-# Install dependencuies
-# RUN apt-get update
+# Install dependencies
+RUN apt-get update && apt-get install -y libhwloc-dev
 
 # Build binaries
 RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
@@ -24,10 +24,11 @@ RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
 # Use Ubuntu as the runtime image
 FROM ubuntu:22.04
 
-# Install performance tools
+# Install performance tools & dependencies
 RUN apt-get update && apt-get install -y \
     linux-tools-generic \
-    heaptrack
+    heaptrack \
+    libhwloc-dev
 
 WORKDIR /honeycomb
 
