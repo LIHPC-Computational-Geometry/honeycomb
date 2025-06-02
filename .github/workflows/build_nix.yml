@@ -71,7 +71,7 @@ jobs:
       - name: Build examples
         run: cargo build --examples --all-features
   build_benchmarks:
-    name: Build crates (${{ matrix.system }})
+    name: Build benchmarks (${{ matrix.system }})
     runs-on: ${{ matrix.runner_label }}
 
     strategy:
