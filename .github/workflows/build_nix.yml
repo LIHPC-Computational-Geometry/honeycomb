@@ -11,12 +11,20 @@ env:
 
 jobs:
   build_crates:
-    name: Build crates for ${{ matrix.os }}
+    name: Build crates (${{ matrix.system }})
+    runs-on: ${{ matrix.runner_label }}
+
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-15 ]
-    runs-on: ${{ matrix.os }}
+        include:
+          - system: x86_64-linux
+            runner_label: ubuntu-latest
+          - system: x86_64-darwin
+            runner_label: macos-13
+          - system: aarch64-darwin
+            runner_label: macos-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,11 +41,20 @@ jobs:
       - name: Build crates
         run: cargo build --all --all-features
   build_examples:
-    name: Build examples for ${{ matrix.os }}
+    name: Build examples (${{ matrix.system }})
+    runs-on: ${{ matrix.runner_label }}
+
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-15 ]
-    runs-on: ${{ matrix.os }}
+        include:
+          - system: x86_64-linux
+            runner_label: ubuntu-latest
+          - system: x86_64-darwin
+            runner_label: macos-13
+          - system: aarch64-darwin
+            runner_label: macos-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,11 +71,20 @@ jobs:
       - name: Build examples
         run: cargo build --examples --all-features
   build_benchmarks:
-    name: Build benchmarks for ${{ matrix.os }}
+    name: Build crates (${{ matrix.system }})
+    runs-on: ${{ matrix.runner_label }}
+
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-15 ]
-    runs-on: ${{ matrix.os }}
+        include:
+          - system: x86_64-linux
+            runner_label: ubuntu-latest
+          - system: x86_64-darwin
+            runner_label: macos-13
+          - system: aarch64-darwin
+            runner_label: macos-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
