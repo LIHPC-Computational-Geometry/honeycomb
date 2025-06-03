@@ -133,7 +133,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn add_free_dart(&mut self) -> DartIdType {
         let new_id = self.n_darts() as DartIdType;
         self.betas.extend(1);
-        self.unused_darts.extend(1);
+        self.unused_darts.extend_with(1, false);
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -147,7 +147,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdType {
         let new_id = self.n_darts() as DartIdType;
         self.betas.extend(n_darts);
-        self.unused_darts.extend(n_darts);
+        self.unused_darts.extend_with(n_darts, false);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id

@@ -230,7 +230,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdType;
         self.n_darts += 1;
         self.betas.extend(1);
-        self.unused_darts.extend(1);
+        self.unused_darts.extend_with(1, false);
         self.vertices.extend(1);
         self.attributes.extend_storages(1);
         new_id
@@ -245,7 +245,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let new_id = self.n_darts as DartIdType;
         self.n_darts += n_darts;
         self.betas.extend(n_darts);
-        self.unused_darts.extend(n_darts);
+        self.unused_darts.extend_with(n_darts, false);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
