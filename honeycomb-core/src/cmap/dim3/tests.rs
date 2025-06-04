@@ -54,7 +54,7 @@ fn example_test() {
 
     // Build a second tetrahedron (B)
 
-    let _ = map.add_free_darts(12);
+    let _ = map.allocate_used_darts(12);
     // face z- (base)
     map.force_link::<1>(13, 14).unwrap();
     map.force_link::<1>(14, 15).unwrap();
@@ -188,12 +188,12 @@ fn example_test() {
     map.force_unlink::<3>(10).unwrap();
     map.force_unlink::<3>(11).unwrap();
     map.force_unlink::<3>(12).unwrap();
-    map.remove_free_dart(10);
-    map.remove_free_dart(11);
-    map.remove_free_dart(12);
-    map.remove_free_dart(16);
-    map.remove_free_dart(17);
-    map.remove_free_dart(18);
+    map.release_dart(10).unwrap();
+    map.release_dart(11).unwrap();
+    map.release_dart(12).unwrap();
+    map.release_dart(16).unwrap();
+    map.release_dart(17).unwrap();
+    map.release_dart(18).unwrap();
 
     {
         let mut volumes = map.iter_volumes();
@@ -270,7 +270,7 @@ fn example_test_transactional() {
     });
 
     // Build a second tetrahedron (B)
-    let _ = map.add_free_darts(12);
+    let _ = map.allocate_used_darts(12);
     let res = atomically_with_err(|trans| {
         // face z- (base)
         map.link::<1>(trans, 13, 14)?;
@@ -424,12 +424,16 @@ fn example_test_transactional() {
         Ok(())
     });
 
-    map.remove_free_dart(10);
-    map.remove_free_dart(11);
-    map.remove_free_dart(12);
-    map.remove_free_dart(16);
-    map.remove_free_dart(17);
-    map.remove_free_dart(18);
+    atomically_with_err(|t| {
+        map.release_dart_transac(t, 10)?;
+        map.release_dart_transac(t, 11)?;
+        map.release_dart_transac(t, 12)?;
+        map.release_dart_transac(t, 16)?;
+        map.release_dart_transac(t, 17)?;
+        map.release_dart_transac(t, 18)?;
+        Ok(())
+    })
+    .unwrap();
 
     {
         let mut volumes = map.iter_volumes();
@@ -455,14 +459,15 @@ fn remove_vertex_twice() {
 }
 
 #[test]
-#[should_panic(expected = "assertion failed")]
 fn remove_dart_twice() {
     // in its default state, all darts are:
     // - used
     // - free
     let mut map: CMap3<f64> = CMap3::new(4);
-    map.remove_free_dart(1);
-    map.remove_free_dart(1); // this should panic
+    // set dart 1 as unused
+    assert!(!map.release_dart(1).unwrap());
+    // set dart 1 as unused, again
+    assert!(map.release_dart(1).unwrap());
 }
 
 // --- (UN)SEW

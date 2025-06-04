@@ -31,7 +31,7 @@ fn example_test() {
     }
 
     // build a second triangle
-    map.add_free_darts(3);
+    map.allocate_used_darts(3);
     map.force_link::<1>(4, 5).unwrap();
     map.force_link::<1>(5, 6).unwrap();
     map.force_link::<1>(6, 4).unwrap();
@@ -83,8 +83,8 @@ fn example_test() {
     map.force_unsew::<1>(4).unwrap();
     // break up & remove the diagonal
     map.force_unsew::<2>(2).unwrap(); // this makes dart 2 and 4 free
-    map.remove_free_dart(2);
-    map.remove_free_dart(4);
+    map.release_dart(2).unwrap();
+    map.release_dart(4).unwrap();
     // sew the square back up
     map.force_sew::<1>(1, 5).unwrap();
     map.force_sew::<1>(6, 3).unwrap();
@@ -137,7 +137,7 @@ fn example_test_transactional() {
     });
 
     // build a second triangle
-    map.add_free_darts(3);
+    map.allocate_used_darts(3);
     let res = atomically_with_err(|trans| {
         map.link::<1>(trans, 4, 5)?;
         map.link::<1>(trans, 5, 6)?;
@@ -206,8 +206,12 @@ fn example_test_transactional() {
         assert!(map.unsew::<2>(trans, 2).is_ok()); // this makes dart 2 and 4 free
         Ok(())
     });
-    map.remove_free_dart(2);
-    map.remove_free_dart(4);
+    atomically_with_err(|t| {
+        map.release_dart_transac(t, 2)?;
+        map.release_dart_transac(t, 4)?;
+        Ok(())
+    })
+    .unwrap();
     atomically(|trans| {
         // sew the square back up
         assert!(map.sew::<1>(trans, 1, 5).is_ok());
@@ -251,15 +255,14 @@ fn remove_vertex_twice() {
 }
 
 #[test]
-#[should_panic(expected = "assertion failed")]
 fn remove_dart_twice() {
     // in its default state, all darts/vertices of a map are considered to be used
     // darts are also free
     let mut map: CMap2<f64> = CMap2::new(4);
     // set dart 1 as unused
-    map.remove_free_dart(1);
+    assert!(!map.release_dart(1).unwrap());
     // set dart 1 as unused, again
-    map.remove_free_dart(1); // this should panic
+    assert!(map.release_dart(1).unwrap());
 }
 
 // --- (UN)SEW
@@ -290,7 +293,7 @@ fn two_sew_incomplete() {
     assert_eq!(map.force_read_vertex(1).unwrap(), Vertex2::from((0.0, 0.0)));
     assert_eq!(map.force_read_vertex(2).unwrap(), Vertex2::from((0.5, 1.0)));
     map.force_unsew::<2>(1).unwrap();
-    assert_eq!(map.add_free_dart(), 4);
+    assert_eq!(map.allocate_used_darts(1), 4);
     map.force_link::<1>(3, 4).unwrap();
     map.force_sew::<2>(1, 3).unwrap();
     // missing vertex for dart 4
