@@ -130,6 +130,22 @@ impl<T: CoordsFloat> CMap3<T> {
             && self.beta::<2>(dart_id) == NULL_DART_ID
             && self.beta::<3>(dart_id) == NULL_DART_ID
     }
+
+    /// Check if a given dart is `i`-free, for all `i`.
+    ///
+    /// # Return
+    ///
+    /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
+    #[must_use = "unused return value"]
+    pub fn is_free_transac(
+        &self,
+        t: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmClosureResult<bool> {
+        Ok(self.beta_transac::<0>(t, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<1>(t, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<2>(t, dart_id)? == NULL_DART_ID)
+    }
 }
 
 /// **I-cell-related methods**

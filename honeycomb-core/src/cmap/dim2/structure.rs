@@ -3,14 +3,15 @@
 //! This module contains the main structure definition ([`CMap2`]) as well as its constructor
 //! implementation.
 
-use fast_stm::{StmClosureResult, Transaction, atomically};
-
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
 use crate::cmap::{
-    DartIdType,
+    DartAllocationError, DartIdType, DartReleaseError,
     components::{betas::BetaFunctions, unused::UnusedDarts},
 };
 use crate::geometry::{CoordsFloat, Vertex2};
+use crate::stm::{
+    StmClosureResult, Transaction, TransactionClosureResult, abort, atomically_with_err,
+};
 
 use super::CMAP2_BETA;
 
@@ -219,58 +220,65 @@ impl<T: CoordsFloat> CMap2<T> {
         self.unused_darts[d].read(trans)
     }
 
-    // --- edit
-
-    /// Add a new free dart to the map.
-    ///
-    /// # Return
-    ///
-    /// Return the ID of the new dart.
-    pub fn add_free_dart(&mut self) -> DartIdType {
-        let new_id = self.n_darts as DartIdType;
-        self.n_darts += 1;
-        self.betas.extend(1);
-        self.unused_darts.extend_with(1, false);
-        self.vertices.extend(1);
-        self.attributes.extend_storages(1);
-        new_id
-    }
+    // --- allocation
 
     /// Add `n_darts` new free darts to the map.
-    ///
-    /// # Return
-    ///
-    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
-    pub fn add_free_darts(&mut self, n_darts: usize) -> DartIdType {
+    fn allocate_darts_core(&mut self, n_darts: usize, unused: bool) -> DartIdType {
         let new_id = self.n_darts as DartIdType;
         self.n_darts += n_darts;
         self.betas.extend(n_darts);
-        self.unused_darts.extend_with(n_darts, false);
+        self.unused_darts.extend_with(n_darts, unused);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
         new_id
     }
 
-    /// Insert a new free dart in the map.
+    /// Add `n_darts` new free darts to the map.
     ///
-    /// The dart may be inserted into an unused spot of the existing dart list. If no free spots
-    /// exist, it will be pushed to the end of the list.
+    /// Added darts are marked as used.
     ///
     /// # Return
     ///
-    /// Return the ID of the new dart.
-    pub fn insert_free_dart(&mut self) -> DartIdType {
-        if let Some((new_id, _)) = self
-            .unused_darts
-            .iter()
-            .enumerate()
-            .find(|(_, u)| u.read_atomic())
-        {
-            atomically(|trans| self.unused_darts[new_id as DartIdType].write(trans, false));
-            new_id as DartIdType
-        } else {
-            self.add_free_dart()
+    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
+    pub fn allocate_used_darts(&mut self, n_darts: usize) -> DartIdType {
+        self.allocate_darts_core(n_darts, false)
+    }
+
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// Added dart are marked as unused.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
+    pub fn allocate_unused_darts(&mut self, n_darts: usize) -> DartIdType {
+        self.allocate_darts_core(n_darts, true)
+    }
+
+    // --- reservation / removal
+
+    pub fn reserve_darts(&self, n_darts: usize) -> Result<Vec<DartIdType>, DartAllocationError> {
+        atomically_with_err(|t| self.reserve_darts_transac(t, n_darts))
+    }
+
+    pub fn reserve_darts_transac(
+        &self,
+        t: &mut Transaction,
+        n_darts: usize,
+    ) -> TransactionClosureResult<Vec<DartIdType>, DartAllocationError> {
+        let mut res = Vec::with_capacity(n_darts);
+
+        for d in 1..self.n_darts() as DartIdType {
+            if self.is_unused_transac(t, d)? {
+                //
+                res.push(d);
+                if res.len() == n_darts {
+                    return Ok(res);
+                }
+            }
         }
+
+        abort(DartAllocationError(n_darts))
     }
 
     /// Remove a free dart from the map.
@@ -288,9 +296,8 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This method may panic if:
     /// - the dart is not *i*-free for all *i*,
     /// - the dart is already marked as unused.
-    pub fn remove_free_dart(&mut self, dart_id: DartIdType) {
-        assert!(self.is_free(dart_id)); // all beta images are 0
-        assert!(!atomically(|t| self.remove_free_dart_transac(t, dart_id)));
+    pub fn release_dart(&mut self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
+        atomically_with_err(|t| self.release_dart_transac(t, dart_id))
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -311,11 +318,14 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn remove_free_dart_transac(
+    pub fn release_dart_transac(
         &self,
         t: &mut Transaction,
         dart_id: DartIdType,
-    ) -> StmClosureResult<bool> {
-        self.unused_darts[dart_id].replace(t, true)
+    ) -> TransactionClosureResult<bool, DartReleaseError> {
+        if !self.is_free_transac(t, dart_id)? {
+            abort(DartReleaseError(dart_id))?;
+        }
+        Ok(self.unused_darts[dart_id].replace(t, true)?) // Ok(_?) necessary for err type coercion
     }
 }

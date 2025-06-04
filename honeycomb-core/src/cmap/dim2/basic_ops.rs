@@ -122,9 +122,23 @@ impl<T: CoordsFloat> CMap2<T> {
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     #[must_use = "unused return value"]
     pub fn is_free(&self, dart_id: DartIdType) -> bool {
-        self.beta::<0>(dart_id) == NULL_DART_ID
-            && self.beta::<1>(dart_id) == NULL_DART_ID
-            && self.beta::<2>(dart_id) == NULL_DART_ID
+        atomically(|t| self.is_free_transac(t, dart_id))
+    }
+
+    /// Check if a given dart is `i`-free, for all `i`.
+    ///
+    /// # Return
+    ///
+    /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
+    #[must_use = "unused return value"]
+    pub fn is_free_transac(
+        &self,
+        t: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmClosureResult<bool> {
+        Ok(self.beta_transac::<0>(t, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<1>(t, dart_id)? == NULL_DART_ID
+            && self.beta_transac::<2>(t, dart_id)? == NULL_DART_ID)
     }
 }
 

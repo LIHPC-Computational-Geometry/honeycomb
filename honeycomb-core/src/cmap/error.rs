@@ -2,6 +2,16 @@
 
 use crate::{attributes::AttributeError, cmap::DartIdType};
 
+/// Dart allocation error struct
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+#[error("cannot reserve {0} darts: not enough unused darts")]
+pub struct DartAllocationError(pub usize);
+
+/// Dart freeing error struct
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+#[error("cannot set dart {0} as unused: dart isn't free")]
+pub struct DartReleaseError(pub DartIdType);
+
 /// Link operation error enum
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum LinkError {
