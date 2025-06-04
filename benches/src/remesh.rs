@@ -266,7 +266,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         match er {
                             SewError::BadGeometry(1, _, _) => {
                                 for d in nds {
-                                    map.release_dart(d);
+                                    map.release_dart(d).expect("E: unreachable");
                                 }
                                 break;
                             }
@@ -289,7 +289,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         match er {
                             SewError::BadGeometry(1, _, _) => {
                                 for d in nds {
-                                    map.release_dart(d);
+                                    map.release_dart(d).expect("E: unreachable");
                                 }
                                 break;
                             }

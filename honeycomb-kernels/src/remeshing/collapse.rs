@@ -16,6 +16,7 @@ pub enum EdgeCollapseError {
     /// A core operation failed.
     #[error("core operation failed: {0}")]
     FailedCoreOp(#[from] SewError),
+    /// A discarded dart couldn't be released.
     #[error("dart release failed: {0}")]
     FailedDartRelease(#[from] DartReleaseError),
     /// The edge passed as argument cannot be collapsed due to constraints on its vertices.

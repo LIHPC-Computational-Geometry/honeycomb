@@ -174,10 +174,28 @@ impl<T: CoordsFloat> CMap3<T> {
 
     // --- reservation / removal
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark `n_darts` free darts as used and return them for usage.
+    ///
+    /// # Return / Errors
+    ///
+    /// This function returns a vector containing IDs of the darts marked as used. It will fail if
+    /// there are not enough unused darts to return; darts will then be left as unused.
     pub fn reserve_darts(&self, n_darts: usize) -> Result<Vec<DartIdType>, DartAllocationError> {
         atomically_with_err(|t| self.reserve_darts_transac(t, n_darts))
     }
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark `n_darts` free darts as used and return them for usage.
+    ///
+    /// # Return / Errors
+    ///
+    /// This function returns a vector containing IDs of the darts marked as used. It will fail if
+    /// there are not enough unused darts to return; darts will then be left as unused.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     pub fn reserve_darts_transac(
         &self,
         t: &mut Transaction,
@@ -198,39 +216,24 @@ impl<T: CoordsFloat> CMap3<T> {
         abort(DartAllocationError(n_darts))
     }
 
-    /// Remove a free dart from the map.
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark a free dart from the map as unused.
     ///
-    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
-    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
-    /// any sort extremely costly.
+    /// # Return / Errors
     ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
-    ///
-    /// # Panics
-    ///
-    /// This method may panic if:
-    /// - the dart is not *i*-free for all *i*,
-    /// - the dart is already marked as unused.
+    /// This method return a boolean indicating whether the art was already unused or not. It will
+    /// fail if the dart is not free, i.e. if one of its beta images isn't null.
     pub fn release_dart(&mut self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
         atomically_with_err(|t| self.release_dart_transac(t, dart_id))
     }
 
     #[allow(clippy::missing_errors_doc)]
-    /// Transactionally remove a free dart from the map.
-    ///
-    /// The removed dart identifier is added to the list of free dart. This way of proceeding is
-    /// necessary as the structure relies on darts indexing for encoding data, making reordering of
-    /// any sort extremely costly.
-    ///
-    /// # Arguments
-    ///
-    /// - `dart_id: DartIdentifier` -- Identifier of the dart to remove.
+    /// Mark a free dart from the map as unused.
     ///
     /// # Return / Errors
     ///
-    /// This method return a boolean indicating whether the art was already unused or not.
+    /// This method return a boolean indicating whether the art was already unused or not. It will
+    /// fail if the dart is not free, i.e. if one of its beta images isn't null.
     ///
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
