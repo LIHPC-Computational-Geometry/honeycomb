@@ -96,14 +96,14 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
     let base_dart1 = edge_id as DartIdType;
     let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
 
-    // FIXME: is_free should be transactional
-    if new_darts.0 == NULL_DART_ID || !cmap.is_free(new_darts.0) {
+    if new_darts.0 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.0)? {
         abort(VertexInsertionError::InvalidDarts(
             "first dart is null or not free",
         ))?;
     }
-    // FIXME: is_free should be transactional
-    if base_dart2 != NULL_DART_ID && (new_darts.1 == NULL_DART_ID || !cmap.is_free(new_darts.1)) {
+    if base_dart2 != NULL_DART_ID
+        && (new_darts.1 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.1)?)
+    {
         abort(VertexInsertionError::InvalidDarts(
             "second dart is null or not free",
         ))?;
@@ -270,7 +270,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 /// map.force_write_vertex(1, (0.0, 0.0));
 /// map.force_write_vertex(2, (1.0, 0.0));
 ///
-/// let nd = map.add_free_darts(6);
+/// let nd = map.allocate_unused_darts(6);
 ///
 /// // split
 /// assert!(
@@ -327,9 +327,10 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
     if n_d != 2 * n_t {
         abort(VertexInsertionError::WrongAmountDarts(2 * n_t, n_d))?;
     }
-    // FIXME: is_free should be transactional
-    if new_darts.iter().any(|d| !cmap.is_free(*d)) {
-        abort(VertexInsertionError::InvalidDarts("one dart is not free"))?;
+    for d in new_darts {
+        if !cmap.is_free_transac(trans, *d)? {
+            abort(VertexInsertionError::InvalidDarts("one dart is not free"))?;
+        }
     }
     // get the first and second halves
     let darts_fh = &new_darts[..n_t];

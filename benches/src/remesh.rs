@@ -49,7 +49,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         .iter_faces()
         .map(|id| (map.orbit(OrbitPolicy::Face, id as DartIdType).count() - 3) * 2)
         .sum();
-    let start = map.add_free_darts(n_tot);
+    let start = map.allocate_used_darts(n_tot);
     // use a prefix sum starting from the newly allocated darts to associate free darts to each face
     map.iter_faces()
         .scan(start, |state, f| {
@@ -253,7 +253,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             if diff.is_sign_positive() {
                 // edge is longer than target length => cut
                 if map.is_i_free::<2>(e as DartIdType) {
-                    let nd = map.add_free_darts(3);
+                    let nd = map.allocate_used_darts(3);
                     let nds: [DartIdType; 3] = std::array::from_fn(|i| nd + i as DartIdType);
                     while let Err(er) = atomically_with_err(|t| {
                         cut_outer_edge(t, &map, e, nds)?;
@@ -266,7 +266,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         match er {
                             SewError::BadGeometry(1, _, _) => {
                                 for d in nds {
-                                    map.remove_free_dart(d);
+                                    map.release_dart(d);
                                 }
                                 break;
                             }
@@ -276,7 +276,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         }
                     }
                 } else {
-                    let nd = map.add_free_darts(6);
+                    let nd = map.allocate_used_darts(6);
                     let nds: [DartIdType; 6] = std::array::from_fn(|i| nd + i as DartIdType);
                     while let Err(er) = atomically_with_err(|t| {
                         cut_inner_edge(t, &map, e, nds)?;
@@ -289,7 +289,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         match er {
                             SewError::BadGeometry(1, _, _) => {
                                 for d in nds {
-                                    map.remove_free_dart(d);
+                                    map.release_dart(d);
                                 }
                                 break;
                             }
@@ -306,9 +306,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         EdgeCollapseError::FailedCoreOp(SewError::BadGeometry(_, _, _))
                         | EdgeCollapseError::NonCollapsibleEdge(_)
                         | EdgeCollapseError::InvertedOrientation => break,
-                        EdgeCollapseError::FailedCoreOp(_) | EdgeCollapseError::BadTopology => {
-                            continue;
-                        }
+                        EdgeCollapseError::FailedCoreOp(_)
+                        | EdgeCollapseError::FailedDartRelease(_)
+                        | EdgeCollapseError::BadTopology => continue,
                         EdgeCollapseError::NullEdge => unreachable!(),
                     }
                 }

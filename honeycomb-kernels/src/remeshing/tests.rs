@@ -437,7 +437,7 @@ mod capture_and_classify {
             .build()
             .unwrap();
         // disjoint surfaces should have different IDs
-        let d1 = map.add_free_darts(4);
+        let d1 = map.allocate_used_darts(4);
         let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
         let _ = map.force_link::<1>(d1, d2);
         let _ = map.force_link::<1>(d2, d3);
@@ -563,7 +563,7 @@ mod triangulate_and_classify {
 
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
-            let nd = map.add_free_darts(2);
+            let nd = map.allocate_used_darts(2);
             atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
         }
 
@@ -587,7 +587,7 @@ mod triangulate_and_classify {
 
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
-            let nd = map.add_free_darts(2);
+            let nd = map.allocate_used_darts(2);
             assert!(
                 atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1]))
                     .is_err_and(|e| matches!(e, TriangulateError::OpFailed(_)))
@@ -612,7 +612,7 @@ mod triangulate_and_classify {
 
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
-            let nd = map.add_free_darts(2);
+            let nd = map.allocate_used_darts(2);
             atomically_with_err(|t| {
                 // the clean generalization would be to take each new edge (pair of new darts)
                 // and write the new anchor values
@@ -675,7 +675,7 @@ mod triangulate_and_classify {
 
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
-            let nd = map.add_free_darts(2);
+            let nd = map.allocate_used_darts(2);
             atomically_with_err(|t| {
                 // the clean generalization would be to take each new edge (pair of new darts)
                 // and write the new anchor values

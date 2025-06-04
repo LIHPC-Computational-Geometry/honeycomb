@@ -73,7 +73,7 @@ use super::CMAP2_BETA;
 /// }
 ///
 /// // build a second triangle (B)
-/// let first_added_dart_id = map.add_free_darts(3);
+/// let first_added_dart_id = map.allocate_used_darts(3);
 /// assert_eq!(first_added_dart_id, 4);
 /// map.force_link::<1>(4, 5);
 /// map.force_link::<1>(5, 6);
@@ -110,8 +110,8 @@ use super::CMAP2_BETA;
 /// map.force_unsew::<1>(4);
 /// // break up & remove the diagonal
 /// map.force_unsew::<2>(2); // this makes dart 2 and 4 free
-/// map.remove_free_dart(2);
-/// map.remove_free_dart(4);
+/// map.release_dart(2);
+/// map.release_dart(4);
 /// // sew the square back up
 /// map.force_sew::<1>(1, 5);
 /// map.force_sew::<1>(6, 3);
