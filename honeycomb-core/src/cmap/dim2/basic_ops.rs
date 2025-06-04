@@ -125,11 +125,16 @@ impl<T: CoordsFloat> CMap2<T> {
         atomically(|t| self.is_free_transac(t, dart_id))
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// Check if a given dart is `i`-free, for all `i`.
     ///
-    /// # Return
+    /// # Return / Errors
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     #[must_use = "unused return value"]
     pub fn is_free_transac(
         &self,
