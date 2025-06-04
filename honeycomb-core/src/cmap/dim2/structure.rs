@@ -5,7 +5,7 @@
 
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
 use crate::cmap::{
-    DartAllocationError, DartIdType, DartReleaseError,
+    DartIdType, DartReleaseError, DartReservationError,
     components::{betas::BetaFunctions, unused::UnusedDarts},
 };
 use crate::geometry::{CoordsFloat, Vertex2};
@@ -264,7 +264,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This function returns a vector containing IDs of the darts marked as used. It will fail if
     /// there are not enough unused darts to return; darts will then be left as unused.
-    pub fn reserve_darts(&self, n_darts: usize) -> Result<Vec<DartIdType>, DartAllocationError> {
+    pub fn reserve_darts(&self, n_darts: usize) -> Result<Vec<DartIdType>, DartReservationError> {
         atomically_with_err(|t| self.reserve_darts_transac(t, n_darts))
     }
 
@@ -283,7 +283,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         t: &mut Transaction,
         n_darts: usize,
-    ) -> TransactionClosureResult<Vec<DartIdType>, DartAllocationError> {
+    ) -> TransactionClosureResult<Vec<DartIdType>, DartReservationError> {
         let mut res = Vec::with_capacity(n_darts);
 
         for d in 1..self.n_darts() as DartIdType {
@@ -296,7 +296,7 @@ impl<T: CoordsFloat> CMap2<T> {
             }
         }
 
-        abort(DartAllocationError(n_darts))
+        abort(DartReservationError(n_darts))
     }
 
     #[allow(clippy::missing_errors_doc)]

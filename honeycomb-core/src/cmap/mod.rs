@@ -17,6 +17,6 @@ pub use components::{
 };
 pub use dim2::structure::CMap2;
 pub use dim3::structure::CMap3;
-pub use error::{DartAllocationError, DartReleaseError, LinkError, SewError};
+pub use error::{DartReleaseError, DartReservationError, LinkError, SewError};
 
 pub(crate) use components::orbits::try_from_fn;
