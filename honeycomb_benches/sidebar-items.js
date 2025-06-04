@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["prof_init","prof_start","prof_stop"],"mod":["cli","cut_edges","grid_gen","grisubal","remesh","shift","utils"]};

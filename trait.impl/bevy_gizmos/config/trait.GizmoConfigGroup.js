@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["honeycomb_render",[["impl GizmoConfigGroup for <a class=\"struct\" href=\"honeycomb_render/resources/struct.DartGizmos.html\" title=\"struct honeycomb_render::resources::DartGizmos\">DartGizmos</a><div class=\"where\">where\n    Self: Reflect + TypePath + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a>,</div>"],["impl GizmoConfigGroup for <a class=\"struct\" href=\"honeycomb_render/resources/struct.EdgeGizmos.html\" title=\"struct honeycomb_render::resources::EdgeGizmos\">EdgeGizmos</a><div class=\"where\">where\n    Self: Reflect + TypePath + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a>,</div>"],["impl GizmoConfigGroup for <a class=\"struct\" href=\"honeycomb_render/resources/struct.FaceGizmos.html\" title=\"struct honeycomb_render::resources::FaceGizmos\">FaceGizmos</a><div class=\"where\">where\n    Self: Reflect + TypePath + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a>,</div>"],["impl GizmoConfigGroup for <a class=\"struct\" href=\"honeycomb_render/resources/struct.VertexGizmos.html\" title=\"struct honeycomb_render::resources::VertexGizmos\">VertexGizmos</a><div class=\"where\">where\n    Self: Reflect + TypePath + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a>,</div>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1592]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NUM_THREADS_VAR","RAYON_PROC_BIND_VAR"],"enum":["BindingPolicy"],"fn":["check_hwloc_support","get_num_threads","get_proc_list","hash_file"],"static":["PERF_FIFO"],"type":["FloatType"]};
