@@ -50,7 +50,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     // prealloc darts that will be used for vertex insertion
     let n_darts_per_seg: Vec<_> = edge_intersec.values().map(|vs| 2 * vs.len()).collect();
     let n_tot: usize = n_darts_per_seg.iter().sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let tmp = cmap.allocate_used_darts(n_tot) as usize;
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs

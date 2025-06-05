@@ -110,7 +110,7 @@ fn delete_darts<T: CoordsFloat>(
         for &dart in &darts {
             let _ = cmap.force_remove_vertex(cmap.vertex_id(dart));
             cmap.set_betas(dart, [NULL_DART_ID; 3]);
-            cmap.remove_free_dart(dart);
+            cmap.release_dart(dart).expect("E: unreachable");
         }
     }
 

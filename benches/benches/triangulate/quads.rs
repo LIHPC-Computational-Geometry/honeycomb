@@ -21,7 +21,7 @@ fn fan_bench() -> Result<(), TriangulateError> {
         .map(|id| (map.orbit(OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)
         .collect();
     let n_tot: usize = n_darts_per_face.iter().sum();
-    let tmp = map.add_free_darts(n_tot) as usize;
+    let tmp = map.allocate_used_darts(n_tot) as usize;
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs
@@ -55,7 +55,7 @@ fn earclip_bench() -> Result<(), TriangulateError> {
         .map(|id| (map.orbit(OrbitPolicy::Face, *id as DartIdType).count() - 3) * 2)
         .collect();
     let n_tot: usize = n_darts_per_face.iter().sum();
-    let tmp = map.add_free_darts(n_tot) as usize;
+    let tmp = map.allocate_used_darts(n_tot) as usize;
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
     // end of the slice is deduced using these values and the number of darts the current seg needs

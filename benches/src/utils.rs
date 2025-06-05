@@ -101,7 +101,7 @@ impl BindingPolicy {
 }
 
 #[cfg(feature = "bind-threads")]
-pub fn check_hwloc_support<'a>(topology: &'a Topology) -> Result<(), String> {
+pub fn check_hwloc_support(topology: &Topology) -> Result<(), String> {
     if !topology.supports(FeatureSupport::discovery, DiscoverySupport::pu_count) {
         return Err("missing PU reporting support".to_string());
     }

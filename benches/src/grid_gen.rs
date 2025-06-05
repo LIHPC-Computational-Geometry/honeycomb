@@ -48,7 +48,7 @@ fn split_faces_randomly<T: CoordsFloat>(
 
     // build diags
     instant = Instant::now();
-    let nd = map.add_free_darts(n_diag * 2);
+    let nd = map.allocate_used_darts(n_diag * 2);
     let nd_range = (nd..nd + (n_diag * 2) as DartIdType).collect::<Vec<_>>();
     faces
         .into_iter()

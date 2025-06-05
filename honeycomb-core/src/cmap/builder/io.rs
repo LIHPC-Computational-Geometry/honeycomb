@@ -170,7 +170,8 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
             let d = u
                 .parse()
                 .map_err(|_| BuilderError::BadValue("could not parse an unused ID"))?;
-            map.remove_free_dart(d);
+            map.release_dart(d)
+                .expect("E: unused dart has non-null beta images");
         }
     }
 
@@ -355,7 +356,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             )
                                         );
                                         // build the triangle
-                                        let d0 = cmap.add_free_darts(3);
+                                        let d0 = cmap.allocate_used_darts(3);
                                         let (d1, d2) = (d0 + 1, d0 + 2);
                                         cmap.force_write_vertex(
                                             d0 as VertexIdType,
@@ -385,7 +386,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                     }
                                     CellType::Polygon => {
                                         let n_vertices = vids.len();
-                                        let d0 = cmap.add_free_darts(n_vertices);
+                                        let d0 = cmap.allocate_used_darts(n_vertices);
                                         (0..n_vertices).for_each(|i| {
                                             let di = d0 + i as DartIdType;
                                             let dip1 =
@@ -411,7 +412,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             )
                                         );
                                         // build the quad
-                                        let d0 = cmap.add_free_darts(4);
+                                        let d0 = cmap.allocate_used_darts(4);
                                         let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
                                         cmap.force_write_vertex(
                                             d0 as VertexIdType,

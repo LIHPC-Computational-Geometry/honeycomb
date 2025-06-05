@@ -91,7 +91,7 @@ fn fan_cells() {
     let tri: FaceIdType = 26;
 
     // the hex will be
-    let nd = map.add_free_darts(6);
+    let nd = map.allocate_used_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| fan_cell(t, &map, hex1, &new_darts)).is_ok());
 
@@ -101,7 +101,7 @@ fn fan_cells() {
     assert_eq!(map.i_cell::<2>(5).count(), 3);
 
     // the hex will be
-    let nd = map.add_free_darts(6);
+    let nd = map.allocate_used_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| fan_cell(t, &map, hex2, &new_darts)).is_ok());
 
@@ -111,7 +111,7 @@ fn fan_cells() {
     assert_eq!(map.i_cell::<2>(11).count(), 3);
 
     // the square will be split in two
-    let nd = map.add_free_darts(2);
+    let nd = map.allocate_used_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| fan_cell(t, &map, squ, &new_darts)).is_ok());
 
@@ -119,7 +119,7 @@ fn fan_cells() {
     assert_eq!(map.i_cell::<2>(15).count(), 3);
 
     // this will be a no-op since the polygon isn't fannable
-    let nd = map.add_free_darts(12);
+    let nd = map.allocate_used_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
     assert_eq!(
         atomically_with_err(|t| fan_cell(t, &map, nop, &new_darts)),
@@ -148,7 +148,7 @@ fn earclip_cells() {
     let tri: FaceIdType = 26;
 
     // the hex will be split in 4
-    let nd = map.add_free_darts(6);
+    let nd = map.allocate_used_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert_eq!(
         atomically_with_err(|t| earclip_cell_countercw(t, &map, hex1, &new_darts)),
@@ -161,7 +161,7 @@ fn earclip_cells() {
     assert_eq!(map.i_cell::<2>(5).count(), 3);
 
     // the hex will be split in 4
-    let nd = map.add_free_darts(6);
+    let nd = map.allocate_used_darts(6);
     let new_darts = (nd..nd + 6).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, hex2, &new_darts)).is_ok());
 
@@ -171,7 +171,7 @@ fn earclip_cells() {
     assert_eq!(map.i_cell::<2>(11).count(), 3);
 
     // the square will be split in 2
-    let nd = map.add_free_darts(2);
+    let nd = map.allocate_used_darts(2);
     let new_darts = (nd..nd + 2).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, squ, &new_darts)).is_ok());
 
@@ -179,7 +179,7 @@ fn earclip_cells() {
     assert_eq!(map.i_cell::<2>(15).count(), 3);
 
     // 9-gon is split in 7
-    let nd = map.add_free_darts(12);
+    let nd = map.allocate_used_darts(12);
     let new_darts = (nd..nd + 12).collect::<Vec<_>>();
     assert!(atomically_with_err(|t| earclip_cell_countercw(t, &map, smh, &new_darts)).is_ok());
 

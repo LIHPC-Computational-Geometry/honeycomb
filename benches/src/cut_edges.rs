@@ -91,7 +91,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     });
     let n_e = edges.len();
     print!("| {n_e:>17} "); // n_edge_to_process
-    let mut nd = map.add_free_darts(6 * n_e); // 2 for edge split + 2*2 for new edges in neighbor tets
+    let mut nd = map.allocate_used_darts(6 * n_e); // 2 for edge split + 2*2 for new edges in neighbor tets
     let mut darts: Vec<DartIdType> = (nd..nd + 6 * n_e as DartIdType).collect();
     prof_stop!("HCBENCH_CUTS_COMPUTE");
     print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
@@ -116,7 +116,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
 
         (1..map.n_darts() as DartIdType).for_each(|d| {
             if map.is_free(d) && !map.is_unused(d) {
-                map.remove_free_dart(d);
+                map.release_dart(d).expect("E: unreachable");
             }
         });
 
@@ -139,7 +139,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         });
         let n_e = edges.len();
         print!("| {n_e:>17} "); // n_edge_to_process
-        nd = map.add_free_darts(6 * n_e);
+        nd = map.allocate_used_darts(6 * n_e);
         darts.par_drain(..); // is there a better way?
         darts.extend(nd..nd + 6 * n_e as DartIdType);
         prof_stop!("HCBENCH_CUTS_COMPUTE");

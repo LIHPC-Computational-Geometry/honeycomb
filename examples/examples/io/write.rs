@@ -35,7 +35,7 @@ fn main() {
             let square = *square as DartIdType;
             let (d1, d2, d3, d4) = (square, square + 1, square + 2, square + 3);
             // in a parallel impl, we would create all new darts before-hand
-            let dsplit1 = map.add_free_darts(2);
+            let dsplit1 = map.allocate_used_darts(2);
             let dsplit2 = dsplit1 + 1;
             // unsew the square & duplicate vertices to avoid data loss
             // this duplication effectively means that there are two existing vertices

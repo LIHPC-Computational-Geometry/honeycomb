@@ -69,7 +69,7 @@ fn build_workload<T: CoordsFloat>(
 ) -> Vec<Vec<DartIdType>> {
     // allocate all darts needed
     let n_tot: usize = edges.iter().map(|e| 2 + 2 * e.intermediates.len()).sum();
-    let tmp = cmap.add_free_darts(n_tot) as usize;
+    let tmp = cmap.allocate_used_darts(n_tot) as usize;
 
     // the prefix sum gives an offset that corresponds to the starting index of each slice, minus
     // the location of the allocated dart block (given by `tmp`)
