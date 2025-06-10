@@ -223,6 +223,8 @@ impl<T: CoordsFloat> CMap2<T> {
     // --- allocation
 
     /// Add `n_darts` new free darts to the map.
+    ///
+    /// This is an internal helper function
     fn allocate_darts_core(&mut self, n_darts: usize, unused: bool) -> DartIdType {
         let new_id = self.n_darts as DartIdType;
         self.n_darts += n_darts;
