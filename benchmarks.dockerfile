@@ -6,7 +6,7 @@ WORKDIR /builder
 COPY . .
 
 # Install dependencies
-RUN apt-get update && apt-get install -y libhwloc-dev
+RUN apt-get update && apt-get install -y libhwloc-dev libudev-dev
 
 # Build binaries
 RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
@@ -28,7 +28,7 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
     linux-tools-generic \
     heaptrack \
-    libhwloc-dev
+    libhwloc-dev libudev-dev
 
 WORKDIR /honeycomb
 
