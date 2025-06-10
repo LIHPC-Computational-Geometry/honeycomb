@@ -18,8 +18,8 @@ impl UnusedDarts {
     }
 
     /// Extend internal storage capacity
-    pub fn extend(&mut self, len: usize) {
-        self.0.extend((0..len).map(|_| TVar::new(false)));
+    pub fn extend_with(&mut self, len: usize, val: bool) {
+        self.0.extend((0..len).map(|_| TVar::new(val)));
     }
 
     /// Return internal storage length

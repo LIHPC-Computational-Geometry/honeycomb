@@ -4,8 +4,14 @@
 //! implementation.
 
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
-use crate::cmap::components::{betas::BetaFunctions, unused::UnusedDarts};
+use crate::cmap::{
+    DartIdType, DartReleaseError, DartReservationError,
+    components::{betas::BetaFunctions, unused::UnusedDarts},
+};
 use crate::geometry::{CoordsFloat, Vertex2};
+use crate::stm::{
+    StmClosureResult, Transaction, TransactionClosureResult, abort, atomically_with_err,
+};
 
 use super::CMAP2_BETA;
 
@@ -67,7 +73,7 @@ use super::CMAP2_BETA;
 /// }
 ///
 /// // build a second triangle (B)
-/// let first_added_dart_id = map.add_free_darts(3);
+/// let first_added_dart_id = map.allocate_used_darts(3);
 /// assert_eq!(first_added_dart_id, 4);
 /// map.force_link::<1>(4, 5);
 /// map.force_link::<1>(5, 6);
@@ -104,8 +110,8 @@ use super::CMAP2_BETA;
 /// map.force_unsew::<1>(4);
 /// // break up & remove the diagonal
 /// map.force_unsew::<2>(2); // this makes dart 2 and 4 free
-/// map.remove_free_dart(2);
-/// map.remove_free_dart(4);
+/// map.release_dart(2);
+/// map.release_dart(4);
 /// // sew the square back up
 /// map.force_sew::<1>(1, 5);
 /// map.force_sew::<1>(6, 3);
@@ -173,5 +179,158 @@ impl<T: CoordsFloat> CMap2<T> {
             betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
         }
+    }
+}
+
+/// **Dart-related methods**
+impl<T: CoordsFloat> CMap2<T> {
+    // --- read
+
+    /// Return the current number of darts.
+    #[must_use = "unused return value"]
+    pub fn n_darts(&self) -> usize {
+        self.n_darts
+    }
+
+    /// Return the current number of unused darts.
+    #[must_use = "unused return value"]
+    pub fn n_unused_darts(&self) -> usize {
+        self.unused_darts.iter().filter(|v| v.read_atomic()).count()
+    }
+
+    /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    #[must_use = "unused return value"]
+    pub fn is_unused_transac(
+        &self,
+        trans: &mut Transaction,
+        d: DartIdType,
+    ) -> StmClosureResult<bool> {
+        self.unused_darts[d].read(trans)
+    }
+
+    // --- allocation
+
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// This is an internal helper function
+    fn allocate_darts_core(&mut self, n_darts: usize, unused: bool) -> DartIdType {
+        let new_id = self.n_darts as DartIdType;
+        self.n_darts += n_darts;
+        self.betas.extend(n_darts);
+        self.unused_darts.extend_with(n_darts, unused);
+        self.vertices.extend(n_darts);
+        self.attributes.extend_storages(n_darts);
+        new_id
+    }
+
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// Added darts are marked as used.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
+    pub fn allocate_used_darts(&mut self, n_darts: usize) -> DartIdType {
+        self.allocate_darts_core(n_darts, false)
+    }
+
+    /// Add `n_darts` new free darts to the map.
+    ///
+    /// Added dart are marked as unused.
+    ///
+    /// # Return
+    ///
+    /// Return the ID of the first new dart. Other IDs are in the range `ID..ID+n_darts`.
+    pub fn allocate_unused_darts(&mut self, n_darts: usize) -> DartIdType {
+        self.allocate_darts_core(n_darts, true)
+    }
+
+    // --- reservation / removal
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark `n_darts` free darts as used and return them for usage.
+    ///
+    /// # Return / Errors
+    ///
+    /// This function returns a vector containing IDs of the darts marked as used. It will fail if
+    /// there are not enough unused darts to return; darts will then be left as unused.
+    pub fn reserve_darts(&self, n_darts: usize) -> Result<Vec<DartIdType>, DartReservationError> {
+        atomically_with_err(|t| self.reserve_darts_transac(t, n_darts))
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark `n_darts` free darts as used and return them for usage.
+    ///
+    /// # Return / Errors
+    ///
+    /// This function returns a vector containing IDs of the darts marked as used. It will fail if
+    /// there are not enough unused darts to return; darts will then be left as unused.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn reserve_darts_transac(
+        &self,
+        t: &mut Transaction,
+        n_darts: usize,
+    ) -> TransactionClosureResult<Vec<DartIdType>, DartReservationError> {
+        let mut res = Vec::with_capacity(n_darts);
+
+        for d in 1..self.n_darts() as DartIdType {
+            if self.is_unused_transac(t, d)? {
+                //
+                res.push(d);
+                if res.len() == n_darts {
+                    return Ok(res);
+                }
+            }
+        }
+
+        abort(DartReservationError(n_darts))
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark a free dart from the map as unused.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method return a boolean indicating whether the art was already unused or not. It will
+    /// fail if the dart is not free, i.e. if one of its beta images isn't null.
+    pub fn release_dart(&mut self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
+        atomically_with_err(|t| self.release_dart_transac(t, dart_id))
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark a free dart from the map as unused.
+    ///
+    /// # Return / Errors
+    ///
+    /// This method return a boolean indicating whether the art was already unused or not. It will
+    /// fail if the dart is not free, i.e. if one of its beta images isn't null.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn release_dart_transac(
+        &self,
+        t: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> TransactionClosureResult<bool, DartReleaseError> {
+        if !self.is_free_transac(t, dart_id)? {
+            abort(DartReleaseError(dart_id))?;
+        }
+        Ok(self.unused_darts[dart_id].replace(t, true)?) // Ok(_?) necessary for err type coercion
     }
 }

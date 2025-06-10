@@ -11,7 +11,10 @@
 
 use std::hint::black_box;
 
-use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType, Vertex2};
+use honeycomb::{
+    core::cmap::DartReservationError,
+    prelude::{CMap2, CMapBuilder, DartIdType, Vertex2},
+};
 use iai_callgrind::{
     FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
 };
@@ -31,7 +34,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
         .build()
         .unwrap();
     map.set_betas(5, [0; 3]); // free dart 5
-    map.remove_free_dart(5);
+    map.release_dart(5).unwrap();
     // because of the way we built the map in the square_cmap2 function & the ID computation
     // policy, we can safely remove a vertex we know is defined
     assert_eq!(
@@ -53,41 +56,25 @@ fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
 // --- dart group
 
 #[library_benchmark]
-#[bench::small(&mut get_map(16))]
-#[bench::medium(&mut get_map(64))]
-#[bench::large(&mut get_map(256))]
-fn add_single_dart(map: &mut CMap2<FloatType>) -> DartIdType {
-    black_box(map.add_free_dart())
-}
-
-#[library_benchmark]
-#[bench::small(&mut get_map(16))]
-#[bench::medium(&mut get_map(64))]
-#[bench::large(&mut get_map(256))]
-fn add_ten_darts(map: &mut CMap2<FloatType>) -> DartIdType {
-    black_box(map.add_free_darts(10))
-}
-
-#[library_benchmark]
 #[benches::with_setup(args = [16, 32, 64, 128, 256, 512], setup = get_empty_map)]
 fn add_many_darts((mut map, n_darts): (CMap2<FloatType>, usize)) -> DartIdType {
-    black_box(map.add_free_darts(n_darts))
+    black_box(map.allocate_used_darts(n_darts))
 }
 
 #[library_benchmark]
 #[bench::small(&mut get_sparse_map(16))]
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
-fn insert_dart(map: &mut CMap2<FloatType>) -> DartIdType {
-    black_box(map.insert_free_dart())
+fn insert_dart(map: &mut CMap2<FloatType>) -> Vec<DartIdType> {
+    black_box(map.reserve_darts(1).unwrap())
 }
 
 #[library_benchmark]
 #[bench::small(&mut get_map(16))]
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
-fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdType {
-    black_box(map.insert_free_dart())
+fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartReservationError {
+    black_box(map.reserve_darts(1).unwrap_err())
 }
 
 #[library_benchmark]
@@ -95,15 +82,13 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartIdType {
 #[bench::medium(&mut CMapBuilder::<2, FloatType>::from_n_darts(64_usize.pow(2) * 4).build().unwrap())]
 #[bench::large(&mut CMapBuilder::<2, FloatType>::from_n_darts(256_usize.pow(2) * 4).build().unwrap())]
 fn remove_dart(map: &mut CMap2<FloatType>) {
-    map.remove_free_dart(5);
+    map.release_dart(5).unwrap();
     black_box(map);
 }
 
 library_benchmark_group!(
     name = bench_darts;
     benchmarks =
-        add_single_dart,
-        add_ten_darts,
         add_many_darts,
         insert_dart,
         insert_dart_full,
