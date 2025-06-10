@@ -16,7 +16,7 @@
 //! scaling characteristics.
 
 use honeycomb::kernels::remeshing::move_vertex_to_average;
-use rayon::prelude::*;
+use rayon::{current_num_threads, prelude::*};
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{
@@ -72,9 +72,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
             .collect();
         let n_v = tmp.len();
         let graph_time = instant.elapsed();
-        let n_threads = std::thread::available_parallelism()
-            .map(|v| v.get())
-            .unwrap_or(1);
+        let n_threads = rayon::current_num_threads();
 
         println!("| shift benchmark");
         println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
