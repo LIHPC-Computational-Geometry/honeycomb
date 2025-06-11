@@ -1,3 +1,13 @@
+//! 2D remshing pipeline benchmark
+//!
+//! This benchmark execute a proxy-application of usual 2D remeshing pipelines. It is split into
+//! two parts:
+//!
+//! - initialization & first capture,
+//! - iterative remeshing.
+//!
+//! Time sampling is done on the second part. Currently only executes in sequential.
+
 use std::time::Instant;
 
 use honeycomb::{

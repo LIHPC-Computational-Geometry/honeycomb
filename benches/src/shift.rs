@@ -1,19 +1,13 @@
-//! # Description
+//! `shift` benchmark
 //!
-//! ## Routine
-//!
-//! The algorithm fetches all vertices that are not on the border of the map, fetch all identifiers
+//! The benchmark fetches all vertices that are not on the border of the map, fetch all identifiers
 //! of each respective vertices' neighbors. Then, for all vertices:
 //!
-//! - compute the average between neighbors
-//! - overwrite current vertex value with computed average
+//! - compute the average between neighbors,
+//! - overwrite current vertex value with computed average.
 //!
-//! ## Benchmark
-//!
-//! This binary is meant to be use to evaluate scalability of geometry-only kernels. It is
-//! parallelized using rayon, and the number of thread used for execution can be controlled using
-//! `taskset`. By controlling this, and the grid size, we can evaluate both strong and weak
-//! scaling characteristics.
+//! This is done for a given number of rounds, to reach significant execution time and an accurate
+//! average.
 
 use honeycomb::kernels::remeshing::move_vertex_to_average;
 use rayon::prelude::*;

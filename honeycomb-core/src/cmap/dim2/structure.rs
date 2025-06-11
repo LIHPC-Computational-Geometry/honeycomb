@@ -41,7 +41,7 @@ use super::CMAP2_BETA;
 /// ![`CMAP2_EXAMPLE`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_hcmap_example.svg)
 ///
 /// Note that:
-/// - we create the map using its builder structure: [`CMapBuilder`][crate::prelude::CMapBuilder]
+/// - we create the map using its builder structure: [`CMapBuilder`][crate::cmap::CMapBuilder]
 /// - we insert a few assertions to demonstrate the progressive changes applied to the structure
 /// - even though the faces are represented in the figure, they are not stored in the structure
 /// - we use a lot of methods with the `force_` prefix; these are convenience methods when

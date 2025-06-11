@@ -4,8 +4,8 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 
 /// Honeycomb benchmarks binary
 ///
-/// Each command of this binary correspond to a (category of) benchmark(s). More information
-/// about each is available using `hc-bench <COMMAND> --help`
+/// Each command of this binary correspond to a different (category of) benchmark(s). More
+/// information about each is available using `hc-bench <COMMAND> --help`
 #[derive(Parser)]
 #[command(version, about, arg_required_else_help(true))]
 pub struct Cli {
