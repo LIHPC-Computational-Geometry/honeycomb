@@ -2,9 +2,11 @@
 
 [![Current Version](https://img.shields.io/crates/v/honeycomb-render?label=latest%20release)](https://crates.io/crates/honeycomb-core)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/LIHPC-Computational-Geometry/honeycomb/latest)][GH]
-[![Build Status](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build.yml)
+[![Build Status](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build_nix.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/build_nix.yml)
 [![Rust Tests](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml/badge.svg)](https://github.com/LIHPC-Computational-Geometry/honeycomb/actions/workflows/rust-test.yml)
 [![codecov](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb/graph/badge.svg?token=QSN0TWFXO1)](https://codecov.io/github/LIHPC-Computational-Geometry/honeycomb)
+
+[GH]: https://github.com/LIHPC-Computational-Geometry/honeycomb
 
 ---
 
