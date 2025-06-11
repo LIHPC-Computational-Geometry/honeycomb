@@ -1,3 +1,8 @@
+//! Grid generation benchmark
+//!
+//! This benchmark generates a grid using the passed parameters as argument for [`GridDescriptor`]
+//! and [`CMapBuilder`].
+
 use std::time::{Duration, Instant};
 
 use honeycomb::{

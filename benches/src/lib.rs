@@ -3,6 +3,17 @@
 //! This crate contains all benchmarks of the project. It also contains simple binaries used to
 //! profile and further optimize the implementation.
 //!
+//! ## Binary
+//!
+//! The package provides a single binary, `hc-bench`, which exposes several benchmarks as
+//! subcommands. For details on options and arguments, run:
+//!
+//! ```sh
+//! cargo run --bin hc-bench -- --help
+//! ```
+//!
+//! Benchmarks are described in the documentation of their respective modules.
+//!
 //! ## Available benchmarks
 //!
 //! ### Criterion-based
@@ -19,19 +30,13 @@
 //! - `prof-dim2-basic` - `CMap2` basic operations benchmarks
 //! - `prof-dim2-build` - `CMap2` constructor & building functions benchmarks
 //! - `prof-dim2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
-//!
-//! ## Available binaries
-//!
-//! - `builder` - Build a 2-map grid using dimensions passed as argument
-//! - `grisubal` - Run the `grisubal` algorithm
-//! - `shift` - Run a simple vertex relaxation algorithm in parallel (naively)
-//! - `shift-nc` - Run a simple vertex relaxation algorithm in parallel (using independent set of
-//!   vertices)
 
+#[doc(hidden)]
 pub mod cli;
 pub mod cut_edges;
 pub mod grid_gen;
 pub mod grisubal;
 pub mod remesh;
 pub mod shift;
+#[doc(hidden)]
 pub mod utils;

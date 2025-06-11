@@ -1,3 +1,9 @@
+//! `cut-edges` benchmark
+//!
+//! This benchmark iteratively insert vertex and edges in cells in a triangular meshes to cut down
+//! edges length down to a target value (expressed as an absolute value). It currently precomputes
+//! all affected edges in order to pre-allocate the darts used in the parallel insertions.
+
 use std::time::Instant;
 
 use rayon::prelude::*;

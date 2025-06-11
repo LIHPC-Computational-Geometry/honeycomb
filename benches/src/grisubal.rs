@@ -1,3 +1,7 @@
+//! `grisubal` benchmark
+//!
+//! This benchmark executes the [`grisubal`] algorithm.
+
 use honeycomb::prelude::{
     CMap2, CoordsFloat,
     grisubal::{Clip, grisubal},
