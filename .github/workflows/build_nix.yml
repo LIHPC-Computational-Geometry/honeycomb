@@ -32,9 +32,9 @@ jobs:
       - name: Install hwloc
         run: |
           if [ "${{ matrix.runner_label }}" = "macos-13" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
-            brew install hwloc
+            brew update && brew install hwloc
           else
-            sudo apt-get install -y libhwloc-dev libudev-dev
+            sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -62,9 +62,9 @@ jobs:
       - name: Install hwloc
         run: |
           if [ "${{ matrix.runner_label }}" = "macos-13" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
-            brew install hwloc
+            brew update && brew install hwloc
           else
-            sudo apt-get install -y libhwloc-dev libudev-dev
+            sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -92,9 +92,9 @@ jobs:
       - name: Install hwloc
         run: |
           if [ "${{ matrix.runner_label }}" = "macos-13" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
-            brew install hwloc
+            brew update && brew install hwloc
           else
-            sudo apt-get install -y libhwloc-dev libudev-dev
+            sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
           fi
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2

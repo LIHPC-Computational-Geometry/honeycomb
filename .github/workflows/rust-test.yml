@@ -29,7 +29,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install hwloc
-        run: sudo apt-get install -y libhwloc-dev libudev-dev
+        run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       - name: Run Clippy
         run: cargo clippy # --all-features -- -D warnings
   tests:
@@ -41,6 +41,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install hwloc
-        run: sudo apt-get install -y libhwloc-dev libudev-dev
+        run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       - name: Run Tests
         run: cargo test --all # --all-features
