@@ -26,7 +26,7 @@ jobs:
         with:
           mdbook-version: "0.4.36"
       - name: Install hwloc
-        run: sudo apt-get install -y libhwloc-dev libudev-dev
+        run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       # Generate / using sudo before I'm forced to retry this 83491 times due to CI constraints
       - name: Generate documentation
         run: bash ./docs/build.sh
