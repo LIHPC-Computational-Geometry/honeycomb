@@ -5,6 +5,18 @@ use crate::{
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
 
+#[cfg(test)]
+fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
+    let b3d = map.beta::<3>(dart);
+    let ld = map.beta::<2>(dart);
+    let rd = map.beta::<2>(b3d);
+
+    map.force_unsew::<2>(dart).unwrap();
+    map.force_unsew::<2>(b3d).unwrap();
+    map.force_sew::<2>(ld, rd).unwrap();
+}
+
+#[allow(clippy::too_many_lines)]
 #[test]
 fn example_test() {
     // Build a tetrahedron (A)
@@ -168,15 +180,6 @@ fn example_test() {
 
     // Remove the split to have a single volume pyramid (E)
 
-    fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
-        let b3d = map.beta::<3>(dart);
-        let ld = map.beta::<2>(dart);
-        let rd = map.beta::<2>(b3d);
-
-        map.force_unsew::<2>(dart).unwrap();
-        map.force_unsew::<2>(b3d).unwrap();
-        map.force_sew::<2>(ld, rd).unwrap();
-    }
     rebuild_edge(&map, 10);
     rebuild_edge(&map, 11);
     rebuild_edge(&map, 12);
@@ -210,6 +213,21 @@ fn example_test() {
     }
 }
 
+#[cfg(test)]
+fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
+    atomically(|trans| {
+        let b3d = map.beta_transac::<3>(trans, dart)?;
+        let ld = map.beta_transac::<2>(trans, dart)?;
+        let rd = map.beta_transac::<2>(trans, b3d)?;
+
+        assert!(map.unsew::<2>(trans, dart).is_ok());
+        assert!(map.unsew::<2>(trans, b3d).is_ok());
+        assert!(map.sew::<2>(trans, ld, rd).is_ok());
+        Ok(())
+    });
+}
+
+#[allow(clippy::too_many_lines)]
 #[test]
 fn example_test_transactional() {
     // Build a tetrahedron (A)
@@ -397,21 +415,9 @@ fn example_test_transactional() {
 
     // Remove the split to have a single volume pyramid (E)
 
-    fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
-        atomically(|trans| {
-            let b3d = map.beta_transac::<3>(trans, dart)?;
-            let ld = map.beta_transac::<2>(trans, dart)?;
-            let rd = map.beta_transac::<2>(trans, b3d)?;
-
-            assert!(map.unsew::<2>(trans, dart).is_ok());
-            assert!(map.unsew::<2>(trans, b3d).is_ok());
-            assert!(map.sew::<2>(trans, ld, rd).is_ok());
-            Ok(())
-        })
-    }
-    rebuild_edge(&map, 10);
-    rebuild_edge(&map, 11);
-    rebuild_edge(&map, 12);
+    atomically_rebuild_edge(&map, 10);
+    atomically_rebuild_edge(&map, 11);
+    atomically_rebuild_edge(&map, 12);
 
     // delete old face components
     atomically(|trans| {
@@ -606,9 +612,9 @@ fn sew_ordering() {
         // this will result in a single vertex being defined, of ID 2
         // depending on the order of execution of the sews, the value may change
 
-        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_sew::<1>(1, 3) {});
+        let t1 = loom::thread::spawn(move || while m1.force_sew::<1>(1, 3).is_err() {});
 
-        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_sew::<2>(3, 4) {});
+        let t2 = loom::thread::spawn(move || while m2.force_sew::<2>(3, 4).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();
@@ -683,7 +689,7 @@ fn sew_ordering_with_transactions() {
                 } else {
                     Ok(())
                 }
-            })
+            });
         });
 
         t1.join().unwrap();
@@ -758,9 +764,9 @@ fn unsew_ordering() {
         // - 2-unsew 3 and 4 (t2)
         // this will result in different weights, defined on IDs 2, 3, and 5
 
-        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_unsew::<1>(1) {});
+        let t1 = loom::thread::spawn(move || while m1.force_unsew::<1>(1).is_err() {});
 
-        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_unsew::<2>(3) {});
+        let t2 = loom::thread::spawn(move || while m2.force_unsew::<2>(3).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();

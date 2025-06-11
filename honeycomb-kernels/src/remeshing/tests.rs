@@ -516,7 +516,7 @@ mod capture_and_classify {
         });
         assert!(on_boundary.into_iter().all(|v| matches!(
             map.force_read_attribute::<VertexAnchor>(v),
-            Some(VertexAnchor::Curve(_)) | Some(VertexAnchor::Node(_)) // we have 4 nodes in there
+            Some(VertexAnchor::Curve(_) | VertexAnchor::Node(_)) // we have 4 nodes in there
         )));
         assert!(off_boundary.into_iter().all(|v| matches!(
             map.force_read_attribute::<VertexAnchor>(v),
@@ -564,7 +564,7 @@ mod triangulate_and_classify {
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
             let nd = map.allocate_used_darts(2);
-            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap()
+            atomically_with_err(|t| earclip_cell_countercw(t, &map, f, &[nd, nd + 1])).unwrap();
         }
 
         // assert_eq!(classify_capture(&map), Ok(()));
@@ -707,7 +707,7 @@ mod triangulate_and_classify {
         });
         assert!(on_boundary.into_iter().all(|v| matches!(
             map.force_read_attribute::<VertexAnchor>(v),
-            Some(VertexAnchor::Curve(_)) | Some(VertexAnchor::Node(_)) // we have 4 nodes in there
+            Some(VertexAnchor::Curve(_) | VertexAnchor::Node(_)) // we have 4 nodes in there
         )));
         assert!(off_boundary.into_iter().all(|v| matches!(
             map.force_read_attribute::<VertexAnchor>(v),
