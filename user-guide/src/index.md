@@ -31,6 +31,8 @@ The current objective is to
 
 - **Rust stable release** - The MSRV may not be the latest stable release, but we do not give any guarantees for older
   versions compatibility
+- `hwloc` - The library is used by the benchmark binary to bind threads to physical cores; you can disable its usage
+  by compiling the binary without default features
 
 ### Quickstart
 
@@ -40,20 +42,25 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb", tag = "0.8.1" } # remove tag for master branch build
+honeycomb = {
+  git = "https://github.com/LIHPC-Computational-Geometry/honeycomb",
+  tag = "0.9.0" # remove tag for master branch build
+}
 ```
 
 Alternatively, you can add the sub-crates that are currently published on crates.io:
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.8.1"
-honeycomb-kernels = "0.8.1"
-honeycomb-render = "0.8.1"
+honeycomb-core = "0.9.0"
+honeycomb-kernels = "0.9.0"
+honeycomb-render = "0.9.0"
 ```
 
 Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
-version, and use the GitHub Pages documentation instead of the one hosted on docs.rs.
+version, and use the [GitHub Pages documentation][DOC] instead of the one hosted on docs.rs.
+
+[DOC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb/
 
 ## Documentation
 

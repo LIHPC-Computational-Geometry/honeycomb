@@ -8,7 +8,13 @@ missing documentation or suggest improvements of the project.
 
 ### Nix
 
-WIP
+The repository contains a Nix flake to easily setup a development environment:
+
+```
+nix develop
+```
+
+Most notably, it handles `hwloc` install on both MacOs and Linux, as well as the libraries `bevy` depends on on Linux.
 
 
 ### Pre-commit hook
@@ -25,8 +31,7 @@ pre-commit run # test it!
 While it is not exhaustive (most notably, it excludes `honeycomb-render` due to compile time), it is a good
 local proxy of the CI for core and kernel crates development.
 
-The hook can be bypassed by using the `--no-verify` option to `git commit`. Also note that clippy warnings
-are denied in the CI.
+The hook can be bypassed by using the `--no-verify` option to `git commit`.
 
 
 ## Documentation
