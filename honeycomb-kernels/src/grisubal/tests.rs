@@ -189,7 +189,7 @@ fn regular_intersections() {
     let (edge_intersec, dart_slices) =
         group_intersections_per_edge(&mut cmap, intersection_metadata);
     let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
-    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    insert_intersections(&cmap, &edge_intersec, &dart_slices);
 
     assert_eq!(n_intersec, 4);
     // check new vertices at intersection
@@ -332,7 +332,7 @@ fn corner_intersection() {
     let (edge_intersec, dart_slices) =
         group_intersections_per_edge(&mut cmap, intersection_metadata);
     let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
-    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    insert_intersections(&cmap, &edge_intersec, &dart_slices);
 
     let mut edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
@@ -434,7 +434,7 @@ pub fn successive_straight_intersections() {
     let (edge_intersec, dart_slices) =
         group_intersections_per_edge(&mut cmap, intersection_metadata);
     let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
-    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    insert_intersections(&cmap, &edge_intersec, &dart_slices);
 
     let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 
@@ -729,7 +729,7 @@ pub fn successive_diag_intersections() {
     let (edge_intersec, dart_slices) =
         group_intersections_per_edge(&mut cmap, intersection_metadata);
     let intersection_darts = compute_intersection_ids(n_intersec, &edge_intersec, &dart_slices);
-    insert_intersections(&mut cmap, &edge_intersec, &dart_slices);
+    insert_intersections(&cmap, &edge_intersec, &dart_slices);
 
     let edges = generate_edge_data(&cmap, &geometry, &segments, &intersection_darts);
 

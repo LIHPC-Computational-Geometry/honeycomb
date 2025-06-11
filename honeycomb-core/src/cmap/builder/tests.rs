@@ -560,7 +560,7 @@ mod cmap {
     }
 
     #[cfg(test)]
-    const BAD_METAS: [&'static str; 9] = [
+    const BAD_METAS: [&str; 9] = [
         "0.8.1 2",                // 2 elems
         "0.8.1 2 18 23",          // 4 elems
         "0.8.1 2.5 18",           // bad dim

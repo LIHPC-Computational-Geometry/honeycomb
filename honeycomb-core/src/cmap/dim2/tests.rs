@@ -108,6 +108,7 @@ fn example_test() {
     assert_eq!(map.beta_rt(1, 3), 1);
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn example_test_transactional() {
     // build a triangle
@@ -732,8 +733,8 @@ fn sew_ordering() {
         // 2-sew before 1-sew: (1.25, 1.5)
 
         // retry ops until they can be validated
-        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_sew::<1>(1, 3) {});
-        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_sew::<2>(3, 4) {});
+        let t1 = loom::thread::spawn(move || while m1.force_sew::<1>(1, 3).is_err() {});
+        let t2 = loom::thread::spawn(move || while m2.force_sew::<2>(3, 4).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();
@@ -864,8 +865,8 @@ fn unsew_ordering() {
         // 2-unsew before 1-unsew: (W2, W3, W5) = (9, 8, 16)
 
         // retry ops until they can be validated
-        let t1 = loom::thread::spawn(move || while let Err(_) = m1.force_unsew::<1>(1) {});
-        let t2 = loom::thread::spawn(move || while let Err(_) = m2.force_unsew::<2>(3) {});
+        let t1 = loom::thread::spawn(move || while m1.force_unsew::<1>(1).is_err() {});
+        let t2 = loom::thread::spawn(move || while m2.force_unsew::<2>(3).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();

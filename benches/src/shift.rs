@@ -16,7 +16,7 @@
 //! scaling characteristics.
 
 use honeycomb::kernels::remeshing::move_vertex_to_average;
-use rayon::{current_num_threads, prelude::*};
+use rayon::prelude::*;
 
 use honeycomb::core::stm::{Transaction, TransactionControl};
 use honeycomb::prelude::{

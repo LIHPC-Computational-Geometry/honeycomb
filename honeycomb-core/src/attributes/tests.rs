@@ -24,7 +24,7 @@ struct Temperature {
 impl AttributeUpdate for Temperature {
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
         Ok(Temperature {
-            val: (attr1.val + attr2.val) / 2.0,
+            val: f32::midpoint(attr1.val, attr2.val),
         })
     }
 
@@ -84,7 +84,7 @@ struct Length(pub f32);
 
 impl AttributeUpdate for Length {
     fn merge(attr1: Self, attr2: Self) -> Result<Self, AttributeError> {
-        Ok(Length((attr1.0 + attr2.0) / 2.0))
+        Ok(Length(f32::midpoint(attr1.0, attr2.0)))
     }
 
     fn split(attr: Self) -> Result<(Self, Self), AttributeError> {
@@ -105,7 +105,7 @@ impl AttributeBind for Length {
 // face bound
 
 fn mean(a: u8, b: u8) -> u8 {
-    ((u16::from(a) + u16::from(b)) / 2) as u8
+    u16::midpoint(u16::from(a), u16::from(b)) as u8
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]

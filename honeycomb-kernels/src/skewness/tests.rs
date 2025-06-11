@@ -2,6 +2,7 @@ use honeycomb_core::cmap::{CMap2, CMapBuilder};
 
 use crate::skewness::compute_face_skewness_2d;
 
+#[allow(clippy::float_cmp)]
 #[test]
 fn dim2_grids() {
     // squares are equiangular
