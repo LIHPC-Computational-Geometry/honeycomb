@@ -1,33 +1,21 @@
 # Benchmarks
 
-## Binaries
+## Binary
+
+The package provides a single binary, `hc-bench`, which exposes several benchmarks as subcommands.
+For details on options and arguments, run:
 
 ```shell
-cargo run --profile=profiling --bin=<BINARY> -- <ARGS>
+cargo run --bin hc-bench -- --help
 ```
 
-#### `builder`
+The following subcommands are available:
 
-Generate a grid using `GridDescriptor` w.r.t. the specified arguments.
-Arguments are the following: `<N_CELL_X> <N_CELL_Y> <SPLIT>`, with:
-
-- `<N_CELL_X>`: number of cell of the grid along the X axis
-- `<N_CELL_Y>`: number of cell of the grid along the Y axis
-- `<SPLIT>`: if non-empty, the program will build a grid of
-  tris instead of quads
-
-
-#### `grisubal`
-
-Run the `grisubal` algorithm w.r.t. the specified arguments. Arguments are the following:
-`<INPUT_FILE> <LEN_CELL_X> <LEN_CELL_Y> <CLIP>`, with:
-
-- `<INPUT_FILE>`: input geometry, passed as a VTK file input
-- `<LEN_CELL_X>`: length of the cells of the overlay grid along the X axis
-- `<LEN_CELL_X>`: length of the cells of the overlay grid along the Y axis
-- `<CLIP>`: `left` to clip the left side of the boundary, `right` the right
-  side, anything else is a no-op
-
+- `generate-2d-grid`: 2D grid generation using `CMapBuilder` and `GridDescriptor`.
+- `cut-edges`: Edge size reduction in triangular meshes using vertex/edge insertions.
+- `grisubal`: `grisubal` kernel execution.
+- `remesh`: Geometry capture, triangulation and remeshing kernel.
+- `shift`: Simple vertex relaxation routine.
 
 ## Benchmarks
 
@@ -49,9 +37,8 @@ The following benchmarks are available:
 | `prof-cmap2-sewing-unsewing` | Iai-callgrind | `benches/core/cmap2/link_and_sew.rs` |
 | `triangulate-quads`          | Criterion     | `benches/triangulate/quads.rs`       |
 
-A detailed explanation about the purpose of each benchmark is provided at the beginning of their respective source
-files.
-
+A detailed explanation about the purpose of each benchmark is provided at the beginning of their
+respective source files.
 
 ## Scripts
 
@@ -68,16 +55,17 @@ Both scripts provide an interactive menu with four options:
 
 #### `builder.py`
 
-The script aggregates metrics about the grid building routines used by `CMapBuilder`. Data is collected from Criterion
-(runtime benchmarks), perf (CPU profiling), flamegraph (visualization), heaptrack (memory analysis), and across
-different grid sizes (from 128x128 to 8192x8192).
+The script aggregates metrics about the grid building routines used by `CMapBuilder`. Data is
+collected from Criterion (runtime benchmarks), perf (CPU profiling), flamegraph (visualization),
+heaptrack (memory analysis), and across different grid sizes (from 128x128 to 8192x8192).
 
 #### `grisubal.py`
 
-The script aggregates metrics about the `grisubal` kernel. Data is collected from Criterion (runtime benchmarks),
-perf (CPU profiling), flamegraph (visualization), and heaptrack (memory analysis). Additionally, internal timers
-are implemented to measure time-per-sections of the algorithm. Measurements are done across different grid
-granularities (from `0.1` to `1.0` in `0.1` increments).
+The script aggregates metrics about the `grisubal` kernel. Data is collected from Criterion
+(runtime benchmarks), perf (CPU profiling), flamegraph (visualization), and heaptrack (memory
+analysis). Additionally, internal timers are implemented to measure time-per-sections of the
+algorithm. Measurements are done across different grid granularities (from `0.1` to `1.0`
+in `0.1` increments).
 
 ### Plotting
 
