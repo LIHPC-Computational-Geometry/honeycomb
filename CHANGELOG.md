@@ -6,6 +6,73 @@
 
 ---
 
+## 0.9.0
+
+### Workspace
+
+*new:*
+- update CI to support `hwloc` builds by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/338
+- improve *nix CI by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/342
+- add `hwloc` install to benchmark dockerfile by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/343
+
+*refactor:*
+- replace nix shell by flake by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/334
+
+*deps:*
+- bump codecov/codecov-action from 5.4.0 to 5.4.3 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/329
+- bump crate-ci/typos from 1.31.1 to 1.31.2 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/328
+- update criterion requirement from 0.5.1 to 0.6.0 by @dependabot
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/335
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*refactor:*
+- **rework dart allocation methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/344
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new:*
+- implement the 2D remeshing pipeline operations by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/330
+  - this includes edge collapse, edge swaps, & new error types
+
+*refactor:*
+- **move utility functions to a new dedicated module** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/327
+
+*fix*
+- read new darts correctly in ear_clip routine by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/325
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+- implement the 2D remeshing pipeline bench subcommand by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/330
+- implement `perf` profiling hooks to enable sampling on specific segments by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/336
+- implement thread binding with `hwlocality` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/337
+
+---
+
 ## 0.8.1
 
 ### Workspace
