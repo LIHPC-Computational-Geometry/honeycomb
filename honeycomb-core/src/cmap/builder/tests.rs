@@ -561,11 +561,11 @@ mod cmap {
 
     #[cfg(test)]
     const BAD_METAS: [&str; 9] = [
-        "0.8.1 2",                // 2 elems
-        "0.8.1 2 18 23",          // 4 elems
-        "0.8.1 2.5 18",           // bad dim
-        "0.8.1 2 hi",             // bad darts
-        "0.8.1 bye 18",           // bad dim again
+        "0.9.0 2",                // 2 elems
+        "0.9.0 2 18 23",          // 4 elems
+        "0.9.0 2.5 18",           // bad dim
+        "0.9.0 2 hi",             // bad darts
+        "0.9.0 bye 18",           // bad dim again
         "super super bad header", // ...
         "  ",                     // "" + ' ' + "" + ' ' + ""
         "",                       // empty
@@ -576,7 +576,7 @@ mod cmap {
 
     #[cfg(test)]
     const MAP: &[u8] = b"[META]
-0.8.1 2 4
+0.9.0 2 4
 
 [BETAS]
 0 4 1 2 3
