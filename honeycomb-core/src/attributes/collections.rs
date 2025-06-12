@@ -4,6 +4,8 @@
 //! (see [`AttributeBind`], [`AttributeUpdate`]).
 
 use num_traits::ToPrimitive;
+#[cfg(feature = "par-internals")]
+use rayon::prelude::*;
 
 use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
@@ -32,6 +34,7 @@ unsafe impl<A: AttributeBind + AttributeUpdate> Send for AttrSparseVec<A> {}
 unsafe impl<A: AttributeBind + AttributeUpdate> Sync for AttrSparseVec<A> {}
 
 impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseVec<A> {
+    #[cfg(not(feature = "par-internals"))]
     fn new(length: usize) -> Self
     where
         Self: Sized,
@@ -41,8 +44,28 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         }
     }
 
+    #[cfg(feature = "par-internals")]
+    fn new(length: usize) -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            data: (0..length)
+                .into_par_iter()
+                .map(|_| TVar::new(None))
+                .collect(),
+        }
+    }
+
+    #[cfg(not(feature = "par-internals"))]
     fn extend(&mut self, length: usize) {
         self.data.extend((0..length).map(|_| TVar::new(None)));
+    }
+
+    #[cfg(feature = "par-internals")]
+    fn extend(&mut self, length: usize) {
+        self.data
+            .par_extend((0..length).into_par_iter().map(|_| TVar::new(None)));
     }
 
     fn n_attributes(&self) -> usize {

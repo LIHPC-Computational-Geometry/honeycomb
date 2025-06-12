@@ -12,7 +12,8 @@ keywords.workspace = true
 authors.workspace = true
 publish = true
 
-# [features]
+[features]
+par-internals = []
 
 # deps
 
