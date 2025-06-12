@@ -18,10 +18,11 @@ publish = true
 
 [dependencies]
 downcast-rs.workspace = true
+fast-stm.workspace = true
 itertools.workspace = true
 loom.workspace= true
 num-traits.workspace = true
-fast-stm.workspace = true
+rayon.workspace = true
 thiserror.workspace = true
 vtkio.workspace = true
 
