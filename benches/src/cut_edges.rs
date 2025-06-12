@@ -83,22 +83,24 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     // compute first batch
     prof_start!("HCBENCH_CUTS_COMPUTE");
     instant = Instant::now();
-    let mut edges: Vec<EdgeIdType> = map.iter_edges().collect();
+    let mut edges: Vec<EdgeIdType> = map
+        .par_iter_edges()
+        .filter(|&e| {
+            let (vid1, vid2) = (
+                map.vertex_id(e as DartIdType),
+                map.vertex_id(map.beta::<1>(e as DartIdType)),
+            );
+            match (map.force_read_vertex(vid1), map.force_read_vertex(vid2)) {
+                (Some(v1), Some(v2)) => (v2 - v1).norm() > target_len,
+                (_, _) => false,
+            }
+        })
+        .collect();
     print!("| {:>12} ", edges.len()); // n_edge_total
-    edges.retain(|&e| {
-        let (vid1, vid2) = (
-            map.vertex_id(e as DartIdType),
-            map.vertex_id(map.beta::<1>(e as DartIdType)),
-        );
-        match (map.force_read_vertex(vid1), map.force_read_vertex(vid2)) {
-            (Some(v1), Some(v2)) => (v2 - v1).norm() > target_len,
-            (_, _) => false,
-        }
-    });
     let n_e = edges.len();
     print!("| {n_e:>17} "); // n_edge_to_process
     let mut nd = map.allocate_used_darts(6 * n_e); // 2 for edge split + 2*2 for new edges in neighbor tets
-    let mut darts: Vec<DartIdType> = (nd..nd + 6 * n_e as DartIdType).collect();
+    let mut darts: Vec<DartIdType> = (nd..nd + 6 * n_e as DartIdType).into_par_iter().collect();
     prof_stop!("HCBENCH_CUTS_COMPUTE");
     print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
 
@@ -131,9 +133,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         print!(" {step:>4} "); // Step
         prof_start!("HCBENCH_CUTS_COMPUTE");
         instant = Instant::now();
-        edges.extend(map.iter_edges());
-        print!("| {:>12} ", edges.len()); // n_edge_total
-        edges.retain(|&e| {
+        edges.par_extend(map.par_iter_edges().filter(|&e| {
             let (vid1, vid2) = (
                 map.vertex_id(e as DartIdType),
                 map.vertex_id(map.beta::<1>(e as DartIdType)),
@@ -142,7 +142,8 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
                 (Some(v1), Some(v2)) => (v2 - v1).norm() > target_len,
                 (_, _) => false,
             }
-        });
+        }));
+        print!("| {:>12} ", edges.len()); // n_edge_total
         let n_e = edges.len();
         print!("| {n_e:>17} "); // n_edge_to_process
         nd = map.allocate_used_darts(6 * n_e);

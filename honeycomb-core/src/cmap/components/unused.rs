@@ -3,6 +3,9 @@ use std::{
     slice::Iter,
 };
 
+#[cfg(feature = "par-internals")]
+use rayon::prelude::*;
+
 use crate::stm::TVar;
 
 use super::identifiers::DartIdType;
@@ -12,14 +15,34 @@ pub struct UnusedDarts(Vec<TVar<bool>>);
 
 #[allow(unused)]
 impl UnusedDarts {
+    #[cfg(not(feature = "par-internals"))]
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
         Self((0..n_darts).map(|_| TVar::new(false)).collect())
     }
 
+    #[cfg(feature = "par-internals")]
+    /// Constructor
+    pub fn new(n_darts: usize) -> Self {
+        Self(
+            (0..n_darts)
+                .into_par_iter()
+                .map(|_| TVar::new(false))
+                .collect(),
+        )
+    }
+
+    #[cfg(not(feature = "par-internals"))]
     /// Extend internal storage capacity
     pub fn extend_with(&mut self, len: usize, val: bool) {
         self.0.extend((0..len).map(|_| TVar::new(val)));
+    }
+
+    #[cfg(feature = "par-internals")]
+    /// Extend internal storage capacity
+    pub fn extend_with(&mut self, len: usize, val: bool) {
+        self.0
+            .par_extend((0..len).into_par_iter().map(|_| TVar::new(val)));
     }
 
     /// Return internal storage length

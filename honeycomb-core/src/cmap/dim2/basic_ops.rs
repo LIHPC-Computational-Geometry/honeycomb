@@ -10,6 +10,8 @@
 use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
+use rayon::prelude::*;
+
 use crate::cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType};
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, Transaction, atomically};
@@ -338,6 +340,42 @@ impl<T: CoordsFloat> CMap2<T> {
                     if unused.read_atomic() { None } else { Some(d) }
                 },
             )
+            .filter_map(|d| {
+                let fid = self.face_id(d);
+                if d == fid { Some(fid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's vertices.
+    #[must_use = "unused return value"]
+    pub fn par_iter_vertices(&self) -> impl ParallelIterator<Item = VertexIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
+            .filter_map(|d| {
+                let vid = self.vertex_id(d);
+                if d == vid { Some(vid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's edges.
+    #[must_use = "unused return value"]
+    pub fn par_iter_edges(&self) -> impl ParallelIterator<Item = EdgeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
+            .filter_map(|d| {
+                let eid = self.edge_id(d);
+                if d == eid { Some(eid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's faces.
+    #[must_use = "unused return value"]
+    pub fn par_iter_faces(&self) -> impl ParallelIterator<Item = FaceIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
             .filter_map(|d| {
                 let fid = self.face_id(d);
                 if d == fid { Some(fid) } else { None }

@@ -1,5 +1,8 @@
 use std::ops::{Index, IndexMut};
 
+#[cfg(feature = "par-internals")]
+use rayon::prelude::*;
+
 use crate::cmap::{LinkError, NULL_DART_ID};
 use crate::stm::{TVar, Transaction, TransactionClosureResult, abort};
 
@@ -11,25 +14,44 @@ use super::identifiers::DartIdType;
 /// a 2-map will have a `BetaFunctions<3>` object field.
 pub struct BetaFunctions<const N: usize>(Vec<[TVar<DartIdType>; N]>);
 
-/// Generate beta functions default value for a new dart.
-fn new_beta_entry<const N: usize>() -> [TVar<DartIdType>; N] {
-    (0..N)
-        .map(|_| TVar::new(NULL_DART_ID))
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap()
-}
-
 #[allow(unused)]
 impl<const N: usize> BetaFunctions<N> {
+    #[cfg(not(feature = "par-internals"))]
     /// Constructor
     pub fn new(n_darts: usize) -> Self {
-        Self((0..n_darts).map(|_| new_beta_entry()).collect())
+        Self(
+            (0..n_darts)
+                .map(|_| std::array::from_fn(|_| TVar::new(NULL_DART_ID)))
+                .collect(),
+        )
     }
 
+    #[cfg(feature = "par-internals")]
+    /// Constructor
+    pub fn new(n_darts: usize) -> Self {
+        Self(
+            (0..n_darts)
+                .into_par_iter()
+                .map(|_| std::array::from_fn(|_| TVar::new(NULL_DART_ID)))
+                .collect(),
+        )
+    }
+
+    #[cfg(not(feature = "par-internals"))]
     /// Extend internal storage capacity
     pub fn extend(&mut self, len: usize) {
-        self.0.extend((0..len).map(|_| new_beta_entry()));
+        self.0
+            .extend((0..len).map(|_| std::array::from_fn(|_| TVar::new(NULL_DART_ID))));
+    }
+
+    #[cfg(feature = "par-internals")]
+    /// Extend internal storage capacity
+    pub fn extend(&mut self, len: usize) {
+        self.0.par_extend(
+            (0..len)
+                .into_par_iter()
+                .map(|_| std::array::from_fn(|_| TVar::new(NULL_DART_ID))),
+        );
     }
 
     /// Return internal storage capacity

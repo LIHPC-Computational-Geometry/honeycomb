@@ -3,6 +3,9 @@ use std::io::Write;
 use clap::Parser;
 use honeycomb::prelude::{CMap2, CoordsFloat};
 
+#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
+use tikv_jemallocator::Jemalloc;
+
 use honeycomb_benches::{
     cli::{Benches, Cli, Format},
     cut_edges::bench_cut_edges,
@@ -12,6 +15,10 @@ use honeycomb_benches::{
     remesh::bench_remesh,
     shift::bench_shift,
 };
+
+#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() {
     #[cfg(feature = "bind-threads")]
