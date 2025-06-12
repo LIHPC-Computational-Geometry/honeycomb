@@ -47,7 +47,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
         instant = std::time::Instant::now();
         // fetch all vertices that are not on the boundary of the map
         let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
-            .iter_vertices()
+            .par_iter_vertices()
             .filter_map(|v| {
                 if map
                     .orbit(OrbitPolicy::Vertex, v as DartIdType)
