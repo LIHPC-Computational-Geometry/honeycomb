@@ -15,7 +15,8 @@ use std::hint::black_box;
 
 use honeycomb::core::cmap::{CMap2, CMapBuilder};
 use iai_callgrind::{
-    FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
+    Callgrind, FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark,
+    library_benchmark_group, main,
 };
 
 use honeycomb_benches::utils::FloatType;
@@ -135,7 +136,9 @@ library_benchmark_group!(
 // --- main
 
 main!(
-    config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
+    config = LibraryBenchmarkConfig::default().tool(
+        Callgrind::default().flamegraph(FlamegraphConfig::default())
+    );
     library_benchmark_groups =
         bench_constructors,
         bench_fetches,
