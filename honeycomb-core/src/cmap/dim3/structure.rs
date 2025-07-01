@@ -205,7 +205,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
         for d in 1..self.n_darts() as DartIdType {
             if self.is_unused_transac(t, d)? {
-                //
+                self.unused_darts[d].write(t, false)?;
                 res.push(d);
                 if res.len() == n_darts {
                     return Ok(res);
