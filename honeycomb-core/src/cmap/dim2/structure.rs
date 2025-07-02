@@ -220,6 +220,30 @@ impl<T: CoordsFloat> CMap2<T> {
         self.unused_darts[d].read(trans)
     }
 
+    /// Set a given dart as used.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn set_used_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].replace(t, false)?;
+        Ok(())
+    }
+
+    /// Set a given dart as unused.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn set_unused_transac(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<()> {
+        self.unused_darts[d].replace(t, true)?;
+        Ok(())
+    }
+
     // --- allocation
 
     /// Add `n_darts` new free darts to the map.
@@ -290,7 +314,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         for d in 1..self.n_darts() as DartIdType {
             if self.is_unused_transac(t, d)? {
-                self.unused_darts[d].write(t, false)?;
+                self.set_used_transac(t, d)?;
                 res.push(d);
                 if res.len() == n_darts {
                     return Ok(res);
