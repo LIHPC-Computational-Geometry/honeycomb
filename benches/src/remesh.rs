@@ -159,7 +159,19 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     );
 
     println!(
-        "Round | Total # of darts | Relax (tot, s) | Batch compute (s) | Ret cond (s) | Cut edges (s) | Collapse (s) | Swap (s)"
+        "Round | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}",
+        "# of used darts",     // 15
+        "# of unused darts",   // 17
+        "Graph compute (s)",   // 17
+        "Relax (tot, s)",      // 14
+        "Ret cond (s)",        // 12
+        "Batch compute (s)",   // 17
+        "Dart prealloc (s)",   // 17
+        "Cut batch size",      // 14
+        "Cut edges (s)",       // 13
+        "Collapse batch size", // 19
+        "Collapse edges (s)",  // 18
+        "Swap edges (s)",      // 14
     );
     // -- main remeshing loop
     // a. relax
@@ -171,10 +183,16 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut r;
     loop {
         print!("{:>5}", n);
-        print!(" | {:>16}", map.n_darts());
+        // not using the map method because it uses a sequential iterator
+        let n_unused = (1..map.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter(|d| map.is_unused(*d))
+            .count();
+        print!(" | {:>15}", map.n_darts() - n_unused);
+        print!(" | {:>17}", n_unused);
 
-        // -- relax
-        prof_start!("HCBENCH_REMESH_RELAX");
+        // -- build the vertex graph
+        prof_start!("HCBENCH_REMESH_GRAPH");
         instant = Instant::now();
         let nodes: Vec<(_, Vec<_>)> = map
             .par_iter_vertices()
@@ -191,6 +209,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 Some((v, neigh))
             })
             .collect();
+        prof_stop!("HCBENCH_REMESH_GRAPH");
+        print!(" | {:>17.6e}", instant.elapsed().as_secs_f64());
+
+        // -- relax
+        prof_start!("HCBENCH_REMESH_RELAX");
+        instant = Instant::now();
         r = 0;
         loop {
             nodes.par_iter().for_each(|(vid, neighbors)| {
@@ -237,8 +261,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     Either::Right(e)
                 }
             });
-        print!(" | {:>17.6e}", instant.elapsed().as_secs_f64());
-
+        let batch_time = instant.elapsed().as_secs_f64();
         // -- check early return conds if enabled
         if args.enable_er {
             instant = Instant::now();
@@ -257,16 +280,23 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             print!(" | {:>12}", "n/a");
         }
 
+        // -- preallocate darts for cut phase
+        instant = Instant::now();
         let n_e = long_edges.len();
         let n_darts = 6 * n_e;
-        // TODO: if (n_unused > n_needed) then (reserve from unused instead of allocate)
-        let new_darts = {
+        let new_darts = if n_unused < n_darts {
             let tmp = map.allocate_unused_darts(n_darts);
             (tmp..tmp + n_darts as DartIdType).collect::<Vec<_>>()
+        } else {
+            map.reserve_darts(n_darts).expect("E: unreachable")
         };
+        let alloc_time = instant.elapsed().as_secs_f64();
+        print!(" | {:>17.6e}", batch_time);
+        print!(" | {:>17.6e}", alloc_time);
 
         // -- cut
         prof_start!("HCBENCH_REMESH_CC");
+        print!(" | {:>14}", n_e);
         instant = Instant::now();
         long_edges
             .into_par_iter()
@@ -330,6 +360,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
         // -- collapse
         prof_start!("HCBENCH_REMESH_COLLAPSE");
+        print!(" | {:>19}", short_edges.len());
         instant = Instant::now();
         short_edges.into_par_iter().for_each(|e| {
             while let Err(er) = atomically_with_err(|t| {
@@ -361,7 +392,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             }
         });
         prof_stop!("HCBENCH_REMESH_COLLAPSE");
-        print!(" | {:>12.6e}", instant.elapsed().as_secs_f64());
+        print!(" | {:>18.6e}", instant.elapsed().as_secs_f64());
 
         // -- swap
         prof_start!("HCBENCH_REMESH_SWAP");
@@ -426,7 +457,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 }
             });
         prof_stop!("HCBENCH_REMESH_SWAP");
-        println!(" | {:>8.6e}", instant.elapsed().as_secs_f64());
+        println!(" | {:>14.6e}", instant.elapsed().as_secs_f64());
 
         debug_assert!(map.par_iter_faces().all(|f| {
             map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
