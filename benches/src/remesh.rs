@@ -245,9 +245,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             let n_e = map.par_iter_edges().count();
             let n_e_outside_tol = long_edges.len() + short_edges.len();
             // if 95%+ edges are in the target length tolerance range, finish early
-            if ((n_e_outside_tol as f32 - n_e as f32).abs() / n_e as f32) < 0.05 {
+            if (n_e_outside_tol as f64 / n_e as f64) < args.target_tolerance {
                 print!(" | {:>12.6e}", instant.elapsed().as_millis());
-                print!(" | {:>17}", "n/a");
                 print!(" | {:>13}", "n/a");
                 print!(" | {:>12}", "n/a");
                 println!(" | {:>8}", "n/a");
