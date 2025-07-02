@@ -176,30 +176,32 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         // -- relax
         prof_start!("HCBENCH_REMESH_RELAX");
         instant = Instant::now();
+        let nodes: Vec<(_, Vec<_>)> = map
+            .par_iter_vertices()
+            .filter_map(|v| {
+                let mut neigh = Vec::with_capacity(10);
+                for d in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
+                    let b2d = map.beta::<2>(d);
+                    if b2d == NULL_DART_ID {
+                        return None; // filter out vertices on the boundary
+                    } else {
+                        neigh.push(map.vertex_id(b2d));
+                    }
+                }
+                Some((v, neigh))
+            })
+            .collect();
         r = 0;
         loop {
-            map.par_iter_vertices()
-                .filter_map(|v| {
-                    let mut neigh = Vec::with_capacity(10);
-                    for d in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
-                        let b2d = map.beta::<2>(d);
-                        if b2d == NULL_DART_ID {
-                            return None; // filter out vertices on the boundary
-                        } else {
-                            neigh.push(map.vertex_id(b2d));
-                        }
+            nodes.par_iter().for_each(|(vid, neighbors)| {
+                let _ = atomically_with_err(|t| {
+                    move_vertex_to_average(t, &map, *vid, &neighbors)?;
+                    if !is_orbit_orientation_consistent(t, &map, *vid)? {
+                        abort("E: resulting geometry is inverted")?;
                     }
-                    Some((v, neigh))
-                })
-                .for_each(|(vid, neighbors)| {
-                    let _ = atomically_with_err(|t| {
-                        move_vertex_to_average(t, &map, vid, &neighbors)?;
-                        if !is_orbit_orientation_consistent(t, &map, vid)? {
-                            abort("E: resulting geometry is inverted")?;
-                        }
-                        Ok(())
-                    });
+                    Ok(())
                 });
+            });
 
             r += 1;
             if r >= args.n_relax_rounds.get() {
