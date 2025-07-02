@@ -257,62 +257,73 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         }
 
         let n_e = long_edges.len();
-        let n_e_boundary = long_edges
-            .par_iter()
-            .filter(|&e| map.is_i_free::<2>(*e as DartIdType))
-            .count();
-        let n_darts = 6 * (n_e - n_e_boundary) + 3 * n_e_boundary;
-        if map.n_unused_darts() < n_darts {
-            map.allocate_unused_darts(n_darts);
-        }
+        let n_darts = 6 * n_e;
+        // TODO: if (n_unused > n_needed) then (reserve from unused instead of allocate)
+        let new_darts = {
+            let tmp = map.allocate_unused_darts(n_darts);
+            (tmp..tmp + n_darts as DartIdType).collect::<Vec<_>>()
+        };
 
         // -- cut
         prof_start!("HCBENCH_REMESH_CC");
         instant = Instant::now();
-        long_edges.into_par_iter().for_each(|e| {
-            while let Err(er) = atomically_with_err(|t| {
-                let d = if map.beta_transac::<2>(t, e as DartIdType)? == NULL_DART_ID {
-                    let nds: [DartIdType; 3] = match map.reserve_darts_transac(t, 3) {
-                        Ok(v) => TryInto::try_into(v).expect("E: unreachable"),
-                        Err(_) => {
-                            // the method error is unreachable, meaning this can only be STM-related
-                            return retry()?;
-                        }
-                    };
-
-                    cut_outer_edge(t, &map, e, nds)?;
-
-                    nds[0]
-                } else {
-                    let nds: [DartIdType; 6] = match map.reserve_darts_transac(t, 6) {
-                        Ok(v) => TryInto::try_into(v).expect("E: unreachable"),
-                        Err(_) => {
-                            // the method error is unreachable, meaning this can only be STM-related
-                            return retry()?;
-                        }
-                    };
-
-                    cut_inner_edge(t, &map, e, nds)?;
-
-                    nds[0]
+        long_edges
+            .into_par_iter()
+            .zip(new_darts.par_chunks_exact(6))
+            .for_each(|(e, sl)| {
+                let &[d1, d2, d3, d4, d5, d6] = sl else {
+                    unreachable!()
                 };
 
-                if !is_orbit_orientation_consistent(t, &map, d)? {
-                    abort(SewError::BadGeometry(1, 0, 0))?;
-                }
+                if map.is_i_free::<2>(e as DartIdType) {
+                    while let Err(er) = atomically_with_err(|t| {
+                        let nds = [d1, d2, d3];
+                        for d in nds {
+                            map.set_used_transac(t, d)?;
+                        }
+                        cut_outer_edge(t, &map, e, nds)?;
 
-                Ok(())
-            }) {
-                match er {
-                    SewError::BadGeometry(1, _, _) => {
-                        break;
+                        if !is_orbit_orientation_consistent(t, &map, d1)? {
+                            abort(SewError::BadGeometry(1, 0, 0))?;
+                        }
+
+                        Ok(())
+                    }) {
+                        match er {
+                            SewError::BadGeometry(1, _, _) => {
+                                break;
+                            }
+                            SewError::BadGeometry(_, _, _)
+                            | SewError::FailedLink(_)
+                            | SewError::FailedAttributeOp(_) => continue,
+                        }
                     }
-                    SewError::BadGeometry(_, _, _)
-                    | SewError::FailedLink(_)
-                    | SewError::FailedAttributeOp(_) => continue,
+                } else {
+                    while let Err(er) = atomically_with_err(|t| {
+                        let nds = [d1, d2, d3, d4, d5, d6];
+                        for d in nds {
+                            map.set_used_transac(t, d)?;
+                        }
+
+                        cut_inner_edge(t, &map, e, nds)?;
+
+                        if !is_orbit_orientation_consistent(t, &map, d1)? {
+                            abort(SewError::BadGeometry(1, 0, 0))?;
+                        }
+
+                        Ok(())
+                    }) {
+                        match er {
+                            SewError::BadGeometry(1, _, _) => {
+                                break;
+                            }
+                            SewError::BadGeometry(_, _, _)
+                            | SewError::FailedLink(_)
+                            | SewError::FailedAttributeOp(_) => continue,
+                        }
+                    }
                 }
-            }
-        });
+            });
         prof_stop!("HCBENCH_REMESH_CUT");
         print!(" | {:>13.6e}", instant.elapsed().as_secs_f64());
 
