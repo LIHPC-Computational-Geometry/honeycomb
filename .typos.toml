@@ -7,5 +7,5 @@ iy = "iy"
 Lew = "Lew"
 
 [files]
-extend-exclude = ["*.svg"]
+extend-exclude = [ "benches/*.py", "*.svg" ]
 
