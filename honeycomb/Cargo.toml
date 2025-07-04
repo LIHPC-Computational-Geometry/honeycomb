@@ -21,3 +21,6 @@ render = ["dep:honeycomb-render"]
 honeycomb-core = { workspace = true, features = ["par-internals"] }
 honeycomb-kernels = { workspace = true, optional = true }
 honeycomb-render = { workspace = true, optional = true }
+
+[build-dependencies]
+rustversion.workspace = true

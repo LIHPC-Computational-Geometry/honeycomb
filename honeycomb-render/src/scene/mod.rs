@@ -1,8 +1,9 @@
 mod camera;
 mod picking;
 
+use bevy::pbr::AmbientLight;
 use bevy::prelude::*;
-use bevy_mod_outline::OutlinePlugin;
+// use bevy_mod_outline::OutlinePlugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_mod_picking::selection::SelectionPluginSettings;
 
@@ -31,7 +32,7 @@ impl Plugin for ScenePlugin {
 
         // picking
         app.add_plugins(DefaultPickingPlugins.build())
-            .add_plugins(OutlinePlugin)
+            // .add_plugins(OutlinePlugin)
             .insert_resource(SelectionPluginSettings::default())
             .add_systems(Update, picking::update_picking);
 

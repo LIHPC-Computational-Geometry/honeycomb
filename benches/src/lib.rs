@@ -14,6 +14,15 @@
 //!
 //! Benchmarks are described in the documentation of their respective modules.
 //!
+//! ## Features
+//!
+//! Optional features can be enabled to affect implementation:
+//!
+//! - `bind-threads` -- enabled by default -- uses `hwlocality` to bind threads to physical cores,
+//! - `jemalloc` -- uses `tikv-jemallocator` to replace the default allocator,
+//! - `profiling` -- enable `perf` fifo interactions to allow per-section profiling,
+//! - `_single_precision` -- compile cargo benches (not the binary) to use `f32` instead of `f64`.
+//!
 //! ## Available benchmarks
 //!
 //! ### Criterion-based
@@ -30,6 +39,10 @@
 //! - `prof-dim2-basic` - `CMap2` basic operations benchmarks
 //! - `prof-dim2-build` - `CMap2` constructor & building functions benchmarks
 //! - `prof-dim2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
+
+// --- enable doc_auto_cfg feature if compiling in nightly
+#![allow(unexpected_cfgs)]
+#![cfg_attr(nightly, feature(doc_auto_cfg))]
 
 #[doc(hidden)]
 pub mod cli;
