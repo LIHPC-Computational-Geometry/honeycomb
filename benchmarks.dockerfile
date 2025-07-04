@@ -1,4 +1,4 @@
-FROM rust:1.85 AS builder
+FROM rust:1.88 AS builder
 
 WORKDIR /builder
 
@@ -10,11 +10,13 @@ RUN apt-get update && apt-get install -y libhwloc-dev libudev-dev
 
 # Build binaries
 RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
+        RUSTFLAGS="-C target-cpu=native" \
         cargo install \
         --path=benches \
         --bins \
         --root /builder/release
 RUN --mount=type=cache,target=/cargo CARGO_HOME=/cargo \
+        RUSTFLAGS="-C target-cpu=native" \
         cargo install \
         --path=benches \
         --bins \
