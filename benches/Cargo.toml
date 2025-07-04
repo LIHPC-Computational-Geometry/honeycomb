@@ -13,6 +13,7 @@ publish = false
 default = ["bind-threads"]
 _single_precision = []
 bind-threads = ["dep:hwlocality"]
+jemalloc = ["dep:tikv-jemallocator"]
 profiling = []
 
 # deps
@@ -24,6 +25,9 @@ honeycomb.workspace = true
 hwlocality = { workspace = true, optional = true }
 rayon.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { workspace = true, optional = true }
 
 [build-dependencies]
 rustversion.workspace = true

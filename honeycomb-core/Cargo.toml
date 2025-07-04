@@ -12,16 +12,18 @@ keywords.workspace = true
 authors.workspace = true
 publish = true
 
-# [features]
+[features]
+par-internals = []
 
 # deps
 
 [dependencies]
 downcast-rs.workspace = true
+fast-stm.workspace = true
 itertools.workspace = true
 loom.workspace= true
 num-traits.workspace = true
-fast-stm.workspace = true
+rayon.workspace = true
 thiserror.workspace = true
 vtkio.workspace = true
 

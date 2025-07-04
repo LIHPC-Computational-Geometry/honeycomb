@@ -14,6 +14,15 @@
 //!
 //! Benchmarks are described in the documentation of their respective modules.
 //!
+//! ## Features
+//!
+//! Optional features can be enabled to affect implementation:
+//!
+//! - `bind-threads` -- enabled by default -- uses `hwlocality` to bind threads to physical cores,
+//! - `jemalloc` -- uses `tikv-jemallocator` to replace the default allocator,
+//! - `profiling` -- enable `perf` fifo interactions to allow per-section profiling,
+//! - `_single_precision` -- compile cargo benches (not the binary) to use `f32` instead of `f64`.
+//!
 //! ## Available benchmarks
 //!
 //! ### Criterion-based

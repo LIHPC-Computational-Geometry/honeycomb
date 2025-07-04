@@ -10,6 +10,8 @@
 use std::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 
+use rayon::prelude::*;
+
 use crate::cmap::{
     CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
 };
@@ -421,6 +423,74 @@ impl<T: CoordsFloat> CMap3<T> {
                     if unused.read_atomic() { None } else { Some(d) }
                 },
             )
+            .filter_map(|d| {
+                let vid = self.volume_id(d);
+                if d == vid { Some(vid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's vertices.
+    pub fn par_iter_vertices(&self) -> impl ParallelIterator<Item = VertexIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| {
+                if atomically(|t| self.is_unused_transac(t, d)) {
+                    None
+                } else {
+                    Some(d)
+                }
+            })
+            .filter_map(|d| {
+                let vid = self.vertex_id(d);
+                if d == vid { Some(vid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's edges.
+    pub fn par_iter_edges(&self) -> impl ParallelIterator<Item = EdgeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| {
+                if atomically(|t| self.is_unused_transac(t, d)) {
+                    None
+                } else {
+                    Some(d)
+                }
+            })
+            .filter_map(|d| {
+                let eid = self.edge_id(d);
+                if d == eid { Some(eid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's faces.
+    pub fn par_iter_faces(&self) -> impl ParallelIterator<Item = FaceIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| {
+                if atomically(|t| self.is_unused_transac(t, d)) {
+                    None
+                } else {
+                    Some(d)
+                }
+            })
+            .filter_map(|d| {
+                let fid = self.face_id(d);
+                if d == fid { Some(fid) } else { None }
+            })
+    }
+
+    /// Return an iterator over IDs of all the map's volumes.
+    pub fn par_iter_volumes(&self) -> impl ParallelIterator<Item = VolumeIdType> + '_ {
+        (1..self.n_darts() as DartIdType)
+            .into_par_iter()
+            .filter_map(|d| {
+                if atomically(|t| self.is_unused_transac(t, d)) {
+                    None
+                } else {
+                    Some(d)
+                }
+            })
             .filter_map(|d| {
                 let vid = self.volume_id(d);
                 if d == vid { Some(vid) } else { None }
