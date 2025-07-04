@@ -27,10 +27,17 @@ jobs:
           mdbook-version: "0.4.36"
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
-      # Generate / using sudo before I'm forced to retry this 83491 times due to CI constraints
-      - name: Generate documentation
-        run: bash ./docs/build.sh
+      # Generate
+      - name: Generate rustdoc
+        run: cargo +nightly doc --all --no-deps --all-features
+      - name: Generate user guide
+        run: mdbook build user-guide/
       # Deploy
+      - name: Aggregate files
+        run: |
+          mv user-guide/book target/doc/user-guide && \
+          cp docs/index.html target/doc && \
+          cp docs/index.css  target/doc
       - name: Deploy Docs
         uses: peaceiris/actions-gh-pages@v4
         with:
