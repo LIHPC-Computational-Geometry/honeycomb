@@ -290,7 +290,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         for d in 1..self.n_darts() as DartIdType {
             if self.is_unused_transac(t, d)? {
-                //
+                self.claim_dart_transac(t, d)?;
                 res.push(d);
                 if res.len() == n_darts {
                     return Ok(res);
@@ -301,6 +301,21 @@ impl<T: CoordsFloat> CMap2<T> {
         abort(DartReservationError(n_darts))
     }
 
+    /// Set a given dart as used.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn claim_dart_transac(
+        &self,
+        t: &mut Transaction,
+        dart_id: DartIdType,
+    ) -> StmClosureResult<()> {
+        self.unused_darts[dart_id].write(t, false)
+    }
+
     #[allow(clippy::missing_errors_doc)]
     /// Mark a free dart from the map as unused.
     ///
@@ -308,7 +323,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This method return a boolean indicating whether the art was already unused or not. It will
     /// fail if the dart is not free, i.e. if one of its beta images isn't null.
-    pub fn release_dart(&mut self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
+    pub fn release_dart(&self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
         atomically_with_err(|t| self.release_dart_transac(t, dart_id))
     }
 
