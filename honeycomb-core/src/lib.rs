@@ -7,8 +7,13 @@
 //! formal information about combinatorial maps, refer to the **Definitions** section of
 //! the [user guide][UG].
 //!
-//! [UG]:https://lihpc-computational-geometry.github.io/honeycomb/
+//! ## Features
 //!
+//! The `par-internals` feature can be enabled so that `CMap` structures use `rayon` internally
+//! to accelerate some methods (e.g. `par_extend` for new element additions). This may also lead
+//! to changes in performance due to first-touch mechanisms (to be confirmed).
+//!
+//! [UG]:https://lihpc-computational-geometry.github.io/honeycomb/
 
 // ------ CUSTOM LINTS
 
