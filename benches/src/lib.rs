@@ -40,6 +40,10 @@
 //! - `prof-dim2-build` - `CMap2` constructor & building functions benchmarks
 //! - `prof-dim2-sewing-unsewing` - `CMap2` (un)sewing & (un)linking methods benchmarks
 
+// --- enable doc_auto_cfg feature if compiling in nightly
+#![allow(unexpected_cfgs)]
+#![cfg_attr(nightly, feature(doc_auto_cfg))]
+
 #[doc(hidden)]
 pub mod cli;
 pub mod cut_edges;

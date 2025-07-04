@@ -16,7 +16,8 @@ use honeycomb::{
     prelude::{CMap2, CMapBuilder, DartIdType, Vertex2},
 };
 use iai_callgrind::{
-    FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main,
+    Callgrind, FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark,
+    library_benchmark_group, main,
 };
 
 use honeycomb_benches::utils::FloatType;
@@ -168,7 +169,9 @@ library_benchmark_group!(
 // --- main
 
 main!(
-    config = LibraryBenchmarkConfig::default().flamegraph(FlamegraphConfig::default());
+    config = LibraryBenchmarkConfig::default().tool(
+        Callgrind::default().flamegraph(FlamegraphConfig::default())
+    );
     library_benchmark_groups = bench_darts,
     bench_vertices,
 );

@@ -29,6 +29,8 @@ rand = { workspace = true, features = ["small_rng"] }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
 
+[build-dependencies]
+rustversion.workspace = true
 
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
