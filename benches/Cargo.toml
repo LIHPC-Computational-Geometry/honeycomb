@@ -25,6 +25,8 @@ hwlocality = { workspace = true, optional = true }
 rayon.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
 
+[build-dependencies]
+rustversion.workspace = true
 
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
