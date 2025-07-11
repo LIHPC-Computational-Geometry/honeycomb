@@ -261,6 +261,8 @@ impl<T: CoordsFloat> CMap3<T> {
         if !self.is_free_transac(t, dart_id)? {
             abort(DartReleaseError(dart_id))?;
         }
+        self.attributes.clear_attribute_values(t, dart_id)?;
+        self.vertices.clear_slot(t, dart_id)?;
         Ok(self.unused_darts[dart_id].replace(t, true)?) // Ok(_?) necessary for err type coercion
     }
 }

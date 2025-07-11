@@ -143,6 +143,20 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// - `length: usize` -- length of which the storage should be extended.
     fn extend(&mut self, length: usize);
 
+    /// Set a value to `None`
+    ///
+    /// # Arguments
+    ///
+    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `id: DartIdType` -- ID of the value to clear / set to `None`.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    fn clear_slot(&self, trans: &mut Transaction, id: DartIdType) -> StmClosureResult<()>;
+
     /// Return the number of stored attributes, i.e. the number of used slots in the storage (not
     /// its length).
     #[must_use = "unused return value"]
