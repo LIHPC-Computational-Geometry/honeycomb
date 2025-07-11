@@ -148,6 +148,19 @@ impl AttrStorageManager {
         }
     }
 
+    pub fn clear_attribute_values(
+        &self,
+        t: &mut Transaction,
+        id: DartIdType,
+    ) -> StmClosureResult<()> {
+        for map in &self.icells {
+            for storage in map.values() {
+                storage.clear_slot(t, id)?;
+            }
+        }
+        Ok(())
+    }
+
     // attribute-specific
 
     /// Add a new storage to the manager.
