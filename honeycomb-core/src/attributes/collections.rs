@@ -68,6 +68,11 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
             .par_extend((0..length).into_par_iter().map(|_| TVar::new(None)));
     }
 
+    fn clear_slot(&self, trans: &mut Transaction, id: DartIdType) -> StmClosureResult<()> {
+        self.remove(trans, A::IdentifierType::from(id))?;
+        Ok(())
+    }
+
     fn n_attributes(&self) -> usize {
         self.data
             .iter()
