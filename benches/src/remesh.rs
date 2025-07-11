@@ -288,7 +288,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             let tmp = map.allocate_unused_darts(n_darts);
             (tmp..tmp + n_darts as DartIdType).collect::<Vec<_>>()
         } else {
-            map.reserve_darts(n_darts).expect("E: unreachable")
+            let tmp = map.reserve_darts(n_darts).expect("E: unreachable");
+            // FIXME: darts from the above branch are marked as unused, not these ones
+            tmp.par_iter().for_each(|&d| {
+                let _ = map.release_dart(d);
+            });
+            tmp
         };
         let alloc_time = instant.elapsed().as_secs_f64();
         print!(" | {:>17.6e}", batch_time);
@@ -321,9 +326,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         Ok(())
                     }) {
                         match er {
+                            // non-recoverable
                             SewError::BadGeometry(1, _, _) => {
                                 break;
                             }
+                            // inconsistency-related, a retry should work
                             SewError::BadGeometry(_, _, _)
                             | SewError::FailedLink(_)
                             | SewError::FailedAttributeOp(_) => continue,
@@ -345,9 +352,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         Ok(())
                     }) {
                         match er {
+                            // non-recoverable
                             SewError::BadGeometry(1, _, _) => {
                                 break;
                             }
+                            // inconsistency-related, a retry should work
                             SewError::BadGeometry(_, _, _)
                             | SewError::FailedLink(_)
                             | SewError::FailedAttributeOp(_) => continue,
@@ -381,12 +390,15 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 Ok(())
             }) {
                 match er {
+                    // non-recoverable
                     EdgeCollapseError::FailedCoreOp(SewError::BadGeometry(_, _, _))
                     | EdgeCollapseError::NonCollapsibleEdge(_)
                     | EdgeCollapseError::InvertedOrientation => break,
+                    // inconsistency-related, a retry should work
                     EdgeCollapseError::FailedCoreOp(_)
                     | EdgeCollapseError::FailedDartRelease(_)
                     | EdgeCollapseError::BadTopology => continue,
+                    // unreachable due to the first `if` of the tx
                     EdgeCollapseError::NullEdge => unreachable!(),
                 }
             }
