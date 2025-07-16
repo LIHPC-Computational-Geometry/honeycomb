@@ -288,12 +288,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             let tmp = map.allocate_unused_darts(n_darts);
             (tmp..tmp + n_darts as DartIdType).collect::<Vec<_>>()
         } else {
-            let tmp = map.reserve_darts(n_darts).expect("E: unreachable");
-            // FIXME: darts from the above branch are marked as unused, not these ones
-            tmp.par_iter().for_each(|&d| {
-                let _ = map.release_dart(d);
-            });
-            tmp
+            (1..map.n_darts() as DartIdType)
+                .into_par_iter()
+                .filter(|&d| map.is_unused(d))
+                .take_any(n_darts)
+                .collect()
         };
         let alloc_time = instant.elapsed().as_secs_f64();
         print!(" | {:>17.6e}", batch_time);
