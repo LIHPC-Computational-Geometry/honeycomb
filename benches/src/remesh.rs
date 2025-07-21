@@ -35,13 +35,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
     let target_len = T::from(args.target_length).unwrap();
 
-    let n_threads = if let Ok(val) = get_num_threads() {
-        val
-    } else {
+    let n_threads = get_num_threads().unwrap_or(
         std::thread::available_parallelism()
             .map(|n| n.get())
-            .unwrap_or(1)
-    };
+            .unwrap_or(1),
+    );
 
     // load map from file
     let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
@@ -299,7 +297,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         print!(" | {:>17.6e}", alloc_time);
 
         // -- cut
-        prof_start!("HCBENCH_REMESH_CC");
+        prof_start!("HCBENCH_REMESH_CUT");
         print!(" | {:>14}", n_e);
         instant = Instant::now();
         long_edges
