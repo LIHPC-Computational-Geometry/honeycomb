@@ -113,7 +113,7 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
             "mismatch between requested dimension and header",
         ));
     }
-    let mut map = CMap2::new_with_undefined_attributes(f.meta.2, manager);
+    let map = CMap2::new_with_undefined_attributes(f.meta.2, manager);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();
@@ -373,7 +373,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d0).unwrap(); // edge d2 links vertices vids[2] & vids[0]
-                                        // record a trace of the built cell for future 2-sew
+                                                                               // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[0]), d2);
@@ -434,7 +434,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d3).unwrap(); // edge d2 links vertices vids[2] & vids[3]
                                         cmap.force_link::<1>(d3, d0).unwrap(); // edge d3 links vertices vids[3] & vids[0]
-                                        // record a trace of the built cell for future 2-sew
+                                                                               // record a trace of the built cell for future 2-sew
                                         sew_buffer.insert((vids[0], vids[1]), d0);
                                         sew_buffer.insert((vids[1], vids[2]), d1);
                                         sew_buffer.insert((vids[2], vids[3]), d2);
