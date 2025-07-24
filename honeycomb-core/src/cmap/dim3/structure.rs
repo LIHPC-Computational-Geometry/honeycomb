@@ -131,7 +131,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     #[must_use = "unused return value"]
     pub fn is_unused_tx(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<bool> {
-        self.unused_darts[d].read(trans)
+        self.unused_darts[d].read(t)
     }
 
     // --- edit

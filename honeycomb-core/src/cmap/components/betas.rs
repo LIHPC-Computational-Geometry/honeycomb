@@ -101,10 +101,10 @@ impl<const N: usize> BetaFunctions<N> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(1, lhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(1, lhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(1, lhs_dart_id, rhs_dart_id));
         }
-        if self[(0, rhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(0, rhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeImage(0, lhs_dart_id, rhs_dart_id));
         }
         // set beta_1(lhs_dart) to rhs_dart
@@ -134,10 +134,10 @@ impl<const N: usize> BetaFunctions<N> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(2, lhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(2, lhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(2, lhs_dart_id, rhs_dart_id));
         }
-        if self[(2, rhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(2, rhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeImage(2, lhs_dart_id, rhs_dart_id));
         }
         // set beta_2(lhs_dart) to rhs_dart
@@ -153,10 +153,10 @@ impl<const N: usize> BetaFunctions<N> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(3, lhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(3, lhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(3, lhs_dart_id, rhs_dart_id));
         }
-        if self[(3, rhs_dart_id)].read(trans)? != NULL_DART_ID {
+        if self[(3, rhs_dart_id)].read(t)? != NULL_DART_ID {
             return abort(LinkError::NonFreeImage(3, lhs_dart_id, rhs_dart_id));
         }
         self[(3, lhs_dart_id)].write(t, rhs_dart_id)?;

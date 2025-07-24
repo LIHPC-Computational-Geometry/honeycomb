@@ -46,7 +46,7 @@ impl<T: CoordsFloat> CMap3<T> {
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(I < 4);
-        self.betas[(I, dart_id)].read(trans)
+        self.betas[(I, dart_id)].read(t)
     }
 
     /// Return β<sub>`i`</sub>(`dart_id`).

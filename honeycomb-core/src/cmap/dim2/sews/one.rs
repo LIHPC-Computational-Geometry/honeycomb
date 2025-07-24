@@ -13,7 +13,7 @@ impl<T: CoordsFloat> CMap2<T> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
         if b2lhs_dart_id == NULL_DART_ID {
             try_or_coerce!(
                 self.betas.one_link_core(t, lhs_dart_id, rhs_dart_id),
@@ -54,12 +54,12 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
         if b2lhs_dart_id == NULL_DART_ID {
             try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);
         } else {
             // fetch IDs before topology update
-            let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
+            let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
             let vid_old = self.vertex_id_tx(t, rhs_dart_id)?;
             // update the topology
             try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);

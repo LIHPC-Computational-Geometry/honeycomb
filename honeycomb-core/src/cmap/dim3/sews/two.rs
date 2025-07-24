@@ -17,8 +17,8 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b1ld = self.betas[(1, ld)].read(trans)?;
-        let b1rd = self.betas[(1, rd)].read(trans)?;
+        let b1ld = self.betas[(1, ld)].read(t)?;
+        let b1rd = self.betas[(1, rd)].read(t)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1ld == NULL_DART_ID, b1rd == NULL_DART_ID) {
             // trivial case, no update needed
@@ -174,9 +174,9 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let rd = self.betas[(2, ld)].read(trans)?;
-        let b1ld = self.betas[(1, ld)].read(trans)?;
-        let b1rd = self.betas[(1, rd)].read(trans)?;
+        let rd = self.betas[(2, ld)].read(t)?;
+        let b1ld = self.betas[(1, ld)].read(t)?;
+        let b1rd = self.betas[(1, rd)].read(t)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1ld == NULL_DART_ID, b1rd == NULL_DART_ID) {
             (true, true) => {

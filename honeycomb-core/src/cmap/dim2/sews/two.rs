@@ -14,8 +14,8 @@ impl<T: CoordsFloat> CMap2<T> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
-        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
+        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
+        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(t)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
@@ -213,9 +213,9 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
-        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
-        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(trans)?;
+        let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
+        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
+        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(t)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             (true, true) => {

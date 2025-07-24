@@ -88,8 +88,8 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         let new_v = match (
-            self.data[lhs_inp as usize].read(trans)?,
-            self.data[rhs_inp as usize].read(trans)?,
+            self.data[lhs_inp as usize].read(t)?,
+            self.data[rhs_inp as usize].read(t)?,
         ) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
@@ -113,7 +113,7 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
-        let res = if let Some(val) = self.data[inp as usize].read(trans)? {
+        let res = if let Some(val) = self.data[inp as usize].read(t)? {
             AttributeUpdate::split(val)
         } else {
             AttributeUpdate::split_from_none()
@@ -145,7 +145,7 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         t: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.data[id.to_usize().unwrap()].read(trans)
+        self.data[id.to_usize().unwrap()].read(t)
     }
 
     fn remove(
