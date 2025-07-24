@@ -39,10 +39,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn read_vertex(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         vertex_id: VertexIdType,
     ) -> StmClosureResult<Option<Vertex2<T>>> {
-        self.vertices.read(trans, vertex_id)
+        self.vertices.read(t, vertex_id)
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -70,11 +70,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn write_vertex(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
     ) -> StmClosureResult<Option<Vertex2<T>>> {
-        self.vertices.write(trans, vertex_id, vertex.into())
+        self.vertices.write(t, vertex_id, vertex.into())
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -97,10 +97,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn remove_vertex(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         vertex_id: VertexIdType,
     ) -> StmClosureResult<Option<Vertex2<T>>> {
-        self.vertices.remove(trans, vertex_id)
+        self.vertices.remove(t, vertex_id)
     }
 
     #[must_use = "unused return value"]
@@ -160,10 +160,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.read_attribute::<A>(trans, id)
+        self.attributes.read_attribute::<A>(t, id)
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -191,11 +191,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
         val: A,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.write_attribute::<A>(trans, id, val)
+        self.attributes.write_attribute::<A>(t, id, val)
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -218,10 +218,10 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the index cannot be converted to `usize`.
     pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.remove_attribute::<A>(trans, id)
+        self.attributes.remove_attribute::<A>(t, id)
     }
 
     /// Return the attribute `A` value associated to a given identifier.

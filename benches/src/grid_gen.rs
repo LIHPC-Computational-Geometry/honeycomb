@@ -76,13 +76,13 @@ fn split_faces_randomly<T: CoordsFloat>(
             let _ = map.force_link::<2>(dsplit1, dsplit2);
 
             while atomically_with_err(|trans| {
-                map.unsew::<1>(trans, dbefore1)?;
-                map.unsew::<1>(trans, dbefore2)?;
-                map.sew::<1>(trans, dsplit1, dafter1)?;
-                map.sew::<1>(trans, dsplit2, dafter2)?;
+                map.unsew::<1>(t, dbefore1)?;
+                map.unsew::<1>(t, dbefore2)?;
+                map.sew::<1>(t, dsplit1, dafter1)?;
+                map.sew::<1>(t, dsplit2, dafter2)?;
 
-                map.sew::<1>(trans, dbefore1, dsplit1)?;
-                map.sew::<1>(trans, dbefore2, dsplit2)?;
+                map.sew::<1>(t, dbefore1, dsplit1)?;
+                map.sew::<1>(t, dbefore2, dsplit2)?;
                 Ok(())
             })
             .is_err()

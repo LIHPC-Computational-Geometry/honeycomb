@@ -235,7 +235,7 @@ fn test_merge_attributes() {
     // Test merge
     atomically(|trans| {
         manager
-            .merge_attribute::<Temperature>(trans, 2, 0, 1)
+            .merge_attribute::<Temperature>(t, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -258,7 +258,7 @@ fn test_split_attributes() {
     // Test split
     atomically(|trans| {
         manager
-            .split_attribute::<Temperature>(trans, 1, 2, 0)
+            .split_attribute::<Temperature>(t, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -306,7 +306,7 @@ fn test_orbit_specific_merges() {
     // Test vertex-specific merge
     atomically(|trans| {
         manager
-            .merge_attributes(trans, OrbitPolicy::Vertex, 2, 0, 1)
+            .merge_attributes(t, OrbitPolicy::Vertex, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -327,7 +327,7 @@ fn test_orbit_specific_splits() {
     // Test vertex-specific split
     atomically(|trans| {
         manager
-            .split_attributes(trans, OrbitPolicy::Vertex, 1, 2, 0)
+            .split_attributes(t, OrbitPolicy::Vertex, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -362,7 +362,7 @@ fn test_merge_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .merge_attributes(trans, OrbitPolicy::Vertex, 2, 0, 1)
+            .merge_attributes(t, OrbitPolicy::Vertex, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -381,7 +381,7 @@ fn test_split_vertex_attributes() {
 
     atomically(|trans| {
         manager
-            .split_attributes(trans, OrbitPolicy::Vertex, 1, 2, 0)
+            .split_attributes(t, OrbitPolicy::Vertex, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -403,7 +403,7 @@ fn test_split_vertex_attributes() {
 fn test_write_attribute() {
     let manager = setup_manager();
 
-    atomically(|trans| manager.write_attribute(trans, 0, Temperature::from(25.0)));
+    atomically(|trans| manager.write_attribute(t, 0, Temperature::from(25.0)));
 
     let value = atomically(|t| manager.read_attribute::<Temperature>(t, 0));
     assert!(value.is_some());
@@ -417,7 +417,7 @@ fn test_read_attribute() {
     // Set initial value
     atomically(|t| manager.write_attribute(t, 0, Temperature::from(25.0)));
 
-    let value = atomically(|trans| manager.read_attribute::<Temperature>(trans, 0));
+    let value = atomically(|trans| manager.read_attribute::<Temperature>(t, 0));
 
     assert!(value.is_some());
     assert_eq!(value.unwrap().val, 25.0);
@@ -430,7 +430,7 @@ fn test_remove_attribute() {
     // Set initial value
     atomically(|t| manager.write_attribute(t, 0, Temperature::from(25.0)));
 
-    let removed_value = atomically(|trans| manager.remove_attribute::<Temperature>(trans, 0));
+    let removed_value = atomically(|trans| manager.remove_attribute::<Temperature>(t, 0));
 
     assert!(removed_value.is_some());
     assert_eq!(removed_value.unwrap().val, 25.0);
@@ -453,7 +453,7 @@ fn test_merge_attribute() {
 
     atomically(|trans| {
         manager
-            .merge_attribute::<Temperature>(trans, 2, 0, 1)
+            .merge_attribute::<Temperature>(t, 2, 0, 1)
             .map_err(|_| StmError::Failure)
     });
 
@@ -471,7 +471,7 @@ fn test_split_attribute() {
 
     atomically(|trans| {
         manager
-            .split_attribute::<Temperature>(trans, 1, 2, 0)
+            .split_attribute::<Temperature>(t, 1, 2, 0)
             .map_err(|_| StmError::Failure)
     });
 
@@ -498,8 +498,8 @@ fn test_attribute_operations_with_failed_txtion() {
     let _: Option<()> = Transaction::with_control(
         |_err| TransactionControl::Abort,
         |trans| {
-            manager.write_attribute(trans, 0, Temperature::from(30.0))?;
-            manager.write_attribute(trans, 1, Temperature::from(35.0))?;
+            manager.write_attribute(t, 0, Temperature::from(30.0))?;
+            manager.write_attribute(t, 1, Temperature::from(35.0))?;
 
             Err(StmError::Failure)
         },
@@ -979,11 +979,11 @@ fn manager_ordering() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c1.merge_attributes(trans, OrbitPolicy::Vertex, 2, 1, 3)
+                c1.merge_attributes(t, OrbitPolicy::Vertex, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.merge_attributes(trans, OrbitPolicy::Edge, 2, 1, 3)
+                c1.merge_attributes(t, OrbitPolicy::Edge, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
-                c1.merge_attributes(trans, OrbitPolicy::Face, 2, 1, 3)
+                c1.merge_attributes(t, OrbitPolicy::Face, 2, 1, 3)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });
@@ -991,11 +991,11 @@ fn manager_ordering() {
 
         let t2 = loom::thread::spawn(move || {
             atomically(|trans| {
-                c2.split_attributes(trans, OrbitPolicy::Vertex, 2, 3, 2)
+                c2.split_attributes(t, OrbitPolicy::Vertex, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.split_attributes(trans, OrbitPolicy::Edge, 2, 3, 2)
+                c2.split_attributes(t, OrbitPolicy::Edge, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
-                c2.split_attributes(trans, OrbitPolicy::Face, 2, 3, 2)
+                c2.split_attributes(t, OrbitPolicy::Face, 2, 3, 2)
                     .map_err(|_| StmError::Retry)?;
                 Ok(())
             });

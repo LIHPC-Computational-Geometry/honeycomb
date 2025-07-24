@@ -20,7 +20,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Link dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `ld: DartIdType` -- First dart ID.
     /// - `rd: DartIdType` -- Second dart ID.
     ///
@@ -38,7 +38,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - the two darts are not `I`-linkable.
     pub fn link<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
@@ -46,8 +46,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(trans, ld, rd),
-            2 => self.two_link(trans, ld, rd),
+            1 => self.one_link(t, ld, rd),
+            2 => self.two_link(t, ld, rd),
             _ => unreachable!(),
         }
     }
@@ -65,7 +65,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Unlink dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `ld: DartIdType` -- First dart ID.
     ///
     /// The second dart ID is fetched using `I` and `ld`.
@@ -84,15 +84,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// - `ld` is already `I`-free.
     pub fn unlink<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(trans, ld),
-            2 => self.two_unlink(trans, ld),
+            1 => self.one_unlink(t, ld),
+            2 => self.two_unlink(t, ld),
             _ => unreachable!(),
         }
     }

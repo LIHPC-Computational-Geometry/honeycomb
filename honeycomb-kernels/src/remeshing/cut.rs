@@ -71,10 +71,7 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     let ld = e as DartIdType;
     let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
 
-    let (vid1, vid2) = (
-        map.vertex_id_tx(t, ld)?,
-        map.vertex_id_tx(t, b1ld)?,
-    );
+    let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
     let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
         (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
         _ => retry()?,
@@ -204,10 +201,7 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
     let (b0rd, b1rd) = (map.beta_tx::<0>(t, rd)?, map.beta_tx::<1>(t, rd)?);
 
-    let (vid1, vid2) = (
-        map.vertex_id_tx(t, ld)?,
-        map.vertex_id_tx(t, b1ld)?,
-    );
+    let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
     let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
         (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
         _ => retry()?,

@@ -315,7 +315,7 @@ fn process_outer_edge<T: CoordsFloat>(
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| cut_outer_edge(trans, map, e, [nd1, nd2, nd3]),
+        |trans| cut_outer_edge(t, map, e, [nd1, nd2, nd3]),
     ) // Transaction::with_control
 }
 
@@ -331,6 +331,6 @@ fn process_inner_edge<T: CoordsFloat>(
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| cut_inner_edge(trans, map, e, nds),
+        |trans| cut_inner_edge(t, map, e, nds),
     ) // Transaction::with_control
 }

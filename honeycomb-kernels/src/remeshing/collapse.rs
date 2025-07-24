@@ -242,10 +242,7 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     try_or_coerce!(map.unsew::<1>(t, d), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b1d), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b0d), EdgeCollapseError);
-    let (b2b0d, b2b1d) = (
-        map.beta_tx::<2>(t, b0d)?,
-        map.beta_tx::<2>(t, b1d)?,
-    );
+    let (b2b0d, b2b1d) = (map.beta_tx::<2>(t, b0d)?, map.beta_tx::<2>(t, b1d)?);
     match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
         (false, false) => {
             try_or_coerce!(map.unsew::<2>(t, b0d), EdgeCollapseError);

@@ -253,7 +253,7 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
@@ -270,14 +270,14 @@ impl AttrStorageManager {
     /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_attributes(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         orbit_policy: OrbitPolicy,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.get_map(orbit_policy).values() {
-            storage.merge(trans, id_out, id_in_lhs, id_in_rhs)?;
+            storage.merge(t, id_out, id_in_lhs, id_in_rhs)?;
         }
         Ok(())
     }
@@ -287,7 +287,7 @@ impl AttrStorageManager {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `orbit_policy: OrbitPolicy` -- Orbit associated with affected attributes.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
@@ -304,14 +304,14 @@ impl AttrStorageManager {
     /// transaction control policy, to retry or abort as he wishes.
     pub fn split_attributes(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         orbit_policy: OrbitPolicy,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.get_map(orbit_policy).values() {
-            storage.split(trans, id_out_lhs, id_out_rhs, id_in)?;
+            storage.split(t, id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -346,12 +346,12 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn read_attribute<A: AttributeBind>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.read(trans, id)
+            st.read(t, id)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
@@ -387,13 +387,13 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub fn write_attribute<A: AttributeBind>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
         val: A,
     ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.write(trans, id, val)
+            st.write(t, id, val)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
@@ -428,12 +428,12 @@ impl AttrStorageManager {
     /// - the index lands out of bounds
     pub(crate) fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.remove(trans, id)
+            st.remove(t, id)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
@@ -458,7 +458,7 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `A: AttributeBind + AttributeUpdate` -- Attribute to merge values of.
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in_lhs: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `id_in_rhs: DartIdentifier` -- Identifier of the other attribute value to merge.
@@ -474,14 +474,14 @@ impl AttrStorageManager {
     /// transaction control policy, to retry or abort as he wishes.
     pub fn merge_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id_out: DartIdType,
         id_in_lhs: DartIdType,
         id_in_rhs: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.merge(trans, id_out, id_in_lhs, id_in_rhs)
+            st.merge(t, id_out, id_in_lhs, id_in_rhs)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",
@@ -496,7 +496,7 @@ impl AttrStorageManager {
     /// # Arguments
     ///
     /// - `A: AttributeBind + AttributeUpdate` -- Attribute to split value of.
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `id_out_lhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_out_rhs: DartIdentifier` -- Identifier to write the result to.
     /// - `id_in: DartIdentifier` -- Identifier of the attribute value to split.
@@ -512,14 +512,14 @@ impl AttrStorageManager {
     /// transaction control policy, to retry or abort as he wishes.
     pub fn split_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id_out_lhs: DartIdType,
         id_out_rhs: DartIdType,
         id_in: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         get_storage!(self, storage);
         if let Some(st) = storage {
-            st.split(trans, id_out_lhs, id_out_rhs, id_in)
+            st.split(t, id_out_lhs, id_out_rhs, id_in)
         } else {
             eprintln!(
                 "W: could not update storage of attribute {} - storage not found",

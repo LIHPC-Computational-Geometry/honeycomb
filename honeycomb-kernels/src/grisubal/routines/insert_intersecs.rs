@@ -17,7 +17,7 @@ pub(crate) fn insert_intersections<T: CoordsFloat>(
         atomically_with_err(|trans| {
             insert_vertices_on_edge(
                 cmap,
-                trans,
+                t,
                 *edge_id,
                 new_darts,
                 &vs.iter().map(|(_, t, _)| *t).collect::<Vec<_>>(),

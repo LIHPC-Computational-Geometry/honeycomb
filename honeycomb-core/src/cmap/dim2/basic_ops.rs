@@ -67,7 +67,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will panic if `I` is not 0, 1 or 2.
     pub fn beta_tx<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(I < 3);
@@ -87,15 +87,15 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method will panic if `i` is not 0, 1 or 2.
     pub fn beta_rt_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         i: u8,
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(i < 3);
         match i {
-            0 => self.beta_tx::<0>(trans, dart_id),
-            1 => self.beta_tx::<1>(trans, dart_id),
-            2 => self.beta_tx::<2>(trans, dart_id),
+            0 => self.beta_tx::<0>(t, dart_id),
+            1 => self.beta_tx::<1>(t, dart_id),
+            2 => self.beta_tx::<2>(t, dart_id),
             _ => unreachable!(),
         }
     }
@@ -138,11 +138,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
     #[must_use = "unused return value"]
-    pub fn is_free_tx(
-        &self,
-        t: &mut Transaction,
-        dart_id: DartIdType,
-    ) -> StmClosureResult<bool> {
+    pub fn is_free_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<bool> {
         Ok(self.beta_tx::<0>(t, dart_id)? == NULL_DART_ID
             && self.beta_tx::<1>(t, dart_id)? == NULL_DART_ID
             && self.beta_tx::<2>(t, dart_id)? == NULL_DART_ID)
@@ -156,7 +152,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
     #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        atomically(|trans| self.vertex_id_tx(trans, dart_id))
+        atomically(|trans| self.vertex_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the vertex a given dart is part of.
@@ -170,7 +166,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// only processed via the `?` operator.
     pub fn vertex_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<VertexIdType> {
         AUXILIARIES.with(|t| {
@@ -187,18 +183,15 @@ impl<T: CoordsFloat> CMap2<T> {
 
             while let Some(d) = pending.pop_front() {
                 // THIS CODE IS ONLY VALID IN 2D
-                let (b2d, b0d) = (
-                    self.beta_tx::<2>(trans, d)?,
-                    self.beta_tx::<0>(trans, d)?,
-                );
-                let image1 = self.beta_tx::<1>(trans, b2d)?;
+                let (b2d, b0d) = (self.beta_tx::<2>(t, d)?, self.beta_tx::<0>(t, d)?);
+                let image1 = self.beta_tx::<1>(t, b2d)?;
                 if marked.insert(image1) {
                     // if true, we did not see this dart yet
                     // i.e. we need to visit it later
                     min = min.min(image1);
                     pending.push_back(image1);
                 }
-                let image2 = self.beta_tx::<2>(trans, b0d)?;
+                let image2 = self.beta_tx::<2>(t, b0d)?;
                 if marked.insert(image2) {
                     // if true, we did not see this dart yet
                     // i.e. we need to visit it later
@@ -216,7 +209,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
     #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        atomically(|trans| self.edge_id_tx(trans, dart_id))
+        atomically(|trans| self.edge_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -230,11 +223,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// only processed via the `?` operator.
     pub fn edge_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<EdgeIdType> {
         // optimizing this one bc I'm tired
-        let b2 = self.beta_tx::<2>(trans, dart_id)?;
+        let b2 = self.beta_tx::<2>(t, dart_id)?;
         if b2 == NULL_DART_ID {
             Ok(dart_id as EdgeIdType)
         } else {
@@ -247,7 +240,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
     #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        atomically(|trans| self.face_id_tx(trans, dart_id))
+        atomically(|trans| self.face_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the face a given dart is part of.
@@ -261,7 +254,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// only processed via the `?` operator.
     pub fn face_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<FaceIdType> {
         AUXILIARIES.with(|t| {
@@ -278,14 +271,14 @@ impl<T: CoordsFloat> CMap2<T> {
 
             while let Some(d) = pending.pop_front() {
                 // THIS CODE IS ONLY VALID IN 2D
-                let image1 = self.beta_tx::<1>(trans, d)?;
+                let image1 = self.beta_tx::<1>(t, d)?;
                 if marked.insert(image1) {
                     // if true, we did not see this dart yet
                     // i.e. we need to visit it later
                     min = min.min(image1);
                     pending.push_back(image1);
                 }
-                let image2 = self.beta_tx::<0>(trans, d)?;
+                let image2 = self.beta_tx::<0>(t, d)?;
                 if marked.insert(image2) {
                     // if true, we did not see this dart yet
                     // i.e. we need to visit it later

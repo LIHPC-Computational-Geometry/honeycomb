@@ -38,7 +38,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             atomically_with_err(|trans| {
                 insert_vertices_on_edge(
                     cmap,
-                    trans,
+                    t,
                     edge_id,
                     new_darts,
                     &vec![T::from(0.5).unwrap(); intermediates.len()],

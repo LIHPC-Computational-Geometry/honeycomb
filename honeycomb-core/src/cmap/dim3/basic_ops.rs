@@ -42,7 +42,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method will panic if `I` is not 0, 1, 2, or 3.
     pub fn beta_tx<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(I < 4);
@@ -62,16 +62,16 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method will panic if `i` is not 0, 1, 2, or 3.
     pub fn beta_rt_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         i: u8,
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(i < 4);
         match i {
-            0 => self.beta_tx::<0>(trans, dart_id),
-            1 => self.beta_tx::<1>(trans, dart_id),
-            2 => self.beta_tx::<2>(trans, dart_id),
-            3 => self.beta_tx::<3>(trans, dart_id),
+            0 => self.beta_tx::<0>(t, dart_id),
+            1 => self.beta_tx::<1>(t, dart_id),
+            2 => self.beta_tx::<2>(t, dart_id),
+            3 => self.beta_tx::<3>(t, dart_id),
             _ => unreachable!(),
         }
     }
@@ -139,11 +139,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     #[must_use = "unused return value"]
-    pub fn is_free_tx(
-        &self,
-        t: &mut Transaction,
-        dart_id: DartIdType,
-    ) -> StmClosureResult<bool> {
+    pub fn is_free_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<bool> {
         Ok(self.beta_tx::<0>(t, dart_id)? == NULL_DART_ID
             && self.beta_tx::<1>(t, dart_id)? == NULL_DART_ID
             && self.beta_tx::<2>(t, dart_id)? == NULL_DART_ID)
@@ -171,7 +167,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     pub fn vertex_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VertexIdType, StmError> {
         AUXILIARIES.with(|t| {
@@ -189,15 +185,15 @@ impl<T: CoordsFloat> CMap3<T> {
                 if marked.insert(d) {
                     min = min.min(d);
                     let (b0, b2, b3) = (
-                        self.beta_tx::<0>(trans, d)?, // ?
-                        self.beta_tx::<2>(trans, d)?,
-                        self.beta_tx::<3>(trans, d)?,
+                        self.beta_tx::<0>(t, d)?, // ?
+                        self.beta_tx::<2>(t, d)?,
+                        self.beta_tx::<3>(t, d)?,
                     );
-                    pending.push_back(self.beta_tx::<1>(trans, b3)?);
-                    pending.push_back(self.beta_tx::<3>(trans, b2)?);
-                    pending.push_back(self.beta_tx::<1>(trans, b2)?);
-                    pending.push_back(self.beta_tx::<3>(trans, b0)?); // ?
-                    pending.push_back(self.beta_tx::<2>(trans, b0)?); // ?
+                    pending.push_back(self.beta_tx::<1>(t, b3)?);
+                    pending.push_back(self.beta_tx::<3>(t, b2)?);
+                    pending.push_back(self.beta_tx::<1>(t, b2)?);
+                    pending.push_back(self.beta_tx::<3>(t, b0)?); // ?
+                    pending.push_back(self.beta_tx::<2>(t, b0)?); // ?
                 }
             }
 
@@ -224,7 +220,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     pub fn edge_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<EdgeIdType, StmError> {
         AUXILIARIES.with(|t| {
@@ -241,10 +237,7 @@ impl<T: CoordsFloat> CMap3<T> {
             while let Some(d) = pending.pop_front() {
                 if marked.insert(d) {
                     min = min.min(d);
-                    for im in [
-                        self.beta_tx::<2>(trans, d)?,
-                        self.beta_tx::<3>(trans, d)?,
-                    ] {
+                    for im in [self.beta_tx::<2>(t, d)?, self.beta_tx::<3>(t, d)?] {
                         pending.push_back(im);
                     }
                 }
@@ -273,7 +266,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     pub fn face_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<FaceIdType, StmError> {
         AUXILIARIES.with(|t| {
@@ -283,15 +276,12 @@ impl<T: CoordsFloat> CMap3<T> {
             // initialize
             marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-            let b3_dart_id = self.beta_tx::<3>(trans, dart_id)?;
+            let b3_dart_id = self.beta_tx::<3>(t, dart_id)?;
             let (mut lb, mut rb) = (dart_id, b3_dart_id);
             let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
 
             while marked.insert(lb) || marked.insert(rb) {
-                (lb, rb) = (
-                    self.beta_tx::<1>(trans, lb)?,
-                    self.beta_tx::<0>(trans, rb)?,
-                );
+                (lb, rb) = (self.beta_tx::<1>(t, lb)?, self.beta_tx::<0>(t, rb)?);
                 if lb != NULL_DART_ID {
                     min = min.min(lb);
                 }
@@ -302,14 +292,11 @@ impl<T: CoordsFloat> CMap3<T> {
             // face is open, we need to iterate in the other direction
             if lb == NULL_DART_ID || rb == NULL_DART_ID {
                 (lb, rb) = (
-                    self.beta_tx::<0>(trans, dart_id)?,
-                    self.beta_tx::<1>(trans, b3_dart_id)?,
+                    self.beta_tx::<0>(t, dart_id)?,
+                    self.beta_tx::<1>(t, b3_dart_id)?,
                 );
                 while marked.insert(lb) || marked.insert(rb) {
-                    (lb, rb) = (
-                        self.beta_tx::<0>(trans, lb)?,
-                        self.beta_tx::<1>(trans, rb)?,
-                    );
+                    (lb, rb) = (self.beta_tx::<0>(t, lb)?, self.beta_tx::<1>(t, rb)?);
                     if lb != NULL_DART_ID {
                         min = min.min(lb);
                     }
@@ -342,7 +329,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     pub fn volume_id_tx(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VolumeIdType, StmError> {
         AUXILIARIES.with(|t| {
@@ -359,9 +346,9 @@ impl<T: CoordsFloat> CMap3<T> {
             while let Some(d) = pending.pop_front() {
                 if marked.insert(d) {
                     min = min.min(d);
-                    pending.push_back(self.beta_tx::<1>(trans, d)?);
-                    pending.push_back(self.beta_tx::<0>(trans, d)?); // ?
-                    pending.push_back(self.beta_tx::<2>(trans, d)?);
+                    pending.push_back(self.beta_tx::<1>(t, d)?);
+                    pending.push_back(self.beta_tx::<0>(t, d)?); // ?
+                    pending.push_back(self.beta_tx::<2>(t, d)?);
                 }
             }
 

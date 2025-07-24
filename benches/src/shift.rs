@@ -91,7 +91,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
                             n += 1;
                             TransactionControl::Retry
                         },
-                        |trans| move_vertex_to_average(trans, &map, *vid, neigh),
+                        |trans| move_vertex_to_average(t, &map, *vid, neigh),
                     );
                     n
                 })

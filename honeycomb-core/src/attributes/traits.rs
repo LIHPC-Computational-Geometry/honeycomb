@@ -147,7 +147,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `id: DartIdType` -- ID of the value to clear / set to `None`.
     ///
     /// # Errors
@@ -155,7 +155,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    fn clear_slot(&self, trans: &mut Transaction, id: DartIdType) -> StmClosureResult<()>;
+    fn clear_slot(&self, t: &mut Transaction, id: DartIdType) -> StmClosureResult<()>;
 
     /// Return the number of stored attributes, i.e. the number of used slots in the storage (not
     /// its length).
@@ -166,7 +166,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `out: DartIdentifier` -- Identifier to associate the result with.
     /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
     /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
@@ -193,7 +193,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// transaction control policy, to retry or abort as he wishes.
     fn merge(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
@@ -203,7 +203,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
     /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
@@ -228,7 +228,7 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// transaction control policy, to retry or abort as he wishes.
     fn split(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
@@ -247,7 +247,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `index: A::IdentifierType` -- Cell index.
     ///
     /// # Return / Errors
@@ -261,14 +261,14 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn read(&self, trans: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
+    fn read(&self, t: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
 
     #[allow(clippy::missing_errors_doc)]
     /// Write the value of an element at a given index and return the old value.
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `index: A::IdentifierType` -- Cell index.
     /// - `val: A` -- Attribute value.
     ///
@@ -285,7 +285,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn write(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: A::IdentifierType,
         val: A,
     ) -> StmClosureResult<Option<A>>;
@@ -295,7 +295,7 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     ///
     /// # Arguments
     ///
-    /// - `trans: &mut Transaction` -- Transaction used for synchronization.
+    /// - `t: &mut Transaction` -- Transaction used for synchronization.
     /// - `index: A::IdentifierType` -- Cell index.
     ///
     /// # Return / Errors
@@ -309,6 +309,5 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// The method:
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
-    fn remove(&self, trans: &mut Transaction, id: A::IdentifierType)
-    -> StmClosureResult<Option<A>>;
+    fn remove(&self, t: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
 }

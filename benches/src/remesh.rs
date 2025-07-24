@@ -426,8 +426,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                             .is_some()
                     );
                     if let Err(er) = atomically_with_err(|t| {
-                        let (b0l, b0r) =
-                            (map.beta_tx::<0>(t, l)?, map.beta_tx::<0>(t, r)?);
+                        let (b0l, b0r) = (map.beta_tx::<0>(t, l)?, map.beta_tx::<0>(t, r)?);
                         let new_diff =
                             compute_diff_to_target(t, &map, b0l, b0r, args.target_length)?;
 

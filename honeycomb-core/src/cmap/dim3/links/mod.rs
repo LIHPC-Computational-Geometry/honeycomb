@@ -21,7 +21,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Link dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `lhs_dart_id: DartIdType` -- First dart ID.
     /// - `rhs_dart_id: DartIdType` -- Second dart ID.
     ///
@@ -39,7 +39,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// - the two darts are not `I`-linkable.
     pub fn link<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
@@ -47,9 +47,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(trans, lhs_dart_id, rhs_dart_id),
-            2 => self.two_link(trans, lhs_dart_id, rhs_dart_id),
-            3 => self.three_link(trans, lhs_dart_id, rhs_dart_id),
+            1 => self.one_link(t, lhs_dart_id, rhs_dart_id),
+            2 => self.two_link(t, lhs_dart_id, rhs_dart_id),
+            3 => self.three_link(t, lhs_dart_id, rhs_dart_id),
             _ => unreachable!(),
         }
     }
@@ -67,7 +67,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Unlink dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `lhs_dart_id: DartIdType` -- First dart ID.
     ///
     /// The second dart ID is fetched using `I` and `lhs_dart_id`.
@@ -86,16 +86,16 @@ impl<T: CoordsFloat> CMap3<T> {
     /// - `lhs_dart_id` is already `I`-free.
     pub fn unlink<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(trans, lhs_dart_id),
-            2 => self.two_unlink(trans, lhs_dart_id),
-            3 => self.three_unlink(trans, lhs_dart_id),
+            1 => self.one_unlink(t, lhs_dart_id),
+            2 => self.two_unlink(t, lhs_dart_id),
+            3 => self.three_unlink(t, lhs_dart_id),
             _ => unreachable!(),
         }
     }

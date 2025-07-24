@@ -130,11 +130,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
     #[must_use = "unused return value"]
-    pub fn is_unused_tx(
-        &self,
-        trans: &mut Transaction,
-        d: DartIdType,
-    ) -> StmClosureResult<bool> {
+    pub fn is_unused_tx(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<bool> {
         self.unused_darts[d].read(trans)
     }
 
@@ -223,11 +219,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn claim_dart_tx(
-        &self,
-        t: &mut Transaction,
-        dart_id: DartIdType,
-    ) -> StmClosureResult<()> {
+    pub fn claim_dart_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<()> {
         self.unused_darts[dart_id].write(t, false)
     }
 

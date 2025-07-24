@@ -18,7 +18,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// - `dart_id: DartIdType` -- ID of the dart of interest.
     /// - `val: DartIdType` -- New value of *β<sub>`I`</sub>(`dart_id`)*.
     pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, val: DartIdType) {
-        atomically(|trans| self.betas[(I, dart_id)].write(trans, val));
+        atomically(|trans| self.betas[(I, dart_id)].write(t, val));
     }
 
     /// Set the values of the beta functions of a dart.
@@ -32,10 +32,10 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn set_betas(&self, dart_id: DartIdType, [b0, b1, b2, b3]: [DartIdType; CMAP3_BETA]) {
         // store separately to use non-mutable methods
         atomically(|trans| {
-            self.betas[(0, dart_id)].write(trans, b0)?;
-            self.betas[(1, dart_id)].write(trans, b1)?;
-            self.betas[(2, dart_id)].write(trans, b2)?;
-            self.betas[(3, dart_id)].write(trans, b3)?;
+            self.betas[(0, dart_id)].write(t, b0)?;
+            self.betas[(1, dart_id)].write(t, b1)?;
+            self.betas[(2, dart_id)].write(t, b2)?;
+            self.betas[(3, dart_id)].write(t, b3)?;
             Ok(())
         });
     }
