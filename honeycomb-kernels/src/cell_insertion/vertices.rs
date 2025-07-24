@@ -88,7 +88,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
     midpoint_vertex: Option<T>,
 ) -> TransactionClosureResult<(), VertexInsertionError> {
     // midpoint check
-    if midpoint_vertex.is_some_and(|t| (t >= T::one()) | (t <= T::zero())) {
+    if midpoint_vertex.is_some_and(|p| (p >= T::one()) | (p <= T::zero())) {
         abort(VertexInsertionError::VertexBound)?;
     }
 
@@ -338,7 +338,7 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
 
     if midpoint_vertices
         .iter()
-        .any(|t| (*t >= T::one()) | (*t <= T::zero()))
+        .any(|p| (*p >= T::one()) | (*p <= T::zero()))
     {
         abort(VertexInsertionError::VertexBound)?;
     }
@@ -374,8 +374,8 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
     }
     // insert new vertices / darts on base_dart1's side
     let mut prev_d = base_dart1;
-    for (&t, &new_d) in midpoint_vertices.iter().zip(darts_fh.iter()) {
-        let new_v = v1 + seg * t;
+    for (&p, &new_d) in midpoint_vertices.iter().zip(darts_fh.iter()) {
+        let new_v = v1 + seg * p;
         try_or_coerce!(cmap.link::<1>(t, prev_d, new_d), VertexInsertionError);
         cmap.write_vertex(t, new_d, new_v)?;
         prev_d = new_d;
