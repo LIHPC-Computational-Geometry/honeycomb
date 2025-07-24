@@ -81,13 +81,13 @@ pub fn swap_edge<T: CoordsFloat>(
     if e == NULL_EDGE_ID {
         abort(EdgeSwapError::NullEdge)?;
     }
-    let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    let (l, r) = (e as DartIdType, map.beta_tx::<2>(t, e as DartIdType)?);
     if r == NULL_DART_ID {
         abort(EdgeSwapError::IncompleteEdge)?;
     }
     let (l_a, r_a) = if map.contains_attribute::<FaceAnchor>() {
-        let l_fid = map.face_id_transac(t, l)?;
-        let r_fid = map.face_id_transac(t, r)?;
+        let l_fid = map.face_id_tx(t, l)?;
+        let r_fid = map.face_id_tx(t, r)?;
         let l_a = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
         let r_a = map.remove_attribute::<FaceAnchor>(t, r_fid)?;
         if l_a != r_a {
@@ -100,9 +100,9 @@ pub fn swap_edge<T: CoordsFloat>(
         (None, None)
     };
 
-    let (b1l, b1r) = (map.beta_transac::<1>(t, l)?, map.beta_transac::<1>(t, r)?);
-    let (b0l, b0r) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
-    if map.beta_transac::<1>(t, b1l)? != b0l || map.beta_transac::<1>(t, b1r)? != b0r {
+    let (b1l, b1r) = (map.beta_tx::<1>(t, l)?, map.beta_tx::<1>(t, r)?);
+    let (b0l, b0r) = (map.beta_tx::<0>(t, l)?, map.beta_tx::<0>(t, r)?);
+    if map.beta_tx::<1>(t, b1l)? != b0l || map.beta_tx::<1>(t, b1r)? != b0r {
         abort(EdgeSwapError::BadTopology)?;
     }
 
@@ -114,8 +114,8 @@ pub fn swap_edge<T: CoordsFloat>(
     try_or_coerce!(map.unsew::<1>(t, b1r), EdgeSwapError);
 
     // remove vertex attributes to keep existing values unchanged
-    let l_vid = map.vertex_id_transac(t, l)?;
-    let r_vid = map.vertex_id_transac(t, r)?;
+    let l_vid = map.vertex_id_tx(t, l)?;
+    let r_vid = map.vertex_id_tx(t, r)?;
     let _ = map.remove_vertex(t, l_vid)?;
     let _ = map.remove_vertex(t, r_vid)?;
     if map.contains_attribute::<VertexAnchor>() {
@@ -133,8 +133,8 @@ pub fn swap_edge<T: CoordsFloat>(
     // update anchors
     match (l_a, r_a) {
         (Some(l_a), Some(r_a)) => {
-            let l_fid = map.face_id_transac(t, l)?;
-            let r_fid = map.face_id_transac(t, r)?;
+            let l_fid = map.face_id_tx(t, l)?;
+            let r_fid = map.face_id_tx(t, r)?;
             map.write_attribute(t, l_fid, l_a)?;
             map.write_attribute(t, r_fid, r_a)?;
         }

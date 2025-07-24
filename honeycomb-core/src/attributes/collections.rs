@@ -68,8 +68,8 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
             .par_extend((0..length).into_par_iter().map(|_| TVar::new(None)));
     }
 
-    fn clear_slot(&self, trans: &mut Transaction, id: DartIdType) -> StmClosureResult<()> {
-        self.remove(trans, A::IdentifierType::from(id))?;
+    fn clear_slot(&self, t: &mut Transaction, id: DartIdType) -> StmClosureResult<()> {
+        self.remove(t, A::IdentifierType::from(id))?;
         Ok(())
     }
 
@@ -82,14 +82,14 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
 
     fn merge(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         out: DartIdType,
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
         let new_v = match (
-            self.data[lhs_inp as usize].read(trans)?,
-            self.data[rhs_inp as usize].read(trans)?,
+            self.data[lhs_inp as usize].read(t)?,
+            self.data[rhs_inp as usize].read(t)?,
         ) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
@@ -97,9 +97,9 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         };
         match new_v {
             Ok(v) => {
-                self.data[rhs_inp as usize].write(trans, None)?;
-                self.data[lhs_inp as usize].write(trans, None)?;
-                self.data[out as usize].write(trans, Some(v))?;
+                self.data[rhs_inp as usize].write(t, None)?;
+                self.data[lhs_inp as usize].write(t, None)?;
+                self.data[out as usize].write(t, Some(v))?;
                 Ok(())
             }
             Err(e) => abort(e),
@@ -108,21 +108,21 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
 
     fn split(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_out: DartIdType,
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
-        let res = if let Some(val) = self.data[inp as usize].read(trans)? {
+        let res = if let Some(val) = self.data[inp as usize].read(t)? {
             AttributeUpdate::split(val)
         } else {
             AttributeUpdate::split_from_none()
         };
         match res {
             Ok((lhs_val, rhs_val)) => {
-                self.data[inp as usize].write(trans, None)?;
-                self.data[lhs_out as usize].write(trans, Some(lhs_val))?;
-                self.data[rhs_out as usize].write(trans, Some(rhs_val))?;
+                self.data[inp as usize].write(t, None)?;
+                self.data[lhs_out as usize].write(t, Some(lhs_val))?;
+                self.data[rhs_out as usize].write(t, Some(rhs_val))?;
                 Ok(())
             }
             Err(e) => abort(e),
@@ -133,26 +133,26 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
 impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A> {
     fn write(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
         val: A,
     ) -> StmClosureResult<Option<A>> {
-        self.data[id.to_usize().unwrap()].replace(trans, Some(val))
+        self.data[id.to_usize().unwrap()].replace(t, Some(val))
     }
 
     fn read(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.data[id.to_usize().unwrap()].read(trans)
+        self.data[id.to_usize().unwrap()].read(t)
     }
 
     fn remove(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         id: <A as AttributeBind>::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.data[id.to_usize().unwrap()].replace(trans, None)
+        self.data[id.to_usize().unwrap()].replace(t, None)
     }
 }

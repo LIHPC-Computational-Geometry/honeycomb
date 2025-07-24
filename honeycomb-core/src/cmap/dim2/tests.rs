@@ -110,16 +110,16 @@ fn example_test() {
 
 #[allow(clippy::too_many_lines)]
 #[test]
-fn example_test_transactional() {
+fn example_test_txtional() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap();
-    let res = atomically_with_err(|trans| {
-        map.link::<1>(trans, 1, 2)?;
-        map.link::<1>(trans, 2, 3)?;
-        map.link::<1>(trans, 3, 1)?;
-        map.write_vertex(trans, 1, (0.0, 0.0))?;
-        map.write_vertex(trans, 2, (1.0, 0.0))?;
-        map.write_vertex(trans, 3, (0.0, 1.0))?;
+    let res = atomically_with_err(|t| {
+        map.link::<1>(t, 1, 2)?;
+        map.link::<1>(t, 2, 3)?;
+        map.link::<1>(t, 3, 1)?;
+        map.write_vertex(t, 1, (0.0, 0.0))?;
+        map.write_vertex(t, 2, (1.0, 0.0))?;
+        map.write_vertex(t, 3, (0.0, 1.0))?;
         Ok(())
     });
     assert!(res.is_ok());
@@ -129,7 +129,7 @@ fn example_test_transactional() {
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
     atomically(|t| {
-        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 1);
+        let mut face = map.orbit_tx(t, OrbitPolicy::Face, 1);
         assert_eq!(face.next(), Some(Ok(1)));
         assert_eq!(face.next(), Some(Ok(2)));
         assert_eq!(face.next(), Some(Ok(3)));
@@ -139,13 +139,13 @@ fn example_test_transactional() {
 
     // build a second triangle
     map.allocate_used_darts(3);
-    let res = atomically_with_err(|trans| {
-        map.link::<1>(trans, 4, 5)?;
-        map.link::<1>(trans, 5, 6)?;
-        map.link::<1>(trans, 6, 4)?;
-        map.write_vertex(trans, 4, (0.0, 2.0))?;
-        map.write_vertex(trans, 5, (2.0, 0.0))?;
-        map.write_vertex(trans, 6, (1.0, 1.0))?;
+    let res = atomically_with_err(|t| {
+        map.link::<1>(t, 4, 5)?;
+        map.link::<1>(t, 5, 6)?;
+        map.link::<1>(t, 6, 4)?;
+        map.write_vertex(t, 4, (0.0, 2.0))?;
+        map.write_vertex(t, 5, (2.0, 0.0))?;
+        map.write_vertex(t, 6, (1.0, 1.0))?;
         Ok(())
     });
     assert!(res.is_ok());
@@ -154,7 +154,7 @@ fn example_test_transactional() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
     atomically(|t| {
-        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 4);
+        let mut face = map.orbit_tx(t, OrbitPolicy::Face, 4);
         assert_eq!(face.next(), Some(Ok(4)));
         assert_eq!(face.next(), Some(Ok(5)));
         assert_eq!(face.next(), Some(Ok(6)));
@@ -163,60 +163,60 @@ fn example_test_transactional() {
     });
 
     // sew both triangles
-    atomically(|trans| {
+    atomically(|t| {
         // normally the error should be handled, but we're in a seq context
-        assert!(map.sew::<2>(trans, 2, 4).is_ok());
+        assert!(map.sew::<2>(t, 2, 4).is_ok());
         Ok(())
     });
 
     // checks
-    atomically(|trans| {
-        assert_eq!(map.beta_transac::<2>(trans, 2)?, 4);
-        assert_eq!(map.vertex_id_transac(trans, 2)?, 2);
-        assert_eq!(map.vertex_id_transac(trans, 5)?, 2);
-        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.5, 0.0))));
-        assert_eq!(map.vertex_id_transac(trans, 3)?, 3);
-        assert_eq!(map.vertex_id_transac(trans, 4)?, 3);
-        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.5))));
+    atomically(|t| {
+        assert_eq!(map.beta_tx::<2>(t, 2)?, 4);
+        assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+        assert_eq!(map.vertex_id_tx(t, 5)?, 2);
+        assert_eq!(map.read_vertex(t, 2)?, Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.vertex_id_tx(t, 3)?, 3);
+        assert_eq!(map.vertex_id_tx(t, 4)?, 3);
+        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.5))));
         Ok(())
     });
     let edges: Vec<_> = map.iter_edges().collect();
     assert_eq!(&edges, &[1, 2, 3, 5, 6]);
 
     // adjust bottom-right & top-left vertex position
-    atomically(|trans| {
+    atomically(|t| {
         assert_eq!(
-            map.write_vertex(trans, 2, (1.0, 0.0))?,
+            map.write_vertex(t, 2, (1.0, 0.0))?,
             Some(Vertex2::from((1.5, 0.0)))
         );
-        assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(t, 2)?, Some(Vertex2::from((1.0, 0.0))));
         assert_eq!(
-            map.write_vertex(trans, 3, (0.0, 1.0))?,
+            map.write_vertex(t, 3, (0.0, 1.0))?,
             Some(Vertex2::from((0.0, 1.5)))
         );
-        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
         Ok(())
     });
 
     // separate the diagonal from the rest
-    atomically(|trans| {
-        assert!(map.unsew::<1>(trans, 1).is_ok());
-        assert!(map.unsew::<1>(trans, 2).is_ok());
-        assert!(map.unsew::<1>(trans, 6).is_ok());
-        assert!(map.unsew::<1>(trans, 4).is_ok());
-        assert!(map.unsew::<2>(trans, 2).is_ok()); // this makes dart 2 and 4 free
+    atomically(|t| {
+        assert!(map.unsew::<1>(t, 1).is_ok());
+        assert!(map.unsew::<1>(t, 2).is_ok());
+        assert!(map.unsew::<1>(t, 6).is_ok());
+        assert!(map.unsew::<1>(t, 4).is_ok());
+        assert!(map.unsew::<2>(t, 2).is_ok()); // this makes dart 2 and 4 free
         Ok(())
     });
     atomically_with_err(|t| {
-        map.release_dart_transac(t, 2)?;
-        map.release_dart_transac(t, 4)?;
+        map.release_dart_tx(t, 2)?;
+        map.release_dart_tx(t, 4)?;
         Ok(())
     })
     .unwrap();
-    atomically(|trans| {
+    atomically(|t| {
         // sew the square back up
-        assert!(map.sew::<1>(trans, 1, 5).is_ok());
-        assert!(map.sew::<1>(trans, 6, 3).is_ok());
+        assert!(map.sew::<1>(t, 1, 5).is_ok());
+        assert!(map.sew::<1>(t, 6, 3).is_ok());
         Ok(())
     });
 
@@ -227,20 +227,20 @@ fn example_test_transactional() {
     assert_eq!(&edges, &[1, 3, 5, 6]);
     let vertices: Vec<_> = map.iter_vertices().collect();
     assert_eq!(&vertices, &[1, 3, 5, 6]);
-    atomically(|trans| {
-        assert_eq!(map.read_vertex(trans, 1)?, Some(Vertex2::from((0.0, 0.0))));
-        assert_eq!(map.read_vertex(trans, 5)?, Some(Vertex2::from((1.0, 0.0))));
-        assert_eq!(map.read_vertex(trans, 6)?, Some(Vertex2::from((1.0, 1.0))));
-        assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.0))));
+    atomically(|t| {
+        assert_eq!(map.read_vertex(t, 1)?, Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.read_vertex(t, 5)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(t, 6)?, Some(Vertex2::from((1.0, 1.0))));
+        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
         Ok(())
     });
     // darts
     assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
-    atomically(|trans| {
-        assert_eq!(map.beta_rt_transac(trans, 1, 1)?, 5);
-        assert_eq!(map.beta_rt_transac(trans, 1, 5)?, 6);
-        assert_eq!(map.beta_rt_transac(trans, 1, 6)?, 3);
-        assert_eq!(map.beta_rt_transac(trans, 1, 3)?, 1);
+    atomically(|t| {
+        assert_eq!(map.beta_rt_tx(t, 1, 1)?, 5);
+        assert_eq!(map.beta_rt_tx(t, 1, 5)?, 6);
+        assert_eq!(map.beta_rt_tx(t, 1, 6)?, 3);
+        assert_eq!(map.beta_rt_tx(t, 1, 3)?, 1);
         Ok(())
     });
 }
@@ -343,7 +343,7 @@ fn two_sew_no_b1() {
 fn two_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.force_link::<2>(1, 3).unwrap();
-    let res = atomically_with_err(|trans| map.sew::<1>(trans, 1, 2));
+    let res = atomically_with_err(|t| map.sew::<1>(t, 1, 2));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -361,7 +361,7 @@ fn two_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(4);
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(3, 4).unwrap();
-    let res = atomically_with_err(|trans| map.sew::<2>(trans, 1, 3));
+    let res = atomically_with_err(|t| map.sew::<2>(t, 1, 3));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -422,7 +422,7 @@ fn one_sew_incomplete_beta() {
 fn one_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.force_link::<2>(1, 3).unwrap();
-    let res = atomically_with_err(|trans| map.sew::<1>(trans, 1, 2));
+    let res = atomically_with_err(|t| map.sew::<1>(t, 1, 2));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -480,7 +480,7 @@ fn full_map_from_orbit() {
 
     let darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[1, 2]), 3)
+            .orbit_tx(t, OrbitPolicy::Custom(&[1, 2]), 3)
             .map(Result::unwrap)
             .collect())
     });
@@ -501,21 +501,21 @@ fn orbit_variants() {
 
     let face_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Face, 7)
+            .orbit_tx(t, OrbitPolicy::Face, 7)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(face, face_t);
     let face_linear_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::FaceLinear, 7)
+            .orbit_tx(t, OrbitPolicy::FaceLinear, 7)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(face_linear, face_linear_t);
     let face_custom_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[0, 1]), 7)
+            .orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), 7)
             .map(Result::unwrap)
             .collect())
     });
@@ -529,14 +529,14 @@ fn orbit_variants() {
 
     let vertex_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Vertex, 4)
+            .orbit_tx(t, OrbitPolicy::Vertex, 4)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(vertex, vertex_t);
     let vertex_linear_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::VertexLinear, 4)
+            .orbit_tx(t, OrbitPolicy::VertexLinear, 4)
             .map(Result::unwrap)
             .collect())
     });
@@ -563,7 +563,7 @@ fn edge_from_orbit() {
     let darts: Vec<DartIdType> = face_orbit.collect();
     let darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Edge, 1)
+            .orbit_tx(t, OrbitPolicy::Edge, 1)
             .map(Result::unwrap)
             .collect())
     });
@@ -574,7 +574,7 @@ fn edge_from_orbit() {
     let other_darts: Vec<DartIdType> = other_face_orbit.collect();
     let other_darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[2]), 4)
+            .orbit_tx(t, OrbitPolicy::Custom(&[2]), 4)
             .map(Result::unwrap)
             .collect())
     });
@@ -759,16 +759,16 @@ fn sew_ordering() {
 }
 
 #[test]
-fn sew_ordering_with_transactions() {
+fn sew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(5).build().unwrap();
-        let res = atomically_with_err(|trans| {
-            map.link::<2>(trans, 1, 2)?;
-            map.link::<1>(trans, 4, 5)?;
-            map.write_vertex(trans, 2, Vertex2(1.0, 1.0))?;
-            map.write_vertex(trans, 3, Vertex2(1.0, 2.0))?;
-            map.write_vertex(trans, 5, Vertex2(2.0, 2.0))?;
+        let res = atomically_with_err(|t| {
+            map.link::<2>(t, 1, 2)?;
+            map.link::<1>(t, 4, 5)?;
+            map.write_vertex(t, 2, Vertex2(1.0, 1.0))?;
+            map.write_vertex(t, 3, Vertex2(1.0, 2.0))?;
+            map.write_vertex(t, 5, Vertex2(2.0, 2.0))?;
             Ok(())
         });
         assert!(res.is_ok());
@@ -785,8 +785,8 @@ fn sew_ordering_with_transactions() {
         // 2-sew before 1-sew: (1.25, 1.5)
 
         let t1 = loom::thread::spawn(move || {
-            atomically(|trans| {
-                if let Err(e) = m1.sew::<1>(trans, 1, 3) {
+            atomically(|t| {
+                if let Err(e) = m1.sew::<1>(t, 1, 3) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -798,8 +798,8 @@ fn sew_ordering_with_transactions() {
         });
 
         let t2 = loom::thread::spawn(move || {
-            atomically(|trans| {
-                if let Err(e) = m2.sew::<2>(trans, 3, 4) {
+            atomically(|t| {
+                if let Err(e) = m2.sew::<2>(t, 3, 4) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -814,21 +814,21 @@ fn sew_ordering_with_transactions() {
         t2.join().unwrap();
 
         // all path should result in the same topological result here
-        let (v2, v3, v5) = atomically(|trans| {
+        let (v2, v3, v5) = atomically(|t| {
             Ok((
-                arc.remove_vertex(trans, 2)?,
-                arc.remove_vertex(trans, 3)?,
-                arc.remove_vertex(trans, 5)?,
+                arc.remove_vertex(t, 2)?,
+                arc.remove_vertex(t, 3)?,
+                arc.remove_vertex(t, 5)?,
             ))
         });
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
         assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
-        atomically(|trans| {
-            assert_eq!(arc.read_vertex(trans, 2)?, None);
-            assert_eq!(arc.read_vertex(trans, 3)?, None);
-            assert_eq!(arc.read_vertex(trans, 5)?, None);
+        atomically(|t| {
+            assert_eq!(arc.read_vertex(t, 2)?, None);
+            assert_eq!(arc.read_vertex(t, 3)?, None);
+            assert_eq!(arc.read_vertex(t, 5)?, None);
             Ok(())
         });
 
@@ -893,20 +893,20 @@ fn unsew_ordering() {
 }
 
 #[test]
-fn unsew_ordering_with_transactions() {
+fn unsew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(5)
             .add_attribute::<Weight>()
             .build()
             .unwrap();
-        let res = atomically_with_err(|trans| {
-            map.link::<2>(trans, 1, 2)?;
-            map.link::<2>(trans, 3, 4)?;
-            map.link::<1>(trans, 1, 3)?;
-            map.link::<1>(trans, 4, 5)?;
-            map.write_vertex(trans, 2, Vertex2(0.0, 0.0))?;
-            map.write_attribute(trans, 2, Weight(33))?;
+        let res = atomically_with_err(|t| {
+            map.link::<2>(t, 1, 2)?;
+            map.link::<2>(t, 3, 4)?;
+            map.link::<1>(t, 1, 3)?;
+            map.link::<1>(t, 4, 5)?;
+            map.write_vertex(t, 2, Vertex2(0.0, 0.0))?;
+            map.write_attribute(t, 2, Weight(33))?;
             Ok(())
         });
         assert!(res.is_ok());
@@ -922,8 +922,8 @@ fn unsew_ordering_with_transactions() {
         // 2-unsew before 1-unsew: (W2, W3, W5) = (9, 8, 16)
 
         let t1 = loom::thread::spawn(move || {
-            atomically(|trans| {
-                if let Err(e) = m1.unsew::<1>(trans, 1) {
+            atomically(|t| {
+                if let Err(e) = m1.unsew::<1>(t, 1) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -935,8 +935,8 @@ fn unsew_ordering_with_transactions() {
         });
 
         let t2 = loom::thread::spawn(move || {
-            atomically(|trans| {
-                if let Err(e) = m2.unsew::<2>(trans, 3) {
+            atomically(|t| {
+                if let Err(e) = m2.unsew::<2>(t, 3) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -951,11 +951,11 @@ fn unsew_ordering_with_transactions() {
         t2.join().unwrap();
 
         // all path should result in the same topological result here
-        let (w2, w3, w5) = atomically(|trans| {
+        let (w2, w3, w5) = atomically(|t| {
             Ok((
-                arc.remove_attribute::<Weight>(trans, 2)?,
-                arc.remove_attribute::<Weight>(trans, 3)?,
-                arc.remove_attribute::<Weight>(trans, 5)?,
+                arc.remove_attribute::<Weight>(t, 2)?,
+                arc.remove_attribute::<Weight>(t, 3)?,
+                arc.remove_attribute::<Weight>(t, 5)?,
             ))
         });
         assert!(w2.is_some());
@@ -964,10 +964,10 @@ fn unsew_ordering_with_transactions() {
         let w2 = w2.unwrap();
         let w3 = w3.unwrap();
         let w5 = w5.unwrap();
-        atomically(|trans| {
-            assert!(arc.read_attribute::<Weight>(trans, 2)?.is_none());
-            assert!(arc.read_attribute::<Weight>(trans, 3)?.is_none());
-            assert!(arc.read_attribute::<Weight>(trans, 5)?.is_none());
+        atomically(|t| {
+            assert!(arc.read_attribute::<Weight>(t, 2)?.is_none());
+            assert!(arc.read_attribute::<Weight>(t, 3)?.is_none());
+            assert!(arc.read_attribute::<Weight>(t, 5)?.is_none());
             Ok(())
         });
 

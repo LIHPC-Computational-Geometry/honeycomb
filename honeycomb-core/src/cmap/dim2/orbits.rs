@@ -103,7 +103,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
     /// Generic orbit transactional implementation.
     #[allow(clippy::needless_for_each)]
-    pub fn orbit_transac(
+    pub fn orbit_tx(
         &self,
         t: &mut Transaction,
         opolicy: OrbitPolicy,
@@ -127,35 +127,35 @@ impl<T: CoordsFloat> CMap2<T> {
                 };
                 match opolicy {
                     OrbitPolicy::Vertex => {
-                        let b2 = self.beta_transac::<2>(t, d)?;
-                        let b0 = self.beta_transac::<0>(t, d)?;
-                        let im1 = self.beta_transac::<1>(t, b2)?;
-                        let im2 = self.beta_transac::<2>(t, b0)?;
+                        let b2 = self.beta_tx::<2>(t, d)?;
+                        let b0 = self.beta_tx::<0>(t, d)?;
+                        let im1 = self.beta_tx::<1>(t, b2)?;
+                        let im2 = self.beta_tx::<2>(t, b0)?;
                         check(im1);
                         check(im2);
                     }
                     OrbitPolicy::VertexLinear => {
-                        let b2 = self.beta_transac::<2>(t, d)?;
-                        let im = self.beta_transac::<1>(t, b2)?;
+                        let b2 = self.beta_tx::<2>(t, d)?;
+                        let im = self.beta_tx::<1>(t, b2)?;
                         check(im);
                     }
                     OrbitPolicy::Edge => {
-                        let im = self.beta_transac::<2>(t, d)?;
+                        let im = self.beta_tx::<2>(t, d)?;
                         check(im);
                     }
                     OrbitPolicy::Face => {
-                        let im1 = self.beta_transac::<1>(t, d)?;
-                        let im2 = self.beta_transac::<0>(t, d)?;
+                        let im1 = self.beta_tx::<1>(t, d)?;
+                        let im2 = self.beta_tx::<0>(t, d)?;
                         check(im1);
                         check(im2);
                     }
                     OrbitPolicy::FaceLinear => {
-                        let im = self.beta_transac::<1>(t, d)?;
+                        let im = self.beta_tx::<1>(t, d)?;
                         check(im);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
-                            let im = self.beta_rt_transac(t, *beta_id, d)?;
+                            let im = self.beta_rt_tx(t, *beta_id, d)?;
                             check(im);
                         }
                     }

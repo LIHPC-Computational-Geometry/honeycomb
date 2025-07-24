@@ -9,17 +9,14 @@ impl<T: CoordsFloat> CMap3<T> {
     /// 1-link operation.
     pub(crate) fn one_link(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        self.betas.one_link_core(trans, ld, rd)?;
-        let (b3_ld, b3_rd) = (
-            self.beta_transac::<3>(trans, ld)?,
-            self.beta_transac::<3>(trans, rd)?,
-        );
+        self.betas.one_link_core(t, ld, rd)?;
+        let (b3_ld, b3_rd) = (self.beta_tx::<3>(t, ld)?, self.beta_tx::<3>(t, rd)?);
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
-            self.betas.one_link_core(trans, b3_rd, b3_ld)?;
+            self.betas.one_link_core(t, b3_rd, b3_ld)?;
         }
         Ok(())
     }
@@ -29,7 +26,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
     /// retried until validated.
     pub(crate) fn force_one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.one_link(trans, ld, rd))
+        atomically_with_err(|t| self.one_link(t, ld, rd))
     }
 }
 
@@ -38,21 +35,18 @@ impl<T: CoordsFloat> CMap3<T> {
     /// 1-unlink operation.
     pub(crate) fn one_unlink(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let rd = self.beta_transac::<1>(trans, ld)?;
-        self.betas.one_unlink_core(trans, ld)?;
-        let (b3_ld, b3_rd) = (
-            self.beta_transac::<3>(trans, ld)?,
-            self.beta_transac::<3>(trans, rd)?,
-        );
+        let rd = self.beta_tx::<1>(t, ld)?;
+        self.betas.one_unlink_core(t, ld)?;
+        let (b3_ld, b3_rd) = (self.beta_tx::<3>(t, ld)?, self.beta_tx::<3>(t, rd)?);
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
-            if self.beta_transac::<1>(trans, b3_rd)? != b3_ld {
+            if self.beta_tx::<1>(t, b3_rd)? != b3_ld {
                 // FIXME: add dedicated variant ~LinkError::DivergentStructures ?
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
-            self.betas.one_unlink_core(trans, b3_rd)?;
+            self.betas.one_unlink_core(t, b3_rd)?;
         }
         Ok(())
     }
@@ -62,6 +56,6 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This variant is equivalent to `one_unlink`, but internally uses a transaction that will be
     /// retried until validated.
     pub(crate) fn force_one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.one_unlink(trans, ld))
+        atomically_with_err(|t| self.one_unlink(t, ld))
     }
 }

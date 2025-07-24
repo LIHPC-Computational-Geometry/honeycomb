@@ -24,7 +24,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Sew dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `ld: DartIdType` -- First dart ID.
     /// - `rd: DartIdType` -- Second dart ID.
     ///
@@ -46,7 +46,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// - the two darts are not `I`-sewable.
     pub fn sew<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
@@ -54,9 +54,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_sew(trans, ld, rd),
-            2 => self.two_sew(trans, ld, rd),
-            3 => self.three_sew(trans, ld, rd),
+            1 => self.one_sew(t, ld, rd),
+            2 => self.two_sew(t, ld, rd),
+            3 => self.three_sew(t, ld, rd),
             _ => unreachable!(),
         }
     }
@@ -77,7 +77,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Arguments
     ///
     /// - `const I: u8` -- Unsew dimension.
-    /// - `trans: &mut Transaction` -- Transaction associated to the operation.
+    /// - `t: &mut Transaction` -- Transaction associated to the operation.
     /// - `ld: DartIdType` -- First dart ID.
     ///
     /// The second dart ID is fetched using `I` and `ld`.
@@ -99,16 +99,16 @@ impl<T: CoordsFloat> CMap3<T> {
     /// - `ld` is already `I`-free.
     pub fn unsew<const I: u8>(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unsew(trans, ld),
-            2 => self.two_unsew(trans, ld),
-            3 => self.three_unsew(trans, ld),
+            1 => self.one_unsew(t, ld),
+            2 => self.two_unsew(t, ld),
+            3 => self.three_unsew(t, ld),
             _ => unreachable!(),
         }
     }
@@ -123,9 +123,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => atomically_with_err(|trans| self.one_sew(trans, ld, rd)),
-            2 => atomically_with_err(|trans| self.two_sew(trans, ld, rd)),
-            3 => atomically_with_err(|trans| self.three_sew(trans, ld, rd)),
+            1 => atomically_with_err(|t| self.one_sew(t, ld, rd)),
+            2 => atomically_with_err(|t| self.two_sew(t, ld, rd)),
+            3 => atomically_with_err(|t| self.three_sew(t, ld, rd)),
             _ => unreachable!(),
         }
     }
@@ -140,9 +140,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => atomically_with_err(|trans| self.one_unsew(trans, ld)),
-            2 => atomically_with_err(|trans| self.two_unsew(trans, ld)),
-            3 => atomically_with_err(|trans| self.three_unsew(trans, ld)),
+            1 => atomically_with_err(|t| self.one_unsew(t, ld)),
+            2 => atomically_with_err(|t| self.two_unsew(t, ld)),
+            3 => atomically_with_err(|t| self.three_unsew(t, ld)),
             _ => unreachable!(),
         }
     }

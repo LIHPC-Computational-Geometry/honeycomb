@@ -103,20 +103,20 @@ pub fn collapse_edge<T: CoordsFloat>(
         abort(EdgeCollapseError::NullEdge)?;
     }
 
-    let (l, r) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    let (l, r) = (e as DartIdType, map.beta_tx::<2>(t, e as DartIdType)?);
     if r == NULL_DART_ID {
         abort(EdgeCollapseError::NonCollapsibleEdge(
             "Boundary collapses are unimplemented",
         ))?;
     }
 
-    let (b0l, b1l) = (map.beta_transac::<0>(t, l)?, map.beta_transac::<1>(t, l)?);
-    let (b0r, b1r) = (map.beta_transac::<0>(t, r)?, map.beta_transac::<1>(t, r)?);
+    let (b0l, b1l) = (map.beta_tx::<0>(t, l)?, map.beta_tx::<1>(t, l)?);
+    let (b0r, b1r) = (map.beta_tx::<0>(t, r)?, map.beta_tx::<1>(t, r)?);
 
-    if map.beta_transac::<1>(t, b1l)? != b0l {
+    if map.beta_tx::<1>(t, b1l)? != b0l {
         abort(EdgeCollapseError::BadTopology)?;
     }
-    if r != NULL_DART_ID && map.beta_transac::<1>(t, b1r)? != b0r {
+    if r != NULL_DART_ID && map.beta_tx::<1>(t, b1r)? != b0r {
         abort(EdgeCollapseError::BadTopology)?;
     }
 
@@ -163,11 +163,11 @@ fn is_collapsible<T: CoordsFloat>(
         // if there are no anchors, we'll assume we can naively collapse
         return Ok(Collapsible::Average);
     }
-    let (l, b1l) = (e as DartIdType, map.beta_transac::<1>(t, e as DartIdType)?);
+    let (l, b1l) = (e as DartIdType, map.beta_tx::<1>(t, e as DartIdType)?);
 
     // first check anchor predicates
 
-    let (l_vid, r_vid) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, b1l)?);
+    let (l_vid, r_vid) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, b1l)?);
     let (l_anchor, r_anchor, edge_anchor) = if let (Some(a1), Some(a2), Some(a3)) = (
         map.read_attribute::<VertexAnchor>(t, l_vid)?,
         map.read_attribute::<VertexAnchor>(t, r_vid)?,
@@ -214,20 +214,20 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
-    let b2b1r = map.beta_transac::<2>(t, b1r)?;
-    let b1b2b1r = map.beta_transac::<1>(t, b2b1r)?;
+    let b2b1r = map.beta_tx::<2>(t, b1r)?;
+    let b1b2b1r = map.beta_tx::<1>(t, b2b1r)?;
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, r), EdgeCollapseError);
         collapse_halfcell_to_midpoint(t, map, (b0r, r, b1r))?;
     }
     // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
-    let b2b0l = map.beta_transac::<2>(t, b0l)?; // save this before left cell collapse
+    let b2b0l = map.beta_tx::<2>(t, b0l)?; // save this before left cell collapse
     collapse_halfcell_to_midpoint(t, map, (b0l, l, b1l))?;
 
     Ok(if b2b0l != NULL_DART_ID {
-        map.vertex_id_transac(t, b2b0l)?
+        map.vertex_id_tx(t, b2b0l)?
     } else if r != NULL_DART_ID {
-        map.vertex_id_transac(t, b1b2b1r)?
+        map.vertex_id_tx(t, b1b2b1r)?
     } else {
         // this can happen from a valid configuration, so we handle it
         NULL_VERTEX_ID
@@ -242,10 +242,7 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     try_or_coerce!(map.unsew::<1>(t, d), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b1d), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, b0d), EdgeCollapseError);
-    let (b2b0d, b2b1d) = (
-        map.beta_transac::<2>(t, b0d)?,
-        map.beta_transac::<2>(t, b1d)?,
-    );
+    let (b2b0d, b2b1d) = (map.beta_tx::<2>(t, b0d)?, map.beta_tx::<2>(t, b1d)?);
     match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
         (false, false) => {
             try_or_coerce!(map.unsew::<2>(t, b0d), EdgeCollapseError);
@@ -261,9 +258,9 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
         (true, true) => {}
     }
 
-    try_or_coerce!(map.release_dart_transac(t, d), EdgeCollapseError);
-    try_or_coerce!(map.release_dart_transac(t, b0d), EdgeCollapseError);
-    try_or_coerce!(map.release_dart_transac(t, b1d), EdgeCollapseError);
+    try_or_coerce!(map.release_dart_tx(t, d), EdgeCollapseError);
+    try_or_coerce!(map.release_dart_tx(t, b0d), EdgeCollapseError);
+    try_or_coerce!(map.release_dart_tx(t, b1d), EdgeCollapseError);
     TransactionClosureResult::Ok(())
 }
 
@@ -276,11 +273,11 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
     // reading/writing the coordinates to collapse to is easier to handle split/merges correctly
-    let b2b1l = map.beta_transac::<2>(t, b1l)?;
-    let b2b0r = map.beta_transac::<2>(t, b0r)?;
-    let l_vid = map.vertex_id_transac(t, l)?;
-    let l_fid = map.face_id_transac(t, b2b1l)?;
-    let r_fid = map.face_id_transac(t, b2b0r)?;
+    let b2b1l = map.beta_tx::<2>(t, b1l)?;
+    let b2b0r = map.beta_tx::<2>(t, b0r)?;
+    let l_vid = map.vertex_id_tx(t, l)?;
+    let l_fid = map.face_id_tx(t, b2b1l)?;
+    let r_fid = map.face_id_tx(t, b2b0r)?;
     let tmp_vertex = map.read_vertex(t, l_vid)?;
     let tmp_anchor = map.read_attribute::<VertexAnchor>(t, l_vid)?;
     let l_face_anchor = map.read_attribute::<FaceAnchor>(t, l_fid)?;
@@ -294,16 +291,16 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         );
     }
     // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
-    let b2b0l = map.beta_transac::<2>(t, b0l)?; // save this before left cell collapse
+    let b2b0l = map.beta_tx::<2>(t, b0l)?; // save this before left cell collapse
     try_or_coerce!(
         collapse_halfcell_to_base(t, map, (b0l, l, b1l)),
         EdgeCollapseError
     );
 
     let new_vid = if b2b0l != NULL_DART_ID {
-        map.vertex_id_transac(t, b2b0l)?
+        map.vertex_id_tx(t, b2b0l)?
     } else if r != NULL_DART_ID {
-        map.vertex_id_transac(t, b1r)?
+        map.vertex_id_tx(t, b1r)?
     } else {
         // this can happen from a valid configuration, so we handle it
         NULL_VERTEX_ID
@@ -318,13 +315,13 @@ fn collapse_edge_to_base<T: CoordsFloat>(
         }
     }
     if let Some(f_a) = l_face_anchor {
-        if !map.is_unused_transac(t, b0l)? {
-            let new_fid = map.face_id_transac(t, b0l)?;
+        if !map.is_unused_tx(t, b0l)? {
+            let new_fid = map.face_id_tx(t, b0l)?;
             map.write_attribute(t, new_fid, f_a)?;
         }
     }
     if let Some(f_a) = r_face_anchor {
-        let new_fid = map.face_id_transac(t, b1r)?;
+        let new_fid = map.face_id_tx(t, b1r)?;
         map.write_attribute(t, new_fid, f_a)?;
     }
 
@@ -337,26 +334,26 @@ fn collapse_halfcell_to_base<T: CoordsFloat>(
     // d_previous_edge, d_edge, d_next_edge
     (d_pe, d_e, d_ne): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<(), EdgeCollapseError> {
-    let b2d_ne = map.beta_transac::<2>(t, d_ne)?;
-    let b0b2d_ne = map.beta_transac::<0>(t, b2d_ne)?;
-    let b1b2d_ne = map.beta_transac::<1>(t, b2d_ne)?;
+    let b2d_ne = map.beta_tx::<2>(t, d_ne)?;
+    let b0b2d_ne = map.beta_tx::<0>(t, b2d_ne)?;
+    let b1b2d_ne = map.beta_tx::<1>(t, b2d_ne)?;
 
     try_or_coerce!(map.unsew::<1>(t, d_e), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, d_pe), EdgeCollapseError);
     try_or_coerce!(map.unsew::<1>(t, d_ne), EdgeCollapseError);
     if b2d_ne == NULL_DART_ID {
         try_or_coerce!(map.unsew::<2>(t, d_pe), EdgeCollapseError);
-        try_or_coerce!(map.release_dart_transac(t, d_pe), EdgeCollapseError);
+        try_or_coerce!(map.release_dart_tx(t, d_pe), EdgeCollapseError);
     } else {
         try_or_coerce!(map.unsew::<1>(t, b2d_ne), EdgeCollapseError);
         try_or_coerce!(map.unsew::<1>(t, b0b2d_ne), EdgeCollapseError);
         try_or_coerce!(map.unlink::<2>(t, d_ne), EdgeCollapseError);
-        try_or_coerce!(map.release_dart_transac(t, b2d_ne), EdgeCollapseError);
+        try_or_coerce!(map.release_dart_tx(t, b2d_ne), EdgeCollapseError);
         try_or_coerce!(map.sew::<1>(t, d_pe, b1b2d_ne), EdgeCollapseError);
         try_or_coerce!(map.sew::<1>(t, b0b2d_ne, d_pe), EdgeCollapseError);
     }
-    try_or_coerce!(map.release_dart_transac(t, d_e), EdgeCollapseError);
-    try_or_coerce!(map.release_dart_transac(t, d_ne), EdgeCollapseError);
+    try_or_coerce!(map.release_dart_tx(t, d_e), EdgeCollapseError);
+    try_or_coerce!(map.release_dart_tx(t, d_ne), EdgeCollapseError);
 
     Ok(())
 }

@@ -9,35 +9,34 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1-sew transactional implementation.
     pub(super) fn one_sew(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
         if b2lhs_dart_id == NULL_DART_ID {
             try_or_coerce!(
-                self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id),
+                self.betas.one_link_core(t, lhs_dart_id, rhs_dart_id),
                 SewError
             );
         } else {
-            let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
-            let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let b2lhs_vid_old = self.vertex_id_tx(t, b2lhs_dart_id)?;
+            let rhs_vid_old = self.vertex_id_tx(t, rhs_dart_id)?;
 
             try_or_coerce!(
-                self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id),
+                self.betas.one_link_core(t, lhs_dart_id, rhs_dart_id),
                 SewError
             );
 
-            let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let new_vid = self.vertex_id_tx(t, rhs_dart_id)?;
 
             try_or_coerce!(
-                self.vertices
-                    .merge(trans, new_vid, b2lhs_vid_old, rhs_vid_old),
+                self.vertices.merge(t, new_vid, b2lhs_vid_old, rhs_vid_old),
                 SewError
             );
             try_or_coerce!(
                 self.attributes.merge_attributes(
-                    trans,
+                    t,
                     OrbitPolicy::Vertex,
                     new_vid,
                     b2lhs_vid_old,
@@ -52,35 +51,27 @@ impl<T: CoordsFloat> CMap2<T> {
     /// 1-unsew transactional implementation.
     pub(super) fn one_unsew(
         &self,
-        trans: &mut Transaction,
+        t: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(trans)?;
+        let b2lhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
         if b2lhs_dart_id == NULL_DART_ID {
-            try_or_coerce!(self.betas.one_unlink_core(trans, lhs_dart_id), SewError);
+            try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);
         } else {
             // fetch IDs before topology update
-            let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
-            let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
+            let vid_old = self.vertex_id_tx(t, rhs_dart_id)?;
             // update the topology
-            try_or_coerce!(self.betas.one_unlink_core(trans, lhs_dart_id), SewError);
+            try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);
             // split vertices & attributes from the old ID to the new ones
             let (new_lhs, new_rhs) = (
-                self.vertex_id_transac(trans, b2lhs_dart_id)?,
-                self.vertex_id_transac(trans, rhs_dart_id)?,
+                self.vertex_id_tx(t, b2lhs_dart_id)?,
+                self.vertex_id_tx(t, rhs_dart_id)?,
             );
+            try_or_coerce!(self.vertices.split(t, new_lhs, new_rhs, vid_old), SewError);
             try_or_coerce!(
-                self.vertices.split(trans, new_lhs, new_rhs, vid_old),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    trans,
-                    OrbitPolicy::Vertex,
-                    new_lhs,
-                    new_rhs,
-                    vid_old
-                ),
+                self.attributes
+                    .split_attributes(t, OrbitPolicy::Vertex, new_lhs, new_rhs, vid_old),
                 SewError
             );
         }

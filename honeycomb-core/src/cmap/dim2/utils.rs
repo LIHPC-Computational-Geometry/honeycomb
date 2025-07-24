@@ -10,7 +10,7 @@ use super::CMAP2_BETA;
 impl<T: CoordsFloat> CMap2<T> {
     /// Set the value of β<sub>`I`</sub>(`dart_id`) to `new_val`.
     pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, new_val: DartIdType) {
-        atomically(|trans| self.betas[(I, dart_id)].write(trans, new_val));
+        atomically(|t| self.betas[(I, dart_id)].write(t, new_val));
     }
 
     /// Set the values of the beta functions of a dart.
@@ -22,10 +22,10 @@ impl<T: CoordsFloat> CMap2<T> {
     ///   [ β<sub>`0`</sub>(`dart_id`), β<sub>`1`</sub>(`dart_id`), β<sub>`2`</sub>(`dart_id`) ]
     pub fn set_betas(&self, dart_id: DartIdType, [b0, b1, b2]: [DartIdType; CMAP2_BETA]) {
         // store separately to use non-mutable methods
-        atomically(|trans| {
-            self.betas[(0, dart_id)].write(trans, b0)?;
-            self.betas[(1, dart_id)].write(trans, b1)?;
-            self.betas[(2, dart_id)].write(trans, b2)?;
+        atomically(|t| {
+            self.betas[(0, dart_id)].write(t, b0)?;
+            self.betas[(1, dart_id)].write(t, b1)?;
+            self.betas[(2, dart_id)].write(t, b2)?;
             Ok(())
         });
     }

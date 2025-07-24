@@ -73,7 +73,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
     println!("|-> init time  : {}ms", instant.elapsed().as_millis());
 
     println!(
-        " Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_transac_retry"
+        " Step | n_edge_total | n_edge_to_process | t_compute_batch(s) | t_process_batch(s) | n_tx_retry"
     );
 
     let mut step = 0;
@@ -120,7 +120,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         };
         prof_stop!("HCBENCH_CUTS_PROCESS");
         print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_process_batch
-        println!("| {n_retry:>15}",); // n_transac_retry
+        println!("| {n_retry:>15}",); // n_tx_retry
 
         (1..map.n_darts() as DartIdType).for_each(|d| {
             if map.is_free(d) && !map.is_unused(d) {
@@ -155,7 +155,7 @@ pub fn bench_cut_edges<T: CoordsFloat>(args: CutEdgesArgs) -> CMap2<T> {
         } else {
             print!("| {:>18.6e} ", instant.elapsed().as_secs_f64()); // t_compute_batch
             print!("| {:>18.6e} ", 0.0); // t_process_batch
-            println!("| {:>15}", 0); // n_transac_retry
+            println!("| {:>15}", 0); // n_tx_retry
         }
     }
     prof_stop!("HCBENCH_CUTS");
@@ -315,7 +315,7 @@ fn process_outer_edge<T: CoordsFloat>(
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| cut_outer_edge(trans, map, e, [nd1, nd2, nd3]),
+        |t| cut_outer_edge(t, map, e, [nd1, nd2, nd3]),
     ) // Transaction::with_control
 }
 
@@ -331,6 +331,6 @@ fn process_inner_edge<T: CoordsFloat>(
             *n_retry += 1;
             TransactionControl::Retry
         },
-        |trans| cut_inner_edge(trans, map, e, nds),
+        |t| cut_inner_edge(t, map, e, nds),
     ) // Transaction::with_control
 }

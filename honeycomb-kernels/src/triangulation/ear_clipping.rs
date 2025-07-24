@@ -137,11 +137,11 @@ fn process_cell<T: CoordsFloat>(
     let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
     let mut vertices: SmallVec<Vertex2<T>, 16> = SmallVec::new();
 
-    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+    for d in cmap.orbit_tx(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
         darts.push(d?);
     }
     for &d in &darts {
-        let vid = cmap.vertex_id_transac(t, d)?;
+        let vid = cmap.vertex_id_tx(t, d)?;
         let v = if let Some(val) = cmap.read_vertex(t, vid)? {
             val
         } else {
@@ -195,8 +195,8 @@ fn process_cell<T: CoordsFloat>(
         // nd1 is on the side of the tri, nd2 on the side of the rest of the cell
         let d_ear1 = darts[ear];
         let d_ear2 = darts[(ear + 1) % n];
-        let b0_d_ear1 = cmap.beta_transac::<0>(t, d_ear1)?;
-        let b1_d_ear2 = cmap.beta_transac::<1>(t, d_ear2)?;
+        let b0_d_ear1 = cmap.beta_tx::<0>(t, d_ear1)?;
+        let b1_d_ear2 = cmap.beta_tx::<1>(t, d_ear2)?;
         try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
         try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
         try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
