@@ -170,8 +170,8 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VertexIdType, StmError> {
-        AUXILIARIES.with(|t| {
-            let (pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             pending.clear();
             marked.clear();
@@ -223,8 +223,8 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<EdgeIdType, StmError> {
-        AUXILIARIES.with(|t| {
-            let (pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             pending.clear();
             marked.clear();
@@ -269,8 +269,8 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<FaceIdType, StmError> {
-        AUXILIARIES.with(|t| {
-            let (_pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (_pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             marked.clear();
             // initialize
@@ -332,8 +332,8 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VolumeIdType, StmError> {
-        AUXILIARIES.with(|t| {
-            let (pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             pending.clear();
             marked.clear();

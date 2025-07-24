@@ -169,8 +169,8 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<VertexIdType> {
-        AUXILIARIES.with(|t| {
-            let (pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             pending.clear();
             marked.clear();
@@ -257,8 +257,8 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<FaceIdType> {
-        AUXILIARIES.with(|t| {
-            let (pending, marked) = &mut *t.borrow_mut();
+        AUXILIARIES.with(|cell| {
+            let (pending, marked) = &mut *cell.borrow_mut();
             // clear from previous computations
             pending.clear();
             marked.clear();
