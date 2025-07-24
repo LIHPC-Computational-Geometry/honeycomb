@@ -106,7 +106,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             if let Some(a) = anchor {
                 atomically(|t| {
                     for &d in &new_darts {
-                        let fid = map.face_id_transac(t, d)?;
+                        let fid = map.face_id_tx(t, d)?;
                         map.write_attribute(t, fid, a)?;
                     }
                     Ok(())
@@ -312,7 +312,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     while let Err(er) = atomically_with_err(|t| {
                         let nds = [d1, d2, d3];
                         for d in nds {
-                            map.claim_dart_transac(t, d)?;
+                            map.claim_dart_tx(t, d)?;
                         }
                         cut_outer_edge(t, &map, e, nds)?;
 
@@ -337,7 +337,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     while let Err(er) = atomically_with_err(|t| {
                         let nds = [d1, d2, d3, d4, d5, d6];
                         for d in nds {
-                            map.claim_dart_transac(t, d)?;
+                            map.claim_dart_tx(t, d)?;
                         }
 
                         cut_inner_edge(t, &map, e, nds)?;
@@ -370,13 +370,13 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         instant = Instant::now();
         short_edges.into_par_iter().for_each(|e| {
             while let Err(er) = atomically_with_err(|t| {
-                if map.is_unused_transac(t, e as DartIdType)? {
+                if map.is_unused_tx(t, e as DartIdType)? {
                     // needed as some operations may remove some edges besides the one processed
                     return Ok(());
                 }
-                let e = map.edge_id_transac(t, e)?;
+                let e = map.edge_id_tx(t, e)?;
 
-                let (l, r) = (e as DartIdType, map.beta_transac::<1>(t, e as DartIdType)?);
+                let (l, r) = (e as DartIdType, map.beta_tx::<1>(t, e as DartIdType)?);
                 let diff = compute_diff_to_target(t, &map, l, r, args.target_length)?;
                 if diff.abs() < args.target_tolerance {
                     // edge is within target length tolerance; skip the cut/process phase
@@ -427,7 +427,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     );
                     if let Err(er) = atomically_with_err(|t| {
                         let (b0l, b0r) =
-                            (map.beta_transac::<0>(t, l)?, map.beta_transac::<0>(t, r)?);
+                            (map.beta_tx::<0>(t, l)?, map.beta_tx::<0>(t, r)?);
                         let new_diff =
                             compute_diff_to_target(t, &map, b0l, b0r, args.target_length)?;
 
@@ -496,7 +496,7 @@ fn compute_diff_to_target<T: CoordsFloat>(
     r: DartIdType,
     target: f64,
 ) -> StmClosureResult<f64> {
-    let (vid1, vid2) = (map.vertex_id_transac(t, l)?, map.vertex_id_transac(t, r)?);
+    let (vid1, vid2) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, r)?);
     let (v1, v2) =
         if let (Some(v1), Some(v2)) = (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
             (v1, v2)
@@ -512,11 +512,11 @@ fn check_tri_orientation<T: CoordsFloat>(
     map: &CMap2<T>,
     d: DartIdType,
 ) -> StmClosureResult<bool> {
-    let vid1 = map.vertex_id_transac(t, d)?;
-    let b1 = map.beta_transac::<1>(t, d)?;
-    let vid2 = map.vertex_id_transac(t, b1)?;
-    let b1b1 = map.beta_transac::<1>(t, b1)?;
-    let vid3 = map.vertex_id_transac(t, b1b1)?;
+    let vid1 = map.vertex_id_tx(t, d)?;
+    let b1 = map.beta_tx::<1>(t, d)?;
+    let vid2 = map.vertex_id_tx(t, b1)?;
+    let b1b1 = map.beta_tx::<1>(t, b1)?;
+    let vid3 = map.vertex_id_tx(t, b1b1)?;
     let v1 = if let Ok(Some(v)) = map.read_vertex(t, vid1) {
         v
     } else {

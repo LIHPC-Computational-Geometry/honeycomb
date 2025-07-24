@@ -94,15 +94,15 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 
     // base darts making up the edge
     let base_dart1 = edge_id as DartIdType;
-    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
+    let base_dart2 = cmap.beta_tx::<2>(trans, base_dart1)?;
 
-    if new_darts.0 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.0)? {
+    if new_darts.0 == NULL_DART_ID || !cmap.is_free_tx(trans, new_darts.0)? {
         abort(VertexInsertionError::InvalidDarts(
             "first dart is null or not free",
         ))?;
     }
     if base_dart2 != NULL_DART_ID
-        && (new_darts.1 == NULL_DART_ID || !cmap.is_free_transac(trans, new_darts.1)?)
+        && (new_darts.1 == NULL_DART_ID || !cmap.is_free_tx(trans, new_darts.1)?)
     {
         abort(VertexInsertionError::InvalidDarts(
             "second dart is null or not free",
@@ -110,13 +110,13 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
     }
 
     // base darts making up the edge
-    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
+    let base_dart2 = cmap.beta_tx::<2>(trans, base_dart1)?;
     if base_dart2 == NULL_DART_ID {
-        let b1d1_old = cmap.beta_transac::<1>(trans, base_dart1)?;
+        let b1d1_old = cmap.beta_tx::<1>(trans, base_dart1)?;
         let b1d1_new = new_darts.0;
         let (vid1, vid2) = (
-            cmap.vertex_id_transac(trans, base_dart1)?,
-            cmap.vertex_id_transac(trans, b1d1_old)?,
+            cmap.vertex_id_tx(trans, base_dart1)?,
+            cmap.vertex_id_tx(trans, b1d1_old)?,
         );
         let (Some(v1), Some(v2)) = (
             cmap.read_vertex(trans, vid1)?,
@@ -139,7 +139,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         );
         // insert the new vertex
         let seg = v2 - v1;
-        let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
+        let vnew = cmap.vertex_id_tx(trans, b1d1_new)?;
         cmap.write_vertex(
             trans,
             vnew,
@@ -147,12 +147,12 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         )?;
         Ok(())
     } else {
-        let b1d1_old = cmap.beta_transac::<1>(trans, base_dart1)?;
-        let b1d2_old = cmap.beta_transac::<1>(trans, base_dart2)?;
+        let b1d1_old = cmap.beta_tx::<1>(trans, base_dart1)?;
+        let b1d2_old = cmap.beta_tx::<1>(trans, base_dart2)?;
         let (b1d1_new, b1d2_new) = new_darts;
         let (vid1, vid2) = (
-            cmap.vertex_id_transac(trans, base_dart1)?,
-            cmap.vertex_id_transac(trans, base_dart2)?,
+            cmap.vertex_id_tx(trans, base_dart1)?,
+            cmap.vertex_id_tx(trans, base_dart2)?,
         );
         let (Some(v1), Some(v2)) = (
             cmap.read_vertex(trans, vid1)?,
@@ -203,7 +203,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         );
         // insert the new vertex
         let seg = v2 - v1;
-        let vnew = cmap.vertex_id_transac(trans, b1d1_new)?;
+        let vnew = cmap.vertex_id_tx(trans, b1d1_new)?;
         cmap.write_vertex(
             trans,
             vnew,
@@ -328,7 +328,7 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
         abort(VertexInsertionError::WrongAmountDarts(2 * n_t, n_d))?;
     }
     for d in new_darts {
-        if !cmap.is_free_transac(trans, *d)? {
+        if !cmap.is_free_tx(trans, *d)? {
             abort(VertexInsertionError::InvalidDarts("one dart is not free"))?;
         }
     }
@@ -338,7 +338,7 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
 
     // base darts making up the edge
     let base_dart1 = edge_id as DartIdType;
-    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
+    let base_dart2 = cmap.beta_tx::<2>(trans, base_dart1)?;
 
     if darts_fh.contains(&NULL_DART_ID) {
         abort(VertexInsertionError::InvalidDarts(
@@ -358,12 +358,12 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
         abort(VertexInsertionError::VertexBound)?;
     }
 
-    let base_dart2 = cmap.beta_transac::<2>(trans, base_dart1)?;
-    let b1d1_old = cmap.beta_transac::<1>(trans, base_dart1)?;
+    let base_dart2 = cmap.beta_tx::<2>(trans, base_dart1)?;
+    let b1d1_old = cmap.beta_tx::<1>(trans, base_dart1)?;
 
     let (vid1, vid2) = (
-        cmap.vertex_id_transac(trans, base_dart1)?,
-        cmap.vertex_id_transac(
+        cmap.vertex_id_tx(trans, base_dart1)?,
+        cmap.vertex_id_tx(
             trans,
             if b1d1_old != NULL_DART_ID {
                 b1d1_old
@@ -405,7 +405,7 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
 
     // if b2(base_dart1) is defined, insert vertices / darts on its side too
     if base_dart2 != NULL_DART_ID {
-        let b1d2_old = cmap.beta_transac::<1>(trans, base_dart2)?;
+        let b1d2_old = cmap.beta_tx::<1>(trans, base_dart2)?;
         if b1d2_old != NULL_DART_ID {
             try_or_coerce!(cmap.unlink::<1>(trans, base_dart2), VertexInsertionError);
         }

@@ -15,8 +15,8 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), LinkError> {
         self.betas.three_link_core(trans, ld, rd)?;
         let (mut lside, mut rside) = (
-            self.beta_transac::<1>(trans, ld)?,
-            self.beta_transac::<0>(trans, rd)?,
+            self.beta_tx::<1>(trans, ld)?,
+            self.beta_tx::<0>(trans, rd)?,
         );
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
@@ -26,8 +26,8 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             self.betas.three_link_core(trans, lside, rside)?;
             (lside, rside) = (
-                self.beta_transac::<1>(trans, lside)?,
-                self.beta_transac::<0>(trans, rside)?,
+                self.beta_tx::<1>(trans, lside)?,
+                self.beta_tx::<0>(trans, rside)?,
             );
         }
         // the face was open, so we need to cover the other direction
@@ -39,8 +39,8 @@ impl<T: CoordsFloat> CMap3<T> {
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
             (lside, rside) = (
-                self.beta_transac::<0>(trans, ld)?,
-                self.beta_transac::<1>(trans, rd)?,
+                self.beta_tx::<0>(trans, ld)?,
+                self.beta_tx::<1>(trans, rd)?,
             );
             while lside != NULL_DART_ID {
                 if rside == NULL_DART_ID {
@@ -49,8 +49,8 @@ impl<T: CoordsFloat> CMap3<T> {
                 }
                 self.betas.three_link_core(trans, lside, rside)?;
                 (lside, rside) = (
-                    self.beta_transac::<0>(trans, lside)?,
-                    self.beta_transac::<1>(trans, rside)?,
+                    self.beta_tx::<0>(trans, lside)?,
+                    self.beta_tx::<1>(trans, rside)?,
                 );
             }
         }
@@ -76,23 +76,23 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let rd = self.beta_transac::<3>(trans, ld)?;
+        let rd = self.beta_tx::<3>(trans, ld)?;
 
         self.betas.three_unlink_core(trans, ld)?;
         let (mut lside, mut rside) = (
-            self.beta_transac::<1>(trans, ld)?,
-            self.beta_transac::<0>(trans, rd)?,
+            self.beta_tx::<1>(trans, ld)?,
+            self.beta_tx::<0>(trans, rd)?,
         );
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
-            if lside != self.beta_transac::<3>(trans, rside)? {
+            if lside != self.beta_tx::<3>(trans, rside)? {
                 // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
             self.betas.three_unlink_core(trans, lside)?;
             (lside, rside) = (
-                self.beta_transac::<1>(trans, lside)?,
-                self.beta_transac::<0>(trans, rside)?,
+                self.beta_tx::<1>(trans, lside)?,
+                self.beta_tx::<0>(trans, rside)?,
             );
         }
         // the face was open, so we need to cover the other direction
@@ -104,19 +104,19 @@ impl<T: CoordsFloat> CMap3<T> {
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
             (lside, rside) = (
-                self.beta_transac::<0>(trans, ld)?,
-                self.beta_transac::<1>(trans, rd)?,
+                self.beta_tx::<0>(trans, ld)?,
+                self.beta_tx::<1>(trans, rd)?,
             );
             while lside != NULL_DART_ID {
-                if lside != self.beta_transac::<3>(trans, rside)? {
+                if lside != self.beta_tx::<3>(trans, rside)? {
                     // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
                 }
-                assert_eq!(lside, self.beta_transac::<3>(trans, rside)?); // (*)
+                assert_eq!(lside, self.beta_tx::<3>(trans, rside)?); // (*)
                 self.betas.three_unlink_core(trans, lside)?;
                 (lside, rside) = (
-                    self.beta_transac::<0>(trans, lside)?,
-                    self.beta_transac::<1>(trans, rside)?,
+                    self.beta_tx::<0>(trans, lside)?,
+                    self.beta_tx::<1>(trans, rside)?,
                 );
             }
         }

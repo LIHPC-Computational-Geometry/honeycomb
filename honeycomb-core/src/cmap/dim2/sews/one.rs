@@ -20,15 +20,15 @@ impl<T: CoordsFloat> CMap2<T> {
                 SewError
             );
         } else {
-            let b2lhs_vid_old = self.vertex_id_transac(trans, b2lhs_dart_id)?;
-            let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let b2lhs_vid_old = self.vertex_id_tx(trans, b2lhs_dart_id)?;
+            let rhs_vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
 
             try_or_coerce!(
                 self.betas.one_link_core(trans, lhs_dart_id, rhs_dart_id),
                 SewError
             );
 
-            let new_vid = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let new_vid = self.vertex_id_tx(trans, rhs_dart_id)?;
 
             try_or_coerce!(
                 self.vertices
@@ -61,13 +61,13 @@ impl<T: CoordsFloat> CMap2<T> {
         } else {
             // fetch IDs before topology update
             let rhs_dart_id = self.betas[(1, lhs_dart_id)].read(trans)?;
-            let vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+            let vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
             // update the topology
             try_or_coerce!(self.betas.one_unlink_core(trans, lhs_dart_id), SewError);
             // split vertices & attributes from the old ID to the new ones
             let (new_lhs, new_rhs) = (
-                self.vertex_id_transac(trans, b2lhs_dart_id)?,
-                self.vertex_id_transac(trans, rhs_dart_id)?,
+                self.vertex_id_tx(trans, b2lhs_dart_id)?,
+                self.vertex_id_tx(trans, rhs_dart_id)?,
             );
             try_or_coerce!(
                 self.vertices.split(trans, new_lhs, new_rhs, vid_old),

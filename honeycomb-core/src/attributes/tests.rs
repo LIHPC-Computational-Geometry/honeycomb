@@ -489,7 +489,7 @@ fn test_split_attribute() {
 }
 
 #[test]
-fn test_attribute_operations_with_failed_transaction() {
+fn test_attribute_operations_with_failed_txtion() {
     let manager = setup_manager();
 
     // Set initial value

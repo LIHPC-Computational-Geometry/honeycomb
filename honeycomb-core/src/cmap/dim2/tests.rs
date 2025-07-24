@@ -110,7 +110,7 @@ fn example_test() {
 
 #[allow(clippy::too_many_lines)]
 #[test]
-fn example_test_transactional() {
+fn example_test_txtional() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap();
     let res = atomically_with_err(|trans| {
@@ -129,7 +129,7 @@ fn example_test_transactional() {
     assert_eq!(faces.len(), 1);
     assert_eq!(faces[0], 1);
     atomically(|t| {
-        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 1);
+        let mut face = map.orbit_tx(t, OrbitPolicy::Face, 1);
         assert_eq!(face.next(), Some(Ok(1)));
         assert_eq!(face.next(), Some(Ok(2)));
         assert_eq!(face.next(), Some(Ok(3)));
@@ -154,7 +154,7 @@ fn example_test_transactional() {
     let faces: Vec<_> = map.iter_faces().collect();
     assert_eq!(&faces, &[1, 4]);
     atomically(|t| {
-        let mut face = map.orbit_transac(t, OrbitPolicy::Face, 4);
+        let mut face = map.orbit_tx(t, OrbitPolicy::Face, 4);
         assert_eq!(face.next(), Some(Ok(4)));
         assert_eq!(face.next(), Some(Ok(5)));
         assert_eq!(face.next(), Some(Ok(6)));
@@ -171,12 +171,12 @@ fn example_test_transactional() {
 
     // checks
     atomically(|trans| {
-        assert_eq!(map.beta_transac::<2>(trans, 2)?, 4);
-        assert_eq!(map.vertex_id_transac(trans, 2)?, 2);
-        assert_eq!(map.vertex_id_transac(trans, 5)?, 2);
+        assert_eq!(map.beta_tx::<2>(trans, 2)?, 4);
+        assert_eq!(map.vertex_id_tx(trans, 2)?, 2);
+        assert_eq!(map.vertex_id_tx(trans, 5)?, 2);
         assert_eq!(map.read_vertex(trans, 2)?, Some(Vertex2::from((1.5, 0.0))));
-        assert_eq!(map.vertex_id_transac(trans, 3)?, 3);
-        assert_eq!(map.vertex_id_transac(trans, 4)?, 3);
+        assert_eq!(map.vertex_id_tx(trans, 3)?, 3);
+        assert_eq!(map.vertex_id_tx(trans, 4)?, 3);
         assert_eq!(map.read_vertex(trans, 3)?, Some(Vertex2::from((0.0, 1.5))));
         Ok(())
     });
@@ -208,8 +208,8 @@ fn example_test_transactional() {
         Ok(())
     });
     atomically_with_err(|t| {
-        map.release_dart_transac(t, 2)?;
-        map.release_dart_transac(t, 4)?;
+        map.release_dart_tx(t, 2)?;
+        map.release_dart_tx(t, 4)?;
         Ok(())
     })
     .unwrap();
@@ -237,10 +237,10 @@ fn example_test_transactional() {
     // darts
     assert_eq!(map.n_unused_darts(), 2); // there are unused darts since we removed the diagonal
     atomically(|trans| {
-        assert_eq!(map.beta_rt_transac(trans, 1, 1)?, 5);
-        assert_eq!(map.beta_rt_transac(trans, 1, 5)?, 6);
-        assert_eq!(map.beta_rt_transac(trans, 1, 6)?, 3);
-        assert_eq!(map.beta_rt_transac(trans, 1, 3)?, 1);
+        assert_eq!(map.beta_rt_tx(trans, 1, 1)?, 5);
+        assert_eq!(map.beta_rt_tx(trans, 1, 5)?, 6);
+        assert_eq!(map.beta_rt_tx(trans, 1, 6)?, 3);
+        assert_eq!(map.beta_rt_tx(trans, 1, 3)?, 1);
         Ok(())
     });
 }
@@ -480,7 +480,7 @@ fn full_map_from_orbit() {
 
     let darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[1, 2]), 3)
+            .orbit_tx(t, OrbitPolicy::Custom(&[1, 2]), 3)
             .map(Result::unwrap)
             .collect())
     });
@@ -501,21 +501,21 @@ fn orbit_variants() {
 
     let face_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Face, 7)
+            .orbit_tx(t, OrbitPolicy::Face, 7)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(face, face_t);
     let face_linear_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::FaceLinear, 7)
+            .orbit_tx(t, OrbitPolicy::FaceLinear, 7)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(face_linear, face_linear_t);
     let face_custom_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[0, 1]), 7)
+            .orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), 7)
             .map(Result::unwrap)
             .collect())
     });
@@ -529,14 +529,14 @@ fn orbit_variants() {
 
     let vertex_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Vertex, 4)
+            .orbit_tx(t, OrbitPolicy::Vertex, 4)
             .map(Result::unwrap)
             .collect())
     });
     assert_eq!(vertex, vertex_t);
     let vertex_linear_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::VertexLinear, 4)
+            .orbit_tx(t, OrbitPolicy::VertexLinear, 4)
             .map(Result::unwrap)
             .collect())
     });
@@ -563,7 +563,7 @@ fn edge_from_orbit() {
     let darts: Vec<DartIdType> = face_orbit.collect();
     let darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Edge, 1)
+            .orbit_tx(t, OrbitPolicy::Edge, 1)
             .map(Result::unwrap)
             .collect())
     });
@@ -574,7 +574,7 @@ fn edge_from_orbit() {
     let other_darts: Vec<DartIdType> = other_face_orbit.collect();
     let other_darts_t: Vec<_> = atomically(|t| {
         Ok(map
-            .orbit_transac(t, OrbitPolicy::Custom(&[2]), 4)
+            .orbit_tx(t, OrbitPolicy::Custom(&[2]), 4)
             .map(Result::unwrap)
             .collect())
     });
@@ -759,7 +759,7 @@ fn sew_ordering() {
 }
 
 #[test]
-fn sew_ordering_with_transactions() {
+fn sew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(5).build().unwrap();
@@ -893,7 +893,7 @@ fn unsew_ordering() {
 }
 
 #[test]
-fn unsew_ordering_with_transactions() {
+fn unsew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(5)

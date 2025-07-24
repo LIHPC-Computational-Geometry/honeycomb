@@ -57,7 +57,7 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     try_or_coerce!(map.link::<1>(t, nd2, nd3), SewError);
 
     let f_anchor = if map.contains_attribute::<FaceAnchor>() {
-        let fid = map.face_id_transac(t, e)?;
+        let fid = map.face_id_tx(t, e)?;
         map.remove_attribute::<FaceAnchor>(t, fid)?
     } else {
         None
@@ -69,11 +69,11 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     };
 
     let ld = e as DartIdType;
-    let (b0ld, b1ld) = (map.beta_transac::<0>(t, ld)?, map.beta_transac::<1>(t, ld)?);
+    let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
 
     let (vid1, vid2) = (
-        map.vertex_id_transac(t, ld)?,
-        map.vertex_id_transac(t, b1ld)?,
+        map.vertex_id_tx(t, ld)?,
+        map.vertex_id_tx(t, b1ld)?,
     );
     let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
         (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
@@ -91,17 +91,17 @@ pub fn cut_outer_edge<T: CoordsFloat>(
 
     // FIXME: expose a split method for `CMap2` to automatically handle faces?
     if let Some(a) = f_anchor {
-        let fid1 = map.face_id_transac(t, nd1)?;
-        let fid2 = map.face_id_transac(t, nd2)?;
+        let fid1 = map.face_id_tx(t, nd1)?;
+        let fid2 = map.face_id_tx(t, nd2)?;
         map.write_attribute(t, fid1, a)?;
         map.write_attribute(t, fid2, a)?;
         if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_transac(t, nd1)?;
+            let eid = map.edge_id_tx(t, nd1)?;
             map.write_attribute(t, eid, EdgeAnchor::from(a))?;
         }
     }
     if let Some(a) = e_anchor {
-        let vid = map.vertex_id_transac(t, nd1)?;
+        let vid = map.vertex_id_tx(t, nd1)?;
         map.write_attribute(t, vid, VertexAnchor::from(a))?;
         map.write_attribute(t, nd3 as EdgeIdType, a)?;
     }
@@ -166,47 +166,47 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     try_or_coerce!(map.link::<2>(t, nd4, nd5), SewError);
     try_or_coerce!(map.link::<1>(t, nd5, nd6), SewError);
 
-    let (ld, rd) = (e as DartIdType, map.beta_transac::<2>(t, e as DartIdType)?);
+    let (ld, rd) = (e as DartIdType, map.beta_tx::<2>(t, e as DartIdType)?);
 
     let lf_anchor = if map.contains_attribute::<FaceAnchor>() {
-        let fid = map.face_id_transac(t, ld)?;
+        let fid = map.face_id_tx(t, ld)?;
         map.remove_attribute::<FaceAnchor>(t, fid)?
     } else {
         None
     };
     if let Some(a) = lf_anchor {
         if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_transac(t, nd1)?;
+            let eid = map.edge_id_tx(t, nd1)?;
             map.write_attribute(t, eid, EdgeAnchor::from(a))?;
         }
     }
     let rf_anchor = if map.contains_attribute::<FaceAnchor>() {
-        let fid = map.face_id_transac(t, rd)?;
+        let fid = map.face_id_tx(t, rd)?;
         map.remove_attribute::<FaceAnchor>(t, fid)?
     } else {
         None
     };
     if let Some(a) = rf_anchor {
         if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_transac(t, nd4)?;
+            let eid = map.edge_id_tx(t, nd4)?;
             map.write_attribute(t, eid, EdgeAnchor::from(a))?;
         }
     }
     if map.contains_attribute::<EdgeAnchor>() {
         if let Some(a) = map.read_attribute::<EdgeAnchor>(t, e)? {
-            let vid1 = map.vertex_id_transac(t, nd1)?;
-            let vid2 = map.vertex_id_transac(t, nd4)?;
+            let vid1 = map.vertex_id_tx(t, nd1)?;
+            let vid2 = map.vertex_id_tx(t, nd4)?;
             map.write_attribute(t, vid1, VertexAnchor::from(a))?;
             map.write_attribute(t, vid2, VertexAnchor::from(a))?;
         }
     }
 
-    let (b0ld, b1ld) = (map.beta_transac::<0>(t, ld)?, map.beta_transac::<1>(t, ld)?);
-    let (b0rd, b1rd) = (map.beta_transac::<0>(t, rd)?, map.beta_transac::<1>(t, rd)?);
+    let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
+    let (b0rd, b1rd) = (map.beta_tx::<0>(t, rd)?, map.beta_tx::<1>(t, rd)?);
 
     let (vid1, vid2) = (
-        map.vertex_id_transac(t, ld)?,
-        map.vertex_id_transac(t, b1ld)?,
+        map.vertex_id_tx(t, ld)?,
+        map.vertex_id_tx(t, b1ld)?,
     );
     let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
         (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
@@ -235,14 +235,14 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 
     // TODO: expose a split method for `CMap2` to automatically handle faces?
     if let Some(a) = lf_anchor {
-        let fid1 = map.face_id_transac(t, nd1)?;
-        let fid2 = map.face_id_transac(t, nd2)?;
+        let fid1 = map.face_id_tx(t, nd1)?;
+        let fid2 = map.face_id_tx(t, nd2)?;
         map.write_attribute(t, fid1, a)?;
         map.write_attribute(t, fid2, a)?;
     }
     if let Some(a) = rf_anchor {
-        let fid4 = map.face_id_transac(t, nd4)?;
-        let fid5 = map.face_id_transac(t, nd5)?;
+        let fid4 = map.face_id_tx(t, nd4)?;
+        let fid5 = map.face_id_tx(t, nd5)?;
         map.write_attribute(t, fid4, a)?;
         map.write_attribute(t, fid5, a)?;
     }

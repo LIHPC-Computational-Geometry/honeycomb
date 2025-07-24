@@ -15,8 +15,8 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), LinkError> {
         self.betas.one_link_core(trans, ld, rd)?;
         let (b3_ld, b3_rd) = (
-            self.beta_transac::<3>(trans, ld)?,
-            self.beta_transac::<3>(trans, rd)?,
+            self.beta_tx::<3>(trans, ld)?,
+            self.beta_tx::<3>(trans, rd)?,
         );
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
             self.betas.one_link_core(trans, b3_rd, b3_ld)?;
@@ -41,14 +41,14 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let rd = self.beta_transac::<1>(trans, ld)?;
+        let rd = self.beta_tx::<1>(trans, ld)?;
         self.betas.one_unlink_core(trans, ld)?;
         let (b3_ld, b3_rd) = (
-            self.beta_transac::<3>(trans, ld)?,
-            self.beta_transac::<3>(trans, rd)?,
+            self.beta_tx::<3>(trans, ld)?,
+            self.beta_tx::<3>(trans, rd)?,
         );
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
-            if self.beta_transac::<1>(trans, b3_rd)? != b3_ld {
+            if self.beta_tx::<1>(trans, b3_rd)? != b3_ld {
                 // FIXME: add dedicated variant ~LinkError::DivergentStructures ?
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }

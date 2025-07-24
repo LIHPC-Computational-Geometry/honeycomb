@@ -36,23 +36,23 @@ impl<T: CoordsFloat> CMap3<T> {
             .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
         {
             edges.push((
-                self.edge_id_transac(trans, l)?,
-                self.edge_id_transac(trans, r)?,
+                self.edge_id_tx(trans, l)?,
+                self.edge_id_tx(trans, r)?,
             ));
-            let b1l = self.beta_transac::<1>(trans, l)?;
-            let b2l = self.beta_transac::<2>(trans, l)?;
+            let b1l = self.beta_tx::<1>(trans, l)?;
+            let b2l = self.beta_tx::<2>(trans, l)?;
             // this monster statement is necessary to handle open faces
             vertices.push((
-                self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
-                self.vertex_id_transac(trans, r)?,
+                self.vertex_id_tx(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                self.vertex_id_tx(trans, r)?,
             ));
             // one more for good measures (aka open faces)
-            if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
-                let b1r = self.beta_transac::<1>(trans, r)?;
-                let b2r = self.beta_transac::<2>(trans, r)?;
+            if self.beta_tx::<0>(trans, l)? == NULL_DART_ID {
+                let b1r = self.beta_tx::<1>(trans, r)?;
+                let b2r = self.beta_tx::<2>(trans, r)?;
                 vertices.push((
-                    self.vertex_id_transac(trans, l)?,
-                    self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                    self.vertex_id_tx(trans, l)?,
+                    self.vertex_id_tx(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                 ));
             }
         }
@@ -62,16 +62,16 @@ impl<T: CoordsFloat> CMap3<T> {
         {
             let (l, r) = (ld, rd);
             let (b1l, b2l, b1r, b2r) = (
-                self.beta_transac::<1>(trans, l)?,
-                self.beta_transac::<2>(trans, l)?,
-                self.beta_transac::<1>(trans, r)?,
-                self.beta_transac::<2>(trans, r)?,
+                self.beta_tx::<1>(trans, l)?,
+                self.beta_tx::<2>(trans, l)?,
+                self.beta_tx::<1>(trans, r)?,
+                self.beta_tx::<2>(trans, r)?,
             );
             let (vid_l, vid_r, vid_b1l, vid_b1r) = (
-                self.vertex_id_transac(trans, l)?,
-                self.vertex_id_transac(trans, r)?,
-                self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
-                self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                self.vertex_id_tx(trans, l)?,
+                self.vertex_id_tx(trans, r)?,
+                self.vertex_id_tx(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                self.vertex_id_tx(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
             );
 
             if let (
@@ -159,7 +159,7 @@ impl<T: CoordsFloat> CMap3<T> {
         trans: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let rd = self.beta_transac::<3>(trans, ld)?;
+        let rd = self.beta_tx::<3>(trans, ld)?;
 
         try_or_coerce!(self.unlink::<3>(trans, ld), SewError);
 
@@ -189,8 +189,8 @@ impl<T: CoordsFloat> CMap3<T> {
         {
             // edge
             let (eid_l, eid_r) = (
-                self.edge_id_transac(trans, l)?,
-                self.edge_id_transac(trans, r)?,
+                self.edge_id_tx(trans, l)?,
+                self.edge_id_tx(trans, r)?,
             );
             try_or_coerce!(
                 self.attributes.split_attributes(
@@ -204,11 +204,11 @@ impl<T: CoordsFloat> CMap3<T> {
             );
 
             // vertices
-            let b1l = self.beta_transac::<1>(trans, l)?;
-            let b2l = self.beta_transac::<2>(trans, l)?;
+            let b1l = self.beta_tx::<1>(trans, l)?;
+            let b2l = self.beta_tx::<2>(trans, l)?;
             let (vid_l, vid_r) = (
-                self.vertex_id_transac(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
-                self.vertex_id_transac(trans, r)?,
+                self.vertex_id_tx(trans, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                self.vertex_id_tx(trans, r)?,
             );
             try_or_coerce!(
                 self.vertices.split(trans, vid_l, vid_r, vid_l.max(vid_r)),
@@ -224,12 +224,12 @@ impl<T: CoordsFloat> CMap3<T> {
                 ),
                 SewError
             );
-            if self.beta_transac::<0>(trans, l)? == NULL_DART_ID {
-                let b1r = self.beta_transac::<1>(trans, r)?;
-                let b2r = self.beta_transac::<2>(trans, r)?;
+            if self.beta_tx::<0>(trans, l)? == NULL_DART_ID {
+                let b1r = self.beta_tx::<1>(trans, r)?;
+                let b2r = self.beta_tx::<2>(trans, r)?;
                 let (lvid_l, lvid_r) = (
-                    self.vertex_id_transac(trans, l)?,
-                    self.vertex_id_transac(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                    self.vertex_id_tx(trans, l)?,
+                    self.vertex_id_tx(trans, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                 );
                 try_or_coerce!(
                     self.vertices

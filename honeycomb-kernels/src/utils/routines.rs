@@ -21,16 +21,16 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
 ) -> StmClosureResult<bool> {
     if let Some(new_v) = map.read_vertex(t, vid)? {
         let mut tmp: SmallVec<DartIdType, 10> = SmallVec::new();
-        for d in map.orbit_transac(t, OrbitPolicy::Vertex, vid) {
+        for d in map.orbit_tx(t, OrbitPolicy::Vertex, vid) {
             tmp.push(d?);
         }
 
         let ref_crossp = {
             let d = tmp[0];
-            let b1d = map.beta_transac::<1>(t, d)?;
-            let b1b1d = map.beta_transac::<1>(t, b1d)?;
-            let vid1 = map.vertex_id_transac(t, b1d)?;
-            let vid2 = map.vertex_id_transac(t, b1b1d)?;
+            let b1d = map.beta_tx::<1>(t, d)?;
+            let b1b1d = map.beta_tx::<1>(t, b1d)?;
+            let vid1 = map.vertex_id_tx(t, b1d)?;
+            let vid2 = map.vertex_id_tx(t, b1b1d)?;
             let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
                 v
             } else {
@@ -50,10 +50,10 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
 
         let ref_sign = ref_crossp.signum();
         for &d in &tmp[1..] {
-            let b1d = map.beta_transac::<1>(t, d)?;
-            let b1b1d = map.beta_transac::<1>(t, b1d)?;
-            let vid1 = map.vertex_id_transac(t, b1d)?;
-            let vid2 = map.vertex_id_transac(t, b1b1d)?;
+            let b1d = map.beta_tx::<1>(t, d)?;
+            let b1b1d = map.beta_tx::<1>(t, b1d)?;
+            let vid1 = map.vertex_id_tx(t, b1d)?;
+            let vid2 = map.vertex_id_tx(t, b1b1d)?;
             let v1 = if let Some(v) = map.read_vertex(t, vid1)? {
                 v
             } else {

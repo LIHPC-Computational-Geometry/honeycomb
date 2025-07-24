@@ -143,7 +143,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Generic orbit transactional implementation.
     #[allow(clippy::needless_for_each, clippy::too_many_lines)]
     #[rustfmt::skip]
-    pub fn orbit_transac(
+    pub fn orbit_tx(
         &self,
         t: &mut Transaction,
         opolicy: OrbitPolicy,
@@ -168,16 +168,16 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
                     OrbitPolicy::Vertex => {
                         let (b0, b2, b3) = (
-                            self.beta_transac::<0>(t, d)?,
-                            self.beta_transac::<2>(t, d)?,
-                            self.beta_transac::<3>(t, d)?,
+                            self.beta_tx::<0>(t, d)?,
+                            self.beta_tx::<2>(t, d)?,
+                            self.beta_tx::<3>(t, d)?,
                         );
                         [
-                            self.beta_transac::<3>(t, b2)?, // b3(b2(d))
-                            self.beta_transac::<1>(t, b3)?, // b1(b3(d))
-                            self.beta_transac::<1>(t, b2)?, // b1(b2(d))
-                            self.beta_transac::<3>(t, b0)?, // b3(b0(d))
-                            self.beta_transac::<2>(t, b0)?, // b2(b0(d))
+                            self.beta_tx::<3>(t, b2)?, // b3(b2(d))
+                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_tx::<1>(t, b2)?, // b1(b2(d))
+                            self.beta_tx::<3>(t, b0)?, // b3(b0(d))
+                            self.beta_tx::<2>(t, b0)?, // b2(b0(d))
                         ]
                         .into_iter()
                         .for_each(check);
@@ -185,27 +185,27 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B3oB2, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
                         let (b2, b3) =
-                            (self.beta_transac::<2>(t, d)?, self.beta_transac::<3>(t, d)?);
+                            (self.beta_tx::<2>(t, d)?, self.beta_tx::<3>(t, d)?);
                         [
-                            self.beta_transac::<3>(t, b2)?, // b3(b2(d))
-                            self.beta_transac::<1>(t, b3)?, // b1(b3(d))
-                            self.beta_transac::<1>(t, b2)?, // b1(b2(d))
+                            self.beta_tx::<3>(t, b2)?, // b3(b2(d))
+                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_tx::<1>(t, b2)?, // b1(b2(d))
                         ]
                         .into_iter()
                         .for_each(check);
                     }
                     // B2, B3
                     OrbitPolicy::Edge => {
-                        [self.beta_transac::<2>(t, d)?, self.beta_transac::<3>(t, d)?]
+                        [self.beta_tx::<2>(t, d)?, self.beta_tx::<3>(t, d)?]
                             .into_iter()
                             .for_each(check);
                     }
                     // B1, B0, B3
                     OrbitPolicy::Face => {
                         [
-                            self.beta_transac::<1>(t, d)?,
-                            self.beta_transac::<0>(t, d)?,
-                            self.beta_transac::<3>(t, d)?,
+                            self.beta_tx::<1>(t, d)?,
+                            self.beta_tx::<0>(t, d)?,
+                            self.beta_tx::<3>(t, d)?,
                         ]
                         .into_iter()
                         .for_each(check);
@@ -213,8 +213,8 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B1, B3
                     OrbitPolicy::FaceLinear => {
                         [
-                            self.beta_transac::<1>(t, d)?,
-                            self.beta_transac::<3>(t, d)?,
+                            self.beta_tx::<1>(t, d)?,
+                            self.beta_tx::<3>(t, d)?,
                         ]
                         .into_iter()
                         .for_each(check);
@@ -222,22 +222,22 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B1, B0, B2
                     OrbitPolicy::Volume => {
                         [
-                            self.beta_transac::<1>(t, d)?,
-                            self.beta_transac::<0>(t, d)?,
-                            self.beta_transac::<2>(t, d)?,
+                            self.beta_tx::<1>(t, d)?,
+                            self.beta_tx::<0>(t, d)?,
+                            self.beta_tx::<2>(t, d)?,
                         ]
                         .into_iter()
                         .for_each(check);
                     }
                     // B1, B2
                     OrbitPolicy::VolumeLinear => {
-                        [self.beta_transac::<1>(t, d)?, self.beta_transac::<2>(t, d)?]
+                        [self.beta_tx::<1>(t, d)?, self.beta_tx::<2>(t, d)?]
                             .into_iter()
                             .for_each(check);
                     }
                     OrbitPolicy::Custom(beta_slice) => {
                         for beta_id in beta_slice {
-                            let im = self.beta_rt_transac(t, *beta_id, d)?;
+                            let im = self.beta_rt_tx(t, *beta_id, d)?;
                             check(im);
                         }
                     }

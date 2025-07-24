@@ -24,7 +24,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
                     SewError
                 );
-                let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
+                let eid_new = self.edge_id_tx(trans, lhs_dart_id)?;
                 try_or_coerce!(
                     self.attributes.merge_attributes(
                         trans,
@@ -41,16 +41,16 @@ impl<T: CoordsFloat> CMap2<T> {
                 // fetch vertices ID before topology update
                 let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
                 let rhs_eid_old = rhs_dart_id as EdgeIdType;
-                let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
-                let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
+                let lhs_vid_old = self.vertex_id_tx(trans, lhs_dart_id)?;
+                let b1rhs_vid_old = self.vertex_id_tx(trans, b1rhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(
                     self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
-                let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
+                let lhs_vid_new = self.vertex_id_tx(trans, lhs_dart_id)?;
+                let eid_new = self.edge_id_tx(trans, lhs_dart_id)?;
                 try_or_coerce!(
                     self.vertices
                         .merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old),
@@ -82,16 +82,16 @@ impl<T: CoordsFloat> CMap2<T> {
                 // fetch vertices ID before topology update
                 let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
                 let rhs_eid_old = rhs_dart_id as EdgeIdType;
-                let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
-                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                let b1lhs_vid_old = self.vertex_id_tx(trans, b1lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(
                     self.betas.two_link_core(trans, lhs_dart_id, rhs_dart_id),
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
-                let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
+                let rhs_vid_new = self.vertex_id_tx(trans, rhs_dart_id)?;
+                let eid_new = self.edge_id_tx(trans, lhs_dart_id)?;
                 try_or_coerce!(
                     self.vertices
                         .merge(trans, rhs_vid_new, b1lhs_vid_old, rhs_vid_old),
@@ -124,11 +124,11 @@ impl<T: CoordsFloat> CMap2<T> {
                 let lhs_eid_old = lhs_dart_id as EdgeIdType; // valid in 2D
                 let rhs_eid_old = rhs_dart_id as EdgeIdType;
                 // (lhs/b1rhs) vertex
-                let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
-                let b1rhs_vid_old = self.vertex_id_transac(trans, b1rhs_dart_id)?;
+                let lhs_vid_old = self.vertex_id_tx(trans, lhs_dart_id)?;
+                let b1rhs_vid_old = self.vertex_id_tx(trans, b1rhs_dart_id)?;
                 // (b1lhs/rhs) vertex
-                let b1lhs_vid_old = self.vertex_id_transac(trans, b1lhs_dart_id)?;
-                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                let b1lhs_vid_old = self.vertex_id_tx(trans, b1lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
 
                 // check orientation
                 if let (
@@ -158,9 +158,9 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let lhs_vid_new = self.vertex_id_transac(trans, lhs_dart_id)?;
-                let rhs_vid_new = self.vertex_id_transac(trans, rhs_dart_id)?;
-                let eid_new = self.edge_id_transac(trans, lhs_dart_id)?;
+                let lhs_vid_new = self.vertex_id_tx(trans, lhs_dart_id)?;
+                let rhs_vid_new = self.vertex_id_tx(trans, rhs_dart_id)?;
+                let eid_new = self.edge_id_tx(trans, lhs_dart_id)?;
                 try_or_coerce!(
                     self.vertices
                         .merge(trans, lhs_vid_new, lhs_vid_old, b1rhs_vid_old),
@@ -220,7 +220,7 @@ impl<T: CoordsFloat> CMap2<T> {
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             (true, true) => {
                 // fetch IDs before topology update
-                let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
+                let eid_old = self.edge_id_tx(trans, lhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, lhs_dart_id), SewError);
                 // split attributes from the old ID to the new ones
@@ -238,8 +238,8 @@ impl<T: CoordsFloat> CMap2<T> {
             }
             (true, false) => {
                 // fetch IDs before topology update
-                let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
+                let eid_old = self.edge_id_tx(trans, lhs_dart_id)?;
+                let lhs_vid_old = self.vertex_id_tx(trans, lhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, lhs_dart_id), SewError);
                 // split vertex & attributes from the old ID to the new ones
@@ -255,8 +255,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 let (new_lv_lhs, new_lv_rhs) = (
-                    self.vertex_id_transac(trans, lhs_dart_id)?,
-                    self.vertex_id_transac(trans, b1rhs_dart_id)?,
+                    self.vertex_id_tx(trans, lhs_dart_id)?,
+                    self.vertex_id_tx(trans, b1rhs_dart_id)?,
                 );
                 try_or_coerce!(
                     self.vertices
@@ -276,8 +276,8 @@ impl<T: CoordsFloat> CMap2<T> {
             }
             (false, true) => {
                 // fetch IDs before topology update
-                let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                let eid_old = self.edge_id_tx(trans, lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, lhs_dart_id), SewError);
                 // split vertex & attributes from the old ID to the new ones
@@ -293,8 +293,8 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 let (new_rv_lhs, new_rv_rhs) = (
-                    self.vertex_id_transac(trans, b1lhs_dart_id)?,
-                    self.vertex_id_transac(trans, rhs_dart_id)?,
+                    self.vertex_id_tx(trans, b1lhs_dart_id)?,
+                    self.vertex_id_tx(trans, rhs_dart_id)?,
                 );
                 try_or_coerce!(
                     self.vertices
@@ -314,9 +314,9 @@ impl<T: CoordsFloat> CMap2<T> {
             }
             (false, false) => {
                 // fetch IDs before topology update
-                let eid_old = self.edge_id_transac(trans, lhs_dart_id)?;
-                let lhs_vid_old = self.vertex_id_transac(trans, lhs_dart_id)?;
-                let rhs_vid_old = self.vertex_id_transac(trans, rhs_dart_id)?;
+                let eid_old = self.edge_id_tx(trans, lhs_dart_id)?;
+                let lhs_vid_old = self.vertex_id_tx(trans, lhs_dart_id)?;
+                let rhs_vid_old = self.vertex_id_tx(trans, rhs_dart_id)?;
                 // update the topology
                 try_or_coerce!(self.betas.two_unlink_core(trans, lhs_dart_id), SewError);
                 // split vertices & attributes from the old ID to the new ones
@@ -332,12 +332,12 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 let (new_lv_lhs, new_lv_rhs) = (
-                    self.vertex_id_transac(trans, lhs_dart_id)?,
-                    self.vertex_id_transac(trans, b1rhs_dart_id)?,
+                    self.vertex_id_tx(trans, lhs_dart_id)?,
+                    self.vertex_id_tx(trans, b1rhs_dart_id)?,
                 );
                 let (new_rv_lhs, new_rv_rhs) = (
-                    self.vertex_id_transac(trans, b1lhs_dart_id)?,
-                    self.vertex_id_transac(trans, rhs_dart_id)?,
+                    self.vertex_id_tx(trans, b1lhs_dart_id)?,
+                    self.vertex_id_tx(trans, rhs_dart_id)?,
                 );
                 try_or_coerce!(
                     self.vertices

@@ -626,8 +626,8 @@ mod triangulate_and_classify {
                 }
                 earclip_cell_countercw(t, &map, f, &[nd, nd + 1])?;
                 if let Some(a) = anchor {
-                    let l_face_id = map.face_id_transac(t, nd)?;
-                    let r_face_id = map.face_id_transac(t, nd + 1)?;
+                    let l_face_id = map.face_id_tx(t, nd)?;
+                    let r_face_id = map.face_id_tx(t, nd + 1)?;
                     map.write_attribute(t, l_face_id, a)?;
                     map.write_attribute(t, r_face_id, a)?;
                 } else {
@@ -689,8 +689,8 @@ mod triangulate_and_classify {
                 }
                 earclip_cell_countercw(t, &map, f, &[nd, nd + 1])?;
                 if let Some(a) = anchor {
-                    let l_face_id = map.face_id_transac(t, nd)?;
-                    let r_face_id = map.face_id_transac(t, nd + 1)?;
+                    let l_face_id = map.face_id_tx(t, nd)?;
+                    let r_face_id = map.face_id_tx(t, nd + 1)?;
                     map.write_attribute(t, l_face_id, a)?;
                     map.write_attribute(t, r_face_id, a)?;
                 } else {

@@ -52,11 +52,11 @@ pub fn process_cell<T: CoordsFloat>(
     let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
     let mut vertices: SmallVec<Vertex2<T>, 16> = SmallVec::new();
 
-    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+    for d in cmap.orbit_tx(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
         darts.push(d?);
     }
     for &d in &darts {
-        let vid = cmap.vertex_id_transac(t, d)?;
+        let vid = cmap.vertex_id_tx(t, d)?;
         let v = if let Some(val) = cmap.read_vertex(t, vid)? {
             val
         } else {
@@ -99,15 +99,15 @@ pub fn process_cell<T: CoordsFloat>(
     if let Some(sdart) = star {
         // if we found a dart from the previous computations, it means the polygon is "fannable"
         // THIS CANNOT BE PARALLELIZED AS IS
-        let b0_sdart = cmap.beta_transac::<0>(t, *sdart)?;
-        let vid = cmap.vertex_id_transac(t, *sdart)?;
+        let b0_sdart = cmap.beta_tx::<0>(t, *sdart)?;
+        let vid = cmap.vertex_id_tx(t, *sdart)?;
         let v0 = cmap.read_vertex(t, vid)?.unwrap();
         try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
             let [d1, d2] = sl else { unreachable!() };
-            let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
-            let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+            let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
+            let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
             try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
             try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
             try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
@@ -115,10 +115,10 @@ pub fn process_cell<T: CoordsFloat>(
             try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
             d0 = *d2;
         }
-        let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
-        let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+        let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
+        let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
         try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
-        let vid = cmap.vertex_id_transac(t, *sdart)?;
+        let vid = cmap.vertex_id_tx(t, *sdart)?;
         cmap.write_vertex(t, vid, v0)?;
     } else {
         // println!("W: face {face_id} isn't fannable -- skipping triangulation");
@@ -172,7 +172,7 @@ pub fn process_convex_cell<T: CoordsFloat>(
     // fetch darts using a custom orbit so that they're ordered
     let mut darts: SmallVec<DartIdType, 16> = SmallVec::new();
 
-    for d in cmap.orbit_transac(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
+    for d in cmap.orbit_tx(t, OrbitPolicy::FaceLinear, face_id as DartIdType) {
         darts.push(d?);
     }
     let n = darts.len();
@@ -185,15 +185,15 @@ pub fn process_convex_cell<T: CoordsFloat>(
     // we assume the polygon is convex (== starrable from any vertex)
     let sdart = face_id as DartIdType;
     // THIS CANNOT BE PARALLELIZED AS IS
-    let b0_sdart = cmap.beta_transac::<0>(t, sdart)?;
-    let vid = cmap.vertex_id_transac(t, sdart)?;
+    let b0_sdart = cmap.beta_tx::<0>(t, sdart)?;
+    let vid = cmap.vertex_id_tx(t, sdart)?;
     let v0 = cmap.read_vertex(t, vid)?.unwrap();
     try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
         let [d1, d2] = sl else { unreachable!() };
-        let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
-        let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+        let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
+        let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
         try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
         try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
         try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
@@ -201,10 +201,10 @@ pub fn process_convex_cell<T: CoordsFloat>(
         try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
         d0 = *d2;
     }
-    let b1_d0 = cmap.beta_transac::<1>(t, d0)?;
-    let b1b1_d0 = cmap.beta_transac::<1>(t, b1_d0)?;
+    let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
+    let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
     try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
-    let vid = cmap.vertex_id_transac(t, sdart)?;
+    let vid = cmap.vertex_id_tx(t, sdart)?;
     cmap.write_vertex(t, vid, v0)?;
 
     Ok(())

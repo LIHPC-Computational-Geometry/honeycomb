@@ -216,9 +216,9 @@ fn example_test() {
 #[cfg(test)]
 fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
     atomically(|trans| {
-        let b3d = map.beta_transac::<3>(trans, dart)?;
-        let ld = map.beta_transac::<2>(trans, dart)?;
-        let rd = map.beta_transac::<2>(trans, b3d)?;
+        let b3d = map.beta_tx::<3>(trans, dart)?;
+        let ld = map.beta_tx::<2>(trans, dart)?;
+        let rd = map.beta_tx::<2>(trans, b3d)?;
 
         assert!(map.unsew::<2>(trans, dart).is_ok());
         assert!(map.unsew::<2>(trans, b3d).is_ok());
@@ -229,7 +229,7 @@ fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
 
 #[allow(clippy::too_many_lines)]
 #[test]
-fn example_test_transactional() {
+fn example_test_txtional() {
     // Build a tetrahedron (A)
     let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
 
@@ -272,7 +272,7 @@ fn example_test_transactional() {
 
         let darts: Vec<_> = atomically(|t| {
             Ok(map
-                .orbit_transac(t, OrbitPolicy::FaceLinear, 2)
+                .orbit_tx(t, OrbitPolicy::FaceLinear, 2)
                 .map(Result::unwrap)
                 .collect())
         });
@@ -379,7 +379,7 @@ fn example_test_transactional() {
 
         let darts: Vec<_> = atomically(|t| {
             Ok(map
-                .orbit_transac(t, OrbitPolicy::Face, 10)
+                .orbit_tx(t, OrbitPolicy::Face, 10)
                 .map(Result::unwrap)
                 .collect())
         });
@@ -431,12 +431,12 @@ fn example_test_transactional() {
     });
 
     atomically_with_err(|t| {
-        map.release_dart_transac(t, 10)?;
-        map.release_dart_transac(t, 11)?;
-        map.release_dart_transac(t, 12)?;
-        map.release_dart_transac(t, 16)?;
-        map.release_dart_transac(t, 17)?;
-        map.release_dart_transac(t, 18)?;
+        map.release_dart_tx(t, 10)?;
+        map.release_dart_tx(t, 11)?;
+        map.release_dart_tx(t, 12)?;
+        map.release_dart_tx(t, 16)?;
+        map.release_dart_tx(t, 17)?;
+        map.release_dart_tx(t, 18)?;
         Ok(())
     })
     .unwrap();
@@ -634,7 +634,7 @@ fn sew_ordering() {
 }
 
 #[test]
-fn sew_ordering_with_transactions() {
+fn sew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap3<f64> = CMap3::new(5);
@@ -787,7 +787,7 @@ fn unsew_ordering() {
 }
 
 #[test]
-fn unsew_ordering_with_transactions() {
+fn unsew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map FIXME: use the builder
         let mut map: CMap3<f64> = CMap3::new(5);

@@ -40,7 +40,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The method will panic if `I` is not 0, 1, 2, or 3.
-    pub fn beta_transac<const I: u8>(
+    pub fn beta_tx<const I: u8>(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
@@ -60,7 +60,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Panics
     ///
     /// The method will panic if `i` is not 0, 1, 2, or 3.
-    pub fn beta_rt_transac(
+    pub fn beta_rt_tx(
         &self,
         trans: &mut Transaction,
         i: u8,
@@ -68,10 +68,10 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> StmClosureResult<DartIdType> {
         assert!(i < 4);
         match i {
-            0 => self.beta_transac::<0>(trans, dart_id),
-            1 => self.beta_transac::<1>(trans, dart_id),
-            2 => self.beta_transac::<2>(trans, dart_id),
-            3 => self.beta_transac::<3>(trans, dart_id),
+            0 => self.beta_tx::<0>(trans, dart_id),
+            1 => self.beta_tx::<1>(trans, dart_id),
+            2 => self.beta_tx::<2>(trans, dart_id),
+            3 => self.beta_tx::<3>(trans, dart_id),
             _ => unreachable!(),
         }
     }
@@ -139,14 +139,14 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
     #[must_use = "unused return value"]
-    pub fn is_free_transac(
+    pub fn is_free_tx(
         &self,
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> StmClosureResult<bool> {
-        Ok(self.beta_transac::<0>(t, dart_id)? == NULL_DART_ID
-            && self.beta_transac::<1>(t, dart_id)? == NULL_DART_ID
-            && self.beta_transac::<2>(t, dart_id)? == NULL_DART_ID)
+        Ok(self.beta_tx::<0>(t, dart_id)? == NULL_DART_ID
+            && self.beta_tx::<1>(t, dart_id)? == NULL_DART_ID
+            && self.beta_tx::<2>(t, dart_id)? == NULL_DART_ID)
     }
 }
 
@@ -157,7 +157,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
     #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        atomically(|t| self.vertex_id_transac(t, dart_id))
+        atomically(|t| self.vertex_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the vertex a given dart is part of, transactionally.
@@ -169,7 +169,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn vertex_id_transac(
+    pub fn vertex_id_tx(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
@@ -189,15 +189,15 @@ impl<T: CoordsFloat> CMap3<T> {
                 if marked.insert(d) {
                     min = min.min(d);
                     let (b0, b2, b3) = (
-                        self.beta_transac::<0>(trans, d)?, // ?
-                        self.beta_transac::<2>(trans, d)?,
-                        self.beta_transac::<3>(trans, d)?,
+                        self.beta_tx::<0>(trans, d)?, // ?
+                        self.beta_tx::<2>(trans, d)?,
+                        self.beta_tx::<3>(trans, d)?,
                     );
-                    pending.push_back(self.beta_transac::<1>(trans, b3)?);
-                    pending.push_back(self.beta_transac::<3>(trans, b2)?);
-                    pending.push_back(self.beta_transac::<1>(trans, b2)?);
-                    pending.push_back(self.beta_transac::<3>(trans, b0)?); // ?
-                    pending.push_back(self.beta_transac::<2>(trans, b0)?); // ?
+                    pending.push_back(self.beta_tx::<1>(trans, b3)?);
+                    pending.push_back(self.beta_tx::<3>(trans, b2)?);
+                    pending.push_back(self.beta_tx::<1>(trans, b2)?);
+                    pending.push_back(self.beta_tx::<3>(trans, b0)?); // ?
+                    pending.push_back(self.beta_tx::<2>(trans, b0)?); // ?
                 }
             }
 
@@ -210,7 +210,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
     #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        atomically(|t| self.edge_id_transac(t, dart_id))
+        atomically(|t| self.edge_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -222,7 +222,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn edge_id_transac(
+    pub fn edge_id_tx(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
@@ -242,8 +242,8 @@ impl<T: CoordsFloat> CMap3<T> {
                 if marked.insert(d) {
                     min = min.min(d);
                     for im in [
-                        self.beta_transac::<2>(trans, d)?,
-                        self.beta_transac::<3>(trans, d)?,
+                        self.beta_tx::<2>(trans, d)?,
+                        self.beta_tx::<3>(trans, d)?,
                     ] {
                         pending.push_back(im);
                     }
@@ -259,7 +259,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
     #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        atomically(|t| self.face_id_transac(t, dart_id))
+        atomically(|t| self.face_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the face a given dart is part of.
@@ -271,7 +271,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn face_id_transac(
+    pub fn face_id_tx(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
@@ -283,14 +283,14 @@ impl<T: CoordsFloat> CMap3<T> {
             // initialize
             marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-            let b3_dart_id = self.beta_transac::<3>(trans, dart_id)?;
+            let b3_dart_id = self.beta_tx::<3>(trans, dart_id)?;
             let (mut lb, mut rb) = (dart_id, b3_dart_id);
             let mut min = if rb == NULL_DART_ID { lb } else { lb.min(rb) };
 
             while marked.insert(lb) || marked.insert(rb) {
                 (lb, rb) = (
-                    self.beta_transac::<1>(trans, lb)?,
-                    self.beta_transac::<0>(trans, rb)?,
+                    self.beta_tx::<1>(trans, lb)?,
+                    self.beta_tx::<0>(trans, rb)?,
                 );
                 if lb != NULL_DART_ID {
                     min = min.min(lb);
@@ -302,13 +302,13 @@ impl<T: CoordsFloat> CMap3<T> {
             // face is open, we need to iterate in the other direction
             if lb == NULL_DART_ID || rb == NULL_DART_ID {
                 (lb, rb) = (
-                    self.beta_transac::<0>(trans, dart_id)?,
-                    self.beta_transac::<1>(trans, b3_dart_id)?,
+                    self.beta_tx::<0>(trans, dart_id)?,
+                    self.beta_tx::<1>(trans, b3_dart_id)?,
                 );
                 while marked.insert(lb) || marked.insert(rb) {
                     (lb, rb) = (
-                        self.beta_transac::<0>(trans, lb)?,
-                        self.beta_transac::<1>(trans, rb)?,
+                        self.beta_tx::<0>(trans, lb)?,
+                        self.beta_tx::<1>(trans, rb)?,
                     );
                     if lb != NULL_DART_ID {
                         min = min.min(lb);
@@ -328,7 +328,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This corresponds to the minimum dart ID among darts composing the 3-cell orbit.
     #[must_use = "unused return value"]
     pub fn volume_id(&self, dart_id: DartIdType) -> VolumeIdType {
-        atomically(|t| self.volume_id_transac(t, dart_id))
+        atomically(|t| self.volume_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the volume a given dart is part of.
@@ -340,7 +340,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This method is meant to be called in a context where the returned `Result` is used to
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
-    pub fn volume_id_transac(
+    pub fn volume_id_tx(
         &self,
         trans: &mut Transaction,
         dart_id: DartIdType,
@@ -359,9 +359,9 @@ impl<T: CoordsFloat> CMap3<T> {
             while let Some(d) = pending.pop_front() {
                 if marked.insert(d) {
                     min = min.min(d);
-                    pending.push_back(self.beta_transac::<1>(trans, d)?);
-                    pending.push_back(self.beta_transac::<0>(trans, d)?); // ?
-                    pending.push_back(self.beta_transac::<2>(trans, d)?);
+                    pending.push_back(self.beta_tx::<1>(trans, d)?);
+                    pending.push_back(self.beta_tx::<0>(trans, d)?); // ?
+                    pending.push_back(self.beta_tx::<2>(trans, d)?);
                 }
             }
 
@@ -434,7 +434,7 @@ impl<T: CoordsFloat> CMap3<T> {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
             .filter_map(|d| {
-                if atomically(|t| self.is_unused_transac(t, d)) {
+                if atomically(|t| self.is_unused_tx(t, d)) {
                     None
                 } else {
                     Some(d)
@@ -451,7 +451,7 @@ impl<T: CoordsFloat> CMap3<T> {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
             .filter_map(|d| {
-                if atomically(|t| self.is_unused_transac(t, d)) {
+                if atomically(|t| self.is_unused_tx(t, d)) {
                     None
                 } else {
                     Some(d)
@@ -468,7 +468,7 @@ impl<T: CoordsFloat> CMap3<T> {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
             .filter_map(|d| {
-                if atomically(|t| self.is_unused_transac(t, d)) {
+                if atomically(|t| self.is_unused_tx(t, d)) {
                     None
                 } else {
                     Some(d)
@@ -485,7 +485,7 @@ impl<T: CoordsFloat> CMap3<T> {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
             .filter_map(|d| {
-                if atomically(|t| self.is_unused_transac(t, d)) {
+                if atomically(|t| self.is_unused_tx(t, d)) {
                     None
                 } else {
                     Some(d)

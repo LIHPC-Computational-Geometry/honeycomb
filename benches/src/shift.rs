@@ -76,7 +76,7 @@ pub fn bench_shift<T: CoordsFloat>(args: ShiftArgs) -> CMap2<T> {
         println!("| |->   map built in {}ms", build_time.as_millis());
         println!("| |-> graph built in {}ms", graph_time.as_millis());
 
-        println!(" Round | process_time | throughput(vertex/s) | n_transac_retry");
+        println!(" Round | process_time | throughput(vertex/s) | n_tx_retry");
         // main loop
         let mut round = 0;
         let mut process_time;
