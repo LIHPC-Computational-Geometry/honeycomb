@@ -152,7 +152,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
     #[must_use = "unused return value"]
     pub fn vertex_id(&self, dart_id: DartIdType) -> VertexIdType {
-        atomically(|trans| self.vertex_id_tx(t, dart_id))
+        atomically(|t| self.vertex_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the vertex a given dart is part of.
@@ -209,7 +209,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 1-cell orbit.
     #[must_use = "unused return value"]
     pub fn edge_id(&self, dart_id: DartIdType) -> EdgeIdType {
-        atomically(|trans| self.edge_id_tx(t, dart_id))
+        atomically(|t| self.edge_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the edge a given dart is part of.
@@ -240,7 +240,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This corresponds to the minimum dart ID among darts composing the 2-cell orbit.
     #[must_use = "unused return value"]
     pub fn face_id(&self, dart_id: DartIdType) -> FaceIdType {
-        atomically(|trans| self.face_id_tx(t, dart_id))
+        atomically(|t| self.face_id_tx(t, dart_id))
     }
 
     /// Compute the ID of the face a given dart is part of.

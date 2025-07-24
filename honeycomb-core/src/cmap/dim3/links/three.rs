@@ -52,7 +52,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
     /// 3-link operation.
     pub(crate) fn force_three_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.three_link(t, ld, rd))
+        atomically_with_err(|t| self.three_link(t, ld, rd))
     }
 }
 
@@ -104,6 +104,6 @@ impl<T: CoordsFloat> CMap3<T> {
 
     /// 3-unlink operation.
     pub(crate) fn force_three_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.three_unlink(t, ld))
+        atomically_with_err(|t| self.three_unlink(t, ld))
     }
 }

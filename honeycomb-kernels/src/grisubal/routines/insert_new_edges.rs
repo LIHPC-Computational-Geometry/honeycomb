@@ -35,7 +35,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             // create the topology components
             let edge_id = cmap.edge_id(d_new);
             let new_darts = &dslice[2..];
-            atomically_with_err(|trans| {
+            atomically_with_err(|t| {
                 insert_vertices_on_edge(
                     cmap,
                     t,

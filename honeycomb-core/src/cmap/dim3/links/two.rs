@@ -22,7 +22,7 @@ impl<T: CoordsFloat> CMap3<T> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.betas.two_link_core(t, lhs_dart_id, rhs_dart_id))
+        atomically_with_err(|t| self.betas.two_link_core(t, lhs_dart_id, rhs_dart_id))
     }
 }
 
@@ -39,6 +39,6 @@ impl<T: CoordsFloat> CMap3<T> {
 
     /// 2-unlink operation.
     pub(crate) fn force_two_unlink(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.betas.two_unlink_core(t, lhs_dart_id))
+        atomically_with_err(|t| self.betas.two_unlink_core(t, lhs_dart_id))
     }
 }

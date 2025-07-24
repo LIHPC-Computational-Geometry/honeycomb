@@ -75,7 +75,7 @@ fn split_faces_randomly<T: CoordsFloat>(
             };
             let _ = map.force_link::<2>(dsplit1, dsplit2);
 
-            while atomically_with_err(|trans| {
+            while atomically_with_err(|t| {
                 map.unsew::<1>(t, dbefore1)?;
                 map.unsew::<1>(t, dbefore2)?;
                 map.sew::<1>(t, dsplit1, dafter1)?;

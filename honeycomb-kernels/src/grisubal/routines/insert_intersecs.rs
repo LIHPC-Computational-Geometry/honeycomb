@@ -14,7 +14,7 @@ pub(crate) fn insert_intersections<T: CoordsFloat>(
     dart_slices: &DartSlices,
 ) {
     for ((edge_id, vs), new_darts) in edge_intersec.iter().zip(dart_slices.iter()) {
-        atomically_with_err(|trans| {
+        atomically_with_err(|t| {
             insert_vertices_on_edge(
                 cmap,
                 t,

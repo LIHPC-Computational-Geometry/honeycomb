@@ -215,7 +215,7 @@ fn example_test() {
 
 #[cfg(test)]
 fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
-    atomically(|trans| {
+    atomically(|t| {
         let b3d = map.beta_tx::<3>(t, dart)?;
         let ld = map.beta_tx::<2>(t, dart)?;
         let rd = map.beta_tx::<2>(t, b3d)?;
@@ -234,7 +234,7 @@ fn example_test_txtional() {
     let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
 
     // face z- (base)
-    let res = atomically_with_err(|trans| {
+    let res = atomically_with_err(|t| {
         map.link::<1>(t, 1, 2)?;
         map.link::<1>(t, 2, 3)?;
         map.link::<1>(t, 3, 1)?;
@@ -279,7 +279,7 @@ fn example_test_txtional() {
         assert_eq!(&darts, &[2, 3, 1]);
     }
 
-    atomically(|trans| {
+    atomically(|t| {
         map.write_vertex(t, 1, (1.0, 0.0, 0.0))?;
         map.write_vertex(t, 2, (0.0, 0.0, 0.0))?;
         map.write_vertex(t, 3, (0.0, 0.5, 0.0))?;
@@ -289,7 +289,7 @@ fn example_test_txtional() {
 
     // Build a second tetrahedron (B)
     let _ = map.allocate_used_darts(12);
-    let res = atomically_with_err(|trans| {
+    let res = atomically_with_err(|t| {
         // face z- (base)
         map.link::<1>(t, 13, 14)?;
         map.link::<1>(t, 14, 15)?;
@@ -355,7 +355,7 @@ fn example_test_txtional() {
 
     // Sew both tetrahedrons along a face (C)
     assert_eq!(map.n_vertices(), 8);
-    atomically(|trans| {
+    atomically(|t| {
         assert!(map.sew::<3>(t, 10, 16).is_ok());
         Ok(())
     });
@@ -392,7 +392,7 @@ fn example_test_txtional() {
     }
 
     // Adjust shared vertices (D)
-    atomically(|trans| {
+    atomically(|t| {
         // this makes it a symmetrical square-base pyramid
         assert_eq!(
             map.write_vertex(t, 3, (0.0, 1.0, 0.0))?,
@@ -420,7 +420,7 @@ fn example_test_txtional() {
     atomically_rebuild_edge(&map, 12);
 
     // delete old face components
-    atomically(|trans| {
+    atomically(|t| {
         assert!(map.unlink::<1>(t, 10).is_ok());
         assert!(map.unlink::<1>(t, 11).is_ok());
         assert!(map.unlink::<1>(t, 12).is_ok());
@@ -659,7 +659,7 @@ fn sew_ordering_with_txtions() {
         let (f1, f2) = (f.clone(), f.clone());
 
         let t1 = loom::thread::spawn(move || {
-            atomically(|trans| {
+            atomically(|t| {
                 f1.modify(t, |v| v + 1)?;
                 // this should be useless as the vertex is defined on this op
                 // we still have to pattern match because CMapError cannot be automatically
@@ -676,7 +676,7 @@ fn sew_ordering_with_txtions() {
         });
 
         let t2 = loom::thread::spawn(move || {
-            atomically(|trans| {
+            atomically(|t| {
                 f2.modify(t, |v| if v != 0 { v + 4 } else { v })?;
                 // if the first op landed, this won't create an error
                 // otherwise, we'll either fail the transaction or fail the merge
@@ -696,7 +696,7 @@ fn sew_ordering_with_txtions() {
         t2.join().unwrap();
 
         // all paths should result in the same topological result here
-        let (v2, v3, v5) = atomically(|trans| {
+        let (v2, v3, v5) = atomically(|t| {
             Ok((
                 arc.remove_vertex(t, 2)?,
                 arc.remove_vertex(t, 3)?,
@@ -707,7 +707,7 @@ fn sew_ordering_with_txtions() {
         assert!(v3.is_none());
         assert!(v5.is_none());
         assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
-        atomically(|trans| {
+        atomically(|t| {
             assert!(arc.read_vertex(t, 2)?.is_none());
             assert!(arc.read_vertex(t, 3)?.is_none());
             assert!(arc.read_vertex(t, 5)?.is_none());
@@ -793,7 +793,7 @@ fn unsew_ordering_with_txtions() {
         let mut map: CMap3<f64> = CMap3::new(5);
         map.attributes.add_storage::<Weight>(6);
 
-        let res = atomically_with_err(|trans| {
+        let res = atomically_with_err(|t| {
             map.link::<2>(t, 1, 2)?;
             map.link::<2>(t, 3, 4)?;
             map.link::<1>(t, 1, 3)?;
@@ -812,7 +812,7 @@ fn unsew_ordering_with_txtions() {
         // this will result in different weights, defined on IDs 2, 3, and 5
 
         let t1 = loom::thread::spawn(move || {
-            atomically(|trans| {
+            atomically(|t| {
                 if let Err(e) = m1.unsew::<1>(t, 1) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
@@ -825,7 +825,7 @@ fn unsew_ordering_with_txtions() {
         });
 
         let t2 = loom::thread::spawn(move || {
-            atomically(|trans| {
+            atomically(|t| {
                 if let Err(e) = m2.unsew::<2>(t, 3) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
@@ -843,7 +843,7 @@ fn unsew_ordering_with_txtions() {
         // all paths should result in the same topological result here
 
         // We don't check for exact values here as they might differ based on execution order
-        let (w2, w3, w5) = atomically(|trans| {
+        let (w2, w3, w5) = atomically(|t| {
             Ok((
                 arc.remove_attribute::<Weight>(t, 2)?,
                 arc.remove_attribute::<Weight>(t, 3)?,
@@ -853,7 +853,7 @@ fn unsew_ordering_with_txtions() {
         assert!(w2.is_some());
         assert!(w3.is_some());
         assert!(w5.is_some());
-        atomically(|trans| {
+        atomically(|t| {
             assert!(arc.read_attribute::<Weight>(t, 2)?.is_none());
             assert!(arc.read_attribute::<Weight>(t, 3)?.is_none());
             assert!(arc.read_attribute::<Weight>(t, 5)?.is_none());

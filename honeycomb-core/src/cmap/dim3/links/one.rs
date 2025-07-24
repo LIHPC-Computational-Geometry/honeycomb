@@ -26,7 +26,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
     /// retried until validated.
     pub(crate) fn force_one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.one_link(t, ld, rd))
+        atomically_with_err(|t| self.one_link(t, ld, rd))
     }
 }
 
@@ -56,6 +56,6 @@ impl<T: CoordsFloat> CMap3<T> {
     /// This variant is equivalent to `one_unlink`, but internally uses a transaction that will be
     /// retried until validated.
     pub(crate) fn force_one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|trans| self.one_unlink(t, ld))
+        atomically_with_err(|t| self.one_unlink(t, ld))
     }
 }
