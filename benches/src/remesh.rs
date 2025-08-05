@@ -157,19 +157,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     );
 
     println!(
-        "Round | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}",
-        "# of used darts",     // 15
-        "# of unused darts",   // 17
-        "Graph compute (s)",   // 17
-        "Relax (tot, s)",      // 14
-        "Ret cond (s)",        // 12
-        "Batch compute (s)",   // 17
-        "Dart prealloc (s)",   // 17
-        "Cut batch size",      // 14
-        "Cut edges (s)",       // 13
-        "Collapse batch size", // 19
-        "Collapse edges (s)",  // 18
-        "Swap edges (s)",      // 14
+        "Round | # of used darts | # of unused darts | Graph compute (s) | Relax (tot, s) | Ret cond (s) | Batch compute (s) | Dart prealloc (s) | Cut batch size | Cut edges (s) | Collapse batch size | Collapse edges (s) | Swap edges (s)", // 14
     );
     // -- main remeshing loop
     // a. relax
@@ -180,14 +168,14 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut n = 0;
     let mut r;
     loop {
-        print!("{:>5}", n);
+        print!("{n:>5}");
         // not using the map method because it uses a sequential iterator
         let n_unused = (1..map.n_darts() as DartIdType)
             .into_par_iter()
             .filter(|d| map.is_unused(*d))
             .count();
         print!(" | {:>15}", map.n_darts() - n_unused);
-        print!(" | {:>17}", n_unused);
+        print!(" | {n_unused:>17}");
 
         // -- build the vertex graph
         prof_start!("HCBENCH_REMESH_GRAPH");
@@ -217,7 +205,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         loop {
             nodes.par_iter().for_each(|(vid, neighbors)| {
                 let _ = atomically_with_err(|t| {
-                    move_vertex_to_average(t, &map, *vid, &neighbors)?;
+                    move_vertex_to_average(t, &map, *vid, neighbors)?;
                     if !is_orbit_orientation_consistent(t, &map, *vid)? {
                         abort("E: resulting geometry is inverted")?;
                     }
@@ -293,12 +281,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 .collect()
         };
         let alloc_time = instant.elapsed().as_secs_f64();
-        print!(" | {:>17.6e}", batch_time);
-        print!(" | {:>17.6e}", alloc_time);
+        print!(" | {batch_time:>17.6e}");
+        print!(" | {alloc_time:>17.6e}");
 
         // -- cut
         prof_start!("HCBENCH_REMESH_CUT");
-        print!(" | {:>14}", n_e);
+        print!(" | {n_e:>14}");
         instant = Instant::now();
         long_edges
             .into_par_iter()
