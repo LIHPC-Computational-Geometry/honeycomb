@@ -86,9 +86,10 @@ x, y, and z coordinates for a 3-map).
 0.8.0 3 14
 
 [BETAS] 
-0 3 1 2 6 4 5 9 7 8 12 10 11 0 0 # columns don't have to be aligned,
-0 2 3 1 5 6 4 8 9 7 11 12 10 0 0 # though our routines will align items
-0 4 7 10 1 12 8 2 6 11 3 9 5 0 0
+0 3 1 2  6 4  5 9 7 8  12 10 11 0 0 # columns don't have to be aligned,
+0 2 3 1  5 6  4 8 9 7  11 12 10 0 0 # though our routines will align items
+0 4 7 10 1 12 8 2 6 11 3  9  5  0 0
+0 0 0 0  0 0  0 0 0 0  0  0  0  0 0
 
 [UNUSED]
 13 14

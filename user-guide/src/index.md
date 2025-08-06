@@ -13,8 +13,8 @@
 ## Honeycomb
 
 Honeycomb aims to provide a safe, efficient and scalable implementation of combinatorial maps for meshing applications.
-More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting GPUs
-and many-core architectures.
+More specifically, the goal is to converge towards a (or multiple) structure(s) adapted to algorithms exploiting
+many-core architectures.
 
 The current objective is to
 
@@ -23,16 +23,18 @@ The current objective is to
 - ~implement basic meshing algorithms to evaluate the viability of the implementation & improve our structure using
   Rust's framework to streamline the refactoring and parallelization process~
 - ~Benchmark and/or profile and/or parallelize our first algorithm, **grisubal**~
-- Ship a first stable version of the library (see
+- ~Work on efficient parallelism~
+- ~Ship a first stable version of the library~ (on the back burner, see
   this [issue](https://github.com/LIHPC-Computational-Geometry/honeycomb/issues/150))
-- Work on efficient parallelism
+- Implement a variety of 3D parallel meshing algorithms to support and extend
+  [our 2D results](https://cea.hal.science/hal-05121848v1)
 
 ### Core Requirements
 
 - **Rust stable release** - The MSRV may not be the latest stable release, but we do not give any guarantees for older
   versions compatibility
-- `hwloc` - The library is used by the benchmark binary to bind threads to physical cores; you can disable its usage
-  by compiling the binary without default features
+- `hwloc` - The library is used by the benchmark binary to bind threads to physical cores; **you can disable its usage
+  by compiling the benchmark binary without default features**
 
 ### Quickstart
 
@@ -44,7 +46,7 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 # [dependencies]
 honeycomb = {
   git = "https://github.com/LIHPC-Computational-Geometry/honeycomb",
-  tag = "0.9.0" # remove tag for master branch build
+  tag = "0.9.0" # it is highly encouraged to pin version using a tag or a revision
 }
 ```
 
@@ -57,10 +59,8 @@ honeycomb-kernels = "0.9.0"
 honeycomb-render = "0.9.0"
 ```
 
-Note that if you want to access the latest changes and documentation, you may have to specify a commit instead of a
-version, and use the [GitHub Pages documentation][DOC] instead of the one hosted on docs.rs.
-
-[DOC]: https://lihpc-computational-geometry.github.io/honeycomb/honeycomb/
+Note that the documentation hosted on GitHub corresponds to the master branch.
+Versioned documentation is available on docs.rs.
 
 ## Documentation
 
