@@ -3,7 +3,6 @@
 mod builder;
 mod components;
 mod dim2;
-#[allow(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc)] // FIXME:write docs
 mod dim3;
 mod error;
 

@@ -10,6 +10,10 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Serialize the map under a custom format.
     ///
     /// The format specification is described in the [user guide]().
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if there was an error trying to open / write to the file.
     pub fn serialize(&self, mut writer: impl std::fmt::Write) {
         let n_darts = self.n_darts();
 
@@ -95,9 +99,15 @@ impl<T: CoordsFloat> CMap3<T> {
                 writeln!(
                     writer,
                     "{v} {} {} {}",
-                    val.0.to_f64().unwrap(),
-                    val.1.to_f64().unwrap(),
-                    val.2.to_f64().unwrap(),
+                    val.0
+                        .to_f64()
+                        .expect("E: unreachable, unless experimenting with f128"),
+                    val.1
+                        .to_f64()
+                        .expect("E: unreachable, unless experimenting with f128"),
+                    val.2
+                        .to_f64()
+                        .expect("E: unreachable, unless experimenting with f128"),
                 )
                 .expect("E: couldn't write to file");
             }
