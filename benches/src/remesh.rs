@@ -31,6 +31,7 @@ use crate::{
     utils::{get_num_threads, hash_file},
 };
 
+#[allow(clippy::print_literal)]
 pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let input_map = args.input.to_str().unwrap();
     let target_len = T::from(args.target_length).unwrap();
@@ -157,7 +158,19 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     );
 
     println!(
-        "Round | # of used darts | # of unused darts | Graph compute (s) | Relax (tot, s) | Ret cond (s) | Batch compute (s) | Dart prealloc (s) | Cut batch size | Cut edges (s) | Collapse batch size | Collapse edges (s) | Swap edges (s)", // 14
+        "Round | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}",
+        "# of used darts",     // 15 chars
+        "# of unused darts",   // 17 ...
+        "Graph compute (s)",   // 17
+        "Relax (tot, s)",      // 14
+        "Ret cond (s)",        // 12
+        "Batch compute (s)",   // 17
+        "Dart prealloc (s)",   // 17
+        "Cut batch size",      // 14
+        "Cut edges (s)",       // 13
+        "Collapse batch size", // 19
+        "Collapse edges (s)",  // 18
+        "Swap edges (s)",      // 14
     );
     // -- main remeshing loop
     // a. relax
