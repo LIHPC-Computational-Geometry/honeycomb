@@ -6,10 +6,17 @@
 
 Rust's ownership semantics require us to add synchronization mechanism to our structure if we want
 to use it in concurrent contexts. Using primitives such as atomics and mutexes would be enough to
-get programs to compile, but it would yield an incorrect implementation with undefined behaviors.
+get programs to compile, but it would respectively yield an incorrect or impractical implementation:
 
-This is due to the complexity of operations defined on a map, often comprising multiple steps.
-For example, the following operation is executed on all affected attributes of a sew:
+- Atomics give guarantees on instructions interleaving for a single given variable, they do not give
+  any guarantees for instructions affecting different atomic variables.
+- Mutexes (and similar locks, e.g. RWLocks) can be used to create guarantees when accessing multiple
+  variable: for example, we can write an operation that does not progress until all of the used data
+  is locked. However, locks are error-prone, have very poor composability.
+
+The nature of meshing operations disqualify both mechanisms. They are complex, access many
+variables, and are often comprised of multiple steps. For example, the following operation is
+executed on all affected attributes of a sew:
 
 <figure style="text-align:center">
     <img src="../images/attribute_merge.svg" alt="Merge Operation" />
@@ -17,28 +24,33 @@ For example, the following operation is executed on all affected attributes of a
 </figure>
 
 Because the map can go through invalid intermediate states during a single operation, we need to
-ensure another thread will not use one of these as the starting point for another operation.
+ensure another thread will not use one of these as the starting point for another operation. This
+rules out atomic variables.
+
+The sew operation is the main method used to create new connectivities in the map. This means that
+most high-level meshing operations will call this method multiple times. If these meshing operations
+require locking all of the variables to ensure correct execution, the locks must be returned or
+exposed to the user so that he can unlock them at the right time. Manual lock management is
+error-prone, and becomes impossible in practice for complex meshing operations.
+
 
 ## Software Transactional Memory
 
 We choose to use Software Transactional Memory (STM) to handle high-level synchronization of
-the structure. 
-
-Note that while synchronization could possibly be enforced using aggressive lock strategies, STM
-has much better composability and allows users of the crate to define "atomic" segments in their
-own algorithms.
+the structure. Unlike locks, STM has great composability and allows users of the crate to easily
+define pseudo-atomic segments in their own algorithms.
 
 Exposing an API that allows users to handle synchronization also means that the implementation
 isn't bound to a given parallelization framework. Instead of relying on predefinite parallel
-routines (e.g. a provided `parallel_for` on given cells), the structure can integrate seamlessly
-in existing algorithm. 
+routines (e.g. a provided `parallel_for` on given cells), the structure can be used to implement
+existing algorithms regardless of their approach (data-oriented, task-based, ...).
 
 
 ## Examples
 
 To illustrate all of this, we provide two examples: one using `rayon`, and the other using
-`std::thread` items. The former focus exclusively on avoiding conflicts while the latter includes
-transactions fallible due to operation errors.
+`std::thread`. The former focus exclusively on avoiding conflicts while the latter includes
+transactions fallible due to meshing errors.
 
 
 ### Move all vertices to the average of their neighbors
@@ -176,7 +188,7 @@ fn main() {
 
                     let _ = map.force_link::<2>(dsplit1, dsplit2); // infallible
 
-                    // internal operations can fail, so we retry until success
+                    // internal (un)sews can fail, so we retry until success
                     while atomically_with_err(|trans| {
                         map.unsew::<1>(trans, dbefore1)?;
                         map.unsew::<1>(trans, dbefore2)?;
@@ -202,8 +214,8 @@ fn main() {
 
 In this example, we create batches of work for each thread to process. The exact reason we require
 transactions here is due to STM implementation specificities. While some STM algorithms fully
-prevent operating on invalid data, others will not detect this until there is an attempt to commit
-the transaction. The implementation we use is among the latter.
+prevent operating on invalid data (eager), others will not detect this until there is an attempt
+to commit the transaction (lazy). The implementation we use is among the latter.
 
 This implies that, if conflicting operations are executed concurrently, any check for invariants
 we do in our algorithm can fail due to an inconsistent data state. Practically, we can simply

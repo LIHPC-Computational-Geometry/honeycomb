@@ -22,7 +22,12 @@ use crate::stm::{StmClosureResult, StmError, Transaction, atomically};
 // not applied to orbit currently bc they are lazily onsumed, and therefore require dedicated
 // instances to be robust
 thread_local! {
-    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::with_capacity(10)));
+    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new(
+        (
+            VecDeque::with_capacity(10),
+            HashSet::with_capacity(10),
+        )
+    );
 }
 
 /// **Beta-related methods**
@@ -138,6 +143,12 @@ impl<T: CoordsFloat> CMap3<T> {
     /// # Return
     ///
     /// Return a boolean indicating if the dart is 0-free, 1-free **and** 2-free.
+    ///
+    /// # Errors
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
     #[must_use = "unused return value"]
     pub fn is_free_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<bool> {
         Ok(self.beta_tx::<0>(t, dart_id)? == NULL_DART_ID
@@ -417,6 +428,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Return an iterator over IDs of all the map's vertices.
+    #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn par_iter_vertices(&self) -> impl ParallelIterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
@@ -434,6 +446,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Return an iterator over IDs of all the map's edges.
+    #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn par_iter_edges(&self) -> impl ParallelIterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
@@ -451,6 +464,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Return an iterator over IDs of all the map's faces.
+    #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn par_iter_faces(&self) -> impl ParallelIterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
@@ -468,6 +482,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Return an iterator over IDs of all the map's volumes.
+    #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn par_iter_volumes(&self) -> impl ParallelIterator<Item = VolumeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()

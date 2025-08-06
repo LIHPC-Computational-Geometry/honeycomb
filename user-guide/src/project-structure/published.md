@@ -63,11 +63,9 @@ hypothesis are listed in the documentation of the crate.
 
 ### Implemented algorithms
 
-- [Directional Vertex Relaxation](../kernels/dvr.md)
 - [Grisubal](../kernels/grisubal.md)
 - [Polygon triangulations](../kernels/triangulations.md)
-- [Cell insertions](../kernels/splits.md)
-
+- [2D remeshing primitives and pipeline](../kernels/remeshing.md)
 
 ---
 
@@ -75,12 +73,12 @@ hypothesis are listed in the documentation of the crate.
 
 **honeycomb-render** is a Rust crate that provides a simple visualization framework to allow the user to render their
 combinatorial map. It is designed to be used directly in the code by reading data through a reference to the map (as
-opposed to a binary that would read serialized data). This render tool can be used to debug algorithm results in a
-significantly easier way than reading internal data would.
+opposed to a binary that would read serialized data). This render tool can be used to quickly debug algorithm results
+by looking at the resulting structure instead of reading hard-to-interpret numerical data.
 
 ### Usage
 
-Use the [App](../../honeycomb_render/struct.App.html) structure to render a given combinatorial map. **You may need to run
-the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow users
-to customize the render logic (e.g. to render a specific attribute).
+Use the [exported functions](../../honeycomb_render/index.html) to render a given combinatorial map. **You may need
+to run the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow
+users to customize the render logic (e.g. to render a specific attribute).
 

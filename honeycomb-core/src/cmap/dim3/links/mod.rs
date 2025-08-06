@@ -32,6 +32,9 @@ impl<T: CoordsFloat> CMap3<T> {
     /// `?` operator. The policy in case of failure can be defined when creating the transaction,
     /// using `Transaction::with_control`.
     ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
+    ///
     /// # Panics
     ///
     /// The method may panic if:
@@ -104,6 +107,17 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`link`][Self::link], but internally uses a transaction that
     /// will be retried until validated.
+    ///
+    /// # Errors
+    ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if:
+    /// - `I >= 4` or `I == 0`,
+    /// - `lhs_dart_id` is already `I`-free.
     pub fn force_link<const I: u8>(
         &self,
         lhs_dart_id: DartIdType,
@@ -124,6 +138,17 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
+    ///
+    /// # Errors
+    ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
+    ///
+    /// # Panics
+    ///
+    /// The method may panic if:
+    /// - `I >= 4` or `I == 0`,
+    /// - `lhs_dart_id` is already `I`-free.
     pub fn force_unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);

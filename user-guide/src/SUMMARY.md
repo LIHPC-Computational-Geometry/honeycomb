@@ -19,10 +19,9 @@
 
 # Kernels
 
-- [Cell insertions](./kernels/splits.md)
 - [Grisubal](./kernels/grisubal.md)
 - [Polygon triangulation](./kernels/triangulations.md)
-- [Remeshing](.kernels/remeshing.md)
+- [Remeshing](./kernels/remeshing.md)
 
 # Definitions
 
