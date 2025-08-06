@@ -10,6 +10,11 @@ of such routines in [this](../../honeycomb_kernels/remeshing/index.html) module.
     <figcaption><i>2D remeshing pipeline</i></figcaption>
 </figure>
 
+<figure style="text-align:center">
+    <img src="../images/remesh_loop.svg.svg" alt="Main remeshing loop" />
+    <figcaption><i>Main remeshing loop</i></figcaption>
+</figure>
+
 ## Vertex relaxation
 
 - `move_vertex_to_average` -- move a vertex to the average position of a passed list (in the case of our pipeline, its
