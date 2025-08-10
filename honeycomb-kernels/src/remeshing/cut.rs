@@ -171,11 +171,11 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     } else {
         None
     };
-    if let Some(a) = lf_anchor {
-        if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_tx(t, nd1)?;
-            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
-        }
+    if let Some(a) = lf_anchor
+        && map.contains_attribute::<EdgeAnchor>()
+    {
+        let eid = map.edge_id_tx(t, nd1)?;
+        map.write_attribute(t, eid, EdgeAnchor::from(a))?;
     }
     let rf_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_tx(t, rd)?;
@@ -183,19 +183,19 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     } else {
         None
     };
-    if let Some(a) = rf_anchor {
-        if map.contains_attribute::<EdgeAnchor>() {
-            let eid = map.edge_id_tx(t, nd4)?;
-            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
-        }
+    if let Some(a) = rf_anchor
+        && map.contains_attribute::<EdgeAnchor>()
+    {
+        let eid = map.edge_id_tx(t, nd4)?;
+        map.write_attribute(t, eid, EdgeAnchor::from(a))?;
     }
-    if map.contains_attribute::<EdgeAnchor>() {
-        if let Some(a) = map.read_attribute::<EdgeAnchor>(t, e)? {
-            let vid1 = map.vertex_id_tx(t, nd1)?;
-            let vid2 = map.vertex_id_tx(t, nd4)?;
-            map.write_attribute(t, vid1, VertexAnchor::from(a))?;
-            map.write_attribute(t, vid2, VertexAnchor::from(a))?;
-        }
+    if map.contains_attribute::<EdgeAnchor>()
+        && let Some(a) = map.read_attribute::<EdgeAnchor>(t, e)?
+    {
+        let vid1 = map.vertex_id_tx(t, nd1)?;
+        let vid2 = map.vertex_id_tx(t, nd4)?;
+        map.write_attribute(t, vid1, VertexAnchor::from(a))?;
+        map.write_attribute(t, vid2, VertexAnchor::from(a))?;
     }
 
     let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);

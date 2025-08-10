@@ -314,11 +314,11 @@ fn collapse_edge_to_base<T: CoordsFloat>(
             map.write_attribute(t, new_vid, a)?;
         }
     }
-    if let Some(f_a) = l_face_anchor {
-        if !map.is_unused_tx(t, b0l)? {
-            let new_fid = map.face_id_tx(t, b0l)?;
-            map.write_attribute(t, new_fid, f_a)?;
-        }
+    if let Some(f_a) = l_face_anchor
+        && !map.is_unused_tx(t, b0l)?
+    {
+        let new_fid = map.face_id_tx(t, b0l)?;
+        map.write_attribute(t, new_fid, f_a)?;
     }
     if let Some(f_a) = r_face_anchor {
         let new_fid = map.face_id_tx(t, b1r)?;
