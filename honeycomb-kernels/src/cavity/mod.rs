@@ -11,14 +11,26 @@ use honeycomb_core::{
     stm::{StmClosureResult, Transaction, TransactionClosureResult, try_or_coerce},
 };
 
+type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
+type CavityInternal3 = HashSet<FaceIdType>;
+
 pub struct Cavity3<T: CoordsFloat> {
     point: Vertex3<T>,
     domain: Vec<VolumeIdType>,
-    // n_internal_faces: usize,
 }
 
-pub type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
-pub type CavityInternal3 = HashSet<FaceIdType>;
+impl<T: CoordsFloat> Cavity3<T> {
+    /// Constructor.
+    pub fn new(point: Vertex3<T>, domain: Vec<VolumeIdType>) -> Self {
+        Self { point, domain }
+    }
+}
+
+pub struct CarvedCavity3<T: CoordsFloat> {
+    point: Vertex3<T>,
+    boundary: CavityBoundary3,
+    free_darts: Vec<DartIdType>,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum CavityError {
@@ -30,15 +42,7 @@ pub enum CavityError {
 
 // -- cavity computation
 
-pub fn compute_delaunay_cavity_3d<T: CoordsFloat>(
-    t: &mut Transaction,
-    map: &CMap3<T>,
-    vid: VolumeIdType,
-    p: Vertex3<T>,
-) -> TransactionClosureResult<Cavity3<T>, CavityError> {
-    todo!()
-}
-
+/// Reduce a cavity until it can be triangulated from its point.
 pub fn reduce_to_starshaped_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
@@ -47,15 +51,44 @@ pub fn reduce_to_starshaped_cavity_3d<T: CoordsFloat>(
     todo!()
 }
 
+/// Extend a cavity until it can be triangulated from its point.
 pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    cavity: Cavity3<T>,
-) -> TransactionClosureResult<Cavity3<T>, CavityError> {
-    todo!()
+    cavity: CarvedCavity3<T>,
+) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
+    let CarvedCavity3 {
+        point,
+        mut boundary,
+        mut free_darts,
+    } = cavity;
+
+    let mut extend = Vec::new();
+
+    for (f, [(d1, _), (d2, _), (d3, _)]) in boundary.iter() {
+        // if orientation is bad
+        // extend.push(b2(d1))
+    }
+
+    while !extend.is_empty() {
+        for d in extend.drain(..) {
+            // update boundary
+        }
+
+        for (f, [(d1, _), (d2, _), (d3, _)]) in boundary.iter() {
+            // if orientation is bad
+            // extend.push(b2(d1))
+        }
+    }
+
+    Ok(CarvedCavity3 {
+        point,
+        boundary,
+        free_darts,
+    })
 }
 
-/// Compute data representations for the cavity's boundary and internal elements.
+/// Compute data representations for a cavity's boundary and internal elements.
 pub fn map_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
@@ -156,12 +189,14 @@ pub fn map_cavity_3d<T: CoordsFloat>(
 
 // cavity modification
 
+/// Delete all internal elements of a cavity.
 pub fn carve_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    cavity: &Cavity3<T>,
-) -> TransactionClosureResult<CavityBoundary3, CavityError> {
-    let (cavity_map, cavity_internals) = map_cavity_3d(t, map, cavity)?;
+    cavity: Cavity3<T>,
+) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
+    let (cavity_map, cavity_internals) = map_cavity_3d(t, map, &cavity)?;
+    let mut free_darts = Vec::new();
     let mut buffer = Vec::with_capacity(16);
 
     for f in cavity_internals {
@@ -179,8 +214,34 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
+            free_darts.push(d);
         }
     }
 
-    Ok(cavity_map)
+    // necessary for tets that had two or more faces adjacent to the boundary
+    for &[(d1, _), (d2, _), (d3, _)] in cavity_map.values() {
+        if map.beta_tx::<2>(t, d1)? != NULL_DART_ID {
+            try_or_coerce!(map.unsew::<2>(t, d1), CavityError);
+        }
+        if map.beta_tx::<2>(t, d2)? != NULL_DART_ID {
+            try_or_coerce!(map.unsew::<2>(t, d2), CavityError);
+        }
+        if map.beta_tx::<2>(t, d3)? != NULL_DART_ID {
+            try_or_coerce!(map.unsew::<2>(t, d3), CavityError);
+        }
+    }
+
+    Ok(CarvedCavity3 {
+        point: cavity.point,
+        boundary: cavity_map,
+        free_darts,
+    })
+}
+
+pub fn rebuild_cavity_3d<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    cavity: CarvedCavity3<T>,
+) -> TransactionClosureResult<(), CavityError> {
+    todo!()
 }

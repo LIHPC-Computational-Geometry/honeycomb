@@ -50,6 +50,7 @@ fast-stm = "0.5.0"
 vtkio = { version = "0.7.0-rc1", default-features = false }
 
 # kernels
+nalgebra = "0.34.0"
 smallvec = "2.0.0-alpha.10"
 
 # benchmarks
