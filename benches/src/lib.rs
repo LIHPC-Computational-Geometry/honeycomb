@@ -47,6 +47,7 @@
 #[doc(hidden)]
 pub mod cli;
 pub mod cut_edges;
+pub mod delaunay;
 pub mod grid_gen;
 pub mod grisubal;
 pub mod remesh;
