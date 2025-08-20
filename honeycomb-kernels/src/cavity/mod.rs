@@ -13,6 +13,8 @@ use honeycomb_core::{
 use nalgebra::Matrix3;
 use smallvec::{SmallVec, smallvec};
 
+use crate::utils::compute_tet_orientation;
+
 type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
 type CavityInternal3 = HashSet<FaceIdType>;
 
@@ -187,37 +189,6 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
         boundary,
         free_darts,
     })
-}
-
-#[rustfmt::skip]
-fn compute_tet_orientation<T: CoordsFloat>(
-    t: &mut Transaction,
-    map: &CMap3<T>,
-    (d1, d2, d3): (DartIdType, DartIdType, DartIdType),
-    p: Vertex3<T>,
-) -> StmClosureResult<f64> {
-    let v1 = {
-        let vid = map.vertex_id_tx(t, d1).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
-    };
-    let v2 = {
-        let vid = map.vertex_id_tx(t, d2).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
-    };
-    let v3 = {
-        let vid = map.vertex_id_tx(t, d3).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
-    };
-
-    let c1 = v1 - p;
-    let c2 = v2 - p;
-    let c3 = v3 - p;
-
-    Ok(Matrix3::from_column_slice(&[
-        c1.x().to_f64().unwrap(), c1.y().to_f64().unwrap(), c1.z().to_f64().unwrap(), 
-        c2.x().to_f64().unwrap(), c2.y().to_f64().unwrap(), c2.z().to_f64().unwrap(), 
-        c3.x().to_f64().unwrap(), c3.y().to_f64().unwrap(), c3.z().to_f64().unwrap(), 
-    ]).determinant())
 }
 
 /// Compute data representations for a cavity's boundary and internal elements.
