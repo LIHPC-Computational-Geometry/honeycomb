@@ -1,6 +1,6 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, OrbitPolicy, VertexIdType},
-    geometry::{CoordsFloat, Vertex2},
+    cmap::{CMap2, CMap3, DartIdType, OrbitPolicy, VertexIdType, VolumeIdType},
+    geometry::{CoordsFloat, Vertex2, Vertex3},
     stm::{StmClosureResult, Transaction, retry},
 };
 use smallvec::SmallVec;
@@ -76,4 +76,13 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
     }
 
     Ok(true)
+}
+
+pub fn locate_containing_tet<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    start: VolumeIdType,
+    p: Vertex3<T>,
+) -> StmClosureResult<Option<VolumeIdType>> {
+    Ok(Some(0))
 }

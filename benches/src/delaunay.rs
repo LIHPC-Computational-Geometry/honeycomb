@@ -1,12 +1,15 @@
 use std::collections::{HashSet, VecDeque};
 
-use honeycomb::kernels::cavity::{carve_cavity_3d, extend_to_starshaped_cavity_3d, Cavity3, CavityError};
-use honeycomb::stm::{abort, atomically_with_err, try_or_coerce};
+use honeycomb::kernels::cavity::{
+    Cavity3, CavityError, carve_cavity_3d, extend_to_starshaped_cavity_3d, rebuild_cavity_3d,
+};
+use honeycomb::kernels::utils::locate_containing_tet;
+use honeycomb::stm::{abort, atomically_with_err, retry, try_or_coerce};
 use honeycomb::{
     core::{
         cmap::{CMap3, CMapBuilder, DartIdType, NULL_VOLUME_ID, VolumeIdType},
         geometry::{CoordsFloat, Vertex3},
-        stm::{StmClosureResult, Transaction},
+        stm::Transaction,
     },
     stm::TransactionClosureResult,
 };
@@ -27,7 +30,6 @@ pub fn bench_delaunay<T: CoordsFloat>(len_x: T, len_y: T, len_z: T, n_points: us
     assert!(len_x.is_sign_positive() && !len_x.is_zero());
     assert!(len_y.is_sign_positive() && !len_y.is_zero());
     assert!(len_z.is_sign_positive() && !len_z.is_zero());
-    // assert!(n_points > 5); // or check the validity of the box later? volume>0?
 
     // TODO: Sample points in the [0;len_x]x[0;len_y]x[0;len_z] bounding box, build the actual box
     let points: Vec<Vertex3<T>> = Vec::with_capacity(n_points);
@@ -35,20 +37,28 @@ pub fn bench_delaunay<T: CoordsFloat>(len_x: T, len_y: T, len_z: T, n_points: us
         .build()
         .expect("E: unreachable");
 
-    // TODO: process points until all are inserted
+    map.allocate_unused_darts(n_points * 10 * 9);
     points.into_iter().for_each(|p| {
         while let Err(e) = atomically_with_err(|t| {
             // locate
-            let volume = 0;
+            // TODO: is 1 always valid as a starting point?
+            let volume = match locate_containing_tet(t, &map, 1, p)? {
+                Some(v) => v,
+                None => {
+                    return retry()?; // can only happen due to parallel inconsistency here
+                }
+            };
             // compute cavity
             let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+            // carve
+            let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+            // extend
             let cavity = try_or_coerce!(
-                extend_to_starshaped_cavity_3d(t, &map, cavity),
+                extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
                 DelaunayError
             );
-            // carve
-            carve_cavity_3d(t, &map, cavity)
             // rebuild
+            try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
             Ok(())
         }) {
             match e {
