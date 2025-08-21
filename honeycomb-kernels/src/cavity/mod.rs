@@ -10,7 +10,6 @@ use honeycomb_core::{
     geometry::{CoordsFloat, Vertex3},
     stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
-use nalgebra::Matrix3;
 use smallvec::{SmallVec, smallvec};
 
 use crate::utils::compute_tet_orientation;
@@ -39,25 +38,25 @@ pub struct CarvedCavity3<T: CoordsFloat> {
 #[derive(Debug, thiserror::Error)]
 pub enum CavityError {
     #[error("core operation failed: {0}")]
-    OpError(#[from] SewError),
+    FailedOp(#[from] SewError),
     #[error("dart release failed: {0}")]
-    DartReleaseError(#[from] DartReleaseError),
+    FailedRelease(#[from] DartReleaseError),
     #[error("dart release failed: {0}")]
-    DartReservationError(#[from] DartReservationError),
+    FailedReservation(#[from] DartReservationError),
     #[error("cannot extend the cavity: {0}")]
     NonExtendable(&'static str),
 }
 
 // -- cavity computation
 
-/// Reduce a cavity until it can be triangulated from its point.
-pub fn reduce_to_starshaped_cavity_3d<T: CoordsFloat>(
-    t: &mut Transaction,
-    map: &CMap3<T>,
-    cavity: Cavity3<T>,
-) -> TransactionClosureResult<Cavity3<T>, CavityError> {
-    todo!()
-}
+// /// Reduce a cavity until it can be triangulated from its point.
+// pub fn reduce_to_starshaped_cavity_3d<T: CoordsFloat>(
+//     t: &mut Transaction,
+//     map: &CMap3<T>,
+//     cavity: Cavity3<T>,
+// ) -> TransactionClosureResult<Cavity3<T>, CavityError> {
+//     todo!()
+// }
 
 /// Extend a cavity until it can be triangulated from its point.
 pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(

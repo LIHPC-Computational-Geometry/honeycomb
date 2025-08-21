@@ -16,6 +16,7 @@
 
 pub mod cavity;
 pub mod cell_insertion;
+pub mod delaunay;
 pub mod grisubal;
 pub mod remeshing;
 pub mod skewness;

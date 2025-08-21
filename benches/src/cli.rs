@@ -32,6 +32,8 @@ pub enum Benches {
     Generate2dGrid(Generate2dGridArgs),
     /// Edge size reduction in triangular meshes using vertex/edge insertions
     CutEdges(CutEdgesArgs),
+    /// 3D incremental Delaunay triangulation of a box.
+    DelaunayBox(DelaunayBoxArgs),
     /// `grisubal` kernel execution
     Grisubal(GrisubalArgs),
     /// Geometry capture, triangulation and remeshing kernel
@@ -88,6 +90,22 @@ pub enum Backend {
     RayonIter,
     RayonChunks,
     StdThreads,
+}
+
+#[derive(Args)]
+pub struct DelaunayBoxArgs {
+    /// Number of cells along the X-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub lx: f64,
+    /// Number of cells along the Y-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub ly: f64,
+    /// Length of cells along the X-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub lz: f64,
+    /// Length of cells along the Y-axis
+    #[arg(required(true))]
+    pub n_points: NonZero<usize>,
 }
 
 #[derive(Args)]
