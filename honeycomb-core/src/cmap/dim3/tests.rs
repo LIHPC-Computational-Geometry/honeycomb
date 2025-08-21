@@ -1,6 +1,6 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, CMapBuilder, DartIdType, OrbitPolicy, SewError, VertexIdType},
+    cmap::{CMap3, CMapBuilder, DartIdType, GridDescriptor, OrbitPolicy, SewError, VertexIdType},
     geometry::Vertex3,
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
@@ -589,6 +589,34 @@ fn three_sew_bad_orientation() {
         map.force_sew::<3>(1, 5)
             .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
     );
+}
+
+#[test]
+fn three_unsew() {
+    let map = CMapBuilder::<3, f64>::from_n_darts(6).build().unwrap();
+    assert_eq!(
+        atomically_with_err(|t| {
+            map.link::<1>(t, 1, 2)?;
+            map.link::<1>(t, 2, 3)?;
+            map.link::<1>(t, 3, 1)?;
+            map.link::<1>(t, 4, 5)?;
+            map.link::<1>(t, 5, 6)?;
+            map.link::<1>(t, 6, 4)?;
+            map.link::<3>(t, 1, 4)?;
+            map.write_vertex(t, 1, Vertex3(0., 0., 0.))?;
+            map.write_vertex(t, 2, Vertex3(1., 0., 0.))?;
+            map.write_vertex(t, 3, Vertex3(0., 0., 1.))?;
+            Ok(())
+        }),
+        Ok(())
+    );
+    assert_eq!(atomically_with_err(|t| map.unsew::<3>(t, 1)), Ok(()));
+    assert_eq!(map.force_read_vertex(1), Some(Vertex3(0., 0., 0.)));
+    assert_eq!(map.force_read_vertex(2), Some(Vertex3(1., 0., 0.)));
+    assert_eq!(map.force_read_vertex(3), Some(Vertex3(0., 0., 1.)));
+    assert_eq!(map.force_read_vertex(4), Some(Vertex3(1., 0., 0.)));
+    assert_eq!(map.force_read_vertex(5), Some(Vertex3(0., 0., 0.)));
+    assert_eq!(map.force_read_vertex(6), Some(Vertex3(0., 0., 1.)));
 }
 
 // --- PARALLEL

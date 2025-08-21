@@ -23,10 +23,8 @@ clap = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
 honeycomb.workspace = true
 hwlocality = { workspace = true, optional = true }
-nalgebra.workspace = true
 rayon.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
-thiserror.workspace = true
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }

@@ -1,13 +1,14 @@
 use std::collections::{HashSet, VecDeque};
 
 use honeycomb_core::{
-    cmap::{CMap3, CMapBuilder, DartIdType, NULL_VOLUME_ID, VolumeIdType},
+    cmap::{CMap3, CMapBuilder, DartIdType, LinkError, NULL_VOLUME_ID, VolumeIdType},
     geometry::{CoordsFloat, Vertex3},
     stm::{
         Transaction, TransactionClosureResult, abort, atomically_with_err, retry, try_or_coerce,
     },
 };
 use nalgebra::Matrix5;
+use rand::{distr::Uniform, prelude::*};
 
 use crate::{
     cavity::{Cavity3, carve_cavity_3d, extend_to_starshaped_cavity_3d, rebuild_cavity_3d},
@@ -33,13 +34,11 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
     assert!(n_points > 0);
 
     // TODO: Sample points in the [0;lx]x[0;ly]x[0;lz] bounding box, build the actual box
-    let points: Vec<Vertex3<T>> = Vec::with_capacity(n_points);
-    let mut map = CMapBuilder::<3, T>::from_n_darts(60)
-        .build()
-        .expect("E: unreachable");
+    let points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points);
+    let mut map = init_map(lx, ly, lz).expect("E: unreachable");
 
     map.allocate_unused_darts(n_points * 10 * 9);
-    points.into_iter().for_each(|p| {
+    points.into_iter().enumerate().for_each(|(i, p)| {
         while let Err(e) = atomically_with_err(|t| {
             // locate
             // TODO: is 1 always valid as a starting point?
@@ -65,7 +64,10 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
             match e {
                 DelaunayError::CircumsphereSingularity => break,
                 DelaunayError::CavityBuilding(e) => match e {
-                    CavityError::FailedOp(_) | CavityError::FailedReservation(_) => continue,
+                    CavityError::FailedOp(_) | CavityError::FailedReservation(_) => {
+                        eprintln!("{e}");
+                        continue;
+                    }
                     CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => break,
                 },
             }
@@ -150,7 +152,7 @@ fn in_sphere<T: CoordsFloat>(
         },
         {
             let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
-            let b0b2 = map.beta_tx::<3>(t, b2)?;
+            let b0b2 = map.beta_tx::<0>(t, b2)?;
             let vid = map.vertex_id_tx(t, b0b2)?;
             map.read_vertex(t, vid)?.expect("E: unreachable")
         },
@@ -177,4 +179,173 @@ fn norm_squared<T: CoordsFloat>(v: &Vertex3<T>) -> f64 {
     (v.x() * v.x() + v.y() * v.y() + v.z() * v.z())
         .to_f64()
         .unwrap()
+}
+
+fn sample_points<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usize) -> Vec<Vertex3<T>> {
+    let mut rngx = SmallRng::seed_from_u64(123);
+    let mut rngy = SmallRng::seed_from_u64(456);
+    let mut rngz = SmallRng::seed_from_u64(789);
+    let xs = {
+        let dist = Uniform::try_from(0.0..lx).unwrap();
+        dist.sample_iter(&mut rngx).take(n_points)
+    };
+    let ys = {
+        let dist = Uniform::try_from(0.0..ly).unwrap();
+        dist.sample_iter(&mut rngy).take(n_points)
+    };
+    let zs = {
+        let dist = Uniform::try_from(0.0..lz).unwrap();
+        dist.sample_iter(&mut rngz).take(n_points)
+    };
+
+    xs.zip(ys.zip(zs))
+        .map(|(x, (y, z))| {
+            let x = T::from(x).unwrap();
+            let y = T::from(y).unwrap();
+            let z = T::from(z).unwrap();
+            Vertex3(x, y, z)
+        })
+        .collect()
+}
+
+// TODO: add image of our tet structure in doc
+fn init_map<T: CoordsFloat>(lx: f64, ly: f64, lz: f64) -> Result<CMap3<T>, LinkError> {
+    let map = CMapBuilder::<3, T>::from_n_darts(60)
+        .build()
+        .expect("E: unreachable");
+    let zero = T::zero();
+    let lx = T::from(lx).unwrap();
+    let ly = T::from(ly).unwrap();
+    let lz = T::from(lz).unwrap();
+
+    if atomically_with_err(|t| {
+        // tet 1
+        map.link::<1>(t, 1, 2)?;
+        map.link::<1>(t, 2, 3)?;
+        map.link::<1>(t, 3, 1)?;
+        map.link::<1>(t, 4, 5)?;
+        map.link::<1>(t, 5, 6)?;
+        map.link::<1>(t, 6, 4)?;
+        map.link::<1>(t, 7, 8)?;
+        map.link::<1>(t, 8, 9)?;
+        map.link::<1>(t, 9, 7)?;
+        map.link::<1>(t, 10, 11)?;
+        map.link::<1>(t, 11, 12)?;
+        map.link::<1>(t, 12, 10)?;
+
+        map.link::<2>(t, 1, 4)?;
+        map.link::<2>(t, 2, 7)?;
+        map.link::<2>(t, 3, 10)?;
+        map.link::<2>(t, 6, 8)?;
+        map.link::<2>(t, 9, 11)?;
+        map.link::<2>(t, 12, 5)?;
+
+        // tet 2
+        map.link::<1>(t, 13, 14)?;
+        map.link::<1>(t, 14, 15)?;
+        map.link::<1>(t, 15, 13)?;
+        map.link::<1>(t, 16, 17)?;
+        map.link::<1>(t, 17, 18)?;
+        map.link::<1>(t, 18, 16)?;
+        map.link::<1>(t, 19, 20)?;
+        map.link::<1>(t, 20, 21)?;
+        map.link::<1>(t, 21, 19)?;
+        map.link::<1>(t, 22, 23)?;
+        map.link::<1>(t, 23, 24)?;
+        map.link::<1>(t, 24, 22)?;
+
+        map.link::<2>(t, 13, 16)?;
+        map.link::<2>(t, 14, 19)?;
+        map.link::<2>(t, 15, 22)?;
+        map.link::<2>(t, 18, 20)?;
+        map.link::<2>(t, 21, 23)?;
+        map.link::<2>(t, 24, 17)?;
+
+        // tet 3
+        map.link::<1>(t, 25, 26)?;
+        map.link::<1>(t, 26, 27)?;
+        map.link::<1>(t, 27, 25)?;
+        map.link::<1>(t, 28, 29)?;
+        map.link::<1>(t, 29, 30)?;
+        map.link::<1>(t, 30, 28)?;
+        map.link::<1>(t, 31, 32)?;
+        map.link::<1>(t, 32, 33)?;
+        map.link::<1>(t, 33, 31)?;
+        map.link::<1>(t, 34, 35)?;
+        map.link::<1>(t, 35, 36)?;
+        map.link::<1>(t, 36, 34)?;
+
+        map.link::<2>(t, 25, 28)?;
+        map.link::<2>(t, 26, 31)?;
+        map.link::<2>(t, 27, 34)?;
+        map.link::<2>(t, 30, 32)?;
+        map.link::<2>(t, 33, 35)?;
+        map.link::<2>(t, 36, 29)?;
+
+        // tet 4
+        map.link::<1>(t, 37, 38)?;
+        map.link::<1>(t, 38, 39)?;
+        map.link::<1>(t, 39, 37)?;
+        map.link::<1>(t, 40, 41)?;
+        map.link::<1>(t, 41, 42)?;
+        map.link::<1>(t, 42, 40)?;
+        map.link::<1>(t, 43, 44)?;
+        map.link::<1>(t, 44, 45)?;
+        map.link::<1>(t, 45, 43)?;
+        map.link::<1>(t, 46, 47)?;
+        map.link::<1>(t, 47, 48)?;
+        map.link::<1>(t, 48, 46)?;
+
+        map.link::<2>(t, 37, 40)?;
+        map.link::<2>(t, 38, 43)?;
+        map.link::<2>(t, 39, 46)?;
+        map.link::<2>(t, 42, 44)?;
+        map.link::<2>(t, 45, 47)?;
+        map.link::<2>(t, 48, 41)?;
+
+        // tet 5
+        map.link::<1>(t, 49, 50)?;
+        map.link::<1>(t, 50, 51)?;
+        map.link::<1>(t, 51, 49)?;
+        map.link::<1>(t, 52, 53)?;
+        map.link::<1>(t, 53, 54)?;
+        map.link::<1>(t, 54, 52)?;
+        map.link::<1>(t, 55, 56)?;
+        map.link::<1>(t, 56, 57)?;
+        map.link::<1>(t, 57, 55)?;
+        map.link::<1>(t, 58, 59)?;
+        map.link::<1>(t, 59, 60)?;
+        map.link::<1>(t, 60, 58)?;
+
+        map.link::<2>(t, 49, 52)?;
+        map.link::<2>(t, 50, 55)?;
+        map.link::<2>(t, 51, 58)?;
+        map.link::<2>(t, 54, 56)?;
+        map.link::<2>(t, 57, 59)?;
+        map.link::<2>(t, 60, 53)?;
+
+        // link all tetrahedra together
+        map.link::<3>(t, 7, 49)?;
+        map.link::<3>(t, 19, 59)?;
+        map.link::<3>(t, 31, 52)?;
+        map.link::<3>(t, 43, 57)?;
+
+        // set vertices
+        map.write_vertex(t, 1, Vertex3(zero, zero, zero))?;
+        map.write_vertex(t, 2, Vertex3(lx, zero, zero))?;
+        map.write_vertex(t, 3, Vertex3(zero, zero, lz))?;
+        map.write_vertex(t, 6, Vertex3(zero, ly, zero))?;
+        map.write_vertex(t, 13, Vertex3(lx, ly, zero))?;
+        map.write_vertex(t, 15, Vertex3(lx, ly, lz))?;
+        map.write_vertex(t, 25, Vertex3(lx, zero, lz))?;
+        map.write_vertex(t, 37, Vertex3(zero, ly, lz))?;
+
+        Ok(())
+    })
+    .is_err()
+    {
+        unreachable!();
+    }
+
+    Ok(map)
 }

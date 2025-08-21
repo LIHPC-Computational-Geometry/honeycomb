@@ -4,8 +4,8 @@ use std::collections::{HashMap, HashSet};
 
 use honeycomb_core::{
     cmap::{
-        CMap3, DartIdType, DartReleaseError, DartReservationError, FaceIdType, NULL_DART_ID,
-        OrbitPolicy, SewError, VolumeIdType,
+        CMap3, DartIdType, DartReleaseError, DartReservationError, FaceIdType, LinkError,
+        NULL_DART_ID, OrbitPolicy, SewError, VolumeIdType,
     },
     geometry::{CoordsFloat, Vertex3},
     stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
@@ -45,6 +45,12 @@ pub enum CavityError {
     FailedReservation(#[from] DartReservationError),
     #[error("cannot extend the cavity: {0}")]
     NonExtendable(&'static str),
+}
+
+impl From<LinkError> for CavityError {
+    fn from(value: LinkError) -> Self {
+        Self::FailedOp(SewError::FailedLink(value))
+    }
 }
 
 // -- cavity computation
@@ -306,13 +312,17 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
             buffer.push(d?);
         }
         for &d in &buffer {
-            try_or_coerce!(map.unsew::<1>(t, d), CavityError);
+            if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
+                map.unsew::<3>(t, d).unwrap();
+            }
+        }
+        for &d in &buffer {
             if map.beta_tx::<2>(t, d)? != NULL_DART_ID {
                 try_or_coerce!(map.unsew::<2>(t, d), CavityError);
             }
-            if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                try_or_coerce!(map.unsew::<3>(t, d), CavityError);
-            }
+        }
+        for &d in &buffer {
+            try_or_coerce!(map.unlink::<1>(t, d), CavityError);
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
