@@ -169,7 +169,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
             }
             for d in buffer.drain(..) {
                 try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-                free_darts.push(d);
+                // free_darts.push(d);
             }
         }
 
@@ -221,7 +221,7 @@ pub fn map_cavity_3d<T: CoordsFloat>(
                 // boundary of the cavity and of the mesh
                 boundary_faces.insert(
                     map.face_id_tx(t, fd)?,
-                    [fd, map.beta_tx::<0>(t, fd)?, map.beta_tx::<1>(t, fd)?],
+                    [fd, map.beta_tx::<1>(t, fd)?, map.beta_tx::<0>(t, fd)?],
                 );
                 continue;
             }
@@ -254,11 +254,13 @@ pub fn map_cavity_3d<T: CoordsFloat>(
         for d in buffer.drain(..) {
             if boundary_faces.contains_key(&map.face_id_tx(t, d)?)
                 && cavity.domain.contains(&map.volume_id_tx(t, d)?)
+                && d != d1
             {
                 d1_neighbor = d;
                 break; // rest of the buffer is still emptied by `drain`
             }
         }
+        assert!(buffer.is_empty());
 
         for d in map.orbit_tx(t, OrbitPolicy::Edge, d2) {
             buffer.push(d?);
@@ -266,11 +268,13 @@ pub fn map_cavity_3d<T: CoordsFloat>(
         for d in buffer.drain(..) {
             if boundary_faces.contains_key(&map.face_id_tx(t, d)?)
                 && cavity.domain.contains(&map.volume_id_tx(t, d)?)
+                && d != d2
             {
                 d2_neighbor = d;
                 break;
             }
         }
+        assert!(buffer.is_empty());
 
         for d in map.orbit_tx(t, OrbitPolicy::Edge, d3) {
             buffer.push(d?);
@@ -278,11 +282,13 @@ pub fn map_cavity_3d<T: CoordsFloat>(
         for d in buffer.drain(..) {
             if boundary_faces.contains_key(&map.face_id_tx(t, d)?)
                 && cavity.domain.contains(&map.volume_id_tx(t, d)?)
+                && d != d3
             {
                 d3_neighbor = d;
                 break;
             }
         }
+        assert!(buffer.is_empty());
 
         // FIXME: use an error instead of assertions
         assert_ne!(d1_neighbor, NULL_DART_ID);
@@ -326,7 +332,7 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-            free_darts.push(d);
+            // free_darts.push(d);
         }
     }
 
@@ -371,14 +377,14 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     }
     assert_eq!(free_darts.len() % 9, 0);
 
-    let new_point_dart = free_darts[0];
+    // let new_point_dart = free_darts[0];
 
     for ((_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]), nds) in
         boundary.into_iter().zip(free_darts.chunks_exact(9))
     {
         let nds @ [_, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             nds.try_into().expect("E: unreachable");
-        try_or_coerce!(make_incomplete_tet(t, map, nds), CavityError);
+        try_or_coerce!(make_incomplete_tet(t, map, nds, point), CavityError);
 
         try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
         let b2db = map.beta_tx::<2>(t, db_neigh)?;
@@ -399,8 +405,8 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         }
     }
 
-    let vid = map.vertex_id_tx(t, new_point_dart)?;
-    map.write_vertex(t, vid, point)?;
+    // let vid = map.vertex_id_tx(t, new_point_dart)?;
+    // map.write_vertex(t, vid, point)?;
 
     Ok(())
 }
@@ -409,21 +415,25 @@ fn make_incomplete_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
-) -> TransactionClosureResult<(), SewError> {
+    p: Vertex3<T>,
+) -> TransactionClosureResult<(), LinkError> {
     // build 3 triangles
-    map.sew::<1>(t, d1, d2)?;
-    map.sew::<1>(t, d2, d3)?;
-    map.sew::<1>(t, d3, d1)?;
-    map.sew::<1>(t, d4, d5)?;
-    map.sew::<1>(t, d5, d6)?;
-    map.sew::<1>(t, d6, d4)?;
-    map.sew::<1>(t, d7, d8)?;
-    map.sew::<1>(t, d8, d9)?;
-    map.sew::<1>(t, d9, d7)?;
-    // sew the sides that will be adjacent to the point inserted by the cavity
-    map.sew::<2>(t, d3, d4)?;
-    map.sew::<2>(t, d6, d7)?;
-    map.sew::<2>(t, d9, d1)?;
+    map.link::<1>(t, d1, d2)?;
+    map.link::<1>(t, d2, d3)?;
+    map.link::<1>(t, d3, d1)?;
+    map.link::<1>(t, d4, d5)?;
+    map.link::<1>(t, d5, d6)?;
+    map.link::<1>(t, d6, d4)?;
+    map.link::<1>(t, d7, d8)?;
+    map.link::<1>(t, d8, d9)?;
+    map.link::<1>(t, d9, d7)?;
+    // link the sides that will be adjacent to the point inserted by the cavity
+    map.link::<2>(t, d3, d4)?;
+    map.link::<2>(t, d6, d7)?;
+    map.link::<2>(t, d9, d1)?;
+
+    let vid = map.vertex_id_tx(t, d1)?;
+    map.write_vertex(t, vid, p)?;
 
     Ok(())
 }

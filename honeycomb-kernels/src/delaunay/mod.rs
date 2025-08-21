@@ -12,7 +12,7 @@ use rand::{distr::Uniform, prelude::*};
 
 use crate::{
     cavity::{Cavity3, carve_cavity_3d, extend_to_starshaped_cavity_3d, rebuild_cavity_3d},
-    utils::locate_containing_tet,
+    utils::{compute_tet_orientation, locate_containing_tet},
 };
 
 use super::cavity::CavityError;
@@ -38,16 +38,47 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
     let mut map = init_map(lx, ly, lz).expect("E: unreachable");
 
     map.allocate_unused_darts(n_points * 10 * 9);
-    points.into_iter().enumerate().for_each(|(i, p)| {
+    points.into_iter().for_each(|p| {
         while let Err(e) = atomically_with_err(|t| {
             // locate
             // TODO: is 1 always valid as a starting point?
+
             let volume = match locate_containing_tet(t, &map, 1, p)? {
                 Some(v) => v,
                 None => {
                     return retry()?; // can only happen due to parallel inconsistency here
                 }
             };
+
+            #[cfg(debug_assertions)]
+            {
+                println!("{p:#?}");
+                println!("{volume}");
+                let f1 = (
+                    volume as DartIdType,
+                    map.beta_tx::<1>(t, volume as DartIdType)?,
+                    map.beta_tx::<0>(t, volume as DartIdType)?,
+                );
+                let f2 = {
+                    let d = map.beta_tx::<2>(t, volume as DartIdType)?;
+                    (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
+                };
+                let f3 = {
+                    let d = map.beta_tx::<1>(t, volume as DartIdType)?;
+                    let b2 = map.beta_tx::<2>(t, d)?;
+                    (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                };
+                let f4 = {
+                    let d = map.beta_tx::<0>(t, volume as DartIdType)?;
+                    let b2 = map.beta_tx::<2>(t, d)?;
+                    (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                };
+                assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
+                assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
+                assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
+                assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+            }
+
             // compute cavity
             let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
             // carve
@@ -61,14 +92,16 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
             try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
             Ok(())
         }) {
+            eprintln!("{e}");
             match e {
                 DelaunayError::CircumsphereSingularity => break,
                 DelaunayError::CavityBuilding(e) => match e {
                     CavityError::FailedOp(_) | CavityError::FailedReservation(_) => {
-                        eprintln!("{e}");
                         continue;
                     }
-                    CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => break,
+                    CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
+                        break;
+                    }
                 },
             }
         }
