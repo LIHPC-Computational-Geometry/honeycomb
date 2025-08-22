@@ -43,6 +43,8 @@ pub enum CavityError {
     FailedRelease(#[from] DartReleaseError),
     #[error("dart release failed: {0}")]
     FailedReservation(#[from] DartReservationError),
+    #[error("mesh is in an inconsistent state: {0}")]
+    InconsistentState(&'static str),
     #[error("cannot extend the cavity: {0}")]
     NonExtendable(&'static str),
 }
@@ -174,17 +176,17 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
         }
 
         for (f, val) in to_add {
-            val.iter().for_each(|(d, d_neigh)| {
-                if let Some(val) = boundary.get_mut(&map.face_id_tx(t, *d_neigh).unwrap()) {
-                    if let Some(pair) = val.iter_mut().find(|(dd, _)| dd == d_neigh) {
-                        pair.1 = *d;
-                    } else {
-                        panic!()
-                    }
+            for (d, d_neigh) in val {
+                if let Some(val) = boundary.get_mut(&map.face_id_tx(t, d_neigh)?)
+                    && let Some(pair) = val.iter_mut().find(|(dd, _)| *dd == d_neigh)
+                {
+                    pair.1 = d;
                 } else {
-                    panic!()
+                    abort(CavityError::InconsistentState(
+                        "found a neighbor face without dart adjacency data",
+                    ))?;
                 }
-            });
+            }
             boundary.insert(f, val);
         }
     }
@@ -319,7 +321,7 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for &d in &buffer {
             if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                map.unsew::<3>(t, d).unwrap();
+                try_or_coerce!(map.unsew::<3>(t, d), CavityError);
             }
         }
         for &d in &buffer {

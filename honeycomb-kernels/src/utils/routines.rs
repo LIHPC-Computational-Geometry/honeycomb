@@ -147,9 +147,16 @@ pub fn locate_containing_tet<T: CoordsFloat>(
         Ok(None)
     }
 
+    let mut count = 0;
+    let max_walk = map.n_darts() / 12;
     let mut dart = start as DartIdType;
 
     loop {
+        count += 1;
+        if count > max_walk {
+            eprintln!("E: oscillating, retrying");
+            retry()?;
+        }
         if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
             dart = next_dart;
             // point is outside or across a gap in the mesh
