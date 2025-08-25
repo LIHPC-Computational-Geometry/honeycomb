@@ -1,7 +1,7 @@
 use honeycomb_core::{
     cmap::{CMap2, CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType, VolumeIdType},
     geometry::{CoordsFloat, Vertex2, Vertex3},
-    stm::{StmClosureResult, Transaction, retry},
+    stm::{StmClosureResult, StmError, Transaction, retry},
 };
 use nalgebra::Matrix3;
 use smallvec::SmallVec;
@@ -176,8 +176,8 @@ pub fn locate_containing_tet<T: CoordsFloat>(
     loop {
         count += 1;
         if count > max_walk {
-            eprintln!("E: oscillating, retrying");
-            retry()?;
+            eprintln!("E: oscillating, abandonning ");
+            Err(StmError::Failure)?;
         }
         if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
             dart = next_dart;

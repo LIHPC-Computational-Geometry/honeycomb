@@ -374,10 +374,20 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         for d in &free_darts {
             map.claim_dart_tx(t, *d)?;
         }
-        let mut new_darts = try_or_coerce!(
-            map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
-            CavityError
-        );
+        let mut new_darts: Vec<DartIdType> = (free_darts.get(0).copied().unwrap_or(1)
+            ..map.n_darts() as DartIdType)
+            .into_iter()
+            .chain(1..free_darts.get(0).copied().unwrap_or(1))
+            .filter(|&d| map.is_unused_tx(t, d).unwrap())
+            .take(n_required_darts - free_darts.len())
+            .collect();
+        //     try_or_coerce!(
+        //     map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
+        //     CavityError
+        // );
+        for d in &new_darts {
+            map.claim_dart_tx(t, *d)?;
+        }
         free_darts.append(&mut new_darts);
     } else {
         free_darts.truncate(n_required_darts);

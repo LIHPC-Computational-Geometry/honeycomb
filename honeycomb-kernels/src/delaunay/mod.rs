@@ -105,15 +105,15 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
                 },
             ) {
                 TransactionResult::Validated(_) => {
-                    println!(
-                        "insertion successful from t{:?}",
-                        std::thread::current().id()
-                    );
+                    // println!(
+                    //     "insertion successful from t{:?}",
+                    //     std::thread::current().id()
+                    // );
                     break;
                 }
                 TransactionResult::Abandoned => unreachable!(),
                 TransactionResult::Cancelled(e) => {
-                    eprintln!("E: insertion failed - {e}");
+                    // eprintln!("E: insertion failed - {e}");
                     match e {
                         DelaunayError::CircumsphereSingularity => break,
                         DelaunayError::CavityBuilding(e) => match e {
@@ -131,7 +131,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
                 }
             }
         }
-        println!("point processed after {n_retry} retries");
+        // println!("point processed after {n_retry} retries");
     });
 
     map
