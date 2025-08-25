@@ -175,7 +175,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 OrbitPolicy::Face,
                 l_face,
                 r_face,
-                l_face.max(r_face)
+                l_face.min(r_face)
             ),
             SewError
         );
@@ -192,7 +192,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     OrbitPolicy::Edge,
                     eid_l,
                     eid_r,
-                    eid_l.max(eid_r)
+                    eid_l.min(eid_r)
                 ),
                 SewError
             );
@@ -205,7 +205,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.vertex_id_tx(t, r)?,
             );
             try_or_coerce!(
-                self.vertices.split(t, vid_l, vid_r, vid_l.max(vid_r)),
+                self.vertices.split(t, vid_l, vid_r, vid_l.min(vid_r)),
                 SewError
             );
             try_or_coerce!(
@@ -214,7 +214,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     OrbitPolicy::Vertex,
                     vid_l,
                     vid_r,
-                    vid_l.max(vid_r)
+                    vid_l.min(vid_r)
                 ),
                 SewError
             );
@@ -226,7 +226,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     self.vertex_id_tx(t, if b1r == NULL_DART_ID { b2r } else { b1r })?,
                 );
                 try_or_coerce!(
-                    self.vertices.split(t, lvid_l, lvid_r, lvid_l.max(lvid_r)),
+                    self.vertices.split(t, lvid_l, lvid_r, lvid_l.min(lvid_r)),
                     SewError
                 );
                 try_or_coerce!(
@@ -235,7 +235,7 @@ impl<T: CoordsFloat> CMap3<T> {
                         OrbitPolicy::Vertex,
                         lvid_l,
                         lvid_r,
-                        lvid_l.max(lvid_r),
+                        lvid_l.min(lvid_r),
                     ),
                     SewError
                 );

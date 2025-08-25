@@ -1,8 +1,9 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, OrbitPolicy, VertexIdType},
-    geometry::{CoordsFloat, Vertex2},
-    stm::{StmClosureResult, Transaction, retry},
+    cmap::{CMap2, CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType, VolumeIdType},
+    geometry::{CoordsFloat, Vertex2, Vertex3},
+    stm::{StmClosureResult, StmError, Transaction, retry},
 };
+use nalgebra::Matrix3;
 use smallvec::SmallVec;
 
 /// Check if all faces incident to the vertex have the same orientation.
@@ -76,4 +77,118 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
     }
 
     Ok(true)
+}
+
+#[rustfmt::skip]
+pub fn compute_tet_orientation<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    (d1, d2, d3): (DartIdType, DartIdType, DartIdType),
+    p: Vertex3<T>,
+) -> StmClosureResult<f64> {
+    let v1 = {
+        let vid = map.vertex_id_tx(t, d1).unwrap();
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
+    };
+    let v2 = {
+        let vid = map.vertex_id_tx(t, d2).unwrap();
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
+    };
+    let v3 = {
+        let vid = map.vertex_id_tx(t, d3).unwrap();
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
+    };
+
+    let c1 = v1 - p;
+    let c2 = v2 - p;
+    let c3 = v3 - p;
+
+    Ok(Matrix3::from_column_slice(&[
+        c1.x().to_f64().unwrap(), c1.y().to_f64().unwrap(), c1.z().to_f64().unwrap(), 
+        c2.x().to_f64().unwrap(), c2.y().to_f64().unwrap(), c2.z().to_f64().unwrap(), 
+        c3.x().to_f64().unwrap(), c3.y().to_f64().unwrap(), c3.z().to_f64().unwrap(), 
+    ]).determinant())
+}
+
+pub fn locate_containing_tet<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    start: VolumeIdType,
+    p: Vertex3<T>,
+) -> StmClosureResult<Option<VolumeIdType>> {
+    fn locate_next_tet<T: CoordsFloat>(
+        t: &mut Transaction,
+        map: &CMap3<T>,
+        d: DartIdType,
+        p: Vertex3<T>,
+    ) -> StmClosureResult<Option<DartIdType>> {
+        let face_darts = [
+            d as DartIdType,
+            { map.beta_tx::<2>(t, d)? },
+            {
+                let b1 = map.beta_tx::<1>(t, d)?;
+                map.beta_tx::<2>(t, b1)?
+            },
+            {
+                let b0 = map.beta_tx::<0>(t, d)?;
+                map.beta_tx::<2>(t, b0)?
+            },
+        ];
+
+        let mut min = 0.0;
+        let mut d_min = NULL_DART_ID;
+
+        // TODO: does caching vids and vertices values improve perf?
+        for d in face_darts {
+            let b1 = map.beta_tx::<1>(t, d)?;
+            let b0 = map.beta_tx::<0>(t, d)?;
+
+            let orientation = compute_tet_orientation(t, map, (d, b1, b0), p)?;
+            if orientation < min {
+                min = orientation;
+                d_min = map.beta_tx::<3>(t, d)?;
+                // return Ok(Some(map.beta_tx::<3>(t, d)?));
+            }
+        }
+        if d_min == NULL_DART_ID {
+            Ok(None)
+        } else {
+            Ok(Some(d_min))
+        }
+    }
+
+    let mut count = 0;
+    let max_walk = map.n_darts() / 12;
+    let mut dart = start as DartIdType;
+
+    loop {
+        count += 1;
+        if count > max_walk {
+            eprintln!("E: oscillating, abandonning ");
+            Err(StmError::Failure)?;
+        }
+        if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
+            dart = next_dart;
+            // point is outside or across a gap in the mesh
+            if dart == NULL_DART_ID {
+                // it is possible to look for another path, but it requires a more complex condition
+                // than "just follow the first neg volume direction"
+                return Ok(None);
+            }
+        } else {
+            return Ok(Some(map.volume_id_tx(t, dart)?));
+        }
+    }
 }

@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use clap::Parser;
-use honeycomb::prelude::{CMap2, CoordsFloat};
+use honeycomb::prelude::{CMap2, CMap3, CoordsFloat};
 
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 use tikv_jemallocator::Jemalloc;
@@ -9,6 +9,7 @@ use tikv_jemallocator::Jemalloc;
 use honeycomb_benches::{
     cli::{Benches, Cli, Format},
     cut_edges::bench_cut_edges,
+    delaunay::bench_delaunay,
     grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
     prof_init, prof_start, prof_stop,
@@ -72,6 +73,10 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
     let map: CMap2<T> = match cli.benches {
         Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
         Benches::CutEdges(args) => bench_cut_edges(args),
+        Benches::DelaunayBox(args) => {
+            let map: CMap3<T> = bench_delaunay(args);
+            return;
+        }
         Benches::Grisubal(args) => bench_grisubal(args),
         Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),
