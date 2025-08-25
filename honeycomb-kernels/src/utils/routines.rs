@@ -88,15 +88,27 @@ pub fn compute_tet_orientation<T: CoordsFloat>(
 ) -> StmClosureResult<f64> {
     let v1 = {
         let vid = map.vertex_id_tx(t, d1).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
     };
     let v2 = {
         let vid = map.vertex_id_tx(t, d2).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
     };
     let v3 = {
         let vid = map.vertex_id_tx(t, d3).unwrap();
-        map.read_vertex(t, vid)?.unwrap()
+        if let Some(v) = map.read_vertex(t, vid)? {
+            v
+        } else {
+            return retry()?;
+        }
     };
 
     let c1 = v1 - p;
@@ -135,16 +147,26 @@ pub fn locate_containing_tet<T: CoordsFloat>(
             },
         ];
 
+        let mut min = 0.0;
+        let mut d_min = NULL_DART_ID;
+
         // TODO: does caching vids and vertices values improve perf?
         for d in face_darts {
             let b1 = map.beta_tx::<1>(t, d)?;
             let b0 = map.beta_tx::<0>(t, d)?;
 
-            if compute_tet_orientation(t, map, (d, b1, b0), p)? < 0.0 {
+            let orientation = compute_tet_orientation(t, map, (d, b1, b0), p)?;
+            if orientation < min {
+                // min = orientation;
+                // d_min = map.beta_tx::<3>(t, d)?;
                 return Ok(Some(map.beta_tx::<3>(t, d)?));
             }
         }
-        Ok(None)
+        if d_min == NULL_DART_ID {
+            Ok(None)
+        } else {
+            Ok(Some(d_min))
+        }
     }
 
     let mut count = 0;

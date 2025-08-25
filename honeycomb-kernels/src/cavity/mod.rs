@@ -171,7 +171,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
             }
             for d in buffer.drain(..) {
                 try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-                // free_darts.push(d);
+                free_darts.push(d);
             }
         }
 
@@ -313,7 +313,7 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
 ) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
     let (cavity_map, cavity_internals) = map_cavity_3d(t, map, &cavity)?;
     let mut free_darts = Vec::new();
-    let mut buffer = Vec::with_capacity(16);
+    let mut buffer = Vec::with_capacity(6);
 
     for f in cavity_internals {
         for d in map.orbit_tx(t, OrbitPolicy::Face, f) {
@@ -334,7 +334,7 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-            // free_darts.push(d);
+            free_darts.push(d);
         }
     }
 
@@ -369,30 +369,29 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         mut free_darts,
     } = cavity;
     let n_required_darts = boundary.len() * 9;
-
     if free_darts.len() < n_required_darts {
-        let mut new_darts = Vec::with_capacity(n_required_darts);
-        let start = free_darts[0];
-        new_darts.extend(
-            (start..map.n_darts() as DartIdType)
-                .into_iter()
-                .chain(1..start)
-                .filter(|&d| map.is_unused_tx(t, d).unwrap())
-                .take(n_required_darts),
-        );
-        for d in &new_darts {
+        for d in &free_darts {
             map.claim_dart_tx(t, *d)?;
         }
-        // try_or_coerce!(
-        //     map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
-        //     CavityError
-        // );
-        free_darts.clear();
+        let mut new_darts = try_or_coerce!(
+            map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
+            CavityError
+        );
         free_darts.append(&mut new_darts);
+    } else {
+        free_darts.truncate(n_required_darts);
+        for d in &free_darts {
+            map.claim_dart_tx(t, *d)?;
+        }
     }
-    assert_eq!(free_darts.len() % 9, 0);
+    free_darts.sort(); // FIXME: figure out why this is needed to keep a valid structure
 
-    // let new_point_dart = free_darts[0];
+    assert_eq!(free_darts.len() % 9, 0);
+    debug_assert!(
+        free_darts
+            .iter()
+            .all(|&d| { free_darts.iter().filter(|&&dd| d == dd).count() == 1 })
+    );
 
     for ((_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]), nds) in
         boundary.into_iter().zip(free_darts.chunks_exact(9))
@@ -419,9 +418,6 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
             try_or_coerce!(map.sew::<3>(t, b2dc, d8), CavityError);
         }
     }
-
-    // let vid = map.vertex_id_tx(t, new_point_dart)?;
-    // map.write_vertex(t, vid, point)?;
 
     Ok(())
 }
@@ -452,3 +448,4 @@ fn make_incomplete_tet<T: CoordsFloat>(
 
     Ok(())
 }
+c577d62a094532c15ddcae13feaa466a3239204d
