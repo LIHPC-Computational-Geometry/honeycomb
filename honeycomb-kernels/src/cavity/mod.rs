@@ -448,4 +448,3 @@ fn make_incomplete_tet<T: CoordsFloat>(
 
     Ok(())
 }
-c577d62a094532c15ddcae13feaa466a3239204d
