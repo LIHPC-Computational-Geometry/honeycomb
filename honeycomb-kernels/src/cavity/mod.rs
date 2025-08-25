@@ -371,10 +371,23 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     let n_required_darts = boundary.len() * 9;
 
     if free_darts.len() < n_required_darts {
-        let mut new_darts = try_or_coerce!(
-            map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
-            CavityError
+        let mut new_darts = Vec::with_capacity(n_required_darts);
+        let start = free_darts[0];
+        new_darts.extend(
+            (start..map.n_darts() as DartIdType)
+                .into_iter()
+                .chain(1..start)
+                .filter(|&d| map.is_unused_tx(t, d).unwrap())
+                .take(n_required_darts),
         );
+        for d in &new_darts {
+            map.claim_dart_tx(t, *d)?;
+        }
+        // try_or_coerce!(
+        //     map.reserve_darts_tx(t, n_required_darts - free_darts.len()),
+        //     CavityError
+        // );
+        free_darts.clear();
         free_darts.append(&mut new_darts);
     }
     assert_eq!(free_darts.len() % 9, 0);
