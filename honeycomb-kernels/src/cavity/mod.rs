@@ -8,7 +8,7 @@ use honeycomb_core::{
         NULL_DART_ID, OrbitPolicy, SewError, VolumeIdType,
     },
     geometry::{CoordsFloat, Vertex3},
-    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
+    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
 };
 use smallvec::{SmallVec, smallvec};
 
@@ -262,7 +262,9 @@ pub fn map_cavity_3d<T: CoordsFloat>(
                 break; // rest of the buffer is still emptied by `drain`
             }
         }
-        assert!(buffer.is_empty());
+        if d1_neighbor == NULL_DART_ID {
+            retry()?;
+        }
 
         for d in map.orbit_tx(t, OrbitPolicy::Edge, d2) {
             buffer.push(d?);
@@ -276,7 +278,9 @@ pub fn map_cavity_3d<T: CoordsFloat>(
                 break;
             }
         }
-        assert!(buffer.is_empty());
+        if d2_neighbor == NULL_DART_ID {
+            retry()?;
+        }
 
         for d in map.orbit_tx(t, OrbitPolicy::Edge, d3) {
             buffer.push(d?);
@@ -290,12 +294,9 @@ pub fn map_cavity_3d<T: CoordsFloat>(
                 break;
             }
         }
-        assert!(buffer.is_empty());
-
-        // FIXME: use an error instead of assertions
-        assert_ne!(d1_neighbor, NULL_DART_ID);
-        assert_ne!(d2_neighbor, NULL_DART_ID);
-        assert_ne!(d3_neighbor, NULL_DART_ID);
+        if d3_neighbor == NULL_DART_ID {
+            retry()?;
+        }
 
         cavity_map.insert(f, [(d1, d1_neighbor), (d2, d2_neighbor), (d3, d3_neighbor)]);
     }
