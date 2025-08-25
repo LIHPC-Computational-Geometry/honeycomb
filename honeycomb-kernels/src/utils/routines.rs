@@ -157,9 +157,9 @@ pub fn locate_containing_tet<T: CoordsFloat>(
 
             let orientation = compute_tet_orientation(t, map, (d, b1, b0), p)?;
             if orientation < min {
-                // min = orientation;
-                // d_min = map.beta_tx::<3>(t, d)?;
-                return Ok(Some(map.beta_tx::<3>(t, d)?));
+                min = orientation;
+                d_min = map.beta_tx::<3>(t, d)?;
+                // return Ok(Some(map.beta_tx::<3>(t, d)?));
             }
         }
         if d_min == NULL_DART_ID {
