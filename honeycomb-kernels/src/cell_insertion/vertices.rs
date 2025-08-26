@@ -2,9 +2,12 @@
 
 use honeycomb_core::{
     attributes::AttributeError,
-    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError},
+    cmap::{
+        CMap2, CMap3, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError, VertexIdType,
+        VolumeIdType,
+    },
     geometry::{CoordsFloat, Vertex2},
-    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
+    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 // -- error type
@@ -401,4 +404,49 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
     }
 
     Ok(())
+}
+
+pub fn insert_vertex_in_tet<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    tet: VolumeIdType,
+    darts: [DartIdType; 36],
+) -> StmClosureResult<VertexIdType> {
+    let t1_darts = &darts[0..9];
+    let t2_darts = &darts[9..18];
+    let t3_darts = &darts[18..27];
+    let t4_darts = &darts[27..36];
+
+    let t1d = tet as DartIdType;
+    let t2d = map.beta_tx::<2>(t, tet as DartIdType)?;
+    let t3d = {
+        let d = map.beta_tx::<1>(t, tet as DartIdType)?;
+        map.beta_tx::<2>(t, d)?
+    };
+    let t4d = {
+        let d = map.beta_tx::<0>(t, tet as DartIdType)?;
+        map.beta_tx::<2>(t, d)?
+    };
+
+    // new point will be located at the average of the tet's vertices
+    let vertices = [
+        {
+            let vid = map.vertex_id_tx(t, t1d)?;
+            map.read_vertex(t, vid)
+        },
+        {
+            let vid = map.vertex_id_tx(t, t2d)?;
+            map.read_vertex(t, vid)
+        },
+        {
+            let vid = map.vertex_id_tx(t, t3d)?;
+            map.read_vertex(t, vid)
+        },
+        {
+            let vid = map.vertex_id_tx(t, t4d)?;
+            map.read_vertex(t, vid)
+        },
+    ];
+
+    todo!()
 }
