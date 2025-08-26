@@ -2,9 +2,12 @@
 
 use honeycomb_core::{
     attributes::AttributeError,
-    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError},
-    geometry::{CoordsFloat, Vertex2},
-    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
+    cmap::{
+        CMap2, CMap3, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError, VertexIdType,
+        VolumeIdType,
+    },
+    geometry::{CoordsFloat, Vertex2, Vertex3},
+    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
 
 // -- error type

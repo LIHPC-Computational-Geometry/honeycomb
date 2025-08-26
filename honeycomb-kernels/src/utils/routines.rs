@@ -176,7 +176,6 @@ pub fn locate_containing_tet<T: CoordsFloat>(
     loop {
         count += 1;
         if count > max_walk {
-            eprintln!("E: oscillating, abandonning ");
             Err(StmError::Failure)?;
         }
         if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
