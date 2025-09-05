@@ -1,6 +1,9 @@
 //! implementation of the cavity operator
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    cell::Cell,
+    collections::{HashMap, HashSet},
+};
 
 use honeycomb_core::{
     cmap::{
@@ -13,6 +16,10 @@ use honeycomb_core::{
 use smallvec::{SmallVec, smallvec};
 
 use crate::utils::compute_tet_orientation;
+
+thread_local! {
+    pub static DART_BLOCK_START: Cell<DartIdType> = const { Cell::new(1) };
+}
 
 type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
 type CavityInternal3 = HashSet<FaceIdType>;
@@ -374,10 +381,10 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         for d in &free_darts {
             map.claim_dart_tx(t, *d)?;
         }
-        let mut new_darts: Vec<DartIdType> = (free_darts.get(0).copied().unwrap_or(1)
-            ..map.n_darts() as DartIdType)
+
+        let mut new_darts: Vec<DartIdType> = (DART_BLOCK_START.get()..map.n_darts() as DartIdType)
             .into_iter()
-            .chain(1..free_darts.get(0).copied().unwrap_or(1))
+            .chain(1..DART_BLOCK_START.get())
             .filter(|&d| map.is_unused_tx(t, d).unwrap())
             .take(n_required_darts - free_darts.len())
             .collect();

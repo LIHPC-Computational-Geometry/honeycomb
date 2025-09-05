@@ -32,6 +32,11 @@ fn main() {
 
         let builder = ThreadPoolBuilder::new();
         let topo = Arc::new(Topology::new().unwrap());
+        let n_thread = std::env::var("RAYON_NUM_THREADS")
+            .ok()
+            .map(|s| s.parse().ok())
+            .flatten()
+            .unwrap_or(1);
         if let Some(cores) = get_proc_list(&topo) {
             let mut cores = cores.into_iter().cycle();
             builder
@@ -44,6 +49,11 @@ fn main() {
                         let tid = hwlocality::current_thread_id();
                         topo.bind_thread_cpu(tid, &core, CpuBindingFlags::empty())
                             .unwrap();
+
+                        use honeycomb::{kernels::cavity::DART_BLOCK_START, prelude::DartIdType};
+                        DART_BLOCK_START
+                            .set(t_builder.index() as DartIdType * (1_000_000 / n_thread));
+
                         // work
                         t_builder.run();
                     });
@@ -53,8 +63,8 @@ fn main() {
                 .build_global()
                 .unwrap();
         } else {
-            builder.build_global().unwrap()
-        }
+            builder.build_global().unwrap();
+        };
     }
 
     let cli = Cli::parse();

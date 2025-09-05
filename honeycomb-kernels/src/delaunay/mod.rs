@@ -38,101 +38,106 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
     let mut points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points);
     let mut map = init_map(lx, ly, lz).expect("E: unreachable");
 
-    map.allocate_unused_darts(n_points * 10 * 9);
-    points
-        .drain(..n_points.min(2000))
-        .into_iter()
-        .for_each(|p| {
-            let mut n_retry = 0;
-            loop {
-                match Transaction::with_control_and_err(
-                    |_| {
-                        n_retry += 1;
-                        TransactionControl::Retry
-                    },
-                    |t| {
-                        // locate
-                        // TODO: is 1 always valid as a starting point?
-                        let volume = match locate_containing_tet(t, &map, 1, p)? {
-                            Some(v) => v,
-                            None => {
-                                abort(DelaunayError::CavityBuilding(
-                                    CavityError::InconsistentState("..."),
-                                ))?;
-                                unreachable!();
-                            }
-                        };
+    map.allocate_unused_darts(1_000_000);
 
-                        #[cfg(debug_assertions)]
-                        {
-                            let f1 = (
-                                volume as DartIdType,
-                                map.beta_tx::<1>(t, volume as DartIdType)?,
-                                map.beta_tx::<0>(t, volume as DartIdType)?,
-                            );
-                            let f2 = {
-                                let d = map.beta_tx::<2>(t, volume as DartIdType)?;
-                                (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
-                            };
-                            let f3 = {
-                                let d = map.beta_tx::<1>(t, volume as DartIdType)?;
-                                let b2 = map.beta_tx::<2>(t, d)?;
-                                (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                            };
-                            let f4 = {
-                                let d = map.beta_tx::<0>(t, volume as DartIdType)?;
-                                let b2 = map.beta_tx::<2>(t, d)?;
-                                (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                            };
-                            assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
-                            assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
-                            assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
-                            assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+    points.drain(0..1000).for_each(|p| {
+        let mut n_retry = 0;
+        loop {
+            match Transaction::with_control_and_err(
+                |_| {
+                    n_retry += 1;
+                    TransactionControl::Retry
+                },
+                |t| {
+                    // locate
+                    // TODO: is 1 always valid as a starting point?
+                    let res = locate_containing_tet(t, &map, 1, p);
+                    if let Err(StmError::Failure) = res {
+                        abort(DelaunayError::CavityBuilding(
+                            CavityError::InconsistentState("..."),
+                        ))?;
+                    };
+                    let volume = match res? {
+                        Some(v) => v,
+                        None => {
+                            abort(DelaunayError::CavityBuilding(
+                                CavityError::InconsistentState("..."),
+                            ))?;
+                            unreachable!();
                         }
+                    };
 
-                        // compute cavity
-                        let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
-                        // carve
-                        let carved_cavity =
-                            try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
-                        // extend
-                        let cavity = try_or_coerce!(
-                            extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
-                            DelaunayError
+                    #[cfg(debug_assertions)]
+                    {
+                        let f1 = (
+                            volume as DartIdType,
+                            map.beta_tx::<1>(t, volume as DartIdType)?,
+                            map.beta_tx::<0>(t, volume as DartIdType)?,
                         );
-                        // rebuild
-                        try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
-                        Ok(())
-                    },
-                ) {
-                    TransactionResult::Validated(_) => {
-                        // println!(
-                        //     "insertion successful from t{:?}",
-                        //     std::thread::current().id()
-                        // );
-                        break;
+                        let f2 = {
+                            let d = map.beta_tx::<2>(t, volume as DartIdType)?;
+                            (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
+                        };
+                        let f3 = {
+                            let d = map.beta_tx::<1>(t, volume as DartIdType)?;
+                            let b2 = map.beta_tx::<2>(t, d)?;
+                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                        };
+                        let f4 = {
+                            let d = map.beta_tx::<0>(t, volume as DartIdType)?;
+                            let b2 = map.beta_tx::<2>(t, d)?;
+                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                        };
+                        assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
+                        assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
+                        assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
+                        assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
                     }
-                    TransactionResult::Abandoned => unreachable!(),
-                    TransactionResult::Cancelled(e) => {
-                        // eprintln!("E: insertion failed - {e}");
-                        match e {
-                            DelaunayError::CircumsphereSingularity => break,
-                            DelaunayError::CavityBuilding(e) => match e {
-                                CavityError::FailedOp(_)
-                                | CavityError::FailedReservation(_)
-                                | CavityError::InconsistentState(_) => {
-                                    n_retry += 1;
-                                    continue;
-                                }
-                                CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
-                                    break;
-                                }
-                            },
-                        }
+
+                    // compute cavity
+                    let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+                    // carve
+                    let carved_cavity =
+                        try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+                    // extend
+                    let cavity = try_or_coerce!(
+                        extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
+                        DelaunayError
+                    );
+                    // rebuild
+                    try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+                    Ok(())
+                },
+            ) {
+                TransactionResult::Validated(_) => {
+                    // println!(
+                    //     "insertion successful from t{:?}",
+                    //     std::thread::current().id()
+                    // );
+                    break;
+                }
+                TransactionResult::Abandoned => unreachable!(),
+                TransactionResult::Cancelled(e) => {
+                    // eprintln!("E: insertion failed - {e}");
+                    match e {
+                        DelaunayError::CircumsphereSingularity => break,
+                        DelaunayError::CavityBuilding(e) => match e {
+                            CavityError::FailedOp(_)
+                            | CavityError::FailedReservation(_)
+                            | CavityError::InconsistentState(_) => {
+                                n_retry += 1;
+                                continue;
+                            }
+                            CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
+                                break;
+                            }
+                        },
                     }
                 }
             }
-        });
+        }
+        // println!("point processed after {n_retry} retries");
+    });
 
     points.into_par_iter().for_each(|p| {
         let mut n_retry = 0;
