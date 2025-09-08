@@ -14,8 +14,8 @@ impl<T: CoordsFloat> CMap2<T> {
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
-        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(t)?;
+        let b1lhs_dart_id = self.beta_tx::<1>(t, lhs_dart_id)?;
+        let b1rhs_dart_id = self.beta_tx::<1>(t, rhs_dart_id)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             // trivial case, no update needed
@@ -24,13 +24,12 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.betas.two_link_core(t, lhs_dart_id, rhs_dart_id),
                     SewError
                 );
-                let eid_new = self.edge_id_tx(t, lhs_dart_id)?;
                 try_or_coerce!(
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Edge,
-                        eid_new,
-                        lhs_dart_id as EdgeIdType, // valid in 2D
+                        lhs_dart_id.min(rhs_dart_id) as EdgeIdType,
+                        lhs_dart_id as EdgeIdType,
                         rhs_dart_id as EdgeIdType,
                     ),
                     SewError
@@ -49,18 +48,20 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let lhs_vid_new = self.vertex_id_tx(t, lhs_dart_id)?;
-                let eid_new = self.edge_id_tx(t, lhs_dart_id)?;
                 try_or_coerce!(
-                    self.vertices
-                        .merge(t, lhs_vid_new, lhs_vid_old, b1rhs_vid_old),
+                    self.vertices.merge(
+                        t,
+                        lhs_vid_old.min(b1rhs_vid_old),
+                        lhs_vid_old,
+                        b1rhs_vid_old
+                    ),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Vertex,
-                        lhs_vid_new,
+                        lhs_vid_old.min(b1rhs_vid_old),
                         lhs_vid_old,
                         b1rhs_vid_old,
                     ),
@@ -70,7 +71,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Edge,
-                        eid_new,
+                        lhs_eid_old.min(rhs_eid_old),
                         lhs_eid_old,
                         rhs_eid_old,
                     ),
@@ -90,18 +91,20 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let rhs_vid_new = self.vertex_id_tx(t, rhs_dart_id)?;
-                let eid_new = self.edge_id_tx(t, lhs_dart_id)?;
                 try_or_coerce!(
-                    self.vertices
-                        .merge(t, rhs_vid_new, b1lhs_vid_old, rhs_vid_old),
+                    self.vertices.merge(
+                        t,
+                        b1lhs_vid_old.min(rhs_vid_old),
+                        b1lhs_vid_old,
+                        rhs_vid_old
+                    ),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Vertex,
-                        rhs_vid_new,
+                        b1lhs_vid_old.min(rhs_vid_old),
                         b1lhs_vid_old,
                         rhs_vid_old,
                     ),
@@ -111,7 +114,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Edge,
-                        eid_new,
+                        lhs_eid_old.min(rhs_eid_old),
                         lhs_eid_old,
                         rhs_eid_old,
                     ),
@@ -158,24 +161,29 @@ impl<T: CoordsFloat> CMap2<T> {
                     SewError
                 );
                 // merge vertices & attributes from the old IDs to the new one
-                let lhs_vid_new = self.vertex_id_tx(t, lhs_dart_id)?;
-                let rhs_vid_new = self.vertex_id_tx(t, rhs_dart_id)?;
-                let eid_new = self.edge_id_tx(t, lhs_dart_id)?;
                 try_or_coerce!(
-                    self.vertices
-                        .merge(t, lhs_vid_new, lhs_vid_old, b1rhs_vid_old),
+                    self.vertices.merge(
+                        t,
+                        lhs_vid_old.min(b1rhs_vid_old),
+                        lhs_vid_old,
+                        b1rhs_vid_old
+                    ),
                     SewError
                 );
                 try_or_coerce!(
-                    self.vertices
-                        .merge(t, rhs_vid_new, b1lhs_vid_old, rhs_vid_old),
+                    self.vertices.merge(
+                        t,
+                        b1lhs_vid_old.min(rhs_vid_old),
+                        b1lhs_vid_old,
+                        rhs_vid_old
+                    ),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Vertex,
-                        lhs_vid_new,
+                        lhs_vid_old.min(b1rhs_vid_old),
                         lhs_vid_old,
                         b1rhs_vid_old,
                     ),
@@ -185,7 +193,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Vertex,
-                        rhs_vid_new,
+                        b1lhs_vid_old.min(rhs_vid_old),
                         b1lhs_vid_old,
                         rhs_vid_old,
                     ),
@@ -195,7 +203,7 @@ impl<T: CoordsFloat> CMap2<T> {
                     self.attributes.merge_attributes(
                         t,
                         OrbitPolicy::Edge,
-                        eid_new,
+                        lhs_eid_old.min(rhs_eid_old),
                         lhs_eid_old,
                         rhs_eid_old,
                     ),
@@ -213,9 +221,9 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let rhs_dart_id = self.betas[(2, lhs_dart_id)].read(t)?;
-        let b1lhs_dart_id = self.betas[(1, lhs_dart_id)].read(t)?;
-        let b1rhs_dart_id = self.betas[(1, rhs_dart_id)].read(t)?;
+        let rhs_dart_id = self.beta_tx::<2>(t, lhs_dart_id)?;
+        let b1lhs_dart_id = self.beta_tx::<1>(t, lhs_dart_id)?;
+        let b1rhs_dart_id = self.beta_tx::<1>(t, rhs_dart_id)?;
         // match (is lhs 1-free, is rhs 1-free)
         match (b1lhs_dart_id == NULL_DART_ID, b1rhs_dart_id == NULL_DART_ID) {
             (true, true) => {

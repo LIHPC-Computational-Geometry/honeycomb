@@ -34,7 +34,7 @@ impl<T: CoordsFloat> CMap3<T> {
         try_or_coerce!(self.one_link(t, ld, rd), SewError);
 
         if vid_l_old != NULL_VERTEX_ID {
-            let new_vid = vid_r_old.min(vid_l_old); // is this correct?
+            let new_vid = vid_r_old.min(vid_l_old);
             try_or_coerce!(
                 self.vertices.merge(t, new_vid, vid_l_old, vid_r_old),
                 SewError
@@ -60,7 +60,6 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
         let rd = self.beta_tx::<1>(t, ld)?;
-        let vid_old = self.vertex_id_tx(t, rd)?;
 
         try_or_coerce!(self.one_unlink(t, ld), SewError);
         let b2ld = self.beta_tx::<2>(t, ld)?;
@@ -81,7 +80,8 @@ impl<T: CoordsFloat> CMap3<T> {
         // perf: branch miss vs redundancy
         if vid_l_new != vid_r_new {
             try_or_coerce!(
-                self.vertices.split(t, vid_l_new, vid_r_new, vid_old),
+                self.vertices
+                    .split(t, vid_l_new, vid_r_new, vid_l_new.min(vid_r_new)),
                 SewError
             );
             try_or_coerce!(
@@ -90,7 +90,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     OrbitPolicy::Vertex,
                     vid_l_new,
                     vid_r_new,
-                    vid_old
+                    vid_l_new.min(vid_r_new),
                 ),
                 SewError
             );

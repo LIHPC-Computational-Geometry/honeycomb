@@ -30,7 +30,6 @@ pub struct CMap3<T: CoordsFloat> {
 
 unsafe impl<T: CoordsFloat> Send for CMap3<T> {}
 unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
-
 #[doc(hidden)]
 /// # 3D combinatorial map implementation
 ///
