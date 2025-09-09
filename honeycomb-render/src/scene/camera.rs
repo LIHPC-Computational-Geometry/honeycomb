@@ -58,7 +58,7 @@ pub fn update_camera(
         scroll /= if cfg!(target_arch = "wasm32") {
             100.0
         } else {
-            20.0
+            5.0
         };
     }
     if input_mouse.just_released(orbit_button) || input_mouse.just_pressed(orbit_button) {
