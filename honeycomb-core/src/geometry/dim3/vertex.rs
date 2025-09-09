@@ -63,6 +63,22 @@ impl<T: CoordsFloat> Vertex3<T> {
         (self.0, self.1, self.2)
     }
 
+    /// Cast `self` to `f32` coordinates.
+    pub fn to_f32(self) -> Option<Vertex3<f32>> {
+        match (self.0.to_f32(), self.1.to_f32(), self.2.to_f32()) {
+            (Some(x), Some(y), Some(z)) => Some(Vertex3(x, y, z)),
+            _ => None,
+        }
+    }
+
+    /// Cast `self` to `f64` coordinates.
+    pub fn to_f64(self) -> Option<Vertex3<f64>> {
+        match (self.0.to_f64(), self.1.to_f64(), self.2.to_f64()) {
+            (Some(x), Some(y), Some(z)) => Some(Vertex3(x, y, z)),
+            _ => None,
+        }
+    }
+
     /// Return the value of the `x` coordinate of the vertex.
     pub fn x(&self) -> T {
         self.0

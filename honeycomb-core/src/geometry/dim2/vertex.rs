@@ -61,6 +61,22 @@ impl<T: CoordsFloat> Vertex2<T> {
         (self.0, self.1)
     }
 
+    /// Cast `self` to `f32` coordinates.
+    pub fn to_f32(self) -> Option<Vertex2<f32>> {
+        match (self.0.to_f32(), self.1.to_f32()) {
+            (Some(x), Some(y)) => Some(Vertex2(x, y)),
+            _ => None,
+        }
+    }
+
+    /// Cast `self` to `f64` coordinates.
+    pub fn to_f64(self) -> Option<Vertex2<f64>> {
+        match (self.0.to_f64(), self.1.to_f64()) {
+            (Some(x), Some(y)) => Some(Vertex2(x, y)),
+            _ => None,
+        }
+    }
+
     /// Return the value of the `x` coordinate of the vertex.
     pub fn x(&self) -> T {
         self.0
