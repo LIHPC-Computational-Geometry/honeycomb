@@ -1,14 +1,15 @@
 use std::collections::{HashSet, VecDeque};
 
 use honeycomb_core::{
-    cmap::{CMap3, CMapBuilder, DartIdType, LinkError, NULL_VOLUME_ID, VolumeIdType},
+    attributes::{AttrSparseVec, AttributeBind, AttributeUpdate},
+    cmap::{CMap3, CMapBuilder, DartIdType, LinkError, NULL_VOLUME_ID, OrbitPolicy, VolumeIdType},
     geometry::{CoordsFloat, Vertex3},
     stm::{
         StmError, Transaction, TransactionClosureResult, TransactionControl, TransactionResult,
         abort, atomically_with_err, try_or_coerce,
     },
 };
-use nalgebra::Matrix5;
+use nalgebra::{Matrix3, Matrix5};
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
 
@@ -290,6 +291,123 @@ fn compute_delaunay_cavity_3d<T: CoordsFloat>(
     Ok(Cavity3::new(p, domain))
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct TetDets(pub f64, pub f64, pub f64, pub f64);
+
+impl TetDets {
+    pub fn new<T: CoordsFloat>(
+        t: &mut Transaction,
+        map: &CMap3<T>,
+        vol_id: VolumeIdType,
+    ) -> TransactionClosureResult<Self, DelaunayError> {
+        let [a, b, c, d] = [
+            {
+                let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
+                if let Some(v) = map.read_vertex(t, vid)? {
+                    v.to_f64().unwrap()
+                } else {
+                    return abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState(
+                            "topological vertex has no associated coordinates",
+                        ),
+                    ))?;
+                }
+            },
+            {
+                let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
+                let vid = map.vertex_id_tx(t, b1)?;
+                if let Some(v) = map.read_vertex(t, vid)? {
+                    v.to_f64().unwrap()
+                } else {
+                    return abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState(
+                            "topological vertex has no associated coordinates",
+                        ),
+                    ))?;
+                }
+            },
+            {
+                let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
+                let vid = map.vertex_id_tx(t, b0)?;
+                if let Some(v) = map.read_vertex(t, vid)? {
+                    v.to_f64().unwrap()
+                } else {
+                    return abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState(
+                            "topological vertex has no associated coordinates",
+                        ),
+                    ))?;
+                }
+            },
+            {
+                let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
+                let b0b2 = map.beta_tx::<0>(t, b2)?;
+                let vid = map.vertex_id_tx(t, b0b2)?;
+                if let Some(v) = map.read_vertex(t, vid)? {
+                    v.to_f64().unwrap()
+                } else {
+                    return abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState(
+                            "topological vertex has no associated coordinates",
+                        ),
+                    ))?;
+                }
+            },
+        ];
+
+        #[rustfmt::skip]
+        let m1 = Matrix3::from_row_slice(&[
+            b.y() - a.y(),  b.z() - a.z(), (b-a).norm().powi(2),
+            c.y() - a.y(),  c.z() - a.z(), (c-a).norm().powi(2),
+            d.y() - a.y(),  d.z() - a.z(), (d-a).norm().powi(2),
+        ]);
+        #[rustfmt::skip]
+        let m2 = Matrix3::from_row_slice(&[
+            b.x() - a.x(),  b.z() - a.z(), (b-a).norm().powi(2),
+            c.x() - a.x(),  c.z() - a.z(), (c-a).norm().powi(2),
+            d.x() - a.x(),  d.z() - a.z(), (d-a).norm().powi(2),
+        ]);
+        #[rustfmt::skip]
+        let m3 = Matrix3::from_row_slice(&[
+            b.x() - a.x(),  b.y() - a.y(), (b-a).norm().powi(2),
+            c.x() - a.x(),  c.y() - a.y(), (c-a).norm().powi(2),
+            d.x() - a.x(),  d.y() - a.y(), (d-a).norm().powi(2),
+        ]);
+        #[rustfmt::skip]
+        let m4 = Matrix3::from_row_slice(&[
+            b.x() - a.x(),  b.y() - a.y(), b.z() - a.z(),
+            c.x() - a.x(),  c.y() - a.y(), c.z() - a.z(),
+            d.x() - a.x(),  d.y() - a.y(), d.z() - a.z(),
+        ]);
+
+        Ok(TetDets(
+            m1.determinant(),
+            m2.determinant(),
+            m3.determinant(),
+            m4.determinant(),
+        ))
+    }
+}
+
+impl AttributeUpdate for TetDets {
+    fn merge(
+        _attr1: Self,
+        _attr2: Self,
+    ) -> Result<Self, honeycomb_core::attributes::AttributeError> {
+        unreachable!();
+    }
+
+    fn split(_attr: Self) -> Result<(Self, Self), honeycomb_core::attributes::AttributeError> {
+        unreachable!()
+    }
+}
+
+impl AttributeBind for TetDets {
+    type StorageType = AttrSparseVec<Self>;
+    type IdentifierType = VolumeIdType;
+    const BIND_POLICY: honeycomb_core::cmap::OrbitPolicy = OrbitPolicy::Volume;
+}
+
 // ref: https://arxiv.org/abs/1805.08831 section 2.4
 fn in_sphere<T: CoordsFloat>(
     t: &mut Transaction,
@@ -301,7 +419,7 @@ fn in_sphere<T: CoordsFloat>(
         {
             let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
             if let Some(v) = map.read_vertex(t, vid)? {
-                v
+                v.to_f64().unwrap()
             } else {
                 return abort(DelaunayError::CavityBuilding(
                     CavityError::InconsistentState(
@@ -314,7 +432,7 @@ fn in_sphere<T: CoordsFloat>(
             let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
             let vid = map.vertex_id_tx(t, b1)?;
             if let Some(v) = map.read_vertex(t, vid)? {
-                v
+                v.to_f64().unwrap()
             } else {
                 return abort(DelaunayError::CavityBuilding(
                     CavityError::InconsistentState(
@@ -327,7 +445,7 @@ fn in_sphere<T: CoordsFloat>(
             let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
             let vid = map.vertex_id_tx(t, b0)?;
             if let Some(v) = map.read_vertex(t, vid)? {
-                v
+                v.to_f64().unwrap()
             } else {
                 return abort(DelaunayError::CavityBuilding(
                     CavityError::InconsistentState(
@@ -341,7 +459,7 @@ fn in_sphere<T: CoordsFloat>(
             let b0b2 = map.beta_tx::<0>(t, b2)?;
             let vid = map.vertex_id_tx(t, b0b2)?;
             if let Some(v) = map.read_vertex(t, vid)? {
-                v
+                v.to_f64().unwrap()
             } else {
                 return abort(DelaunayError::CavityBuilding(
                     CavityError::InconsistentState(
@@ -352,14 +470,16 @@ fn in_sphere<T: CoordsFloat>(
         },
     ];
 
+    let TetDets(d1, d2, d3, d4) = if let Some(v) = map.read_attribute(t, vol_id)? {
+        v
+    } else {
+        return abort(DelaunayError::CavityBuilding(
+            CavityError::InconsistentState("volume has no associated dets"),
+        ))?;
+    };
+    let p = p.to_f64().unwrap();
     #[rustfmt::skip]
-    let in_sphere = Matrix5::from_row_slice(&[
-        a.x().to_f64().unwrap(), a.y().to_f64().unwrap(), a.z().to_f64().unwrap(), norm_squared(&a), 1.0_f64,
-        b.x().to_f64().unwrap(), b.y().to_f64().unwrap(), b.z().to_f64().unwrap(), norm_squared(&b), 1.0_f64,
-        c.x().to_f64().unwrap(), c.y().to_f64().unwrap(), c.z().to_f64().unwrap(), norm_squared(&c), 1.0_f64,
-        d.x().to_f64().unwrap(), d.y().to_f64().unwrap(), d.z().to_f64().unwrap(), norm_squared(&d), 1.0_f64,
-        p.x().to_f64().unwrap(), p.y().to_f64().unwrap(), p.z().to_f64().unwrap(), norm_squared(&p), 1.0_f64,
-    ]).determinant();
+    let in_sphere = - (p.x() - a.x()) * d1 + (p.y() - a.y()) * d2 - (p.z() - a.z()) * d3 + (p - a).norm().powi(2) * d4;
 
     if in_sphere.abs() <= EPSILON {
         abort(DelaunayError::CircumsphereSingularity)?;
@@ -367,6 +487,82 @@ fn in_sphere<T: CoordsFloat>(
 
     Ok(in_sphere > 0.0)
 }
+// fn in_sphere<T: CoordsFloat>(
+//     t: &mut Transaction,
+//     map: &CMap3<T>,
+//     vol_id: VolumeIdType,
+//     p: &Vertex3<T>,
+// ) -> TransactionClosureResult<bool, DelaunayError> {
+//     let [a, b, c, d] = [
+//         {
+//             let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
+//             if let Some(v) = map.read_vertex(t, vid)? {
+//                 v
+//             } else {
+//                 return abort(DelaunayError::CavityBuilding(
+//                     CavityError::InconsistentState(
+//                         "topological vertex has no associated coordinates",
+//                     ),
+//                 ))?;
+//             }
+//         },
+//         {
+//             let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
+//             let vid = map.vertex_id_tx(t, b1)?;
+//             if let Some(v) = map.read_vertex(t, vid)? {
+//                 v
+//             } else {
+//                 return abort(DelaunayError::CavityBuilding(
+//                     CavityError::InconsistentState(
+//                         "topological vertex has no associated coordinates",
+//                     ),
+//                 ))?;
+//             }
+//         },
+//         {
+//             let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
+//             let vid = map.vertex_id_tx(t, b0)?;
+//             if let Some(v) = map.read_vertex(t, vid)? {
+//                 v
+//             } else {
+//                 return abort(DelaunayError::CavityBuilding(
+//                     CavityError::InconsistentState(
+//                         "topological vertex has no associated coordinates",
+//                     ),
+//                 ))?;
+//             }
+//         },
+//         {
+//             let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
+//             let b0b2 = map.beta_tx::<0>(t, b2)?;
+//             let vid = map.vertex_id_tx(t, b0b2)?;
+//             if let Some(v) = map.read_vertex(t, vid)? {
+//                 v
+//             } else {
+//                 return abort(DelaunayError::CavityBuilding(
+//                     CavityError::InconsistentState(
+//                         "topological vertex has no associated coordinates",
+//                     ),
+//                 ))?;
+//             }
+//         },
+//     ];
+
+//     #[rustfmt::skip]
+//     let in_sphere = Matrix5::from_row_slice(&[
+//         a.x().to_f64().unwrap(), a.y().to_f64().unwrap(), a.z().to_f64().unwrap(), norm_squared(&a), 1.0_f64,
+//         b.x().to_f64().unwrap(), b.y().to_f64().unwrap(), b.z().to_f64().unwrap(), norm_squared(&b), 1.0_f64,
+//         c.x().to_f64().unwrap(), c.y().to_f64().unwrap(), c.z().to_f64().unwrap(), norm_squared(&c), 1.0_f64,
+//         d.x().to_f64().unwrap(), d.y().to_f64().unwrap(), d.z().to_f64().unwrap(), norm_squared(&d), 1.0_f64,
+//         p.x().to_f64().unwrap(), p.y().to_f64().unwrap(), p.z().to_f64().unwrap(), norm_squared(&p), 1.0_f64,
+//     ]).determinant();
+
+//     if in_sphere.abs() <= EPSILON {
+//         abort(DelaunayError::CircumsphereSingularity)?;
+//     }
+
+//     Ok(in_sphere > 0.0)
+// }
 
 #[inline]
 fn norm_squared<T: CoordsFloat>(v: &Vertex3<T>) -> f64 {
@@ -405,6 +601,7 @@ fn sample_points<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usize) -> 
 // TODO: add image of our tet structure in doc
 fn init_map<T: CoordsFloat>(lx: f64, ly: f64, lz: f64) -> Result<CMap3<T>, LinkError> {
     let map = CMapBuilder::<3, T>::from_n_darts(60)
+        .add_attribute::<TetDets>()
         .build()
         .expect("E: unreachable");
     let zero = T::zero();
@@ -533,6 +730,17 @@ fn init_map<T: CoordsFloat>(lx: f64, ly: f64, lz: f64) -> Result<CMap3<T>, LinkE
         map.write_vertex(t, 15, Vertex3(lx, ly, lz))?;
         map.write_vertex(t, 25, Vertex3(lx, zero, lz))?;
         map.write_vertex(t, 37, Vertex3(zero, ly, lz))?;
+
+        let d1 = TetDets::new(t, &map, 1).unwrap();
+        map.write_attribute(t, 1, d1)?;
+        let d2 = TetDets::new(t, &map, 13).unwrap();
+        map.write_attribute(t, 13, d2)?;
+        let d3 = TetDets::new(t, &map, 25).unwrap();
+        map.write_attribute(t, 25, d3)?;
+        let d4 = TetDets::new(t, &map, 37).unwrap();
+        map.write_attribute(t, 37, d4)?;
+        let d5 = TetDets::new(t, &map, 49).unwrap();
+        map.write_attribute(t, 49, d5)?;
 
         Ok(())
     })

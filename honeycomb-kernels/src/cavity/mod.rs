@@ -15,7 +15,7 @@ use honeycomb_core::{
 };
 use smallvec::{SmallVec, smallvec};
 
-use crate::utils::compute_tet_orientation;
+use crate::{delaunay::TetDets, utils::compute_tet_orientation};
 
 thread_local! {
     pub static DART_BLOCK_START: Cell<DartIdType> = const { Cell::new(1) };
@@ -414,7 +414,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     for ((_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]), nds) in
         boundary.into_iter().zip(free_darts.chunks_exact(9))
     {
-        let nds @ [_, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
+        let nds @ [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             nds.try_into().expect("E: unreachable");
         try_or_coerce!(make_incomplete_tet(t, map, nds, point), CavityError);
 
@@ -435,6 +435,10 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         if b2dc != NULL_DART_ID {
             try_or_coerce!(map.sew::<3>(t, b2dc, d8), CavityError);
         }
+
+        let vid = [da, db, dc, d1].into_iter().min().unwrap();
+        let new_dets = TetDets::new(t, map, vid).unwrap();
+        map.write_attribute(t, vid, new_dets)?;
     }
 
     Ok(())
