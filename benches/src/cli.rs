@@ -103,9 +103,12 @@ pub struct DelaunayBoxArgs {
     /// Length of cells along the X-axis
     #[arg(required(true), allow_negative_numbers(false))]
     pub lz: f64,
-    /// Length of cells along the Y-axis
+    /// Number of points to insert
     #[arg(required(true))]
     pub n_points: NonZero<usize>,
+    /// Number of points to insert
+    #[arg(long("init"))]
+    pub n_points_init: Option<NonZero<usize>>,
 }
 
 #[derive(Args)]

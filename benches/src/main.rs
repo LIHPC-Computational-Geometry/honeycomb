@@ -51,8 +51,9 @@ fn main() {
                             .unwrap();
 
                         use honeycomb::{kernels::cavity::DART_BLOCK_START, prelude::DartIdType};
-                        DART_BLOCK_START
-                            .set(t_builder.index() as DartIdType * (1_000_000 / n_thread));
+                        DART_BLOCK_START.set(
+                            500_000 + t_builder.index() as DartIdType * (1_000_000 / n_thread),
+                        );
 
                         // work
                         t_builder.run();

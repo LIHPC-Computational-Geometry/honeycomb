@@ -436,9 +436,9 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
             try_or_coerce!(map.sew::<3>(t, b2dc, d8), CavityError);
         }
 
-        let vid = [da, db, dc, d1].into_iter().min().unwrap();
-        let new_dets = TetDets::new(t, map, vid).unwrap();
-        map.write_attribute(t, vid, new_dets)?;
+        // let vid = [da, db, dc, d1].into_iter().min().unwrap();
+        // let new_dets = TetDets::new(t, map, vid).unwrap();
+        // map.write_attribute(t, vid, new_dets)?;
     }
 
     Ok(())

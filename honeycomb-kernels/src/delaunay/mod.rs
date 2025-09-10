@@ -1,4 +1,7 @@
-use std::collections::{HashSet, VecDeque};
+use std::{
+    collections::{HashSet, VecDeque},
+    time::Instant,
+};
 
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeBind, AttributeUpdate},
@@ -30,95 +33,96 @@ pub enum DelaunayError {
     CavityBuilding(#[from] CavityError),
 }
 
-pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usize) -> CMap3<T> {
+pub fn delaunay_box_3d<T: CoordsFloat>(
+    lx: f64,
+    ly: f64,
+    lz: f64,
+    n_points: usize,
+    n_points_init: usize,
+) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
     assert!(lz > 0.0);
     assert!(n_points > 0);
 
-    let mut points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points);
+    let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points);
+    let points_init: Vec<Vertex3<T>> = all_points.drain(..n_points_init).collect();
+    let points: Vec<Vertex3<T>> = all_points;
     let mut map = init_map(lx, ly, lz).expect("E: unreachable");
 
-    map.allocate_unused_darts(1_000_000);
+    map.allocate_unused_darts(1_500_000);
 
-    points.drain(0..1000).for_each(|p| {
-        let mut n_retry = 0;
+    println!("| Delaunay box triangulation benchmark");
+    println!("|-> sampling domain: [0;{lx}]x[0;{ly}]x[0;{lz}]");
+    println!("|-> init # points  : {n_points_init}");
+    println!("|-> # points       : {n_points}");
+
+    let mut instant = Instant::now();
+    points_init.into_iter().for_each(|p| {
         loop {
-            match Transaction::with_control_and_err(
-                |_| {
-                    n_retry += 1;
-                    TransactionControl::Retry
-                },
-                |t| {
-                    // locate
-                    // TODO: is 1 always valid as a starting point?
-                    let res = locate_containing_tet(t, &map, 1, p);
-                    if let Err(StmError::Failure) = res {
+            match atomically_with_err(|t| {
+                // locate
+                // TODO: is 1 always valid as a starting point?
+                let res = locate_containing_tet(t, &map, 1, p);
+                if let Err(StmError::Failure) = res {
+                    abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState("..."),
+                    ))?;
+                };
+                let volume = match res? {
+                    Some(v) => v,
+                    None => {
                         abort(DelaunayError::CavityBuilding(
                             CavityError::InconsistentState("..."),
                         ))?;
-                    };
-                    let volume = match res? {
-                        Some(v) => v,
-                        None => {
-                            abort(DelaunayError::CavityBuilding(
-                                CavityError::InconsistentState("..."),
-                            ))?;
-                            unreachable!();
-                        }
-                    };
-
-                    #[cfg(debug_assertions)]
-                    {
-                        let f1 = (
-                            volume as DartIdType,
-                            map.beta_tx::<1>(t, volume as DartIdType)?,
-                            map.beta_tx::<0>(t, volume as DartIdType)?,
-                        );
-                        let f2 = {
-                            let d = map.beta_tx::<2>(t, volume as DartIdType)?;
-                            (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
-                        };
-                        let f3 = {
-                            let d = map.beta_tx::<1>(t, volume as DartIdType)?;
-                            let b2 = map.beta_tx::<2>(t, d)?;
-                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                        };
-                        let f4 = {
-                            let d = map.beta_tx::<0>(t, volume as DartIdType)?;
-                            let b2 = map.beta_tx::<2>(t, d)?;
-                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                        };
-                        assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+                        unreachable!();
                     }
+                };
 
-                    // compute cavity
-                    let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
-                    // carve
-                    let carved_cavity =
-                        try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
-                    // extend
-                    let cavity = try_or_coerce!(
-                        extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
-                        DelaunayError
+                #[cfg(debug_assertions)]
+                {
+                    let f1 = (
+                        volume as DartIdType,
+                        map.beta_tx::<1>(t, volume as DartIdType)?,
+                        map.beta_tx::<0>(t, volume as DartIdType)?,
                     );
-                    // rebuild
-                    try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
-                    Ok(())
-                },
-            ) {
-                TransactionResult::Validated(_) => {
-                    // println!(
-                    //     "insertion successful from t{:?}",
-                    //     std::thread::current().id()
-                    // );
+                    let f2 = {
+                        let d = map.beta_tx::<2>(t, volume as DartIdType)?;
+                        (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
+                    };
+                    let f3 = {
+                        let d = map.beta_tx::<1>(t, volume as DartIdType)?;
+                        let b2 = map.beta_tx::<2>(t, d)?;
+                        (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                    };
+                    let f4 = {
+                        let d = map.beta_tx::<0>(t, volume as DartIdType)?;
+                        let b2 = map.beta_tx::<2>(t, d)?;
+                        (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                    };
+                    assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+                }
+
+                // compute cavity
+                let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+                // carve
+                let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+                // extend
+                let cavity = try_or_coerce!(
+                    extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
+                    DelaunayError
+                );
+                // rebuild
+                try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+                Ok(())
+            }) {
+                Ok(()) => {
                     break;
                 }
-                TransactionResult::Abandoned => unreachable!(),
-                TransactionResult::Cancelled(e) => {
+                Err(e) => {
                     // eprintln!("E: insertion failed - {e}");
                     match e {
                         DelaunayError::CircumsphereSingularity => break,
@@ -126,7 +130,6 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
                             CavityError::FailedOp(_)
                             | CavityError::FailedReservation(_)
                             | CavityError::InconsistentState(_) => {
-                                n_retry += 1;
                                 continue;
                             }
                             CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
@@ -139,85 +142,75 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
         }
         // println!("point processed after {n_retry} retries");
     });
+    println!(
+        " init   | {n_points_init:>8} | {}",
+        instant.elapsed().as_secs_f32()
+    );
 
+    instant = Instant::now();
     points.into_par_iter().for_each(|p| {
-        let mut n_retry = 0;
         loop {
-            match Transaction::with_control_and_err(
-                |_| {
-                    n_retry += 1;
-                    TransactionControl::Retry
-                },
-                |t| {
-                    // locate
-                    // TODO: is 1 always valid as a starting point?
-                    let res = locate_containing_tet(t, &map, 1, p);
-                    if let Err(StmError::Failure) = res {
+            match atomically_with_err(|t| {
+                // locate
+                // TODO: is 1 always valid as a starting point?
+                let res = locate_containing_tet(t, &map, 1, p);
+                if let Err(StmError::Failure) = res {
+                    abort(DelaunayError::CavityBuilding(
+                        CavityError::InconsistentState("..."),
+                    ))?;
+                };
+                let volume = match res? {
+                    Some(v) => v,
+                    None => {
                         abort(DelaunayError::CavityBuilding(
                             CavityError::InconsistentState("..."),
                         ))?;
-                    };
-                    let volume = match res? {
-                        Some(v) => v,
-                        None => {
-                            abort(DelaunayError::CavityBuilding(
-                                CavityError::InconsistentState("..."),
-                            ))?;
-                            unreachable!();
-                        }
-                    };
-
-                    #[cfg(debug_assertions)]
-                    {
-                        let f1 = (
-                            volume as DartIdType,
-                            map.beta_tx::<1>(t, volume as DartIdType)?,
-                            map.beta_tx::<0>(t, volume as DartIdType)?,
-                        );
-                        let f2 = {
-                            let d = map.beta_tx::<2>(t, volume as DartIdType)?;
-                            (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
-                        };
-                        let f3 = {
-                            let d = map.beta_tx::<1>(t, volume as DartIdType)?;
-                            let b2 = map.beta_tx::<2>(t, d)?;
-                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                        };
-                        let f4 = {
-                            let d = map.beta_tx::<0>(t, volume as DartIdType)?;
-                            let b2 = map.beta_tx::<2>(t, d)?;
-                            (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
-                        };
-                        assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
-                        assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+                        unreachable!();
                     }
+                };
 
-                    // compute cavity
-                    let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
-                    // carve
-                    let carved_cavity =
-                        try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
-                    // extend
-                    let cavity = try_or_coerce!(
-                        extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
-                        DelaunayError
+                #[cfg(debug_assertions)]
+                {
+                    let f1 = (
+                        volume as DartIdType,
+                        map.beta_tx::<1>(t, volume as DartIdType)?,
+                        map.beta_tx::<0>(t, volume as DartIdType)?,
                     );
-                    // rebuild
-                    try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
-                    Ok(())
-                },
-            ) {
-                TransactionResult::Validated(_) => {
-                    // println!(
-                    //     "insertion successful from t{:?}",
-                    //     std::thread::current().id()
-                    // );
-                    break;
+                    let f2 = {
+                        let d = map.beta_tx::<2>(t, volume as DartIdType)?;
+                        (d, map.beta_tx::<1>(t, d)?, map.beta_tx::<0>(t, d)?)
+                    };
+                    let f3 = {
+                        let d = map.beta_tx::<1>(t, volume as DartIdType)?;
+                        let b2 = map.beta_tx::<2>(t, d)?;
+                        (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                    };
+                    let f4 = {
+                        let d = map.beta_tx::<0>(t, volume as DartIdType)?;
+                        let b2 = map.beta_tx::<2>(t, d)?;
+                        (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
+                    };
+                    assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
+                    assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
                 }
-                TransactionResult::Abandoned => unreachable!(),
-                TransactionResult::Cancelled(e) => {
+
+                // compute cavity
+                let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+                // carve
+                let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+                // extend
+                let cavity = try_or_coerce!(
+                    extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
+                    DelaunayError
+                );
+                // rebuild
+                try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+                Ok(())
+            }) {
+                Ok(()) => break,
+                Err(e) => {
                     // eprintln!("E: insertion failed - {e}");
                     match e {
                         DelaunayError::CircumsphereSingularity => break,
@@ -225,7 +218,6 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
                             CavityError::FailedOp(_)
                             | CavityError::FailedReservation(_)
                             | CavityError::InconsistentState(_) => {
-                                n_retry += 1;
                                 continue;
                             }
                             CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
@@ -236,8 +228,11 @@ pub fn delaunay_box_3d<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usiz
                 }
             }
         }
-        // println!("point processed after {n_retry} retries");
     });
+    println!(
+        " insert | {n_points:>8} | {}",
+        instant.elapsed().as_secs_f32()
+    );
 
     map
 }
@@ -409,84 +404,6 @@ impl AttributeBind for TetDets {
 }
 
 // ref: https://arxiv.org/abs/1805.08831 section 2.4
-fn in_sphere<T: CoordsFloat>(
-    t: &mut Transaction,
-    map: &CMap3<T>,
-    vol_id: VolumeIdType,
-    p: &Vertex3<T>,
-) -> TransactionClosureResult<bool, DelaunayError> {
-    let [a, b, c, d] = [
-        {
-            let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
-                v.to_f64().unwrap()
-            } else {
-                return abort(DelaunayError::CavityBuilding(
-                    CavityError::InconsistentState(
-                        "topological vertex has no associated coordinates",
-                    ),
-                ))?;
-            }
-        },
-        {
-            let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
-            let vid = map.vertex_id_tx(t, b1)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
-                v.to_f64().unwrap()
-            } else {
-                return abort(DelaunayError::CavityBuilding(
-                    CavityError::InconsistentState(
-                        "topological vertex has no associated coordinates",
-                    ),
-                ))?;
-            }
-        },
-        {
-            let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
-            let vid = map.vertex_id_tx(t, b0)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
-                v.to_f64().unwrap()
-            } else {
-                return abort(DelaunayError::CavityBuilding(
-                    CavityError::InconsistentState(
-                        "topological vertex has no associated coordinates",
-                    ),
-                ))?;
-            }
-        },
-        {
-            let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
-            let b0b2 = map.beta_tx::<0>(t, b2)?;
-            let vid = map.vertex_id_tx(t, b0b2)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
-                v.to_f64().unwrap()
-            } else {
-                return abort(DelaunayError::CavityBuilding(
-                    CavityError::InconsistentState(
-                        "topological vertex has no associated coordinates",
-                    ),
-                ))?;
-            }
-        },
-    ];
-
-    let TetDets(d1, d2, d3, d4) = if let Some(v) = map.read_attribute(t, vol_id)? {
-        v
-    } else {
-        return abort(DelaunayError::CavityBuilding(
-            CavityError::InconsistentState("volume has no associated dets"),
-        ))?;
-    };
-    let p = p.to_f64().unwrap();
-    #[rustfmt::skip]
-    let in_sphere = - (p.x() - a.x()) * d1 + (p.y() - a.y()) * d2 - (p.z() - a.z()) * d3 + (p - a).norm().powi(2) * d4;
-
-    if in_sphere.abs() <= EPSILON {
-        abort(DelaunayError::CircumsphereSingularity)?;
-    }
-
-    Ok(in_sphere > 0.0)
-}
 // fn in_sphere<T: CoordsFloat>(
 //     t: &mut Transaction,
 //     map: &CMap3<T>,
@@ -497,7 +414,7 @@ fn in_sphere<T: CoordsFloat>(
 //         {
 //             let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
 //             if let Some(v) = map.read_vertex(t, vid)? {
-//                 v
+//                 v.to_f64().unwrap()
 //             } else {
 //                 return abort(DelaunayError::CavityBuilding(
 //                     CavityError::InconsistentState(
@@ -510,7 +427,7 @@ fn in_sphere<T: CoordsFloat>(
 //             let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
 //             let vid = map.vertex_id_tx(t, b1)?;
 //             if let Some(v) = map.read_vertex(t, vid)? {
-//                 v
+//                 v.to_f64().unwrap()
 //             } else {
 //                 return abort(DelaunayError::CavityBuilding(
 //                     CavityError::InconsistentState(
@@ -523,7 +440,7 @@ fn in_sphere<T: CoordsFloat>(
 //             let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
 //             let vid = map.vertex_id_tx(t, b0)?;
 //             if let Some(v) = map.read_vertex(t, vid)? {
-//                 v
+//                 v.to_f64().unwrap()
 //             } else {
 //                 return abort(DelaunayError::CavityBuilding(
 //                     CavityError::InconsistentState(
@@ -537,7 +454,7 @@ fn in_sphere<T: CoordsFloat>(
 //             let b0b2 = map.beta_tx::<0>(t, b2)?;
 //             let vid = map.vertex_id_tx(t, b0b2)?;
 //             if let Some(v) = map.read_vertex(t, vid)? {
-//                 v
+//                 v.to_f64().unwrap()
 //             } else {
 //                 return abort(DelaunayError::CavityBuilding(
 //                     CavityError::InconsistentState(
@@ -548,14 +465,16 @@ fn in_sphere<T: CoordsFloat>(
 //         },
 //     ];
 
+//     let TetDets(d1, d2, d3, d4) = if let Some(v) = map.read_attribute(t, vol_id)? {
+//         v
+//     } else {
+//         return abort(DelaunayError::CavityBuilding(
+//             CavityError::InconsistentState("volume has no associated dets"),
+//         ))?;
+//     };
+//     let p = p.to_f64().unwrap();
 //     #[rustfmt::skip]
-//     let in_sphere = Matrix5::from_row_slice(&[
-//         a.x().to_f64().unwrap(), a.y().to_f64().unwrap(), a.z().to_f64().unwrap(), norm_squared(&a), 1.0_f64,
-//         b.x().to_f64().unwrap(), b.y().to_f64().unwrap(), b.z().to_f64().unwrap(), norm_squared(&b), 1.0_f64,
-//         c.x().to_f64().unwrap(), c.y().to_f64().unwrap(), c.z().to_f64().unwrap(), norm_squared(&c), 1.0_f64,
-//         d.x().to_f64().unwrap(), d.y().to_f64().unwrap(), d.z().to_f64().unwrap(), norm_squared(&d), 1.0_f64,
-//         p.x().to_f64().unwrap(), p.y().to_f64().unwrap(), p.z().to_f64().unwrap(), norm_squared(&p), 1.0_f64,
-//     ]).determinant();
+//     let in_sphere = - (p.x() - a.x()) * d1 + (p.y() - a.y()) * d2 - (p.z() - a.z()) * d3 + (p - a).norm().powi(2) * d4;
 
 //     if in_sphere.abs() <= EPSILON {
 //         abort(DelaunayError::CircumsphereSingularity)?;
@@ -563,6 +482,82 @@ fn in_sphere<T: CoordsFloat>(
 
 //     Ok(in_sphere > 0.0)
 // }
+fn in_sphere<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    vol_id: VolumeIdType,
+    p: &Vertex3<T>,
+) -> TransactionClosureResult<bool, DelaunayError> {
+    let [a, b, c, d] = [
+        {
+            let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
+            if let Some(v) = map.read_vertex(t, vid)? {
+                v
+            } else {
+                return abort(DelaunayError::CavityBuilding(
+                    CavityError::InconsistentState(
+                        "topological vertex has no associated coordinates",
+                    ),
+                ))?;
+            }
+        },
+        {
+            let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
+            let vid = map.vertex_id_tx(t, b1)?;
+            if let Some(v) = map.read_vertex(t, vid)? {
+                v
+            } else {
+                return abort(DelaunayError::CavityBuilding(
+                    CavityError::InconsistentState(
+                        "topological vertex has no associated coordinates",
+                    ),
+                ))?;
+            }
+        },
+        {
+            let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
+            let vid = map.vertex_id_tx(t, b0)?;
+            if let Some(v) = map.read_vertex(t, vid)? {
+                v
+            } else {
+                return abort(DelaunayError::CavityBuilding(
+                    CavityError::InconsistentState(
+                        "topological vertex has no associated coordinates",
+                    ),
+                ))?;
+            }
+        },
+        {
+            let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
+            let b0b2 = map.beta_tx::<0>(t, b2)?;
+            let vid = map.vertex_id_tx(t, b0b2)?;
+            if let Some(v) = map.read_vertex(t, vid)? {
+                v
+            } else {
+                return abort(DelaunayError::CavityBuilding(
+                    CavityError::InconsistentState(
+                        "topological vertex has no associated coordinates",
+                    ),
+                ))?;
+            }
+        },
+    ];
+
+    #[rustfmt::skip]
+    let in_sphere = Matrix5::from_row_slice(&[
+        a.x().to_f64().unwrap(), a.y().to_f64().unwrap(), a.z().to_f64().unwrap(), norm_squared(&a), 1.0_f64,
+        b.x().to_f64().unwrap(), b.y().to_f64().unwrap(), b.z().to_f64().unwrap(), norm_squared(&b), 1.0_f64,
+        c.x().to_f64().unwrap(), c.y().to_f64().unwrap(), c.z().to_f64().unwrap(), norm_squared(&c), 1.0_f64,
+        d.x().to_f64().unwrap(), d.y().to_f64().unwrap(), d.z().to_f64().unwrap(), norm_squared(&d), 1.0_f64,
+        p.x().to_f64().unwrap(), p.y().to_f64().unwrap(), p.z().to_f64().unwrap(), norm_squared(&p), 1.0_f64,
+    ]).determinant();
+
+    if in_sphere.abs() <= EPSILON {
+        abort(DelaunayError::CircumsphereSingularity)?;
+    }
+
+    Ok(in_sphere > 0.0)
+}
 
 #[inline]
 fn norm_squared<T: CoordsFloat>(v: &Vertex3<T>) -> f64 {
@@ -601,7 +596,7 @@ fn sample_points<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usize) -> 
 // TODO: add image of our tet structure in doc
 fn init_map<T: CoordsFloat>(lx: f64, ly: f64, lz: f64) -> Result<CMap3<T>, LinkError> {
     let map = CMapBuilder::<3, T>::from_n_darts(60)
-        .add_attribute::<TetDets>()
+        // .add_attribute::<TetDets>()
         .build()
         .expect("E: unreachable");
     let zero = T::zero();
@@ -731,16 +726,16 @@ fn init_map<T: CoordsFloat>(lx: f64, ly: f64, lz: f64) -> Result<CMap3<T>, LinkE
         map.write_vertex(t, 25, Vertex3(lx, zero, lz))?;
         map.write_vertex(t, 37, Vertex3(zero, ly, lz))?;
 
-        let d1 = TetDets::new(t, &map, 1).unwrap();
-        map.write_attribute(t, 1, d1)?;
-        let d2 = TetDets::new(t, &map, 13).unwrap();
-        map.write_attribute(t, 13, d2)?;
-        let d3 = TetDets::new(t, &map, 25).unwrap();
-        map.write_attribute(t, 25, d3)?;
-        let d4 = TetDets::new(t, &map, 37).unwrap();
-        map.write_attribute(t, 37, d4)?;
-        let d5 = TetDets::new(t, &map, 49).unwrap();
-        map.write_attribute(t, 49, d5)?;
+        // let d1 = TetDets::new(t, &map, 1).unwrap();
+        // map.write_attribute(t, 1, d1)?;
+        // let d2 = TetDets::new(t, &map, 13).unwrap();
+        // map.write_attribute(t, 13, d2)?;
+        // let d3 = TetDets::new(t, &map, 25).unwrap();
+        // map.write_attribute(t, 25, d3)?;
+        // let d4 = TetDets::new(t, &map, 37).unwrap();
+        // map.write_attribute(t, 37, d4)?;
+        // let d5 = TetDets::new(t, &map, 49).unwrap();
+        // map.write_attribute(t, 49, d5)?;
 
         Ok(())
     })
