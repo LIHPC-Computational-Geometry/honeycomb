@@ -39,6 +39,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     lz: f64,
     n_points: usize,
     n_points_init: usize,
+    file_init: Option<String>,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
@@ -48,9 +49,19 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points);
     let points_init: Vec<Vertex3<T>> = all_points.drain(..n_points_init).collect();
     let points: Vec<Vertex3<T>> = all_points;
-    let mut map = init_map(lx, ly, lz).expect("E: unreachable");
+    let mut map = if let Some(f) = file_init {
+        CMapBuilder::<3, _>::from_cmap_file(f.as_str())
+            .build()
+            .expect("E: bad input file")
+    } else {
+        init_map(lx, ly, lz).expect("E: unreachable")
+    };
 
-    map.allocate_unused_darts(1_500_000);
+    // typical point distribution will result in 6-8*n_points tets
+    // 20 gives some leeway, 12 is the number of darts per tet
+    // when init from file, there may be already unused darts
+    let n_unused = map.n_unused_darts();
+    map.allocate_unused_darts(20 * 12 * (n_points_init + n_points) - n_unused);
 
     println!("| Delaunay box triangulation benchmark");
     println!("|-> sampling domain: [0;{lx}]x[0;{ly}]x[0;{lz}]");

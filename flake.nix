@@ -50,6 +50,7 @@
             cargo
             rust-analyzer
             pkg-config
+            samply
           ];
 
           buildInputs = buildInputs;

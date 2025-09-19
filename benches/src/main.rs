@@ -86,6 +86,21 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
         Benches::CutEdges(args) => bench_cut_edges(args),
         Benches::DelaunayBox(args) => {
             let map: CMap3<T> = bench_delaunay(args);
+            if let Some(f) = cli.save_as {
+                match f {
+                    Format::Cmap => {
+                        let mut out = String::new();
+                        let mut file = std::fs::File::create("out.cmap").unwrap();
+                        map.serialize(&mut out);
+                        file.write_all(out.as_bytes()).unwrap();
+                    }
+                    Format::Vtk => {
+                        unimplemented!()
+                    }
+                }
+            } else {
+                std::hint::black_box(map);
+            }
             return;
         }
         Benches::Grisubal(args) => bench_grisubal(args),

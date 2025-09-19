@@ -106,9 +106,19 @@ pub struct DelaunayBoxArgs {
     /// Number of points to insert
     #[arg(required(true))]
     pub n_points: NonZero<usize>,
-    /// Number of points to insert
-    #[arg(long("init"))]
+    #[command(flatten)]
+    pub alternate_init: Option<AlternateInit>,
+}
+
+#[derive(Args)]
+#[group(required = false, multiple = false)]
+pub struct AlternateInit {
+    /// Initialize the mesh with sequential point insertions
+    #[arg(long("init-points"))]
     pub n_points_init: Option<NonZero<usize>>,
+    /// Initialize the first triangulation from an existing mesh
+    #[arg(long("init-file"))]
+    pub file_init: Option<String>,
 }
 
 #[derive(Args)]
