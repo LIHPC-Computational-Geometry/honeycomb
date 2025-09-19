@@ -17,7 +17,10 @@ profiling = []
 
 [dependencies]
 honeycomb-core.workspace = true
+nalgebra.workspace = true
 num-traits.workspace = true
+rand.workspace = true
+rayon.workspace = true
 smallvec.workspace = true
 thiserror.workspace = true
 vtkio.workspace = true

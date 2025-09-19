@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use clap::Parser;
-use honeycomb::prelude::{CMap2, CoordsFloat};
+use honeycomb::prelude::{CMap2, CMap3, CoordsFloat};
 
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 use tikv_jemallocator::Jemalloc;
@@ -9,6 +9,7 @@ use tikv_jemallocator::Jemalloc;
 use honeycomb_benches::{
     cli::{Benches, Cli, Format},
     cut_edges::bench_cut_edges,
+    delaunay::bench_delaunay,
     grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
     prof_init, prof_start, prof_stop,
@@ -29,8 +30,15 @@ fn main() {
         use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
         use rayon::ThreadPoolBuilder;
 
+        let cli = Cli::parse();
+
         let builder = ThreadPoolBuilder::new();
         let topo = Arc::new(Topology::new().unwrap());
+        let n_thread = std::env::var("RAYON_NUM_THREADS")
+            .ok()
+            .map(|s| s.parse().ok())
+            .flatten()
+            .unwrap_or(1);
         if let Some(cores) = get_proc_list(&topo) {
             let mut cores = cores.into_iter().cycle();
             builder
@@ -43,6 +51,12 @@ fn main() {
                         let tid = hwlocality::current_thread_id();
                         topo.bind_thread_cpu(tid, &core, CpuBindingFlags::empty())
                             .unwrap();
+
+                        use honeycomb::{kernels::cavity::DART_BLOCK_START, prelude::DartIdType};
+                        DART_BLOCK_START.set(
+                            500_000 + t_builder.index() as DartIdType * (1_000_000 / n_thread),
+                        );
+
                         // work
                         t_builder.run();
                     });
@@ -52,11 +66,9 @@ fn main() {
                 .build_global()
                 .unwrap();
         } else {
-            builder.build_global().unwrap()
-        }
+            builder.build_global().unwrap();
+        };
     }
-
-    let cli = Cli::parse();
 
     if cli.simple_precision {
         run_benchmarks::<f32>(cli);
@@ -72,6 +84,25 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
     let map: CMap2<T> = match cli.benches {
         Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
         Benches::CutEdges(args) => bench_cut_edges(args),
+        Benches::DelaunayBox(args) => {
+            let map: CMap3<T> = bench_delaunay(args);
+            if let Some(f) = cli.save_as {
+                match f {
+                    Format::Cmap => {
+                        let mut out = String::new();
+                        let mut file = std::fs::File::create("out.cmap").unwrap();
+                        map.serialize(&mut out);
+                        file.write_all(out.as_bytes()).unwrap();
+                    }
+                    Format::Vtk => {
+                        unimplemented!()
+                    }
+                }
+            } else {
+                std::hint::black_box(map);
+            }
+            return;
+        }
         Benches::Grisubal(args) => bench_grisubal(args),
         Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),

@@ -32,6 +32,8 @@ pub enum Benches {
     Generate2dGrid(Generate2dGridArgs),
     /// Edge size reduction in triangular meshes using vertex/edge insertions
     CutEdges(CutEdgesArgs),
+    /// 3D incremental Delaunay triangulation of a box.
+    DelaunayBox(DelaunayBoxArgs),
     /// `grisubal` kernel execution
     Grisubal(GrisubalArgs),
     /// Geometry capture, triangulation and remeshing kernel
@@ -88,6 +90,38 @@ pub enum Backend {
     RayonIter,
     RayonChunks,
     StdThreads,
+}
+
+#[derive(Args)]
+pub struct DelaunayBoxArgs {
+    /// Number of cells along the X-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub lx: f64,
+    /// Number of cells along the Y-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub ly: f64,
+    /// Length of cells along the X-axis
+    #[arg(required(true), allow_negative_numbers(false))]
+    pub lz: f64,
+    /// Number of points to insert
+    #[arg(required(true))]
+    pub n_points: NonZero<usize>,
+    #[command(flatten)]
+    pub alternate_init: Option<AlternateInit>,
+    /// Seed for point campling
+    #[arg(short('s'))]
+    pub seed: Option<u64>,
+}
+
+#[derive(Args)]
+#[group(required = false, multiple = false)]
+pub struct AlternateInit {
+    /// Initialize the mesh with sequential point insertions
+    #[arg(long("init-points"))]
+    pub n_points_init: Option<NonZero<usize>>,
+    /// Initialize the first triangulation from an existing mesh
+    #[arg(long("init-file"))]
+    pub file_init: Option<String>,
 }
 
 #[derive(Args)]
