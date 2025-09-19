@@ -108,6 +108,9 @@ pub struct DelaunayBoxArgs {
     pub n_points: NonZero<usize>,
     #[command(flatten)]
     pub alternate_init: Option<AlternateInit>,
+    /// Seed for point campling
+    #[arg(short('s'))]
+    pub seed: Option<u64>,
 }
 
 #[derive(Args)]

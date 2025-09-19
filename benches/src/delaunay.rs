@@ -10,6 +10,7 @@ pub fn bench_delaunay<T: CoordsFloat>(args: DelaunayBoxArgs) -> CMap3<T> {
         lz,
         n_points,
         alternate_init,
+        seed,
     } = args;
     let n_points = n_points.get();
 
@@ -21,7 +22,14 @@ pub fn bench_delaunay<T: CoordsFloat>(args: DelaunayBoxArgs) -> CMap3<T> {
     } else {
         (0, None)
     };
-    // let n_points_init = n_points_init.map(|v| v.get()).unwrap_or(0);
 
-    delaunay_box_3d(lx, ly, lz, n_points, n_points_init, file_init)
+    delaunay_box_3d(
+        lx,
+        ly,
+        lz,
+        n_points,
+        n_points_init,
+        file_init,
+        seed.unwrap_or(123456789),
+    )
 }

@@ -40,13 +40,14 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     n_points: usize,
     n_points_init: usize,
     file_init: Option<String>,
+    seed: u64,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
     assert!(lz > 0.0);
     assert!(n_points > 0);
 
-    let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points);
+    let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points, seed);
     let points_init: Vec<Vertex3<T>> = all_points.drain(..n_points_init).collect();
     let points: Vec<Vertex3<T>> = all_points;
     let mut map = if let Some(f) = file_init {
@@ -577,24 +578,29 @@ fn norm_squared<T: CoordsFloat>(v: &Vertex3<T>) -> f64 {
         .unwrap()
 }
 
-fn sample_points<T: CoordsFloat>(lx: f64, ly: f64, lz: f64, n_points: usize) -> Vec<Vertex3<T>> {
-    let mut rngx = SmallRng::seed_from_u64(123);
-    let mut rngy = SmallRng::seed_from_u64(456);
-    let mut rngz = SmallRng::seed_from_u64(789);
-    let xs = {
+fn sample_points<T: CoordsFloat>(
+    lx: f64,
+    ly: f64,
+    lz: f64,
+    n_points: usize,
+    seed: u64,
+) -> Vec<Vertex3<T>> {
+    let mut rng = SmallRng::seed_from_u64(seed);
+    let xs: Vec<_> = {
         let dist = Uniform::try_from(0.0..lx).unwrap();
-        dist.sample_iter(&mut rngx).take(n_points)
+        dist.sample_iter(&mut rng).take(n_points).collect()
     };
-    let ys = {
+    let ys: Vec<_> = {
         let dist = Uniform::try_from(0.0..ly).unwrap();
-        dist.sample_iter(&mut rngy).take(n_points)
+        dist.sample_iter(&mut rng).take(n_points).collect()
     };
-    let zs = {
+    let zs: Vec<_> = {
         let dist = Uniform::try_from(0.0..lz).unwrap();
-        dist.sample_iter(&mut rngz).take(n_points)
+        dist.sample_iter(&mut rng).take(n_points).collect()
     };
 
-    xs.zip(ys.zip(zs))
+    xs.into_iter()
+        .zip(ys.into_iter().zip(zs.into_iter()))
         .map(|(x, (y, z))| {
             let x = T::from(x).unwrap();
             let y = T::from(y).unwrap();

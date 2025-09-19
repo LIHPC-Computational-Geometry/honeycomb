@@ -30,6 +30,8 @@ fn main() {
         use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
         use rayon::ThreadPoolBuilder;
 
+        let cli = Cli::parse();
+
         let builder = ThreadPoolBuilder::new();
         let topo = Arc::new(Topology::new().unwrap());
         let n_thread = std::env::var("RAYON_NUM_THREADS")
@@ -67,8 +69,6 @@ fn main() {
             builder.build_global().unwrap();
         };
     }
-
-    let cli = Cli::parse();
 
     if cli.simple_precision {
         run_benchmarks::<f32>(cli);
