@@ -22,6 +22,8 @@ use honeycomb_benches::{
 static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() {
+    let cli = Cli::parse();
+
     #[cfg(feature = "bind-threads")]
     {
         use std::sync::Arc;
@@ -29,8 +31,6 @@ fn main() {
         use honeycomb_benches::utils::get_proc_list;
         use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
         use rayon::ThreadPoolBuilder;
-
-        let cli = Cli::parse();
 
         let builder = ThreadPoolBuilder::new();
         let topo = Arc::new(Topology::new().unwrap());
