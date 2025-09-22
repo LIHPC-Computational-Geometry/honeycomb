@@ -7,7 +7,7 @@ use honeycomb::prelude::{CMap2, CMap3, CoordsFloat};
 use tikv_jemallocator::Jemalloc;
 
 use honeycomb_benches::{
-    cli::{Benches, Cli, Format},
+    cli::{AlternateInit, Benches, Cli, DelaunayBoxArgs, Format},
     cut_edges::bench_cut_edges,
     delaunay::bench_delaunay,
     grid_gen::bench_generate_2d_grid,
@@ -48,14 +48,33 @@ fn main() {
 
                     std::thread::spawn(move || {
                         // bind
+                        let cli = Cli::parse();
                         let tid = hwlocality::current_thread_id();
                         topo.bind_thread_cpu(tid, &core, CpuBindingFlags::empty())
                             .unwrap();
 
-                        use honeycomb::{kernels::cavity::DART_BLOCK_START, prelude::DartIdType};
-                        DART_BLOCK_START.set(
-                            500_000 + t_builder.index() as DartIdType * (1_000_000 / n_thread),
-                        );
+                        if let Benches::DelaunayBox(args) = cli.benches {
+                            let DelaunayBoxArgs {
+                                n_points,
+                                alternate_init,
+                                ..
+                            } = args;
+
+                            let n_darts_expected = match alternate_init {
+                                Some(AlternateInit { n_points_init, .. }) => {
+                                    n_points.get() + n_points_init.map(|v| v.get()).unwrap_or(0)
+                                }
+                                None => n_points.get(),
+                            };
+
+                            use honeycomb::{
+                                kernels::cavity::DART_BLOCK_START, prelude::DartIdType,
+                            };
+                            DART_BLOCK_START.set(
+                                t_builder.index() as DartIdType
+                                    * (n_darts_expected as DartIdType / n_thread),
+                            );
+                        }
 
                         // work
                         t_builder.run();
