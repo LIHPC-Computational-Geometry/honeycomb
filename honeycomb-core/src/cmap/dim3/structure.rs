@@ -229,7 +229,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This method return a boolean indicating whether the art was already unused or not. It will
     /// fail if the dart is not free, i.e. if one of its beta images isn't null.
-    pub fn release_dart(&mut self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
+    pub fn release_dart(&self, dart_id: DartIdType) -> Result<bool, DartReleaseError> {
         atomically_with_err(|t| self.release_dart_tx(t, dart_id))
     }
 
