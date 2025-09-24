@@ -123,7 +123,7 @@ impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
         match self.builder_kind {
-            BuilderType::CMap(_cfile) => unimplemented!(),
+            BuilderType::CMap(cfile) => super::io::build_3d_from_cmap_file(cfile, self.attributes),
             BuilderType::FreeDarts(n_darts) => Ok(CMap3::new_with_undefined_attributes(
                 n_darts,
                 self.attributes,
