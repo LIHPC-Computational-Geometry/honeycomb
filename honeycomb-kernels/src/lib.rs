@@ -8,7 +8,7 @@
 
 // --- enable doc_auto_cfg feature if compiling in nightly
 #![allow(unexpected_cfgs)]
-#![cfg_attr(nightly, feature(doc_auto_cfg))]
+#![cfg_attr(nightly, feature(doc_cfg))]
 #![warn(missing_docs)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::similar_names)]

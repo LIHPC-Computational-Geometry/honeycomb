@@ -42,7 +42,7 @@
 
 // --- enable doc_auto_cfg feature if compiling in nightly
 #![allow(unexpected_cfgs)]
-#![cfg_attr(nightly, feature(doc_auto_cfg))]
+#![cfg_attr(nightly, feature(doc_cfg))]
 
 #[doc(hidden)]
 pub mod cli;
