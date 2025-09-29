@@ -17,6 +17,7 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
+        with: rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: Check Format
         run: cargo fmt --all --check
@@ -27,6 +28,7 @@ jobs:
         with:
           submodules: recursive
       - uses: dtolnay/rust-toolchain@stable
+        with: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
