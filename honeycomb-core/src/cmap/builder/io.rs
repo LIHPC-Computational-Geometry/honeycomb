@@ -6,7 +6,7 @@ use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
 use crate::attributes::AttrStorageManager;
-use crate::cmap::{BuilderError, CMap2, DartIdType, VertexIdType};
+use crate::cmap::{BuilderError, CMap2, CMap3, DartIdType, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex2};
 
 // --- Custom
@@ -197,6 +197,129 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
                 return Err(BuilderError::BadValue("incorrect vertex line format"));
             }
             map.force_write_vertex(id, (T::from(x).unwrap(), T::from(y).unwrap()));
+        }
+    }
+
+    Ok(map)
+}
+
+pub fn build_3d_from_cmap_file<T: CoordsFloat>(
+    f: CMapFile,
+    manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
+) -> Result<CMap3<T>, BuilderError> {
+    if f.meta.1 != 3 {
+        // mismatched dim
+        return Err(BuilderError::BadMetaData(
+            "mismatch between requested dimension and header",
+        ));
+    }
+    let map = CMap3::new_with_undefined_attributes(f.meta.2, manager);
+
+    // putting it in a scope to drop the data
+    let betas = f.betas.lines().collect::<Vec<_>>();
+    if betas.len() != 4 {
+        // mismatched dim
+        return Err(BuilderError::InconsistentData(
+            "wrong number of beta functions",
+        ));
+    }
+    let b0 = betas[0]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+    let b1 = betas[1]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+    let b2 = betas[2]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+    let b3 = betas[3]
+        .split_whitespace()
+        .map(str::parse)
+        .collect::<Vec<_>>();
+
+    // mismatched dart number
+    if b0.len() != f.meta.2 + 1 {
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 0 function",
+        ));
+    }
+    if b1.len() != f.meta.2 + 1 {
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 1 function",
+        ));
+    }
+    if b2.len() != f.meta.2 + 1 {
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 2 function",
+        ));
+    }
+    if b3.len() != f.meta.2 + 1 {
+        return Err(BuilderError::InconsistentData(
+            "wrong number of values for the beta 2 function",
+        ));
+    }
+
+    for (d, b0d, b1d, b2d, b3d) in multizip((
+        (1..=f.meta.2),
+        b0.into_iter().skip(1),
+        b1.into_iter().skip(1),
+        b2.into_iter().skip(1),
+        b3.into_iter().skip(1),
+    )) {
+        let b0d = b0d.map_err(|_| BuilderError::BadValue("could not parse a b0 value"))?;
+        let b1d = b1d.map_err(|_| BuilderError::BadValue("could not parse a b1 value"))?;
+        let b2d = b2d.map_err(|_| BuilderError::BadValue("could not parse a b2 value"))?;
+        let b3d = b3d.map_err(|_| BuilderError::BadValue("could not parse a b3 value"))?;
+        map.set_betas(d as DartIdType, [b0d, b1d, b2d, b3d]);
+    }
+
+    if let Some(unused) = f.unused {
+        for u in unused.split_whitespace() {
+            let d = u
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse an unused ID"))?;
+            map.release_dart(d)
+                .expect("E: unused dart has non-null beta images");
+        }
+    }
+
+    if let Some(vertices) = f.vertices {
+        for l in vertices.trim().lines() {
+            let mut it = l.split_whitespace();
+            let id: VertexIdType = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex ID"))?;
+            let x: f64 = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex x coordinate"))?;
+            let y: f64 = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex y coordinate"))?;
+            let z: f64 = it
+                .next()
+                .ok_or(BuilderError::BadValue("incorrect vertex line format"))?
+                .parse()
+                .map_err(|_| BuilderError::BadValue("could not parse vertex z coordinate"))?;
+            if it.next().is_some() {
+                return Err(BuilderError::BadValue("incorrect vertex line format"));
+            }
+            map.force_write_vertex(
+                id,
+                (
+                    T::from(x).unwrap(),
+                    T::from(y).unwrap(),
+                    T::from(z).unwrap(),
+                ),
+            );
         }
     }
 
