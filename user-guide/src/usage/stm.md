@@ -56,7 +56,7 @@ transactions fallible due to meshing errors.
 ### Move all vertices to the average of their neighbors
 
 In the following routine, we shift each vertex that's not on a boundary to the average of its
-neighbors posisitions. In this case, transactions allow us to ensure we won't compute a new
+neighbors positions. In this case, transactions allow us to ensure we won't compute a new
 position from a value that has been replaced since the start of the computation.
 
 
