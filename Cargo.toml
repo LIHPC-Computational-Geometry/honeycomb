@@ -1,6 +1,5 @@
 [workspace]
 
-resolver = "2"
 members = [
     "benches",
     "honeycomb",
@@ -9,61 +8,63 @@ members = [
     "honeycomb-render",
     "examples",
 ]
+resolver = "2"
 
 metadata.crane.name = "honeycomb"
 
 [workspace.package]
-edition = "2024"
-license = "MIT OR Apache-2.0"
-version = "0.10.0"
-homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
-repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
-readme = "README.md"
-description = "Combinatorial map implementation for meshing applications"
-categories = ["data-structures", "mathematics", "science"]
-keywords = ["mesh", "meshing"]
 authors = [
     "Isaie Muron <isaie.muron@cea.fr>",
     "Cedric Chevalier <cedric.chevalier@cea.fr>",
 ]
+categories = ["data-structures", "mathematics", "science"]
+description = "Combinatorial map implementation for meshing applications"
+edition = "2024"
+homepage = "https://lihpc-computational-geometry.github.io/honeycomb/"
+keywords = ["mesh", "meshing"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
+version = "0.10.0"
 
 [workspace.dependencies]
 # members
-honeycomb = { version = "0.10.0", path = "./honeycomb" }
-honeycomb-benches = { version = "0.10.0", path = "./benches" }
-honeycomb-core = { version = "0.10.0", path = "./honeycomb-core" }
+honeycomb         = { version = "0.10.0", path = "./honeycomb" }
+honeycomb-core    = { version = "0.10.0", path = "./honeycomb-core" }
 honeycomb-kernels = { version = "0.10.0", path = "./honeycomb-kernels" }
+honeycomb-render  = { version = "0.10.0", path = "./honeycomb-render" }
+
+honeycomb-benches  = { version = "0.10.0", path = "./benches" }
 honeycomb-examples = { version = "0.10.0", path = "./examples" }
-honeycomb-render = { version = "0.10.0", path = "./honeycomb-render" }
 
 # common
-clap = "4.5.29"
-cfg-if = "1"
-itertools = "0.14.0"
-rayon = "1.10.0"
+cfg-if      = "1"
+clap        = "4.5.29"
+itertools   = "0.14.0"
+rayon       = "1.10.0"
 rustversion = "1.0.18"
-thiserror = "2.0.11"
+thiserror   = "2.0.11"
 
 # core
 downcast-rs = "2.0.1"
-loom = "0.7.2"
-num-traits = "0.2.19"
-fast-stm = "0.5.0"
-vtkio = { version = "0.7.0-rc1", default-features = false }
+fast-stm    = "0.5.0"
+loom        = "0.7.2"
+num-traits  = "0.2.19"
+vtkio       = { version = "0.7.0-rc1", default-features = false }
 
 # kernels
 smallvec = "2.0.0-alpha.10"
 
 # benchmarks
-criterion = "0.7.0"
-hwlocality = "1.0.0-alpha.7"
-iai-callgrind = "0.16.1"
-rand = "0.9.0-alpha.2"
+criterion         = "0.7.0"
+hwlocality        = "1.0.0-alpha.7"
+iai-callgrind     = "0.16.1"
+rand              = "0.9.0-alpha.2"
 tikv-jemallocator = "0.6.0"
 
 # render
-bevy = { version = "0.14.2", default-features = false }
-bevy_egui = "0.29.0"
+bevy             = { version = "0.14.2", default-features = false }
+bevy_egui        = "0.29.0"
 bevy_mod_picking = "0.20.1"
 # bevy_mod_outline = "0.8.3"
 egui_dock = "0.13.0"
@@ -72,5 +73,5 @@ egui_dock = "0.13.0"
 debug = true
 
 [profile.profiling]
+debug    = true
 inherits = "release"
-debug = true

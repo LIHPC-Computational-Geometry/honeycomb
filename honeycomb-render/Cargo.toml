@@ -1,22 +1,32 @@
 [package]
-name = "honeycomb-render"
-edition.workspace = true
-license.workspace = true
-version.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme.workspace = true
-description = "Visualization tool for combinatorial maps"
+authors.workspace    = true
 categories.workspace = true
-keywords.workspace = true
-authors.workspace = true
-publish = true
+description          = "Visualization tool for combinatorial maps"
+edition.workspace    = true
+homepage.workspace   = true
+keywords.workspace   = true
+license.workspace    = true
+name                 = "honeycomb-render"
+publish              = true
+readme.workspace     = true
+repository.workspace = true
+version.workspace    = true
 
 [dependencies]
-honeycomb-core.workspace = true
-bevy = { workspace = true, features = ["bevy_gizmos", "bevy_pbr", "bevy_render", "bevy_winit", "bevy_ui", "multi_threaded", "sysinfo_plugin", "tonemapping_luts", "x11"] }
+bevy = { workspace = true, features = [
+    "bevy_gizmos",
+    "bevy_pbr",
+    "bevy_render",
+    "bevy_winit",
+    "bevy_ui",
+    "multi_threaded",
+    "sysinfo_plugin",
+    "tonemapping_luts",
+    "x11",
+] }
 bevy_egui.workspace = true
 bevy_mod_picking.workspace = true
+honeycomb-core.workspace = true
 # bevy_mod_outline.workspace = true
 egui_dock.workspace = true
 itertools.workspace = true

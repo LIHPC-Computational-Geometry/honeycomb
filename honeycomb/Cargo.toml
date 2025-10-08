@@ -1,26 +1,26 @@
 [package]
-name = "honeycomb"
-edition.workspace = true
-license.workspace = true
-version.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme.workspace = true
+authors.workspace     = true
+categories.workspace  = true
 description.workspace = true
-categories.workspace = true
-keywords.workspace = true
-authors.workspace = true
-publish = true
+edition.workspace     = true
+homepage.workspace    = true
+keywords.workspace    = true
+license.workspace     = true
+name                  = "honeycomb"
+publish               = true
+readme.workspace      = true
+repository.workspace  = true
+version.workspace     = true
 
 [features]
 default = ["kernels"]
 kernels = ["dep:honeycomb-kernels"]
-render = ["dep:honeycomb-render"]
+render  = ["dep:honeycomb-render"]
 
 [dependencies]
-honeycomb-core = { workspace = true, features = ["par-internals"] }
+honeycomb-core    = { workspace = true, features = ["par-internals"] }
 honeycomb-kernels = { workspace = true, optional = true }
-honeycomb-render = { workspace = true, optional = true }
+honeycomb-render  = { workspace = true, optional = true }
 
 [build-dependencies]
 rustversion.workspace = true

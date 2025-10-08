@@ -1,16 +1,16 @@
 [package]
-name = "honeycomb-core"
-edition.workspace = true
-license.workspace = true
-version.workspace = true
-homepage.workspace = true
-repository.workspace = true
-readme.workspace = true
-description = "Core structure implementation for combinatorial maps"
+authors.workspace    = true
 categories.workspace = true
-keywords.workspace = true
-authors.workspace = true
-publish = true
+description          = "Core structure implementation for combinatorial maps"
+edition.workspace    = true
+homepage.workspace   = true
+keywords.workspace   = true
+license.workspace    = true
+name                 = "honeycomb-core"
+publish              = true
+readme.workspace     = true
+repository.workspace = true
+version.workspace    = true
 
 [features]
 par-internals = []
@@ -19,13 +19,13 @@ par-internals = []
 
 [dependencies]
 downcast-rs.workspace = true
-fast-stm.workspace = true
-itertools.workspace = true
-loom.workspace= true
-num-traits.workspace = true
-rayon.workspace = true
-thiserror.workspace = true
-vtkio.workspace = true
+fast-stm.workspace    = true
+itertools.workspace   = true
+loom.workspace        = true
+num-traits.workspace  = true
+rayon.workspace       = true
+thiserror.workspace   = true
+vtkio.workspace       = true
 
 [build-dependencies]
 rustversion.workspace = true
