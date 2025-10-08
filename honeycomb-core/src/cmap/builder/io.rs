@@ -203,6 +203,7 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
     Ok(map)
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn build_3d_from_cmap_file<T: CoordsFloat>(
     f: CMapFile,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager

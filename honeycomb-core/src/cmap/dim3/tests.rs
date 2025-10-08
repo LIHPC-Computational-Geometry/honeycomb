@@ -469,7 +469,7 @@ fn remove_dart_twice() {
     // in its default state, all darts are:
     // - used
     // - free
-    let mut map: CMap3<f64> = CMap3::new(4);
+    let map: CMap3<f64> = CMap3::new(4);
     // set dart 1 as unused
     assert!(!map.release_dart(1).unwrap());
     // set dart 1 as unused, again
