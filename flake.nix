@@ -26,7 +26,6 @@
         src = craneLib.cleanCargoSource ./.;
 
         commonBuildInputs = with pkgs; [
-          pkg-config
           hwloc.dev
         ];
         linuxBuildInputs = with pkgs; [
@@ -47,14 +46,12 @@
           inherit src;
           strictDeps = true;
 
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
           buildInputs = commonBuildInputs
             ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
             ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
-          LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${
-            pkgs.lib.makeLibraryPath ( commonBuildInputs
-            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
-            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []) )
-          }";
         };
 
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
