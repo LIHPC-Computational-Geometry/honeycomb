@@ -2,7 +2,92 @@
 
 ---
 
-## To be released
+### To be released
+
+---
+
+## 0.10.0
+
+### Workspace
+
+*fix:*
+- fix doc generation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/353
+- add `clippy` and `rust-fmt` explicitly to CI setup
+
+*deps:*
+
+- upgrade iai-callgrind from `0.14.0` to `0.15.1` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/348
+- update `typos` and adjust new lint by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/352
+- update criterion requirement from 0.6.0 to 0.7.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/357
+- update iai-callgrind requirement from 0.15.1 to 0.16.1 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/356
+- bump codecov/codecov-action from 5.4.3 to 5.5.1 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/367
+- bump actions/checkout from 4 to 5 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/365
+
+### Published crates
+
+#### honeycomb (not yet published)
+
+<sup>main crate</sup>
+
+- enable `honeycomb-core`'s `par-internals` feature by default
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- implement parallel iterators over cells and parallel initialization routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/346
+  - gated behind a new `par-internals` feature, enabled by default in the re-export crate
+- implement 3D cmap file deserialization by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/364
+- add casting method for vector and vertex structs
+
+*refactor:*
+- **rename transactional methods with `_tx` suffix** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/355
+- **add new method to `UnknownAttributeStorage` trait** to clear a slot of the storage
+- remove redundant cell ID computation in `sew`s by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/360
+- remove mutable borrow from `CMap3::release_dart` signature
+
+*fix*:
+- correct cell ID computation in 3-(un)sew by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/360
+- clear attribute values when releasing darts
+- add missing dart reservation logic using new `CMapX::claim_dart` method
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new*:
+- parallelize the 2D remeshing pipeline by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/354
+
+#### honeycomb-render
+
+<sup>visualization tool for combinatorial maps</sup>
+
+*refactor:*
+- rise zoom speed
+
+### Others
+
+#### honeycomb-benches
+
+<sup>core structures & methods benchmarks</sup>
+
+*new:*
+- add `jemalloc` feature to switch to the alternate allocator when enabled by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/346
 
 ---
 
