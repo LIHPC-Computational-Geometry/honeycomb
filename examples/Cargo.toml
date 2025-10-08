@@ -1,21 +1,21 @@
 [package]
-name = "honeycomb-examples"
-edition.workspace = true
-license.workspace = true
-version.workspace = true
-homepage.workspace = true
+authors.workspace    = true
+autoexamples         = false
+description          = "Usage examples"
+edition.workspace    = true
+homepage.workspace   = true
+license.workspace    = true
+name                 = "honeycomb-examples"
+publish              = false
 repository.workspace = true
-description = "Usage examples"
-authors.workspace = true
-publish = false
-autoexamples = false
+version.workspace    = true
 
 [dev-dependencies]
-honeycomb-core = { workspace = true }
-honeycomb-render = { workspace = true }
+honeycomb-core    = { workspace = true }
 honeycomb-kernels = { workspace = true }
-rand = { workspace = true, features = ["small_rng"] }
-rayon.workspace = true
+honeycomb-render  = { workspace = true }
+rand              = { workspace = true, features = ["small_rng"] }
+rayon.workspace   = true
 
 # kernel
 
