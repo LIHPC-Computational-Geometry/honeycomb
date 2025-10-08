@@ -1,26 +1,38 @@
 {
-  description = "Honeycomb development & build environment";
-
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-utils.url = "github:numtide/flake-utils";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
+  outputs = { nixpkgs, flake-utils, fenix, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlays.default ];
-        };
+        overlays = [ fenix.overlays.default ];
+        pkgs = import nixpkgs { inherit system overlays; };
 
-        # Rust toolchain with extensions
-        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" ];
-        };
+        
+        commonBuildInputs = with pkgs; [
+          # Rust
+          (fenix.packages.${system}.stable.withComponents [
+            "cargo"
+            "clippy"
+            "rust-src"
+            "rustc"
+            "rustfmt"
+          ])
 
-        # Platform-specific build inputs
+          # Deps
+          hwloc.dev
+
+          # Tools
+          cargo-nextest
+          samply
+          taplo
+        ];
         linuxBuildInputs = with pkgs; [
           xorg.libX11
           xorg.libXcursor
@@ -31,32 +43,25 @@
           vulkan-loader
           glfw
         ];
+        darwinBuildInputs = with pkgs; [
+          libiconv
+        ];
 
-        buildInputs = with pkgs; [
-          hwloc.dev
-        ] ++ (if pkgs.stdenv.isLinux then linuxBuildInputs else []);
+        buildInputs = commonBuildInputs
+          ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
+          ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
 
-        # Platform-specific LD_LIBRARY_PATH
-        ldLibraryPath = pkgs.lib.makeLibraryPath (
-          [ pkgs.hwloc.lib ] ++
-          (if pkgs.stdenv.isLinux then linuxBuildInputs else [])
-        );
-
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [
-            rustToolchain
-            cargo
-            rust-analyzer
-            pkg-config
-          ];
-
+        ldLibraryPath = pkgs.lib.makeLibraryPath ( buildInputs );
+      in {
+        devShell = pkgs.mkShell {
           buildInputs = buildInputs;
+          
+          LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${ldLibraryPath}";
 
-          shellHook = ''
-            export LD_LIBRARY_PATH=${ldLibraryPath}:$LD_LIBRARY_PATH
-          '';
+          # TODO: make this work
+          # shellHook = ''
+          #   $SHELL
+          # '';
         };
       });
 }
