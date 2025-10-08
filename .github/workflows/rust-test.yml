@@ -22,6 +22,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Check Format
         run: cargo fmt --all --check
+      - uses: docker://docker.io/tamasfe/taplo:latest
+        with:
+          args: fmt --check --diff
   clippy:
     runs-on: ubuntu-22.04
     steps:
