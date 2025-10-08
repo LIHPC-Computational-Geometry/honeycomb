@@ -1,5 +1,6 @@
 {
   inputs = {
+    crane.url = "github:ipetkov/crane";
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -8,30 +9,25 @@
     nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { nixpkgs, flake-utils, fenix, ... }:
+  outputs = { self, nixpkgs, flake-utils, fenix, crane, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ fenix.overlays.default ];
         pkgs = import nixpkgs { inherit system overlays; };
-
         
-        commonBuildInputs = with pkgs; [
-          # Rust
-          (fenix.packages.${system}.stable.withComponents [
+        craneLib = (crane.mkLib pkgs).overrideToolchain (p: p.fenix.stable.withComponents [
             "cargo"
             "clippy"
             "rust-src"
             "rustc"
             "rustfmt"
-          ])
+          ]
+        );
+        src = craneLib.cleanCargoSource ./.;
 
-          # Deps
+        commonBuildInputs = with pkgs; [
+          pkg-config
           hwloc.dev
-
-          # Tools
-          cargo-nextest
-          samply
-          taplo
         ];
         linuxBuildInputs = with pkgs; [
           xorg.libX11
@@ -47,16 +43,49 @@
           libiconv
         ];
 
-        buildInputs = commonBuildInputs
-          ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
-          ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
+        commonArgs = {
+          inherit src;
+          strictDeps = true;
 
-        ldLibraryPath = pkgs.lib.makeLibraryPath ( buildInputs );
+          buildInputs = commonBuildInputs
+            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
+            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
+          LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${
+            pkgs.lib.makeLibraryPath ( commonBuildInputs
+            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
+            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []) )
+          }";
+        };
+
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+        honeycomb = craneLib.buildPackage (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+          }
+        );
       in {
-        devShell = pkgs.mkShell {
-          buildInputs = buildInputs;
+        checks = {
+          inherit honeycomb;
+
+          honeycomb-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
+        };
+        
+        devShells.default = craneLib.devShell {
+          checks = self.checks.${system};
           
-          LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${ldLibraryPath}";
+          packages = with pkgs; [
+            cargo-nextest
+            samply
+            taplo
+          ];
 
           # TODO: make this work
           # shellHook = ''

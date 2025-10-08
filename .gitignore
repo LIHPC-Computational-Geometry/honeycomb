@@ -1,5 +1,5 @@
 # Rust
-Cargo.lock
+# Cargo.lock
 /target
 
 # wasm
