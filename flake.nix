@@ -14,6 +14,7 @@
       let
         overlays = [ fenix.overlays.default ];
         pkgs = import nixpkgs { inherit system overlays; };
+        lib = pkgs.lib;
         
         craneLib = (crane.mkLib pkgs).overrideToolchain (p: p.fenix.stable.withComponents [
             "cargo"
@@ -23,7 +24,18 @@
             "rustfmt"
           ]
         );
-        src = craneLib.cleanCargoSource ./.;
+        # src = craneLib.cleanCargoSource ./.;
+        unfilteredRoot = ./.;
+        src = lib.fileset.toSource {
+          root = unfilteredRoot;
+          fileset = lib.fileset.unions [
+            # Default files from crane (Rust and cargo files)
+            (craneLib.fileset.commonCargoSources unfilteredRoot)
+            # Also keep any VTK files, this is a dirty fix for tests which use our example vtk file
+            # TODO: VTK files should be excluded to avoid indexing of residual output files
+            (lib.fileset.fileFilter (file: file.hasExt "vtk") unfilteredRoot)
+          ];
+        };
 
         commonBuildInputs = with pkgs; [
           hwloc.dev
@@ -74,11 +86,35 @@
         checks = {
           inherit honeycomb;
 
+          # Lints
           honeycomb-clippy = craneLib.cargoClippy (
             commonArgs
             // {
               inherit cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
+
+          # Format
+          honeycomb-fmt = craneLib.cargoFmt {
+            inherit src;
+          };
+          honeycomb-toml-fmt = craneLib.taploFmt {
+            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
+            taploExtraArgs = "--config ./.taplo.toml";
+          };
+
+          # Test
+          honeycomb-doctest = craneLib.cargoDocTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+            }
+          );
+          honeycomb-test = craneLib.cargoNextest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
             }
           );
         };
@@ -87,15 +123,10 @@
           checks = self.checks.${system};
           
           packages = with pkgs; [
-            cargo-nextest
-            samply
-            taplo
+            cargo-nextest # faster tests
+            samply        # profiling
+            taplo         # TOML formatting
           ];
-
-          # TODO: make this work
-          # shellHook = ''
-          #   $SHELL
-          # '';
         };
       });
 }
