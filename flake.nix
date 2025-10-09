@@ -64,9 +64,6 @@
           buildInputs = commonBuildInputs
             ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
             ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
-          buildInputs = commonBuildInputs
-            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
-            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
           LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${
             pkgs.lib.makeLibraryPath ( commonBuildInputs
             ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
