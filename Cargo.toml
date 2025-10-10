@@ -10,6 +10,8 @@ members = [
 ]
 resolver = "2"
 
+metadata.crane.name = "honeycomb"
+
 [workspace.package]
 authors = [
     "Isaie Muron <isaie.muron@cea.fr>",

@@ -4,9 +4,7 @@ Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel fr
 missing documentation or suggest improvements of the project.
 
 
-## Local environment
-
-### Nix
+## Environment
 
 The repository contains a Nix flake to easily setup a development environment:
 
@@ -17,10 +15,21 @@ nix develop
 Most notably, it handles `hwloc` install on both MacOs and Linux, as well as the libraries `bevy` depends on on Linux.
 
 
+## Checks
+
+### Nix
+
+The flake also defines checks. They are identical to those of the CI, so use this rather than the pre-commit
+if possible.
+
+```
+nix flake check
+```
+
+
 ### Pre-commit hook
 
-The repository contains a pre-commit hook config file. It will run basic checks that the CI performs on each PRs
-and commits merged to the main branch. To use it:
+The repository contains a pre-commit hook config file. To use it:
 
 ```shell
 pip install pre-commit # or whichever package manager
@@ -28,8 +37,8 @@ pre-commit install
 pre-commit run # test it!
 ```
 
-While it is not exhaustive (most notably, it excludes `honeycomb-render` due to compile time), it is a good
-local proxy of the CI for core and kernel crates development.
+While it is not identical to the CI (most notably, it excludes `honeycomb-render` due to compile time), it is fine
+for core and kernel crates development.
 
 The hook can be bypassed by using the `--no-verify` option to `git commit`.
 

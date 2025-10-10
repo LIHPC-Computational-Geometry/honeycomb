@@ -1,26 +1,45 @@
 {
-  description = "Honeycomb development & build environment";
-
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    crane.url = "github:ipetkov/crane";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-utils.url = "github:numtide/flake-utils";
-    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils, fenix, crane, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlays.default ];
+        overlays = [ fenix.overlays.default ];
+        pkgs = import nixpkgs { inherit system overlays; };
+        lib = pkgs.lib;
+        
+        craneLib = (crane.mkLib pkgs).overrideToolchain (p: p.fenix.stable.withComponents [
+            "cargo"
+            "clippy"
+            "rust-src"
+            "rustc"
+            "rustfmt"
+          ]
+        );
+        # src = craneLib.cleanCargoSource ./.;
+        unfilteredRoot = ./.;
+        src = lib.fileset.toSource {
+          root = unfilteredRoot;
+          fileset = lib.fileset.unions [
+            # Default files from crane (Rust and cargo files)
+            (craneLib.fileset.commonCargoSources unfilteredRoot)
+            # Also keep any VTK files, this is a dirty fix for tests which use our example vtk file
+            # TODO: VTK files should be excluded to avoid indexing of residual output files
+            (lib.fileset.fileFilter (file: file.hasExt "vtk") unfilteredRoot)
+          ];
         };
 
-        # Rust toolchain with extensions
-        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" ];
-        };
-
-        # Platform-specific build inputs
+        commonBuildInputs = with pkgs; [
+          hwloc.dev
+        ];
         linuxBuildInputs = with pkgs; [
           xorg.libX11
           xorg.libXcursor
@@ -31,32 +50,80 @@
           vulkan-loader
           glfw
         ];
+        darwinBuildInputs = with pkgs; [
+          libiconv
+        ];
 
-        buildInputs = with pkgs; [
-          hwloc.dev
-        ] ++ (if pkgs.stdenv.isLinux then linuxBuildInputs else []);
+        commonArgs = {
+          inherit src;
+          strictDeps = true;
 
-        # Platform-specific LD_LIBRARY_PATH
-        ldLibraryPath = pkgs.lib.makeLibraryPath (
-          [ pkgs.hwloc.lib ] ++
-          (if pkgs.stdenv.isLinux then linuxBuildInputs else [])
-        );
-
-      in
-      {
-        devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
-            rustToolchain
-            cargo
-            rust-analyzer
             pkg-config
           ];
+          buildInputs = commonBuildInputs
+            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
+            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []);
+          LD_LIBRARY_PATH = "$LD_LIBRARY_PATH:${
+            pkgs.lib.makeLibraryPath ( commonBuildInputs
+            ++ (if pkgs.stdenv.isLinux  then linuxBuildInputs  else [])
+            ++ (if pkgs.stdenv.isDarwin then darwinBuildInputs else []) )
+          }";
+        };
 
-          buildInputs = buildInputs;
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
-          shellHook = ''
-            export LD_LIBRARY_PATH=${ldLibraryPath}:$LD_LIBRARY_PATH
-          '';
+        honeycomb = craneLib.buildPackage (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
+          }
+        );
+      in {
+        checks = {
+          inherit honeycomb;
+
+          # Lints
+          honeycomb-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
+
+          # Format
+          honeycomb-fmt = craneLib.cargoFmt {
+            inherit src;
+          };
+          honeycomb-toml-fmt = craneLib.taploFmt {
+            src = pkgs.lib.sources.sourceFilesBySuffices src [ ".toml" ];
+            taploExtraArgs = "--config ./.taplo.toml";
+          };
+
+          # Test
+          honeycomb-doctest = craneLib.cargoDocTest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+            }
+          );
+          honeycomb-test = craneLib.cargoNextest (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+            }
+          );
+        };
+        
+        devShells.default = craneLib.devShell {
+          checks = self.checks.${system};
+          
+          packages = with pkgs; [
+            cargo-nextest # faster tests
+            samply        # profiling
+            taplo         # TOML formatting
+          ];
         };
       });
 }
