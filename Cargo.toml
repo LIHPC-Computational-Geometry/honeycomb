@@ -39,7 +39,7 @@ honeycomb-examples = { version = "0.10.0", path = "./examples" }
 
 # common
 cfg-if      = "1"
-clap        = "4.5.29"
+clap        = "4.5.49"
 itertools   = "0.14.0"
 rayon       = "1.10.0"
 rustversion = "1.0.18"
