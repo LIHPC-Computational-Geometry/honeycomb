@@ -66,7 +66,11 @@ impl<const D: usize, T: CoordsFloat> GridDescriptor<D, T> {
         self
     }
 
-    /// Indicate whether to split quads of the grid
+    /// Indicate whether to split cells of the grid
+    ///
+    /// In 2D, this will result in triangular cells.
+    ///
+    /// In 3D, this will result in tetrahedral cells.
     #[must_use = "unused builder object"]
     pub fn split_cells(mut self, split: bool) -> Self {
         self.split_cells = split;
@@ -553,7 +557,6 @@ fn generate_hex_beta_values(
     })
 }
 
-// FIXME: merge match arms once there are tests
 #[allow(
     clippy::inline_always,
     clippy::match_same_arms,
@@ -661,14 +664,13 @@ pub fn build_3d_tetgrid<T: CoordsFloat>(
     map
 }
 
-#[allow(clippy::inline_always)]
+#[allow(clippy::inline_always, clippy::too_many_lines)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_tet_beta_values(
     [n_x, n_y, n_z]: [usize; 3],
 ) -> impl Iterator<Item = [DartIdType; 4]> {
     // this loop hierarchy yields the value in correct order
-    // left to right first, then bottom to top
     (0..n_z).flat_map(move |iz| {
         (0..n_y).flat_map(move |iy| {
             (0..n_x).flat_map(move |ix| {
@@ -688,64 +690,63 @@ fn generate_tet_beta_values(
                 let noffset_x = 60;
                 let noffset_y = noffset_x * n_x as DartIdType;
                 let noffset_z = noffset_y * n_y as DartIdType;
-                let mirror = (ix + iy + iz) % 2 != 0;
+                let mirror = (ix + iy + iz).is_multiple_of(2);
 
+                // beta images of the tetcube (tm)
                 if mirror {
-                    // beta images of the tetcube (tm)
                     [
                         // first tet, orthogonal corner facing -x,-y,-z
-                        [ d3, d2 , d4 , if iy == 0       { 0 } else { d13 - noffset_y }],
-                        [ d1, d3 , d7 , if iy == 0       { 0 } else { d13 - noffset_y }],
+                        [ d3, d2 , d4 , if iy == 0       { 0 } else { d15 - noffset_y }],
+                        [ d1, d3 , d7 , if iy == 0       { 0 } else { d14 - noffset_y }],
                         [ d2, d1 , d10, if iy == 0       { 0 } else { d13 - noffset_y }],
-                        [ d6, d5 , d1 , if iz == 0       { 0 } else { d13 - noffset_z }],
-                        [ d4, d6 , d12, if iz == 0       { 0 } else { d13 - noffset_z }],
-                        [ d5, d4 , d8 , if iz == 0       { 0 } else { d13 - noffset_z }],
+                        [ d6, d5 , d1 , if iz == 0       { 0 } else { d10 - noffset_z }],
+                        [ d4, d6 , d12, if iz == 0       { 0 } else { d12 - noffset_z }],
+                        [ d5, d4 , d8 , if iz == 0       { 0 } else { d11 - noffset_z }],
                         [ d9, d8 , d2 , d49],
                         [ d7, d9 , d6 , d51],
                         [ d8, d7 , d11, d50],
-                        [d12, d11, d3 , if ix == 0       { 0 } else { d13 - noffset_x }],
-                        [d10, d12, d9 , if ix == 0       { 0 } else { d13 - noffset_x }],
-                        [d11, d10, d5 , if ix == 0       { 0 } else { d13 - noffset_x }],
+                        [d12, d11, d3 , if ix == 0       { 0 } else { d28 - noffset_x }],
+                        [d10, d12, d9 , if ix == 0       { 0 } else { d30 - noffset_x }],
+                        [d11, d10, d5 , if ix == 0       { 0 } else { d29 - noffset_x }],
                         // second tet, orthogonal corner facing +x,+y,-z
-                        [d15, d14, d16, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d13, d15, d19, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d14, d13, d22, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d18, d17, d13, if iz == 0       { 0 } else { d13 - noffset_z }],
-                        [d16, d18, d24, if iz == 0       { 0 } else { d13 - noffset_z }],
-                        [d17, d16, d20, if iz == 0       { 0 } else { d13 - noffset_z }],
+                        [d15, d14, d16, if iy == n_y - 1 { 0 } else { d27 + noffset_y }],
+                        [d13, d15, d19, if iy == n_y - 1 { 0 } else { d26 + noffset_y }],
+                        [d14, d13, d22, if iy == n_y - 1 { 0 } else { d25 + noffset_y }],
+                        [d18, d17, d13, if iz == 0       { 0 } else { d46 - noffset_z }],
+                        [d16, d18, d24, if iz == 0       { 0 } else { d48 - noffset_z }],
+                        [d17, d16, d20, if iz == 0       { 0 } else { d47 - noffset_z }],
                         [d21, d20, d14, d59],
                         [d19, d21, d18, d58],
                         [d20, d19, d23, d60],
-                        [d24, d23, d15, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
-                        [d22, d24, d21, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
-                        [d23, d22, d17, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
+                        [d24, d23, d15, if ix == n_x - 1 { 0 } else { d16 + noffset_x }],
+                        [d22, d24, d21, if ix == n_x - 1 { 0 } else { d18 + noffset_x }],
+                        [d23, d22, d17, if ix == n_x - 1 { 0 } else { d17 + noffset_x }],
                         // third tet, orthogonal corner facing +x,-y,+z
-                        [d27, d26, d28, if iy == 0       { 0 } else { d13 - noffset_y }],
-                        [d25, d27, d31, if iy == 0       { 0 } else { d13 - noffset_y }],
-                        [d26, d25, d34, if iy == 0       { 0 } else { d13 - noffset_y }],
-                        [d30, d29, d25, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
-                        [d28, d30, d36, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
-                        [d29, d28, d32, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
+                        [d27, d26, d28, if iy == 0       { 0 } else { d39 - noffset_y }],
+                        [d25, d27, d31, if iy == 0       { 0 } else { d38 - noffset_y }],
+                        [d26, d25, d34, if iy == 0       { 0 } else { d37 - noffset_y }],
+                        [d30, d29, d25, if iz == n_z - 1 { 0 } else { d34 + noffset_z }],
+                        [d28, d30, d36, if iz == n_z - 1 { 0 } else { d36 + noffset_z }],
+                        [d29, d28, d32, if iz == n_z - 1 { 0 } else { d35 + noffset_z }],
                         [d33, d32, d26, d52],
                         [d31, d33, d30, d54],
                         [d32, d31, d35, d53],
-                        [d36, d35, d27, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
-                        [d34, d36, d33, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
-                        [d35, d34, d29, if ix == n_x - 1 { 0 } else { d13 + noffset_x }],
+                        [d36, d35, d27, if ix == n_x - 1 { 0 } else { d4  + noffset_x }],
+                        [d34, d36, d33, if ix == n_x - 1 { 0 } else { d6  + noffset_x }],
+                        [d35, d34, d29, if ix == n_x - 1 { 0 } else { d5  + noffset_x }],
                         // fourth tet, orthogonal corner facing -x,+y,+z
-                        [d39, d38, d40, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d37, d39, d43, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d38, d37, d46, if iy == n_y - 1 { 0 } else { d13 + noffset_y }],
-                        [d42, d41, d37, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
-                        [d40, d42, d48, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
-                        [d41, d40, d44, if iz == n_z - 1 { 0 } else { d13 + noffset_z }],
+                        [d39, d38, d40, if iy == n_y - 1 { 0 } else { d3  + noffset_y }],
+                        [d37, d39, d43, if iy == n_y - 1 { 0 } else { d2  + noffset_y }],
+                        [d38, d37, d46, if iy == n_y - 1 { 0 } else { d1  + noffset_y }],
+                        [d42, d41, d37, if iz == n_z - 1 { 0 } else { d22 + noffset_z }],
+                        [d40, d42, d48, if iz == n_z - 1 { 0 } else { d24 + noffset_z }],
+                        [d41, d40, d44, if iz == n_z - 1 { 0 } else { d23 + noffset_z }],
                         [d45, d44, d38, d57],
                         [d43, d45, d42, d56],
                         [d44, d43, d47, d55],
-                        [d48, d47, d39, if ix == 0       { 0 } else { d13 - noffset_x }],
-                        [d46, d48, d45, if ix == 0       { 0 } else { d13 - noffset_x }],
-                        [d47, d46, d41, if ix == 0       { 0 } else { d13 - noffset_x }],
-
+                        [d48, d47, d39, if ix == 0       { 0 } else { d40 - noffset_x }],
+                        [d46, d48, d45, if ix == 0       { 0 } else { d42 - noffset_x }],
+                        [d47, d46, d41, if ix == 0       { 0 } else { d41 - noffset_x }],
                         // fifth (inner) tet, no orthogonal corner 
                         [d51, d50, d52, d7 ],
                         [d49, d51, d55, d9 ],
@@ -762,14 +763,80 @@ fn generate_tet_beta_values(
                     ]
                     .into_iter()
                 } else {
-                    todo!()
+                    [
+                        // first tet, orthogonal corner facing -x,-y,+z
+                        [ d3, d2 , d4 , if iy == 0       { 0 } else { d39 - noffset_y }],
+                        [ d1, d3 , d7 , if iy == 0       { 0 } else { d38 - noffset_y }],
+                        [ d2, d1 , d10, if iy == 0       { 0 } else { d37 - noffset_y }],
+                        [ d6, d5 , d1 , if ix == 0       { 0 } else { d34 - noffset_x }],
+                        [ d4, d6 , d12, if ix == 0       { 0 } else { d36 - noffset_x }],
+                        [ d5, d4 , d8 , if ix == 0       { 0 } else { d35 - noffset_x }],
+                        [ d9, d8 , d2 , d49],
+                        [ d7, d9 , d6 , d51],
+                        [ d8, d7 , d11, d50],
+                        [d12, d11, d3 , if iz == n_z - 1 { 0 } else { d4 + noffset_z }],
+                        [d10, d12, d9 , if iz == n_z - 1 { 0 } else { d6 + noffset_z }],
+                        [d11, d10, d5 , if iz == n_z - 1 { 0 } else { d5 + noffset_z }],
+                        // second tet, orthogonal corner facing -x,+y,-z
+                        [d15, d14, d16, if iy == n_y - 1 { 0 } else { d3  + noffset_y }],
+                        [d13, d15, d19, if iy == n_y - 1 { 0 } else { d2  + noffset_y }],
+                        [d14, d13, d22, if iy == n_y - 1 { 0 } else { d1  + noffset_y }],
+                        [d18, d17, d13, if ix == 0       { 0 } else { d22 - noffset_x }],
+                        [d16, d18, d24, if ix == 0       { 0 } else { d24 - noffset_x }],
+                        [d17, d16, d20, if ix == 0       { 0 } else { d23 - noffset_x }],
+                        [d21, d20, d14, d59],
+                        [d19, d21, d18, d58],
+                        [d20, d19, d23, d60],
+                        [d24, d23, d15, if iz == 0       { 0 } else { d40 - noffset_z }],
+                        [d22, d24, d21, if iz == 0       { 0 } else { d42 - noffset_z }],
+                        [d23, d22, d17, if iz == 0       { 0 } else { d41 - noffset_z }],
+                        // third tet, orthogonal corner facing +x,-y,-z
+                        [d27, d26, d28, if iy == 0       { 0 } else { d15 - noffset_y }],
+                        [d25, d27, d31, if iy == 0       { 0 } else { d14 - noffset_y }],
+                        [d26, d25, d34, if iy == 0       { 0 } else { d13 - noffset_y }],
+                        [d30, d29, d25, if ix == n_x - 1 { 0 } else { d10 + noffset_x }],
+                        [d28, d30, d36, if ix == n_x - 1 { 0 } else { d12 + noffset_x }],
+                        [d29, d28, d32, if ix == n_x - 1 { 0 } else { d11 + noffset_x }],
+                        [d33, d32, d26, d52],
+                        [d31, d33, d30, d54],
+                        [d32, d31, d35, d53],
+                        [d36, d35, d27, if iz == 0       { 0 } else { d28 - noffset_z }],
+                        [d34, d36, d33, if iz == 0       { 0 } else { d30 - noffset_z }],
+                        [d35, d34, d29, if iz == 0       { 0 } else { d29 - noffset_z }],
+                        // fourth tet, orthogonal corner facing +x,+y,+z
+                        [d39, d38, d40, if iy == n_y - 1 { 0 } else { d27 + noffset_y }],
+                        [d37, d39, d43, if iy == n_y - 1 { 0 } else { d26 + noffset_y }],
+                        [d38, d37, d46, if iy == n_y - 1 { 0 } else { d25 + noffset_y }],
+                        [d42, d41, d37, if ix == n_x - 1 { 0 } else { d46 + noffset_x }],
+                        [d40, d42, d48, if ix == n_x - 1 { 0 } else { d48 + noffset_x }],
+                        [d41, d40, d44, if ix == n_x - 1 { 0 } else { d47 + noffset_x }],
+                        [d45, d44, d38, d57],
+                        [d43, d45, d42, d56],
+                        [d44, d43, d47, d55],
+                        [d48, d47, d39, if iz == n_z - 1 { 0 } else { d16 + noffset_z }],
+                        [d46, d48, d45, if iz == n_z - 1 { 0 } else { d18 + noffset_z }],
+                        [d47, d46, d41, if iz == n_z - 1 { 0 } else { d17 + noffset_z }],
+                        // fifth (inner) tet, no orthogonal corner 
+                        [d51, d50, d52, d7 ],
+                        [d49, d51, d55, d9 ],
+                        [d50, d49, d58, d8 ],
+                        [d54, d53, d49, d31],
+                        [d52, d54, d60, d33],
+                        [d53, d52, d56, d32],
+                        [d57, d56, d50, d45],
+                        [d55, d57, d54, d44],
+                        [d56, d55, d59, d43],
+                        [d60, d59, d51, d20],
+                        [d58, d60, d57, d19],
+                        [d59, d58, d53, d21],
+                    ]
+                    .into_iter()
                 }
             })
         })
     })
 }
 
-// FIXME: merge match arms once there are tests
 #[allow(
     clippy::inline_always,
     clippy::match_same_arms,
@@ -784,56 +851,101 @@ fn generate_tet_offset<T: CoordsFloat>(
 ) -> Vector3<T> {
     // d = p + 24*x + 24*NX*y + 24*NX*NY*z
     let d = dart as usize;
-    let dm = d % 24;
-    let dmm = d % (24 * n_x);
-    let dmmm = d % (24 * n_x * n_y);
+    let dm = d % 60;
+    let dmm = d % (60 * n_x);
+    let dmmm = d % (60 * n_x * n_y);
     let p = dm;
-    let x = (dmm - dm) / 24;
-    let y = (dmmm - dmm) / (24 * n_x);
-    let z = (d - dmmm) / (24 * n_x * n_y);
-    match p {
-        // d1 to d24
-        // y- face
-        1 | 5 | 10 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        2 | 4 | 8 | 18 | 21 | 24 | 27 | 31 | 35 | 49 | 53 | 58 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        3 | 7 | 11 | 26 | 28 | 32 | 42 | 45 | 48 | 50 | 52 | 56 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        6 | 9 | 12 | 14 | 16 | 20 | 39 | 43 | 47 | 51 | 55 | 59 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        13 | 17 | 22 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        15 | 19 | 23 | 30 | 33 | 36 | 38 | 40 | 44 | 54 | 57 | 60 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z).unwrap() * lz,
-        ),
-        25 | 29 | 34 => Vector3(
-            T::from(x + 1).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        37 | 41 | 46 => Vector3(
-            T::from(x).unwrap() * lx,
-            T::from(y + 1).unwrap() * ly,
-            T::from(z + 1).unwrap() * lz,
-        ),
-        _ => unreachable!(),
+    let x = (dmm - dm) / 60;
+    let y = (dmmm - dmm) / (60 * n_x);
+    let z = (d - dmmm) / (60 * n_x * n_y);
+    let mirror = (x + y + z).is_multiple_of(2);
+    if mirror {
+        match p {
+            1 | 5 | 10 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            2 | 4 | 8 | 18 | 21 | 24 | 27 | 31 | 35 | 49 | 53 | 58 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            3 | 7 | 11 | 26 | 28 | 32 | 42 | 45 | 48 | 50 | 52 | 56 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            6 | 9 | 12 | 14 | 16 | 20 | 39 | 43 | 47 | 51 | 55 | 59 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            13 | 17 | 22 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            15 | 19 | 23 | 30 | 33 | 36 | 38 | 40 | 44 | 54 | 57 | 60 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            25 | 29 | 34 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            37 | 41 | 46 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            _ => unreachable!(),
+        }
+    } else {
+        match p {
+            1 | 5 | 10 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            2 | 4 | 8 | 18 | 21 | 24 | 27 | 31 | 35 | 49 | 53 | 58 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            3 | 7 | 11 | 26 | 28 | 32 | 42 | 45 | 48 | 50 | 52 | 56 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            6 | 9 | 12 | 14 | 16 | 20 | 39 | 43 | 47 | 51 | 55 | 59 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            13 | 17 | 22 => Vector3(
+                T::from(x).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            15 | 19 | 23 | 30 | 33 | 36 | 38 | 40 | 44 | 54 | 57 | 60 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            25 | 29 | 34 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y).unwrap() * ly,
+                T::from(z).unwrap() * lz,
+            ),
+            37 | 41 | 46 => Vector3(
+                T::from(x + 1).unwrap() * lx,
+                T::from(y + 1).unwrap() * ly,
+                T::from(z + 1).unwrap() * lz,
+            ),
+            _ => unreachable!(),
+        }
     }
 }

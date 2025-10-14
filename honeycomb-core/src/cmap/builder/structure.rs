@@ -132,7 +132,7 @@ impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
                 let split = gridb.split_cells;
                 gridb.parse_3d().map(|(origin, ns, lens)| {
                     if split {
-                        unimplemented!()
+                        super::grid::build_3d_tetgrid(origin, ns, lens, self.attributes)
                     } else {
                         super::grid::build_3d_grid(origin, ns, lens, self.attributes)
                     }
