@@ -483,6 +483,22 @@ fn hex_cmap3_correctness() {
     assert_eq!(cmap.iter_vertices().count(), 27); // 9 * 3 vertices
 }
 
+#[test]
+fn tet_cmap3_correctness() {
+    let descriptor = GridDescriptor::default()
+        .n_cells([2, 2, 2])
+        .len_per_cell([1., 1., 1.])
+        .split_cells(true);
+    let cmap: CMap3<f64> = CMapBuilder::from_grid_descriptor(descriptor)
+        .build()
+        .unwrap();
+
+    assert_eq!(cmap.n_darts(), 1 + 60 * 8); // 60 darts per volume, and the null dart
+    assert_eq!(cmap.iter_volumes().count(), 40); // 2*2*2*5 volumes
+    assert_eq!(cmap.iter_faces().count(), 48 + 24 + 32); // 24*2 on the boundaries + 12*2 between hexes + 4*8 in hexes
+    assert_eq!(cmap.iter_vertices().count(), 27); // 9 * 3 vertices
+}
+
 // --- IO
 
 // ------ CMAP
