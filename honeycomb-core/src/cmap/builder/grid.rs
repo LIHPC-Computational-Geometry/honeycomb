@@ -690,7 +690,7 @@ fn generate_tet_beta_values(
                 let noffset_x = 60;
                 let noffset_y = noffset_x * n_x as DartIdType;
                 let noffset_z = noffset_y * n_y as DartIdType;
-                let mirror = (ix + iy + iz).is_multiple_of(2);
+                let mirror = ((ix + iy + iz) & 1) == 0; // is even
 
                 // beta images of the tetcube (tm)
                 if mirror {
@@ -858,7 +858,7 @@ fn generate_tet_offset<T: CoordsFloat>(
     let x = (dmm - dm) / 60;
     let y = (dmmm - dmm) / (60 * n_x);
     let z = (d - dmmm) / (60 * n_x * n_y);
-    let mirror = (x + y + z).is_multiple_of(2);
+    let mirror = ((x + y + z) & 1) == 0; // is even
     if mirror {
         match p {
             1 | 5 | 10 => Vector3(
