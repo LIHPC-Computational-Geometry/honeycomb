@@ -12,7 +12,10 @@
 
 use std::hint::black_box;
 
-use honeycomb::core::cmap::{CMap2, CMapBuilder};
+use honeycomb::{
+    core::cmap::{CMap2, CMapBuilder},
+    prelude::grid_generation::GridBuilder,
+};
 use iai_callgrind::{
     Callgrind, FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark,
     library_benchmark_group, main,
@@ -23,19 +26,15 @@ use honeycomb_benches::utils::FloatType;
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::<2, FloatType>::unit_grid(n_square)
-        .build()
-        .unwrap()
+    GridBuilder::<2, FloatType>::unit_grid(n_square)
 }
 
 fn get_link_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
-        .build()
-        .unwrap()
+    GridBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
 }
 
 fn get_sew_map(n_square: usize) -> CMap2<FloatType> {
-    let map = CMapBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
+    let map = CMapBuilder::<2>::from_n_darts(n_square.pow(2) * 4)
         .build()
         .unwrap();
     map.force_write_vertex(4, (0.0, 0.0));

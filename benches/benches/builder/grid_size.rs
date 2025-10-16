@@ -1,7 +1,7 @@
 use std::hint::black_box;
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use honeycomb::prelude::{CMap2, CMapBuilder};
+use honeycomb::prelude::{CMap2, grid_generation::GridBuilder};
 
 use honeycomb_benches::utils::FloatType;
 
@@ -13,17 +13,15 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         group.throughput(Throughput::Elements(size.pow(2))); // throughoutput = number of cells
         group.bench_with_input(BenchmarkId::new("unit-squares", ""), &size, |b, size| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_grid(*size as usize)
-                    .build()
-                    .unwrap();
+                let mut map: CMap2<FloatType> =
+                    GridBuilder::<2, FloatType>::unit_grid(*size as usize);
                 black_box(&mut map);
             })
         });
         group.bench_with_input(BenchmarkId::new("unit-triangles", ""), &size, |b, size| {
             b.iter(|| {
-                let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_triangles(*size as usize)
-                    .build()
-                    .unwrap();
+                let mut map: CMap2<FloatType> =
+                    GridBuilder::<2, FloatType>::unit_triangles(*size as usize);
                 black_box(&mut map);
             })
         });

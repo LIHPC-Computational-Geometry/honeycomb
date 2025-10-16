@@ -1,7 +1,8 @@
-use honeycomb_core::cmap::{CMapBuilder, GridDescriptor, OrbitPolicy};
+use honeycomb_core::cmap::OrbitPolicy;
 use honeycomb_core::geometry::Vertex2;
 use vtkio::Vtk;
 
+use crate::grid_generation::GridBuilder;
 use crate::grisubal::model::{Boundary, Geometry2, GeometryVertex};
 use crate::grisubal::routines::{
     compute_intersection_ids, generate_edge_data, generate_intersection_data,
@@ -114,14 +115,12 @@ fn build_valid_geometry() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn regular_intersections() {
-    let mut cmap = CMapBuilder::from_grid_descriptor(
-        GridDescriptor::default()
-            .len_per_cell([1.0, 1.0])
-            .n_cells([2, 2]),
-    )
-    .add_attribute::<Boundary>()
-    .build()
-    .unwrap();
+    let mut cmap = GridBuilder::<2, f64>::default()
+        .n_cells([2; 2])
+        .len_per_cell([1.0; 2])
+        .add_attribute::<Boundary>()
+        .build()
+        .unwrap();
 
     // square with bottom left at (0.5,0.5) & top right at (1.5,1.5)
     let geometry = Geometry2 {
@@ -260,16 +259,12 @@ fn regular_intersections() {
 #[allow(clippy::too_many_lines)]
 #[test]
 fn corner_intersection() {
-    use num_traits::Float;
-
-    let mut cmap = CMapBuilder::from_grid_descriptor(
-        GridDescriptor::default()
-            .len_per_cell([1.0, 1.0])
-            .n_cells([2, 2]),
-    )
-    .add_attribute::<Boundary>()
-    .build()
-    .unwrap();
+    let mut cmap = GridBuilder::<2, f64>::default()
+        .n_cells([2; 2])
+        .len_per_cell([1.0; 2])
+        .add_attribute::<Boundary>()
+        .build()
+        .unwrap();
 
     // square with bottom left at (0.5,0.5) & top right at (1.5,1.5)
     let geometry = Geometry2 {
@@ -406,14 +401,12 @@ fn corner_intersection() {
 #[allow(clippy::too_many_lines)]
 #[test]
 pub fn successive_straight_intersections() {
-    let mut cmap = CMapBuilder::from_grid_descriptor(
-        GridDescriptor::default()
-            .len_per_cell([1.0, 1.0])
-            .n_cells([3, 3]),
-    )
-    .add_attribute::<Boundary>()
-    .build()
-    .unwrap();
+    let mut cmap = GridBuilder::<2, f64>::default()
+        .n_cells([3; 2])
+        .len_per_cell([1.0; 2])
+        .add_attribute::<Boundary>()
+        .build()
+        .unwrap();
 
     // square where each corner belong to non-neighboring cells
     let geometry = Geometry2 {
@@ -688,14 +681,12 @@ pub fn successive_straight_intersections() {
 #[allow(clippy::too_many_lines)]
 #[test]
 pub fn successive_diag_intersections() {
-    let mut cmap = CMapBuilder::from_grid_descriptor(
-        GridDescriptor::default()
-            .len_per_cell([1.0, 1.0])
-            .n_cells([3, 3]),
-    )
-    .add_attribute::<Boundary>()
-    .build()
-    .unwrap();
+    let mut cmap = GridBuilder::<2, f64>::default()
+        .n_cells([3; 2])
+        .len_per_cell([1.0; 2])
+        .add_attribute::<Boundary>()
+        .build()
+        .unwrap();
 
     // square where each corner belong to non-neighboring cells
     let geometry = Geometry2 {

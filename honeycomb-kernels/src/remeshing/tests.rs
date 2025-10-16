@@ -358,6 +358,8 @@ mod anchors {
 
 #[cfg(test)]
 mod capture_and_classify {
+    use crate::grid_generation::GridBuilder;
+
     use super::*;
 
     #[test]
@@ -400,13 +402,13 @@ mod capture_and_classify {
 
     #[test]
     fn classify_without_anchors() {
-        let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10).build().unwrap();
+        let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(10).build().unwrap();
         assert!(
             classify_capture(&map)
                 .is_err_and(|e| matches!(e, ClassificationError::MissingAttribute(_)))
         );
 
-        let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10)
+        let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(10)
             .add_attribute::<VertexAnchor>()
             .build()
             .unwrap();
@@ -415,7 +417,7 @@ mod capture_and_classify {
                 .is_err_and(|e| matches!(e, ClassificationError::MissingAttribute(_)))
         );
 
-        let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(10)
+        let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(10)
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .build()
@@ -430,7 +432,9 @@ mod capture_and_classify {
     fn classify_without_anchored_vertex_values() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([4; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -496,7 +500,9 @@ mod capture_and_classify {
     fn classify_with_anchored_vertex_values() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+        let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([2; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -544,7 +550,10 @@ mod capture_and_classify {
 
 #[cfg(test)]
 mod triangulate_and_classify {
-    use crate::triangulation::{TriangulateError, earclip_cell_countercw};
+    use crate::{
+        grid_generation::GridBuilder,
+        triangulation::{TriangulateError, earclip_cell_countercw},
+    };
 
     use super::*;
 
@@ -554,7 +563,9 @@ mod triangulate_and_classify {
     fn tri_before_class_no_anchor_value() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([4; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -574,7 +585,9 @@ mod triangulate_and_classify {
     fn tri_before_class() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([2; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -601,7 +614,9 @@ mod triangulate_and_classify {
     fn tri_after_class_no_anchor_value() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(4)
+        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([4; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -660,7 +675,9 @@ mod triangulate_and_classify {
     fn tri_after_class() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(2)
+        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            .n_cells([2; 2])
+            .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
             .add_attribute::<EdgeAnchor>()
             .add_attribute::<FaceAnchor>()
@@ -740,7 +757,9 @@ mod triangulate_and_classify {
 
         #[test]
         fn collapse_edge_errs() {
-            let map = CMapBuilder::<2, f64>::unit_grid(2)
+            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+                .n_cells([2; 2])
+                .len_per_cell([1.0; 2])
                 .add_attribute::<VertexAnchor>()
                 .add_attribute::<EdgeAnchor>()
                 .add_attribute::<FaceAnchor>()
@@ -759,7 +778,10 @@ mod triangulate_and_classify {
                 Err(EdgeCollapseError::BadTopology)
             );
 
-            let map = CMapBuilder::<2, f64>::unit_triangles(2)
+            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+                .n_cells([2; 2])
+                .len_per_cell([1.0; 2])
+                .split_cells(true)
                 .add_attribute::<VertexAnchor>()
                 .add_attribute::<EdgeAnchor>()
                 .add_attribute::<FaceAnchor>()
@@ -775,7 +797,10 @@ mod triangulate_and_classify {
 
         #[test]
         fn collapse_edge_seq() {
-            let map = CMapBuilder::<2, f64>::unit_triangles(3)
+            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+                .n_cells([3; 2])
+                .len_per_cell([1.0; 2])
+                .split_cells(true)
                 .add_attribute::<VertexAnchor>()
                 .add_attribute::<EdgeAnchor>()
                 .add_attribute::<FaceAnchor>()
@@ -838,11 +863,13 @@ mod triangulate_and_classify {
 
 #[cfg(test)]
 mod swap {
+    use crate::grid_generation::GridBuilder;
+
     use super::*;
 
     #[test]
     fn swap_edge_errs() {
-        let map = CMapBuilder::<2, f64>::unit_triangles(1).build().unwrap();
+        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_triangles(1);
 
         assert!(
             atomically_with_err(|t| swap_edge(t, &map, 0))
@@ -853,7 +880,7 @@ mod swap {
                 .is_err_and(|e| e == EdgeSwapError::IncompleteEdge)
         );
 
-        let map = CMapBuilder::<2, f64>::unit_grid(2).build().unwrap();
+        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_grid(2);
 
         assert!(
             atomically_with_err(|t| swap_edge(t, &map, 2))
@@ -863,7 +890,7 @@ mod swap {
 
     #[test]
     fn swap_edge_seq() {
-        let map = CMapBuilder::<2, f64>::unit_triangles(1).build().unwrap();
+        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_triangles(1);
 
         // before
         //

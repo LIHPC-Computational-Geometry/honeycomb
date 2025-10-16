@@ -5,7 +5,7 @@ use thiserror::Error;
 use vtkio::Vtk;
 
 use crate::attributes::{AttrStorageManager, AttributeBind};
-use crate::cmap::{CMap2, CMap3, GridDescriptor};
+use crate::cmap::{CMap2, CMap3};
 use crate::geometry::CoordsFloat;
 
 use super::io::CMapFile;
@@ -16,14 +16,6 @@ use super::io::CMapFile;
 /// structure.
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BuilderError {
-    // grid-related variants
-    /// One or multiple of the specified grid characteristics are invalid.
-    #[error("invalid grid parameters - {0}")]
-    InvalidGridParameters(&'static str),
-    /// The builder is missing one or multiple parameters to generate the grid.
-    #[error("insufficient parameters - please specify at least 2")]
-    MissingGridParameters,
-
     // custom format variants
     /// A value could not be parsed.
     #[error("error parsing a value in one of the cmap file section - {0}")]
@@ -62,38 +54,34 @@ pub enum BuilderError {
 /// # fn main() -> Result<(), BuilderError> {
 /// use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder};
 ///
-/// let builder_2d = CMapBuilder::<2, _>::from_n_darts(10);
+/// let builder_2d = CMapBuilder::<2>::from_n_darts(10);
 /// let map_2d: CMap2<f64> = builder_2d.build()?;
 /// assert_eq!(map_2d.n_darts(), 11); // 10 + null dart = 11
 ///
-/// let builder_3d = CMapBuilder::<3, _>::from_n_darts(10);
+/// let builder_3d = CMapBuilder::<3>::from_n_darts(10);
 /// let map_3d: CMap3<f64> = builder_3d.build()?;
 /// assert_eq!(map_3d.n_darts(), 11); // 10 + null dart = 11
 /// # Ok(())
 /// # }
 /// ```
-pub struct CMapBuilder<const D: usize, T>
-where
-    T: CoordsFloat,
-{
-    builder_kind: BuilderType<D, T>,
+pub struct CMapBuilder<const D: usize> {
+    builder_kind: BuilderType,
     attributes: AttrStorageManager,
 }
 
-enum BuilderType<const D: usize, T: CoordsFloat> {
+enum BuilderType {
     CMap(CMapFile),
     FreeDarts(usize),
-    Grid(GridDescriptor<D, T>),
     Vtk(Vtk),
 }
 
 #[doc(hidden)]
-pub trait Builder {
+pub trait Builder<T: CoordsFloat> {
     type MapType;
     fn build(self) -> Result<Self::MapType, BuilderError>;
 }
 
-impl<T: CoordsFloat> Builder for CMapBuilder<2, T> {
+impl<T: CoordsFloat> Builder<T> for CMapBuilder<2> {
     type MapType = CMap2<T>;
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
@@ -103,22 +91,12 @@ impl<T: CoordsFloat> Builder for CMapBuilder<2, T> {
                 n_darts,
                 self.attributes,
             )),
-            BuilderType::Grid(gridb) => {
-                let split = gridb.split_cells;
-                gridb.parse_2d().map(|(origin, ns, lens)| {
-                    if split {
-                        super::grid::build_2d_splitgrid(origin, ns, lens, self.attributes)
-                    } else {
-                        super::grid::build_2d_grid(origin, ns, lens, self.attributes)
-                    }
-                })
-            }
             BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
         }
     }
 }
 
-impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
+impl<T: CoordsFloat> Builder<T> for CMapBuilder<3> {
     type MapType = CMap3<T>;
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
@@ -128,36 +106,27 @@ impl<T: CoordsFloat> Builder for CMapBuilder<3, T> {
                 n_darts,
                 self.attributes,
             )),
-            BuilderType::Grid(gridb) => {
-                let split = gridb.split_cells;
-                gridb.parse_3d().map(|(origin, ns, lens)| {
-                    if split {
-                        super::grid::build_3d_tetgrid(origin, ns, lens, self.attributes)
-                    } else {
-                        super::grid::build_3d_grid(origin, ns, lens, self.attributes)
-                    }
-                })
-            }
             BuilderType::Vtk(_vfile) => unimplemented!(),
         }
     }
 }
 /// # Regular methods
-impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
+impl<const D: usize> CMapBuilder<D> {
+    /// Create a builder structure for a map with a set number of darts and the attribute set of
+    /// another builder.
+    #[must_use = "unused builder object"]
+    pub fn from_n_darts_and_attributes(n_darts: usize, other: Self) -> Self {
+        Self {
+            builder_kind: BuilderType::FreeDarts(n_darts),
+            attributes: other.attributes,
+        }
+    }
+
     /// Create a builder structure for a map with a set number of darts.
     #[must_use = "unused builder object"]
     pub fn from_n_darts(n_darts: usize) -> Self {
         Self {
             builder_kind: BuilderType::FreeDarts(n_darts),
-            attributes: AttrStorageManager::default(),
-        }
-    }
-
-    /// Create a builder structure from a [`GridDescriptor`].
-    #[must_use = "unused builder object"]
-    pub fn from_grid_descriptor(grid_descriptor: GridDescriptor<D, T>) -> Self {
-        Self {
-            builder_kind: BuilderType::Grid(grid_descriptor),
             attributes: AttrStorageManager::default(),
         }
     }
@@ -233,109 +202,10 @@ impl<const D: usize, T: CoordsFloat> CMapBuilder<D, T> {
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
     #[allow(private_interfaces, private_bounds)]
-    pub fn build(self) -> Result<<Self as Builder>::MapType, BuilderError>
+    pub fn build<T: CoordsFloat>(self) -> Result<<Self as Builder<T>>::MapType, BuilderError>
     where
-        Self: Builder,
+        Self: Builder<T>,
     {
         Builder::build(self)
-    }
-}
-
-/// # 2D pre-definite structures
-impl<T: CoordsFloat> CMapBuilder<2, T> {
-    /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_square: usize` -- Number of cells along each axis.
-    ///
-    /// # Return
-    ///
-    /// This function return a builder structure with pre-definite parameters set to generate
-    /// a specific map.
-    ///
-    /// The map generated by this pre-definite value corresponds to an orthogonal mesh, with an
-    /// equal number of cells along each axis:
-    ///
-    /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid.svg)
-    #[must_use = "unused builder object"]
-    pub fn unit_grid(n_square: usize) -> Self {
-        Self {
-            builder_kind: BuilderType::Grid(
-                GridDescriptor::default()
-                    .n_cells([n_square; 2])
-                    .len_per_cell([T::one(); 2]),
-            ),
-            attributes: AttrStorageManager::default(),
-        }
-    }
-
-    /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_square: usize` -- Number of cells along each axis.
-    ///
-    /// # Return
-    ///
-    /// This function return a builder structure with pre-definite parameters set to generate
-    /// a specific map.
-    ///
-    /// The map generated by this pre-definite value corresponds to an orthogonal mesh, with an
-    /// equal number of cells along each axis. Each cell will be split across their diagonal (top
-    /// left to bottom right) to form triangles:
-    ///
-    /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid_tri.svg)
-    #[must_use = "unused builder object"]
-    pub fn unit_triangles(n_square: usize) -> Self {
-        Self {
-            builder_kind: BuilderType::Grid(
-                GridDescriptor::default()
-                    .n_cells([n_square; 2])
-                    .len_per_cell([T::one(); 2])
-                    .split_cells(true),
-            ),
-            attributes: AttrStorageManager::default(),
-        }
-    }
-}
-
-/// # 3D pre-definite structures
-impl<T: CoordsFloat> CMapBuilder<3, T> {
-    /// Create a [`CMapBuilder`] with a predefinite [`GridDescriptor`] value.
-    ///
-    /// # Arguments
-    ///
-    /// - `n_cells_per_axis: usize` -- Number of cells along each axis.
-    ///
-    /// # Return
-    ///
-    /// The map generated by this pre-definite value corresponds to an orthogonal mesh, with an
-    /// equal number of cells along each axis:
-    ///
-    /// TODO: add a figure
-    pub fn hex_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
-        Self {
-            builder_kind: BuilderType::Grid(
-                GridDescriptor::default()
-                    .n_cells([n_cells_per_axis; 3])
-                    .len_per_cell([cell_length; 3]),
-            ),
-            attributes: AttrStorageManager::default(),
-        }
-    }
-
-    /// **UNIMPLEMENTED**
-    #[must_use = "unused builder object"]
-    pub fn tet_grid(n_cells_per_axis: usize, cell_length: T) -> Self {
-        Self {
-            builder_kind: BuilderType::Grid(
-                GridDescriptor::default()
-                    .n_cells([n_cells_per_axis; 3])
-                    .len_per_cell([cell_length; 3])
-                    .split_cells(true),
-            ),
-            attributes: AttrStorageManager::default(),
-        }
     }
 }

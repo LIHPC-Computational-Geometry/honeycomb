@@ -1,235 +1,20 @@
-use crate::attributes::AttrStorageManager;
-use crate::cmap::{BuilderError, CMap2, CMap3, DartIdType, VertexIdType};
-use crate::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
+use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder, DartIdType, VertexIdType};
+use honeycomb_core::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 
-// --- grid descriptor
-
-/// # Grid description used by the map builder
-///
-/// The user must specify two out of these three characteristics (third is deduced):
-///
-/// - `n_cells: [usize; D]` -- The number of cells per axis
-/// - `len_per_cell: [T; D]` -- The dimensions of cells per axis
-/// - `lens: [T; D]` -- The total dimensions of the grid per axis
-///
-/// ## Generics
-///
-/// - `const D: usize` -- Dimension of the grid. Should be 2 or 3.
-/// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
-#[derive(Clone)]
-pub struct GridDescriptor<const D: usize, T: CoordsFloat> {
-    pub(crate) origin: [T; D],
-    pub(crate) n_cells: Option<[usize; D]>,
-    pub(crate) len_per_cell: Option<[T; D]>,
-    pub(crate) lens: Option<[T; D]>,
-    pub(crate) split_cells: bool,
-}
-
-impl<const D: usize, T: CoordsFloat> Default for GridDescriptor<D, T> {
-    fn default() -> Self {
-        Self {
-            origin: [T::zero(); D],
-            n_cells: None,
-            len_per_cell: None,
-            lens: None,
-            split_cells: false,
-        }
-    }
-}
-
-impl<const D: usize, T: CoordsFloat> GridDescriptor<D, T> {
-    /// Set values for all dimensions
-    #[must_use = "unused builder object"]
-    pub fn n_cells(mut self, n_cells: [usize; D]) -> Self {
-        self.n_cells = Some(n_cells);
-        self
-    }
-
-    /// Set values for all dimensions
-    #[must_use = "unused builder object"]
-    pub fn len_per_cell(mut self, len_per_cell: [T; D]) -> Self {
-        self.len_per_cell = Some(len_per_cell);
-        self
-    }
-
-    /// Set values for all dimensions
-    #[must_use = "unused builder object"]
-    pub fn lens(mut self, lens: [T; D]) -> Self {
-        self.lens = Some(lens);
-        self
-    }
-
-    /// Set origin (most bottom-left vertex) of the grid
-    #[must_use = "unused builder object"]
-    pub fn origin(mut self, origin: [T; D]) -> Self {
-        self.origin = origin;
-        self
-    }
-
-    /// Indicate whether to split cells of the grid
-    ///
-    /// In 2D, this will result in triangular cells.
-    ///
-    /// In 3D, this will result in tetrahedral cells.
-    #[must_use = "unused builder object"]
-    pub fn split_cells(mut self, split: bool) -> Self {
-        self.split_cells = split;
-        self
-    }
-}
-
-// --- parsing routine
-
-macro_rules! check_parameters {
-    ($id: ident, $msg: expr) => {
-        if $id.is_sign_negative() | $id.is_zero() {
-            return Err(BuilderError::InvalidGridParameters($msg));
-        }
-    };
-}
-
-impl<T: CoordsFloat> GridDescriptor<2, T> {
-    /// Parse provided grid parameters to provide what's used to actually generate the grid.
-    #[allow(clippy::type_complexity)]
-    pub(crate) fn parse_2d(self) -> Result<(Vertex2<T>, [usize; 2], [T; 2]), BuilderError> {
-        match (self.n_cells, self.len_per_cell, self.lens) {
-            // from # cells and lengths per cell
-            (Some([nx, ny]), Some([lpx, lpy]), lens) => {
-                if lens.is_some() {
-                    eprintln!(
-                        "W: All three grid parameters were specified, total lengths will be ignored"
-                    );
-                }
-                #[rustfmt::skip]
-                check_parameters!(lpx, "length per x cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpy, "length per y cell is null or negative");
-                Ok((
-                    Vertex2(self.origin[0], self.origin[1]),
-                    [nx, ny],
-                    [lpx, lpy],
-                ))
-            }
-            // from # cells and total lengths
-            (Some([nx, ny]), None, Some([lx, ly])) => {
-                #[rustfmt::skip]
-                check_parameters!(lx, "grid length along x is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(ly, "grid length along y is null or negative");
-                Ok((
-                    Vertex2(self.origin[0], self.origin[1]),
-                    [nx, ny],
-                    [lx / T::from(nx).unwrap(), ly / T::from(ny).unwrap()],
-                ))
-            }
-            // from lengths per cell and total lengths
-            (None, Some([lpx, lpy]), Some([lx, ly])) => {
-                #[rustfmt::skip]
-                check_parameters!(lpx, "length per x cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpy, "length per y cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lx, "grid length along x is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(ly, "grid length along y is null or negative");
-                Ok((
-                    Vertex2(self.origin[0], self.origin[1]),
-                    [
-                        (lx / lpx).ceil().to_usize().unwrap(),
-                        (ly / lpy).ceil().to_usize().unwrap(),
-                    ],
-                    [lpx, lpy],
-                ))
-            }
-            (_, _, _) => Err(BuilderError::MissingGridParameters),
-        }
-    }
-}
-
-impl<T: CoordsFloat> GridDescriptor<3, T> {
-    /// Parse provided grid parameters to provide what's used to actually generate the grid.
-    #[allow(clippy::type_complexity)]
-    pub(crate) fn parse_3d(self) -> Result<(Vertex3<T>, [usize; 3], [T; 3]), BuilderError> {
-        match (self.n_cells, self.len_per_cell, self.lens) {
-            // from # cells and lengths per cell
-            (Some([nx, ny, nz]), Some([lpx, lpy, lpz]), lens) => {
-                if lens.is_some() {
-                    eprintln!(
-                        "W: All three grid parameters were specified, total lengths will be ignored"
-                    );
-                }
-                #[rustfmt::skip]
-                check_parameters!(lpx, "length per x cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpy, "length per y cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpz, "length per z cell is null or negative");
-                Ok((
-                    Vertex3(self.origin[0], self.origin[1], self.origin[2]),
-                    [nx, ny, nz],
-                    [lpx, lpy, lpz],
-                ))
-            }
-            // from # cells and total lengths
-            (Some([nx, ny, nz]), None, Some([lx, ly, lz])) => {
-                #[rustfmt::skip]
-                check_parameters!(lx, "grid length along x is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(ly, "grid length along y is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lz, "grid length along z is null or negative");
-                Ok((
-                    Vertex3(self.origin[0], self.origin[1], self.origin[2]),
-                    [nx, ny, nz],
-                    [
-                        lx / T::from(nx).unwrap(),
-                        ly / T::from(ny).unwrap(),
-                        lz / T::from(nz).unwrap(),
-                    ],
-                ))
-            }
-            // from lengths per cell and total lengths
-            (None, Some([lpx, lpy, lpz]), Some([lx, ly, lz])) => {
-                #[rustfmt::skip]
-                check_parameters!(lpx, "length per x cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpy, "length per y cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lpz, "length per z cell is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lx, "grid length along x is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(ly, "grid length along y is null or negative");
-                #[rustfmt::skip]
-                check_parameters!(lz, "grid length along z is null or negative");
-                Ok((
-                    Vertex3(self.origin[0], self.origin[1], self.origin[2]),
-                    [
-                        (lx / lpx).ceil().to_usize().unwrap(),
-                        (ly / lpy).ceil().to_usize().unwrap(),
-                        (lz / lpz).ceil().to_usize().unwrap(),
-                    ],
-                    [lpx, lpy, lpz],
-                ))
-            }
-            (_, _, _) => Err(BuilderError::MissingGridParameters),
-        }
-    }
-}
-
-// --- building routines
-
-// ------ 2D
+// 2D
 
 /// Internal grid-building routine
-#[allow(clippy::too_many_lines)]
-pub fn build_2d_grid<T: CoordsFloat>(
+#[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
+pub(crate) fn build_2d_grid<T: CoordsFloat>(
+    builder: CMapBuilder<2>,
     origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
-    manager: AttrStorageManager,
 ) -> CMap2<T> {
-    let map: CMap2<T> = CMap2::new_with_undefined_attributes(4 * n_square_x * n_square_y, manager);
+    let map: CMap2<T> =
+        CMapBuilder::from_n_darts_and_attributes(4 * n_square_x * n_square_y, builder)
+            .build()
+            .unwrap();
 
     // init beta functions
     (1..=(4 * n_square_x * n_square_y) as DartIdType)
@@ -306,7 +91,7 @@ pub fn build_2d_grid<T: CoordsFloat>(
     map
 }
 
-#[allow(clippy::inline_always)]
+#[allow(clippy::cast_possible_truncation,clippy::inline_always)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_square_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [DartIdType; 3]> {
@@ -329,14 +114,17 @@ fn generate_square_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [
 }
 
 /// Internal grid-building routine
-#[allow(clippy::too_many_lines)]
-pub fn build_2d_splitgrid<T: CoordsFloat>(
+#[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
+pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
+    builder: CMapBuilder<2>,
     origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
-    manager: AttrStorageManager,
 ) -> CMap2<T> {
-    let map: CMap2<T> = CMap2::new_with_undefined_attributes(6 * n_square_x * n_square_y, manager);
+    let map: CMap2<T> =
+        CMapBuilder::<2>::from_n_darts_and_attributes(6 * n_square_x * n_square_y, builder)
+            .build()
+            .unwrap();
 
     // init beta functions
     (1..=(6 * n_square_x * n_square_y) as DartIdType)
@@ -413,7 +201,7 @@ pub fn build_2d_splitgrid<T: CoordsFloat>(
     map
 }
 
-#[allow(clippy::inline_always)]
+#[allow(clippy::cast_possible_truncation,clippy::inline_always)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [DartIdType; 3]> {
@@ -437,20 +225,22 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
         })
 }
 
-// ------ 3D
+// 3D
 
 /// Internal grid-building routine
-#[allow(clippy::too_many_lines)]
-pub fn build_3d_grid<T: CoordsFloat>(
+#[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
+pub(crate) fn build_3d_grid<T: CoordsFloat>(
+    builder: CMapBuilder<3>,
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
-    manager: AttrStorageManager,
 ) -> CMap3<T> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 24 * n_square_x * n_square_y * n_square_z;
 
-    let map: CMap3<T> = CMap3::new_with_undefined_attributes(n_darts, manager);
+    let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+        .build()
+        .unwrap();
 
     // init beta functions
     (1..=n_darts as DartIdType)
@@ -495,7 +285,7 @@ pub fn build_3d_grid<T: CoordsFloat>(
 // z+: 13
 // x-: 17
 // x+: 9
-#[allow(clippy::inline_always)]
+#[allow(clippy::cast_possible_truncation,clippy::inline_always)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_hex_beta_values(
@@ -558,6 +348,7 @@ fn generate_hex_beta_values(
 }
 
 #[allow(
+    clippy::cast_possible_truncation,
     clippy::inline_always,
     clippy::match_same_arms,
     clippy::too_many_lines,
@@ -626,17 +417,19 @@ fn generate_hex_offset<T: CoordsFloat>(
 }
 
 /// Internal grid-building routine
-#[allow(clippy::too_many_lines)]
-pub fn build_3d_tetgrid<T: CoordsFloat>(
+#[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
+pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
+    builder: CMapBuilder<3>,
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
-    manager: AttrStorageManager,
 ) -> CMap3<T> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 60 * n_square_x * n_square_y * n_square_z;
 
-    let map: CMap3<T> = CMap3::new_with_undefined_attributes(n_darts, manager);
+    let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+        .build()
+        .unwrap();
 
     // init beta functions
     (1..=n_darts as DartIdType)
@@ -664,7 +457,7 @@ pub fn build_3d_tetgrid<T: CoordsFloat>(
     map
 }
 
-#[allow(clippy::inline_always, clippy::too_many_lines)]
+#[allow(clippy::cast_possible_truncation,clippy::inline_always, clippy::too_many_lines)]
 #[rustfmt::skip]
 #[inline(always)]
 fn generate_tet_beta_values(
@@ -838,6 +631,7 @@ fn generate_tet_beta_values(
 }
 
 #[allow(
+    clippy::cast_possible_truncation,
     clippy::inline_always,
     clippy::match_same_arms,
     clippy::too_many_lines,
