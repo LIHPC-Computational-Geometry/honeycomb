@@ -30,7 +30,9 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_link_map(n_square: usize) -> CMap2<FloatType> {
-    GridBuilder::<2, FloatType>::from_n_darts(n_square.pow(2) * 4)
+    CMapBuilder::<2>::from_n_darts(n_square.pow(2) * 4)
+        .build()
+        .unwrap()
 }
 
 fn get_sew_map(n_square: usize) -> CMap2<FloatType> {

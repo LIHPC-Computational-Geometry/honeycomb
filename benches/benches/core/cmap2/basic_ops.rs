@@ -29,7 +29,7 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = GridBuilder::<2, FloatType>::unit_grid(n_square);
+    let map = GridBuilder::<2, FloatType>::unit_grid(n_square);
     map.set_betas(5, [0; 3]); // free dart 5
     map.release_dart(5).unwrap();
     // because of the way we built the map in the square_cmap2 function & the ID computation
@@ -43,9 +43,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
 
 fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
     (
-        CMapBuilder::<2, FloatType>::from_n_darts(0)
-            .build()
-            .unwrap(),
+        CMapBuilder::<2>::from_n_darts(0).build().unwrap(),
         n_squares.pow(2) * 4,
     )
 }

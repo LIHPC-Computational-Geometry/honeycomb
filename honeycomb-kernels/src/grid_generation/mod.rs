@@ -37,7 +37,7 @@ pub enum GridBuilderError {
 ///
 /// ```rust
 /// # use honeycomb_kernels::grid_generation::{GridBuilderError};
-/// # fn main() -> Result<(), BuilderError> {
+/// # fn main() -> Result<(), GridBuilderError> {
 /// use honeycomb_core::cmap::CMap3;
 /// use honeycomb_kernels::grid_generation::{GridBuilder};
 ///
