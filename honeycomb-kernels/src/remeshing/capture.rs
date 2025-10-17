@@ -1,21 +1,24 @@
 use std::collections::{HashSet, VecDeque};
 
 use honeycomb_core::{
-    cmap::{CMap2, CMapBuilder, DartIdType, GridDescriptor, NULL_DART_ID, OrbitPolicy},
+    cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy},
     geometry::CoordsFloat,
 };
 use vtkio::Vtk;
 
-use crate::grisubal::{
-    Clip, GrisubalError,
-    model::{Boundary, Geometry2},
-    routines::{
-        clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
-        detect_orientation_issue, generate_edge_data, generate_intersection_data,
-        group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+use crate::utils::{CurveIdType, EdgeAnchor, FaceAnchor, VertexAnchor};
+use crate::{
+    grid_generation::GridBuilder,
+    grisubal::{
+        Clip, GrisubalError,
+        model::{Boundary, Geometry2},
+        routines::{
+            clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
+            detect_orientation_issue, generate_edge_data, generate_intersection_data,
+            group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+        },
     },
 };
-use crate::utils::{CurveIdType, EdgeAnchor, FaceAnchor, VertexAnchor};
 
 #[allow(clippy::missing_errors_doc)]
 /// Capture the geometry specified as input using the `grisubal` algorithm.
@@ -59,13 +62,12 @@ pub fn capture_geometry<T: CoordsFloat>(
     // --- FIND AN OVERLAPPING GRID
     let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, true)?;
     let [cx, cy] = grid_cell_sizes;
-    let ogrid = GridDescriptor::default()
-        .n_cells([nx, ny])
-        .len_per_cell([cx, cy])
-        .origin([origin.0, origin.1]);
 
     // --- BUILD THE GRID
-    let mut cmap = CMapBuilder::from_grid_descriptor(ogrid)
+    let mut cmap = GridBuilder::<2, T>::default()
+        .n_cells([nx, ny])
+        .len_per_cell([cx, cy])
+        .origin([origin.0, origin.1])
         .add_attribute::<Boundary>() // will be used for clipping
         .add_attribute::<VertexAnchor>()
         .add_attribute::<EdgeAnchor>()

@@ -13,7 +13,7 @@ use std::hint::black_box;
 
 use honeycomb::{
     core::cmap::DartReservationError,
-    prelude::{CMap2, CMapBuilder, DartIdType, Vertex2},
+    prelude::{CMap2, CMapBuilder, DartIdType, Vertex2, grid_generation::GridBuilder},
 };
 use iai_callgrind::{
     Callgrind, FlamegraphConfig, LibraryBenchmarkConfig, library_benchmark,
@@ -25,15 +25,11 @@ use honeycomb_benches::utils::FloatType;
 // --- common
 
 fn get_map(n_square: usize) -> CMap2<FloatType> {
-    CMapBuilder::<2, FloatType>::unit_grid(n_square)
-        .build()
-        .unwrap()
+    GridBuilder::<2, FloatType>::unit_grid(n_square)
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = CMapBuilder::<2, FloatType>::unit_grid(n_square)
-        .build()
-        .unwrap();
+    let map = GridBuilder::<2, FloatType>::unit_grid(n_square);
     map.set_betas(5, [0; 3]); // free dart 5
     map.release_dart(5).unwrap();
     // because of the way we built the map in the square_cmap2 function & the ID computation
@@ -47,9 +43,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
 
 fn get_empty_map(n_squares: usize) -> (CMap2<FloatType>, usize) {
     (
-        CMapBuilder::<2, FloatType>::from_n_darts(0)
-            .build()
-            .unwrap(),
+        CMapBuilder::<2>::from_n_darts(0).build().unwrap(),
         n_squares.pow(2) * 4,
     )
 }
@@ -79,9 +73,9 @@ fn insert_dart_full(map: &mut CMap2<FloatType>) -> DartReservationError {
 }
 
 #[library_benchmark]
-#[bench::small(&mut CMapBuilder::<2, FloatType>::from_n_darts(16_usize.pow(2) * 4).build().unwrap())]
-#[bench::medium(&mut CMapBuilder::<2, FloatType>::from_n_darts(64_usize.pow(2) * 4).build().unwrap())]
-#[bench::large(&mut CMapBuilder::<2, FloatType>::from_n_darts(256_usize.pow(2) * 4).build().unwrap())]
+#[bench::small(&mut CMapBuilder::<2>::from_n_darts(16_usize.pow(2) * 4).build().unwrap())]
+#[bench::medium(&mut CMapBuilder::<2>::from_n_darts(64_usize.pow(2) * 4).build().unwrap())]
+#[bench::large(&mut CMapBuilder::<2>::from_n_darts(256_usize.pow(2) * 4).build().unwrap())]
 fn remove_dart(map: &mut CMap2<FloatType>) {
     map.release_dart(5).unwrap();
     black_box(map);

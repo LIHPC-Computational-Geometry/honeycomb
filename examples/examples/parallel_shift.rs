@@ -21,11 +21,10 @@
 //! - overwrite current vertex value with computed average
 //!
 
-use honeycomb_core::cmap::{
-    CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
-};
+use honeycomb_core::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType};
 use honeycomb_core::geometry::Vertex2;
 use honeycomb_core::stm::atomically;
+use honeycomb_kernels::grid_generation::GridBuilder;
 use rayon::prelude::*;
 
 const N_SQUARES: usize = 256;
@@ -44,9 +43,7 @@ fn main() {
         .build_global()
         .unwrap();
 
-    let map: CMap2<f64> = CMapBuilder::<2, _>::unit_triangles(N_SQUARES)
-        .build()
-        .unwrap();
+    let map: CMap2<f64> = GridBuilder::<2, _>::unit_triangles(N_SQUARES);
 
     // fetch all vertices that are not on the boundary of the map
     let nodes: Vec<(VertexIdType, Vec<VertexIdType>)> = map

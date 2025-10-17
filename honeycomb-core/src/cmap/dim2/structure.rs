@@ -55,7 +55,7 @@ use super::CMAP2_BETA;
 /// };
 ///
 /// // build a triangle (A)
-/// let mut map: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(3).build().unwrap(); // three darts
+/// let mut map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(3).build().unwrap(); // three darts
 /// map.force_link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
 /// map.force_link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
 /// map.force_link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3

@@ -1,13 +1,13 @@
 use std::hint::black_box;
 
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
-use honeycomb::core::cmap::{CMap2, CMapBuilder};
+use honeycomb::{core::cmap::CMap2, prelude::grid_generation::GridBuilder};
 
 use honeycomb_benches::utils::FloatType;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let n_square = 512;
-    let map: CMap2<FloatType> = CMapBuilder::<2, _>::unit_grid(n_square).build().unwrap();
+    let map: CMap2<FloatType> = GridBuilder::<2, _>::unit_grid(n_square);
 
     let mut group = c.benchmark_group("fetch-icells");
 

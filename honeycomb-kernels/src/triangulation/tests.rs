@@ -13,7 +13,7 @@ use crate::triangulation::{TriangulateError, earclip_cell_countercw, fan_cell};
 // - one triangle
 // - one non-fannable n-gon
 fn generate_map() -> CMap2<f64> {
-    let cmap: CMap2<f64> = CMapBuilder::<2, _>::from_n_darts(28).build().unwrap();
+    let cmap: CMap2<f64> = CMapBuilder::<2>::from_n_darts(28).build().unwrap();
 
     // topology
     cmap.force_link::<1>(1, 2).unwrap();
