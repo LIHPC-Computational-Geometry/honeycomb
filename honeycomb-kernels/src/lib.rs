@@ -15,6 +15,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod cell_insertion;
+pub mod grid_generation;
 pub mod grisubal;
 pub mod remeshing;
 pub mod skewness;

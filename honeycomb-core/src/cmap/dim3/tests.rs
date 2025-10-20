@@ -20,7 +20,7 @@ fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
 #[test]
 fn example_test() {
     // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMapBuilder::<3, _>::from_n_darts(12).build().unwrap(); // 3*4 darts
+    let mut map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build().unwrap(); // 3*4 darts
 
     // face z- (base)
     map.force_link::<1>(1, 2).unwrap();

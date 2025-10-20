@@ -1,6 +1,7 @@
 use std::time::Instant;
 
-use honeycomb_core::cmap::{CMap2, CMapBuilder, DartIdType};
+use honeycomb_core::cmap::{CMap2, DartIdType};
+use honeycomb_kernels::grid_generation::GridBuilder;
 use rand::{
     SeedableRng,
     distr::{Bernoulli, Distribution},
@@ -15,7 +16,7 @@ fn main() {
 
     println!("I: Start map initialization...");
     let now = Instant::now();
-    let mut map: CMap2<f32> = CMapBuilder::<2, _>::unit_grid(N_SQUARE).build().unwrap();
+    let mut map: CMap2<f32> = GridBuilder::<2, f32>::unit_grid(N_SQUARE);
     let elapsed = now.elapsed();
     println!("I: Finished initializing in {}μs", elapsed.as_micros());
 

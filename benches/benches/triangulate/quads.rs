@@ -14,7 +14,7 @@ use honeycomb_benches::utils::FloatType;
 const PATH: &str = "../examples/quads.vtk";
 
 fn fan_bench() -> Result<(), TriangulateError> {
-    let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::from_vtk_file(PATH).build().unwrap();
+    let mut map: CMap2<FloatType> = CMapBuilder::<2>::from_vtk_file(PATH).build().unwrap();
 
     // prealloc darts
     let faces: Vec<_> = map.iter_faces().collect();
@@ -48,7 +48,7 @@ fn fan_bench() -> Result<(), TriangulateError> {
 }
 
 fn earclip_bench() -> Result<(), TriangulateError> {
-    let mut map: CMap2<FloatType> = CMapBuilder::<2, _>::from_vtk_file(PATH).build().unwrap();
+    let mut map: CMap2<FloatType> = CMapBuilder::<2>::from_vtk_file(PATH).build().unwrap();
 
     // prealloc darts
     let faces: Vec<_> = map.iter_faces().collect();

@@ -54,22 +54,22 @@ pub(crate) mod model;
 pub(crate) mod routines;
 pub(crate) mod timers;
 
-use honeycomb_core::{
-    cmap::{CMap2, CMapBuilder, GridDescriptor},
-    geometry::CoordsFloat,
-};
+use honeycomb_core::{cmap::CMap2, geometry::CoordsFloat};
 use thiserror::Error;
 use vtkio::Vtk;
 
-use crate::grisubal::{
-    model::{Boundary, Geometry2},
-    routines::{
-        clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
-        detect_orientation_issue, generate_edge_data, generate_intersection_data,
-        group_intersections_per_edge, insert_edges_in_map, insert_intersections,
-        remove_redundant_poi,
+use crate::{
+    grid_generation::GridBuilder,
+    grisubal::{
+        model::{Boundary, Geometry2},
+        routines::{
+            clip_left, clip_right, compute_intersection_ids, compute_overlapping_grid,
+            detect_orientation_issue, generate_edge_data, generate_intersection_data,
+            group_intersections_per_edge, insert_edges_in_map, insert_intersections,
+            remove_redundant_poi,
+        },
+        timers::{finish, start_timer, unsafe_time_section},
     },
-    timers::{finish, start_timer, unsafe_time_section},
 };
 
 /// Post-processing clip operation.
@@ -179,10 +179,6 @@ pub fn grisubal<T: CoordsFloat>(
     // --- FIND AN OVERLAPPING GRID
     let ([nx, ny], origin) = compute_overlapping_grid(&geometry, grid_cell_sizes, false)?;
     let [cx, cy] = grid_cell_sizes;
-    let ogrid = GridDescriptor::default()
-        .n_cells([nx, ny])
-        .len_per_cell([cx, cy])
-        .origin([origin.0, origin.1]);
     unsafe_time_section!(instant, timers::Section::ComputeOverlappingGrid);
     //----/
 
@@ -195,7 +191,10 @@ pub fn grisubal<T: CoordsFloat>(
     start_timer!(kernel);
 
     // --- BUILD THE GRID
-    let mut cmap = CMapBuilder::from_grid_descriptor(ogrid)
+    let mut cmap = GridBuilder::<2, T>::default()
+        .n_cells([nx, ny])
+        .len_per_cell([cx, cy])
+        .origin([origin.0, origin.1])
         .add_attribute::<Boundary>() // will be used for clipping
         .build()
         .expect("E: unreachable"); // unreachable because grid dims are valid

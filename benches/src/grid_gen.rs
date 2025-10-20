@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use honeycomb::{
     core::stm::atomically_with_err,
-    prelude::{CMap2, CMapBuilder, CoordsFloat, DartIdType, GridDescriptor, OrbitPolicy},
+    prelude::{CMap2, CoordsFloat, DartIdType, OrbitPolicy, grid_generation::GridBuilder},
 };
 use rand::{
     SeedableRng,
@@ -19,12 +19,10 @@ use rayon::prelude::*;
 use crate::cli::{Generate2dGridArgs, Split};
 
 pub fn bench_generate_2d_grid<T: CoordsFloat>(args: Generate2dGridArgs) -> CMap2<T> {
-    let descriptor = GridDescriptor::<2, T>::default()
+    let mut map = GridBuilder::<2, T>::default()
         .n_cells([args.nx.get(), args.ny.get()])
         .len_per_cell([T::from(args.lx).unwrap(), T::from(args.ly).unwrap()])
-        .split_cells(args.split.is_some_and(|s| s == Split::Uniform));
-
-    let mut map = CMapBuilder::from_grid_descriptor(descriptor)
+        .split_cells(args.split.is_some_and(|s| s == Split::Uniform))
         .build()
         .unwrap();
 
