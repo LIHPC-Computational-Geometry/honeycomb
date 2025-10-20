@@ -31,7 +31,7 @@ fn get_map(n_square: usize) -> CMap2<FloatType> {
 }
 
 fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
-    let mut map = CMapBuilder::<2, FloatType>::unit_grid(n_square)
+    let map = CMapBuilder::<2, FloatType>::unit_grid(n_square)
         .build()
         .unwrap();
     map.set_betas(5, [0; 3]); // free dart 5
