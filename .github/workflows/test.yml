@@ -1,0 +1,36 @@
+name: Build Status (*nix)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_crates:
+    name: Build crates (${{ matrix.system }})
+    runs-on: ${{ matrix.runner_label }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner_label: ubuntu-latest
+          - system: x86_64-darwin
+            runner_label: macos-13
+          - system: aarch64-darwin
+            runner_label: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-unstable
+      - run: nix flake check
