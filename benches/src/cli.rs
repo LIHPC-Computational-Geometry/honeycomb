@@ -27,60 +27,12 @@ pub enum Format {
 
 #[derive(Subcommand)]
 pub enum Benches {
-    /// 2D grid generation using `CMapBuilder` and `GridDescriptor`
-    #[command(name = "generate-2d-grid")]
-    Generate2dGrid(Generate2dGridArgs),
-    /// Edge size reduction in triangular meshes using vertex/edge insertions
-    CutEdges(CutEdgesArgs),
     /// `grisubal` kernel execution
     Grisubal(GrisubalArgs),
     /// Geometry capture, triangulation and remeshing kernel
     Remesh(RemeshArgs),
     /// Simple vertex relaxation routine
     Shift(ShiftArgs),
-}
-
-#[derive(Args)]
-pub struct Generate2dGridArgs {
-    /// Number of cells along the X-axis
-    #[arg(required(true))]
-    pub nx: NonZero<usize>,
-    /// Number of cells along the Y-axis
-    #[arg(required(true))]
-    pub ny: NonZero<usize>,
-    /// Length of cells along the X-axis
-    #[arg(required(true), allow_negative_numbers(false))]
-    pub lx: f64,
-    /// Length of cells along the Y-axis
-    #[arg(required(true), allow_negative_numbers(false))]
-    pub ly: f64,
-    /// If present, split diagonal according to the specified option
-    #[arg(short, long, value_enum)]
-    pub split: Option<Split>,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Split {
-    Uniform,
-    Random,
-}
-
-#[derive(Args)]
-pub struct CutEdgesArgs {
-    /// Input map as a VTK file
-    #[arg(short, long, required(true))]
-    pub input: PathBuf,
-    /// Execution backend; number of threads used is determined using `std::thread::available_parallelism`
-    #[arg(long, value_enum, default_value_t = Backend::StdThreads)]
-    pub backend: Backend,
-    /// Target threshold for edge length; any edge equal or above is split in half
-    #[arg(
-        short('l'),
-        long("target-length"),
-        required(true),
-        allow_negative_numbers(false)
-    )]
-    pub target_length: f64,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]

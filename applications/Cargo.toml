@@ -1,0 +1,54 @@
+[package]
+authors.workspace     = true
+categories.workspace  = true
+description.workspace = true
+edition.workspace     = true
+homepage.workspace    = true
+keywords.workspace    = true
+license.workspace     = true
+name                  = "applications"
+publish               = false
+readme.workspace      = true
+repository.workspace  = true
+version.workspace     = true
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "cut-edges"
+path = "cut_edges/main.rs"
+
+[[bin]]
+name = "generate-grid"
+path = "generate_grid/main.rs"
+
+[[bin]]
+name = "grisubal"
+path = "grisubal/main.rs"
+
+[[bin]]
+name = "remesh"
+path = "remesh/main.rs"
+
+[[bin]]
+name = "shift-vertices"
+path = "shift_vertices/main.rs"
+
+[features]
+default = ["bind-threads"]
+
+bind-threads = ["dep:hwlocality"]
+jemalloc     = ["dep:tikv-jemallocator"]
+profiling    = []
+render       = ["honeycomb/render"]
+
+[dependencies]
+clap                = { workspace = true, features = ["derive"] }
+honeycomb.workspace = true
+hwlocality          = { workspace = true, optional = true }
+rand                = { workspace = true, features = ["small_rng"] }
+rayon.workspace     = true
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { workspace = true, optional = true }

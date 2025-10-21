@@ -207,6 +207,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "applications"
+version = "0.10.0"
+dependencies = [
+ "clap",
+ "honeycomb",
+ "hwlocality",
+ "rand 0.10.0-rc.0",
+ "rayon",
+ "tikv-jemallocator",
+]
+
+[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

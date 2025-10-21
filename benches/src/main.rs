@@ -8,8 +8,6 @@ use tikv_jemallocator::Jemalloc;
 
 use honeycomb_benches::{
     cli::{Benches, Cli, Format},
-    cut_edges::bench_cut_edges,
-    grid_gen::bench_generate_2d_grid,
     grisubal::bench_grisubal,
     prof_init, prof_start, prof_stop,
     remesh::bench_remesh,
@@ -70,8 +68,6 @@ fn run_benchmarks<T: CoordsFloat>(cli: Cli) {
 
     prof_start!("HCBENCH");
     let map: CMap2<T> = match cli.benches {
-        Benches::Generate2dGrid(args) => bench_generate_2d_grid(args),
-        Benches::CutEdges(args) => bench_cut_edges(args),
         Benches::Grisubal(args) => bench_grisubal(args),
         Benches::Remesh(args) => bench_remesh(args),
         Benches::Shift(args) => bench_shift(args),

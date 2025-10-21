@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "applications",
     "benches",
     "honeycomb",
     "honeycomb-core",
@@ -34,6 +35,7 @@ honeycomb-core    = { version = "0.10.0", path = "./honeycomb-core" }
 honeycomb-kernels = { version = "0.10.0", path = "./honeycomb-kernels" }
 honeycomb-render  = { version = "0.10.0", path = "./honeycomb-render" }
 
+honeycomb-apps     = { version = "0.10.0", path = "./applications" }
 honeycomb-benches  = { version = "0.10.0", path = "./benches" }
 honeycomb-examples = { version = "0.10.0", path = "./examples" }
 
