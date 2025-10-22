@@ -6,7 +6,6 @@ members = [
     "honeycomb-core",
     "honeycomb-kernels",
     "honeycomb-render",
-    "examples",
 ]
 resolver = "2"
 
@@ -35,7 +34,6 @@ honeycomb-kernels = { version = "0.10.0", path = "./honeycomb-kernels" }
 honeycomb-render  = { version = "0.10.0", path = "./honeycomb-render" }
 
 honeycomb-apps     = { version = "0.10.0", path = "./applications" }
-honeycomb-examples = { version = "0.10.0", path = "./examples" }
 
 # common
 cfg-if      = "1"

@@ -63,74 +63,8 @@ position from a value that has been replaced since the start of the computation.
 #### Code
 
 ```rust
-use rayon::prelude::*;
-
-use honeycomb::core::stm::atomically;
-use honeycomb::prelude::{
-    CMap2, CMapBuilder, DartIdType, OrbitPolicy, Vertex2, VertexIdType, NULL_DART_ID,
-};
-
-const DIM_GRID: usize = 256;
-const N_ROUNDS: usize = 100;
-
-fn main() {
-    // generate a simple grid as input
-    let map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(DIM_GRID).build().unwrap();
-
-    // build a node list from vertices that are not on the boundary
-    let tmp: Vec<(VertexIdType, Vec<VertexIdType>)> = map
-        .iter_vertices()
-        .filter_map(|v| {
-            // the condition detects if we're on the boundary
-            if map.orbit(OrbitPolicy::Vertex, v as DartIdType)
-                .any(|d| map.beta::<2>(d) == NULL_DART_ID)
-            {
-                None
-            } else {
-                // the orbit transformation yields neighbor IDs
-                Some((
-                    v,
-                    map.orbit(OrbitPolicy::Vertex, v as DartIdType)
-                        .map(|d| map.vertex_id(map.beta::<2>(d)))
-                        .collect(),
-                ))
-            }
-        })
-        .collect();
-
-    // main loop
-    let mut round = 0;
-    loop {
-        // process nodes in parallel
-        tmp.par_iter().for_each(|(vid, neigh)| {
-            // we need a transaction here to avoid UBs, since there's
-            // no guarantee we won't process neighbor nodes concurrently
-            atomically(|trans| {
-                let mut new_val = Vertex2::default();
-                for v in neigh {
-                    let vertex = map.read_vertex(trans, *v)?.unwrap();
-                    new_val.0 += vertex.0;
-                    new_val.1 += vertex.1;
-                }
-                new_val.0 /= neigh.len() as f64;
-                new_val.1 /= neigh.len() as f64;
-                map.write_vertex(trans, *vid, new_val)
-            });
-            // the transaction will ensure that we do not validate an operation
-            // where inputs changed due to instruction interleaving between threads
-            // here, it will retry the transaction until it can be validated
-        });
-
-        round += 1;
-        if round >= N_ROUNDS {
-            break;
-        }
-    }
-
-    std::hint::black_box(map);
-}
+{{#include snippets/parallel_shift.rs}}
 ```
-
 
 #### Breakdown
 
@@ -153,61 +87,7 @@ integrity of *I*-cells and their bound attributes (here, spatial coordinates).
 #### Code
 
 ```rust
-use honeycomb::core::stm::atomically_with_err;
-use honeycomb::prelude::{CMap2, CMapBuilder, DartIdType};
-
-const DIM_GRID: usize = 256;
-const N_THREADS: usize = 8;
-
-fn main() {
-    let mut map: CMap2<_> = CMapBuilder::<2, f64>::unit_grid(DIM_GRID).build().unwrap();
-
-    // build individual work units
-    let faces = map.iter_faces().collect::<Vec<_>>();
-    let nd = map.add_free_darts(faces.len() * 2);
-    let nd_range = (nd..nd + (faces.len() * 2) as DartIdType).collect::<Vec<_>>();
-    let units = faces
-        .into_iter()
-        .zip(nd_range.chunks(2))
-        .collect::<Vec<_>>();
-
-    std::thread::scope(|s| {
-        // create batches & move a copy to dispatched thread
-        let batches = units.chunks(1 + units.len() / N_THREADS);
-        for b in batches {
-            s.spawn(|| {
-                let locb = b.to_vec();
-                locb.into_iter().for_each(|(df, sl)| {
-                    let square = df as DartIdType;
-                    let &[dsplit1, dsplit2] = sl else {
-                        unreachable!()
-                    };
-                    // we know dart numbering since we constructed a regular grid
-                    let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
-                    let (dbefore1, dbefore2, dafter1, dafter2) = (ddown, dup, dleft, dright);
-
-                    let _ = map.force_link::<2>(dsplit1, dsplit2); // infallible
-
-                    // internal (un)sews can fail, so we retry until success
-                    while atomically_with_err(|trans| {
-                        map.unsew::<1>(trans, dbefore1)?;
-                        map.unsew::<1>(trans, dbefore2)?;
-                        map.sew::<1>(trans, dsplit1, dafter1)?;
-                        map.sew::<1>(trans, dsplit2, dafter2)?;
-
-                        map.sew::<1>(trans, dbefore1, dsplit1)?;
-                        map.sew::<1>(trans, dbefore2, dsplit2)?;
-                        Ok(())
-                    })
-                    .is_err()
-                    {}
-                });
-            });
-        }
-    });
-
-    std::hint::black_box(map);
-}
+{{#include snippets/parallel_cut.rs}}
 ```
 
 #### Breakdown

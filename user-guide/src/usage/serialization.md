@@ -9,6 +9,12 @@ hijacked to initialize maps by restraining the range of supported data.
 Serialization is available directly as map structures methods, while deserialization is available
 through the usage of the builder structure.
 
+## Usage
+
+```rust
+{{#include snippets/io.rs}}
+```
+
 ## Custom serialization
 
 ### Format specification
@@ -122,3 +128,4 @@ Using a VTK file to initialize a map can fail for two main reason:
   - coordinate representation type isn't `float` or `double`,
   - mesh contains unsupported cell types (`PolyVertex`, `PolyLine`, ...,  or anything 3D for
     a 2D map for example).
+

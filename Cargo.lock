@@ -2436,17 +2436,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "honeycomb-examples"
-version = "0.10.0"
-dependencies = [
- "honeycomb-core",
- "honeycomb-kernels",
- "honeycomb-render",
- "rand 0.10.0-rc.0",
- "rayon",
-]
-
-[[package]]
 name = "honeycomb-kernels"
 version = "0.10.0"
 dependencies = [

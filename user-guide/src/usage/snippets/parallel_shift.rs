@@ -1,29 +1,8 @@
-//! Simple vertex relaxation routine.
-//!
-//! # Usage
-//!
-//! ```
-//! cargo run --release --bin=shift <N_THREADS>
-//! ```
-//!
-//! With `N_THREADS the number of thread used for execution. If it is not specified, or the
-//! argument can't be parsed, it will default to `std::thread::available_parallelism`, which in
-//! turns default to `1` if it fails.
-//!
-//! # Description
-//!
-//! ## Routine
-//!
-//! The algorithm fetches all vertices that are not on the border of the map, fetch all identifiers of each
-//! respective vertices' neighbors. Then, for all vertices:
-//!
-//! - compute the average between neighbors
-//! - overwrite current vertex value with computed average
-//!
-
-use honeycomb_core::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType};
-use honeycomb_core::geometry::Vertex2;
-use honeycomb_core::stm::atomically;
+use honeycomb_core::{
+    cmap::{CMap2, DartIdType, OrbitPolicy, VertexIdType, NULL_DART_ID},
+    geometry::Vertex2,
+    stm::atomically,
+};
 use honeycomb_kernels::grid_generation::GridBuilder;
 use rayon::prelude::*;
 
@@ -31,18 +10,6 @@ const N_SQUARES: usize = 256;
 const N_ROUNDS: usize = 100;
 
 fn main() {
-    // ./binary <N_THREADS>
-    let args: Vec<String> = std::env::args().collect();
-    let n_threads = args.get(1).and_then(|s| s.parse::<usize>().ok()).unwrap_or(
-        std::thread::available_parallelism()
-            .map(|v| v.get())
-            .unwrap_or(1),
-    );
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(n_threads)
-        .build_global()
-        .unwrap();
-
     let map: CMap2<f64> = GridBuilder::<2, _>::unit_triangles(N_SQUARES);
 
     // fetch all vertices that are not on the boundary of the map
