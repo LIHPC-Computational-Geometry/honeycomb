@@ -207,7 +207,6 @@ dependencies = [
  "clap",
  "honeycomb",
  "hwlocality",
- "rand 0.10.0-rc.0",
  "rayon",
  "tikv-jemallocator",
 ]
@@ -745,7 +744,7 @@ checksum = "5421792749dda753ab3718e77d27bfce38443daf1850b836b97530b6245a4581"
 dependencies = [
  "bevy_reflect",
  "glam",
- "rand 0.8.5",
+ "rand",
  "serde",
  "smallvec 1.15.1",
  "thiserror 1.0.69",
@@ -1443,17 +1442,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "chacha20"
-version = "0.10.0-rc.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd162f2b8af3e0639d83f28a637e4e55657b7a74508dba5a9bf4da523d5c9e9"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "rand_core 0.9.3",
-]
-
-[[package]]
 name = "clap"
 version = "4.5.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1671,15 +1659,6 @@ checksum = "45390e6114f68f718cc7a830514a96f903cccd70d02a8f6d9f643ac4ba45afaf"
 dependencies = [
  "bitflags 1.3.2",
  "core-foundation 0.9.4",
- "libc",
-]
-
-[[package]]
-name = "cpufeatures"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
-dependencies = [
  "libc",
 ]
 
@@ -2220,7 +2199,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 dependencies = [
  "bytemuck",
- "rand 0.8.5",
+ "rand",
  "serde",
 ]
 
@@ -3595,17 +3574,7 @@ version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
 dependencies = [
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "rand"
-version = "0.10.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ec474812b9de55111b29da8a1559f1718ef3dc20fa36f031f1b5d9e3836ad6c"
-dependencies = [
- "chacha20",
- "rand_core 0.9.3",
+ "rand_core",
 ]
 
 [[package]]
@@ -3613,15 +3582,6 @@ name = "rand_core"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
-
-[[package]]
-name = "rand_core"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
-dependencies = [
- "getrandom 0.3.3",
-]
 
 [[package]]
 name = "range-alloc"

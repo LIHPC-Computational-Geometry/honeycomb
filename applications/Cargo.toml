@@ -58,7 +58,6 @@ render       = ["honeycomb/render"]
 clap                = { workspace = true, features = ["derive"] }
 honeycomb.workspace = true
 hwlocality          = { workspace = true, optional = true }
-rand                = { workspace = true, features = ["small_rng"] }
 rayon.workspace     = true
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
