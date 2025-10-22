@@ -80,7 +80,7 @@ fn run_bench_2d<T: CoordsFloat>(
 
     #[cfg(feature = "render")]
     {
-        render_2d_map(&map);
+        render_2d_map(map);
     }
 }
 
@@ -113,6 +113,6 @@ fn run_bench_3d<T: CoordsFloat>(
 
     #[cfg(feature = "render")]
     {
-        render_3d_map(&map);
+        render_3d_map(map);
     }
 }

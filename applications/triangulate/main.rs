@@ -1,12 +1,12 @@
+mod cli;
+mod internals;
+
 use std::{io::Write, path::PathBuf};
 
-use applications::{Clip, FileFormat, bind_rayon_threads};
 use clap::Parser;
-use honeycomb::prelude::{CoordsFloat, grisubal::grisubal};
-#[cfg(feature = "render")]
-use honeycomb::render::render_2d_map;
+use honeycomb::prelude::CoordsFloat;
 
-mod cli;
+use applications::{FileFormat, bind_rayon_threads};
 
 fn main() {
     bind_rayon_threads!();
@@ -14,26 +14,19 @@ fn main() {
     let cli = cli::Cli::parse();
 
     if cli.simple_precision {
-        run_bench::<f32>(cli.input, cli.lx, cli.ly, cli.clip, cli.save_as);
+        run_bench::<f32>(cli.input, cli.algorithm, cli.save_as);
     } else {
-        run_bench::<f64>(cli.input, cli.lx, cli.ly, cli.clip, cli.save_as);
+        run_bench::<f64>(cli.input, cli.algorithm, cli.save_as);
     }
 }
 
-fn run_bench<T: CoordsFloat>(
-    input: PathBuf,
-    lx: f64,
-    ly: f64,
-    clip: Option<Clip>,
-    save: Option<FileFormat>,
-) {
-    let map = grisubal(
-        input,
-        [T::from(lx).unwrap(), T::from(ly).unwrap()],
-        clip.map(honeycomb::kernels::grisubal::Clip::from)
-            .unwrap_or_default(),
-    )
-    .unwrap(); // TODO: handle error properly
+fn run_bench<T: CoordsFloat>(input: PathBuf, algorithm: cli::Algorithm, save: Option<FileFormat>) {
+    let mut map = internals::init_2d_map::<T>(input);
+
+    match algorithm {
+        cli::Algorithm::EarClip => internals::earclip_cells(&mut map),
+        cli::Algorithm::Fan => internals::fan_cells(&mut map),
+    }
 
     match save {
         Some(FileFormat::Cmap) => {

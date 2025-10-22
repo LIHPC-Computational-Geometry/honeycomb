@@ -1,22 +1,29 @@
-use std::hint::black_box;
+use std::path::PathBuf;
 
-use criterion::{Criterion, criterion_group, criterion_main};
 use honeycomb::{
-    core::stm::atomically_with_err,
     prelude::{
-        CMap2, CMapBuilder, DartIdType, OrbitPolicy,
-        triangulation::{TriangulateError, earclip_cell_countercw, fan_cell},
+        CMap2, CMapBuilder, CoordsFloat, DartIdType, OrbitPolicy,
+        triangulation::{earclip_cell_countercw, fan_cell},
     },
+    stm::atomically_with_err,
 };
 
-use honeycomb_benches::utils::FloatType;
+pub fn init_2d_map<T: CoordsFloat>(input: PathBuf) -> CMap2<T> {
+    // let instant = Instant::now();
+    let input_map = input.to_str().unwrap();
+    // let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
+    if input_map.ends_with(".cmap") {
+        CMapBuilder::<2>::from_cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::<2>::from_vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    }
+}
 
-const PATH: &str = "../examples/quads.vtk";
-
-fn fan_bench() -> Result<(), TriangulateError> {
-    let mut map: CMap2<FloatType> = CMapBuilder::<2>::from_vtk_file(PATH).build().unwrap();
-
-    // prealloc darts
+pub fn earclip_cells<T: CoordsFloat>(map: &mut CMap2<T>) {
     let faces: Vec<_> = map.iter_faces().collect();
     let n_darts_per_face: Vec<_> = faces
         .iter()
@@ -41,16 +48,11 @@ fn fan_bench() -> Result<(), TriangulateError> {
         .collect();
 
     for (face_id, new_darts) in faces.iter().zip(dart_slices.iter()) {
-        atomically_with_err(|t| fan_cell(t, &map, *face_id, new_darts))?;
+        let _ = atomically_with_err(|t| earclip_cell_countercw(t, map, *face_id, new_darts));
     }
-
-    Ok(())
 }
 
-fn earclip_bench() -> Result<(), TriangulateError> {
-    let mut map: CMap2<FloatType> = CMapBuilder::<2>::from_vtk_file(PATH).build().unwrap();
-
-    // prealloc darts
+pub fn fan_cells<T: CoordsFloat>(map: &mut CMap2<T>) {
     let faces: Vec<_> = map.iter_faces().collect();
     let n_darts_per_face: Vec<_> = faces
         .iter()
@@ -75,19 +77,6 @@ fn earclip_bench() -> Result<(), TriangulateError> {
         .collect();
 
     for (face_id, new_darts) in faces.iter().zip(dart_slices.iter()) {
-        atomically_with_err(|t| earclip_cell_countercw(t, &map, *face_id, new_darts))?;
+        let _ = atomically_with_err(|t| fan_cell(t, map, *face_id, new_darts));
     }
-
-    Ok(())
 }
-
-pub fn criterion_benchmark(c: &mut Criterion) {
-    let mut group = c.benchmark_group("triangulation");
-
-    group.bench_function("fan", |b| b.iter(|| black_box(fan_bench())));
-    group.bench_function("earclip", |b| b.iter(|| black_box(earclip_bench())));
-    group.finish();
-}
-
-criterion_group!(benches, criterion_benchmark);
-criterion_main!(benches);

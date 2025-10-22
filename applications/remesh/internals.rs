@@ -1,14 +1,4 @@
-//! 2D remshing pipeline benchmark
-//!
-//! This benchmark execute a proxy-application of usual 2D remeshing pipelines. It is split into
-//! two parts:
-//!
-//! - initialization & first capture,
-//! - iterative remeshing.
-//!
-//! Time sampling is done on the second part. Currently only executes in sequential.
-
-use std::time::Instant;
+use std::{path::PathBuf, time::Instant};
 
 use honeycomb::{
     kernels::{
@@ -25,16 +15,17 @@ use honeycomb::{
 };
 use rayon::{iter::Either, prelude::*};
 
-use crate::{
-    cli::RemeshArgs,
-    prof_start, prof_stop,
-    utils::{get_num_threads, hash_file},
-};
+use applications::{get_num_threads, hash_file, prof_start, prof_stop};
 
-#[allow(clippy::print_literal)]
-pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
-    let input_map = args.input.to_str().unwrap();
-    let target_len = T::from(args.target_length).unwrap();
+pub fn generate_first_mesh<T: CoordsFloat>(
+    input: PathBuf,
+    target_length: f64,
+    [lx, ly]: [T; 2],
+    clip: applications::Clip,
+    // backend: Backend,
+) -> CMap2<T> {
+    let input_map = input.to_str().unwrap();
+    let target_len = T::from(target_length).unwrap();
 
     let n_threads = get_num_threads().unwrap_or(
         std::thread::available_parallelism()
@@ -47,12 +38,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
     // -- capture via grid overlap
     let mut instant = Instant::now();
-    let mut map: CMap2<T> = capture_geometry(
-        input_map,
-        [T::from(args.lx).unwrap(), T::from(args.ly).unwrap()],
-        Clip::from(args.clip),
-    )
-    .unwrap();
+    let mut map: CMap2<T> = capture_geometry(input_map, [lx, ly], Clip::from(clip)).unwrap();
     let capture_time = instant.elapsed();
 
     // -- classification
@@ -142,10 +128,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     // TODO: print the whole config / args
     println!("| remesh benchmark");
     println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
-    println!(
-        "|-> backend    : {:?} with {n_threads} thread(s)",
-        args.backend
-    );
+    println!("|-> backend    : RayonIter with {n_threads} thread(s)",);
     println!("|-> target size: {target_len:?}");
     println!("|-> capture time  : {}ms", capture_time.as_millis());
     println!(
@@ -157,6 +140,18 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         classification_time.as_millis()
     );
 
+    map
+}
+
+#[allow(clippy::print_literal)]
+pub fn remesh<T: CoordsFloat>(
+    map: &mut CMap2<T>,
+    n_rounds: usize,
+    n_relax_rounds: usize,
+    target_length: f64,
+    target_tolerance: f64,
+    enable_early_ret: bool,
+) {
     println!(
         "Round | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {}",
         "# of used darts",     // 15 chars
@@ -172,6 +167,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         "Collapse edges (s)",  // 18
         "Swap edges (s)",      // 14
     );
+
     // -- main remeshing loop
     // a. relax
     // b. cut / collapse
@@ -181,7 +177,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
     let mut n = 0;
     let mut r;
     loop {
-        print!("{n:>5}");
+        print!("{n:>5}"); // "Round"
         // not using the map method because it uses a sequential iterator
         let n_unused = (1..map.n_darts() as DartIdType)
             .into_par_iter()
@@ -192,7 +188,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
         // -- build the vertex graph
         prof_start!("HCBENCH_REMESH_GRAPH");
-        instant = Instant::now();
+        let mut instant = Instant::now();
         let nodes: Vec<(_, Vec<_>)> = map
             .par_iter_vertices()
             .filter_map(|v| {
@@ -218,8 +214,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         loop {
             nodes.par_iter().for_each(|(vid, neighbors)| {
                 let _ = atomically_with_err(|t| {
-                    move_vertex_to_average(t, &map, *vid, neighbors)?;
-                    if !is_orbit_orientation_consistent(t, &map, *vid)? {
+                    move_vertex_to_average(t, map, *vid, neighbors)?;
+                    if !is_orbit_orientation_consistent(t, map, *vid)? {
                         abort("E: resulting geometry is inverted")?;
                     }
                     Ok(())
@@ -227,7 +223,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             });
 
             r += 1;
-            if r >= args.n_relax_rounds.get() {
+            if r >= n_relax_rounds {
                 break;
             }
         }
@@ -236,7 +232,7 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
         debug_assert!(
             map.par_iter_faces()
-                .all(|f| { atomically(|t| check_tri_orientation(t, &map, f as DartIdType)) })
+                .all(|f| { atomically(|t| check_tri_orientation(t, map, f as DartIdType)) })
         );
 
         // -- get edges to process
@@ -245,9 +241,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             .par_iter_edges()
             .filter_map(|e| {
                 let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
-                let diff =
-                    atomically(|t| compute_diff_to_target(t, &map, l, r, args.target_length));
-                if diff.abs() > args.target_tolerance {
+                let diff = atomically(|t| compute_diff_to_target(t, map, l, r, target_length));
+                if diff.abs() > target_tolerance {
                     Some((e, diff))
                 } else {
                     None
@@ -262,12 +257,12 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
             });
         let batch_time = instant.elapsed().as_secs_f64();
         // -- check early return conds if enabled
-        if args.enable_er {
+        if enable_early_ret {
             instant = Instant::now();
             let n_e = map.par_iter_edges().count();
             let n_e_outside_tol = long_edges.len() + short_edges.len();
             // if 95%+ edges are in the target length tolerance range, finish early
-            if (n_e_outside_tol as f64 / n_e as f64) < args.target_tolerance {
+            if (n_e_outside_tol as f64 / n_e as f64) < target_tolerance {
                 print!(" | {:>12.6e}", instant.elapsed().as_millis());
                 print!(" | {:>13}", "n/a");
                 print!(" | {:>12}", "n/a");
@@ -315,9 +310,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                         for d in nds {
                             map.claim_dart_tx(t, d)?;
                         }
-                        cut_outer_edge(t, &map, e, nds)?;
+                        cut_outer_edge(t, map, e, nds)?;
 
-                        if !is_orbit_orientation_consistent(t, &map, d1)? {
+                        if !is_orbit_orientation_consistent(t, map, d1)? {
                             abort(SewError::BadGeometry(1, 0, 0))?;
                         }
 
@@ -341,9 +336,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                             map.claim_dart_tx(t, d)?;
                         }
 
-                        cut_inner_edge(t, &map, e, nds)?;
+                        cut_inner_edge(t, map, e, nds)?;
 
-                        if !is_orbit_orientation_consistent(t, &map, d1)? {
+                        if !is_orbit_orientation_consistent(t, map, d1)? {
                             abort(SewError::BadGeometry(1, 0, 0))?;
                         }
 
@@ -378,13 +373,13 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                 let e = map.edge_id_tx(t, e)?;
 
                 let (l, r) = (e as DartIdType, map.beta_tx::<1>(t, e as DartIdType)?);
-                let diff = compute_diff_to_target(t, &map, l, r, args.target_length)?;
-                if diff.abs() < args.target_tolerance {
+                let diff = compute_diff_to_target(t, map, l, r, target_length)?;
+                if diff.abs() < target_tolerance {
                     // edge is within target length tolerance; skip the cut/process phase
                     return Ok(());
                 }
 
-                collapse_edge(t, &map, e)?;
+                collapse_edge(t, map, e)?;
                 Ok(())
             }) {
                 match er {
@@ -410,35 +405,32 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
         map.par_iter_edges()
             .map(|e| {
                 let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
-                let diff =
-                    atomically(|t| compute_diff_to_target(t, &map, l, r, args.target_length));
+                let diff = atomically(|t| compute_diff_to_target(t, map, l, r, target_length));
                 (e, diff)
             })
-            .filter(|(_, diff)| diff.abs() > args.target_tolerance)
+            .filter(|(_, diff)| diff.abs() > target_tolerance)
             .for_each(|(e, diff)| {
                 let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
                 if r != NULL_DART_ID {
                     debug_assert!(
                         map.force_read_attribute::<FaceAnchor>(map.face_id(l))
                             .is_some()
+                            && map
+                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
+                                .is_some()
                     );
-                    debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(r))
-                            .is_some()
-                    );
+
                     if let Err(er) = atomically_with_err(|t| {
                         let (b0l, b0r) = (map.beta_tx::<0>(t, l)?, map.beta_tx::<0>(t, r)?);
-                        let new_diff =
-                            compute_diff_to_target(t, &map, b0l, b0r, args.target_length)?;
+                        let new_diff = compute_diff_to_target(t, map, b0l, b0r, target_length)?;
 
                         // if the swap gets the edge length closer to target value, do it
                         if new_diff.abs() < diff.abs() {
-                            swap_edge(t, &map, e)?;
+                            swap_edge(t, map, e)?;
                         }
 
                         // ensure the swap doesn't invert geometry
-                        if !check_tri_orientation(t, &map, l)?
-                            || !check_tri_orientation(t, &map, r)?
+                        if !check_tri_orientation(t, map, l)? || !check_tri_orientation(t, map, r)?
                         {
                             abort(EdgeSwapError::NotSwappable("swap inverts orientation"))?;
                         }
@@ -458,10 +450,9 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
                     debug_assert!(
                         map.force_read_attribute::<FaceAnchor>(map.face_id(l))
                             .is_some()
-                    );
-                    debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(r))
-                            .is_some()
+                            && map
+                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
+                                .is_some()
                     );
                 }
             });
@@ -470,11 +461,11 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
         debug_assert!(map.par_iter_faces().all(|f| {
             map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-                && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
+                && atomically(|t| check_tri_orientation(t, map, f as DartIdType))
         }));
 
         n += 1;
-        if n >= args.n_rounds.get() {
+        if n >= n_rounds {
             break;
         }
     }
@@ -482,10 +473,8 @@ pub fn bench_remesh<T: CoordsFloat>(args: RemeshArgs) -> CMap2<T> {
 
     debug_assert!(map.par_iter_faces().all(|f| {
         map.orbit(OrbitPolicy::FaceLinear, f).count() == 3
-            && atomically(|t| check_tri_orientation(t, &map, f as DartIdType))
+            && atomically(|t| check_tri_orientation(t, map, f as DartIdType))
     }));
-
-    map
 }
 
 #[inline]

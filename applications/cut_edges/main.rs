@@ -64,7 +64,7 @@ pub fn run_bench<T: CoordsFloat>(
     {
         use honeycomb::prelude::OrbitPolicy;
         assert!(
-            map.iter_faces()
+            map.par_iter_faces()
                 .all(|f| { map.orbit(OrbitPolicy::Face, f as DartIdType).count() == 3 }),
             "Input mesh isn't a triangle mesh"
         );
@@ -94,7 +94,7 @@ pub fn run_bench<T: CoordsFloat>(
 
     #[cfg(feature = "render")]
     {
-        render_2d_map(&map);
+        render_2d_map(map);
     }
 }
 
@@ -143,12 +143,12 @@ fn benchmark<T: CoordsFloat>(
         prof_start!("HCBENCH_CUTS_PROCESS");
         instant = Instant::now();
         let n_retry = match backend {
-            Backend::RayonIter => dispatch::dispatch_rayon(&map, &mut edges, &darts),
+            Backend::RayonIter => dispatch::dispatch_rayon(map, &mut edges, &darts),
             Backend::RayonChunks => {
-                dispatch::dispatch_rayon_chunks(&map, &mut edges, &darts, n_threads)
+                dispatch::dispatch_rayon_chunks(map, &mut edges, &darts, n_threads)
             }
             Backend::StdThreads => {
-                dispatch::dispatch_std_threads(&map, &mut edges, &darts, n_threads)
+                dispatch::dispatch_std_threads(map, &mut edges, &darts, n_threads)
             }
         };
         prof_stop!("HCBENCH_CUTS_PROCESS");

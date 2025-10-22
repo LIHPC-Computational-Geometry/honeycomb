@@ -42,6 +42,21 @@ pub enum FileFormat {
     Vtk,
 }
 
+impl From<Clip> for honeycomb::kernels::grisubal::Clip {
+    fn from(value: Clip) -> Self {
+        match value {
+            Clip::Left => honeycomb::kernels::grisubal::Clip::Left,
+            Clip::Right => honeycomb::kernels::grisubal::Clip::Right,
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum Clip {
+    Left,
+    Right,
+}
+
 pub const NUM_THREADS_VAR: &str = "RAYON_NUM_THREADS";
 
 pub fn get_num_threads() -> Result<usize, String> {
@@ -235,7 +250,7 @@ macro_rules! prof_init {
         #[cfg(feature = "profiling")]
         {
             unsafe {
-                $crate::utils::PERF_FIFO = Some(
+                $crate::PERF_FIFO = Some(
                     std::fs::OpenOptions::new()
                         .write(true)
                         .open("/tmp/hc_perf_control")
@@ -258,7 +273,7 @@ macro_rules! prof_start {
             if std::env::var_os($var).is_some() {
                 use std::io::Write;
                 unsafe {
-                    if let Some(ref mut f) = $crate::utils::PERF_FIFO {
+                    if let Some(ref mut f) = $crate::PERF_FIFO {
                         f.write_all(b"enable\n")
                             .expect("E: failed to write to FIFO");
                         f.flush().expect("E: failed to flush FIFO");
@@ -281,7 +296,7 @@ macro_rules! prof_stop {
             if std::env::var_os($var).is_some() {
                 use std::io::Write;
                 unsafe {
-                    if let Some(ref mut f) = $crate::utils::PERF_FIFO {
+                    if let Some(ref mut f) = $crate::PERF_FIFO {
                         f.write_all(b"disable\n")
                             .expect("E: failed to write to FIFO");
                         f.flush().expect("E: failed to flush FIFO");

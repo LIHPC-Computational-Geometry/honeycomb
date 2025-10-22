@@ -13,27 +13,38 @@ repository.workspace  = true
 version.workspace     = true
 
 [lib]
+doc  = false
 path = "lib.rs"
 
 [[bin]]
+doc  = false
 name = "cut-edges"
 path = "cut_edges/main.rs"
 
 [[bin]]
+doc  = false
 name = "generate-grid"
 path = "generate_grid/main.rs"
 
 [[bin]]
+doc  = false
 name = "grisubal"
 path = "grisubal/main.rs"
 
 [[bin]]
+doc  = false
 name = "remesh"
 path = "remesh/main.rs"
 
 [[bin]]
+doc  = false
 name = "shift-vertices"
 path = "shift_vertices/main.rs"
+
+[[bin]]
+doc  = false
+name = "triangulate"
+path = "triangulate/main.rs"
 
 [features]
 default = ["bind-threads"]
