@@ -5,6 +5,8 @@ use std::{io::Write, path::PathBuf};
 
 use clap::Parser;
 use honeycomb::prelude::CoordsFloat;
+#[cfg(feature = "render")]
+use honeycomb::render::render_2d_map;
 
 use applications::{FileFormat, bind_rayon_threads};
 
