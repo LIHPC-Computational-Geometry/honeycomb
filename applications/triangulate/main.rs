@@ -1,14 +1,12 @@
 mod cli;
 mod internals;
 
-use std::{io::Write, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::Parser;
 use honeycomb::prelude::CoordsFloat;
-#[cfg(feature = "render")]
-use honeycomb::render::render_2d_map;
 
-use applications::{FileFormat, bind_rayon_threads};
+use applications::{FileFormat, bind_rayon_threads, finalize_2d, init_2d_map_from_file};
 
 fn main() {
     bind_rayon_threads!();
@@ -23,30 +21,12 @@ fn main() {
 }
 
 fn run_bench<T: CoordsFloat>(input: PathBuf, algorithm: cli::Algorithm, save: Option<FileFormat>) {
-    let mut map = internals::init_2d_map::<T>(input);
+    let (mut map, _, _) = init_2d_map_from_file::<T>(input);
 
     match algorithm {
         cli::Algorithm::EarClip => internals::earclip_cells(&mut map),
         cli::Algorithm::Fan => internals::fan_cells(&mut map),
     }
 
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            let mut file = std::fs::File::create("out.vtk").unwrap();
-            map.to_vtk_binary(&mut file);
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_2d_map(map);
-    }
+    finalize_2d(map, save);
 }

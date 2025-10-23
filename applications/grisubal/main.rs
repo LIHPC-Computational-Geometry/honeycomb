@@ -1,10 +1,12 @@
-use std::{io::Write, path::PathBuf};
+use std::path::PathBuf;
 
-use applications::{Clip, FileFormat, bind_rayon_threads};
 use clap::Parser;
-use honeycomb::prelude::{CoordsFloat, grisubal::grisubal};
-#[cfg(feature = "render")]
-use honeycomb::render::render_2d_map;
+use honeycomb::prelude::{
+    CoordsFloat,
+    grisubal::{Clip as KernelClip, grisubal},
+};
+
+use applications::{Clip as AppClip, FileFormat, bind_rayon_threads, finalize_2d};
 
 mod cli;
 
@@ -24,34 +26,15 @@ fn run_bench<T: CoordsFloat>(
     input: PathBuf,
     lx: f64,
     ly: f64,
-    clip: Option<Clip>,
+    clip: Option<AppClip>,
     save: Option<FileFormat>,
 ) {
     let map = grisubal(
         input,
         [T::from(lx).unwrap(), T::from(ly).unwrap()],
-        clip.map(honeycomb::kernels::grisubal::Clip::from)
-            .unwrap_or_default(),
+        clip.map(KernelClip::from).unwrap_or_default(),
     )
     .unwrap(); // TODO: handle error properly
 
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            let mut file = std::fs::File::create("out.vtk").unwrap();
-            map.to_vtk_binary(&mut file);
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_2d_map(map);
-    }
+    finalize_2d(map, save);
 }

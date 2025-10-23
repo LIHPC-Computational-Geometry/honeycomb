@@ -1,27 +1,10 @@
-use std::path::PathBuf;
-
 use honeycomb::{
     prelude::{
-        CMap2, CMapBuilder, CoordsFloat, DartIdType, OrbitPolicy,
+        CMap2, CoordsFloat, DartIdType, OrbitPolicy,
         triangulation::{earclip_cell_countercw, fan_cell},
     },
     stm::atomically_with_err,
 };
-
-pub fn init_2d_map<T: CoordsFloat>(input: PathBuf) -> CMap2<T> {
-    // let instant = Instant::now();
-    let input_map = input.to_str().unwrap();
-    // let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
-    if input_map.ends_with(".cmap") {
-        CMapBuilder::<2>::from_cmap_file(input_map).build().unwrap()
-    } else if input_map.ends_with(".vtk") {
-        CMapBuilder::<2>::from_vtk_file(input_map).build().unwrap()
-    } else {
-        panic!(
-            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
-        );
-    }
-}
 
 pub fn earclip_cells<T: CoordsFloat>(map: &mut CMap2<T>) {
     let faces: Vec<_> = map.iter_faces().collect();

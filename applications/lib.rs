@@ -1,10 +1,15 @@
-use std::collections::hash_map::DefaultHasher;
-use std::fs::File;
-use std::hash::Hasher;
-use std::io::Read;
+use std::{
+    fs::File,
+    hash::Hasher,
+    io::{Read, Write},
+    time::{Duration, Instant},
+    {collections::hash_map::DefaultHasher, path::PathBuf},
+};
 
 use clap::ValueEnum;
-
+use honeycomb::prelude::{CMap2, CMap3, CMapBuilder, CoordsFloat};
+#[cfg(feature = "render")]
+use honeycomb::render::{render_2d_map, render_3d_map};
 #[cfg(feature = "bind-threads")]
 use hwlocality::{
     Topology,
@@ -12,6 +17,48 @@ use hwlocality::{
     object::types::ObjectType,
     topology::support::{DiscoverySupport, FeatureSupport},
 };
+
+// -- start and end routines
+
+pub fn init_2d_map_from_file<T: CoordsFloat>(input: PathBuf) -> (CMap2<T>, u64, Duration) {
+    let input_map = input.to_str().unwrap();
+
+    // load map from file
+    let instant = Instant::now();
+    let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
+
+    let map: CMap2<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::<2>::from_cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        CMapBuilder::<2>::from_vtk_file(input_map).build().unwrap()
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
+
+    (map, input_hash, instant.elapsed())
+}
+
+pub fn init_3d_map_from_file<T: CoordsFloat>(input: PathBuf) -> (CMap3<T>, u64, Duration) {
+    let input_map = input.to_str().unwrap();
+
+    // load map from file
+    let instant = Instant::now();
+    let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
+
+    let map: CMap3<T> = if input_map.ends_with(".cmap") {
+        CMapBuilder::<3>::from_cmap_file(input_map).build().unwrap()
+    } else if input_map.ends_with(".vtk") {
+        unimplemented!("E: VTK initialization isn't supported for 3-map")
+    } else {
+        panic!(
+            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+        );
+    };
+
+    (map, input_hash, instant.elapsed())
+}
 
 pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
     let mut file = File::open(path)?;
@@ -28,6 +75,51 @@ pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
 
     Ok(hasher.finish())
 }
+
+pub fn finalize_2d<T: CoordsFloat>(map: CMap2<T>, save: Option<FileFormat>) {
+    match save {
+        Some(FileFormat::Cmap) => {
+            // FIXME: update serialize sig
+            let mut out = String::new();
+            let mut file = std::fs::File::create("out.cmap").unwrap();
+            map.serialize(&mut out);
+            file.write_all(out.as_bytes()).unwrap();
+        }
+        Some(FileFormat::Vtk) => {
+            let mut file = std::fs::File::create("out.vtk").unwrap();
+            map.to_vtk_binary(&mut file);
+        }
+        None => {}
+    }
+
+    #[cfg(feature = "render")]
+    {
+        render_2d_map(map);
+    }
+}
+
+pub fn finalize_3d<T: CoordsFloat>(map: CMap3<T>, save: Option<FileFormat>) {
+    match save {
+        Some(FileFormat::Cmap) => {
+            // FIXME: update serialize sig
+            let mut out = String::new();
+            let mut file = std::fs::File::create("out.cmap").unwrap();
+            map.serialize(&mut out);
+            file.write_all(out.as_bytes()).unwrap();
+        }
+        Some(FileFormat::Vtk) => {
+            unimplemented!("E: VTK serialization isn't implemented for 3-maps")
+        }
+        None => {}
+    }
+
+    #[cfg(feature = "render")]
+    {
+        render_3d_map(map);
+    }
+}
+
+// -- common bench args
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Backend {
@@ -56,6 +148,8 @@ pub enum Clip {
     Left,
     Right,
 }
+
+// -- thread binding
 
 pub const NUM_THREADS_VAR: &str = "RAYON_NUM_THREADS";
 
@@ -237,6 +331,8 @@ macro_rules! bind_rayon_threads {
         }
     };
 }
+
+// -- profiling hooks
 
 #[cfg(feature = "profiling")]
 pub static mut PERF_FIFO: Option<File> = None;

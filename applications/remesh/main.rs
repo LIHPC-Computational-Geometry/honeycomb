@@ -1,14 +1,12 @@
 mod cli;
 mod internals;
 
-use std::{io::Write, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::Parser;
 use honeycomb::prelude::CoordsFloat;
-#[cfg(feature = "render")]
-use honeycomb::render::render_2d_map;
 
-use applications::{Clip as AppClip, FileFormat, bind_rayon_threads};
+use applications::{Clip as AppClip, FileFormat, bind_rayon_threads, finalize_2d};
 
 fn main() {
     bind_rayon_threads!();
@@ -54,7 +52,6 @@ fn run_bench<T: CoordsFloat>(
     enable_early_ret: bool,
     save: Option<FileFormat>,
 ) {
-    // capture
     let mut map = internals::generate_first_mesh(
         input,
         target_length,
@@ -62,7 +59,6 @@ fn run_bench<T: CoordsFloat>(
         clip,
     );
 
-    // remesh
     internals::remesh(
         &mut map,
         n_rounds,
@@ -72,24 +68,5 @@ fn run_bench<T: CoordsFloat>(
         enable_early_ret,
     );
 
-    // finalize
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            let mut file = std::fs::File::create("out.vtk").unwrap();
-            map.to_vtk_binary(&mut file);
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_2d_map(map);
-    }
+    finalize_2d(map, save);
 }

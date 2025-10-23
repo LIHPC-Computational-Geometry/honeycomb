@@ -1,13 +1,9 @@
 mod cli;
 
-use std::io::Write;
-
 use clap::Parser;
 use honeycomb::prelude::{CoordsFloat, grid_generation::GridBuilder};
-#[cfg(feature = "render")]
-use honeycomb::render::{render_2d_map, render_3d_map};
 
-use applications::{FileFormat, bind_rayon_threads};
+use applications::{FileFormat, bind_rayon_threads, finalize_2d, finalize_3d};
 
 fn main() {
     bind_rayon_threads!();
@@ -63,25 +59,7 @@ fn run_bench_2d<T: CoordsFloat>(
         .build()
         .unwrap();
 
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            let mut file = std::fs::File::create("out.vtk").unwrap();
-            map.to_vtk_binary(&mut file);
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_2d_map(map);
-    }
+    finalize_2d(map, save);
 }
 
 fn run_bench_3d<T: CoordsFloat>(
@@ -97,22 +75,5 @@ fn run_bench_3d<T: CoordsFloat>(
         .build()
         .unwrap();
 
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            unimplemented!("E: VTK serialization isn't supported for 3-maps");
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_3d_map(map);
-    }
+    finalize_3d(map, save);
 }

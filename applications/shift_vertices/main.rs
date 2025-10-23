@@ -1,14 +1,12 @@
 mod cli;
 mod internals;
 
-use std::{io::Write, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::Parser;
 use honeycomb::prelude::{CMap2, CMapBuilder, CoordsFloat};
-#[cfg(feature = "render")]
-use honeycomb::render::render_2d_map;
 
-use applications::{FileFormat, bind_rayon_threads, hash_file, prof_start, prof_stop};
+use applications::{FileFormat, bind_rayon_threads, finalize_2d, hash_file, prof_start, prof_stop};
 
 fn main() {
     bind_rayon_threads!();
@@ -55,23 +53,5 @@ fn run_bench<T: CoordsFloat>(
     internals::shift(&map, &graph, n_rounds);
     prof_stop!("HCBENCH_SHIFT");
 
-    match save {
-        Some(FileFormat::Cmap) => {
-            // FIXME: update serialize sig
-            let mut out = String::new();
-            let mut file = std::fs::File::create("out.cmap").unwrap();
-            map.serialize(&mut out);
-            file.write_all(out.as_bytes()).unwrap();
-        }
-        Some(FileFormat::Vtk) => {
-            let mut file = std::fs::File::create("out.vtk").unwrap();
-            map.to_vtk_binary(&mut file);
-        }
-        None => {}
-    }
-
-    #[cfg(feature = "render")]
-    {
-        render_2d_map(map);
-    }
+    finalize_2d(map, save);
 }
