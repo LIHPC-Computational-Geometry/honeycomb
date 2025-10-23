@@ -297,7 +297,7 @@ macro_rules! bind_rayon_threads {
         {
             use std::sync::Arc;
 
-            use applications::{check_hwloc_support, get_proc_list};
+            use applications::{check_hwloc_support, get_num_threads, get_proc_list};
             use hwlocality::{Topology, cpu::binding::CpuBindingFlags};
             use rayon::ThreadPoolBuilder;
 
@@ -308,6 +308,7 @@ macro_rules! bind_rayon_threads {
             {
                 let mut cores = cores.into_iter().cycle();
                 builder
+                    .num_threads(get_num_threads().unwrap_or(1))
                     .spawn_handler(|t_builder| {
                         let topo = topo.clone();
                         let core = cores.next().expect("E: unreachable"); // due to cycle
@@ -326,7 +327,10 @@ macro_rules! bind_rayon_threads {
                     .build_global()
                     .unwrap();
             } else {
-                builder.build_global().unwrap()
+                builder
+                    .num_threads(get_num_threads().unwrap_or(1))
+                    .build_global()
+                    .unwrap()
             }
         }
     };
