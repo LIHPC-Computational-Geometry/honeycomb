@@ -1,4 +1,4 @@
-name: Rust Tests
+name: Tests
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       - name: Run Clippy
-        run: cargo clippy # --all-features -- -D warnings
+        run: cargo clippy --all-targets
   tests:
     runs-on: ubuntu-22.04
     steps:
@@ -50,4 +50,4 @@ jobs:
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       - name: Run Tests
-        run: cargo test --all # --all-features
+        run: cargo test --all-targets

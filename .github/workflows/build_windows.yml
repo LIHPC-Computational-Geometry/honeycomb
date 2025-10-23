@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_crates:
+  build:
     name: Build crates
     runs-on: windows-latest
     steps:
@@ -20,26 +20,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build crates
-        run: cargo build --all --no-default-features --features=kernels,render
-  build_examples:
-    name: Build examples
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          submodules: recursive
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Build examples
-        run: cargo build --examples --no-default-features --features=kernels,render
-  build_benchmarks:
-    name: Build benchmarks
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          submodules: recursive
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Build benchmarks
-        run: cargo build --benches --no-default-features --features=kernels,render
+        run: cargo build --all-targets --no-default-features --features=kernels,render
