@@ -4,9 +4,12 @@ mod internals;
 use std::path::PathBuf;
 
 use clap::Parser;
-use honeycomb::prelude::{CMap2, CMapBuilder, CoordsFloat};
+use honeycomb::prelude::CoordsFloat;
 
-use applications::{FileFormat, bind_rayon_threads, finalize_2d, hash_file, prof_start, prof_stop};
+use applications::{
+    FileFormat, bind_rayon_threads, finalize_2d, get_num_threads, init_2d_map_from_file,
+    prof_start, prof_stop,
+};
 
 fn main() {
     bind_rayon_threads!();
@@ -26,27 +29,20 @@ fn run_bench<T: CoordsFloat>(
     sort: bool,
     save: Option<FileFormat>,
 ) {
-    let instant = std::time::Instant::now();
-    let input_map = input.to_str().unwrap();
-    let input_hash = hash_file(input_map).unwrap();
-    let map: CMap2<T> = if input_map.ends_with(".cmap") {
-        CMapBuilder::<2>::from_cmap_file(input_map).build().unwrap()
-    } else if input_map.ends_with(".vtk") {
-        CMapBuilder::<2>::from_vtk_file(input_map).build().unwrap()
-    } else {
-        panic!(
-            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
-        );
-    };
-    let build_time = instant.elapsed();
-    let n_threads = rayon::current_num_threads();
+    let (map, input_hash, init_time) = init_2d_map_from_file::<T>(input.clone());
 
     println!("| shift benchmark");
-    println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
-    println!("|-> backend    : RayonIter with {n_threads} thread(s)",);
+    println!(
+        "|-> input      : {} (hash: {input_hash:#0x})",
+        input.to_str().unwrap()
+    );
+    println!(
+        "|-> backend    : RayonIter with {} thread(s)",
+        get_num_threads().unwrap_or(1)
+    );
     println!("|-> # of rounds: {}", n_rounds);
     println!("|-+ init time  :");
-    println!("| |->   map built in {}ms", build_time.as_millis());
+    println!("| |->   map built in {}ms", init_time.as_millis());
 
     prof_start!("HCBENCH_SHIFT");
     let graph = internals::build_vertex_graph(&map, sort);

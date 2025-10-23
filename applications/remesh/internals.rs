@@ -25,11 +25,9 @@ pub fn generate_first_mesh<T: CoordsFloat>(
     // backend: Backend,
 ) -> CMap2<T> {
     let input_map = input.to_str().unwrap();
-    let target_len = T::from(target_length).unwrap();
-    let n_threads = get_num_threads().unwrap_or(1);
 
     // load map from file
-    let input_hash = hash_file(input_map).expect("E: could not compute input hash"); // file id for posterity
+    let input_hash = hash_file(input_map).expect("E: could not compute input hash");
 
     // -- capture via grid overlap
     let mut instant = Instant::now();
@@ -123,8 +121,11 @@ pub fn generate_first_mesh<T: CoordsFloat>(
     // TODO: print the whole config / args
     println!("| remesh benchmark");
     println!("|-> input      : {input_map} (hash: {input_hash:#0x})");
-    println!("|-> backend    : RayonIter with {n_threads} thread(s)",);
-    println!("|-> target size: {target_len:?}");
+    println!(
+        "|-> backend    : RayonIter with {} thread(s)",
+        get_num_threads().unwrap_or(1)
+    );
+    println!("|-> target size: {target_length}");
     println!("|-> capture time  : {}ms", capture_time.as_millis());
     println!(
         "|-> triangulation time  : {}ms",
