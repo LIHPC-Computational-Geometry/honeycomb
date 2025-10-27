@@ -2,24 +2,22 @@
 
 ---
 
-## Benchmarks
+## Applications
 
-**honeycomb-benches** is the crate used to group benchmarking routines of the Rust code. It contains:
+The `applications` crate contains multiple binaries used as material to showcase the library. These
+serve as examples and/or benchmarks of our implementation.
 
-- binaries used to profile code and kernels
-- benchmarks implemented using the [criterion][CRITERION] crate
-- scripts used to aggregate and (partially) process results of both
+The following binaries are available; run `cargo run --bin <BIN> -- --help` for usage information:
 
-[CRITERION]: https://github.com/bheisler/criterion.rs
+- `cut-edges` -- cut edges of a triangular mesh recursively until a target length is reached
+- `generate-grid` -- generate a grid-like mesh of a 2D or 3D box
+- `grisubal` -- capture an input geometry using an overlay grid algorithm
+- `remesh` -- capture and iteratively remesh an input geometry
+- `shift-vertices` -- relax all inner vertices of a mesh
+- `triangulate` -- triangulate a 2D polygonal mesh
 
-
----
-
-## Examples
-
-**honeycomb-examples** is the crate used to group examples & snippets illustrating possible usages. It also 
-contains sample VTK files to ensure examples and benchmarks can run out-of-the-box.
-
+All binaries have a `hwloc` dependency by default to bind threads to phyisical cores. It can be
+removed by using the option `--no-default-features`.
 
 ---
 
