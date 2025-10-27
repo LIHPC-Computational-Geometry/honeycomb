@@ -1,12 +1,11 @@
 [workspace]
 
 members = [
-    "benches",
+    "applications",
     "honeycomb",
     "honeycomb-core",
     "honeycomb-kernels",
     "honeycomb-render",
-    "examples",
 ]
 resolver = "2"
 
@@ -34,8 +33,7 @@ honeycomb-core    = { version = "0.10.0", path = "./honeycomb-core" }
 honeycomb-kernels = { version = "0.10.0", path = "./honeycomb-kernels" }
 honeycomb-render  = { version = "0.10.0", path = "./honeycomb-render" }
 
-honeycomb-benches  = { version = "0.10.0", path = "./benches" }
-honeycomb-examples = { version = "0.10.0", path = "./examples" }
+honeycomb-apps = { version = "0.10.0", path = "./applications" }
 
 # common
 cfg-if      = "1"

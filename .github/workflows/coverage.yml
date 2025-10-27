@@ -35,9 +35,8 @@ jobs:
         run: |
           cargo build --all-features --workspace \
             --exclude honeycomb \
-            --exclude honeycomb-benches \
-            --exclude honeycomb-examples \
-            --exclude honeycomb-render
+            --exclude honeycomb-render \
+            --exclude applications
         env:
           RUSTFLAGS: "-Cinstrument-coverage"
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
@@ -45,9 +44,8 @@ jobs:
         run: |
           cargo test --all-features --workspace \
             --exclude honeycomb \
-            --exclude honeycomb-benches \
-            --exclude honeycomb-examples \
-            --exclude honeycomb-render
+            --exclude honeycomb-render \
+            --exclude applications
         env:
           RUSTFLAGS: "-Cinstrument-coverage"
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"

@@ -19,9 +19,7 @@
 
 # ignore wild vtk files
 *.vtk
-!/assets/*.vtk
-!/examples/shape.vtk
-!/examples/quads.vtk
+!/applications/shape.vtk
 
 # ignore coverage-related files
 *.profraw

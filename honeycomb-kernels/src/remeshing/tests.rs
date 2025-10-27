@@ -365,7 +365,7 @@ mod capture_and_classify {
     #[test]
     fn capture_example() {
         // how likely is this to break?
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/shape.vtk");
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../applications/shape.vtk");
         let map = capture_geometry(path, [1.0; 2], Clip::Right).unwrap();
 
         // there should be 13 nodes, 13 curves, and a single surface

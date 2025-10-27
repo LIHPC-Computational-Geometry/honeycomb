@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Check Format
+        run: cargo fmt --all --check
+      - uses: docker://docker.io/tamasfe/taplo:latest
+        with:
+          args: fmt --check --diff
+  clippy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install hwloc
+        run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
+      - name: Run Clippy
+        run: cargo clippy --all-targets
+  tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install hwloc
+        run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
+      - name: Run Tests
+        run: cargo test --all-targets
