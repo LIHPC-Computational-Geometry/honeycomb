@@ -33,7 +33,7 @@ jobs:
       # excluding the benchmark / example crates to remove some bias
       - name: Build code
         run: |
-          cargo build --all-features --workspace \
+          cargo build --features=jemalloc,par-internals,render --workspace \
             --exclude honeycomb \
             --exclude honeycomb-render \
             --exclude applications
@@ -42,7 +42,7 @@ jobs:
           LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
       - name: Run tests
         run: |
-          cargo test --all-features --workspace \
+          cargo test --features=jemalloc,par-internals,render --workspace \
             --exclude honeycomb \
             --exclude honeycomb-render \
             --exclude applications
