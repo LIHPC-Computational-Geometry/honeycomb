@@ -1,4 +1,6 @@
 mod cli;
+#[cfg(feature = "cuda")]
+mod gpu;
 
 use clap::Parser;
 use honeycomb::prelude::{CoordsFloat, grid_generation::GridBuilder};
@@ -16,27 +18,34 @@ fn main() {
                 [args.nx.get(), args.ny.get()],
                 [args.lx, args.ly],
                 args.split,
+                cli.gpu,
                 cli.save_as,
             ),
             cli::Dim::Three(args) => run_bench_3d::<f32>(
                 [args.nx.get(), args.ny.get(), args.nz.get()],
                 [args.lx, args.ly, args.lz],
                 args.split,
+                cli.gpu,
                 cli.save_as,
             ),
         }
     } else {
+        if cli.gpu {
+            unimplemented!("Double precision isn't implemented by our GPU routines")
+        }
         match cli.dim {
             cli::Dim::Two(args) => run_bench_2d::<f64>(
                 [args.nx.get(), args.ny.get()],
                 [args.lx, args.ly],
                 args.split,
+                cli.gpu,
                 cli.save_as,
             ),
             cli::Dim::Three(args) => run_bench_3d::<f64>(
                 [args.nx.get(), args.ny.get(), args.nz.get()],
                 [args.lx, args.ly, args.lz],
                 args.split,
+                cli.gpu,
                 cli.save_as,
             ),
         }
@@ -50,14 +59,25 @@ fn run_bench_2d<T: CoordsFloat>(
     n_cells: [usize; 2],
     len_cells: [f64; 2],
     split: bool,
+    gpu: bool,
     save: Option<FileFormat>,
 ) {
-    let map = GridBuilder::<2, T>::default()
-        .n_cells(n_cells)
-        .len_per_cell(len_cells.map(|v| T::from(v).unwrap()))
-        .split_cells(split)
-        .build()
-        .unwrap();
+    let map = if gpu {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "cuda")] {
+                gpu::build_2d(n_cells, len_cells, split).unwrap()
+            } else {
+                unimplemented!("E: the `--gpu` option requires the `cuda` feature to be enabled");
+            }
+        }
+    } else {
+        GridBuilder::<2, T>::default()
+            .n_cells(n_cells)
+            .len_per_cell(len_cells.map(|v| T::from(v).unwrap()))
+            .split_cells(split)
+            .build()
+            .unwrap()
+    };
 
     finalize_2d(map, save);
 }
@@ -66,14 +86,25 @@ fn run_bench_3d<T: CoordsFloat>(
     n_cells: [usize; 3],
     len_cells: [f64; 3],
     split: bool,
+    gpu: bool,
     save: Option<FileFormat>,
 ) {
-    let map = GridBuilder::<3, T>::default()
-        .n_cells(n_cells)
-        .len_per_cell(len_cells.map(|v| T::from(v).unwrap()))
-        .split_cells(split)
-        .build()
-        .unwrap();
+    let map = if gpu {
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "cuda")] {
+                gpu::build_3d(n_cells, len_cells, split).unwrap()
+            } else {
+                unimplemented!("E: the `--gpu` option requires the `cuda` feature to be enabled");
+            }
+        }
+    } else {
+        GridBuilder::<3, T>::default()
+            .n_cells(n_cells)
+            .len_per_cell(len_cells.map(|v| T::from(v).unwrap()))
+            .split_cells(split)
+            .build()
+            .unwrap()
+    };
 
     finalize_3d(map, save);
 }

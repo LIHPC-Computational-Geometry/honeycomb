@@ -44,20 +44,23 @@ rustversion = "1.0.18"
 thiserror   = "2.0.11"
 
 # core
-downcast-rs = "2.0.1"
-fast-stm    = "0.5.0"
-loom        = "0.7.2"
-num-traits  = "0.2.19"
-vtkio       = { version = "0.7.0-rc1", default-features = false }
+criterion     = "0.7.0"
+downcast-rs   = "2.0.1"
+fast-stm      = "0.5.0"
+iai-callgrind = "0.16.1"
+loom          = "0.7.2"
+num-traits    = "0.2.19"
+vtkio         = { version = "0.7.0-rc1", default-features = false }
 
 # kernels
 smallvec = "2.0.0-alpha.10"
 
-# benchmarks
-criterion         = "0.7.0"
+# applications
+bindgen           = "0.72.1"
+cudarc            = "0.17.3"
 hwlocality        = "1.0.0-alpha.7"
-iai-callgrind     = "0.16.1"
 rand              = "0.10.0-rc.0"
+regex             = "1.12.2"
 tikv-jemallocator = "0.6.1"
 
 # render
