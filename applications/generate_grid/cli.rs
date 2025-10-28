@@ -15,6 +15,9 @@ pub struct Cli {
     /// Execute benchmarks using `f32` instead of the default `f64`
     #[arg(long("simple-precision"))]
     pub simple_precision: bool,
+    /// Execute benchmarks using an NVIDIA GPU via `cudarc` - requires `cudarc` feature
+    #[arg(long)]
+    pub gpu: bool,
 }
 
 #[derive(Subcommand)]

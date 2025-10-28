@@ -50,15 +50,22 @@ path = "triangulate/main.rs"
 default = ["bind-threads"]
 
 bind-threads = ["dep:hwlocality"]
+cuda         = ["dep:bindgen", "dep:cudarc", "dep:regex"]
 jemalloc     = ["dep:tikv-jemallocator"]
 profiling    = []
 render       = ["honeycomb/render"]
 
 [dependencies]
+cfg-if.workspace    = true
 clap                = { workspace = true, features = ["derive"] }
+cudarc              = { workspace = true, features = ["cuda-13000"], optional = true }
 honeycomb.workspace = true
 hwlocality          = { workspace = true, optional = true }
 rayon.workspace     = true
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
+
+[build-dependencies]
+bindgen = { workspace = true, optional = true }
+regex   = { workspace = true, optional = true }
