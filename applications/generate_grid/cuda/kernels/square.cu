@@ -1,4 +1,4 @@
-#include "../includes/honeycomb.h"
+#include "../include/honeycomb.h"
 #include <stdint.h>
 
 // BLOCK: (4, 4, 4)
