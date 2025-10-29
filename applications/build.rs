@@ -33,7 +33,7 @@ fn main() {
         let bindings = bindgen::Builder::default()
             .header(
                 manifest_dir
-                    .join("generate_grid/cuda/includes/wrapper.h")
+                    .join("generate_grid/cuda/include/wrapper.h")
                     .to_string_lossy(),
             )
             .blocklist_type(".*_t")
