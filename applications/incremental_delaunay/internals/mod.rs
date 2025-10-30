@@ -121,7 +121,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     } else {
         GridBuilder::<3, _>::default()
             .n_cells([1, 1, 1])
-            .len_per_cell([
+            .lens([
                 T::from(lx).unwrap(),
                 T::from(ly).unwrap(),
                 T::from(lz).unwrap(),
@@ -211,7 +211,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         loop {
             match atomically_with_err(|t| {
                 // locate
-                let res = locate_containing_tet(t, &map, 1, p);
+                let res = locate_containing_tet(t, &map, LAST_INSERTED.get(), p);
                 if let Err(StmError::Failure) = res {
                     abort(DelaunayError::CavityBuilding(
                         CavityError::InconsistentState("..."),
