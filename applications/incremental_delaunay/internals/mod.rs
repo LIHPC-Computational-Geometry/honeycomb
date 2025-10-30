@@ -240,7 +240,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                     DelaunayError
                 );
                 // rebuild
-                try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+                let last_inserted =
+                    try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+                LAST_INSERTED.set(last_inserted);
                 Ok(())
             }) {
                 Ok(()) => {

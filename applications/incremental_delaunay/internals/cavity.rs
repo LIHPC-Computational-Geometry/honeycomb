@@ -13,7 +13,7 @@ use honeycomb::core::{
 };
 use smallvec::{SmallVec, smallvec};
 
-use super::{LAST_INSERTED, compute_tet_orientation};
+use super::compute_tet_orientation;
 
 thread_local! {
     pub static DART_BLOCK_START: Cell<DartIdType> = const { Cell::new(1) };
@@ -361,7 +361,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     cavity: CarvedCavity3<T>,
-) -> TransactionClosureResult<(), CavityError> {
+) -> TransactionClosureResult<VolumeIdType, CavityError> {
     let CarvedCavity3 {
         point,
         boundary,
@@ -426,9 +426,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         }
     }
 
-    LAST_INSERTED.set(map.volume_id_tx(t, tmp)?);
-
-    Ok(())
+    Ok(map.volume_id_tx(t, tmp)?)
 }
 
 fn make_incomplete_tet<T: CoordsFloat>(
