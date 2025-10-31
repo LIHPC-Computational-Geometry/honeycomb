@@ -3,6 +3,7 @@ mod delaunay;
 
 use std::{
     cell::Cell,
+    collections::HashSet,
     sync::atomic::{AtomicUsize, Ordering},
     time::Instant,
 };
@@ -12,7 +13,7 @@ use honeycomb::{
     core::{
         cmap::{CMap3, CMapBuilder, DartIdType, VolumeIdType},
         geometry::{CoordsFloat, Vertex3},
-        stm::{StmError, Transaction, abort, atomically_with_err, try_or_coerce},
+        stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
     stm::{StmClosureResult, TransactionClosureResult, retry},
@@ -223,17 +224,19 @@ fn insert_points<T: CoordsFloat>(
     map: &CMap3<T>,
     p: Vertex3<T>,
 ) -> TransactionClosureResult<(), DelaunayError> {
-    let res = locate_containing_tet(t, &map, LAST_INSERTED.get(), p);
-    if let Err(StmError::Failure) = res {
-        abort(DelaunayError::CavityBuilding(
-            CavityError::InconsistentState("..."),
-        ))?;
-    };
-    let volume = match res? {
-        Some(v) => v,
-        None => {
+    let volume = match locate_containing_tet(t, &map, LAST_INSERTED.get(), p)? {
+        LocateResult::Found(v) => v,
+        LocateResult::ReachedBoundary => {
             abort(DelaunayError::CavityBuilding(
-                CavityError::InconsistentState("..."),
+                // NOTE:
+                CavityError::InconsistentState("Points is beyond a boundary"),
+            ))?;
+            unreachable!();
+        }
+        LocateResult::Oscillating => {
+            abort(DelaunayError::CavityBuilding(
+                // NOTE:
+                CavityError::InconsistentState("Non-ending search"),
             ))?;
             unreachable!();
         }
@@ -300,12 +303,19 @@ pub fn compute_tet_orientation<T: CoordsFloat>(
     ]).determinant())
 }
 
+enum LocateResult {
+    Found(VolumeIdType),
+    ReachedBoundary,
+    Oscillating,
+}
+
 fn locate_containing_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     start: VolumeIdType,
     p: Vertex3<T>,
-) -> StmClosureResult<Option<VolumeIdType>> {
+) -> StmClosureResult<LocateResult> {
+    let mut visited = HashSet::with_capacity(16);
     fn locate_next_tet<T: CoordsFloat>(
         t: &mut Transaction,
         map: &CMap3<T>,
@@ -346,24 +356,27 @@ fn locate_containing_tet<T: CoordsFloat>(
     }
 
     let mut count = 0;
-    let max_walk = map.n_darts() / 12;
+    let max_revisit = 2;
     let mut dart = start as DartIdType;
+    visited.insert(map.volume_id_tx(t, dart)?);
 
     loop {
-        count += 1;
-        if count > max_walk {
-            Err(StmError::Failure)?;
+        if count > max_revisit {
+            return Ok(LocateResult::Oscillating);
         }
         if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
             dart = next_dart;
+            if !visited.insert(map.volume_id_tx(t, dart)?) {
+                count += 1;
+            }
             // point is outside or across a gap in the mesh
             if dart == NULL_DART_ID {
                 // it is possible to look for another path, but it requires a more complex condition
                 // than "just follow the first neg volume direction"
-                return Ok(None);
+                return Ok(LocateResult::ReachedBoundary);
             }
         } else {
-            return Ok(Some(map.volume_id_tx(t, dart)?));
+            return Ok(LocateResult::Found(map.volume_id_tx(t, dart)?));
         }
     }
 }
