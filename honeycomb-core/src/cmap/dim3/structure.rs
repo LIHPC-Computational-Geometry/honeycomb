@@ -225,6 +225,43 @@ impl<T: CoordsFloat> CMap3<T> {
         abort(DartReservationError(n_darts))
     }
 
+    #[allow(clippy::missing_errors_doc)]
+    /// Mark `n_darts` free darts as used and return them for usage.
+    ///
+    /// While `reserve_darts_tx` search for free darts from dart 1, this function takes as argument
+    /// a dart ID which serve as the starting point of the search. This is useful in parallel
+    /// contexts; multiple threads may use different offsets to reserve darts without competing
+    /// repeatedly to claim the same elements.
+    ///
+    /// # Return / Errors
+    ///
+    /// This function returns a vector containing IDs of the darts marked as used. It will fail if
+    /// there are not enough unused darts to return; darts will then be left as unused.
+    ///
+    /// This method is meant to be called in a context where the returned `Result` is used to
+    /// validate the transaction passed as argument. Errors should not be processed manually,
+    /// only processed via the `?` operator.
+    pub fn reserve_darts_from_tx(
+        &self,
+        t: &mut Transaction,
+        n_darts: usize,
+        from: DartIdType,
+    ) -> TransactionClosureResult<Vec<DartIdType>, DartReservationError> {
+        let mut res = Vec::with_capacity(n_darts);
+
+        for d in (from..self.n_darts() as DartIdType).chain(1..from) {
+            if self.is_unused_tx(t, d)? {
+                self.claim_dart_tx(t, d)?;
+                res.push(d);
+                if res.len() == n_darts {
+                    return Ok(res);
+                }
+            }
+        }
+
+        abort(DartReservationError(n_darts))
+    }
+
     /// Set a given dart as used.
     ///
     /// # Errors
