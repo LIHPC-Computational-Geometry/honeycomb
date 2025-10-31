@@ -257,7 +257,7 @@ fn reserve_darts() {
     assert!(
         atomically_with_err(|t| map.reserve_darts_from_tx(t, 10, 40))
             .is_ok_and(|s| s.len() == 10 && *s.first().unwrap() == 40 && *s.last().unwrap() == 49)
-    )
+    );
 }
 
 #[test]
