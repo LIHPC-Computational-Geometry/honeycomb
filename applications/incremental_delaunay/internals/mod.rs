@@ -315,7 +315,6 @@ fn locate_containing_tet<T: CoordsFloat>(
     start: VolumeIdType,
     p: Vertex3<T>,
 ) -> StmClosureResult<LocateResult> {
-    let mut visited = HashSet::with_capacity(16);
     fn locate_next_tet<T: CoordsFloat>(
         t: &mut Transaction,
         map: &CMap3<T>,
@@ -355,19 +354,24 @@ fn locate_containing_tet<T: CoordsFloat>(
         }
     }
 
+    // TODO: find a better way to handle this
+    let mut visited = HashSet::with_capacity(16);
     let mut count = 0;
+    let max_count = map.n_darts() / 12;
+    let mut count_visit = 0;
     let max_revisit = 2;
     let mut dart = start as DartIdType;
-    visited.insert(map.volume_id_tx(t, dart)?);
+    visited.insert(map.face_id_tx(t, dart)?);
 
     loop {
-        if count > max_revisit {
+        count += 1;
+        if count_visit > max_revisit || count > max_count {
             return Ok(LocateResult::Oscillating);
         }
         if let Some(next_dart) = locate_next_tet(t, map, dart, p)? {
             dart = next_dart;
-            if !visited.insert(map.volume_id_tx(t, dart)?) {
-                count += 1;
+            if !visited.insert(map.face_id_tx(t, dart)?) {
+                count_visit += 1;
             }
             // point is outside or across a gap in the mesh
             if dart == NULL_DART_ID {
