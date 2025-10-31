@@ -33,6 +33,11 @@ path = "grisubal/main.rs"
 
 [[bin]]
 doc  = false
+name = "incremental-delaunay"
+path = "incremental_delaunay/main.rs"
+
+[[bin]]
+doc  = false
 name = "remesh"
 path = "remesh/main.rs"
 
@@ -56,12 +61,17 @@ profiling    = []
 render       = ["honeycomb/render"]
 
 [dependencies]
-cfg-if.workspace    = true
-clap                = { workspace = true, features = ["derive"] }
-cudarc              = { workspace = true, features = ["cuda-13000"], optional = true }
-honeycomb.workspace = true
-hwlocality          = { workspace = true, optional = true }
-rayon.workspace     = true
+cfg-if     = { workspace = true }
+clap       = { workspace = true, features = ["derive"] }
+coupe      = { workspace = true }
+cudarc     = { workspace = true, features = ["cuda-13000"], optional = true }
+honeycomb  = { workspace = true }
+hwlocality = { workspace = true, optional = true }
+nalgebra   = { workspace = true }
+rand       = { workspace = true, features = ["small_rng"] }
+rayon      = { workspace = true }
+smallvec   = { workspace = true }
+thiserror  = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
