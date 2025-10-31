@@ -19,6 +19,7 @@ fn main() {
             cli.n_points.get(),
             cli.alternate_init,
             cli.seed.unwrap_or(123456789),
+            cli.sort,
             cli.save_as,
         );
     } else {
@@ -29,6 +30,7 @@ fn main() {
             cli.n_points.get(),
             cli.alternate_init,
             cli.seed.unwrap_or(123456789),
+            cli.sort,
             cli.save_as,
         );
     }
@@ -41,6 +43,7 @@ fn run_bench<T: CoordsFloat>(
     n_points: usize,
     init: Option<cli::AlternateInit>,
     seed: u64,
+    sort: bool,
     save: Option<FileFormat>,
 ) {
     let (n_points_init, file_init) = match init {
@@ -51,7 +54,8 @@ fn run_bench<T: CoordsFloat>(
         None => (0, None),
     };
 
-    let map = internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, n_points_init, file_init, seed);
+    let map =
+        internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, n_points_init, file_init, seed, sort);
 
     finalize_3d(map, save);
 }

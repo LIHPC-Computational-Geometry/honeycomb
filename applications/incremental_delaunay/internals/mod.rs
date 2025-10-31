@@ -35,6 +35,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     n_points_init: usize,
     file_init: Option<String>,
     seed: u64,
+    sort: bool,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
@@ -64,7 +65,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     );
 
     instant = Instant::now();
-    let points_init: Vec<Vertex3<T>> = {
+    let points_init: Vec<Vertex3<T>> = if sort {
         let tmp: Vec<_> = all_points.drain(..n_points_init).collect();
         let ps: Vec<_> = tmp
             .iter()
@@ -85,9 +86,11 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
 
         tmp.into_iter().map(|v| v.0).collect()
+    } else {
+        all_points.drain(..n_points_init).collect()
     };
 
-    let points: Vec<Vertex3<T>> = {
+    let points: Vec<Vertex3<T>> = if sort {
         let ps: Vec<_> = all_points
             .iter()
             .map(|v| {
@@ -107,6 +110,8 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
 
         tmp.into_iter().map(|v| v.0).collect()
+    } else {
+        all_points
     };
     let time = instant.elapsed().as_secs_f32();
     println!(

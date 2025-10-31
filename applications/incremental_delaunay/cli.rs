@@ -24,6 +24,9 @@ pub struct Cli {
     /// Seed for point campling
     #[arg(long("seed"))]
     pub seed: Option<u64>,
+    /// Sort points to insert along a Z-curve - requires `spatial-sort` feature
+    #[arg(long("enable-spatial-sort"))]
+    pub sort: bool,
     /// Serialize the map returned by the benchmark, if applicable
     #[arg(short, long("save-as"), value_enum, value_name("FORMAT"))]
     pub save_as: Option<FileFormat>,
