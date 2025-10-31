@@ -15,7 +15,7 @@ use honeycomb::{
         stm::{StmError, Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{StmClosureResult, retry},
+    stm::{StmClosureResult, TransactionClosureResult, retry},
 };
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
@@ -146,40 +146,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let mut count = 0;
     points_init.into_iter().for_each(|p| {
         loop {
-            match atomically_with_err(|t| {
-                // locate
-                let res = locate_containing_tet(t, &map, LAST_INSERTED.get(), p);
-                if let Err(StmError::Failure) = res {
-                    abort(DelaunayError::CavityBuilding(
-                        CavityError::InconsistentState("..."),
-                    ))?;
-                };
-                let volume = match res? {
-                    Some(v) => v,
-                    None => {
-                        abort(DelaunayError::CavityBuilding(
-                            CavityError::InconsistentState("..."),
-                        ))?;
-                        unreachable!();
-                    }
-                };
-
-                #[cfg(debug_assertions)]
-                check_tet_orientation(t, &map, volume, p)?;
-
-                // compute cavity
-                let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
-                // carve
-                let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
-                // extend
-                let cavity = try_or_coerce!(
-                    extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
-                    DelaunayError
-                );
-                // rebuild
-                try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
-                Ok(())
-            }) {
+            match atomically_with_err(|t| insert_points(t, &map, p)) {
                 Ok(()) => {
                     count += 1;
                     break;
@@ -214,42 +181,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         // points.par_chunks(128).for_each(|c| {
         // c.into_iter().for_each(|&p| {
         loop {
-            match atomically_with_err(|t| {
-                // locate
-                let res = locate_containing_tet(t, &map, LAST_INSERTED.get(), p);
-                if let Err(StmError::Failure) = res {
-                    abort(DelaunayError::CavityBuilding(
-                        CavityError::InconsistentState("..."),
-                    ))?;
-                };
-                let volume = match res? {
-                    Some(v) => v,
-                    None => {
-                        abort(DelaunayError::CavityBuilding(
-                            CavityError::InconsistentState("..."),
-                        ))?;
-                        unreachable!();
-                    }
-                };
-
-                #[cfg(debug_assertions)]
-                check_tet_orientation(t, &map, volume, p)?;
-
-                // compute cavity
-                let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
-                // carve
-                let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
-                // extend
-                let cavity = try_or_coerce!(
-                    extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
-                    DelaunayError
-                );
-                // rebuild
-                let last_inserted =
-                    try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
-                LAST_INSERTED.set(last_inserted);
-                Ok(())
-            }) {
+            match atomically_with_err(|t| insert_points(t, &map, p)) {
                 Ok(()) => {
                     let tid = rayon::current_thread_index().expect("E: unreachable");
                     counters[tid].fetch_add(1, Ordering::Relaxed);
@@ -284,6 +216,45 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     );
 
     map
+}
+
+fn insert_points<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    p: Vertex3<T>,
+) -> TransactionClosureResult<(), DelaunayError> {
+    let res = locate_containing_tet(t, &map, LAST_INSERTED.get(), p);
+    if let Err(StmError::Failure) = res {
+        abort(DelaunayError::CavityBuilding(
+            CavityError::InconsistentState("..."),
+        ))?;
+    };
+    let volume = match res? {
+        Some(v) => v,
+        None => {
+            abort(DelaunayError::CavityBuilding(
+                CavityError::InconsistentState("..."),
+            ))?;
+            unreachable!();
+        }
+    };
+
+    #[cfg(debug_assertions)]
+    check_tet_orientation(t, &map, volume, p)?;
+
+    // compute cavity
+    let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+    // carve
+    let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+    // extend
+    let cavity = try_or_coerce!(
+        extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
+        DelaunayError
+    );
+    // rebuild
+    let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+    LAST_INSERTED.set(last_inserted);
+    Ok(())
 }
 
 #[rustfmt::skip]
