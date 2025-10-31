@@ -3,6 +3,9 @@
 //! This module contains the main structure definition ([`CMap3`]) as well as its constructor
 //! implementation.
 
+#[cfg(feature = "par-internals")]
+use rayon::prelude::*;
+
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::{
@@ -115,10 +118,21 @@ impl<T: CoordsFloat> CMap3<T> {
         self.unused_darts.len()
     }
 
+    #[cfg(not(feature = "par-internals"))]
     /// Return the current number of unused darts.
     #[must_use = "unused return value"]
     pub fn n_unused_darts(&self) -> usize {
         self.unused_darts.iter().filter(|v| v.read_atomic()).count()
+    }
+
+    #[cfg(feature = "par-internals")]
+    /// Return the current number of unused darts.
+    #[must_use = "unused return value"]
+    pub fn n_unused_darts(&self) -> usize {
+        self.unused_darts
+            .par_iter()
+            .filter(|v| v.read_atomic())
+            .count()
     }
 
     /// Return whether a given dart is unused or not.
