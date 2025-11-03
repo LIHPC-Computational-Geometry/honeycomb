@@ -57,7 +57,7 @@ smallvec = "2.0.0-alpha.10"
 
 # applications
 bindgen           = "0.72.1"
-cudarc            = "0.17.3"
+cudarc            = "0.17.7"
 hwlocality        = "1.0.0-alpha.7"
 rand              = "0.10.0-rc.0"
 regex             = "1.12.2"
