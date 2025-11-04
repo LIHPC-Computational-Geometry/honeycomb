@@ -37,7 +37,7 @@ honeycomb-apps = { version = "0.10.0", path = "./applications" }
 
 # common
 cfg-if      = "1"
-clap        = "4.5.50"
+clap        = "4.5.51"
 itertools   = "0.14.0"
 rayon       = "1.10.0"
 rustversion = "1.0.18"
