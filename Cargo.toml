@@ -52,23 +52,23 @@ loom          = "0.7.2"
 num-traits    = "0.2.19"
 vtkio         = { version = "0.7.0-rc1", default-features = false }
 
-# kernels
-smallvec = "2.0.0-alpha.10"
-
 # applications
 bindgen           = "0.72.1"
+clap              = "4.5.50"
+coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.17.7"
 hwlocality        = "1.0.0-alpha.7"
+nalgebra          = "0.34.1"
 rand              = "0.10.0-rc.0"
 regex             = "1.12.2"
+smallvec          = "2.0.0-alpha.10"
 tikv-jemallocator = "0.6.1"
 
 # render
 bevy             = { version = "0.14.2", default-features = false }
 bevy_egui        = "0.29.0"
 bevy_mod_picking = "0.20.1"
-# bevy_mod_outline = "0.8.3"
-egui_dock = "0.13.0"
+egui_dock        = "0.13.0"
 
 [profile.bench]
 debug = true
