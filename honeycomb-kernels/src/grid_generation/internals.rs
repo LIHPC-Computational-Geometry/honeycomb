@@ -1,5 +1,6 @@
 use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder, DartIdType, VertexIdType};
 use honeycomb_core::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
+use rayon::prelude::*;
 
 // 2D
 
@@ -19,6 +20,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     // init beta functions
     (1..=(4 * n_square_x * n_square_y) as DartIdType)
         .zip(generate_square_beta_values(n_square_x, n_square_y))
+        .par_bridge()
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
@@ -29,6 +31,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     (0..n_square_y)
         // flatten the loop to expose more parallelism
         .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
+        .par_bridge()
         .for_each(|(y_idx, x_idx)| {
             let vertex_id = map.vertex_id((1 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
             map.force_write_vertex(
@@ -42,7 +45,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
         });
 
     // top left vertex of all top row cells
-    (0..n_square_x).for_each(|x_idx| {
+    (0..n_square_x).into_par_iter().for_each(|x_idx| {
         let y_idx = n_square_y - 1;
         let vertex_id = map.vertex_id((4 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
         map.force_write_vertex(
@@ -56,7 +59,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     });
 
     // bottom right vertex of all right col cells
-    (0..n_square_y).for_each(|y_idx| {
+    (0..n_square_y).into_par_iter().for_each(|y_idx| {
         let x_idx = n_square_x - 1;
         let vertex_id = map.vertex_id((2 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
         map.force_write_vertex(
@@ -129,6 +132,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     // init beta functions
     (1..=(6 * n_square_x * n_square_y) as DartIdType)
         .zip(generate_tris_beta_values(n_square_x, n_square_y))
+        .par_bridge()
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
@@ -139,6 +143,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     (0..n_square_y)
         // flatten the loop to expose more parallelism
         .flat_map(|y_idx| (0..n_square_x).map(move |x_idx| (y_idx, x_idx)))
+        .par_bridge()
         .for_each(|(y_idx, x_idx)| {
             let vertex_id = map.vertex_id((1 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
             map.force_write_vertex(
@@ -152,7 +157,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
         });
 
     // top left vertex of all top row cells
-    (0..n_square_x).for_each(|x_idx| {
+    (0..n_square_x).into_par_iter().for_each(|x_idx| {
         let y_idx = n_square_y - 1;
         let vertex_id = map.vertex_id((4 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
         map.force_write_vertex(
@@ -166,7 +171,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     });
 
     // bottom right vertex of all right col cells
-    (0..n_square_y).for_each(|y_idx| {
+    (0..n_square_y).into_par_iter().for_each(|y_idx| {
         let x_idx = n_square_x - 1;
         let vertex_id = map.vertex_id((2 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
         map.force_write_vertex(
@@ -245,12 +250,14 @@ pub(crate) fn build_3d_grid<T: CoordsFloat>(
     // init beta functions
     (1..=n_darts as DartIdType)
         .zip(generate_hex_beta_values(n_cells_per_axis))
+        .par_bridge()
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
 
     // place vertices
     (1..=n_darts as DartIdType)
+        .into_par_iter()
         .filter(|d| *d as VertexIdType == map.vertex_id(*d))
         .for_each(|d| {
             let v = origin + generate_hex_offset(d, n_cells_per_axis, lengths);
@@ -434,12 +441,14 @@ pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
     // init beta functions
     (1..=n_darts as DartIdType)
         .zip(generate_tet_beta_values(n_cells_per_axis))
+        .par_bridge()
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
 
     // place vertices
     (1..=n_darts as DartIdType)
+        .into_par_iter()
         .filter(|d| *d as VertexIdType == map.vertex_id(*d))
         .for_each(|d| {
             let v = origin + generate_tet_offset(d, n_cells_per_axis, lengths);
