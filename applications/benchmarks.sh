@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script is used to execute a benchmark suite that serve as a performace baseline for future optimizations
+# This script is used to execute a benchmark suite that serve as a performance baseline for future optimizations
 #
 # It is composed of the following benchmarks:
 # - grid generation
@@ -12,10 +12,10 @@
 #   - weak scaling (from minimal triangulation)
 #   - weak scaling (from growing triangulation)
 #
-# Thread numbers are set for 4*GH chips
+# Thread numbers are set for 4*GH chips. `HCWORKDIR` is expected to be set to the repo's path.
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-TARGET_DIR=${SCRIPT_DIR}/../target/release
+SCRIPT_DIR=${HCWORKDIR}/applications
+TARGET_DIR=${HCWORKDIR}/target/release
 
 mkdir out
 
@@ -25,13 +25,15 @@ mkdir out
 # - memory usage
 # - GPU speedup
 
-RAYON_NUM_THREADS=72 ${TARGET_DIR}/generate-grid 3d \
+RAYON_NUM_THREADS=72 ${TARGET_DIR}/generate-grid \
     --simple-precision \
+    3d \
     256 256 256 \
     256 256 256 \
     >> out/grid_3d_cpu.out
-RAYON_NUM_THREADS=72 ${TARGET_DIR}/generate-grid 3d \
+RAYON_NUM_THREADS=72 ${TARGET_DIR}/generate-grid \
     --gpu --simple-precision \
+    3d \
     256 256 256 \
     256 256 256 \
     >> out/grid_3d_gpu.out
