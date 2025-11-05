@@ -1509,9 +1509,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.50"
+version = "4.5.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c2cfd7bf8a6017ddaa4e32ffe7403d547790db06bd171c1c53926faab501623"
+checksum = "4c26d721170e0295f191a69bd9a1f93efcdb0aff38684b61ab5750468972e5f5"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1519,9 +1519,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.50"
+version = "4.5.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a4c05b9e80c5ccd3a7ef080ad7b6ba7d6fc00a985b8b157197075677c82c7a0"
+checksum = "75835f0c7bf681bfd05abe44e965760fea999a5286c6eb2d59883634fd02011a"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1804,9 +1804,9 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "cudarc"
-version = "0.17.3"
+version = "0.17.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72ba848ae5c6f3cb36e71eab5f268763e3fabcabe3f7bc683e16f7fa3d46281e"
+checksum = "ff0da1a70ec91e66731c1752deb9fda3044f1154fe4ceb5873e3f96ed34cafa3"
 dependencies = [
  "libloading 0.8.9",
 ]
@@ -2094,11 +2094,13 @@ dependencies = [
 
 [[package]]
 name = "fast-stm"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cda3b11ef030d460c0af3c31f066676c66a12890198c5dd66041e2c0d1a7bad3"
+checksum = "7dae779d99db6e0377683038f15030502dc0810d5663befa25cedb9084f41348"
 dependencies = [
+ "cfg-if",
  "parking_lot",
+ "rustversion",
  "thiserror 2.0.17",
 ]
 
@@ -2616,6 +2618,7 @@ version = "0.10.0"
 dependencies = [
  "honeycomb-core",
  "num-traits",
+ "rayon",
  "rustversion",
  "smallvec 2.0.0-alpha.11",
  "thiserror 2.0.17",

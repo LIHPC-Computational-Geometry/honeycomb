@@ -37,7 +37,8 @@ honeycomb-apps = { version = "0.10.0", path = "./applications" }
 
 # common
 cfg-if      = "1"
-itertools   = "0.14.0" # can probably be removed later
+clap        = "4.5.51"
+itertools   = "0.14.0"
 rayon       = "1.10.0"
 rustversion = "1.0.18"
 thiserror   = "2.0.11"
@@ -45,7 +46,7 @@ thiserror   = "2.0.11"
 # core
 criterion     = "0.7.0"
 downcast-rs   = "2.0.1"
-fast-stm      = "0.5.0"
+fast-stm      = "0.6.0"
 iai-callgrind = "0.16.1"
 loom          = "0.7.2"
 num-traits    = "0.2.19"
@@ -55,7 +56,7 @@ vtkio         = { version = "0.7.0-rc1", default-features = false }
 bindgen           = "0.72.1"
 clap              = "4.5.50"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
-cudarc            = "0.17.3"
+cudarc            = "0.17.7"
 hwlocality        = "1.0.0-alpha.7"
 nalgebra          = "0.34.1"
 rand              = "0.10.0-rc.0"

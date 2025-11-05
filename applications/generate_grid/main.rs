@@ -62,6 +62,16 @@ fn run_bench_2d<T: CoordsFloat>(
     gpu: bool,
     save: Option<FileFormat>,
 ) {
+    println!("| Grid generation benchmark");
+    println!("|-> cell type : {}", if split { "tris" } else { "quads" });
+    println!("|-> domain    : [0;{}]x[0;{}]", len_cells[0], len_cells[1]);
+    println!("|-> dimensions: {}x{}", n_cells[0], n_cells[1]);
+    println!("|-> # of cells: {}", n_cells[0] * n_cells[1]);
+    println!(
+        "|-> # of darts: {}",
+        n_cells[0] * n_cells[1] * if split { 6 } else { 4 }
+    );
+    let instant = std::time::Instant::now();
     let map = if gpu {
         cfg_if::cfg_if! {
             if #[cfg(feature = "cuda")] {
@@ -78,6 +88,7 @@ fn run_bench_2d<T: CoordsFloat>(
             .build()
             .unwrap()
     };
+    println!("build time: {:.3e}s", instant.elapsed().as_secs_f32());
 
     finalize_2d(map, save);
 }
@@ -89,6 +100,22 @@ fn run_bench_3d<T: CoordsFloat>(
     gpu: bool,
     save: Option<FileFormat>,
 ) {
+    println!("| Grid generation benchmark");
+    println!("|-> cell type : {}", if split { "tets" } else { "hexs" });
+    println!(
+        "|-> domain    : [0;{}]x[0;{}]x[0;{}]",
+        len_cells[0], len_cells[1], len_cells[2]
+    );
+    println!(
+        "|-> dimensions: {}x{}x{}",
+        n_cells[0], n_cells[1], n_cells[2]
+    );
+    println!("|-> # of cells: {}", n_cells[0] * n_cells[1] * n_cells[2]);
+    println!(
+        "|-> # of darts: {}",
+        n_cells[0] * n_cells[1] * n_cells[2] * if split { 60 } else { 24 }
+    );
+    let instant = std::time::Instant::now();
     let map = if gpu {
         cfg_if::cfg_if! {
             if #[cfg(feature = "cuda")] {
@@ -105,6 +132,7 @@ fn run_bench_3d<T: CoordsFloat>(
             .build()
             .unwrap()
     };
+    println!("build time: {:.3e}s", instant.elapsed().as_secs_f32());
 
     finalize_3d(map, save);
 }

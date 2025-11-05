@@ -457,6 +457,21 @@ fn example_test_txtional() {
 }
 
 #[test]
+fn reserve_darts() {
+    let mut map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(1).build().unwrap();
+    map.allocate_unused_darts(100);
+    assert!(
+        map.reserve_darts(10)
+            .is_ok_and(|s| s.len() == 10 && *s.first().unwrap() == 2 && *s.last().unwrap() == 11)
+    );
+    assert!(map.reserve_darts(100).is_err());
+    assert!(
+        atomically_with_err(|t| map.reserve_darts_from_tx(t, 10, 40))
+            .is_ok_and(|s| s.len() == 10 && *s.first().unwrap() == 40 && *s.last().unwrap() == 49)
+    );
+}
+
+#[test]
 fn remove_vertex_twice() {
     let map: CMap3<f64> = CMap3::new(4);
     assert!(map.force_write_vertex(1, (1.0, 1.0, 1.0)).is_none());

@@ -53,6 +53,11 @@ impl UnusedDarts {
     pub fn iter(&self) -> Iter<'_, TVar<bool>> {
         self.0.iter()
     }
+
+    #[cfg(feature = "par-internals")]
+    pub fn par_iter(&self) -> rayon::slice::Iter<'_, TVar<bool>> {
+        self.0.par_iter()
+    }
 }
 
 impl Index<DartIdType> for UnusedDarts {
