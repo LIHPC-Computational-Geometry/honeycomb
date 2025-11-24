@@ -75,3 +75,7 @@ debug = true
 [profile.profiling]
 debug    = true
 inherits = "release"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
