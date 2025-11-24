@@ -77,5 +77,5 @@ debug    = true
 inherits = "release"
 
 [profile.release]
-lto = "fat"
 codegen-units = 1
+lto           = "fat"
