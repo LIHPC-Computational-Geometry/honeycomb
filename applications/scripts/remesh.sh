@@ -30,49 +30,49 @@ RAYON_NUM_THREADS=1 ${TARGET_DIR}/remesh \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_1.out
+    >> out/remesh_sc_1.out
 RAYON_NUM_THREADS=3 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_3.out
+    >> out/remesh_sc_3.out
 RAYON_NUM_THREADS=9 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_9.out
+    >> out/remesh_sc_9.out
 RAYON_NUM_THREADS=18 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_18.out
+    >> out/remesh_sc_18.out
 RAYON_NUM_THREADS=36 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_36.out
+    >> out/remesh_sc_36.out
 RAYON_NUM_THREADS=54 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_54.out
+    >> out/remesh_sc_54.out
 RAYON_NUM_THREADS=72 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_72.out
+    >> out/remesh_sc_72.out
 
 # second set of runs: 1 to 288 threads (1 node)
 
@@ -82,61 +82,61 @@ RAYON_NUM_THREADS=1 ${TARGET_DIR}/remesh \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_1.out
+    >> out/remesh_mc_1.out
 RAYON_NUM_THREADS=36 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_36.out
+    >> out/remesh_mc_36.out
 RAYON_NUM_THREADS=72 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_72.out
+    >> out/remesh_mc_72.out
 RAYON_NUM_THREADS=108 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_108.out
+    >> out/remesh_mc_108.out
 RAYON_NUM_THREADS=144 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_144.out
+    >> out/remesh_mc_144.out
 RAYON_NUM_THREADS=180 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_180.out
+    >> out/remesh_mc_180.out
 RAYON_NUM_THREADS=216 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_216.out
+    >> out/remesh_mc_216.out
 RAYON_NUM_THREADS=252 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_252.out
+    >> out/remesh_mc_252.out
 RAYON_NUM_THREADS=288 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.01 \
     ${SCRIPT_DIR}/shape.vtk \
     1.0 1.0 \
     --n-rounds 10 \
-    >> out/remesh_288.out
+    >> out/remesh_mc_288.out
 
