@@ -1,6 +1,6 @@
 use honeycomb_core::{
     cmap::{CMap2, VertexIdType},
-    geometry::{CoordsFloat, Vertex2},
+    geometry::{CoordsFloat, Vector2},
     stm::{StmClosureResult, Transaction},
 };
 
@@ -36,17 +36,64 @@ pub fn move_vertex_to_average<T: CoordsFloat>(
     vid: VertexIdType,
     others: &[VertexIdType],
 ) -> StmClosureResult<()> {
-    if others.is_empty() {
-        return Ok(());
+    neighbor_based_smooth(t, map, vid, others, T::one())
+}
+
+/// Generic neighbor-based vertex smoothing function.
+///
+/// This function smooths the vertex position by moving it toward the average of its neighbors'
+/// positions weighted by lambda.
+///
+/// Note that it is up to the user to provide a correct list of neighbor IDs, and "acceptable"
+/// lambda parameter. For example:
+///
+/// - `lambda == 1` nullifies the influence of the original vertex position,
+/// - `0 < lambda < 1` results in a Laplacian smoothing.
+///
+/// # Arguments
+///
+/// - `t: &mut Transaction` -- Associated transaction.
+/// - `map: &mut CMap2` -- Edited map.
+/// - `vid: VertexIdType` -- Vertex to move.
+/// - `neighbors_id: &[VertexIdType]` -- List of vertex to compute the average from.
+/// - `lambda: T` -- Coefficient weighting the applied offset.
+///
+/// # Errors
+///
+/// This function will abort and raise an error if the transaction cannot be completed.
+///
+/// # Panics
+///
+/// This function may panic if one vertex in the `neighbors_id` list has no associated coordinates.
+#[inline]
+pub fn neighbor_based_smooth<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap2<T>,
+    vid: VertexIdType,
+    neighbors_id: &[VertexIdType],
+    lambda: T,
+) -> StmClosureResult<()> {
+    let p = map
+        .read_vertex(t, vid)?
+        .expect("E: no coordinates associated to vertex ID");
+
+    let n = neighbors_id.len();
+    let mut neighbors: smallvec::SmallVec<_, 16> = smallvec::SmallVec::with_capacity(n);
+    for &nid in neighbors_id {
+        neighbors.push(
+            map.read_vertex(t, nid)?
+                .expect("E: no coordinates associated to vertex ID"),
+        );
     }
-    let mut new_val = Vertex2::default();
-    for v in others {
-        let vertex = map.read_vertex(t, *v)?.unwrap();
-        new_val.0 += vertex.0;
-        new_val.1 += vertex.1;
-    }
-    new_val.0 /= T::from(others.len()).unwrap();
-    new_val.1 /= T::from(others.len()).unwrap();
-    map.write_vertex(t, vid, new_val)?;
+
+    let delta = neighbors
+        .into_iter()
+        .map(|v| v - p)
+        .fold(Vector2::default(), |a, b| a + b)
+        * lambda
+        / T::from(n).unwrap();
+
+    map.write_vertex(t, vid, p + delta)?;
+
     Ok(())
 }
