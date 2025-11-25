@@ -1,6 +1,6 @@
 use std::{num::NonZero, path::PathBuf};
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use applications::FileFormat;
 
@@ -22,4 +22,25 @@ pub struct Cli {
     /// Execute benchmarks using `f32` instead of the default `f64`
     #[arg(long("simple-precision"))]
     pub simple_precision: bool,
+    #[command(subcommand)]
+    pub command: Option<SmoothingType>,
+}
+
+#[derive(Subcommand)]
+pub enum SmoothingType {
+    /// Laplace smoothing
+    Laplace {
+        /// Scale coefficient
+        #[arg(long, default_value_t = 0.5)]
+        lambda: f64,
+    },
+    /// Taubin smoothing
+    Taubin {
+        /// Scale coefficient
+        #[arg(long, default_value_t = 0.6307)]
+        lambda: f64,
+        /// Pass-band parameter
+        #[arg(short, long("pass-band"), default_value_t = 0.1)]
+        k: f64,
+    },
 }
