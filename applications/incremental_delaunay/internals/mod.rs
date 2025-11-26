@@ -16,7 +16,7 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{StmClosureResult, TransactionClosureResult, retry},
+    stm::{StmClosureResult, StmError, TransactionClosureResult, retry},
 };
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
@@ -235,7 +235,20 @@ fn insert_points<T: CoordsFloat>(
     map: &CMap3<T>,
     p: Vertex3<T>,
 ) -> TransactionClosureResult<(), DelaunayError> {
-    let volume = match locate_containing_tet(t, &map, LAST_INSERTED.get(), p)? {
+    let start = if map.is_unused_tx(t, LAST_INSERTED.get())? {
+        1 // technically this could be unused too
+    } else {
+        LAST_INSERTED.get()
+    };
+    let res = locate_containing_tet(t, &map, start, p);
+    if let Err(StmError::Retry) = res {
+        abort(DelaunayError::CavityBuilding(
+            // NOTE:
+            CavityError::InconsistentState("Topological vertices have missing coordinates"),
+        ))?;
+        unreachable!();
+    }
+    let volume = match res? {
         LocateResult::Found(v) => v,
         LocateResult::ReachedBoundary => {
             abort(DelaunayError::CavityBuilding(
