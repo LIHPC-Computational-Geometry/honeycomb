@@ -21,7 +21,10 @@ use honeycomb::{
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
 
-use cavity::{CavityError, carve_cavity_3d, extend_to_starshaped_cavity_3d, rebuild_cavity_3d};
+use cavity::{
+    CavityError, DART_BLOCK_START, carve_cavity_3d, extend_to_starshaped_cavity_3d,
+    rebuild_cavity_3d,
+};
 use delaunay::{DelaunayError, compute_delaunay_cavity_3d};
 
 thread_local! {
@@ -141,7 +144,15 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     // 20 gives some leeway, 12 is the number of darts per tet
     // when init from file, there may be already unused darts
     let n_unused = map.n_unused_darts();
-    map.allocate_unused_darts(20 * 12 * (n_points_init + n_points) - n_unused);
+    let n_alloc = 20 * 12 * (n_points_init + n_points) - n_unused;
+    let start =
+        map.allocate_unused_darts(n_alloc) + (20 * 12 * n_points_init - n_unused) as DartIdType;
+    // initialize the search offset for dart reservations
+    let block_size = (20 * 12 * n_points) / rayon::current_num_threads();
+    rayon::broadcast(|_| {
+        let tid = rayon::current_thread_index().expect("E: unreachable");
+        DART_BLOCK_START.set(start + (tid * block_size) as DartIdType);
+    });
 
     instant = Instant::now();
     let mut count = 0;
