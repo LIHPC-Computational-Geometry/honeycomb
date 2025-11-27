@@ -3,13 +3,18 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
-use honeycomb::core::{
-    cmap::{
-        CMap3, DartIdType, DartReleaseError, DartReservationError, FaceIdType, LinkError,
-        NULL_DART_ID, OrbitPolicy, SewError, VolumeIdType,
+use honeycomb::{
+    core::{
+        cmap::{
+            CMap3, DartIdType, DartReleaseError, DartReservationError, FaceIdType, LinkError,
+            NULL_DART_ID, OrbitPolicy, SewError, VolumeIdType,
+        },
+        geometry::{CoordsFloat, Vertex3},
+        stm::{
+            StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
+        },
     },
-    geometry::{CoordsFloat, Vertex3},
-    stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
+    stm::TransactionError,
 };
 use smallvec::{SmallVec, smallvec};
 
@@ -115,13 +120,15 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
                                 if let Some(adj) = boundary.get(&fid_b) {
                                     adj.iter()
                                         .find_map(|(dd, dd_neigh)| {
-                                            if map.beta_tx::<3>(t, *dd).unwrap() == b2 {
+                                            if map.beta_tx::<3>(t, *dd).ok()? == b2 {
                                                 Some(*dd_neigh)
                                             } else {
                                                 None
                                             }
                                         })
-                                        .unwrap()
+                                        .ok_or(TransactionError::Abort(
+                                            CavityError::InconsistentState("adjacency out-of-date"),
+                                        ))?
                                 } else {
                                     b2
                                 }
@@ -132,13 +139,15 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
                                 if let Some(adj) = boundary.get(&fid_c) {
                                     adj.iter()
                                         .find_map(|(dd, dd_neigh)| {
-                                            if map.beta_tx::<3>(t, *dd).unwrap() == b2 {
+                                            if map.beta_tx::<3>(t, *dd).ok()? == b2 {
                                                 Some(*dd_neigh)
                                             } else {
                                                 None
                                             }
                                         })
-                                        .unwrap()
+                                        .ok_or(TransactionError::Abort(
+                                            CavityError::InconsistentState("adjacency out-of-date"),
+                                        ))?
                                 } else {
                                     b2
                                 }
@@ -368,28 +377,36 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         mut free_darts,
     } = cavity;
     let n_required_darts = boundary.len() * 9;
-    if free_darts.len() < n_required_darts {
-        for d in &free_darts {
-            map.claim_dart_tx(t, *d)?;
-        }
-
-        let mut new_darts: Vec<DartIdType> = (DART_BLOCK_START.get()..map.n_darts() as DartIdType)
-            .into_iter()
-            .chain(1..DART_BLOCK_START.get())
-            .filter(|&d| map.is_unused_tx(t, d).unwrap())
-            .take(n_required_darts - free_darts.len())
-            .collect();
-        for d in &new_darts {
-            map.claim_dart_tx(t, *d)?;
-        }
-        free_darts.append(&mut new_darts);
-    } else {
-        free_darts.truncate(n_required_darts);
-        for d in &free_darts {
-            map.claim_dart_tx(t, *d)?;
-        }
+    free_darts.truncate(n_required_darts);
+    for d in &free_darts {
+        map.claim_dart_tx(t, *d)?;
     }
-    free_darts.sort(); // FIXME: figure out why this is needed to keep a valid structure
+    if free_darts.len() < n_required_darts {
+        // for d in &free_darts {
+        //     map.claim_dart_tx(t, *d)?;
+        // }
+
+        // this method returns claimed darts
+        let mut new_darts: Vec<DartIdType> = try_or_coerce!(
+            map.reserve_darts_from_tx(
+                t,
+                n_required_darts - free_darts.len(),
+                DART_BLOCK_START.get(),
+            ),
+            CavityError
+        );
+        // (DART_BLOCK_START.get()..map.n_darts() as DartIdType)
+        // .into_iter()
+        // .chain(1..DART_BLOCK_START.get())
+        // .filter(|&d| map.is_unused_tx(t, d).unwrap())
+        // .take(n_required_darts - free_darts.len())
+        // .collect();
+        // for d in &new_darts {
+        //     map.claim_dart_tx(t, *d)?;
+        // }
+        free_darts.append(&mut new_darts);
+    }
+    free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
 
     let tmp = free_darts[1];
 
