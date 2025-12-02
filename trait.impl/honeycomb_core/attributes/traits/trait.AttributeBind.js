@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["honeycomb",[]],["honeycomb_core",[]],["honeycomb_kernels",[["impl <a class=\"trait\" href=\"honeycomb_core/attributes/traits/trait.AttributeBind.html\" title=\"trait honeycomb_core::attributes::traits::AttributeBind\">AttributeBind</a> for <a class=\"enum\" href=\"honeycomb_kernels/utils/enum.EdgeAnchor.html\" title=\"enum honeycomb_kernels::utils::EdgeAnchor\">EdgeAnchor</a>"],["impl <a class=\"trait\" href=\"honeycomb_core/attributes/traits/trait.AttributeBind.html\" title=\"trait honeycomb_core::attributes::traits::AttributeBind\">AttributeBind</a> for <a class=\"enum\" href=\"honeycomb_kernels/utils/enum.FaceAnchor.html\" title=\"enum honeycomb_kernels::utils::FaceAnchor\">FaceAnchor</a>"],["impl <a class=\"trait\" href=\"honeycomb_core/attributes/traits/trait.AttributeBind.html\" title=\"trait honeycomb_core::attributes::traits::AttributeBind\">AttributeBind</a> for <a class=\"enum\" href=\"honeycomb_kernels/utils/enum.VertexAnchor.html\" title=\"enum honeycomb_kernels::utils::VertexAnchor\">VertexAnchor</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[16,22,996]}
