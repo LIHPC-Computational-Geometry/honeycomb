@@ -19,7 +19,7 @@ jobs:
     if: startsWith(github.head_ref, 'dependabot') == false # do not run if the PR is a dependency update from the bot
     steps:
       # checkout
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
       # install requirements
