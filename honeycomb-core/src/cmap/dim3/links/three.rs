@@ -1,6 +1,6 @@
 //! 3D link implementations
 
-use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
+use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID, OrbitPolicy};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, abort, atomically_with_err};
 
@@ -14,9 +14,11 @@ impl<T: CoordsFloat> CMap3<T> {
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         self.betas.three_link_core(t, ld, rd)?;
+        let mut pairs = Vec::with_capacity(16);
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
+            pairs.push((lside, rside));
             if rside == NULL_DART_ID {
                 // (*)
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
@@ -34,6 +36,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (lside, rside) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
             while lside != NULL_DART_ID {
+                pairs.push((lside, rside));
                 if rside == NULL_DART_ID {
                     // (*)
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
@@ -47,6 +50,24 @@ impl<T: CoordsFloat> CMap3<T> {
         //      - we're trying to sew open faces with a different number of darts
         //      - we're trying to sew open faces that are offset by one (or more) dart(s)
         //      in both case, this is way too clunky to be considered valid
+
+        if let Some(ref vids) = self.vid_cache {
+            for (ll, rr) in pairs {
+                let lvid = vids[ll as usize].read(t)?;
+                let rvid = vids[rr as usize].read(t)?;
+                if lvid != rvid {
+                    let new_vid = lvid.min(rvid);
+                    let mut darts = Vec::with_capacity(16);
+                    for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
+                        darts.push(d?);
+                    }
+                    for d in darts {
+                        vids[d as usize].write(t, new_vid)?;
+                    }
+                }
+            }
+        }
+
         Ok(())
     }
 
@@ -67,9 +88,11 @@ impl<T: CoordsFloat> CMap3<T> {
         let rd = self.beta_tx::<3>(t, ld)?;
 
         self.betas.three_unlink_core(t, ld)?;
+        let mut pairs = Vec::with_capacity(16);
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
+            pairs.push((lside, rside));
             if lside != self.beta_tx::<3>(t, rside)? {
                 // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
@@ -87,6 +110,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (lside, rside) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
             while lside != NULL_DART_ID {
+                pairs.push((lside, rside));
                 if lside != self.beta_tx::<3>(t, rside)? {
                     // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
@@ -99,6 +123,38 @@ impl<T: CoordsFloat> CMap3<T> {
         // (*) : this can be changed, but the idea here is to ensure we're unlinking the expected
         //       construct
         // (**): if we land on NULL on one side, the other side should be NULL as well
+
+        if let Some(ref vids) = self.vid_cache {
+            for (ll, rr) in pairs {
+                let mut l_orbit = Vec::with_capacity(16);
+                let mut lvid = ll;
+                for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
+                    let d = d?;
+                    l_orbit.push(d);
+                    if d < lvid {
+                        lvid = d;
+                    }
+                }
+                let mut r_orbit = Vec::with_capacity(16);
+                let mut rvid = rr;
+                for d in self.orbit_tx(t, OrbitPolicy::Vertex, rr) {
+                    let d = d?;
+                    r_orbit.push(d);
+                    if d < rvid {
+                        rvid = d;
+                    }
+                }
+                if lvid != rvid {
+                    for d in l_orbit {
+                        vids[d as usize].write(t, lvid)?;
+                    }
+                    for d in r_orbit {
+                        vids[d as usize].write(t, rvid)?;
+                    }
+                }
+            }
+        }
+
         Ok(())
     }
 
