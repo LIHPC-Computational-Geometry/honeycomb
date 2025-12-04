@@ -81,17 +81,21 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Creates a new 3D combinatorial map.
     #[allow(unused)]
     #[must_use = "unused return value"]
-    pub(crate) fn new(n_darts: usize) -> Self {
+    pub(crate) fn new(n_darts: usize, enable_vid_cache: bool) -> Self {
         Self {
             attributes: AttrStorageManager::default(),
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
-            vid_cache: Some(
-                (0..n_darts as VertexIdType + 1)
-                    .map(|v| TVar::new(v))
-                    .collect(),
-            ),
+            vid_cache: if enable_vid_cache {
+                Some(
+                    (0..n_darts as VertexIdType + 1)
+                        .map(|v| TVar::new(v))
+                        .collect(),
+                )
+            } else {
+                None
+            },
         }
     }
 
@@ -102,6 +106,7 @@ impl<T: CoordsFloat> CMap3<T> {
     #[must_use = "unused return value"]
     pub(crate) fn new_with_undefined_attributes(
         n_darts: usize,
+        enable_vid_cache: bool,
         mut attr_storage_manager: AttrStorageManager,
     ) -> Self {
         // extend all storages to the expected length: n_darts + 1 (for the null dart)
@@ -111,11 +116,15 @@ impl<T: CoordsFloat> CMap3<T> {
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
-            vid_cache: Some(
-                (0..n_darts as VertexIdType + 1)
-                    .map(|v| TVar::new(v))
-                    .collect(),
-            ),
+            vid_cache: if enable_vid_cache {
+                Some(
+                    (0..n_darts as VertexIdType + 1)
+                        .map(|v| TVar::new(v))
+                        .collect(),
+                )
+            } else {
+                None
+            },
         }
     }
 }
@@ -168,6 +177,9 @@ impl<T: CoordsFloat> CMap3<T> {
         self.unused_darts.extend_with(n_darts, unused);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
+        if let Some(ref mut vids) = self.vid_cache {
+            vids.extend((new_id..new_id + n_darts as VertexIdType).map(|v| TVar::new(v)));
+        }
         new_id
     }
 

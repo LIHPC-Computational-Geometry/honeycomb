@@ -231,7 +231,7 @@ fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
 #[test]
 fn example_test_txtional() {
     // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
+    let mut map: CMap3<f64> = CMap3::new(12, true); // 3*4 darts
 
     // face z- (base)
     let res = atomically_with_err(|t| {
@@ -473,7 +473,7 @@ fn reserve_darts() {
 
 #[test]
 fn remove_vertex_twice() {
-    let map: CMap3<f64> = CMap3::new(4);
+    let map: CMap3<f64> = CMap3::new(4, false);
     assert!(map.force_write_vertex(1, (1.0, 1.0, 1.0)).is_none());
     assert_eq!(map.force_remove_vertex(1), Some(Vertex3(1.0, 1.0, 1.0)));
     assert!(map.force_remove_vertex(1).is_none());
@@ -484,7 +484,7 @@ fn remove_dart_twice() {
     // in its default state, all darts are:
     // - used
     // - free
-    let map: CMap3<f64> = CMap3::new(4);
+    let map: CMap3<f64> = CMap3::new(4, false);
     // set dart 1 as unused
     assert!(!map.release_dart(1).unwrap());
     // set dart 1 as unused, again
@@ -495,7 +495,7 @@ fn remove_dart_twice() {
 
 #[test]
 fn one_sew() {
-    let map: CMap3<f64> = CMap3::new(8);
+    let map: CMap3<f64> = CMap3::new(8, false);
     // map.force_link::<1>(1, 2);
     map.force_link::<1>(2, 3).unwrap();
     map.force_link::<1>(3, 4).unwrap();
@@ -530,7 +530,7 @@ fn one_sew() {
 
 #[test]
 fn three_sew() {
-    let map: CMap3<f64> = CMap3::new(8);
+    let map: CMap3<f64> = CMap3::new(8, true);
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(2, 3).unwrap();
     map.force_link::<1>(3, 4).unwrap();
@@ -558,7 +558,7 @@ fn three_sew() {
 
 #[test]
 fn two_sew_bad_orientation() {
-    let map: CMap3<f64> = CMap3::new(8);
+    let map: CMap3<f64> = CMap3::new(8, false);
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(2, 3).unwrap();
     map.force_link::<1>(3, 4).unwrap();
@@ -583,7 +583,7 @@ fn two_sew_bad_orientation() {
 
 #[test]
 fn three_sew_bad_orientation() {
-    let map: CMap3<f64> = CMap3::new(8);
+    let map: CMap3<f64> = CMap3::new(8, true);
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(2, 3).unwrap();
     map.force_link::<1>(3, 4).unwrap();
@@ -612,7 +612,7 @@ fn three_sew_bad_orientation() {
 fn sew_ordering() {
     loom::model(|| {
         // setup the map
-        let map: CMap3<f64> = CMap3::new(5);
+        let map: CMap3<f64> = CMap3::new(5, false);
         map.force_link::<2>(1, 2).unwrap();
         map.force_link::<1>(4, 5).unwrap();
         map.force_write_vertex(2, Vertex3(1.0, 1.0, 1.0));
@@ -652,7 +652,7 @@ fn sew_ordering() {
 fn sew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
-        let map: CMap3<f64> = CMap3::new(5);
+        let map: CMap3<f64> = CMap3::new(5, false);
         map.force_link::<2>(1, 2).unwrap();
         map.force_link::<2>(3, 4).unwrap();
         // only one vertex is defined
@@ -762,7 +762,7 @@ impl AttributeBind for Weight {
 fn unsew_ordering() {
     loom::model(|| {
         // setup the map FIXME: use the builder
-        let mut map: CMap3<f64> = CMap3::new(5);
+        let mut map: CMap3<f64> = CMap3::new(5, false);
         map.attributes.add_storage::<Weight>(6);
 
         map.force_link::<2>(1, 2).unwrap();
@@ -805,7 +805,7 @@ fn unsew_ordering() {
 fn unsew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map FIXME: use the builder
-        let mut map: CMap3<f64> = CMap3::new(5);
+        let mut map: CMap3<f64> = CMap3::new(5, false);
         map.attributes.add_storage::<Weight>(6);
 
         let res = atomically_with_err(|t| {

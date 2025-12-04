@@ -18,13 +18,14 @@ impl<T: CoordsFloat> CMap3<T> {
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
-            pairs.push((lside, rside));
+            let (b1l, b2l) = (self.beta_tx::<1>(t, lside)?, self.beta_tx::<2>(t, lside)?);
+            pairs.push((b1l.max(b2l), rside));
             if rside == NULL_DART_ID {
                 // (*)
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
             self.betas.three_link_core(t, lside, rside)?;
-            (lside, rside) = (self.beta_tx::<1>(t, lside)?, self.beta_tx::<0>(t, rside)?);
+            (lside, rside) = (b1l, self.beta_tx::<0>(t, rside)?);
         }
         // the face was open, so we need to cover the other direction
         // for meshes, we should be working on complete faces at all times,
@@ -36,13 +37,21 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (lside, rside) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
             while lside != NULL_DART_ID {
-                pairs.push((lside, rside));
+                let (b1l, b2l) = (self.beta_tx::<1>(t, lside)?, self.beta_tx::<2>(t, lside)?);
+                pairs.push((b1l.max(b2l), rside));
                 if rside == NULL_DART_ID {
                     // (*)
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
                 }
                 self.betas.three_link_core(t, lside, rside)?;
-                (lside, rside) = (self.beta_tx::<0>(t, lside)?, self.beta_tx::<1>(t, rside)?);
+                let b1r = self.beta_tx::<1>(t, rside)?;
+                if b1r == NULL_DART_ID {
+                    let b2r = self.beta_tx::<2>(t, rside)?;
+                    if b2r != NULL_DART_ID {
+                        pairs.push((lside, b1r));
+                    }
+                }
+                (lside, rside) = (self.beta_tx::<0>(t, lside)?, b1r);
             }
         }
         // (*): if we land on NULL on one side, the other side should be NULL as well
@@ -53,6 +62,9 @@ impl<T: CoordsFloat> CMap3<T> {
 
         if let Some(ref vids) = self.vid_cache {
             for (ll, rr) in pairs {
+                if ll == NULL_DART_ID || rr == NULL_DART_ID {
+                    continue;
+                }
                 let lvid = vids[ll as usize].read(t)?;
                 let rvid = vids[rr as usize].read(t)?;
                 if lvid != rvid {
