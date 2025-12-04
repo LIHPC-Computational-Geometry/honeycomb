@@ -8,7 +8,7 @@ use std::{
     time::Instant,
 };
 
-use coupe::{Partition, Point3D, ZCurve, nalgebra::Matrix3};
+use coupe::{HilbertCurve, Partition, Point3D, nalgebra::Matrix3};
 use honeycomb::{
     core::{
         cmap::{CMap3, CMapBuilder, DartIdType, VolumeIdType},
@@ -46,18 +46,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     assert!(lz > 0.0);
     assert!(n_points > 0);
 
+    let n_threads = rayon::current_num_threads();
     println!("| Delaunay box triangulation benchmark");
     println!("|-> sampling domain: [0;{lx}]x[0;{ly}]x[0;{lz}]");
     println!("|-> seq. inserts   : {n_points_init}");
     println!("|-> par. inserts   : {n_points}");
-    println!(
-        "|-> threads used   : {}",
-        std::env::var("RAYON_NUM_THREADS")
-            .ok()
-            .map(|s| s.parse().ok())
-            .flatten()
-            .unwrap_or(1)
-    );
+    println!("|-> threads used   : {n_threads}",);
 
     let mut instant = Instant::now();
     let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points, seed);
@@ -79,11 +73,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
             })
             .collect();
         let mut partition = vec![0; tmp.len()];
-        ZCurve {
+        let weights = vec![1.0; tmp.len()];
+        HilbertCurve {
             part_count: 4,
-            order: 2,
+            order: 5,
         }
-        .partition(&mut partition, &ps)
+        .partition(&mut partition, (ps.as_slice(), weights))
         .unwrap();
 
         let mut tmp: Vec<_> = tmp.into_iter().zip(partition.into_iter()).collect();
@@ -103,11 +98,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
             })
             .collect();
         let mut partition = vec![0; all_points.len()];
-        ZCurve {
-            part_count: 4,
-            order: 5, // TODO: compute according to n_threads
+        let weights = vec![1.0; all_points.len()];
+        HilbertCurve {
+            part_count: n_threads, // groups of (up to) 128 points
+            order: ((n_threads).ilog2() + 1).div_ceil(2),
         }
-        .partition(&mut partition, &ps)
+        .partition(&mut partition, (ps.as_slice(), weights))
         .unwrap();
 
         let mut tmp: Vec<_> = all_points.into_iter().zip(partition.into_iter()).collect();
@@ -120,7 +116,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let time = instant.elapsed().as_secs_f32();
     println!(
         " sort   | {:>8} | {:>8.3e} |",
-        n_points_init + n_points,
+        if sort { n_points_init + n_points } else { 0 },
         time,
     );
     let mut map = if let Some(f) = file_init {
@@ -187,10 +183,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     );
 
     instant = Instant::now();
-    let num_threads = rayon::current_num_threads();
-    let counters: Vec<AtomicUsize> = (0..num_threads).map(|_| AtomicUsize::new(0)).collect();
+    let counters: Vec<AtomicUsize> = (0..n_threads).map(|_| AtomicUsize::new(0)).collect();
     points.into_par_iter().for_each(|p| {
-        // points.par_chunks(128).for_each(|c| {
+        // points.par_chunks(n_points.div_ceil(4)).for_each(|c| {
         // c.into_iter().for_each(|&p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
