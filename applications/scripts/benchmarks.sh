@@ -29,7 +29,8 @@ sh ${SCRIPT_DIR}/remesh.sh
 
 # Delaunay
 
-sh ${SCRIPT_DIR}/delaunay.sh
+# sh ${SCRIPT_DIR}/delaunay_min.sh
+sh ${SCRIPT_DIR}/delaunay_opt.sh
 
 
 zip -r out.zip out/*
