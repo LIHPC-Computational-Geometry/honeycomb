@@ -109,11 +109,9 @@ impl<T: CoordsFloat> CMap3<T> {
                 }
                 if lvid != rvid {
                     for &d in &l_orbit {
-                        println!("lorbit, {d}, new_vid {lvid}");
                         vids[d as usize].write(t, lvid)?;
                     }
                     for &d in &r_orbit {
-                        println!("rorbit, {d}, new_vid {rvid}");
                         vids[d as usize].write(t, rvid)?;
                     }
                 } else {
@@ -148,11 +146,9 @@ impl<T: CoordsFloat> CMap3<T> {
                 }
                 if lvid != rvid {
                     for d in l_orbit {
-                        println!("lorbit, {d}, new_vid {lvid}");
                         vids[d as usize].write(t, lvid)?;
                     }
                     for d in r_orbit {
-                        println!("rorbit, {d}, new_vid {rvid}");
                         vids[d as usize].write(t, rvid)?;
                     }
                 } else {
