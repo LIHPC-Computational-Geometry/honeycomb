@@ -405,16 +405,11 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
         let enable = self.enable_vid_cache;
         let map = self.parse_3d().map(|(builder, origin, ns, lens)| {
             if split {
-                internals::build_3d_tetgrid(builder, origin, ns, lens)
+                internals::build_3d_tetgrid(builder, origin, ns, lens, enable)
             } else {
-                internals::build_3d_grid(builder, origin, ns, lens)
+                internals::build_3d_grid(builder, origin, ns, lens, enable)
             }
         });
-        if let Ok(ref map) = map
-            && enable
-        {
-            map.update_vertex_id_cache();
-        }
         map
     }
 }
