@@ -75,7 +75,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         let mut partition = vec![0; tmp.len()];
         let weights = vec![1.0; tmp.len()];
         HilbertCurve {
-            part_count: 4,
+            part_count: 10,
             order: 5,
         }
         .partition(&mut partition, (ps.as_slice(), weights))
@@ -100,8 +100,8 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         let mut partition = vec![0; all_points.len()];
         let weights = vec![1.0; all_points.len()];
         HilbertCurve {
-            part_count: n_threads, // groups of (up to) 128 points
-            order: ((n_threads).ilog2() + 1).div_ceil(2),
+            part_count: n_threads * 10,
+            order: ((n_threads * 10).ilog2() + 1).div_ceil(2),
         }
         .partition(&mut partition, (ps.as_slice(), weights))
         .unwrap();
