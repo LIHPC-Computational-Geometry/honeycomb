@@ -11,6 +11,9 @@
 #   - sequential execution
 #   - weak scaling (from minimal triangulation)
 #   - weak scaling (from growing triangulation)
+# - Overlay grid mesh
+#   - sequential execution
+#   - strong scaling
 #
 # Thread numbers are set for 4*GH chips. `HCWORKDIR` is expected to be set to the repo's path.
 
@@ -30,6 +33,10 @@ sh ${SCRIPT_DIR}/remesh.sh
 # Delaunay
 
 sh ${SCRIPT_DIR}/delaunay.sh
+
+# Overlay grid mesh
+
+sh ${SCRIPT_DIR}/overlay-grid.sh
 
 
 zip -r out.zip out/*
