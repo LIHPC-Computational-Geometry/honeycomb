@@ -17,39 +17,35 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        // using these custom orbits, I can get both dart of all sides, directly ordered
-        // for the merges
-        let l_face = self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .min()
-            .expect("E: unreachable");
-        let r_face = self
-            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
-            .min()
-            .expect("E: unreachable");
+        // using these custom orbits we can get both darts of all sides correctly ordered for merges
+        let mut l_side = Vec::with_capacity(10);
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            l_side.push(d?);
+        }
+        let mut r_side = Vec::with_capacity(10);
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), rd) {
+            r_side.push(d?);
+        }
+        let l_face = l_side.iter().min().copied().expect("E: unreachable");
+        let r_face = r_side.iter().min().copied().expect("E: unreachable");
         let mut edges: Vec<(EdgeIdType, EdgeIdType)> = Vec::with_capacity(10);
         let mut vertices: Vec<(VertexIdType, VertexIdType)> = Vec::with_capacity(10);
 
         // read edge + vertex on the b1ld side. if b0ld == NULL, we need to read the left vertex
-        for (l, r) in self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
-        {
+        for (l, r) in l_side.into_iter().zip(r_side.into_iter()) {
             edges.push((self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?));
-            let b1l = self.beta_tx::<1>(t, l)?;
-            let b2l = self.beta_tx::<2>(t, l)?;
+            let (b1l, b2l) = (self.beta_tx::<1>(t, l)?, self.beta_tx::<2>(t, l)?);
             // this monster statement is necessary to handle open faces
             vertices.push((
-                self.vertex_id_tx(t, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                self.vertex_id_tx(t, b1l.max(b2l))?,
                 self.vertex_id_tx(t, r)?,
             ));
             // one more for good measures (aka open faces)
             if self.beta_tx::<0>(t, l)? == NULL_DART_ID {
-                let b1r = self.beta_tx::<1>(t, r)?;
-                let b2r = self.beta_tx::<2>(t, r)?;
+                let (b1r, b2r) = (self.beta_tx::<1>(t, r)?, self.beta_tx::<2>(t, r)?);
                 vertices.push((
                     self.vertex_id_tx(t, l)?,
-                    self.vertex_id_tx(t, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                    self.vertex_id_tx(t, b1r.max(b2r))?,
                 ));
             }
         }
@@ -113,7 +109,6 @@ impl<T: CoordsFloat> CMap3<T> {
             ),
             SewError
         );
-
         for (eid_l, eid_r) in edges.into_iter().filter(|&(eid_l, eid_r)| {
             eid_l != eid_r && eid_l != NULL_DART_ID && eid_r != NULL_DART_ID
         }) {
@@ -160,15 +155,18 @@ impl<T: CoordsFloat> CMap3<T> {
 
         try_or_coerce!(self.unlink::<3>(t, ld), SewError);
 
+        let mut l_side = Vec::with_capacity(10);
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            l_side.push(d?);
+        }
+        let mut r_side = Vec::with_capacity(10);
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), rd) {
+            r_side.push(d?);
+        }
+
         // faces
-        let l_face = self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .min()
-            .expect("E: unreachable");
-        let r_face = self
-            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
-            .min()
-            .expect("E: unreachable");
+        let l_face = l_side.iter().min().copied().expect("E: unreachable");
+        let r_face = r_side.iter().min().copied().expect("E: unreachable");
         try_or_coerce!(
             self.attributes.split_attributes(
                 t,
@@ -180,10 +178,7 @@ impl<T: CoordsFloat> CMap3<T> {
             SewError
         );
 
-        for (l, r) in self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
-        {
+        for (l, r) in l_side.into_iter().zip(r_side.into_iter()) {
             // edge
             let (eid_l, eid_r) = (self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?);
             try_or_coerce!(
@@ -198,10 +193,9 @@ impl<T: CoordsFloat> CMap3<T> {
             );
 
             // vertices
-            let b1l = self.beta_tx::<1>(t, l)?;
-            let b2l = self.beta_tx::<2>(t, l)?;
+            let (b1l, b2l) = (self.beta_tx::<1>(t, l)?, self.beta_tx::<2>(t, l)?);
             let (vid_l, vid_r) = (
-                self.vertex_id_tx(t, if b1l == NULL_DART_ID { b2l } else { b1l })?,
+                self.vertex_id_tx(t, b1l.max(b2l))?,
                 self.vertex_id_tx(t, r)?,
             );
             try_or_coerce!(
@@ -219,11 +213,10 @@ impl<T: CoordsFloat> CMap3<T> {
                 SewError
             );
             if self.beta_tx::<0>(t, l)? == NULL_DART_ID {
-                let b1r = self.beta_tx::<1>(t, r)?;
-                let b2r = self.beta_tx::<2>(t, r)?;
+                let (b1r, b2r) = (self.beta_tx::<1>(t, r)?, self.beta_tx::<2>(t, r)?);
                 let (lvid_l, lvid_r) = (
                     self.vertex_id_tx(t, l)?,
-                    self.vertex_id_tx(t, if b1r == NULL_DART_ID { b2r } else { b1r })?,
+                    self.vertex_id_tx(t, b1r.max(b2r))?,
                 );
                 try_or_coerce!(
                     self.vertices.split(t, lvid_l, lvid_r, lvid_l.min(lvid_r)),
