@@ -1,4 +1,3 @@
-use crate::internals::model::IsIrregular;
 use honeycomb::{
     core::{
         cmap::{CMap2, NULL_DART_ID},
@@ -8,6 +7,8 @@ use honeycomb::{
     stm::{StmError, Transaction},
 };
 use rayon::prelude::*;
+
+use crate::internals::model::IsIrregular;
 
 pub fn dart_origin<T: CoordsFloat>(map: &CMap2<T>, dart: u32) -> Vertex2<T> {
     assert_ne!(dart, NULL_DART_ID);

@@ -1,11 +1,11 @@
-use clap::Parser;
-use honeycomb::prelude::CoordsFloat;
+mod cli;
+mod internals;
+
 use std::path::PathBuf;
 
 use applications::{FileFormat, bind_rayon_threads, finalize_2d};
-
-mod cli;
-mod internals;
+use clap::Parser;
+use honeycomb::prelude::CoordsFloat;
 
 fn main() {
     bind_rayon_threads!();

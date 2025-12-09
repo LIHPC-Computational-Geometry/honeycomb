@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
-use clap::Parser;
-
 use applications::FileFormat;
+use clap::Parser;
 
 #[derive(Parser)]
 #[command(version, about)]

@@ -1,26 +1,19 @@
 use std::collections::HashSet;
 
-use crate::internals::helpers::*;
-use crate::internals::model::{GeoVertices, IsIrregular, RefinementLevel, SiblingDartId};
-use honeycomb::prelude::OrbitPolicy;
 use honeycomb::{
     core::{
         cmap::{CMap2, NULL_DART_ID},
         geometry::{CoordsFloat, Vertex2},
     },
-    stm::{StmError, Transaction, atomically},
+    prelude::{LinkError, OrbitPolicy},
+    stm::{Transaction, TransactionClosureResult, atomically_with_err},
 };
 use rayon::prelude::*;
 
-/// Macro to handle unlink/link operations that may fail, converting errors to StmError::Failure
-macro_rules! try_operation {
-    ($operation:expr) => {
-        match $operation {
-            Ok(_) => (),
-            Err(_) => return Err(StmError::Failure),
-        }
-    };
-}
+use crate::internals::{
+    helpers::*,
+    model::{GeoVertices, IsIrregular, RefinementLevel, SiblingDartId},
+};
 
 pub struct RefinementResult<T: CoordsFloat> {
     pub children: Vec<u32>,
@@ -62,7 +55,8 @@ pub fn refinement<T: CoordsFloat>(
 
     // Start by refining one cell to initialize the process
     let dart = map.allocate_unused_darts(16);
-    let result = atomically(|trans| refine_cell_tx(trans, map, 1, geo_verts, dart));
+    let result = atomically_with_err(|trans| refine_cell_tx(trans, map, 1, geo_verts, dart))
+        .expect("Failed to refine initial cell");
     let to_refine = result.children[0];
     darts_to_refine.push(to_refine);
     if !result.local_geo_verts.is_empty() {
@@ -118,10 +112,18 @@ pub fn refine_with_pairing<T: CoordsFloat>(
     // Mark the future unbalance
     let local_balance_pile = update_balance_pile_for_neighbors(face1, face2, face3, face4, map);
 
-    let result1 = atomically(|trans| refine_cell_tx(trans, map, face1, geo_verts, start_dart));
-    let result2 = atomically(|trans| refine_cell_tx(trans, map, face2, geo_verts, start_dart + 16));
-    let result3 = atomically(|trans| refine_cell_tx(trans, map, face3, geo_verts, start_dart + 32));
-    let result4 = atomically(|trans| refine_cell_tx(trans, map, face4, geo_verts, start_dart + 48));
+    let result1 =
+        atomically_with_err(|trans| refine_cell_tx(trans, map, face1, geo_verts, start_dart))
+            .expect("Failed to refine cell 1");
+    let result2 =
+        atomically_with_err(|trans| refine_cell_tx(trans, map, face2, geo_verts, start_dart + 16))
+            .expect("Failed to refine cell 2");
+    let result3 =
+        atomically_with_err(|trans| refine_cell_tx(trans, map, face3, geo_verts, start_dart + 32))
+            .expect("Failed to refine cell 3");
+    let result4 =
+        atomically_with_err(|trans| refine_cell_tx(trans, map, face4, geo_verts, start_dart + 48))
+            .expect("Failed to refine cell 4");
 
     let mut results = [result1, result2, result3, result4];
 
@@ -334,7 +336,7 @@ pub fn refine_cell_tx<T: CoordsFloat>(
     working_dart: u32,
     geo_verts: &[Vertex2<T>],
     start_dart: u32,
-) -> Result<RefinementResult<T>, StmError> {
+) -> TransactionClosureResult<RefinementResult<T>, LinkError> {
     let mut local_geo_verts = Vec::new();
     let mut start_end = (0, 0);
 
@@ -412,7 +414,7 @@ fn perform_cell_subdivision_tx<T: CoordsFloat>(
     map: &CMap2<T>,
     face_darts: &[u32],
     start_dart: u32,
-) -> Result<(), StmError> {
+) -> TransactionClosureResult<(), LinkError> {
     let cell_min = dart_origin_tx(trans, map, face_darts[0])?;
     let cell_max = dart_origin_tx(trans, map, face_darts[2])?;
     let midpoint = Vertex2::<T>::average(&cell_min, &cell_max);
@@ -448,7 +450,7 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
     face_darts: &[u32],
     quadrant_ranges: &[(u32, u32); 4],
     parent_face_id: u32,
-) -> Result<u32, StmError> {
+) -> TransactionClosureResult<u32, LinkError> {
     let parent_refinement_level = map
         .read_attribute::<RefinementLevel>(trans, parent_face_id)?
         .unwrap()
@@ -491,7 +493,7 @@ fn split_boundary_edge_tx<T: CoordsFloat>(
     map: &CMap2<T>,
     edge_dart: u32,
     start_dart: u32,
-) -> Result<u32, StmError> {
+) -> TransactionClosureResult<u32, LinkError> {
     let (n_irregular, next) = canonical_beta1_tx(trans, map, edge_dart)?;
     // If we have an edge that has already been refined because of a refinement of its opposite
     // we need to re-use the extra darts and connect accordingly
@@ -510,13 +512,13 @@ fn split_boundary_edge_n_4_tx<T: CoordsFloat>(
     trans: &mut Transaction,
     map: &CMap2<T>,
     edge_dart: u32,
-) -> Result<u32, StmError> {
+) -> TransactionClosureResult<u32, LinkError> {
     let sub_dart1 = map.beta_tx::<1>(trans, edge_dart)?;
     let dart1 = map.beta_tx::<1>(trans, sub_dart1)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
     map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    try_operation!(map.unlink::<1>(trans, sub_dart1));
+    map.unlink::<1>(trans, sub_dart1)?;
 
     Ok(dart1)
 }
@@ -525,12 +527,12 @@ fn split_boundary_edge_n_2_tx<T: CoordsFloat>(
     trans: &mut Transaction,
     map: &CMap2<T>,
     edge_dart: u32,
-) -> Result<u32, StmError> {
+) -> TransactionClosureResult<u32, LinkError> {
     let dart1 = map.beta_tx::<1>(trans, edge_dart)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
     map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    try_operation!(map.unlink::<1>(trans, edge_dart));
+    map.unlink::<1>(trans, edge_dart)?;
 
     Ok(dart1)
 }
@@ -541,7 +543,7 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
     edge_dart: u32,
     next: u32,
     start_dart: u32,
-) -> Result<u32, StmError> {
+) -> TransactionClosureResult<u32, LinkError> {
     // If we have an opposite we have to also split it and make its new connection, this is how we handle T junctions
     let opposite = map.beta_tx::<2>(trans, edge_dart)?;
     let dart1 = if opposite != NULL_DART_ID {
@@ -553,21 +555,20 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
         map.write_attribute::<IsIrregular>(trans, dart2, IsIrregular(true))?;
         let opposite_next = map.beta_tx::<1>(trans, opposite)?;
 
-        try_operation!(map.unlink::<2>(trans, edge_dart));
-        try_operation!(map.unlink::<1>(trans, opposite));
-        try_operation!(map.link::<2>(trans, dart1, opposite));
-        try_operation!(map.link::<2>(trans, edge_dart, dart2));
-        try_operation!(map.link::<1>(trans, opposite, dart2));
-        try_operation!(map.link::<1>(trans, dart2, opposite_next));
-
+        map.unlink::<2>(trans, edge_dart)?;
+        map.unlink::<1>(trans, opposite)?;
+        map.link::<2>(trans, dart1, opposite)?;
+        map.link::<2>(trans, edge_dart, dart2)?;
+        map.link::<1>(trans, opposite, dart2)?;
+        map.link::<1>(trans, dart2, opposite_next)?;
         dart1
     } else {
         map.claim_dart_tx(trans, start_dart)?;
         start_dart
     };
 
-    try_operation!(map.unlink::<1>(trans, edge_dart));
-    try_operation!(map.link::<1>(trans, dart1, next));
+    map.unlink::<1>(trans, edge_dart)?;
+    map.link::<1>(trans, dart1, next)?;
 
     let subdivde_point = Vertex2::<T>::average(
         &dart_origin_tx(trans, map, edge_dart)?,
@@ -585,7 +586,7 @@ fn create_inner_darts_tx<T: CoordsFloat>(
     map: &CMap2<T>,
     edge_dart: u32,
     start_dart: u32,
-) -> Result<(u32, u32), StmError> {
+) -> TransactionClosureResult<(u32, u32), LinkError> {
     map.claim_dart_tx(trans, start_dart)?;
     map.claim_dart_tx(trans, start_dart + 1)?;
 
@@ -595,11 +596,12 @@ fn create_inner_darts_tx<T: CoordsFloat>(
     let edge_dart_next = map.beta_tx::<1>(trans, edge_dart)?;
 
     if edge_dart_next != NULL_DART_ID && !is_regular_tx(trans, map, edge_dart_next)? {
-        try_operation!(map.link::<1>(trans, edge_dart_next, going_to_center));
+        map.link::<1>(trans, edge_dart_next, going_to_center)?
     } else {
-        try_operation!(map.link::<1>(trans, edge_dart, going_to_center));
+        map.link::<1>(trans, edge_dart, going_to_center)?
     }
-    try_operation!(map.link::<1>(trans, going_to_center, going_from_center));
+
+    map.link::<1>(trans, going_to_center, going_from_center)?;
 
     Ok((going_to_center, going_from_center))
 }
@@ -615,7 +617,7 @@ fn connect_subdivision_edges_tx<T: CoordsFloat>(
     state: &mut SubdivisionState,
     dart1: u32,
     midpoint: &Vertex2<T>,
-) -> Result<(), StmError> {
+) -> TransactionClosureResult<(), LinkError> {
     match iteration {
         0 => {
             // First iteration: initialize and set center vertex
@@ -624,15 +626,21 @@ fn connect_subdivision_edges_tx<T: CoordsFloat>(
         }
         3 => {
             // Last iteration: complete the connections
-            try_operation!(map.link::<2>(trans, going_from_center, state.going_to_center_prev));
-            try_operation!(map.link::<1>(trans, going_from_center, state.dart1_prev));
-            try_operation!(map.link::<2>(trans, going_to_center, state.going_from_center_first));
-            try_operation!(map.link::<1>(trans, state.going_from_center_first, dart1));
+
+            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+
+            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
+
+            map.link::<2>(trans, going_to_center, state.going_from_center_first)?;
+
+            map.link::<1>(trans, state.going_from_center_first, dart1)?;
         }
         _ => {
             // Middle iterations: connect to previous iteration
-            try_operation!(map.link::<2>(trans, going_from_center, state.going_to_center_prev));
-            try_operation!(map.link::<1>(trans, going_from_center, state.dart1_prev));
+
+            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+
+            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
         }
     }
 

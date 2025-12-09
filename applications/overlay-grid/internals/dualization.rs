@@ -1,10 +1,13 @@
-use crate::internals::helpers::dart_origin;
-use crate::internals::model::B2Mapping;
-use honeycomb::core::cmap::{CMap2, CMapBuilder};
-use honeycomb::core::geometry::{CoordsFloat, Vertex2};
-use honeycomb::prelude::OrbitPolicy;
-
+use honeycomb::{
+    core::{
+        cmap::{CMap2, CMapBuilder},
+        geometry::{CoordsFloat, Vertex2},
+    },
+    prelude::OrbitPolicy,
+};
 use rayon::prelude::*;
+
+use crate::internals::{helpers::dart_origin, model::B2Mapping};
 
 /// Iterates on the primal vertices to create a new dual cell around it
 /// Uses hashmap for beta2 relations and hashset to avoid duplicating vertices

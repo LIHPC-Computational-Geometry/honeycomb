@@ -1,12 +1,13 @@
-use std::panic;
-
-use crate::internals::helpers::{dart_origin, is_regular};
-use crate::internals::model::{IsIrregular, RefinementLevel};
 use honeycomb::core::{
     cmap::{CMap2, NULL_DART_ID},
     geometry::{CoordsFloat, Vertex2},
 };
 use rayon::prelude::*;
+
+use crate::internals::{
+    helpers::{dart_origin, is_regular},
+    model::{IsIrregular, RefinementLevel},
+};
 
 pub fn regularize_map<T: CoordsFloat>(map: &mut CMap2<T>) {
     let irregular_darts: Vec<u32> = map
@@ -207,13 +208,8 @@ fn regularize_consecutive_chain<T: CoordsFloat>(
             if level1 == level2 {
                 dart_counter = regularize_edge(map, dart1, dart_counter);
             }
-        } else if chunk.len() == 1 {
-            panic!(
-                "Odd dart in chain: {} (chain length: {})",
-                chunk[0],
-                chain.len()
-            );
         }
+        assert_ne!(chunk.len(), 1, "Chunk length must not be 1");
     }
     dart_counter
 }

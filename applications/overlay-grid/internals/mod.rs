@@ -1,19 +1,16 @@
-pub(crate) mod model;
+mod adaptive_grid;
+mod dualization;
+mod helpers;
+mod model;
+mod regularisation;
 
-// routines submodules
-pub(crate) mod adaptive_grid;
-pub(crate) mod dualization;
-pub(crate) mod helpers;
-pub(crate) mod regularisation;
+use honeycomb::core::{cmap::CMap2, geometry::CoordsFloat};
 
 use adaptive_grid::refinement;
 use dualization::dualize_map;
 use helpers::remove_dangling_darts;
-pub use model::VtkError;
-use model::{manual_grid, vtk_grid};
+use model::{VtkError, manual_grid, vtk_grid};
 use regularisation::regularize_map;
-
-use honeycomb::core::{cmap::CMap2, geometry::CoordsFloat};
 
 const MAX_DEPTH: u32 = 10;
 
