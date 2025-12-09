@@ -10,40 +10,27 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(super) fn one_sew(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
-        rhs_dart_id: DartIdType,
+        ld: DartIdType,
+        rd: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.beta_tx::<2>(t, lhs_dart_id)?;
-        if b2lhs_dart_id == NULL_DART_ID {
-            try_or_coerce!(
-                self.betas.one_link_core(t, lhs_dart_id, rhs_dart_id),
-                SewError
-            );
-        } else {
-            let b2lhs_vid_old = self.vertex_id_tx(t, b2lhs_dart_id)?;
-            let rhs_vid_old = self.vertex_id_tx(t, rhs_dart_id)?;
+        let b2ld = self.beta_tx::<2>(t, ld)?;
+        let b2l_vid = self.vertex_id_tx(t, b2ld)?;
+        let r_vid = self.vertex_id_tx(t, rd)?;
 
-            try_or_coerce!(
-                self.betas.one_link_core(t, lhs_dart_id, rhs_dart_id),
-                SewError
-            );
+        try_or_coerce!(self.betas.one_link_core(t, ld, rd), SewError);
 
+        if b2ld != NULL_DART_ID {
             try_or_coerce!(
-                self.vertices.merge(
-                    t,
-                    b2lhs_vid_old.min(rhs_vid_old),
-                    b2lhs_vid_old,
-                    rhs_vid_old,
-                ),
+                self.vertices.merge(t, b2l_vid.min(r_vid), b2l_vid, r_vid,),
                 SewError
             );
             try_or_coerce!(
                 self.attributes.merge_attributes(
                     t,
                     OrbitPolicy::Vertex,
-                    b2lhs_vid_old.min(rhs_vid_old),
-                    b2lhs_vid_old,
-                    rhs_vid_old,
+                    b2l_vid.min(r_vid),
+                    b2l_vid,
+                    r_vid,
                 ),
                 SewError
             );
@@ -55,21 +42,16 @@ impl<T: CoordsFloat> CMap2<T> {
     pub(super) fn one_unsew(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
+        ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b2lhs_dart_id = self.beta_tx::<2>(t, lhs_dart_id)?;
-        if b2lhs_dart_id == NULL_DART_ID {
-            try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);
-        } else {
-            // fetch IDs before topology update
-            let rhs_dart_id = self.beta_tx::<1>(t, lhs_dart_id)?;
-            // update the topology
-            try_or_coerce!(self.betas.one_unlink_core(t, lhs_dart_id), SewError);
-            // split vertices & attributes from the old ID to the new ones
-            let (new_lhs, new_rhs) = (
-                self.vertex_id_tx(t, b2lhs_dart_id)?,
-                self.vertex_id_tx(t, rhs_dart_id)?,
-            );
+        let rd = self.beta_tx::<1>(t, ld)?;
+        let b2ld = self.beta_tx::<2>(t, ld)?;
+
+        try_or_coerce!(self.betas.one_unlink_core(t, ld), SewError);
+
+        if b2ld != NULL_DART_ID {
+            // split vertex attributes
+            let (new_lhs, new_rhs) = (self.vertex_id_tx(t, b2ld)?, self.vertex_id_tx(t, rd)?);
             try_or_coerce!(
                 self.vertices
                     .split(t, new_lhs, new_rhs, new_lhs.min(new_rhs)),
