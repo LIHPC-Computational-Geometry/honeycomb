@@ -6,7 +6,7 @@ use honeycomb::{
         geometry::{CoordsFloat, Vertex2},
     },
     prelude::{LinkError, OrbitPolicy},
-    stm::{Transaction, TransactionClosureResult, atomically_with_err},
+    stm::{StmError, Transaction, TransactionClosureResult, atomically},
 };
 use rayon::prelude::*;
 
@@ -55,8 +55,9 @@ pub fn refinement<T: CoordsFloat>(
 
     // Start by refining one cell to initialize the process
     let dart = map.allocate_unused_darts(16);
-    let result = atomically_with_err(|trans| refine_cell_tx(trans, map, 1, geo_verts, dart))
-        .expect("Failed to refine initial cell");
+    let result = atomically(|trans| {
+        refine_cell_tx(trans, map, 1, geo_verts, dart).map_err(|_| StmError::Retry)
+    });
     let to_refine = result.children[0];
     darts_to_refine.push(to_refine);
     if !result.local_geo_verts.is_empty() {
@@ -112,18 +113,21 @@ pub fn refine_with_pairing<T: CoordsFloat>(
     // Mark the future unbalance
     let local_balance_pile = update_balance_pile_for_neighbors(face1, face2, face3, face4, map);
 
-    let result1 =
-        atomically_with_err(|trans| refine_cell_tx(trans, map, face1, geo_verts, start_dart))
-            .expect("Failed to refine cell 1");
-    let result2 =
-        atomically_with_err(|trans| refine_cell_tx(trans, map, face2, geo_verts, start_dart + 16))
-            .expect("Failed to refine cell 2");
-    let result3 =
-        atomically_with_err(|trans| refine_cell_tx(trans, map, face3, geo_verts, start_dart + 32))
-            .expect("Failed to refine cell 3");
-    let result4 =
-        atomically_with_err(|trans| refine_cell_tx(trans, map, face4, geo_verts, start_dart + 48))
-            .expect("Failed to refine cell 4");
+    let result1 = atomically(|trans| {
+        refine_cell_tx(trans, map, face1, geo_verts, start_dart).map_err(|_| StmError::Retry)
+    });
+
+    let result2 = atomically(|trans| {
+        refine_cell_tx(trans, map, face2, geo_verts, start_dart + 16).map_err(|_| StmError::Retry)
+    });
+
+    let result3 = atomically(|trans| {
+        refine_cell_tx(trans, map, face3, geo_verts, start_dart + 32).map_err(|_| StmError::Retry)
+    });
+
+    let result4 = atomically(|trans| {
+        refine_cell_tx(trans, map, face4, geo_verts, start_dart + 48).map_err(|_| StmError::Retry)
+    });
 
     let mut results = [result1, result2, result3, result4];
 
