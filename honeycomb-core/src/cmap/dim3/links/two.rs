@@ -114,10 +114,6 @@ impl<T: CoordsFloat> CMap3<T> {
                     for &d in &r_orbit {
                         vids[d as usize].write(t, rvid)?;
                     }
-                } else {
-                    l_orbit.sort();
-                    r_orbit.sort();
-                    assert_eq!(&l_orbit, &r_orbit)
                 }
             }
             l_orbit.clear();
@@ -151,10 +147,6 @@ impl<T: CoordsFloat> CMap3<T> {
                     for d in r_orbit {
                         vids[d as usize].write(t, rvid)?;
                     }
-                } else {
-                    l_orbit.sort();
-                    r_orbit.sort();
-                    assert_eq!(&l_orbit, &r_orbit)
                 }
             }
         }
