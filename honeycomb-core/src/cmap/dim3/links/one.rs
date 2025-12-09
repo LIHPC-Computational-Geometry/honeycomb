@@ -67,30 +67,34 @@ impl<T: CoordsFloat> CMap3<T> {
             self.betas.one_unlink_core(t, b3_rd)?;
         }
         if let Some(ref vids) = self.vid_cache {
-            let mut l_orbit = Vec::with_capacity(16);
-            let mut lvid = ld;
-            for d in self.orbit_tx(t, OrbitPolicy::Vertex, ld) {
-                let d = d?;
-                l_orbit.push(d);
-                if d < lvid {
-                    lvid = d;
+            let b2_ld = self.beta_tx::<2>(t, ld)?;
+            let ll = b2_ld.max(b3_ld);
+            if ll != NULL_DART_ID {
+                let mut l_orbit = Vec::with_capacity(16);
+                let mut lvid = ll;
+                for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
+                    let d = d?;
+                    l_orbit.push(d);
+                    if d < lvid {
+                        lvid = d;
+                    }
                 }
-            }
-            let mut r_orbit = Vec::with_capacity(16);
-            let mut rvid = rd;
-            for d in self.orbit_tx(t, OrbitPolicy::Vertex, rd) {
-                let d = d?;
-                r_orbit.push(d);
-                if d < rvid {
-                    rvid = d;
+                let mut r_orbit = Vec::with_capacity(16);
+                let mut rvid = rd;
+                for d in self.orbit_tx(t, OrbitPolicy::Vertex, rd) {
+                    let d = d?;
+                    r_orbit.push(d);
+                    if d < rvid {
+                        rvid = d;
+                    }
                 }
-            }
-            if lvid != rvid {
-                for d in l_orbit {
-                    vids[d as usize].write(t, lvid)?;
-                }
-                for d in r_orbit {
-                    vids[d as usize].write(t, rvid)?;
+                if lvid != rvid {
+                    for d in l_orbit {
+                        vids[d as usize].write(t, lvid)?;
+                    }
+                    for d in r_orbit {
+                        vids[d as usize].write(t, rvid)?;
+                    }
                 }
             }
         }

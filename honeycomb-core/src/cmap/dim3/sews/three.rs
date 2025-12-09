@@ -19,22 +19,33 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), SewError> {
         // using these custom orbits, I can get both dart of all sides, directly ordered
         // for the merges
-        let l_face = self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .min()
-            .expect("E: unreachable");
-        let r_face = self
-            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
-            .min()
-            .expect("E: unreachable");
+        let mut l_face = ld;
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            let d = d?;
+            if d < l_face {
+                l_face = d;
+            }
+        }
+        let mut r_face = rd;
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), rd) {
+            let d = d?;
+            if d < r_face {
+                r_face = d;
+            }
+        }
         let mut edges: Vec<(EdgeIdType, EdgeIdType)> = Vec::with_capacity(10);
         let mut vertices: Vec<(VertexIdType, VertexIdType)> = Vec::with_capacity(10);
 
         // read edge + vertex on the b1ld side. if b0ld == NULL, we need to read the left vertex
-        for (l, r) in self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
-        {
+        let mut lside = Vec::with_capacity(16);
+        let mut rside = Vec::with_capacity(16);
+        for l in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            lside.push(l?);
+        }
+        for r in self.orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), rd) {
+            rside.push(r?);
+        }
+        for (l, r) in lside.into_iter().zip(rside.into_iter()) {
             edges.push((self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?));
             let b1l = self.beta_tx::<1>(t, l)?;
             let b2l = self.beta_tx::<2>(t, l)?;
@@ -161,14 +172,20 @@ impl<T: CoordsFloat> CMap3<T> {
         try_or_coerce!(self.unlink::<3>(t, ld), SewError);
 
         // faces
-        let l_face = self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .min()
-            .expect("E: unreachable");
-        let r_face = self
-            .orbit(OrbitPolicy::Custom(&[0, 1]), rd)
-            .min()
-            .expect("E: unreachable");
+        let mut l_face = ld;
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            let d = d?;
+            if d < l_face {
+                l_face = d;
+            }
+        }
+        let mut r_face = rd;
+        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), rd) {
+            let d = d?;
+            if d < r_face {
+                r_face = d;
+            }
+        }
         try_or_coerce!(
             self.attributes.split_attributes(
                 t,
@@ -180,10 +197,15 @@ impl<T: CoordsFloat> CMap3<T> {
             SewError
         );
 
-        for (l, r) in self
-            .orbit(OrbitPolicy::Custom(&[1, 0]), ld)
-            .zip(self.orbit(OrbitPolicy::Custom(&[0, 1]), rd))
-        {
+        let mut lside = Vec::with_capacity(16);
+        let mut rside = Vec::with_capacity(16);
+        for l in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
+            lside.push(l?);
+        }
+        for r in self.orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), rd) {
+            rside.push(r?);
+        }
+        for (l, r) in lside.into_iter().zip(rside.into_iter()) {
             // edge
             let (eid_l, eid_r) = (self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?);
             try_or_coerce!(

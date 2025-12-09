@@ -91,28 +91,30 @@ impl<T: CoordsFloat> CMap3<T> {
                 let b1r = self.beta_tx::<1>(t, rd)?;
                 let b3r = self.beta_tx::<3>(t, rd)?;
                 let rr = b1r.max(b3r);
-                let mut lvid = ll;
-                for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
-                    let d = d?;
-                    l_orbit.push(d);
-                    if d < lvid {
-                        lvid = d;
+                if rr != NULL_DART_ID {
+                    let mut lvid = ll;
+                    for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
+                        let d = d?;
+                        l_orbit.push(d);
+                        if d < lvid {
+                            lvid = d;
+                        }
                     }
-                }
-                let mut rvid = rr;
-                for d in self.orbit_tx(t, OrbitPolicy::Vertex, rr) {
-                    let d = d?;
-                    r_orbit.push(d);
-                    if d < rvid {
-                        rvid = d;
+                    let mut rvid = rr;
+                    for d in self.orbit_tx(t, OrbitPolicy::Vertex, rr) {
+                        let d = d?;
+                        r_orbit.push(d);
+                        if d < rvid {
+                            rvid = d;
+                        }
                     }
-                }
-                if lvid != rvid {
-                    for &d in &l_orbit {
-                        vids[d as usize].write(t, lvid)?;
-                    }
-                    for &d in &r_orbit {
-                        vids[d as usize].write(t, rvid)?;
+                    if lvid != rvid {
+                        for &d in &l_orbit {
+                            vids[d as usize].write(t, lvid)?;
+                        }
+                        for &d in &r_orbit {
+                            vids[d as usize].write(t, rvid)?;
+                        }
                     }
                 }
             }
@@ -124,28 +126,30 @@ impl<T: CoordsFloat> CMap3<T> {
                 let b3l = self.beta_tx::<3>(t, ld)?;
                 let ll = b1l.max(b3l);
                 let rr = rd;
-                let mut lvid = ll;
-                for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
-                    let d = d?;
-                    l_orbit.push(d);
-                    if d < lvid {
-                        lvid = d;
+                if ll != NULL_DART_ID {
+                    let mut lvid = ll;
+                    for d in self.orbit_tx(t, OrbitPolicy::Vertex, ll) {
+                        let d = d?;
+                        l_orbit.push(d);
+                        if d < lvid {
+                            lvid = d;
+                        }
                     }
-                }
-                let mut rvid = rr;
-                for d in self.orbit_tx(t, OrbitPolicy::Vertex, rr) {
-                    let d = d?;
-                    r_orbit.push(d);
-                    if d < rvid {
-                        rvid = d;
+                    let mut rvid = rr;
+                    for d in self.orbit_tx(t, OrbitPolicy::Vertex, rr) {
+                        let d = d?;
+                        r_orbit.push(d);
+                        if d < rvid {
+                            rvid = d;
+                        }
                     }
-                }
-                if lvid != rvid {
-                    for d in l_orbit {
-                        vids[d as usize].write(t, lvid)?;
-                    }
-                    for d in r_orbit {
-                        vids[d as usize].write(t, rvid)?;
+                    if lvid != rvid {
+                        for d in l_orbit {
+                            vids[d as usize].write(t, lvid)?;
+                        }
+                        for d in r_orbit {
+                            vids[d as usize].write(t, rvid)?;
+                        }
                     }
                 }
             }
