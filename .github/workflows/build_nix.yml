@@ -31,7 +31,7 @@ jobs:
           submodules: recursive
       - name: Install hwloc
         run: |
-          if [ "${{ matrix.runner_label }}" = "macos-13" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
+          if [ "${{ matrix.runner_label }}" = "macos-15-intel" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
             brew update && brew install hwloc
           else
             sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
@@ -61,7 +61,7 @@ jobs:
           submodules: recursive
       - name: Install hwloc
         run: |
-          if [ "${{ matrix.runner_label }}" = "macos-13" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
+          if [ "${{ matrix.runner_label }}" = "macos-15-intel" ] || [ "${{ matrix.runner_label }}" = "macos-latest" ]; then
             brew update && brew install hwloc
           else
             sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
