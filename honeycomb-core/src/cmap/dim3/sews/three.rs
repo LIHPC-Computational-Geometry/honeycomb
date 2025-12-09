@@ -153,7 +153,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ) -> TransactionClosureResult<(), SewError> {
         let rd = self.beta_tx::<3>(t, ld)?;
 
-        try_or_coerce!(self.unlink::<3>(t, ld), SewError);
+        try_or_coerce!(self.three_unlink(t, ld), SewError);
 
         let mut l_side = Vec::with_capacity(10);
         for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {

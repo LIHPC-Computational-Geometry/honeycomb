@@ -49,7 +49,7 @@ impl<T: CoordsFloat> CMap2<T> {
             }
         }
 
-        try_or_coerce!(self.betas.two_link_core(t, ld, rd), SewError);
+        try_or_coerce!(self.link::<2>(t, ld, rd), SewError);
 
         // merge edge attributes
         try_or_coerce!(
@@ -113,7 +113,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let b1ld = self.beta_tx::<1>(t, ld)?;
         let b1rd = self.beta_tx::<1>(t, rd)?;
 
-        try_or_coerce!(self.betas.two_unlink_core(t, ld), SewError);
+        try_or_coerce!(self.unlink::<2>(t, ld), SewError);
 
         let (new_lv_ld, new_lv_rd) = (self.vertex_id_tx(t, ld)?, self.vertex_id_tx(t, b1rd)?);
         let (new_rv_ld, new_rv_rd) = (self.vertex_id_tx(t, b1ld)?, self.vertex_id_tx(t, rd)?);
