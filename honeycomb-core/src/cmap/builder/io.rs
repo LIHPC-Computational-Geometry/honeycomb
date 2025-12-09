@@ -206,6 +206,7 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 #[allow(clippy::too_many_lines)]
 pub fn build_3d_from_cmap_file<T: CoordsFloat>(
     f: CMapFile,
+    enable_vid_cache: bool,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
 ) -> Result<CMap3<T>, BuilderError> {
     if f.meta.1 != 3 {
@@ -214,7 +215,7 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
             "mismatch between requested dimension and header",
         ));
     }
-    let map = CMap3::new_with_undefined_attributes(f.meta.2, manager);
+    let map = CMap3::new_with_undefined_attributes(f.meta.2, enable_vid_cache, manager);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();

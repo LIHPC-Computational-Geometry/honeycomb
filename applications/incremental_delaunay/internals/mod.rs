@@ -135,6 +135,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 T::from(ly).unwrap(),
                 T::from(lz).unwrap(),
             ])
+            // .enable_vertex_id_cache(true)
             .split_cells(true)
             .build()
             .unwrap()

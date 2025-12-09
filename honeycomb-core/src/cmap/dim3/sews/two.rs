@@ -17,8 +17,8 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
-        let b1ld = self.betas[(1, ld)].read(t)?;
-        let b1rd = self.betas[(1, rd)].read(t)?;
+        let b1ld = self.betas[(1, ld)].read(t)?.max(self.beta_tx::<3>(t, ld)?);
+        let b1rd = self.betas[(1, rd)].read(t)?.max(self.beta_tx::<3>(t, rd)?);
         // match (is lhs 1-free, is rhs 1-free)
         match (b1ld == NULL_DART_ID, b1rd == NULL_DART_ID) {
             // trivial case, no update needed
@@ -199,14 +199,14 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
         let rd = self.betas[(2, ld)].read(t)?;
-        let b1ld = self.betas[(1, ld)].read(t)?;
-        let b1rd = self.betas[(1, rd)].read(t)?;
+        let b1ld = self.betas[(1, ld)].read(t)?.max(self.beta_tx::<3>(t, ld)?);
+        let b1rd = self.betas[(1, rd)].read(t)?.max(self.beta_tx::<3>(t, rd)?);
         // match (is lhs 1-free, is rhs 1-free)
         match (b1ld == NULL_DART_ID, b1rd == NULL_DART_ID) {
             (true, true) => {
                 // fetch IDs before topology update
                 // update the topology
-                try_or_coerce!(self.betas.two_unlink_core(t, ld), SewError);
+                try_or_coerce!(self.two_unlink(t, ld), SewError);
                 // split attributes from the old ID to the new ones
                 let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
                 try_or_coerce!(
@@ -222,7 +222,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (true, false) => {
                 // update the topology
-                try_or_coerce!(self.betas.two_unlink_core(t, ld), SewError);
+                try_or_coerce!(self.two_unlink(t, ld), SewError);
                 // split vertex & attributes from the old ID to the new ones
                 let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
                 try_or_coerce!(
@@ -256,7 +256,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (false, true) => {
                 // update the topology
-                try_or_coerce!(self.betas.two_unlink_core(t, ld), SewError);
+                try_or_coerce!(self.two_unlink(t, ld), SewError);
                 // split vertex & attributes from the old ID to the new ones
                 let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
                 try_or_coerce!(
@@ -290,7 +290,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             (false, false) => {
                 // update the topology
-                try_or_coerce!(self.betas.two_unlink_core(t, ld), SewError);
+                try_or_coerce!(self.two_unlink(t, ld), SewError);
                 // split vertices & attributes from the old ID to the new ones
                 let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
                 try_or_coerce!(
