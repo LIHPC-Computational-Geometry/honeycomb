@@ -51,6 +51,11 @@ doc  = false
 name = "triangulate"
 path = "triangulate/main.rs"
 
+[[bin]]
+doc  = false
+name = "overlay-grid"
+path = "overlay-grid/main.rs"
+
 [features]
 default = ["bind-threads"]
 
@@ -72,6 +77,7 @@ rand       = { workspace = true, features = ["small_rng"] }
 rayon      = { workspace = true }
 smallvec   = { workspace = true }
 thiserror  = { workspace = true }
+vtkio      = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
