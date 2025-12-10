@@ -51,7 +51,6 @@ pub fn dualize_map<T: CoordsFloat>(map: &CMap2<T>) -> CMap2<T> {
             .enumerate()
             .take(adjacent_primal_vertices.len())
         {
-            // dart goes from remote_primal_vertice to vertex_id
             let &dart = adjacent_primal_vertex_darts
                 .iter()
                 .find(|&&d| {
