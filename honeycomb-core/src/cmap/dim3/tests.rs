@@ -1,3 +1,5 @@
+use anyhow::Context;
+
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap3, CMapBuilder, DartIdType, OrbitPolicy, SewError, VertexIdType},
@@ -5,48 +7,48 @@ use crate::{
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
 
+// allows returning a map in test functions
+// not running checks on the state of the map since we may use minimal setup
+// to cover some methods, which do not translate to correct mesh states
 #[cfg(test)]
-fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
-    let b3d = map.beta::<3>(dart);
-    let ld = map.beta::<2>(dart);
-    let rd = map.beta::<2>(b3d);
-
-    map.force_unsew::<2>(dart).unwrap();
-    map.force_unsew::<2>(b3d).unwrap();
-    map.force_sew::<2>(ld, rd).unwrap();
+impl std::process::Termination for CMap3<f64> {
+    fn report(self) -> std::process::ExitCode {
+        std::process::ExitCode::SUCCESS
+    }
 }
 
-#[allow(clippy::too_many_lines)]
+// --- High-level tests
+
+// force_* methods
+
 #[test]
-fn example_test() {
-    // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build().unwrap(); // 3*4 darts
+fn build_tet() -> anyhow::Result<CMap3<f64>> {
+    let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build()?; // 3*4 darts
 
     // face z- (base)
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 1).unwrap();
+    map.force_link::<1>(1, 2)?;
+    map.force_link::<1>(2, 3)?;
+    map.force_link::<1>(3, 1)?;
     // face y-
-    map.force_link::<1>(4, 5).unwrap();
-    map.force_link::<1>(5, 6).unwrap();
-    map.force_link::<1>(6, 4).unwrap();
+    map.force_link::<1>(4, 5)?;
+    map.force_link::<1>(5, 6)?;
+    map.force_link::<1>(6, 4)?;
     // face x-
-    map.force_link::<1>(7, 8).unwrap();
-    map.force_link::<1>(8, 9).unwrap();
-    map.force_link::<1>(9, 7).unwrap();
+    map.force_link::<1>(7, 8)?;
+    map.force_link::<1>(8, 9)?;
+    map.force_link::<1>(9, 7)?;
     // face x+/y+
-    map.force_link::<1>(10, 11).unwrap();
-    map.force_link::<1>(11, 12).unwrap();
-    map.force_link::<1>(12, 10).unwrap();
+    map.force_link::<1>(10, 11)?;
+    map.force_link::<1>(11, 12)?;
+    map.force_link::<1>(12, 10)?;
     // link triangles to get the tet
-    map.force_link::<2>(1, 4).unwrap();
-    map.force_link::<2>(2, 7).unwrap();
-    map.force_link::<2>(3, 10).unwrap();
-    map.force_link::<2>(5, 12).unwrap();
-    map.force_link::<2>(6, 8).unwrap();
-    map.force_link::<2>(9, 11).unwrap();
+    map.force_link::<2>(1, 4)?;
+    map.force_link::<2>(2, 7)?;
+    map.force_link::<2>(3, 10)?;
+    map.force_link::<2>(5, 12)?;
+    map.force_link::<2>(6, 8)?;
+    map.force_link::<2>(9, 11)?;
 
-    // putting this in a scope to force dropping the iterator before the next mutable borrow
     {
         let mut vertices = map.iter_vertices();
         assert_eq!(vertices.next(), Some(1));
@@ -64,32 +66,40 @@ fn example_test() {
     map.force_write_vertex(3, (0.0, 0.5, 0.0));
     map.force_write_vertex(6, (0.5, 0.25, 1.0));
 
+    Ok(map)
+}
+
+#[test]
+fn sew_tets() -> anyhow::Result<CMap3<f64>> {
+    // Build a tetrahedron (A)
+    let mut map = build_tet().context("Failed to build first tetrahedron")?;
+
     // Build a second tetrahedron (B)
 
     let _ = map.allocate_used_darts(12);
     // face z- (base)
-    map.force_link::<1>(13, 14).unwrap();
-    map.force_link::<1>(14, 15).unwrap();
-    map.force_link::<1>(15, 13).unwrap();
+    map.force_link::<1>(13, 14)?;
+    map.force_link::<1>(14, 15)?;
+    map.force_link::<1>(15, 13)?;
     // face x-/y-
-    map.force_link::<1>(16, 17).unwrap();
-    map.force_link::<1>(17, 18).unwrap();
-    map.force_link::<1>(18, 16).unwrap();
+    map.force_link::<1>(16, 17)?;
+    map.force_link::<1>(17, 18)?;
+    map.force_link::<1>(18, 16)?;
     // face y+
-    map.force_link::<1>(19, 20).unwrap();
-    map.force_link::<1>(20, 21).unwrap();
-    map.force_link::<1>(21, 19).unwrap();
+    map.force_link::<1>(19, 20)?;
+    map.force_link::<1>(20, 21)?;
+    map.force_link::<1>(21, 19)?;
     // face x+
-    map.force_link::<1>(22, 23).unwrap();
-    map.force_link::<1>(23, 24).unwrap();
-    map.force_link::<1>(24, 22).unwrap();
+    map.force_link::<1>(22, 23)?;
+    map.force_link::<1>(23, 24)?;
+    map.force_link::<1>(24, 22)?;
     // link triangles to get the tet
-    map.force_link::<2>(13, 16).unwrap();
-    map.force_link::<2>(14, 19).unwrap();
-    map.force_link::<2>(15, 22).unwrap();
-    map.force_link::<2>(17, 24).unwrap();
-    map.force_link::<2>(18, 20).unwrap();
-    map.force_link::<2>(21, 23).unwrap();
+    map.force_link::<2>(13, 16)?;
+    map.force_link::<2>(14, 19)?;
+    map.force_link::<2>(15, 22)?;
+    map.force_link::<2>(17, 24)?;
+    map.force_link::<2>(18, 20)?;
+    map.force_link::<2>(21, 23)?;
 
     map.force_write_vertex(13, (2.5, 1.5, 0.0));
     map.force_write_vertex(14, (1.5, 2.0, 0.0));
@@ -130,7 +140,7 @@ fn example_test() {
     // Sew both tetrahedrons along a face (C)
 
     assert_eq!(map.n_vertices(), 8);
-    map.force_sew::<3>(10, 16).unwrap();
+    map.force_sew::<3>(10, 16)?;
     assert_eq!(map.n_vertices(), 5);
 
     // this results in a quad-base pyramid
@@ -158,9 +168,91 @@ fn example_test() {
         assert!(darts.contains(&18));
     }
 
-    // Adjust shared vertices (D)
+    Ok(map)
+}
 
-    // this makes it a symmetrical square-base pyramid
+#[test]
+fn unsew_tets() -> anyhow::Result<()> {
+    let map = sew_tets().context("Failed to sew first tetrahedra")?;
+
+    // this should get us back to the state before the first 3-sew
+    map.force_unsew::<3>(10)?;
+    assert_eq!(map.n_vertices(), 8);
+
+    {
+        let mut vertices = map.iter_vertices();
+        assert_eq!(vertices.next(), Some(1));
+        assert_eq!(vertices.next(), Some(2));
+        assert_eq!(vertices.next(), Some(3));
+        assert_eq!(vertices.next(), Some(6));
+        assert_eq!(vertices.next(), Some(13));
+        assert_eq!(vertices.next(), Some(14));
+        assert_eq!(vertices.next(), Some(15));
+        assert_eq!(vertices.next(), Some(18));
+        assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::FaceLinear, 2).collect();
+        assert_eq!(&darts, &[2, 3, 1]);
+        let mut volumes = map.iter_volumes();
+        assert_eq!(volumes.next(), Some(1));
+        assert_eq!(volumes.next(), Some(13));
+        assert_eq!(volumes.next(), None);
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1));
+        assert_eq!(faces.next(), Some(4));
+        assert_eq!(faces.next(), Some(7));
+        assert_eq!(faces.next(), Some(10));
+        assert_eq!(faces.next(), Some(13));
+        assert_eq!(faces.next(), Some(16));
+        assert_eq!(faces.next(), Some(19));
+        assert_eq!(faces.next(), Some(22));
+        assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 10).collect();
+        assert!(darts.len() == 3);
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 16).collect();
+        assert!(darts.len() == 3);
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
+    }
+
+    Ok(())
+}
+
+#[test]
+fn merge_tets_into_pyramid() -> anyhow::Result<()> {
+    fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) -> anyhow::Result<()> {
+        let b3d = map.beta::<3>(dart);
+        let ld = map.beta::<2>(dart);
+        let rd = map.beta::<2>(b3d);
+
+        map.force_unsew::<2>(dart)?;
+        map.force_unsew::<2>(b3d)?;
+        map.force_sew::<2>(ld, rd)?;
+        Ok(())
+    }
+
+    let map = sew_tets().context("Failed to sew first tetrahedra")?;
+
+    // Adjust shared vertices (D) to make a symmetrical square-base pyramid
     assert_eq!(
         map.force_write_vertex(3, (0.0, 1.0, 0.0)),
         Some(Vertex3(0.75, 1.25, 0.0))
@@ -179,24 +271,23 @@ fn example_test() {
     );
 
     // Remove the split to have a single volume pyramid (E)
-
-    rebuild_edge(&map, 10);
-    rebuild_edge(&map, 11);
-    rebuild_edge(&map, 12);
+    rebuild_edge(&map, 10)?;
+    rebuild_edge(&map, 11)?;
+    rebuild_edge(&map, 12)?;
 
     // delete old face components
-    map.force_unlink::<1>(10).unwrap();
-    map.force_unlink::<1>(11).unwrap();
-    map.force_unlink::<1>(12).unwrap();
-    map.force_unlink::<3>(10).unwrap();
-    map.force_unlink::<3>(11).unwrap();
-    map.force_unlink::<3>(12).unwrap();
-    map.release_dart(10).unwrap();
-    map.release_dart(11).unwrap();
-    map.release_dart(12).unwrap();
-    map.release_dart(16).unwrap();
-    map.release_dart(17).unwrap();
-    map.release_dart(18).unwrap();
+    map.force_unlink::<1>(10)?;
+    map.force_unlink::<1>(11)?;
+    map.force_unlink::<1>(12)?;
+    map.force_unlink::<3>(10)?;
+    map.force_unlink::<3>(11)?;
+    map.force_unlink::<3>(12)?;
+    map.release_dart(10)?;
+    map.release_dart(11)?;
+    map.release_dart(12)?;
+    map.release_dart(16)?;
+    map.release_dart(17)?;
+    map.release_dart(18)?;
 
     {
         let mut volumes = map.iter_volumes();
@@ -211,27 +302,16 @@ fn example_test() {
         assert_eq!(faces.next(), Some(22)); // x+
         assert_eq!(faces.next(), None);
     }
+
+    Ok(())
 }
 
-#[cfg(test)]
-fn atomically_rebuild_edge(map: &CMap3<f64>, dart: DartIdType) {
-    atomically(|t| {
-        let b3d = map.beta_tx::<3>(t, dart)?;
-        let ld = map.beta_tx::<2>(t, dart)?;
-        let rd = map.beta_tx::<2>(t, b3d)?;
+// transactional methods
 
-        assert!(map.unsew::<2>(t, dart).is_ok());
-        assert!(map.unsew::<2>(t, b3d).is_ok());
-        assert!(map.sew::<2>(t, ld, rd).is_ok());
-        Ok(())
-    });
-}
-
-#[allow(clippy::too_many_lines)]
 #[test]
-fn example_test_txtional() {
+fn build_tet_tx() -> anyhow::Result<CMap3<f64>> {
     // Build a tetrahedron (A)
-    let mut map: CMap3<f64> = CMap3::new(12); // 3*4 darts
+    let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build().unwrap(); // 3*4 darts
 
     // face z- (base)
     let res = atomically_with_err(|t| {
@@ -287,9 +367,17 @@ fn example_test_txtional() {
         Ok(())
     });
 
+    Ok(map)
+}
+
+#[test]
+fn sew_tets_tx() -> anyhow::Result<CMap3<f64>> {
+    // Build a tetrahedron (A)
+    let mut map = build_tet_tx().context("Failed to build first tetrahedron")?;
+
     // Build a second tetrahedron (B)
     let _ = map.allocate_used_darts(12);
-    let res = atomically_with_err(|t| {
+    atomically_with_err(|t| {
         // face z- (base)
         map.link::<1>(t, 13, 14)?;
         map.link::<1>(t, 14, 15)?;
@@ -319,8 +407,7 @@ fn example_test_txtional() {
         map.write_vertex(t, 15, (2.5, 2.0, 0.0))?;
         map.write_vertex(t, 18, (1.5, 1.75, 1.0))?;
         Ok(())
-    });
-    assert!(res.is_ok());
+    })?;
 
     {
         let mut volumes = map.iter_volumes();
@@ -355,10 +442,7 @@ fn example_test_txtional() {
 
     // Sew both tetrahedrons along a face (C)
     assert_eq!(map.n_vertices(), 8);
-    atomically(|t| {
-        assert!(map.sew::<3>(t, 10, 16).is_ok());
-        Ok(())
-    });
+    atomically_with_err(|t| map.sew::<3>(t, 10, 16))?;
     assert_eq!(map.n_vertices(), 5);
 
     // this results in a quad-base pyramid
@@ -391,6 +475,111 @@ fn example_test_txtional() {
         assert!(darts.contains(&18));
     }
 
+    Ok(map)
+}
+
+#[test]
+fn unsew_tets_tx() -> anyhow::Result<()> {
+    let map = sew_tets_tx().context("Failed to sew first tetrahedra")?;
+
+    // this should get us back to the state before the first 3-sew
+    atomically_with_err(|t| map.unsew::<3>(t, 10))?;
+    assert_eq!(map.n_vertices(), 8);
+
+    {
+        let mut vertices = map.iter_vertices();
+        assert_eq!(vertices.next(), Some(1));
+        assert_eq!(vertices.next(), Some(2));
+        assert_eq!(vertices.next(), Some(3));
+        assert_eq!(vertices.next(), Some(6));
+        assert_eq!(vertices.next(), Some(13));
+        assert_eq!(vertices.next(), Some(14));
+        assert_eq!(vertices.next(), Some(15));
+        assert_eq!(vertices.next(), Some(18));
+        assert_eq!(vertices.next(), None);
+
+        let darts: Vec<_> = atomically(|t| {
+            let mut tmp = Vec::with_capacity(3);
+            for d in map.orbit_tx(t, OrbitPolicy::FaceLinear, 2) {
+                tmp.push(d?);
+            }
+            Ok(tmp)
+        });
+        assert_eq!(&darts, &[2, 3, 1]);
+        let mut volumes = map.iter_volumes();
+        assert_eq!(volumes.next(), Some(1));
+        assert_eq!(volumes.next(), Some(13));
+        assert_eq!(volumes.next(), None);
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1));
+        assert_eq!(faces.next(), Some(4));
+        assert_eq!(faces.next(), Some(7));
+        assert_eq!(faces.next(), Some(10));
+        assert_eq!(faces.next(), Some(13));
+        assert_eq!(faces.next(), Some(16));
+        assert_eq!(faces.next(), Some(19));
+        assert_eq!(faces.next(), Some(22));
+        assert_eq!(faces.next(), None);
+        let mut edges = map.iter_edges();
+        assert_eq!(edges.next(), Some(1));
+        assert_eq!(edges.next(), Some(2));
+        assert_eq!(edges.next(), Some(3));
+        assert_eq!(edges.next(), Some(5));
+        assert_eq!(edges.next(), Some(6));
+        assert_eq!(edges.next(), Some(9));
+        assert_eq!(edges.next(), Some(13));
+        assert_eq!(edges.next(), Some(14));
+        assert_eq!(edges.next(), Some(15));
+        assert_eq!(edges.next(), Some(17));
+        assert_eq!(edges.next(), Some(18));
+        assert_eq!(edges.next(), Some(21));
+        assert_eq!(edges.next(), None);
+
+        let darts: Vec<_> = atomically(|t| {
+            let mut tmp = Vec::with_capacity(3);
+            for d in map.orbit_tx(t, OrbitPolicy::Face, 10) {
+                tmp.push(d?);
+            }
+            Ok(tmp)
+        });
+        assert!(darts.len() == 3);
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        let darts: Vec<_> = atomically(|t| {
+            let mut tmp = Vec::with_capacity(3);
+            for d in map.orbit_tx(t, OrbitPolicy::Face, 16) {
+                tmp.push(d?);
+            }
+            Ok(tmp)
+        });
+        assert!(darts.len() == 3);
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
+    }
+
+    Ok(())
+}
+
+#[test]
+fn merge_tets_into_pyramid_tx() -> anyhow::Result<()> {
+    fn rebuild_edge(map: &CMap3<f64>, dart: DartIdType) -> anyhow::Result<()> {
+        atomically_with_err(|t| {
+            let b3d = map.beta_tx::<3>(t, dart)?;
+            let ld = map.beta_tx::<2>(t, dart)?;
+            let rd = map.beta_tx::<2>(t, b3d)?;
+
+            map.unsew::<2>(t, dart)?;
+            map.unsew::<2>(t, b3d)?;
+            map.sew::<2>(t, ld, rd)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    let map = sew_tets_tx().context("Failed to sew first tetrahedra")?;
+
     // Adjust shared vertices (D)
     atomically(|t| {
         // this makes it a symmetrical square-base pyramid
@@ -415,20 +604,20 @@ fn example_test_txtional() {
 
     // Remove the split to have a single volume pyramid (E)
 
-    atomically_rebuild_edge(&map, 10);
-    atomically_rebuild_edge(&map, 11);
-    atomically_rebuild_edge(&map, 12);
+    rebuild_edge(&map, 10)?;
+    rebuild_edge(&map, 11)?;
+    rebuild_edge(&map, 12)?;
 
     // delete old face components
-    atomically(|t| {
-        assert!(map.unlink::<1>(t, 10).is_ok());
-        assert!(map.unlink::<1>(t, 11).is_ok());
-        assert!(map.unlink::<1>(t, 12).is_ok());
-        assert!(map.unlink::<3>(t, 10).is_ok());
-        assert!(map.unlink::<3>(t, 11).is_ok());
-        assert!(map.unlink::<3>(t, 12).is_ok());
+    atomically_with_err(|t| {
+        map.unlink::<1>(t, 10)?;
+        map.unlink::<1>(t, 11)?;
+        map.unlink::<1>(t, 12)?;
+        map.unlink::<3>(t, 10)?;
+        map.unlink::<3>(t, 11)?;
+        map.unlink::<3>(t, 12)?;
         Ok(())
-    });
+    })?;
 
     atomically_with_err(|t| {
         map.release_dart_tx(t, 10)?;
@@ -438,8 +627,7 @@ fn example_test_txtional() {
         map.release_dart_tx(t, 17)?;
         map.release_dart_tx(t, 18)?;
         Ok(())
-    })
-    .unwrap();
+    })?;
 
     {
         let mut volumes = map.iter_volumes();
@@ -454,7 +642,11 @@ fn example_test_txtional() {
         assert_eq!(faces.next(), Some(22)); // x+
         assert_eq!(faces.next(), None);
     }
+
+    Ok(())
 }
+
+// --- basic ops
 
 #[test]
 fn reserve_darts() {
@@ -491,120 +683,304 @@ fn remove_dart_twice() {
     assert!(map.release_dart(1).unwrap());
 }
 
-// --- (UN)SEW
+// --- (un)sew
 
-#[test]
-fn one_sew() {
-    let map: CMap3<f64> = CMap3::new(8);
-    // map.force_link::<1>(1, 2);
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
-    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+mod one_sew {
+    use super::*;
 
-    map.force_link::<1>(5, 6).unwrap();
-    map.force_link::<1>(6, 7).unwrap();
-    map.force_link::<1>(7, 8).unwrap();
-    // map.force_link::<1>(8, 5);
-    map.force_write_vertex(5, Vertex3(0.5, 0.0, 1.0));
-    map.force_write_vertex(6, Vertex3(0.0, 0.0, 1.0));
-    map.force_write_vertex(7, Vertex3(0.0, 1.0, 1.0));
-    map.force_write_vertex(8, Vertex3(1.0, 1.0, 1.0));
+    // topology
 
-    map.force_sew::<3>(1, 5).unwrap();
-    assert_eq!(map.beta::<3>(1), 5);
-    assert_eq!(map.beta::<3>(2), 8);
-    assert_eq!(map.beta::<3>(3), 7);
-    assert_eq!(map.beta::<3>(4), 6);
+    #[test]
+    fn topo_no_b3_image() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        // map.force_link::<1>(1, 2);
+        map.force_link::<1>(2, 3)?;
+        map.force_link::<1>(3, 4)?;
+        map.force_link::<1>(4, 1)?;
+        map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+        map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+        map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
 
-    map.force_sew::<1>(1, 2).unwrap();
+        map.force_sew::<1>(1, 2)?;
 
-    assert_eq!(map.beta::<1>(1), 2);
-    assert_eq!(map.beta::<1>(8), 5);
-    assert_eq!(map.vertex_id(5), 2);
-    assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.75, 0.0, 0.5)));
+        assert_eq!(
+            &[3, 4, 1, 2],
+            map.orbit(OrbitPolicy::FaceLinear, 3)
+                .collect::<Vec<_>>()
+                .as_slice()
+        );
+        assert_eq!(map.beta::<1>(1), 2);
+        assert_eq!(map.beta::<0>(2), 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn topo_b3_image() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        // map.force_link::<1>(1, 2);
+        map.force_link::<1>(2, 3)?;
+        map.force_link::<1>(3, 4)?;
+        map.force_link::<1>(4, 1)?;
+        map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+        map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+        map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+
+        map.force_link::<1>(5, 6)?;
+        map.force_link::<1>(6, 7)?;
+        map.force_link::<1>(7, 8)?;
+        // map.force_link::<1>(8, 5);
+        map.force_write_vertex(5, Vertex3(0.5, 0.0, 1.0));
+        map.force_write_vertex(6, Vertex3(0.0, 0.0, 1.0));
+        map.force_write_vertex(7, Vertex3(0.0, 1.0, 1.0));
+        map.force_write_vertex(8, Vertex3(1.0, 1.0, 1.0));
+
+        map.force_sew::<3>(1, 5)?;
+        assert_eq!(map.beta::<3>(1), 5);
+        assert_eq!(map.beta::<3>(2), 8);
+        assert_eq!(map.beta::<3>(3), 7);
+        assert_eq!(map.beta::<3>(4), 6);
+
+        map.force_sew::<1>(1, 2)?;
+
+        assert_eq!(map.beta::<1>(1), 2);
+        assert_eq!(map.beta::<1>(8), 5);
+        assert_eq!(map.vertex_id(5), 2);
+        assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.75, 0.0, 0.5)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn topo_errs() -> anyhow::Result<()> {
+        // todo!()
+        Ok(())
+    }
+
+    // geometry
+    #[test]
+    fn geom_no_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b2_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b3_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_full_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_missing_data() -> anyhow::Result<()> {
+        Ok(())
+    }
+}
+
+mod two_sew {
+    use super::*;
+
+    // topology
+
+    #[test]
+    fn topo_no_b3_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn topo_b3_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn topo_errs() -> anyhow::Result<()> {
+        // todo!()
+        Ok(())
+    }
+
+    // geometry
+    #[test]
+    fn geom_no_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b3_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b1_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_full_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_missing_data() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_bad_orientation() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        atomically_with_err(|t| {
+            map.link::<1>(t, 1, 2)?;
+            map.link::<1>(t, 2, 3)?;
+            map.link::<1>(t, 3, 4)?;
+            map.link::<1>(t, 4, 1)?;
+            map.link::<1>(t, 5, 6)?;
+            map.link::<1>(t, 6, 7)?;
+            map.link::<1>(t, 7, 8)?;
+            map.link::<1>(t, 8, 5)?;
+            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex(t, 6, Vertex3(1.0, 0.0, 1.0))?;
+            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex(t, 8, Vertex3(0.0, 1.0, 1.0))?;
+            Ok(())
+        })?;
+
+        assert!(
+            map.force_sew::<2>(1, 5)
+                .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5))
+        );
+
+        Ok(())
+    }
+}
+
+mod three_sew {
+    use super::*;
+
+    // topology
+
+    #[test]
+    fn topo_open_face_no_b2_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn topo_closed_face_no_b2_image() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        atomically_with_err(|t| {
+            map.link::<1>(t, 1, 2)?;
+            map.link::<1>(t, 2, 3)?;
+            map.link::<1>(t, 3, 4)?;
+            map.link::<1>(t, 4, 1)?;
+            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+            map.link::<1>(t, 5, 6)?;
+            map.link::<1>(t, 6, 7)?;
+            map.link::<1>(t, 7, 8)?;
+            map.link::<1>(t, 8, 5)?;
+            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+            Ok(())
+        })?;
+
+        atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+
+        assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+        assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+        assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+        assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+
+        Ok(())
+    }
+
+    #[test]
+    fn topo_b2_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn topo_errs() -> anyhow::Result<()> {
+        // todo!()
+        Ok(())
+    }
+
+    // geometry
+    #[test]
+    fn geom_no_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b2_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_no_b1_image() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_full_orbit() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_missing_data() -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    #[test]
+    fn geom_bad_orientation() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        atomically_with_err(|t| {
+            map.link::<1>(t, 1, 2)?;
+            map.link::<1>(t, 2, 3)?;
+            map.link::<1>(t, 3, 4)?;
+            map.link::<1>(t, 4, 1)?;
+            map.link::<1>(t, 5, 6)?;
+            map.link::<1>(t, 6, 7)?;
+            map.link::<1>(t, 7, 8)?;
+            map.link::<1>(t, 8, 5)?;
+            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex(t, 6, Vertex3(1.0, 0.0, 1.0))?;
+            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex(t, 8, Vertex3(0.0, 1.0, 1.0))?;
+            Ok(())
+        })?;
+
+        assert!(
+            map.force_sew::<3>(1, 5)
+                .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
+        );
+
+        Ok(())
+    }
 }
 
 #[test]
-fn three_sew() {
-    let map: CMap3<f64> = CMap3::new(8);
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
-    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
-
-    map.force_link::<1>(5, 6).unwrap();
-    map.force_link::<1>(6, 7).unwrap();
-    map.force_link::<1>(7, 8).unwrap();
-    map.force_link::<1>(8, 5).unwrap();
-    map.force_write_vertex(5, Vertex3(0.0, 0.0, 1.0));
-    map.force_write_vertex(6, Vertex3(0.0, 1.0, 1.0));
-    map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
-    map.force_write_vertex(8, Vertex3(1.0, 0.0, 1.0));
-
-    map.force_sew::<3>(1, 8).unwrap();
-    assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-    assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-    assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-    assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
-}
-
-#[test]
-fn two_sew_bad_orientation() {
-    let map: CMap3<f64> = CMap3::new(8);
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
-    map.force_link::<1>(5, 6).unwrap();
-    map.force_link::<1>(6, 7).unwrap();
-    map.force_link::<1>(7, 8).unwrap();
-    map.force_link::<1>(8, 5).unwrap();
-    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
-    map.force_write_vertex(5, Vertex3(0.0, 0.0, 1.0));
-    map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
-    map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
-    map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(
-        map.force_sew::<2>(1, 5)
-            .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5))
-    );
-}
-
-#[test]
-fn three_sew_bad_orientation() {
-    let map: CMap3<f64> = CMap3::new(8);
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
-    map.force_link::<1>(5, 6).unwrap();
-    map.force_link::<1>(6, 7).unwrap();
-    map.force_link::<1>(7, 8).unwrap();
-    map.force_link::<1>(8, 5).unwrap();
-    map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-    map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-    map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-    map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
-    map.force_write_vertex(5, Vertex3(0.0, 0.0, 1.0));
-    map.force_write_vertex(6, Vertex3(1.0, 0.0, 1.0));
-    map.force_write_vertex(7, Vertex3(1.0, 1.0, 1.0));
-    map.force_write_vertex(8, Vertex3(0.0, 1.0, 1.0));
-    assert!(
-        map.force_sew::<3>(1, 5)
-            .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
-    );
-}
+fn three_sew() {}
 
 // --- PARALLEL
 
