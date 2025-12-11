@@ -686,6 +686,8 @@ fn remove_dart_twice() {
 // --- (un)sew
 
 mod one_sew {
+    use crate::cmap::LinkError;
+
     use super::*;
 
     // topology
@@ -755,33 +757,257 @@ mod one_sew {
 
     #[test]
     fn topo_errs() -> anyhow::Result<()> {
-        // todo!()
+        // 1-sew unfree dart
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<1>(1, 2)?;
+
+            assert!(
+                map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+                    e,
+                    SewError::FailedLink(LinkError::NonFreeBase(1, 1, 3))
+                ))
+            )
+        }
+        // 1-sew to unfree dart
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<1>(2, 3)?;
+
+            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+                e,
+                SewError::FailedLink(LinkError::NonFreeImage(0, 1, 3))
+            )))
+        }
+        // 1-sew to null dart
+        {
+            // FIXME: implement a check?
+        }
+        // 1-sew to dart with incompatible b3 topology
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(5).build()?;
+            map.force_link::<3>(1, 2)?;
+            map.force_link::<3>(3, 4)?;
+            map.force_link::<1>(4, 5)?;
+            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+
+            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+                e,
+                SewError::FailedLink(LinkError::NonFreeBase(1, 4, 2))
+            )));
+        }
         Ok(())
     }
 
     // geometry
     #[test]
     fn geom_no_orbit() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(2).build()?;
+        map.force_write_vertex(2, (0.0, 1.0, 0.0));
+
+        atomically_with_err(|t| map.sew::<1>(t, 1, 2))?;
+
+        atomically(|t| {
+            assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+            assert_eq!(map.read_vertex(t, 1)?, None);
+            assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+            assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 1.0, 0.0)));
+            Ok(())
+        });
+
         Ok(())
     }
 
     #[test]
     fn geom_no_b2_image() -> anyhow::Result<()> {
+        // new vid == rd == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<3>(1, 3)?;
+            map.force_write_vertex(2, (0.0, 1.0, 0.0));
+            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+        // new vid == b3ld == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<3>(1, 2)?;
+            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 3))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+
         Ok(())
     }
 
     #[test]
     fn geom_no_b3_image() -> anyhow::Result<()> {
+        // new vid == rd == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<2>(1, 3)?;
+            map.force_write_vertex(2, (0.0, 1.0, 0.0));
+            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+        // new vid == b2ld == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
+            map.force_link::<2>(1, 2)?;
+            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 3))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+
         Ok(())
     }
 
     #[test]
     fn geom_full_orbit() -> anyhow::Result<()> {
+        // new vid == rd == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
+            map.force_link::<2>(1, 3)?;
+            map.force_link::<3>(1, 4)?;
+            assert_eq!(map.vertex_id(3), 3);
+            assert_eq!(map.vertex_id(4), 3);
+            map.force_write_vertex(2, (0.0, 1.0, 0.0));
+            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 4)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+        // new vid == b2ld == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
+            map.force_link::<2>(1, 2)?;
+            map.force_link::<3>(1, 3)?;
+            assert_eq!(map.vertex_id(2), 2);
+            assert_eq!(map.vertex_id(3), 2);
+            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.force_write_vertex(4, (0.0, 1.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 4))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 4)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+        // new vid == b3ld == 2
+        {
+            let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
+            map.force_link::<2>(1, 4)?;
+            map.force_link::<3>(1, 2)?;
+            assert_eq!(map.vertex_id(2), 2);
+            assert_eq!(map.vertex_id(4), 2);
+            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+
+            atomically_with_err(|t| map.sew::<1>(t, 1, 3))?;
+
+            atomically(|t| {
+                assert_eq!(map.vertex_id_tx(t, 1)?, 1);
+                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.vertex_id_tx(t, 2)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 3)?, 2);
+                assert_eq!(map.vertex_id_tx(t, 4)?, 2);
+                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                Ok(())
+            });
+        }
+
         Ok(())
     }
 
+    // NOTE: in the case where ld has no vertex orbit at its end, a sew with no attribute data
+    // may be tolerated, even if rd has an orbit with missing attribute
     #[test]
     fn geom_missing_data() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
+        map.force_link::<2>(1, 3)?;
+
+        assert!(
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2)).is_err_and(|e| matches!(
+                e,
+                SewError::FailedAttributeOp(AttributeError::InsufficientData(_, _))
+            ))
+        );
+
+        map.force_unlink::<2>(1)?;
+        map.force_link::<3>(1, 4)?;
+
+        assert!(
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2)).is_err_and(|e| matches!(
+                e,
+                SewError::FailedAttributeOp(AttributeError::InsufficientData(_, _))
+            ))
+        );
+
+        map.force_link::<2>(1, 3)?;
+
+        assert!(
+            atomically_with_err(|t| map.sew::<1>(t, 1, 2)).is_err_and(|e| matches!(
+                e,
+                SewError::FailedAttributeOp(AttributeError::InsufficientData(_, _))
+            ))
+        );
+
         Ok(())
     }
 }
