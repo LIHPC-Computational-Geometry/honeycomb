@@ -198,11 +198,13 @@ impl<T: CoordsFloat> CMap3<T> {
                         self.beta_tx::<2>(t, d)?,
                         self.beta_tx::<3>(t, d)?,
                     );
-                    pending.push_back(self.beta_tx::<1>(t, b3)?);
-                    pending.push_back(self.beta_tx::<3>(t, b2)?);
-                    pending.push_back(self.beta_tx::<1>(t, b2)?);
-                    pending.push_back(self.beta_tx::<3>(t, b0)?); // ?
-                    pending.push_back(self.beta_tx::<2>(t, b0)?); // ?
+                    // B1oB2, B2oB0, B1oB3, B3oB0, B2oB3, B3oB2
+                    pending.push_back(self.beta_tx::<1>(t, b2)?); // B1oB2
+                    pending.push_back(self.beta_tx::<1>(t, b3)?); // B1oB3
+                    pending.push_back(self.beta_tx::<2>(t, b3)?); // B2oB3
+                    pending.push_back(self.beta_tx::<2>(t, b0)?); // B2oB0
+                    pending.push_back(self.beta_tx::<3>(t, b0)?); // B3oB0
+                    pending.push_back(self.beta_tx::<3>(t, b2)?); // B3oB2
                 }
             }
 
