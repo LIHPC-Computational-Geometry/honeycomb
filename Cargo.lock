@@ -2602,6 +2602,7 @@ dependencies = [
 name = "honeycomb-core"
 version = "0.10.0"
 dependencies = [
+ "anyhow",
  "downcast-rs 2.0.2",
  "fast-stm",
  "itertools 0.14.0",
