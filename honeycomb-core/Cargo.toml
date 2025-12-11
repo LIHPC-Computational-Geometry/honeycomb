@@ -28,7 +28,7 @@ vtkio.workspace       = true
 
 [dev-dependencies]
 anyhow.workspace = true
-loom.workspace        = true
+loom.workspace   = true
 
 [build-dependencies]
 rustversion.workspace = true
