@@ -872,6 +872,37 @@ mod three_sew {
 
     #[test]
     fn topo_open_face_no_b2_image() -> anyhow::Result<()> {
+        let map: CMap3<f64> = CMap3::new(8);
+        atomically_with_err(|t| {
+            // map.link::<1>(t, 1, 2)?;
+            map.link::<1>(t, 2, 3)?;
+            map.link::<1>(t, 3, 4)?;
+            map.link::<1>(t, 4, 1)?;
+            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+            map.link::<1>(t, 5, 6)?;
+            map.link::<1>(t, 6, 7)?;
+            // map.link::<1>(t, 7, 8)?;
+            map.link::<1>(t, 8, 5)?;
+            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+            Ok(())
+        })?;
+
+        atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+
+        assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+        assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
+        assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+        assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+        assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+
         Ok(())
     }
 
