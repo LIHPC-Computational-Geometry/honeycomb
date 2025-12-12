@@ -89,7 +89,7 @@ impl<T: CoordsFloat> CMap3<T> {
     #[must_use = "unused return value"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
         assert!(I < 4);
-        self.betas[(I, dart_id)].read_atomic()
+        atomically(|t| self.betas[(I, dart_id)].read(t))
     }
 
     /// Return β<sub>`i`</sub>(`dart_id`).
@@ -132,10 +132,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// Returns `true` if the dart is 0-free, 1-free, 2-free, **and** 3-free.
     #[must_use = "unused return value"]
     pub fn is_free(&self, dart_id: DartIdType) -> bool {
-        self.beta::<0>(dart_id) == NULL_DART_ID
-            && self.beta::<1>(dart_id) == NULL_DART_ID
-            && self.beta::<2>(dart_id) == NULL_DART_ID
-            && self.beta::<3>(dart_id) == NULL_DART_ID
+        atomically(|t| self.is_free_tx(t, dart_id))
     }
 
     /// Check if a given dart is `i`-free, for all `i`.
@@ -153,7 +150,8 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn is_free_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<bool> {
         Ok(self.beta_tx::<0>(t, dart_id)? == NULL_DART_ID
             && self.beta_tx::<1>(t, dart_id)? == NULL_DART_ID
-            && self.beta_tx::<2>(t, dart_id)? == NULL_DART_ID)
+            && self.beta_tx::<2>(t, dart_id)? == NULL_DART_ID
+            && self.beta_tx::<3>(t, dart_id)? == NULL_DART_ID)
     }
 }
 
@@ -200,11 +198,13 @@ impl<T: CoordsFloat> CMap3<T> {
                         self.beta_tx::<2>(t, d)?,
                         self.beta_tx::<3>(t, d)?,
                     );
-                    pending.push_back(self.beta_tx::<1>(t, b3)?);
-                    pending.push_back(self.beta_tx::<3>(t, b2)?);
-                    pending.push_back(self.beta_tx::<1>(t, b2)?);
-                    pending.push_back(self.beta_tx::<3>(t, b0)?); // ?
-                    pending.push_back(self.beta_tx::<2>(t, b0)?); // ?
+                    // B1oB2, B2oB0, B1oB3, B3oB0, B2oB3, B3oB2
+                    pending.push_back(self.beta_tx::<1>(t, b2)?); // B1oB2
+                    pending.push_back(self.beta_tx::<1>(t, b3)?); // B1oB3
+                    pending.push_back(self.beta_tx::<2>(t, b3)?); // B2oB3
+                    pending.push_back(self.beta_tx::<2>(t, b0)?); // B2oB0
+                    pending.push_back(self.beta_tx::<3>(t, b0)?); // B3oB0
+                    pending.push_back(self.beta_tx::<3>(t, b2)?); // B3oB2
                 }
             }
 

@@ -60,7 +60,8 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
                     OrbitPolicy::Vertex => {
                         [
-                            self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
+                            // self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
+                            self.beta::<2>(self.beta::<3>(d)), // b2(b3(d))
                             self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
                             self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
                             self.beta::<3>(self.beta::<0>(d)), // b3(b0(d))
@@ -165,7 +166,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 };
                 // compute the next images
                 match opolicy {
-                    // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
+                    // B1oB2, B2oB0, B1oB3, B3oB0, B2oB3, B3oB2
                     OrbitPolicy::Vertex => {
                         let (b0, b2, b3) = (
                             self.beta_tx::<0>(t, d)?,
@@ -173,23 +174,24 @@ impl<T: CoordsFloat> CMap3<T> {
                             self.beta_tx::<3>(t, d)?,
                         );
                         [
-                            self.beta_tx::<3>(t, b2)?, // b3(b2(d))
-                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
                             self.beta_tx::<1>(t, b2)?, // b1(b2(d))
-                            self.beta_tx::<3>(t, b0)?, // b3(b0(d))
                             self.beta_tx::<2>(t, b0)?, // b2(b0(d))
+                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_tx::<3>(t, b0)?, // b3(b0(d))
+                            self.beta_tx::<2>(t, b3)?, // b2(b3(d))
+                            self.beta_tx::<3>(t, b2)?, // b3(b2(d))
                         ]
                         .into_iter()
                         .for_each(check);
                     }
-                    // B3oB2, B1oB3, B1oB2
+                    // B2oB3, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
                         let (b2, b3) =
                             (self.beta_tx::<2>(t, d)?, self.beta_tx::<3>(t, d)?);
                         [
-                            self.beta_tx::<3>(t, b2)?, // b3(b2(d))
-                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
                             self.beta_tx::<1>(t, b2)?, // b1(b2(d))
+                            self.beta_tx::<1>(t, b3)?, // b1(b3(d))
+                            self.beta_tx::<2>(t, b3)?, // b2(b3(d))
                         ]
                         .into_iter()
                         .for_each(check);

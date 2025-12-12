@@ -33,18 +33,18 @@ impl<T: CoordsFloat> CMap3<T> {
         // check orientation
         if let (
             // (lhs/b1rhs) vertices
-            Ok(Some(l_vertex)),
-            Ok(Some(b1r_vertex)),
+            Some(l_vertex),
+            Some(b1r_vertex),
             // (b1lhs/rhs) vertices
-            Ok(Some(b1l_vertex)),
-            Ok(Some(r_vertex)),
+            Some(b1l_vertex),
+            Some(r_vertex),
         ) = (
             // (lhs/b1rhs)
-            self.vertices.read(t, vid_l),
-            self.vertices.read(t, vid_b1r),
+            self.vertices.read(t, vid_l)?,
+            self.vertices.read(t, vid_b1r)?,
             // (b1lhs/rhs)
-            self.vertices.read(t, vid_b1l),
-            self.vertices.read(t, vid_r),
+            self.vertices.read(t, vid_b1l)?,
+            self.vertices.read(t, vid_r)?,
         ) {
             let lhs_vector = b1l_vertex - l_vertex;
             let rhs_vector = b1r_vertex - r_vertex;
