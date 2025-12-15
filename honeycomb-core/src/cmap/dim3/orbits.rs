@@ -60,12 +60,12 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B3oB2, B1oB3, B1oB2, B3oB0, B2oB0
                     OrbitPolicy::Vertex => {
                         [
-                            // self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
-                            self.beta::<2>(self.beta::<3>(d)), // b2(b3(d))
-                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
                             self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
-                            self.beta::<3>(self.beta::<0>(d)), // b3(b0(d))
                             self.beta::<2>(self.beta::<0>(d)), // b2(b0(d))
+                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
+                            self.beta::<3>(self.beta::<0>(d)), // b3(b0(d))
+                            self.beta::<2>(self.beta::<3>(d)), // b2(b3(d))
+                            self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
                         ]
                         .into_iter()
                         .for_each(check);
@@ -73,9 +73,9 @@ impl<T: CoordsFloat> CMap3<T> {
                     // B3oB2, B1oB3, B1oB2
                     OrbitPolicy::VertexLinear => {
                         [
-                            self.beta::<3>(self.beta::<2>(d)), // b3(b2(d))
-                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
                             self.beta::<1>(self.beta::<2>(d)), // b1(b2(d))
+                            self.beta::<1>(self.beta::<3>(d)), // b1(b3(d))
+                            self.beta::<2>(self.beta::<3>(d)), // b2(b3(d))
                         ]
                         .into_iter()
                         .for_each(check);
