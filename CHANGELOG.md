@@ -6,6 +6,104 @@
 
 ---
 
+## 0.10.1
+
+### Workspace
+
+*new:*
+- add taplo config file for toml formatting by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/369
+
+*refactor:*
+- rewrite flake to include checks by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/370
+- rewrite dockerfile for new application crate by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/384
+
+*deps:*
+- update macos intel runner to latest image by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/402
+- bump clap from 4.5.48 to 4.5.52 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/371 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/377 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/387 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/393
+- bump tikv-jemallocator from 0.6.0 to 0.6.1 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/376
+- bump rand from 0.9.2 to 0.10.0-rc.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/374
+- bump cfg-if from 1.0.3 to 1.0.4 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/375
+- bump fast-stm from 0.5.0 to 0.6.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/388
+- bump cudarc from 0.17.3 to 0.18.1 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/386 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/391
+- bump smallvec from 2.0.0-alpha.11 to 2.0.0-alpha.12 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/392
+- bump rand from 0.10.0-rc.1 to 0.10.0-rc.5 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/390
+- bump actions/checkout from 5 to 6 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/396
+- bump crate-ci/typos from 1.37.1 to 1.40.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/385 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/395
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- implement 3D tetrahedra grid generation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/372
+- add some missing core methods by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/383
+  - parallel implementation of `n_unused`
+  - reserve darts from an offset
+
+*refactor:*
+- rewrite sew methods internals by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/401
+
+*fix*:
+- add missing condition in `CMap3::is_free_tx` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/403
+- add missing B2oB3 composition to 0-cell computation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/403
+- handle STM error properly in 2-sew geometry check by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/403
+
+*tests*:
+- use `anyhow` instead of assertions in `CMap3` tests by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/403
+- improve `CMap3` sew methods testing by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/403
+
+#### honeycomb-kernels
+
+<sup>implementations of meshing kernels using combinatorial maps</sup>
+
+*new*:
+- parallelize CPU grid generation routines by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/389
+- implement Laplace and Taubin smoothing by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/394
+
+### Others
+
+#### applications
+
+<sup>examples and benchmarks</sup>
+
+merge `benches` and `examples` crates in an `applications` crate by @imrn99 in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/378
+
+*new:*
+- add `cudarc` backend for square and hex grid generation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/380
+- add 3D incremental Delaunay triangulation by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/382
+- add overlay-grid-based quad-mesh generation algorithm by @baldraven
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/399
+
+---
+
 ## 0.10.0
 
 ### Workspace
