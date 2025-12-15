@@ -1339,46 +1339,236 @@ mod two_sew {
 mod three_sew {
     use super::*;
 
-    // topology
+    #[test]
+    fn topo_errs() -> anyhow::Result<()> {
+        // todo!()
+        Ok(())
+    }
+
+    // geometry
 
     #[test]
-    fn topo_open_face_no_b2_image() -> anyhow::Result<()> {
-        let map: CMap3<f64> = CMap3::new(8);
-        atomically_with_err(|t| {
-            // map.link::<1>(t, 1, 2)?;
-            map.link::<1>(t, 2, 3)?;
-            map.link::<1>(t, 3, 4)?;
-            map.link::<1>(t, 4, 1)?;
-            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+    fn geom_open_face_no_b2_image() -> anyhow::Result<()> {
+        // new_vids = lds
+        {
+            let map: CMap3<f64> = CMap3::new(8);
+            atomically_with_err(|t| {
+                // map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
-            map.link::<1>(t, 5, 6)?;
-            map.link::<1>(t, 6, 7)?;
-            // map.link::<1>(t, 7, 8)?;
-            map.link::<1>(t, 8, 5)?;
-            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-            map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-            map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                // map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
-            Ok(())
-        })?;
+                Ok(())
+            })?;
 
-        atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+            atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
 
-        assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-        assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
-        assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-        assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
-        assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+        }
+        // new_vids = rds
+        {
+            let map: CMap3<f64> = CMap3::new(8);
+            atomically_with_err(|t| {
+                // map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                // map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+                Ok(())
+            })?;
+
+            atomically_with_err(|t| map.sew::<3>(t, 8, 1))?;
+
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+        }
 
         Ok(())
     }
 
     #[test]
-    fn topo_closed_face_no_b2_image() -> anyhow::Result<()> {
+    fn geom_closed_face_no_b2_image() -> anyhow::Result<()> {
+        // new_vids = lds
+        {
+            let map: CMap3<f64> = CMap3::new(8);
+            atomically_with_err(|t| {
+                map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+                Ok(())
+            })?;
+
+            atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+        }
+        // new_vids = rds
+        {
+            let map: CMap3<f64> = CMap3::new(8);
+            atomically_with_err(|t| {
+                map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+                Ok(())
+            })?;
+
+            atomically_with_err(|t| map.sew::<3>(t, 8, 1))?;
+
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn geom_b2_image() -> anyhow::Result<()> {
+        // new_vids = lds
+        {
+            let map: CMap3<f64> = CMap3::new(12);
+            atomically_with_err(|t| {
+                map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.link::<2>(t, 1, 9)?;
+                map.link::<2>(t, 2, 10)?;
+                map.link::<2>(t, 3, 11)?;
+                map.link::<2>(t, 4, 12)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+                Ok(())
+            })?;
+
+            atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+        }
+        // new_vids = rds
+        {
+            let map: CMap3<f64> = CMap3::new(12);
+            atomically_with_err(|t| {
+                map.link::<1>(t, 1, 2)?;
+                map.link::<1>(t, 2, 3)?;
+                map.link::<1>(t, 3, 4)?;
+                map.link::<1>(t, 4, 1)?;
+                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+
+                map.link::<1>(t, 5, 6)?;
+                map.link::<1>(t, 6, 7)?;
+                map.link::<1>(t, 7, 8)?;
+                map.link::<1>(t, 8, 5)?;
+                map.link::<2>(t, 5, 9)?;
+                map.link::<2>(t, 6, 10)?;
+                map.link::<2>(t, 7, 11)?;
+                map.link::<2>(t, 8, 12)?;
+                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+
+                Ok(())
+            })?;
+
+            atomically_with_err(|t| map.sew::<3>(t, 8, 1))?;
+
+            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn geom_missing_data() -> anyhow::Result<()> {
         let map: CMap3<f64> = CMap3::new(8);
         atomically_with_err(|t| {
             map.link::<1>(t, 1, 2)?;
@@ -1388,64 +1578,27 @@ mod three_sew {
             map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
             map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
             map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            // map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
             map.link::<1>(t, 5, 6)?;
             map.link::<1>(t, 6, 7)?;
             map.link::<1>(t, 7, 8)?;
             map.link::<1>(t, 8, 5)?;
             map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-            map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+            // map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
             map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
             map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
             Ok(())
         })?;
 
-        atomically_with_err(|t| map.sew::<3>(t, 1, 8))?;
+        assert!(
+            atomically_with_err(|t| map.sew::<3>(t, 1, 8)).is_err_and(|e| matches!(
+                e,
+                SewError::FailedAttributeOp(AttributeError::InsufficientData(_, _))
+            ))
+        );
 
-        assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-        assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-        assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-        assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
-
-        Ok(())
-    }
-
-    #[test]
-    fn topo_b2_image() -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    #[test]
-    fn topo_errs() -> anyhow::Result<()> {
-        // todo!()
-        Ok(())
-    }
-
-    // geometry
-    #[test]
-    fn geom_no_orbit() -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    #[test]
-    fn geom_no_b2_image() -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    #[test]
-    fn geom_no_b1_image() -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    #[test]
-    fn geom_full_orbit() -> anyhow::Result<()> {
-        Ok(())
-    }
-
-    #[test]
-    fn geom_missing_data() -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -1480,9 +1633,6 @@ mod three_sew {
         Ok(())
     }
 }
-
-#[test]
-fn three_sew() {}
 
 // --- PARALLEL
 
