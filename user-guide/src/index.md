@@ -46,7 +46,7 @@ You can add `honeycomb` as a dependency of your project by adding the following 
 # [dependencies]
 honeycomb = {
   git = "https://github.com/LIHPC-Computational-Geometry/honeycomb",
-  tag = "0.9.0" # it is highly encouraged to pin version using a tag or a revision
+  tag = "0.10.1" # it is highly encouraged to pin version using a tag or a revision
 }
 ```
 
@@ -54,9 +54,9 @@ Alternatively, you can add the sub-crates that are currently published on crates
 
 ```toml
 # [dependencies]
-honeycomb-core = "0.9.0"
-honeycomb-kernels = "0.9.0"
-honeycomb-render = "0.9.0"
+honeycomb-core    = "0.10.1"
+honeycomb-kernels = "0.10.1"
+honeycomb-render  = "0.10.1"
 ```
 
 Note that the documentation hosted on GitHub corresponds to the master branch.
