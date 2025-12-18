@@ -179,37 +179,41 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         dart_id: DartIdType,
     ) -> Result<VertexIdType, StmError> {
-        AUXILIARIES.with(|cell| {
-            let (pending, marked) = &mut *cell.borrow_mut();
-            // clear from previous computations
-            pending.clear();
-            marked.clear();
-            // initialize
-            pending.push_front(dart_id);
-            marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
+        if let Some(ref vids) = self.vertex_ids {
+            vids[dart_id as usize].read(t)
+        } else {
+            AUXILIARIES.with(|cell| {
+                let (pending, marked) = &mut *cell.borrow_mut();
+                // clear from previous computations
+                pending.clear();
+                marked.clear();
+                // initialize
+                pending.push_front(dart_id);
+                marked.insert(NULL_DART_ID); // we don't want to include the null dart in the orbit
 
-            let mut min = dart_id;
+                let mut min = dart_id;
 
-            while let Some(d) = pending.pop_front() {
-                if marked.insert(d) {
-                    min = min.min(d);
-                    let (b0, b2, b3) = (
-                        self.beta_tx::<0>(t, d)?, // ?
-                        self.beta_tx::<2>(t, d)?,
-                        self.beta_tx::<3>(t, d)?,
-                    );
-                    // B1oB2, B2oB0, B1oB3, B3oB0, B2oB3, B3oB2
-                    pending.push_back(self.beta_tx::<1>(t, b2)?); // B1oB2
-                    pending.push_back(self.beta_tx::<1>(t, b3)?); // B1oB3
-                    pending.push_back(self.beta_tx::<2>(t, b3)?); // B2oB3
-                    pending.push_back(self.beta_tx::<2>(t, b0)?); // B2oB0
-                    pending.push_back(self.beta_tx::<3>(t, b0)?); // B3oB0
-                    pending.push_back(self.beta_tx::<3>(t, b2)?); // B3oB2
+                while let Some(d) = pending.pop_front() {
+                    if marked.insert(d) {
+                        min = min.min(d);
+                        let (b0, b2, b3) = (
+                            self.beta_tx::<0>(t, d)?, // ?
+                            self.beta_tx::<2>(t, d)?,
+                            self.beta_tx::<3>(t, d)?,
+                        );
+                        // B1oB2, B2oB0, B1oB3, B3oB0, B2oB3, B3oB2
+                        pending.push_back(self.beta_tx::<1>(t, b2)?); // B1oB2
+                        pending.push_back(self.beta_tx::<1>(t, b3)?); // B1oB3
+                        pending.push_back(self.beta_tx::<2>(t, b3)?); // B2oB3
+                        pending.push_back(self.beta_tx::<2>(t, b0)?); // B2oB0
+                        pending.push_back(self.beta_tx::<3>(t, b0)?); // B3oB0
+                        pending.push_back(self.beta_tx::<3>(t, b2)?); // B3oB2
+                    }
                 }
-            }
 
-            Ok(min)
-        })
+                Ok(min)
+            })
+        }
     }
 
     /// Compute the ID of the edge a given dart is part of.
