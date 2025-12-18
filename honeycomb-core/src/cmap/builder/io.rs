@@ -207,6 +207,7 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 pub fn build_3d_from_cmap_file<T: CoordsFloat>(
     f: CMapFile,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
+    enable_vid_cache: bool,
 ) -> Result<CMap3<T>, BuilderError> {
     if f.meta.1 != 3 {
         // mismatched dim
@@ -214,7 +215,7 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
             "mismatch between requested dimension and header",
         ));
     }
-    let map = CMap3::new_with_undefined_attributes(f.meta.2, manager);
+    let map = CMap3::from_data(f.meta.2, manager, enable_vid_cache);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();
@@ -286,6 +287,8 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
                 .expect("E: unused dart has non-null beta images");
         }
     }
+
+    map.update_vertex_id_cache();
 
     if let Some(vertices) = f.vertices {
         for l in vertices.trim().lines() {

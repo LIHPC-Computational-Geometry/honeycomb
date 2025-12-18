@@ -2,7 +2,9 @@
 //!
 //! This module contains utility code for the [`CMap3`] structure.
 
-use crate::cmap::{CMap3, DartIdType};
+use rayon::prelude::*;
+
+use crate::cmap::{CMap3, DartIdType, OrbitPolicy};
 use crate::geometry::CoordsFloat;
 use crate::stm::atomically;
 
@@ -38,5 +40,19 @@ impl<T: CoordsFloat> CMap3<T> {
             self.betas[(3, dart_id)].write(t, b3)?;
             Ok(())
         });
+    }
+
+    pub fn update_vertex_id_cache(&self) {
+        if let Some(ref vids) = self.vertex_ids {
+            (1..self.n_darts() as DartIdType)
+                .into_par_iter()
+                .for_each(|d| {
+                    let min = self
+                        .orbit(OrbitPolicy::Vertex, d)
+                        .min()
+                        .expect("E: unreachable");
+                    atomically(|t| vids[d as usize].write(t, min));
+                });
+        }
     }
 }

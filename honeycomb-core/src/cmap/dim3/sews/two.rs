@@ -2,7 +2,7 @@
 
 use crate::{
     attributes::{AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, SewError},
+    cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, SewError, VertexIdType},
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
@@ -24,11 +24,47 @@ impl<T: CoordsFloat> CMap3<T> {
         let eid_l = self.edge_id_tx(t, ld)?;
         let eid_r = self.edge_id_tx(t, rd)?;
         // (lhs/b1rhs) vertex
-        let vid_l = self.vertex_id_tx(t, ld)?;
-        let vid_b1r = self.vertex_id_tx(t, b1rd)?;
+        let (vid_l, vid_b1r, new_orbit_lb1r) = {
+            let mut new_orbit = Vec::with_capacity(16);
+            let mut vid_l = ld;
+            let mut vid_r = b1rd;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, ld) {
+                let d = d?;
+                new_orbit.push(d);
+                if d < vid_l {
+                    vid_l = d;
+                }
+            }
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, b1rd) {
+                let d = d?;
+                new_orbit.push(d);
+                if d < vid_r {
+                    vid_r = d;
+                }
+            }
+            (vid_l, vid_r, new_orbit)
+        };
         // (b1lhs/rhs) vertex
-        let vid_b1l = self.vertex_id_tx(t, b1ld)?;
-        let vid_r = self.vertex_id_tx(t, rd)?;
+        let (vid_b1l, vid_r, new_orbit_b1lr) = {
+            let mut new_orbit = Vec::with_capacity(16);
+            let mut vid_l = b1ld as VertexIdType;
+            let mut vid_r = rd as VertexIdType;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, b1ld) {
+                let d = d?;
+                new_orbit.push(d);
+                if d < vid_l {
+                    vid_l = d as VertexIdType;
+                }
+            }
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, rd) {
+                let d = d?;
+                new_orbit.push(d);
+                if d < vid_r {
+                    vid_r = d as VertexIdType;
+                }
+            }
+            (vid_l, vid_r, new_orbit)
+        };
 
         // check orientation
         if let (
@@ -68,37 +104,33 @@ impl<T: CoordsFloat> CMap3<T> {
         // merge vertex attributes depending on whether
         // - there was an existing orbit at each end
         // - there was an existing orbit on each side
-        if b1rd != NULL_DART_ID {
+        if b1rd != NULL_DART_ID && vid_l != vid_b1r {
+            let new_vid = vid_l.min(vid_b1r);
+            try_or_coerce!(self.vertices.merge(t, new_vid, vid_l, vid_b1r), SewError);
             try_or_coerce!(
-                self.vertices.merge(t, vid_l.min(vid_b1r), vid_l, vid_b1r),
+                self.attributes
+                    .merge_attributes(t, OrbitPolicy::Vertex, new_vid, vid_l, vid_b1r),
                 SewError
             );
-            try_or_coerce!(
-                self.attributes.merge_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_l.min(vid_b1r),
-                    vid_l,
-                    vid_b1r
-                ),
-                SewError
-            );
+            if let Some(ref vids) = self.vertex_ids {
+                for d in new_orbit_lb1r {
+                    vids[d as usize].write(t, new_vid)?;
+                }
+            }
         }
-        if b1ld != NULL_DART_ID {
+        if b1ld != NULL_DART_ID && vid_b1l != vid_r {
+            let new_vid = vid_b1l.min(vid_r);
+            try_or_coerce!(self.vertices.merge(t, new_vid, vid_b1l, vid_r), SewError);
             try_or_coerce!(
-                self.vertices.merge(t, vid_b1l.min(vid_r), vid_b1l, vid_r),
+                self.attributes
+                    .merge_attributes(t, OrbitPolicy::Vertex, new_vid, vid_b1l, vid_r),
                 SewError
             );
-            try_or_coerce!(
-                self.attributes.merge_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_b1l.min(vid_r),
-                    vid_b1l,
-                    vid_r
-                ),
-                SewError
-            );
+            if let Some(ref vids) = self.vertex_ids {
+                for d in new_orbit_b1lr {
+                    vids[d as usize].write(t, new_vid)?;
+                }
+            }
         }
 
         Ok(())
@@ -118,8 +150,48 @@ impl<T: CoordsFloat> CMap3<T> {
         try_or_coerce!(self.two_unlink(t, ld), SewError);
 
         let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
-        let (vid_l_newl, vid_l_newr) = (self.vertex_id_tx(t, ld)?, self.vertex_id_tx(t, b1rd)?);
-        let (vid_r_newl, vid_r_newr) = (self.vertex_id_tx(t, b1ld)?, self.vertex_id_tx(t, rd)?);
+        let (vid_l_newl, vid_l_newr, new_l_orbit_l, new_l_orbit_r) = {
+            let mut new_l_orbit = Vec::with_capacity(16);
+            let mut vid_l_new = ld as VertexIdType;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, ld) {
+                let d = d?;
+                new_l_orbit.push(d);
+                if d < vid_l_new {
+                    vid_l_new = d as VertexIdType;
+                }
+            }
+            let mut new_r_orbit = Vec::with_capacity(16);
+            let mut vid_r_new = b1rd as VertexIdType;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, b1rd) {
+                let d = d?;
+                new_r_orbit.push(d);
+                if d < vid_r_new {
+                    vid_r_new = d as VertexIdType;
+                }
+            }
+            (vid_l_new, vid_r_new, new_l_orbit, new_r_orbit)
+        };
+        let (vid_r_newl, vid_r_newr, new_r_orbit_l, new_r_orbit_r) = {
+            let mut new_l_orbit = Vec::with_capacity(16);
+            let mut vid_l_new = b1ld as VertexIdType;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, b1ld) {
+                let d = d?;
+                new_l_orbit.push(d);
+                if d < vid_l_new {
+                    vid_l_new = d as VertexIdType;
+                }
+            }
+            let mut new_r_orbit = Vec::with_capacity(16);
+            let mut vid_r_new = rd as VertexIdType;
+            for d in self.orbit_tx(t, OrbitPolicy::Vertex, rd) {
+                let d = d?;
+                new_r_orbit.push(d);
+                if d < vid_r_new {
+                    vid_r_new = d as VertexIdType;
+                }
+            }
+            (vid_l_new, vid_r_new, new_l_orbit, new_r_orbit)
+        };
 
         // split edge attributes
         try_or_coerce!(
@@ -134,7 +206,7 @@ impl<T: CoordsFloat> CMap3<T> {
         );
 
         // split vertex attributes depending on whether two distinct orbits were formed by unlink
-        if b1rd != NULL_DART_ID && vid_l_newl != vid_r_newr {
+        if b1rd != NULL_DART_ID && vid_l_newl != vid_l_newr {
             try_or_coerce!(
                 self.vertices
                     .split(t, vid_l_newl, vid_l_newr, vid_l_newl.min(vid_l_newr)),
@@ -150,6 +222,14 @@ impl<T: CoordsFloat> CMap3<T> {
                 ),
                 SewError
             );
+            if let Some(ref vids) = self.vertex_ids {
+                for d in new_l_orbit_l {
+                    vids[d as usize].write(t, vid_l_newl)?;
+                }
+                for d in new_l_orbit_r {
+                    vids[d as usize].write(t, vid_l_newr)?;
+                }
+            }
         }
         if b1ld != NULL_DART_ID && vid_r_newl != vid_r_newr {
             try_or_coerce!(
@@ -167,6 +247,14 @@ impl<T: CoordsFloat> CMap3<T> {
                 ),
                 SewError
             );
+            if let Some(ref vids) = self.vertex_ids {
+                for d in new_r_orbit_l {
+                    vids[d as usize].write(t, vid_r_newl)?;
+                }
+                for d in new_r_orbit_r {
+                    vids[d as usize].write(t, vid_r_newr)?;
+                }
+            }
         }
 
         Ok(())
