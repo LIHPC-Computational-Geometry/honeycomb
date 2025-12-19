@@ -8,9 +8,10 @@
 //! - i-cell computations
 
 use std::cell::RefCell;
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use rayon::prelude::*;
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::cmap::{
     CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
@@ -25,7 +26,7 @@ thread_local! {
     static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new(
         (
             VecDeque::with_capacity(10),
-            HashSet::with_capacity(10),
+            HashSet::default(),
         )
     );
 }

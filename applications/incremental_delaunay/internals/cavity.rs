@@ -1,7 +1,4 @@
-use std::{
-    cell::Cell,
-    collections::{HashMap, HashSet},
-};
+use std::cell::Cell;
 
 use honeycomb::{
     core::{
@@ -16,6 +13,7 @@ use honeycomb::{
     },
     stm::TransactionError,
 };
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use smallvec::{SmallVec, smallvec};
 
 use super::compute_tet_orientation;
@@ -211,9 +209,8 @@ pub fn map_cavity_3d<T: CoordsFloat>(
     map: &CMap3<T>,
     cavity: &Cavity3<T>,
 ) -> StmClosureResult<(CavityBoundary3, CavityInternal3)> {
-    let mut boundary_faces: HashMap<FaceIdType, [DartIdType; 3]> =
-        HashMap::with_capacity(cavity.domain.len());
-    let mut cavity_internals = CavityInternal3::with_capacity(cavity.domain.len());
+    let mut boundary_faces: HashMap<FaceIdType, [DartIdType; 3]> = HashMap::default();
+    let mut cavity_internals = CavityInternal3::default();
     for &vol in &cavity.domain {
         let d = vol as DartIdType;
         let b0d = map.beta_tx::<0>(t, d)?;
@@ -250,7 +247,7 @@ pub fn map_cavity_3d<T: CoordsFloat>(
 
     // build the cavity adjacency graph
 
-    let mut cavity_map = CavityBoundary3::with_capacity(boundary_faces.len());
+    let mut cavity_map = CavityBoundary3::default();
     let mut buffer = Vec::with_capacity(16);
     for (&f, &[d1, d2, d3]) in boundary_faces.iter() {
         let mut d1_neighbor = NULL_DART_ID;

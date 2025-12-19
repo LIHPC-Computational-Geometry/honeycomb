@@ -208,7 +208,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "applications"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "bindgen",
  "cfg-if",
@@ -221,6 +221,7 @@ dependencies = [
  "rand 0.10.0-rc.5",
  "rayon",
  "regex",
+ "rustc-hash 2.1.1",
  "smallvec 2.0.0-alpha.12",
  "thiserror 2.0.17",
  "tikv-jemallocator",
@@ -2601,7 +2602,7 @@ checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 
 [[package]]
 name = "honeycomb"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "honeycomb-core",
  "honeycomb-kernels",
@@ -2611,7 +2612,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-core"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "downcast-rs 2.0.2",
@@ -2620,6 +2621,7 @@ dependencies = [
  "loom",
  "num-traits",
  "rayon",
+ "rustc-hash 2.1.1",
  "rustversion",
  "thiserror 2.0.17",
  "vtkio",
@@ -2627,7 +2629,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-kernels"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "honeycomb-core",
  "num-traits",
@@ -2640,7 +2642,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-render"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "bevy",
  "bevy_egui",

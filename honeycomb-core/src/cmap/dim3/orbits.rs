@@ -3,7 +3,9 @@
 //! This module contains all code used to model orbits, a notion defined
 //! along the structure of combinatorial maps.
 
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
+
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::cmap::{CMap3, DartIdType, NULL_DART_ID, OrbitPolicy, try_from_fn};
 use crate::geometry::CoordsFloat;
@@ -42,7 +44,7 @@ impl<T: CoordsFloat> CMap3<T> {
         dart_id: DartIdType,
     ) -> impl Iterator<Item = DartIdType> {
         let mut pending = VecDeque::new();
-        let mut marked: HashSet<DartIdType> = HashSet::new();
+        let mut marked: HashSet<DartIdType> = HashSet::default();
         pending.push_back(dart_id);
         marked.insert(NULL_DART_ID);
         marked.insert(dart_id); // we're starting here, so we mark it beforehand
@@ -151,7 +153,7 @@ impl<T: CoordsFloat> CMap3<T> {
         dart_id: DartIdType,
     ) -> impl Iterator<Item = StmClosureResult<DartIdType>> {
         let mut pending = VecDeque::new();
-        let mut marked: HashSet<DartIdType> = HashSet::new();
+        let mut marked: HashSet<DartIdType> = HashSet::default();
         pending.push_back(dart_id);
         marked.insert(NULL_DART_ID);
         marked.insert(dart_id); // we're starting here, so we mark it beforehand
