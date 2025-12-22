@@ -208,7 +208,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "applications"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "bindgen",
  "cfg-if",
@@ -2106,9 +2106,9 @@ dependencies = [
 
 [[package]]
 name = "fast-stm"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dae779d99db6e0377683038f15030502dc0810d5663befa25cedb9084f41348"
+checksum = "9faedd707b7a4c22c4b711417b7750db4e2539a909ecacafc79dfd24dd77b428"
 dependencies = [
  "cfg-if",
  "parking_lot",
@@ -2601,7 +2601,7 @@ checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 
 [[package]]
 name = "honeycomb"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "honeycomb-core",
  "honeycomb-kernels",
@@ -2611,7 +2611,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-core"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "downcast-rs 2.0.2",
@@ -2627,7 +2627,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-kernels"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "honeycomb-core",
  "num-traits",
@@ -2640,7 +2640,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-render"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "bevy",
  "bevy_egui",
