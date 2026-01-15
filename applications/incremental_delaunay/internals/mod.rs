@@ -4,7 +4,7 @@ mod delaunay;
 use std::{
     cell::Cell,
     collections::HashSet,
-    sync::atomic::{AtomicUsize, Ordering},
+    sync::atomic::{AtomicU32, AtomicUsize, Ordering},
     time::Instant,
 };
 
@@ -13,10 +13,12 @@ use honeycomb::{
     core::{
         cmap::{CMap3, CMapBuilder, DartIdType, VolumeIdType},
         geometry::{CoordsFloat, Vertex3},
-        stm::{Transaction, abort, atomically_with_err, try_or_coerce},
+        stm::{
+            Transaction, abort, atomically_with_err, profile_atomically_with_err, try_or_coerce,
+        },
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{StmClosureResult, StmError, TransactionClosureResult, retry},
+    stm::{StmClosureResult, StmError, TransactionClosureResult, TransactionTallies, retry},
 };
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
@@ -132,6 +134,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 T::from(lz).unwrap(),
             ])
             .split_cells(true)
+            // .enable_vertex_id_cache(true)
             .build()
             .unwrap()
     };
@@ -184,13 +187,17 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
 
     instant = Instant::now();
     let counters: Vec<AtomicUsize> = (0..n_threads).map(|_| AtomicUsize::new(0)).collect();
+    let ts: Vec<CumulativeTallies> = (0..n_threads)
+        .map(|_| CumulativeTallies::default())
+        .collect();
     points.into_par_iter().for_each(|p| {
         // points.par_chunks(n_points.div_ceil(4)).for_each(|c| {
         // c.into_iter().for_each(|&p| {
+        let mut tallies = TransactionTallies::default();
+        let tid = rayon::current_thread_index().expect("E: unreachable");
         loop {
-            match atomically_with_err(|t| insert_points(t, &map, p)) {
+            match profile_atomically_with_err(&mut tallies, |t| insert_points(t, &map, p)) {
                 Ok(()) => {
-                    let tid = rayon::current_thread_index().expect("E: unreachable");
                     counters[tid].fetch_add(1, Ordering::Relaxed);
                     break;
                 }
@@ -212,6 +219,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 }
             }
         }
+        ts[tid].add_assign(tallies);
         // });
     });
     let time = instant.elapsed().as_secs_f32();
@@ -220,6 +228,23 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         " insert | {count:>8} | {:>8.3e} | {:>8.3e}",
         time,
         count as f32 / time,
+    );
+    let tallies = ts.into_iter().fold(CumulativeTallies::default(), |a, b| {
+        a.add_assign(b.into());
+        a
+    });
+    println!(
+        "unique transaction # | # of attempts | # of retry | # of error | # of reads | # of redundant read | # of writes"
+    );
+    println!(
+        "{:>20} | {:>13} | {:>10} | {:>10} | {:>10} | {:>19} | {:>11}",
+        n_points,
+        tallies.n_attempts.load(Ordering::Relaxed),
+        tallies.n_retry.load(Ordering::Relaxed),
+        tallies.n_error.load(Ordering::Relaxed),
+        tallies.n_read.load(Ordering::Relaxed),
+        tallies.n_redundant_read.load(Ordering::Relaxed),
+        tallies.n_write.load(Ordering::Relaxed),
     );
 
     map
@@ -467,4 +492,39 @@ fn check_tet_orientation<T: CoordsFloat>(
     assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
     assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
     Ok(())
+}
+
+#[derive(Default)]
+struct CumulativeTallies {
+    n_attempts: AtomicU32,
+    n_retry: AtomicU32,
+    n_error: AtomicU32,
+    n_read: AtomicU32,
+    n_redundant_read: AtomicU32,
+    n_write: AtomicU32,
+}
+
+impl CumulativeTallies {
+    fn add_assign(&self, rhs: TransactionTallies) {
+        self.n_attempts.fetch_add(rhs.n_attempts, Ordering::Relaxed);
+        self.n_retry.fetch_add(rhs.n_retry, Ordering::Relaxed);
+        self.n_error.fetch_add(rhs.n_error, Ordering::Relaxed);
+        self.n_read.fetch_add(rhs.n_read, Ordering::Relaxed);
+        self.n_redundant_read
+            .fetch_add(rhs.n_redundant_read, Ordering::Relaxed);
+        self.n_write.fetch_add(rhs.n_write, Ordering::Relaxed);
+    }
+}
+
+impl From<CumulativeTallies> for TransactionTallies {
+    fn from(value: CumulativeTallies) -> Self {
+        Self {
+            n_attempts: value.n_attempts.load(Ordering::Relaxed),
+            n_retry: value.n_retry.load(Ordering::Relaxed),
+            n_error: value.n_error.load(Ordering::Relaxed),
+            n_read: value.n_read.load(Ordering::Relaxed),
+            n_redundant_read: value.n_redundant_read.load(Ordering::Relaxed),
+            n_write: value.n_write.load(Ordering::Relaxed),
+        }
+    }
 }

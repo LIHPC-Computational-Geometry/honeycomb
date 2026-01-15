@@ -46,7 +46,8 @@ thiserror   = "2.0.11"
 # core
 criterion     = "0.7.0"
 downcast-rs   = "2.0.1"
-fast-stm      = "0.6.1"
+# fast-stm      = "0.6.0"
+fast-stm      = { git ="https://github.com/imrn99/fast-stm", rev = "a03991d324aa33d3d427ba8c53b080d8b8f7825d", features = [ "profiling" ] }
 iai-callgrind = "0.16.1"
 loom          = "0.7.2"
 num-traits    = "0.2.19"
@@ -54,12 +55,12 @@ vtkio         = { version = "0.7.0-rc1", default-features = false }
 
 # applications
 bindgen           = "0.72.1"
-clap              = "4.5.54"
+clap              = "4.5.52"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.18.1"
 hwlocality        = "1.0.0-alpha.7"
 nalgebra          = "0.34.1"
-rand              = "0.10.0-rc.6"
+rand              = "0.10.0-rc.5"
 regex             = "1.12.2"
 smallvec          = "2.0.0-alpha.12"
 tikv-jemallocator = "0.6.1"

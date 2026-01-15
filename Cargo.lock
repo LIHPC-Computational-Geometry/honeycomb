@@ -2107,8 +2107,7 @@ dependencies = [
 [[package]]
 name = "fast-stm"
 version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9faedd707b7a4c22c4b711417b7750db4e2539a909ecacafc79dfd24dd77b428"
+source = "git+https://github.com/imrn99/fast-stm?rev=a03991d324aa33d3d427ba8c53b080d8b8f7825d#a03991d324aa33d3d427ba8c53b080d8b8f7825d"
 dependencies = [
  "cfg-if",
  "parking_lot",
