@@ -3,6 +3,7 @@ use honeycomb::core::{
     geometry::{CoordsFloat, Vertex2},
 };
 use rayon::prelude::*;
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::internals::{
     helpers::{dart_origin, is_regular},
@@ -103,7 +104,7 @@ fn find_consecutive_irregular_chains<T: CoordsFloat>(
     map: &CMap2<T>,
     irregular_darts: &[u32],
 ) -> Vec<Vec<u32>> {
-    let mut processed = std::collections::HashSet::new();
+    let mut processed = HashSet::default();
     let mut chains = Vec::new();
 
     for &dart in irregular_darts {

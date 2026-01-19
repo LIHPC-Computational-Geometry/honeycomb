@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use honeycomb::{
     core::{
         cmap::{CMap2, NULL_DART_ID},
@@ -9,6 +7,7 @@ use honeycomb::{
     stm::{StmError, Transaction, TransactionClosureResult, atomically},
 };
 use rayon::prelude::*;
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::internals::{
     helpers::*,
@@ -207,7 +206,7 @@ fn parallel_refine_with_pairing<T: CoordsFloat>(
 
 /// Sanitizes the balance pile to remove duplicates and keep only one representative from each sibling group
 fn sanitize_balance_pile<T: CoordsFloat>(map: &CMap2<T>, balance_pile: &Vec<u32>) -> Vec<u32> {
-    let mut processed_faces = HashSet::new();
+    let mut processed_faces = HashSet::default();
     let mut sanitized = Vec::new();
 
     for &face_dart in balance_pile {

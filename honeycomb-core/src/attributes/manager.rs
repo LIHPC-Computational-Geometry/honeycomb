@@ -3,7 +3,9 @@
 //! this module contains all code used to implement a manager struct, used to handle generic
 //! attributes embedded in a given combinatorial map.
 
-use std::{any::TypeId, collections::HashMap};
+use std::any::TypeId;
+
+use rustc_hash::FxHashMap as HashMap;
 
 use crate::attributes::{
     AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,

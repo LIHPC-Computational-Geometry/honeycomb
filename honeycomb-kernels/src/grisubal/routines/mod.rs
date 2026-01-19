@@ -33,9 +33,8 @@ pub(crate) use insert_new_edges::*;
 // optional clipping routines
 pub(crate) use clip::{clip_left, clip_right};
 
-use std::collections::HashMap;
-
 use honeycomb_core::cmap::{DartIdType, EdgeIdType};
+use rustc_hash::FxHashMap as HashMap;
 
 use crate::grisubal::model::GeometryVertex;
 

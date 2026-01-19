@@ -1,10 +1,11 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use coupe::nalgebra::Matrix5;
 use honeycomb::{
     prelude::{CMap3, CoordsFloat, DartIdType, NULL_VOLUME_ID, Vertex3, VolumeIdType},
     stm::{Transaction, TransactionClosureResult, abort},
 };
+use rustc_hash::FxHashSet as HashSet;
 
 use super::cavity::{Cavity3, CavityError};
 
@@ -28,7 +29,7 @@ pub fn compute_delaunay_cavity_3d<T: CoordsFloat>(
     let mut domain = Vec::new();
     let mut queue = VecDeque::new();
     queue.push_back(vol_id);
-    let mut marked = HashSet::new();
+    let mut marked = HashSet::default();
     marked.insert(NULL_VOLUME_ID);
 
     while let Some(vid) = queue.pop_front() {

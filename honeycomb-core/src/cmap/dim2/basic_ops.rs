@@ -8,9 +8,10 @@
 //! - i-cell computations
 
 use std::cell::RefCell;
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use rayon::prelude::*;
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType};
 use crate::geometry::CoordsFloat;
@@ -20,7 +21,7 @@ use crate::stm::{StmClosureResult, Transaction, atomically};
 // not applied to orbit currently bc they are lazily onsumed, and therefore require dedicated
 // instances to be robust
 thread_local! {
-    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::with_capacity(10)));
+    static AUXILIARIES: RefCell<(VecDeque<DartIdType>, HashSet<DartIdType>)> = RefCell::new((VecDeque::with_capacity(10), HashSet::default()));
 }
 
 /// **Beta-related methods**

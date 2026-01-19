@@ -75,6 +75,7 @@ hwlocality = { workspace = true, optional = true }
 nalgebra   = { workspace = true }
 rand       = { workspace = true, features = ["small_rng"] }
 rayon      = { workspace = true }
+rustc-hash = { workspace = true }
 smallvec   = { workspace = true }
 thiserror  = { workspace = true }
 vtkio      = { workspace = true }

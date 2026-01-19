@@ -3,7 +3,6 @@ mod delaunay;
 
 use std::{
     cell::Cell,
-    collections::HashSet,
     sync::atomic::{AtomicUsize, Ordering},
     time::Instant,
 };
@@ -20,6 +19,7 @@ use honeycomb::{
 };
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
+use rustc_hash::FxHashSet as HashSet;
 
 use cavity::{
     CavityError, DART_BLOCK_START, carve_cavity_3d, extend_to_starshaped_cavity_3d,
@@ -374,7 +374,7 @@ fn locate_containing_tet<T: CoordsFloat>(
     }
 
     // TODO: find a better way to handle this
-    let mut visited = HashSet::with_capacity(16);
+    let mut visited = HashSet::default();
     let mut count = 0;
     let max_count = map.n_darts() / 12;
     let mut count_visit = 0;

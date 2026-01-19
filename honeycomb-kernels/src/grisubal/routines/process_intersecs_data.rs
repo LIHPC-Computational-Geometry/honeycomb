@@ -6,10 +6,9 @@
 
 // ------ IMPORTS
 
-use std::collections::HashMap;
-
 use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
+use rustc_hash::FxHashMap as HashMap;
 
 use super::{DartSlices, IntersectionsPerEdge};
 
@@ -20,7 +19,7 @@ pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
     intersection_metadata: Vec<(DartIdType, T)>,
 ) -> (IntersectionsPerEdge<T>, DartSlices) {
     // group intersection data per edge, and associate an ID to each
-    let mut edge_intersec: HashMap<EdgeIdType, Vec<(usize, T, DartIdType)>> = HashMap::new();
+    let mut edge_intersec: HashMap<EdgeIdType, Vec<(usize, T, DartIdType)>> = HashMap::default();
     intersection_metadata
         .into_iter()
         .filter(|(_, t)| !t.is_nan())
