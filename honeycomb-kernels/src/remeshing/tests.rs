@@ -1,10 +1,9 @@
-use std::collections::HashSet;
-
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeStorage, UnknownAttributeStorage},
     cmap::{CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy},
     stm::{atomically, atomically_with_err},
 };
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::{
     grisubal::Clip,
@@ -378,7 +377,7 @@ mod capture_and_classify {
 
         classify_capture(&map).unwrap();
 
-        let mut set = HashSet::new();
+        let mut set = HashSet::default();
         map.iter_edges()
             .filter_map(|e| map.force_read_attribute::<EdgeAnchor>(e))
             .for_each(|a| {
