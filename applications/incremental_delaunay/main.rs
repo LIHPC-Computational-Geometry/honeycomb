@@ -36,6 +36,7 @@ fn main() {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_bench<T: CoordsFloat>(
     lx: f64,
     ly: f64,
