@@ -31,6 +31,7 @@ thread_local! {
     pub static LAST_INSERTED: Cell<VolumeIdType> = const { Cell::new(1) };
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn delaunay_box_3d<T: CoordsFloat>(
     lx: f64,
     ly: f64,
@@ -81,7 +82,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         .partition(&mut partition, (ps.as_slice(), weights))
         .unwrap();
 
-        let mut tmp: Vec<_> = tmp.into_iter().zip(partition.into_iter()).collect();
+        let mut tmp: Vec<_> = tmp.into_iter().zip(partition).collect();
         tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
 
         tmp.into_iter().map(|v| v.0).collect()
@@ -106,7 +107,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         .partition(&mut partition, (ps.as_slice(), weights))
         .unwrap();
 
-        let mut tmp: Vec<_> = all_points.into_iter().zip(partition.into_iter()).collect();
+        let mut tmp: Vec<_> = all_points.into_iter().zip(partition).collect();
         tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
 
         tmp.into_iter().map(|v| v.0).collect()
@@ -235,7 +236,7 @@ fn insert_points<T: CoordsFloat>(
     } else {
         LAST_INSERTED.get()
     };
-    let res = locate_containing_tet(t, &map, start, p);
+    let res = locate_containing_tet(t, map, start, p);
     if let Err(StmError::Retry) = res {
         abort(DelaunayError::CavityBuilding(
             // NOTE:
@@ -262,19 +263,19 @@ fn insert_points<T: CoordsFloat>(
     };
 
     #[cfg(debug_assertions)]
-    check_tet_orientation(t, &map, volume, p)?;
+    check_tet_orientation(t, map, volume, p)?;
 
     // compute cavity
-    let cavity = compute_delaunay_cavity_3d(t, &map, volume, p)?;
+    let cavity = compute_delaunay_cavity_3d(t, map, volume, p)?;
     // carve
-    let carved_cavity = try_or_coerce!(carve_cavity_3d(t, &map, cavity), DelaunayError);
+    let carved_cavity = try_or_coerce!(carve_cavity_3d(t, map, cavity), DelaunayError);
     // extend
     let cavity = try_or_coerce!(
-        extend_to_starshaped_cavity_3d(t, &map, carved_cavity),
+        extend_to_starshaped_cavity_3d(t, map, carved_cavity),
         DelaunayError
     );
     // rebuild
-    let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, &map, cavity), DelaunayError);
+    let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, map, cavity), DelaunayError);
     LAST_INSERTED.set(last_inserted);
     Ok(())
 }
@@ -426,7 +427,7 @@ fn sample_points<T: CoordsFloat>(
     };
 
     xs.into_iter()
-        .zip(ys.into_iter().zip(zs.into_iter()))
+        .zip(ys.into_iter().zip(zs))
         .map(|(x, (y, z))| {
             let x = T::from(x).unwrap();
             let y = T::from(y).unwrap();
@@ -462,9 +463,9 @@ fn check_tet_orientation<T: CoordsFloat>(
         let b2 = map.beta_tx::<2>(t, d)?;
         (b2, map.beta_tx::<1>(t, b2)?, map.beta_tx::<0>(t, b2)?)
     };
-    assert!(compute_tet_orientation(t, &map, f1, p)? > 0.0);
-    assert!(compute_tet_orientation(t, &map, f2, p)? > 0.0);
-    assert!(compute_tet_orientation(t, &map, f3, p)? > 0.0);
-    assert!(compute_tet_orientation(t, &map, f4, p)? > 0.0);
+    assert!(compute_tet_orientation(t, map, f1, p)? > 0.0);
+    assert!(compute_tet_orientation(t, map, f2, p)? > 0.0);
+    assert!(compute_tet_orientation(t, map, f3, p)? > 0.0);
+    assert!(compute_tet_orientation(t, map, f4, p)? > 0.0);
     Ok(())
 }
