@@ -1741,7 +1741,7 @@ dependencies = [
 [[package]]
 name = "coupe"
 version = "0.1.0"
-source = "git+https://github.com/LIHPC-Computational-Geometry/coupe#373ff8649bcc7d47e796c7ebee122a54a9267695"
+source = "git+https://github.com/LIHPC-Computational-Geometry/coupe#6abd08fefecbdb6abb5829a2b6b3b473fce55b18"
 dependencies = [
  "approx",
  "itertools 0.14.0",
