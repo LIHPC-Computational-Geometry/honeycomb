@@ -11,7 +11,7 @@ use honeycomb::{
         utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent},
     },
     prelude::{CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, SewError, Vertex2},
-    stm::{StmClosureResult, Transaction, abort, atomically, atomically_with_err, retry},
+    stm::{StmClosureResult, Transaction, abort, atomically, atomically_with_err, unwrap_or_retry},
 };
 use rayon::{iter::Either, prelude::*};
 
@@ -482,12 +482,10 @@ fn compute_diff_to_target<T: CoordsFloat>(
     target: f64,
 ) -> StmClosureResult<f64> {
     let (vid1, vid2) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, r)?);
-    let (v1, v2) =
-        if let (Some(v1), Some(v2)) = (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
-            (v1, v2)
-        } else {
-            retry()?
-        };
+    let (v1, v2) = (
+        unwrap_or_retry(map.read_vertex(t, vid1)?)?,
+        unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+    );
     Ok(((v2 - v1).norm().to_f64().unwrap() - target) / target)
 }
 
@@ -502,20 +500,8 @@ fn check_tri_orientation<T: CoordsFloat>(
     let vid2 = map.vertex_id_tx(t, b1)?;
     let b1b1 = map.beta_tx::<1>(t, b1)?;
     let vid3 = map.vertex_id_tx(t, b1b1)?;
-    let v1 = if let Ok(Some(v)) = map.read_vertex(t, vid1) {
-        v
-    } else {
-        return retry()?;
-    };
-    let v2 = if let Ok(Some(v)) = map.read_vertex(t, vid2) {
-        v
-    } else {
-        return retry()?;
-    };
-    let v3 = if let Ok(Some(v)) = map.read_vertex(t, vid3) {
-        v
-    } else {
-        return retry()?;
-    };
+    let v1 = unwrap_or_retry(map.read_vertex(t, vid1)?)?;
+    let v2 = unwrap_or_retry(map.read_vertex(t, vid2)?)?;
+    let v3 = unwrap_or_retry(map.read_vertex(t, vid3)?)?;
     Ok(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero())
 }

@@ -15,7 +15,7 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{StmClosureResult, StmError, TransactionClosureResult, retry},
+    stm::{TransactionClosureResult, unwrap_or_abort},
 };
 use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
@@ -236,15 +236,8 @@ fn insert_points<T: CoordsFloat>(
     } else {
         LAST_INSERTED.get()
     };
-    let res = locate_containing_tet(t, map, start, p);
-    if let Err(StmError::Retry) = res {
-        abort(DelaunayError::CavityBuilding(
-            // NOTE:
-            CavityError::InconsistentState("Topological vertices have missing coordinates"),
-        ))?;
-        unreachable!();
-    }
-    let volume = match res? {
+    let location = try_or_coerce!(locate_containing_tet(t, map, start, p), DelaunayError);
+    let volume = match location {
         LocateResult::Found(v) => v,
         LocateResult::ReachedBoundary => {
             abort(DelaunayError::CavityBuilding(
@@ -263,7 +256,7 @@ fn insert_points<T: CoordsFloat>(
     };
 
     #[cfg(debug_assertions)]
-    check_tet_orientation(t, map, volume, p)?;
+    try_or_coerce!(check_tet_orientation(t, map, volume, p), DelaunayError);
 
     // compute cavity
     let cavity = compute_delaunay_cavity_3d(t, map, volume, p)?;
@@ -286,30 +279,18 @@ pub fn compute_tet_orientation<T: CoordsFloat>(
     map: &CMap3<T>,
     (d1, d2, d3): (DartIdType, DartIdType, DartIdType),
     p: Vertex3<T>,
-) -> StmClosureResult<f64> {
+) -> TransactionClosureResult<f64, CavityError> {
     let v1 = {
         let vid = map.vertex_id_tx(t, d1)?;
-        if let Some(v) = map.read_vertex(t, vid)? {
-            v
-        } else {
-            return retry()?;
-        }
+        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
     let v2 = {
         let vid = map.vertex_id_tx(t, d2)?;
-        if let Some(v) = map.read_vertex(t, vid)? {
-            v
-        } else {
-            return retry()?;
-        }
+        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
     let v3 = {
         let vid = map.vertex_id_tx(t, d3)?;
-        if let Some(v) = map.read_vertex(t, vid)? {
-            v
-        } else {
-            return retry()?;
-        }
+        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
 
     let c1 = (v1 - p).to_f64().expect("E: unreachable");
@@ -334,13 +315,13 @@ fn locate_containing_tet<T: CoordsFloat>(
     map: &CMap3<T>,
     start: VolumeIdType,
     p: Vertex3<T>,
-) -> StmClosureResult<LocateResult> {
+) -> TransactionClosureResult<LocateResult, CavityError> {
     fn locate_next_tet<T: CoordsFloat>(
         t: &mut Transaction,
         map: &CMap3<T>,
         d: DartIdType,
         p: Vertex3<T>,
-    ) -> StmClosureResult<Option<DartIdType>> {
+    ) -> TransactionClosureResult<Option<DartIdType>, CavityError> {
         let face_darts = [
             d as DartIdType,
             { map.beta_tx::<2>(t, d)? },
@@ -443,7 +424,7 @@ fn check_tet_orientation<T: CoordsFloat>(
     map: &CMap3<T>,
     volume: VolumeIdType,
     p: Vertex3<T>,
-) -> StmClosureResult<()> {
+) -> TransactionClosureResult<(), CavityError> {
     let f1 = (
         volume as DartIdType,
         map.beta_tx::<1>(t, volume as DartIdType)?,
