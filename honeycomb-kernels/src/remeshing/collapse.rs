@@ -5,7 +5,7 @@ use honeycomb_core::{
         NULL_VERTEX_ID, SewError, VertexIdType,
     },
     geometry::CoordsFloat,
-    stm::{Transaction, TransactionClosureResult, abort, retry, try_or_coerce},
+    stm::{Transaction, TransactionClosureResult, abort, try_or_coerce, unwrap_or_retry},
 };
 
 use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor, is_orbit_orientation_consistent};
@@ -168,15 +168,11 @@ fn is_collapsible<T: CoordsFloat>(
     // first check anchor predicates
 
     let (l_vid, r_vid) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, b1l)?);
-    let (l_anchor, r_anchor, edge_anchor) = if let (Some(a1), Some(a2), Some(a3)) = (
-        map.read_attribute::<VertexAnchor>(t, l_vid)?,
-        map.read_attribute::<VertexAnchor>(t, r_vid)?,
-        map.read_attribute::<EdgeAnchor>(t, e)?,
-    ) {
-        (a1, a2, a3)
-    } else {
-        retry()?
-    };
+    let (l_anchor, r_anchor, edge_anchor) = (
+        unwrap_or_retry(map.read_attribute::<VertexAnchor>(t, l_vid)?)?,
+        unwrap_or_retry(map.read_attribute::<VertexAnchor>(t, r_vid)?)?,
+        unwrap_or_retry(map.read_attribute::<EdgeAnchor>(t, e)?)?,
+    );
 
     match AttributeUpdate::merge(l_anchor, r_anchor) {
         Ok(val) => {
