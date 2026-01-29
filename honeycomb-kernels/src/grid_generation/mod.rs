@@ -56,6 +56,7 @@ pub struct GridBuilder<const D: usize, T: CoordsFloat> {
     pub(crate) len_per_cell: Option<[T; D]>,
     pub(crate) lens: Option<[T; D]>,
     pub(crate) split_cells: bool,
+    pub(crate) enable_vid_cache: bool,
 }
 
 impl<const D: usize, T: CoordsFloat> Default for GridBuilder<D, T> {
@@ -67,6 +68,7 @@ impl<const D: usize, T: CoordsFloat> Default for GridBuilder<D, T> {
             len_per_cell: None,
             lens: None,
             split_cells: false,
+            enable_vid_cache: false,
         }
     }
 }
@@ -108,6 +110,18 @@ impl<const D: usize, T: CoordsFloat> GridBuilder<D, T> {
     #[must_use = "unused builder object"]
     pub fn split_cells(mut self, split: bool) -> Self {
         self.split_cells = split;
+        self
+    }
+
+    /// Enable usage of an internal vertex ID cache.
+    ///
+    /// By default, vertex IDs are recomputed at each call of the `vertex_id(_tx)` methods. By
+    /// enabling this cache, vertex IDs associated to darts are instead stored in a dedicated
+    /// collection, and updated on (un)sews. This can be useful for algorithm which frequently
+    /// use this data.
+    #[must_use = "unused builder object"]
+    pub fn enable_vertex_id_cache(mut self, enable: bool) -> Self {
+        self.enable_vid_cache = enable;
         self
     }
 
@@ -391,11 +405,12 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
     /// This method may panic if type casting goes wrong during parameters parsing.
     pub fn build(self) -> Result<CMap3<T>, GridBuilderError> {
         let split = self.split_cells;
+        let enable_vid_cache = self.enable_vid_cache;
         self.parse_3d().map(|(builder, origin, ns, lens)| {
             if split {
-                internals::build_3d_tetgrid(builder, origin, ns, lens)
+                internals::build_3d_tetgrid(builder, origin, ns, lens, enable_vid_cache)
             } else {
-                internals::build_3d_grid(builder, origin, ns, lens)
+                internals::build_3d_grid(builder, origin, ns, lens, enable_vid_cache)
             }
         })
     }
