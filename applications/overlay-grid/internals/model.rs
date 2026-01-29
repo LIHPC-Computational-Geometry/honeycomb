@@ -3,6 +3,7 @@ use honeycomb::core::{
     cmap::{CMap2, CMapBuilder, DartIdType, FaceIdType, OrbitPolicy},
     geometry::{CoordsFloat, Vertex2},
 };
+use rand::RngExt;
 use rustc_hash::FxHashSet as HashSet;
 use thiserror::Error;
 use vtkio::{
@@ -347,7 +348,6 @@ pub fn compute_overlapping_grid_size<T: CoordsFloat>(
 
 pub fn manual_grid<T: CoordsFloat>(nb_verts: usize) -> (CMap2<T>, Vec<Vertex2<T>>) {
     // Generate random geo vertices within the -10 to 10 box
-    use rand::Rng;
     let mut rng = rand::rng();
     let geo_verts: Vec<Vertex2<T>> = (0..nb_verts)
         .map(|_| {
