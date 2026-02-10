@@ -24,16 +24,16 @@ keywords = ["mesh", "meshing"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
-version = "0.10.1"
+version = "0.10.2"
 
 [workspace.dependencies]
 # members
-honeycomb         = { version = "0.10.1", path = "./honeycomb" }
-honeycomb-core    = { version = "0.10.1", path = "./honeycomb-core" }
-honeycomb-kernels = { version = "0.10.1", path = "./honeycomb-kernels" }
-honeycomb-render  = { version = "0.10.1", path = "./honeycomb-render" }
+honeycomb         = { version = "0.10.2", path = "./honeycomb" }
+honeycomb-core    = { version = "0.10.2", path = "./honeycomb-core" }
+honeycomb-kernels = { version = "0.10.2", path = "./honeycomb-kernels" }
+honeycomb-render  = { version = "0.10.2", path = "./honeycomb-render" }
 
-honeycomb-apps = { version = "0.10.1", path = "./applications" }
+honeycomb-apps = { version = "0.10.2", path = "./applications" }
 
 # common
 anyhow      = "1.0.101"
