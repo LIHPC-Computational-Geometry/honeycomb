@@ -60,7 +60,7 @@ coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/cou
 cudarc            = "0.19.2"
 hwlocality        = "1.0.0-alpha.7"
 nalgebra          = "0.34.1"
-rand              = "0.10.0-rc.8"
+rand              = "0.10.0"
 regex             = "1.12.3"
 smallvec          = "2.0.0-alpha.12"
 tikv-jemallocator = "0.6.1"
