@@ -7,4 +7,4 @@ iy  = "iy"
 nd  = "nd"
 
 [files]
-extend-exclude = ["benches/*.py", "*.svg"]
+extend-exclude = ["benches/*.py", "*.svg", "CHANGELOG.md"]
