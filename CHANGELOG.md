@@ -6,6 +6,53 @@
 
 ---
 
+## 0.10.2
+
+### Workspace
+
+*deps:*
+- bump crate-ci/typos from 1.40.0 to 1.42.3 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/407 
+- bump codecov/codecov-action from 5.5.1 to 5.5.2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/408
+- bump clap from 4.5.53 to 4.5.57 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/423
+- bump coupe from `20f0de6` to `6abd08f` by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/413
+- bump thiserror from 2.0.17 to 2.0.18 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/414
+- bump regex from 1.12.2 to 1.12.3 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/424
+- bump anyhow from 1.0.100 to 1.0.101 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/422
+- bump cudarc from 0.19.0 to 0.19.2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/421
+- update `fast-stm` to `0.6.2` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/415
+- update `rand` to `0.10.0` by @imrn99
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*refactor:*
+- replace standard hash collections with `rustc-hash` impls by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/412
+
+### Others
+
+#### applications
+
+<sup>examples and benchmarks</sup>
+
+*fix:*
+- update build script to handle missing path to `libcudart` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/418
+
+---
+
 ## 0.10.1
 
 ### Workspace
