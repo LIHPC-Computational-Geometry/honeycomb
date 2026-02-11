@@ -35,6 +35,10 @@ impl<T: CoordsFloat> Cavity3<T> {
     pub fn new(point: Vertex3<T>, domain: Vec<VolumeIdType>) -> Self {
         Self { point, domain }
     }
+
+    pub fn size(&self) -> usize {
+        self.domain.len()
+    }
 }
 
 pub struct CarvedCavity3<T: CoordsFloat> {

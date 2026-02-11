@@ -151,12 +151,14 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         DART_BLOCK_START.set(start + (tid * block_size) as DartIdType);
     });
 
+    let mut cavity_sizes = Vec::with_capacity(n_points_init);
     instant = Instant::now();
     let mut count = 0;
     points_init.into_iter().for_each(|p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
-                Ok(()) => {
+                Ok(cav_size) => {
+                    cavity_sizes.push(cav_size);
                     count += 1;
                     break;
                 }
@@ -190,7 +192,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         // c.into_iter().for_each(|&p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
-                Ok(()) => {
+                Ok(_) => {
                     let tid = rayon::current_thread_index().expect("E: unreachable");
                     counters[tid].fetch_add(1, Ordering::Relaxed);
                     break;
@@ -222,6 +224,10 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
         time,
         count as f32 / time,
     );
+    for c in cavity_sizes {
+        print!("{c},");
+    }
+    println!();
 
     map
 }
@@ -230,7 +236,7 @@ fn insert_points<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     p: Vertex3<T>,
-) -> TransactionClosureResult<(), DelaunayError> {
+) -> TransactionClosureResult<usize, DelaunayError> {
     let start = if map.is_unused_tx(t, LAST_INSERTED.get())? {
         1 // technically this could be unused too
     } else {
@@ -260,6 +266,7 @@ fn insert_points<T: CoordsFloat>(
 
     // compute cavity
     let cavity = compute_delaunay_cavity_3d(t, map, volume, p)?;
+    let size = cavity.size();
     // carve
     let carved_cavity = try_or_coerce!(carve_cavity_3d(t, map, cavity), DelaunayError);
     // extend
@@ -267,10 +274,11 @@ fn insert_points<T: CoordsFloat>(
         extend_to_starshaped_cavity_3d(t, map, carved_cavity),
         DelaunayError
     );
+
     // rebuild
     let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, map, cavity), DelaunayError);
     LAST_INSERTED.set(last_inserted);
-    Ok(())
+    Ok(size)
 }
 
 #[rustfmt::skip]
