@@ -74,6 +74,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     cavity: CarvedCavity3<T>,
+    cavity_size: &mut usize,
 ) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
     let CarvedCavity3 {
         point,
@@ -85,6 +86,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
     'outer: loop {
         for (f, [(d1, d1_neigh), (d2, d2_neigh), (d3, d3_neigh)]) in &boundary {
             if compute_tet_orientation(t, map, (*d1, *d2, *d3), cavity.point)? < 0.0 {
+                *cavity_size += 1;
                 let mut to_remove: SmallVec<_, 4> = smallvec!(*f); // technically could be 3-long
                 let mut to_add: SmallVec<_, 4> = smallvec!(); // same
                 let face_to_check = [

@@ -266,12 +266,12 @@ fn insert_points<T: CoordsFloat>(
 
     // compute cavity
     let cavity = compute_delaunay_cavity_3d(t, map, volume, p)?;
-    let size = cavity.size();
+    let mut size = cavity.size();
     // carve
     let carved_cavity = try_or_coerce!(carve_cavity_3d(t, map, cavity), DelaunayError);
     // extend
     let cavity = try_or_coerce!(
-        extend_to_starshaped_cavity_3d(t, map, carved_cavity),
+        extend_to_starshaped_cavity_3d(t, map, carved_cavity, &mut size),
         DelaunayError
     );
 
