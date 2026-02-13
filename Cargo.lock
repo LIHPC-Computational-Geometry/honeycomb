@@ -2123,6 +2123,7 @@ checksum = "817b83669f5267b76323cdf5f1b13119a3e6b44c55df27a740a2b748c196ea65"
 dependencies = [
  "cfg-if",
  "parking_lot",
+ "rustc-hash 2.1.1",
  "rustversion",
  "thiserror 2.0.18",
 ]
