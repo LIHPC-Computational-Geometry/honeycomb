@@ -64,24 +64,29 @@ pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64) -> BRIO<T> 
 
     // round 1
     let r1 = {
-        let r: Vec<_> = rounds.into_iter().flat_map(|r| r.into_iter()).collect();
-        let mut partition = vec![0; r.len()];
-        let weights = vec![1.0; r.len()];
-        // a Hilbert curve of order m contains 2^3m cells
-        // choosing m = k*log2(n) allows to decouple the number of points
-        // per cell from n
-        HilbertCurve {
-            part_count: 10,
-            order: r.len().ilog2(),
-        }
-        .partition(&mut partition, (r.as_slice(), weights))
-        .unwrap();
+        let r: Vec<_> = rounds
+            .into_iter()
+            .filter(|r| !r.is_empty())
+            .flat_map(|r| {
+                let mut partition = vec![0; r.len()];
+                let weights = vec![1.0; r.len()];
 
-        let mut r: Vec<_> = r.into_iter().zip(partition).collect();
-        r.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
+                HilbertCurve {
+                    part_count: 10.min(r.len()),
+                    order: r.len().ilog2(),
+                }
+                .partition(&mut partition, (r.as_slice(), weights))
+                .unwrap();
+
+                let mut r: Vec<_> = r.into_iter().zip(partition).collect();
+                r.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
+
+                r.into_iter().map(|(p, _)| p)
+            })
+            .collect();
 
         r.into_iter()
-            .map(|(p, _)| {
+            .map(|p| {
                 Vertex3(
                     T::from(p.x).unwrap(),
                     T::from(p.y).unwrap(),
