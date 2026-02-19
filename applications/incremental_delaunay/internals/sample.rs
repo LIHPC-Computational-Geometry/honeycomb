@@ -15,10 +15,10 @@ pub type BRIO<T> = (Vec<Vertex3<T>>, Option<Vec<Vec<Vertex3<T>>>>);
 ///
 /// The main differences are as follow:
 /// - TODO
-pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64) -> BRIO<T> {
+pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64, probability: f64) -> BRIO<T> {
     let seed = derive_seed(seed);
     let mut rng = SmallRng::seed_from_u64(seed);
-    let dist = Bernoulli::new(0.3).unwrap();
+    let dist = Bernoulli::new(probability).unwrap();
     let n_rounds = (points.len().ilog2() + 1) as usize;
 
     // compute round attribution for all points

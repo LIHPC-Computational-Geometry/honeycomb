@@ -22,6 +22,9 @@ pub struct Cli {
     /// Seed for point campling
     #[arg(long("seed"))]
     pub seed: Option<u64>,
+    /// Probability used to create a biased spatial sort order for point insertion.
+    #[arg(short('p'), long("sort-bias-parameter"), default_value_t = 0.3)]
+    pub brio: f64,
     /// Serialize the map returned by the benchmark, if applicable
     #[arg(short, long("save-as"), value_enum, value_name("FORMAT"))]
     pub save_as: Option<FileFormat>,

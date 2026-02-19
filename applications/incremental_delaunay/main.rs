@@ -18,6 +18,7 @@ fn main() {
             cli.lz,
             cli.n_points.get(),
             cli.seed.unwrap_or(123456789),
+            cli.brio,
             cli.save_as,
         );
     } else {
@@ -27,6 +28,7 @@ fn main() {
             cli.lz,
             cli.n_points.get(),
             cli.seed.unwrap_or(123456789),
+            cli.brio,
             cli.save_as,
         );
     }
@@ -39,9 +41,10 @@ fn run_bench<T: CoordsFloat>(
     lz: f64,
     n_points: usize,
     seed: u64,
+    probability: f64,
     save: Option<FileFormat>,
 ) {
-    let map = internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, seed);
+    let map = internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, seed, probability);
 
     finalize_3d(map, save);
 }

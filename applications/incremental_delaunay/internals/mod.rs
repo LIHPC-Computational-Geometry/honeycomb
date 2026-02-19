@@ -40,6 +40,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     lz: f64,
     n_points: usize,
     seed: u64,
+    probability: f64,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
@@ -60,7 +61,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     );
 
     instant = Instant::now();
-    let (brio_r1, brs) = compute_brio::<T>(points, seed);
+    let (brio_r1, brs) = compute_brio::<T>(points, seed, probability);
     println!(
         "|-> BRIO time      : {:>8.3e}",
         instant.elapsed().as_secs_f32()
