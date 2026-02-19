@@ -105,7 +105,7 @@ pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64, probability
             let weights = vec![1.0; r.len()];
             HilbertCurve {
                 part_count: 10 * n_threads,
-                order: r.len().ilog2().div_ceil(2),
+                order: r.len().ilog2(),
             }
             .partition(&mut partition, (r.as_slice(), weights))
             .unwrap();
