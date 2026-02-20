@@ -1,6 +1,6 @@
 use std::num::NonZero;
 
-use clap::{Args, Parser};
+use clap::Parser;
 
 use applications::FileFormat;
 
@@ -19,29 +19,16 @@ pub struct Cli {
     /// Number of points to insert
     #[arg(required(true))]
     pub n_points: NonZero<usize>,
-    #[command(flatten)]
-    pub alternate_init: Option<AlternateInit>,
     /// Seed for point campling
     #[arg(long("seed"))]
     pub seed: Option<u64>,
-    /// Sort points to insert along a Z-curve - requires `spatial-sort` feature
-    #[arg(long("enable-spatial-sort"))]
-    pub sort: bool,
+    /// Probability used to create a biased spatial sort order for point insertion.
+    #[arg(short('p'), long("sort-bias-parameter"), default_value_t = 0.3)]
+    pub brio: f64,
     /// Serialize the map returned by the benchmark, if applicable
     #[arg(short, long("save-as"), value_enum, value_name("FORMAT"))]
     pub save_as: Option<FileFormat>,
     /// Execute benchmarks using `f32` instead of the default `f64`
     #[arg(long("simple-precision"))]
     pub simple_precision: bool,
-}
-
-#[derive(Args)]
-#[group(required = false, multiple = false)]
-pub struct AlternateInit {
-    /// Initialize the mesh with sequential point insertions
-    #[arg(long("init-points"))]
-    pub n_points_init: Option<NonZero<usize>>,
-    /// Initialize the first triangulation from an existing mesh
-    #[arg(long("init-file"))]
-    pub file_init: Option<String>,
 }

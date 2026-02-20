@@ -1,5 +1,6 @@
 mod cavity;
 mod delaunay;
+mod sample;
 
 use std::{
     cell::Cell,
@@ -7,17 +8,16 @@ use std::{
     time::Instant,
 };
 
-use coupe::{HilbertCurve, Partition, Point3D, nalgebra::Matrix3};
+use coupe::nalgebra::Matrix3;
 use honeycomb::{
     core::{
-        cmap::{CMap3, CMapBuilder, DartIdType, VolumeIdType},
+        cmap::{CMap3, DartIdType, VolumeIdType},
         geometry::{CoordsFloat, Vertex3},
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
     stm::{TransactionClosureResult, unwrap_or_abort},
 };
-use rand::{distr::Uniform, prelude::*};
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
 
@@ -26,6 +26,8 @@ use cavity::{
     rebuild_cavity_3d,
 };
 use delaunay::{DelaunayError, compute_delaunay_cavity_3d};
+
+use crate::internals::sample::{compute_brio, sample_points};
 
 thread_local! {
     pub static LAST_INSERTED: Cell<VolumeIdType> = const { Cell::new(1) };
@@ -37,10 +39,8 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     ly: f64,
     lz: f64,
     n_points: usize,
-    n_points_init: usize,
-    file_init: Option<String>,
     seed: u64,
-    sort: bool,
+    probability: f64,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
@@ -50,110 +50,55 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let n_threads = rayon::current_num_threads();
     println!("| Delaunay box triangulation benchmark");
     println!("|-> sampling domain: [0;{lx}]x[0;{ly}]x[0;{lz}]");
-    println!("|-> seq. inserts   : {n_points_init}");
-    println!("|-> par. inserts   : {n_points}");
-    println!("|-> threads used   : {n_threads}",);
+    println!("|-> point inserts  : {n_points}");
+    println!("|-> threads used   : {n_threads}");
 
     let mut instant = Instant::now();
-    let mut all_points: Vec<Vertex3<T>> = sample_points(lx, ly, lz, n_points_init + n_points, seed);
-    let time = instant.elapsed().as_secs_f32();
+    let points: Vec<_> = sample_points(lx, ly, lz, n_points, seed).collect();
     println!(
-        " sample | {:>8} | {:>8.3e} |",
-        n_points_init + n_points,
-        time,
+        "|-> sampling time  : {:>8.3e}",
+        instant.elapsed().as_secs_f32()
     );
 
     instant = Instant::now();
-    let points_init: Vec<Vertex3<T>> = if sort {
-        let tmp: Vec<_> = all_points.drain(..n_points_init).collect();
-        let ps: Vec<_> = tmp
-            .iter()
-            .map(|v| {
-                let v = v.to_f64().unwrap();
-                Point3D::new(v.0, v.1, v.2)
-            })
-            .collect();
-        let mut partition = vec![0; tmp.len()];
-        let weights = vec![1.0; tmp.len()];
-        HilbertCurve {
-            part_count: 10,
-            order: 5,
-        }
-        .partition(&mut partition, (ps.as_slice(), weights))
-        .unwrap();
-
-        let mut tmp: Vec<_> = tmp.into_iter().zip(partition).collect();
-        tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
-
-        tmp.into_iter().map(|v| v.0).collect()
-    } else {
-        all_points.drain(..n_points_init).collect()
-    };
-
-    let points: Vec<Vertex3<T>> = if sort {
-        let ps: Vec<_> = all_points
-            .iter()
-            .map(|v| {
-                let v = v.to_f64().unwrap();
-                Point3D::new(v.0, v.1, v.2)
-            })
-            .collect();
-        let mut partition = vec![0; all_points.len()];
-        let weights = vec![1.0; all_points.len()];
-        HilbertCurve {
-            part_count: n_threads * 10,
-            order: ((n_threads * 10).ilog2() + 1).div_ceil(2),
-        }
-        .partition(&mut partition, (ps.as_slice(), weights))
-        .unwrap();
-
-        let mut tmp: Vec<_> = all_points.into_iter().zip(partition).collect();
-        tmp.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
-
-        tmp.into_iter().map(|v| v.0).collect()
-    } else {
-        all_points
-    };
-    let time = instant.elapsed().as_secs_f32();
+    let (brio_r1, brs) = compute_brio::<T>(points, seed, probability);
     println!(
-        " sort   | {:>8} | {:>8.3e} |",
-        if sort { n_points_init + n_points } else { 0 },
-        time,
+        "|-> BRIO time      : {:>8.3e}",
+        instant.elapsed().as_secs_f32()
     );
-    let mut map = if let Some(f) = file_init {
-        CMapBuilder::<3>::from_cmap_file(f.as_str())
-            .build()
-            .expect("E: bad input file")
-    } else {
-        GridBuilder::<3, _>::default()
-            .n_cells([1, 1, 1])
-            .lens([
-                T::from(lx).unwrap(),
-                T::from(ly).unwrap(),
-                T::from(lz).unwrap(),
-            ])
-            .split_cells(true)
-            .build()
-            .unwrap()
-    };
 
+    let mut map = GridBuilder::<3, _>::default()
+        .n_cells([1, 1, 1])
+        .lens([
+            T::from(lx).unwrap(),
+            T::from(ly).unwrap(),
+            T::from(lz).unwrap(),
+        ])
+        .split_cells(true)
+        .build()
+        .unwrap();
+
+    instant = Instant::now();
     // typical point distribution will result in 6-8*n_points tets
     // 20 gives some leeway, 12 is the number of darts per tet
-    // when init from file, there may be already unused darts
-    let n_unused = map.n_unused_darts();
-    let n_alloc = 20 * 12 * (n_points_init + n_points) - n_unused;
-    let start =
-        map.allocate_unused_darts(n_alloc) + (20 * 12 * n_points_init - n_unused) as DartIdType;
+    let n_alloc = 20 * 12 * n_points;
+    let start = map.allocate_unused_darts(n_alloc);
     // initialize the search offset for dart reservations
     let block_size = (20 * 12 * n_points) / rayon::current_num_threads();
     rayon::broadcast(|_| {
         let tid = rayon::current_thread_index().expect("E: unreachable");
         DART_BLOCK_START.set(start + (tid * block_size) as DartIdType);
     });
+    println!(
+        "|-> init time      : {:>8.3e}",
+        instant.elapsed().as_secs_f32()
+    );
 
+    println!(" BRIO round | total inserts | successful inserts | time (s) | throughput (p/s)",);
     instant = Instant::now();
     let mut count = 0;
-    points_init.into_iter().for_each(|p| {
+    let r1n = brio_r1.len();
+    brio_r1.into_iter().for_each(|p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
                 Ok(()) => {
@@ -178,50 +123,64 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     });
     let time = instant.elapsed().as_secs_f32();
     println!(
-        " init   | {count:>8} | {:>8.3e} | {:>8.3e}",
+        " {:>10} | {:>13} | {:>18} | {:>8.3e} | {:>10.3e}",
+        1,
+        r1n,
+        count,
         time,
         count as f32 / time,
     );
 
-    instant = Instant::now();
-    let counters: Vec<AtomicUsize> = (0..n_threads).map(|_| AtomicUsize::new(0)).collect();
-    points.into_par_iter().for_each(|p| {
-        // points.par_chunks(n_points.div_ceil(4)).for_each(|c| {
-        // c.into_iter().for_each(|&p| {
-        loop {
-            match atomically_with_err(|t| insert_points(t, &map, p)) {
-                Ok(()) => {
-                    let tid = rayon::current_thread_index().expect("E: unreachable");
-                    counters[tid].fetch_add(1, Ordering::Relaxed);
-                    break;
-                }
-                Err(e) => {
-                    // eprintln!("E: insertion failed - {e}");
-                    match e {
-                        DelaunayError::CircumsphereSingularity => break,
-                        DelaunayError::CavityBuilding(e) => match e {
-                            CavityError::FailedOp(_)
-                            | CavityError::FailedReservation(_)
-                            | CavityError::InconsistentState(_) => {
-                                continue;
+    if let Some(brio_rs) = brs {
+        let mut round_idx = 1;
+        for round in brio_rs {
+            instant = Instant::now();
+            round_idx += 1;
+            let rnn = round.len();
+            let counters: Vec<AtomicUsize> = (0..n_threads).map(|_| AtomicUsize::new(0)).collect();
+            round.into_par_iter().for_each(|p| {
+                // round.par_chunks(round.len().div_ceil(4)).for_each(|c| {
+                //     c.into_iter().for_each(|&p| {
+                loop {
+                    match atomically_with_err(|t| insert_points(t, &map, p)) {
+                        Ok(()) => {
+                            let tid = rayon::current_thread_index().expect("E: unreachable");
+                            counters[tid].fetch_add(1, Ordering::Relaxed);
+                            break;
+                        }
+                        Err(e) => {
+                            // eprintln!("E: insertion failed - {e}");
+                            match e {
+                                DelaunayError::CircumsphereSingularity => break,
+                                DelaunayError::CavityBuilding(e) => match e {
+                                    CavityError::FailedOp(_)
+                                    | CavityError::FailedReservation(_)
+                                    | CavityError::InconsistentState(_) => {
+                                        continue;
+                                    }
+                                    CavityError::FailedRelease(_)
+                                    | CavityError::NonExtendable(_) => {
+                                        break;
+                                    }
+                                },
                             }
-                            CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
-                                break;
-                            }
-                        },
+                        }
                     }
                 }
-            }
+                // });
+            });
+            let time = instant.elapsed().as_secs_f32();
+            let count: usize = counters.iter().map(|c| c.load(Ordering::Relaxed)).sum();
+            println!(
+                " {:>10} | {:>13} | {:>18} | {:>8.3e} | {:>10.3e}",
+                round_idx,
+                rnn,
+                count,
+                time,
+                count as f32 / time,
+            );
         }
-        // });
-    });
-    let time = instant.elapsed().as_secs_f32();
-    let count: usize = counters.iter().map(|c| c.load(Ordering::Relaxed)).sum();
-    println!(
-        " insert | {count:>8} | {:>8.3e} | {:>8.3e}",
-        time,
-        count as f32 / time,
-    );
+    }
 
     map
 }
@@ -384,38 +343,6 @@ fn locate_containing_tet<T: CoordsFloat>(
             return Ok(LocateResult::Found(map.volume_id_tx(t, dart)?));
         }
     }
-}
-
-fn sample_points<T: CoordsFloat>(
-    lx: f64,
-    ly: f64,
-    lz: f64,
-    n_points: usize,
-    seed: u64,
-) -> Vec<Vertex3<T>> {
-    let mut rng = SmallRng::seed_from_u64(seed);
-    let xs: Vec<_> = {
-        let dist = Uniform::try_from(0.0..lx).unwrap();
-        dist.sample_iter(&mut rng).take(n_points).collect()
-    };
-    let ys: Vec<_> = {
-        let dist = Uniform::try_from(0.0..ly).unwrap();
-        dist.sample_iter(&mut rng).take(n_points).collect()
-    };
-    let zs: Vec<_> = {
-        let dist = Uniform::try_from(0.0..lz).unwrap();
-        dist.sample_iter(&mut rng).take(n_points).collect()
-    };
-
-    xs.into_iter()
-        .zip(ys.into_iter().zip(zs))
-        .map(|(x, (y, z))| {
-            let x = T::from(x).unwrap();
-            let y = T::from(y).unwrap();
-            let z = T::from(z).unwrap();
-            Vertex3(x, y, z)
-        })
-        .collect()
 }
 
 #[cfg(debug_assertions)]
