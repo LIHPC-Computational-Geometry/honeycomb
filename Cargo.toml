@@ -55,7 +55,7 @@ vtkio         = { version = "0.7.0-rc1", default-features = false }
 
 # applications
 bindgen           = "0.72.1"
-clap              = "4.5.57"
+clap              = "4.5.60"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.19.2"
 hwlocality        = "1.0.0-alpha.7"
