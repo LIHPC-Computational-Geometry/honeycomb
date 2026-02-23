@@ -36,7 +36,7 @@ honeycomb-render  = { version = "0.10.2", path = "./honeycomb-render" }
 honeycomb-apps = { version = "0.10.2", path = "./applications" }
 
 # common
-anyhow      = "1.0.101"
+anyhow      = "1.0.102"
 cfg-if      = "1"
 itertools   = "0.14.0"
 rayon       = "1.10.0"
