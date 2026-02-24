@@ -16,7 +16,7 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{TransactionClosureResult, unwrap_or_abort},
+    stm::{TVar, TransactionClosureResult, unwrap_or_abort},
 };
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
@@ -87,7 +87,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let block_size = (20 * 12 * n_points) / rayon::current_num_threads();
     rayon::broadcast(|_| {
         let tid = rayon::current_thread_index().expect("E: unreachable");
-        DART_BLOCK_START.set(start + (tid * block_size) as DartIdType);
+        DART_BLOCK_START.set(TVar::new(start + (tid * block_size) as DartIdType));
     });
     println!(
         "|-> init time      : {:>8.3e}",
