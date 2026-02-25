@@ -239,11 +239,13 @@ pub(crate) fn build_3d_grid<T: CoordsFloat>(
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
+    enable_vid_cache: bool,
 ) -> CMap3<T> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 24 * n_square_x * n_square_y * n_square_z;
 
     let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+        .enable_vertex_id_cache(enable_vid_cache)
         .build()
         .unwrap();
 
@@ -254,6 +256,8 @@ pub(crate) fn build_3d_grid<T: CoordsFloat>(
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
+
+    map.update_vertex_id_cache();
 
     // place vertices
     (1..=n_darts as DartIdType)
@@ -430,11 +434,13 @@ pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
+    enable_vid_cache: bool,
 ) -> CMap3<T> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 60 * n_square_x * n_square_y * n_square_z;
 
     let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+        .enable_vertex_id_cache(enable_vid_cache)
         .build()
         .unwrap();
 
@@ -445,6 +451,8 @@ pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
         .for_each(|(dart, images)| {
             map.set_betas(dart, images);
         });
+
+    map.update_vertex_id_cache();
 
     // place vertices
     (1..=n_darts as DartIdType)

@@ -3,13 +3,14 @@
 //! This module contains the main structure definition ([`CMap3`]) as well as its constructor
 //! implementation.
 
+use fast_stm::TVar;
 #[cfg(feature = "par-internals")]
 use rayon::prelude::*;
 
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::{
-        DartIdType, DartReleaseError, DartReservationError,
+        DartIdType, DartReleaseError, DartReservationError, VertexIdType,
         components::{betas::BetaFunctions, unused::UnusedDarts},
     },
     geometry::{CoordsFloat, Vertex3},
@@ -29,6 +30,7 @@ pub struct CMap3<T: CoordsFloat> {
     pub(super) unused_darts: UnusedDarts,
     /// Array representation of the beta functions
     pub(super) betas: BetaFunctions<CMAP3_BETA>,
+    pub(super) vertex_ids: Option<Vec<TVar<VertexIdType>>>,
 }
 
 unsafe impl<T: CoordsFloat> Send for CMap3<T> {}
@@ -85,6 +87,33 @@ impl<T: CoordsFloat> CMap3<T> {
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
+            vertex_ids: None,
+        }
+    }
+
+    /// Creates a new 3D combinatorial map.
+    #[allow(unused)]
+    #[must_use = "unused return value"]
+    pub(crate) fn from_data(
+        n_darts: usize,
+        mut attr_storage_manager: AttrStorageManager,
+        enable_vid_cache: bool,
+    ) -> Self {
+        attr_storage_manager.extend_storages(n_darts + 1);
+        Self {
+            attributes: attr_storage_manager,
+            vertices: AttrSparseVec::new(n_darts + 1),
+            unused_darts: UnusedDarts::new(n_darts + 1),
+            betas: BetaFunctions::new(n_darts + 1),
+            vertex_ids: if enable_vid_cache {
+                Some(
+                    (0..n_darts as VertexIdType + 1)
+                        .map(|v| TVar::new(v))
+                        .collect(),
+                )
+            } else {
+                None
+            },
         }
     }
 
@@ -104,6 +133,7 @@ impl<T: CoordsFloat> CMap3<T> {
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
+            vertex_ids: None,
         }
     }
 }
@@ -156,6 +186,9 @@ impl<T: CoordsFloat> CMap3<T> {
         self.unused_darts.extend_with(n_darts, unused);
         self.vertices.extend(n_darts);
         self.attributes.extend_storages(n_darts);
+        if let Some(ref mut vids) = self.vertex_ids {
+            vids.extend((new_id..new_id + n_darts as VertexIdType).map(|v| TVar::new(v)));
+        }
         new_id
     }
 
@@ -305,6 +338,9 @@ impl<T: CoordsFloat> CMap3<T> {
         }
         self.attributes.clear_attribute_values(t, dart_id)?;
         self.vertices.clear_slot(t, dart_id)?;
+        if let Some(ref vids) = self.vertex_ids {
+            vids[dart_id as usize].write(t, dart_id)?;
+        }
         Ok(self.unused_darts[dart_id].replace(t, true)?) // Ok(_?) necessary for err type coercion
     }
 }
