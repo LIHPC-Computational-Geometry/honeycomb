@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::RefCell;
 
 use honeycomb::{
     core::{
@@ -11,7 +11,7 @@ use honeycomb::{
             StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
         },
     },
-    stm::TransactionError,
+    stm::{TVar, TransactionError},
 };
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use smallvec::{SmallVec, smallvec};
@@ -19,7 +19,7 @@ use smallvec::{SmallVec, smallvec};
 use super::compute_tet_orientation;
 
 thread_local! {
-    pub static DART_BLOCK_START: Cell<DartIdType> = const { Cell::new(1) };
+    pub static DART_BLOCK_START: RefCell<TVar<DartIdType>> = RefCell::new(TVar::new(1));
 }
 
 type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
@@ -379,28 +379,13 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         map.claim_dart_tx(t, *d)?;
     }
     if free_darts.len() < n_required_darts {
-        // for d in &free_darts {
-        //     map.claim_dart_tx(t, *d)?;
-        // }
-
+        let start = DART_BLOCK_START.with_borrow(|r| r.read(t))?;
         // this method returns claimed darts
         let mut new_darts: Vec<DartIdType> = try_or_coerce!(
-            map.reserve_darts_from_tx(
-                t,
-                n_required_darts - free_darts.len(),
-                DART_BLOCK_START.get(),
-            ),
+            map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
             CavityError
         );
-        // (DART_BLOCK_START.get()..map.n_darts() as DartIdType)
-        // .into_iter()
-        // .chain(1..DART_BLOCK_START.get())
-        // .filter(|&d| map.is_unused_tx(t, d).unwrap())
-        // .take(n_required_darts - free_darts.len())
-        // .collect();
-        // for d in &new_darts {
-        //     map.claim_dart_tx(t, *d)?;
-        // }
+        DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType))?;
         free_darts.append(&mut new_darts);
     }
     free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
