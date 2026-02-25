@@ -106,12 +106,12 @@ pub fn swap_edge<T: CoordsFloat>(
         abort(EdgeSwapError::BadTopology)?;
     }
 
-    try_or_coerce!(map.unsew::<1>(t, l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, r), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b0r), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b1r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b0l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b0r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b1l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b1r), EdgeSwapError);
 
     // remove vertex attributes to keep existing values unchanged
     let l_vid = map.vertex_id_tx(t, l)?;
@@ -123,12 +123,12 @@ pub fn swap_edge<T: CoordsFloat>(
         map.remove_attribute::<VertexAnchor>(t, r_vid)?;
     }
 
-    try_or_coerce!(map.sew::<1>(t, l, b0r), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b0r, b1l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b1l, l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, r, b0l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b0l, b1r), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b1r, r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, l, b0r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b0r, b1l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b1l, l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, r, b0l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b0l, b1r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b1r, r), EdgeSwapError);
 
     // update anchors
     match (l_a, r_a) {

@@ -521,7 +521,7 @@ fn split_boundary_edge_n_4_tx<T: CoordsFloat>(
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
     map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    map.unlink::<1>(trans, sub_dart1)?;
+    map.unlink_tx::<1>(trans, sub_dart1)?;
 
     Ok(dart1)
 }
@@ -535,7 +535,7 @@ fn split_boundary_edge_n_2_tx<T: CoordsFloat>(
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
     map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    map.unlink::<1>(trans, edge_dart)?;
+    map.unlink_tx::<1>(trans, edge_dart)?;
 
     Ok(dart1)
 }
@@ -558,20 +558,20 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
         map.write_attribute::<IsIrregular>(trans, dart2, IsIrregular(true))?;
         let opposite_next = map.beta_tx::<1>(trans, opposite)?;
 
-        map.unlink::<2>(trans, edge_dart)?;
-        map.unlink::<1>(trans, opposite)?;
-        map.link::<2>(trans, dart1, opposite)?;
-        map.link::<2>(trans, edge_dart, dart2)?;
-        map.link::<1>(trans, opposite, dart2)?;
-        map.link::<1>(trans, dart2, opposite_next)?;
+        map.unlink_tx::<2>(trans, edge_dart)?;
+        map.unlink_tx::<1>(trans, opposite)?;
+        map.link_tx::<2>(trans, dart1, opposite)?;
+        map.link_tx::<2>(trans, edge_dart, dart2)?;
+        map.link_tx::<1>(trans, opposite, dart2)?;
+        map.link_tx::<1>(trans, dart2, opposite_next)?;
         dart1
     } else {
         map.claim_dart_tx(trans, start_dart)?;
         start_dart
     };
 
-    map.unlink::<1>(trans, edge_dart)?;
-    map.link::<1>(trans, dart1, next)?;
+    map.unlink_tx::<1>(trans, edge_dart)?;
+    map.link_tx::<1>(trans, dart1, next)?;
 
     let subdivde_point = Vertex2::<T>::average(
         &dart_origin_tx(trans, map, edge_dart)?,
@@ -599,12 +599,12 @@ fn create_inner_darts_tx<T: CoordsFloat>(
     let edge_dart_next = map.beta_tx::<1>(trans, edge_dart)?;
 
     if edge_dart_next != NULL_DART_ID && !is_regular_tx(trans, map, edge_dart_next)? {
-        map.link::<1>(trans, edge_dart_next, going_to_center)?
+        map.link_tx::<1>(trans, edge_dart_next, going_to_center)?
     } else {
-        map.link::<1>(trans, edge_dart, going_to_center)?
+        map.link_tx::<1>(trans, edge_dart, going_to_center)?
     }
 
-    map.link::<1>(trans, going_to_center, going_from_center)?;
+    map.link_tx::<1>(trans, going_to_center, going_from_center)?;
 
     Ok((going_to_center, going_from_center))
 }
@@ -630,20 +630,20 @@ fn connect_subdivision_edges_tx<T: CoordsFloat>(
         3 => {
             // Last iteration: complete the connections
 
-            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+            map.link_tx::<2>(trans, going_from_center, state.going_to_center_prev)?;
 
-            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
+            map.link_tx::<1>(trans, going_from_center, state.dart1_prev)?;
 
-            map.link::<2>(trans, going_to_center, state.going_from_center_first)?;
+            map.link_tx::<2>(trans, going_to_center, state.going_from_center_first)?;
 
-            map.link::<1>(trans, state.going_from_center_first, dart1)?;
+            map.link_tx::<1>(trans, state.going_from_center_first, dart1)?;
         }
         _ => {
             // Middle iterations: connect to previous iteration
 
-            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+            map.link_tx::<2>(trans, going_from_center, state.going_to_center_prev)?;
 
-            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
+            map.link_tx::<1>(trans, going_from_center, state.dart1_prev)?;
         }
     }
 

@@ -213,7 +213,7 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     let b2b1r = map.beta_tx::<2>(t, b1r)?;
     let b1b2b1r = map.beta_tx::<1>(t, b2b1r)?;
     if r != NULL_DART_ID {
-        try_or_coerce!(map.unsew::<2>(t, r), EdgeCollapseError);
+        try_or_coerce!(map.unsew_tx::<2>(t, r), EdgeCollapseError);
         collapse_halfcell_to_midpoint(t, map, (b0r, r, b1r))?;
     }
     // by this point l is 2-free, whether he was at the beginning or due to the 2-unsew
@@ -235,21 +235,21 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
     map: &CMap2<T>,
     (b0d, d, b1d): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<(), EdgeCollapseError> {
-    try_or_coerce!(map.unsew::<1>(t, d), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b1d), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, b0d), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, d), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b1d), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b0d), EdgeCollapseError);
     let (b2b0d, b2b1d) = (map.beta_tx::<2>(t, b0d)?, map.beta_tx::<2>(t, b1d)?);
     match (b2b0d == NULL_DART_ID, b2b1d == NULL_DART_ID) {
         (false, false) => {
-            try_or_coerce!(map.unsew::<2>(t, b0d), EdgeCollapseError);
-            try_or_coerce!(map.unsew::<2>(t, b1d), EdgeCollapseError);
-            try_or_coerce!(map.sew::<2>(t, b2b0d, b2b1d), EdgeCollapseError);
+            try_or_coerce!(map.unsew_tx::<2>(t, b0d), EdgeCollapseError);
+            try_or_coerce!(map.unsew_tx::<2>(t, b1d), EdgeCollapseError);
+            try_or_coerce!(map.sew_tx::<2>(t, b2b0d, b2b1d), EdgeCollapseError);
         }
         (true, false) => {
-            try_or_coerce!(map.unsew::<2>(t, b1d), EdgeCollapseError);
+            try_or_coerce!(map.unsew_tx::<2>(t, b1d), EdgeCollapseError);
         }
         (false, true) => {
-            try_or_coerce!(map.unsew::<2>(t, b0d), EdgeCollapseError);
+            try_or_coerce!(map.unsew_tx::<2>(t, b0d), EdgeCollapseError);
         }
         (true, true) => {}
     }
@@ -280,7 +280,7 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     let r_face_anchor = map.read_attribute::<FaceAnchor>(t, r_fid)?;
 
     if r != NULL_DART_ID {
-        try_or_coerce!(map.unsew::<2>(t, l), EdgeCollapseError);
+        try_or_coerce!(map.unsew_tx::<2>(t, l), EdgeCollapseError);
         try_or_coerce!(
             collapse_halfcell_to_base(t, map, (b1r, r, b0r)),
             EdgeCollapseError
@@ -334,19 +334,19 @@ fn collapse_halfcell_to_base<T: CoordsFloat>(
     let b0b2d_ne = map.beta_tx::<0>(t, b2d_ne)?;
     let b1b2d_ne = map.beta_tx::<1>(t, b2d_ne)?;
 
-    try_or_coerce!(map.unsew::<1>(t, d_e), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, d_pe), EdgeCollapseError);
-    try_or_coerce!(map.unsew::<1>(t, d_ne), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, d_e), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, d_pe), EdgeCollapseError);
+    try_or_coerce!(map.unsew_tx::<1>(t, d_ne), EdgeCollapseError);
     if b2d_ne == NULL_DART_ID {
-        try_or_coerce!(map.unsew::<2>(t, d_pe), EdgeCollapseError);
+        try_or_coerce!(map.unsew_tx::<2>(t, d_pe), EdgeCollapseError);
         try_or_coerce!(map.release_dart_tx(t, d_pe), EdgeCollapseError);
     } else {
-        try_or_coerce!(map.unsew::<1>(t, b2d_ne), EdgeCollapseError);
-        try_or_coerce!(map.unsew::<1>(t, b0b2d_ne), EdgeCollapseError);
-        try_or_coerce!(map.unlink::<2>(t, d_ne), EdgeCollapseError);
+        try_or_coerce!(map.unsew_tx::<1>(t, b2d_ne), EdgeCollapseError);
+        try_or_coerce!(map.unsew_tx::<1>(t, b0b2d_ne), EdgeCollapseError);
+        try_or_coerce!(map.unlink_tx::<2>(t, d_ne), EdgeCollapseError);
         try_or_coerce!(map.release_dart_tx(t, b2d_ne), EdgeCollapseError);
-        try_or_coerce!(map.sew::<1>(t, d_pe, b1b2d_ne), EdgeCollapseError);
-        try_or_coerce!(map.sew::<1>(t, b0b2d_ne, d_pe), EdgeCollapseError);
+        try_or_coerce!(map.sew_tx::<1>(t, d_pe, b1b2d_ne), EdgeCollapseError);
+        try_or_coerce!(map.sew_tx::<1>(t, b0b2d_ne, d_pe), EdgeCollapseError);
     }
     try_or_coerce!(map.release_dart_tx(t, d_e), EdgeCollapseError);
     try_or_coerce!(map.release_dart_tx(t, d_ne), EdgeCollapseError);

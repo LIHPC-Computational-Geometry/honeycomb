@@ -123,14 +123,17 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         };
         // unsew current dart
         if b1d1_old != NULL_DART_ID {
-            try_or_coerce!(cmap.unlink::<1>(t, base_dart1), VertexInsertionError);
+            try_or_coerce!(cmap.unlink_tx::<1>(t, base_dart1), VertexInsertionError);
         }
         // rebuild the edge
         try_or_coerce!(
-            cmap.link::<1>(t, base_dart1, b1d1_new),
+            cmap.link_tx::<1>(t, base_dart1, b1d1_new),
             VertexInsertionError
         );
-        try_or_coerce!(cmap.link::<1>(t, b1d1_new, b1d1_old), VertexInsertionError);
+        try_or_coerce!(
+            cmap.link_tx::<1>(t, b1d1_new, b1d1_old),
+            VertexInsertionError
+        );
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_tx(t, b1d1_new)?;
@@ -153,37 +156,43 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         };
         // unsew current darts
         if b1d1_old != NULL_DART_ID {
-            try_or_coerce!(cmap.unlink::<1>(t, base_dart1), VertexInsertionError);
+            try_or_coerce!(cmap.unlink_tx::<1>(t, base_dart1), VertexInsertionError);
         }
         if b1d2_old != NULL_DART_ID {
-            try_or_coerce!(cmap.unlink::<1>(t, base_dart2), VertexInsertionError);
+            try_or_coerce!(cmap.unlink_tx::<1>(t, base_dart2), VertexInsertionError);
         }
         // cmap.set_beta::<1>(base_dart1, 0);
         // cmap.set_beta::<0>(b1d1_old, 0);
         // cmap.set_beta::<1>(base_dart2, 0);
         // cmap.set_beta::<0>(b1d2_old, 0);
-        try_or_coerce!(cmap.unlink::<2>(t, base_dart1), VertexInsertionError);
+        try_or_coerce!(cmap.unlink_tx::<2>(t, base_dart1), VertexInsertionError);
         // rebuild the edge
         try_or_coerce!(
-            cmap.link::<1>(t, base_dart1, b1d1_new),
+            cmap.link_tx::<1>(t, base_dart1, b1d1_new),
             VertexInsertionError
         );
         if b1d1_old != NULL_DART_ID {
-            try_or_coerce!(cmap.link::<1>(t, b1d1_new, b1d1_old), VertexInsertionError);
+            try_or_coerce!(
+                cmap.link_tx::<1>(t, b1d1_new, b1d1_old),
+                VertexInsertionError
+            );
         }
         try_or_coerce!(
-            cmap.link::<1>(t, base_dart2, b1d2_new),
+            cmap.link_tx::<1>(t, base_dart2, b1d2_new),
             VertexInsertionError
         );
         if b1d2_old != NULL_DART_ID {
-            try_or_coerce!(cmap.link::<1>(t, b1d2_new, b1d2_old), VertexInsertionError);
+            try_or_coerce!(
+                cmap.link_tx::<1>(t, b1d2_new, b1d2_old),
+                VertexInsertionError
+            );
         }
         try_or_coerce!(
-            cmap.link::<2>(t, base_dart1, b1d2_new),
+            cmap.link_tx::<2>(t, base_dart1, b1d2_new),
             VertexInsertionError
         );
         try_or_coerce!(
-            cmap.link::<2>(t, base_dart2, b1d1_new),
+            cmap.link_tx::<2>(t, base_dart2, b1d1_new),
             VertexInsertionError
         );
         // insert the new vertex
@@ -366,38 +375,41 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
 
     // unsew current dart
     if b1d1_old != NULL_DART_ID {
-        try_or_coerce!(cmap.unlink::<1>(t, base_dart1), VertexInsertionError);
+        try_or_coerce!(cmap.unlink_tx::<1>(t, base_dart1), VertexInsertionError);
     }
     //
     if base_dart2 != NULL_DART_ID {
-        try_or_coerce!(cmap.unlink::<2>(t, base_dart1), VertexInsertionError);
+        try_or_coerce!(cmap.unlink_tx::<2>(t, base_dart1), VertexInsertionError);
     }
     // insert new vertices / darts on base_dart1's side
     let mut prev_d = base_dart1;
     for (&p, &new_d) in midpoint_vertices.iter().zip(darts_fh.iter()) {
         let new_v = v1 + seg * p;
-        try_or_coerce!(cmap.link::<1>(t, prev_d, new_d), VertexInsertionError);
+        try_or_coerce!(cmap.link_tx::<1>(t, prev_d, new_d), VertexInsertionError);
         cmap.write_vertex(t, new_d, new_v)?;
         prev_d = new_d;
     }
-    try_or_coerce!(cmap.link::<1>(t, prev_d, b1d1_old), VertexInsertionError);
+    try_or_coerce!(cmap.link_tx::<1>(t, prev_d, b1d1_old), VertexInsertionError);
 
     // if b2(base_dart1) is defined, insert vertices / darts on its side too
     if base_dart2 != NULL_DART_ID {
         let b1d2_old = cmap.beta_tx::<1>(t, base_dart2)?;
         if b1d2_old != NULL_DART_ID {
-            try_or_coerce!(cmap.unlink::<1>(t, base_dart2), VertexInsertionError);
+            try_or_coerce!(cmap.unlink_tx::<1>(t, base_dart2), VertexInsertionError);
         }
         let mut prev_d = base_dart2;
         for (d, new_d) in darts_fh.iter().rev().zip(darts_sh.iter()) {
-            try_or_coerce!(cmap.link::<2>(t, prev_d, *d), VertexInsertionError);
-            try_or_coerce!(cmap.link::<1>(t, prev_d, *new_d), VertexInsertionError);
+            try_or_coerce!(cmap.link_tx::<2>(t, prev_d, *d), VertexInsertionError);
+            try_or_coerce!(cmap.link_tx::<1>(t, prev_d, *new_d), VertexInsertionError);
             prev_d = *new_d;
         }
         if b1d2_old != NULL_DART_ID {
-            try_or_coerce!(cmap.link::<1>(t, prev_d, b1d2_old), VertexInsertionError);
+            try_or_coerce!(cmap.link_tx::<1>(t, prev_d, b1d2_old), VertexInsertionError);
         }
-        try_or_coerce!(cmap.link::<2>(t, prev_d, base_dart1), VertexInsertionError);
+        try_or_coerce!(
+            cmap.link_tx::<2>(t, prev_d, base_dart1),
+            VertexInsertionError
+        );
     }
 
     Ok(())

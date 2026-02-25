@@ -53,8 +53,8 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     [nd1, nd2, nd3]: [DartIdType; 3],
 ) -> TransactionClosureResult<(), SewError> {
     // unfallible
-    try_or_coerce!(map.link::<2>(t, nd1, nd2), SewError);
-    try_or_coerce!(map.link::<1>(t, nd2, nd3), SewError);
+    try_or_coerce!(map.link_tx::<2>(t, nd1, nd2), SewError);
+    try_or_coerce!(map.link_tx::<1>(t, nd2, nd3), SewError);
 
     let f_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_tx(t, e)?;
@@ -78,13 +78,13 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     );
     map.write_vertex(t, nd1, new_v)?;
 
-    map.unsew::<1>(t, ld)?;
-    map.unsew::<1>(t, b1ld)?;
+    map.unsew_tx::<1>(t, ld)?;
+    map.unsew_tx::<1>(t, b1ld)?;
 
-    map.sew::<1>(t, ld, nd1)?;
-    map.sew::<1>(t, nd1, b0ld)?;
-    map.sew::<1>(t, nd3, b1ld)?;
-    map.sew::<1>(t, b1ld, nd2)?;
+    map.sew_tx::<1>(t, ld, nd1)?;
+    map.sew_tx::<1>(t, nd1, b0ld)?;
+    map.sew_tx::<1>(t, nd3, b1ld)?;
+    map.sew_tx::<1>(t, b1ld, nd2)?;
 
     // FIXME: expose a split method for `CMap2` to automatically handle faces?
     if let Some(a) = f_anchor {
@@ -158,10 +158,10 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     [nd1, nd2, nd3, nd4, nd5, nd6]: [DartIdType; 6],
 ) -> TransactionClosureResult<(), SewError> {
     // unfallible
-    try_or_coerce!(map.link::<2>(t, nd1, nd2), SewError);
-    try_or_coerce!(map.link::<1>(t, nd2, nd3), SewError);
-    try_or_coerce!(map.link::<2>(t, nd4, nd5), SewError);
-    try_or_coerce!(map.link::<1>(t, nd5, nd6), SewError);
+    try_or_coerce!(map.link_tx::<2>(t, nd1, nd2), SewError);
+    try_or_coerce!(map.link_tx::<1>(t, nd2, nd3), SewError);
+    try_or_coerce!(map.link_tx::<2>(t, nd4, nd5), SewError);
+    try_or_coerce!(map.link_tx::<1>(t, nd5, nd6), SewError);
 
     let (ld, rd) = (e as DartIdType, map.beta_tx::<2>(t, e as DartIdType)?);
 
@@ -208,24 +208,24 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     );
     map.write_vertex(t, nd1, new_v)?;
 
-    map.unsew::<2>(t, ld)?;
-    map.unsew::<1>(t, ld)?;
-    map.unsew::<1>(t, b1ld)?;
-    map.unsew::<1>(t, rd)?;
-    map.unsew::<1>(t, b1rd)?;
+    map.unsew_tx::<2>(t, ld)?;
+    map.unsew_tx::<1>(t, ld)?;
+    map.unsew_tx::<1>(t, b1ld)?;
+    map.unsew_tx::<1>(t, rd)?;
+    map.unsew_tx::<1>(t, b1rd)?;
 
-    map.sew::<2>(t, ld, nd6)?;
-    map.sew::<2>(t, rd, nd3)?;
+    map.sew_tx::<2>(t, ld, nd6)?;
+    map.sew_tx::<2>(t, rd, nd3)?;
 
-    map.sew::<1>(t, ld, nd1)?;
-    map.sew::<1>(t, nd1, b0ld)?;
-    map.sew::<1>(t, nd3, b1ld)?;
-    map.sew::<1>(t, b1ld, nd2)?;
+    map.sew_tx::<1>(t, ld, nd1)?;
+    map.sew_tx::<1>(t, nd1, b0ld)?;
+    map.sew_tx::<1>(t, nd3, b1ld)?;
+    map.sew_tx::<1>(t, b1ld, nd2)?;
 
-    map.sew::<1>(t, rd, nd4)?;
-    map.sew::<1>(t, nd4, b0rd)?;
-    map.sew::<1>(t, nd6, b1rd)?;
-    map.sew::<1>(t, b1rd, nd5)?;
+    map.sew_tx::<1>(t, rd, nd4)?;
+    map.sew_tx::<1>(t, nd4, b0rd)?;
+    map.sew_tx::<1>(t, nd6, b1rd)?;
+    map.sew_tx::<1>(t, b1rd, nd5)?;
 
     // TODO: expose a split method for `CMap2` to automatically handle faces?
     if let Some(a) = lf_anchor {

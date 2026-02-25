@@ -17,7 +17,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let b2l_vid = self.vertex_id_tx(t, b2ld)?;
         let r_vid = self.vertex_id_tx(t, rd)?;
 
-        try_or_coerce!(self.link::<1>(t, ld, rd), SewError);
+        try_or_coerce!(self.link_tx::<1>(t, ld, rd), SewError);
 
         if b2ld != NULL_DART_ID {
             try_or_coerce!(
@@ -47,7 +47,7 @@ impl<T: CoordsFloat> CMap2<T> {
         let rd = self.beta_tx::<1>(t, ld)?;
         let b2ld = self.beta_tx::<2>(t, ld)?;
 
-        try_or_coerce!(self.unlink::<1>(t, ld), SewError);
+        try_or_coerce!(self.unlink_tx::<1>(t, ld), SewError);
 
         if b2ld != NULL_DART_ID {
             // split vertex attributes
