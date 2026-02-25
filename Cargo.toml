@@ -24,29 +24,30 @@ keywords = ["mesh", "meshing"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
-version = "0.10.1"
+version = "0.10.2"
 
 [workspace.dependencies]
 # members
-honeycomb         = { version = "0.10.1", path = "./honeycomb" }
-honeycomb-core    = { version = "0.10.1", path = "./honeycomb-core" }
-honeycomb-kernels = { version = "0.10.1", path = "./honeycomb-kernels" }
-honeycomb-render  = { version = "0.10.1", path = "./honeycomb-render" }
+honeycomb         = { version = "0.10.2", path = "./honeycomb" }
+honeycomb-core    = { version = "0.10.2", path = "./honeycomb-core" }
+honeycomb-kernels = { version = "0.10.2", path = "./honeycomb-kernels" }
+honeycomb-render  = { version = "0.10.2", path = "./honeycomb-render" }
 
-honeycomb-apps = { version = "0.10.1", path = "./applications" }
+honeycomb-apps = { version = "0.10.2", path = "./applications" }
 
 # common
-anyhow      = "1.0.100"
+anyhow      = "1.0.101"
 cfg-if      = "1"
 itertools   = "0.14.0"
 rayon       = "1.10.0"
+rustc-hash  = "2.1.1"
 rustversion = "1.0.18"
-thiserror   = "2.0.11"
+thiserror   = "2.0.18"
 
 # core
 criterion     = "0.7.0"
 downcast-rs   = "2.0.1"
-fast-stm      = "0.6.0"
+fast-stm      = { version = "0.6.2", default-features = false }
 iai-callgrind = "0.16.1"
 loom          = "0.7.2"
 num-traits    = "0.2.19"
@@ -54,13 +55,13 @@ vtkio         = { version = "0.7.0-rc1", default-features = false }
 
 # applications
 bindgen           = "0.72.1"
-clap              = "4.5.52"
+clap              = "4.5.57"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
-cudarc            = "0.18.1"
+cudarc            = "0.19.2"
 hwlocality        = "1.0.0-alpha.7"
 nalgebra          = "0.34.1"
-rand              = "0.10.0-rc.5"
-regex             = "1.12.2"
+rand              = "0.10.0"
+regex             = "1.12.3"
 smallvec          = "2.0.0-alpha.12"
 tikv-jemallocator = "0.6.1"
 

@@ -1,9 +1,10 @@
 //! clipping operation routines
 
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, NULL_DART_ID, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::grisubal::GrisubalError;
 use crate::grisubal::model::Boundary;
@@ -39,7 +40,8 @@ fn mark_faces<T: CoordsFloat>(
     mark: Boundary,
     other: Boundary,
 ) -> Result<HashSet<FaceIdType>, GrisubalError> {
-    let mut marked: HashSet<FaceIdType> = HashSet::from([0]);
+    let mut marked: HashSet<FaceIdType> = HashSet::default();
+    marked.insert(0);
     let mut queue: VecDeque<FaceIdType> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
             // use darts on the left side of the boundary as starting points to walk through faces

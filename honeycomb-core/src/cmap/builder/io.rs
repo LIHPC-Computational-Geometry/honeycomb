@@ -1,7 +1,9 @@
-use std::collections::{BTreeMap, HashMap};
+// TODO: replace this with a hashmap too
+use std::collections::BTreeMap;
 
 use itertools::multizip;
 use num_traits::Zero;
+use rustc_hash::FxHashMap as HashMap;
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
@@ -39,7 +41,7 @@ impl TryFrom<String> for CMapFile {
     type Error = BuilderError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let mut sections = HashMap::new();
+        let mut sections = HashMap::default();
         let mut current_section = String::new();
 
         for line in value.trim().lines() {

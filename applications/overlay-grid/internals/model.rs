@@ -1,10 +1,10 @@
-use std::collections::HashSet;
-
 use honeycomb::core::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
     cmap::{CMap2, CMapBuilder, DartIdType, FaceIdType, OrbitPolicy},
     geometry::{CoordsFloat, Vertex2},
 };
+use rand::RngExt;
+use rustc_hash::FxHashSet as HashSet;
 use thiserror::Error;
 use vtkio::{
     IOBuffer, Vtk,
@@ -295,8 +295,8 @@ impl AttributeBind for B2Mapping {
 ///
 /// This does not cover consistent orientation across distinct boundaries (e.g. a geometry with a hole in it).
 pub fn detect_orientation_issue<T: CoordsFloat>(geometry: &Geometry2<T>) -> Result<(), VtkError> {
-    let mut origins = HashSet::new();
-    let mut endpoints = HashSet::new();
+    let mut origins = HashSet::default();
+    let mut endpoints = HashSet::default();
 
     for (orig, endp) in &geometry.segments {
         if !origins.insert(orig) || !endpoints.insert(endp) {
@@ -348,7 +348,6 @@ pub fn compute_overlapping_grid_size<T: CoordsFloat>(
 
 pub fn manual_grid<T: CoordsFloat>(nb_verts: usize) -> (CMap2<T>, Vec<Vertex2<T>>) {
     // Generate random geo vertices within the -10 to 10 box
-    use rand::Rng;
     let mut rng = rand::rng();
     let geo_verts: Vec<Vertex2<T>> = (0..nb_verts)
         .map(|_| {

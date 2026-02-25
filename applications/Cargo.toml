@@ -73,8 +73,9 @@ cudarc     = { workspace = true, features = ["cuda-13000"], optional = true }
 honeycomb  = { workspace = true }
 hwlocality = { workspace = true, optional = true }
 nalgebra   = { workspace = true }
-rand       = { workspace = true, features = ["small_rng"] }
+rand       = { workspace = true }
 rayon      = { workspace = true }
+rustc-hash = { workspace = true }
 smallvec   = { workspace = true }
 thiserror  = { workspace = true }
 vtkio      = { workspace = true }

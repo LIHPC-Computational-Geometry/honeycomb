@@ -1,7 +1,7 @@
 use honeycomb_core::{
     cmap::{CMap2, DartIdType, EdgeIdType, SewError},
     geometry::{CoordsFloat, Vertex2},
-    stm::{Transaction, TransactionClosureResult, retry, try_or_coerce},
+    stm::{Transaction, TransactionClosureResult, try_or_coerce, unwrap_or_retry},
 };
 
 use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor};
@@ -72,10 +72,10 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
 
     let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
-    let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
-        (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
-        _ => retry()?,
-    };
+    let new_v = Vertex2::average(
+        &unwrap_or_retry(map.read_vertex(t, vid1)?)?,
+        &unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+    );
     map.write_vertex(t, nd1, new_v)?;
 
     map.unsew::<1>(t, ld)?;
@@ -202,10 +202,10 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     let (b0rd, b1rd) = (map.beta_tx::<0>(t, rd)?, map.beta_tx::<1>(t, rd)?);
 
     let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
-    let new_v = match (map.read_vertex(t, vid1)?, map.read_vertex(t, vid2)?) {
-        (Some(v1), Some(v2)) => Vertex2::average(&v1, &v2),
-        _ => retry()?,
-    };
+    let new_v = Vertex2::average(
+        &unwrap_or_retry(map.read_vertex(t, vid1)?)?,
+        &unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+    );
     map.write_vertex(t, nd1, new_v)?;
 
     map.unsew::<2>(t, ld)?;

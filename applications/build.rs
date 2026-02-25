@@ -1,4 +1,8 @@
 fn main() {
+    if let Some(val) = std::env::var_os("CUDA_LIBDIR") {
+        println!("cargo:rustc-link-search={}", val.to_str().unwrap());
+    }
+
     #[cfg(feature = "cuda")]
     {
         use std::{env, path::PathBuf, process::Command};

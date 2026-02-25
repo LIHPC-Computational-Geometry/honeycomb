@@ -1,9 +1,10 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 
 use honeycomb_core::{
     cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy},
     geometry::CoordsFloat,
 };
+use rustc_hash::FxHashSet as HashSet;
 use vtkio::Vtk;
 
 use crate::utils::{CurveIdType, EdgeAnchor, FaceAnchor, VertexAnchor};
@@ -205,7 +206,7 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
     // classify inner entities using a coloring-like algorithm
     let mut surface_id = 0;
     let mut queue = VecDeque::new();
-    let mut marked = HashSet::new();
+    let mut marked = HashSet::default();
     marked.insert(0);
     cmap.iter_faces()
         // does this filter item updated in the for_each block?

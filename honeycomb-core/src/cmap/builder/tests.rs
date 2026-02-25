@@ -125,7 +125,7 @@ mod cmap {
 
     #[cfg(test)]
     const MAP: &[u8] = b"[META]
-0.10.1 2 4
+0.10.2 2 4
 
 [BETAS]
 0 4 1 2 3

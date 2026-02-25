@@ -1,8 +1,7 @@
 //! Step 0 implementation
 
-use std::collections::HashSet;
-
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
+use rustc_hash::FxHashSet as HashSet;
 
 use crate::grisubal::{
     GrisubalError,
@@ -21,8 +20,8 @@ use crate::grisubal::{
 pub fn detect_orientation_issue<T: CoordsFloat>(
     geometry: &Geometry2<T>,
 ) -> Result<(), GrisubalError> {
-    let mut origins = HashSet::new();
-    let mut endpoints = HashSet::new();
+    let mut origins = HashSet::default();
+    let mut endpoints = HashSet::default();
 
     for (orig, endp) in &geometry.segments {
         if !origins.insert(orig) || !endpoints.insert(endp) {

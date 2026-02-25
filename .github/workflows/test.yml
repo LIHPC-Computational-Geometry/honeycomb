@@ -38,7 +38,9 @@ jobs:
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       - name: Run Clippy
-        run: cargo clippy --all-targets
+        run: |
+          cargo clippy --all-targets -- \
+            -D clippy::disallowed_types
   tests:
     runs-on: ubuntu-22.04
     steps:

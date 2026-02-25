@@ -320,7 +320,7 @@ fn build_tet_tx() -> anyhow::Result<CMap3<f64>> {
     let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build().unwrap(); // 3*4 darts
 
     // face z- (base)
-    let res = atomically_with_err(|t| {
+    atomically_with_err(|t| {
         map.link::<1>(t, 1, 2)?;
         map.link::<1>(t, 2, 3)?;
         map.link::<1>(t, 3, 1)?;
@@ -344,8 +344,7 @@ fn build_tet_tx() -> anyhow::Result<CMap3<f64>> {
         map.link::<2>(t, 6, 8)?;
         map.link::<2>(t, 9, 11)?;
         Ok(())
-    });
-    assert!(res.is_ok());
+    })?;
 
     // putting this in a scope to force dropping the iterator before the next mutable borrow
     {
@@ -766,12 +765,10 @@ mod one_sew {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
             map.force_link::<1>(1, 2)?;
 
-            assert!(
-                map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
-                    e,
-                    SewError::FailedLink(LinkError::NonFreeBase(1, 1, 3))
-                ))
-            )
+            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+                e,
+                SewError::FailedLink(LinkError::NonFreeBase(1, 1, 3))
+            )));
         }
         // 1-sew to unfree dart
         {
@@ -781,7 +778,7 @@ mod one_sew {
             assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeImage(0, 1, 3))
-            )))
+            )));
         }
         // 1-sew to null dart
         {
@@ -1030,12 +1027,10 @@ mod two_sew {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
             map.force_link::<2>(1, 2)?;
 
-            assert!(
-                map.force_sew::<2>(1, 3).is_err_and(|e| matches!(
-                    e,
-                    SewError::FailedLink(LinkError::NonFreeBase(2, 1, 3))
-                ))
-            )
+            assert!(map.force_sew::<2>(1, 3).is_err_and(|e| matches!(
+                e,
+                SewError::FailedLink(LinkError::NonFreeBase(2, 1, 3))
+            )));
         }
         // 2-sew to unfree dart
         {
@@ -1045,7 +1040,7 @@ mod two_sew {
             assert!(map.force_sew::<2>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeImage(2, 1, 3))
-            )))
+            )));
         }
         Ok(())
     }
@@ -1345,6 +1340,7 @@ mod two_sew {
 mod three_sew {
     use super::*;
 
+    #[allow(clippy::unnecessary_wraps)]
     #[test]
     fn topo_errs() -> anyhow::Result<()> {
         // todo!()
