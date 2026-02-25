@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["VertexInsertionError"],"fn":["insert_vertex_on_edge","insert_vertices_on_edge"]};
