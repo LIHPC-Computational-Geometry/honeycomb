@@ -44,7 +44,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - the two darts are not `I`-sewable.
-    pub fn sew<const I: u8>(
+    pub fn sew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -97,7 +97,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unsew<const I: u8>(
+    pub fn unsew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,

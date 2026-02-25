@@ -40,7 +40,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - the two darts are not `I`-linkable.
-    pub fn link<const I: u8>(
+    pub fn link_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -87,7 +87,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `lhs_dart_id` is already `I`-free.
-    pub fn unlink<const I: u8>(
+    pub fn unlink_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
