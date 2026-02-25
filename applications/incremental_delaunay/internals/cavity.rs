@@ -385,7 +385,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
             map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
             CavityError
         );
-        DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType));
+        DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType))?;
         free_darts.append(&mut new_darts);
     }
     free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
