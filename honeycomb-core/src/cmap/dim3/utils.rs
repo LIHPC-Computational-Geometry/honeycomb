@@ -47,7 +47,7 @@ impl<T: CoordsFloat> CMap3<T> {
                         .orbit(OrbitPolicy::Vertex, d)
                         .min()
                         .expect("E: unreachable");
-                    atomically(|t| vids[d as usize].write(t, min));
+                    vids[d as usize].write_atomic(min);
                 });
         }
     }
