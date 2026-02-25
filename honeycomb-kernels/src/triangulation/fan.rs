@@ -102,22 +102,22 @@ pub fn process_cell<T: CoordsFloat>(
         let b0_sdart = cmap.beta_tx::<0>(t, *sdart)?;
         let vid = cmap.vertex_id_tx(t, *sdart)?;
         let v0 = cmap.read_vertex(t, vid)?.unwrap();
-        try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
+        try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
             let [d1, d2] = sl else { unreachable!() };
             let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
             let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-            try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
-            try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
+            try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<2>(t, *d1, *d2), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, *d2, b1b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, b1_d0, *d1), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, *d1, d0), TriangulateError);
             d0 = *d2;
         }
         let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
         let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-        try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, b1b1_d0, d0), TriangulateError);
         let vid = cmap.vertex_id_tx(t, *sdart)?;
         cmap.write_vertex(t, vid, v0)?;
     } else {
@@ -188,22 +188,22 @@ pub fn process_convex_cell<T: CoordsFloat>(
     let b0_sdart = cmap.beta_tx::<0>(t, sdart)?;
     let vid = cmap.vertex_id_tx(t, sdart)?;
     let v0 = cmap.read_vertex(t, vid)?.unwrap();
-    try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
+    try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
         let [d1, d2] = sl else { unreachable!() };
         let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
         let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-        try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
-        try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
+        try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<2>(t, *d1, *d2), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, *d2, b1b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, b1_d0, *d1), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, *d1, d0), TriangulateError);
         d0 = *d2;
     }
     let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
     let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-    try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+    try_or_coerce!(cmap.sew_tx::<1>(t, b1b1_d0, d0), TriangulateError);
     let vid = cmap.vertex_id_tx(t, sdart)?;
     cmap.write_vertex(t, vid, v0)?;
 

@@ -197,13 +197,13 @@ fn process_cell<T: CoordsFloat>(
         let d_ear2 = darts[(ear + 1) % n];
         let b0_d_ear1 = cmap.beta_tx::<0>(t, d_ear1)?;
         let b1_d_ear2 = cmap.beta_tx::<1>(t, d_ear2)?;
-        try_or_coerce!(cmap.unsew::<1>(t, b0_d_ear1), TriangulateError);
-        try_or_coerce!(cmap.unsew::<1>(t, d_ear2), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, d_ear2, nd1), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, nd1, d_ear1), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, b0_d_ear1, nd2), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, nd2, b1_d_ear2), TriangulateError);
-        try_or_coerce!(cmap.sew::<2>(t, nd1, nd2), TriangulateError);
+        try_or_coerce!(cmap.unsew_tx::<1>(t, b0_d_ear1), TriangulateError);
+        try_or_coerce!(cmap.unsew_tx::<1>(t, d_ear2), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, d_ear2, nd1), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, nd1, d_ear1), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, b0_d_ear1, nd2), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, nd2, b1_d_ear2), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<2>(t, nd1, nd2), TriangulateError);
 
         // edit existing vectors
         darts.remove((ear + 1) % n);

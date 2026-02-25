@@ -114,9 +114,9 @@ fn example_test_txtional() {
     // build a triangle
     let mut map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(3).build().unwrap();
     let res = atomically_with_err(|t| {
-        map.link::<1>(t, 1, 2)?;
-        map.link::<1>(t, 2, 3)?;
-        map.link::<1>(t, 3, 1)?;
+        map.link_tx::<1>(t, 1, 2)?;
+        map.link_tx::<1>(t, 2, 3)?;
+        map.link_tx::<1>(t, 3, 1)?;
         map.write_vertex(t, 1, (0.0, 0.0))?;
         map.write_vertex(t, 2, (1.0, 0.0))?;
         map.write_vertex(t, 3, (0.0, 1.0))?;
@@ -140,9 +140,9 @@ fn example_test_txtional() {
     // build a second triangle
     map.allocate_used_darts(3);
     let res = atomically_with_err(|t| {
-        map.link::<1>(t, 4, 5)?;
-        map.link::<1>(t, 5, 6)?;
-        map.link::<1>(t, 6, 4)?;
+        map.link_tx::<1>(t, 4, 5)?;
+        map.link_tx::<1>(t, 5, 6)?;
+        map.link_tx::<1>(t, 6, 4)?;
         map.write_vertex(t, 4, (0.0, 2.0))?;
         map.write_vertex(t, 5, (2.0, 0.0))?;
         map.write_vertex(t, 6, (1.0, 1.0))?;
@@ -165,7 +165,7 @@ fn example_test_txtional() {
     // sew both triangles
     atomically(|t| {
         // normally the error should be handled, but we're in a seq context
-        assert!(map.sew::<2>(t, 2, 4).is_ok());
+        assert!(map.sew_tx::<2>(t, 2, 4).is_ok());
         Ok(())
     });
 
@@ -200,11 +200,11 @@ fn example_test_txtional() {
 
     // separate the diagonal from the rest
     atomically(|t| {
-        assert!(map.unsew::<1>(t, 1).is_ok());
-        assert!(map.unsew::<1>(t, 2).is_ok());
-        assert!(map.unsew::<1>(t, 6).is_ok());
-        assert!(map.unsew::<1>(t, 4).is_ok());
-        assert!(map.unsew::<2>(t, 2).is_ok()); // this makes dart 2 and 4 free
+        assert!(map.unsew_tx::<1>(t, 1).is_ok());
+        assert!(map.unsew_tx::<1>(t, 2).is_ok());
+        assert!(map.unsew_tx::<1>(t, 6).is_ok());
+        assert!(map.unsew_tx::<1>(t, 4).is_ok());
+        assert!(map.unsew_tx::<2>(t, 2).is_ok()); // this makes dart 2 and 4 free
         Ok(())
     });
     atomically_with_err(|t| {
@@ -215,8 +215,8 @@ fn example_test_txtional() {
     .unwrap();
     atomically(|t| {
         // sew the square back up
-        assert!(map.sew::<1>(t, 1, 5).is_ok());
-        assert!(map.sew::<1>(t, 6, 3).is_ok());
+        assert!(map.sew_tx::<1>(t, 1, 5).is_ok());
+        assert!(map.sew_tx::<1>(t, 6, 3).is_ok());
         Ok(())
     });
 
@@ -359,7 +359,7 @@ fn two_sew_no_b1() {
 fn two_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.force_link::<2>(1, 3).unwrap();
-    let res = atomically_with_err(|t| map.sew::<1>(t, 1, 2));
+    let res = atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -377,7 +377,7 @@ fn two_sew_no_attributes_bis() {
     let mut map: CMap2<f64> = CMap2::new(4);
     map.force_link::<1>(1, 2).unwrap();
     map.force_link::<1>(3, 4).unwrap();
-    let res = atomically_with_err(|t| map.sew::<2>(t, 1, 3));
+    let res = atomically_with_err(|t| map.sew_tx::<2>(t, 1, 3));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -438,7 +438,7 @@ fn one_sew_incomplete_beta() {
 fn one_sew_no_attributes() {
     let mut map: CMap2<f64> = CMap2::new(3);
     map.force_link::<2>(1, 3).unwrap();
-    let res = atomically_with_err(|t| map.sew::<1>(t, 1, 2));
+    let res = atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2));
     assert!(res.is_err_and(|e| e
         == SewError::FailedAttributeOp(AttributeError::InsufficientData(
             "merge",
@@ -780,8 +780,8 @@ fn sew_ordering_with_txtions() {
         // setup the map
         let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(5).build().unwrap();
         let res = atomically_with_err(|t| {
-            map.link::<2>(t, 1, 2)?;
-            map.link::<1>(t, 4, 5)?;
+            map.link_tx::<2>(t, 1, 2)?;
+            map.link_tx::<1>(t, 4, 5)?;
             map.write_vertex(t, 2, Vertex2(1.0, 1.0))?;
             map.write_vertex(t, 3, Vertex2(1.0, 2.0))?;
             map.write_vertex(t, 5, Vertex2(2.0, 2.0))?;
@@ -802,7 +802,7 @@ fn sew_ordering_with_txtions() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|t| {
-                if let Err(e) = m1.sew::<1>(t, 1, 3) {
+                if let Err(e) = m1.sew_tx::<1>(t, 1, 3) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -815,7 +815,7 @@ fn sew_ordering_with_txtions() {
 
         let t2 = loom::thread::spawn(move || {
             atomically(|t| {
-                if let Err(e) = m2.sew::<2>(t, 3, 4) {
+                if let Err(e) = m2.sew_tx::<2>(t, 3, 4) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -917,10 +917,10 @@ fn unsew_ordering_with_txtions() {
             .build()
             .unwrap();
         let res = atomically_with_err(|t| {
-            map.link::<2>(t, 1, 2)?;
-            map.link::<2>(t, 3, 4)?;
-            map.link::<1>(t, 1, 3)?;
-            map.link::<1>(t, 4, 5)?;
+            map.link_tx::<2>(t, 1, 2)?;
+            map.link_tx::<2>(t, 3, 4)?;
+            map.link_tx::<1>(t, 1, 3)?;
+            map.link_tx::<1>(t, 4, 5)?;
             map.write_vertex(t, 2, Vertex2(0.0, 0.0))?;
             map.write_attribute(t, 2, Weight(33))?;
             Ok(())
@@ -939,7 +939,7 @@ fn unsew_ordering_with_txtions() {
 
         let t1 = loom::thread::spawn(move || {
             atomically(|t| {
-                if let Err(e) = m1.unsew::<1>(t, 1) {
+                if let Err(e) = m1.unsew_tx::<1>(t, 1) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
@@ -952,7 +952,7 @@ fn unsew_ordering_with_txtions() {
 
         let t2 = loom::thread::spawn(move || {
             atomically(|t| {
-                if let Err(e) = m2.unsew::<2>(t, 3) {
+                if let Err(e) = m2.unsew_tx::<2>(t, 3) {
                     match e {
                         TransactionError::Stm(e) => Err(e),
                         TransactionError::Abort(_) => Err(StmError::Retry),
