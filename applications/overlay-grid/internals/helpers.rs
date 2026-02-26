@@ -42,7 +42,7 @@ pub fn dart_origin_tx<T: CoordsFloat>(
     //assert_ne!(dart, NULL_DART_ID);
 
     let v_id = map.vertex_id_tx(trans, dart)?;
-    match map.read_vertex(trans, v_id)? {
+    match map.read_vertex_tx(trans, v_id)? {
         Some(vertex) => Ok(vertex),
         None => Ok(try_getting_dart_origin_from_orbit(trans, map, dart)),
     }
@@ -62,7 +62,7 @@ fn try_getting_dart_origin_from_orbit<T: CoordsFloat>(
         .collect();
 
     for ve in orbit_darts {
-        if let Ok(Some(v)) = map.read_vertex(trans, ve) {
+        if let Ok(Some(v)) = map.read_vertex_tx(trans, ve) {
             found_vertex = v;
             break;
         }
@@ -117,7 +117,7 @@ pub fn is_regular_tx<T: CoordsFloat>(
     dart: u32,
 ) -> Result<bool, StmError> {
     Ok(!map
-        .read_attribute::<IsIrregular>(trans, dart)?
+        .read_attribute_tx::<IsIrregular>(trans, dart)?
         .unwrap_or(IsIrregular(false))
         .0)
 }

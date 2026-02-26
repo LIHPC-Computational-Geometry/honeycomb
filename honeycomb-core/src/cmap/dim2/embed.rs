@@ -37,7 +37,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn read_vertex(
+    pub fn read_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -68,7 +68,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn write_vertex(
+    pub fn write_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -95,7 +95,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn remove_vertex(
+    pub fn remove_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -158,7 +158,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn read_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,
@@ -189,7 +189,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn write_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,
@@ -216,7 +216,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn remove_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,

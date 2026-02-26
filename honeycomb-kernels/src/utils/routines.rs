@@ -23,7 +23,7 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
     for d in map.orbit_tx(t, OrbitPolicy::Vertex, vid) {
         tmp.push(d?);
     }
-    let new_v = unwrap_or_retry(map.read_vertex(t, vid)?)?;
+    let new_v = unwrap_or_retry(map.read_vertex_tx(t, vid)?)?;
 
     let ref_crossp = {
         let d = tmp[0];
@@ -31,8 +31,8 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
         let b1b1d = map.beta_tx::<1>(t, b1d)?;
         let vid1 = map.vertex_id_tx(t, b1d)?;
         let vid2 = map.vertex_id_tx(t, b1b1d)?;
-        let v1 = unwrap_or_retry(map.read_vertex(t, vid1)?)?;
-        let v2 = unwrap_or_retry(map.read_vertex(t, vid2)?)?;
+        let v1 = unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?;
+        let v2 = unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?;
 
         Vertex2::cross_product_from_vertices(&new_v, &v1, &v2)
     };
@@ -46,8 +46,8 @@ pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
         let b1b1d = map.beta_tx::<1>(t, b1d)?;
         let vid1 = map.vertex_id_tx(t, b1d)?;
         let vid2 = map.vertex_id_tx(t, b1b1d)?;
-        let v1 = unwrap_or_retry(map.read_vertex(t, vid1)?)?;
-        let v2 = unwrap_or_retry(map.read_vertex(t, vid2)?)?;
+        let v1 = unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?;
+        let v2 = unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?;
 
         let crossp = Vertex2::cross_product_from_vertices(&new_v, &v1, &v2);
 

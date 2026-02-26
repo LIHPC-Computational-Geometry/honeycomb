@@ -38,9 +38,9 @@ pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType)
     let mut max_theta = T::min_value();
     loop {
         let theta = atomically(|t| {
-            let v1 = map.read_vertex(t, vid1)?.unwrap();
-            let v2 = map.read_vertex(t, vid2)?.unwrap();
-            let v3 = map.read_vertex(t, vid3)?.unwrap();
+            let v1 = map.read_vertex_tx(t, vid1)?.unwrap();
+            let v2 = map.read_vertex_tx(t, vid2)?.unwrap();
+            let v3 = map.read_vertex_tx(t, vid3)?.unwrap();
             let vin = v1 - v2;
             let vout = v3 - v2;
             Ok(T::acos(vin.dot(&vout) / (vin.norm() * vout.norm())))

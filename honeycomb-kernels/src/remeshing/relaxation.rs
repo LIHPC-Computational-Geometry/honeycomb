@@ -74,14 +74,14 @@ pub fn neighbor_based_smooth<T: CoordsFloat>(
     lambda: T,
 ) -> StmClosureResult<()> {
     let p = map
-        .read_vertex(t, vid)?
+        .read_vertex_tx(t, vid)?
         .expect("E: no coordinates associated to vertex ID");
 
     let n = neighbors_id.len();
     let mut neighbors: smallvec::SmallVec<_, 16> = smallvec::SmallVec::with_capacity(n);
     for &nid in neighbors_id {
         neighbors.push(
-            map.read_vertex(t, nid)?
+            map.read_vertex_tx(t, nid)?
                 .expect("E: no coordinates associated to vertex ID"),
         );
     }
@@ -93,7 +93,7 @@ pub fn neighbor_based_smooth<T: CoordsFloat>(
         * lambda
         / T::from(n).unwrap();
 
-    map.write_vertex(t, vid, p + delta)?;
+    map.write_vertex_tx(t, vid, p + delta)?;
 
     Ok(())
 }

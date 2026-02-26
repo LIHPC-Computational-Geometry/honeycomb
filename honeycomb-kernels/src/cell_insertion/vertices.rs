@@ -118,7 +118,8 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
             cmap.vertex_id_tx(t, base_dart1)?,
             cmap.vertex_id_tx(t, b1d1_old)?,
         );
-        let (Some(v1), Some(v2)) = (cmap.read_vertex(t, vid1)?, cmap.read_vertex(t, vid2)?) else {
+        let (Some(v1), Some(v2)) = (cmap.read_vertex_tx(t, vid1)?, cmap.read_vertex_tx(t, vid2)?)
+        else {
             abort(VertexInsertionError::UndefinedEdge)?
         };
         // unsew current dart
@@ -137,7 +138,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_tx(t, b1d1_new)?;
-        cmap.write_vertex(
+        cmap.write_vertex_tx(
             t,
             vnew,
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
@@ -151,7 +152,8 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
             cmap.vertex_id_tx(t, base_dart1)?,
             cmap.vertex_id_tx(t, base_dart2)?,
         );
-        let (Some(v1), Some(v2)) = (cmap.read_vertex(t, vid1)?, cmap.read_vertex(t, vid2)?) else {
+        let (Some(v1), Some(v2)) = (cmap.read_vertex_tx(t, vid1)?, cmap.read_vertex_tx(t, vid2)?)
+        else {
             abort(VertexInsertionError::UndefinedEdge)?
         };
         // unsew current darts
@@ -198,7 +200,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
         // insert the new vertex
         let seg = v2 - v1;
         let vnew = cmap.vertex_id_tx(t, b1d1_new)?;
-        cmap.write_vertex(
+        cmap.write_vertex_tx(
             t,
             vnew,
             midpoint_vertex.map_or(Vertex2::average(&v1, &v2), |t| v1 + seg * t),
@@ -368,7 +370,8 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
             },
         )?,
     );
-    let (Some(v1), Some(v2)) = (cmap.read_vertex(t, vid1)?, cmap.read_vertex(t, vid2)?) else {
+    let (Some(v1), Some(v2)) = (cmap.read_vertex_tx(t, vid1)?, cmap.read_vertex_tx(t, vid2)?)
+    else {
         abort(VertexInsertionError::UndefinedEdge)?
     };
     let seg = v2 - v1;
@@ -386,7 +389,7 @@ pub fn insert_vertices_on_edge<T: CoordsFloat>(
     for (&p, &new_d) in midpoint_vertices.iter().zip(darts_fh.iter()) {
         let new_v = v1 + seg * p;
         try_or_coerce!(cmap.link_tx::<1>(t, prev_d, new_d), VertexInsertionError);
-        cmap.write_vertex(t, new_d, new_v)?;
+        cmap.write_vertex_tx(t, new_d, new_v)?;
         prev_d = new_d;
     }
     try_or_coerce!(cmap.link_tx::<1>(t, prev_d, b1d1_old), VertexInsertionError);

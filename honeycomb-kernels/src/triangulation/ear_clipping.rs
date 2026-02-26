@@ -142,7 +142,7 @@ fn process_cell<T: CoordsFloat>(
     }
     for &d in &darts {
         let vid = cmap.vertex_id_tx(t, d)?;
-        let v = if let Some(val) = cmap.read_vertex(t, vid)? {
+        let v = if let Some(val) = cmap.read_vertex_tx(t, vid)? {
             val
         } else {
             abort(TriangulateError::UndefinedFace(

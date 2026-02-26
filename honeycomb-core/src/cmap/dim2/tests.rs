@@ -117,9 +117,9 @@ fn example_test_txtional() {
         map.link_tx::<1>(t, 1, 2)?;
         map.link_tx::<1>(t, 2, 3)?;
         map.link_tx::<1>(t, 3, 1)?;
-        map.write_vertex(t, 1, (0.0, 0.0))?;
-        map.write_vertex(t, 2, (1.0, 0.0))?;
-        map.write_vertex(t, 3, (0.0, 1.0))?;
+        map.write_vertex_tx(t, 1, (0.0, 0.0))?;
+        map.write_vertex_tx(t, 2, (1.0, 0.0))?;
+        map.write_vertex_tx(t, 3, (0.0, 1.0))?;
         Ok(())
     });
     assert!(res.is_ok());
@@ -143,9 +143,9 @@ fn example_test_txtional() {
         map.link_tx::<1>(t, 4, 5)?;
         map.link_tx::<1>(t, 5, 6)?;
         map.link_tx::<1>(t, 6, 4)?;
-        map.write_vertex(t, 4, (0.0, 2.0))?;
-        map.write_vertex(t, 5, (2.0, 0.0))?;
-        map.write_vertex(t, 6, (1.0, 1.0))?;
+        map.write_vertex_tx(t, 4, (0.0, 2.0))?;
+        map.write_vertex_tx(t, 5, (2.0, 0.0))?;
+        map.write_vertex_tx(t, 6, (1.0, 1.0))?;
         Ok(())
     });
     assert!(res.is_ok());
@@ -174,10 +174,10 @@ fn example_test_txtional() {
         assert_eq!(map.beta_tx::<2>(t, 2)?, 4);
         assert_eq!(map.vertex_id_tx(t, 2)?, 2);
         assert_eq!(map.vertex_id_tx(t, 5)?, 2);
-        assert_eq!(map.read_vertex(t, 2)?, Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex2::from((1.5, 0.0))));
         assert_eq!(map.vertex_id_tx(t, 3)?, 3);
         assert_eq!(map.vertex_id_tx(t, 4)?, 3);
-        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.5))));
+        assert_eq!(map.read_vertex_tx(t, 3)?, Some(Vertex2::from((0.0, 1.5))));
         Ok(())
     });
     let edges: Vec<_> = map.iter_edges().collect();
@@ -186,15 +186,15 @@ fn example_test_txtional() {
     // adjust bottom-right & top-left vertex position
     atomically(|t| {
         assert_eq!(
-            map.write_vertex(t, 2, (1.0, 0.0))?,
+            map.write_vertex_tx(t, 2, (1.0, 0.0))?,
             Some(Vertex2::from((1.5, 0.0)))
         );
-        assert_eq!(map.read_vertex(t, 2)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex2::from((1.0, 0.0))));
         assert_eq!(
-            map.write_vertex(t, 3, (0.0, 1.0))?,
+            map.write_vertex_tx(t, 3, (0.0, 1.0))?,
             Some(Vertex2::from((0.0, 1.5)))
         );
-        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        assert_eq!(map.read_vertex_tx(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
         Ok(())
     });
 
@@ -228,10 +228,10 @@ fn example_test_txtional() {
     let vertices: Vec<_> = map.iter_vertices().collect();
     assert_eq!(&vertices, &[1, 3, 5, 6]);
     atomically(|t| {
-        assert_eq!(map.read_vertex(t, 1)?, Some(Vertex2::from((0.0, 0.0))));
-        assert_eq!(map.read_vertex(t, 5)?, Some(Vertex2::from((1.0, 0.0))));
-        assert_eq!(map.read_vertex(t, 6)?, Some(Vertex2::from((1.0, 1.0))));
-        assert_eq!(map.read_vertex(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
+        assert_eq!(map.read_vertex_tx(t, 1)?, Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.read_vertex_tx(t, 5)?, Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex_tx(t, 6)?, Some(Vertex2::from((1.0, 1.0))));
+        assert_eq!(map.read_vertex_tx(t, 3)?, Some(Vertex2::from((0.0, 1.0))));
         Ok(())
     });
     // darts
@@ -782,9 +782,9 @@ fn sew_ordering_with_txtions() {
         let res = atomically_with_err(|t| {
             map.link_tx::<2>(t, 1, 2)?;
             map.link_tx::<1>(t, 4, 5)?;
-            map.write_vertex(t, 2, Vertex2(1.0, 1.0))?;
-            map.write_vertex(t, 3, Vertex2(1.0, 2.0))?;
-            map.write_vertex(t, 5, Vertex2(2.0, 2.0))?;
+            map.write_vertex_tx(t, 2, Vertex2(1.0, 1.0))?;
+            map.write_vertex_tx(t, 3, Vertex2(1.0, 2.0))?;
+            map.write_vertex_tx(t, 5, Vertex2(2.0, 2.0))?;
             Ok(())
         });
         assert!(res.is_ok());
@@ -832,9 +832,9 @@ fn sew_ordering_with_txtions() {
         // all path should result in the same topological result here
         let (v2, v3, v5) = atomically(|t| {
             Ok((
-                arc.remove_vertex(t, 2)?,
-                arc.remove_vertex(t, 3)?,
-                arc.remove_vertex(t, 5)?,
+                arc.remove_vertex_tx(t, 2)?,
+                arc.remove_vertex_tx(t, 3)?,
+                arc.remove_vertex_tx(t, 5)?,
             ))
         });
         assert!(v2.is_some());
@@ -842,9 +842,9 @@ fn sew_ordering_with_txtions() {
         assert!(v5.is_none());
         assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|t| {
-            assert_eq!(arc.read_vertex(t, 2)?, None);
-            assert_eq!(arc.read_vertex(t, 3)?, None);
-            assert_eq!(arc.read_vertex(t, 5)?, None);
+            assert_eq!(arc.read_vertex_tx(t, 2)?, None);
+            assert_eq!(arc.read_vertex_tx(t, 3)?, None);
+            assert_eq!(arc.read_vertex_tx(t, 5)?, None);
             Ok(())
         });
 
@@ -921,8 +921,8 @@ fn unsew_ordering_with_txtions() {
             map.link_tx::<2>(t, 3, 4)?;
             map.link_tx::<1>(t, 1, 3)?;
             map.link_tx::<1>(t, 4, 5)?;
-            map.write_vertex(t, 2, Vertex2(0.0, 0.0))?;
-            map.write_attribute(t, 2, Weight(33))?;
+            map.write_vertex_tx(t, 2, Vertex2(0.0, 0.0))?;
+            map.write_attribute_tx(t, 2, Weight(33))?;
             Ok(())
         });
         assert!(res.is_ok());
@@ -969,9 +969,9 @@ fn unsew_ordering_with_txtions() {
         // all path should result in the same topological result here
         let (w2, w3, w5) = atomically(|t| {
             Ok((
-                arc.remove_attribute::<Weight>(t, 2)?,
-                arc.remove_attribute::<Weight>(t, 3)?,
-                arc.remove_attribute::<Weight>(t, 5)?,
+                arc.remove_attribute_tx::<Weight>(t, 2)?,
+                arc.remove_attribute_tx::<Weight>(t, 3)?,
+                arc.remove_attribute_tx::<Weight>(t, 5)?,
             ))
         });
         assert!(w2.is_some());
@@ -981,9 +981,9 @@ fn unsew_ordering_with_txtions() {
         let w3 = w3.unwrap();
         let w5 = w5.unwrap();
         atomically(|t| {
-            assert!(arc.read_attribute::<Weight>(t, 2)?.is_none());
-            assert!(arc.read_attribute::<Weight>(t, 3)?.is_none());
-            assert!(arc.read_attribute::<Weight>(t, 5)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 2)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 3)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 5)?.is_none());
             Ok(())
         });
 

@@ -349,10 +349,10 @@ pub fn refine_cell_tx<T: CoordsFloat>(
 
     // Step 2: Prepare geo vertices distribution
     let parent_geo_range = map
-        .read_attribute::<GeoVertices>(trans, face_id)?
+        .read_attribute_tx::<GeoVertices>(trans, face_id)?
         .unwrap_or(GeoVertices((0, 0)))
         .0;
-    map.remove_attribute::<GeoVertices>(trans, face_id)?;
+    map.remove_attribute_tx::<GeoVertices>(trans, face_id)?;
 
     let mut quadrant_ranges = [(0u32, 0u32); 4];
     if parent_geo_range.1 != 0 {
@@ -455,7 +455,7 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
     parent_face_id: u32,
 ) -> TransactionClosureResult<u32, LinkError> {
     let parent_refinement_level = map
-        .read_attribute::<RefinementLevel>(trans, parent_face_id)?
+        .read_attribute_tx::<RefinementLevel>(trans, parent_face_id)?
         .unwrap()
         .0;
 
@@ -466,7 +466,7 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
 
         // Assign geo vertices if this quadrant has any
         if quadrant_ranges[i].1 > 0 {
-            map.write_attribute::<GeoVertices>(
+            map.write_attribute_tx::<GeoVertices>(
                 trans,
                 child_face_id,
                 GeoVertices(quadrant_ranges[i]),
@@ -476,10 +476,10 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
 
         // Set sibling relationship (circular)
         let next_sibling = map.face_id_tx(trans, face_darts[(i + 1) % 4])?;
-        map.write_attribute::<SiblingDartId>(trans, child_face_id, SiblingDartId(next_sibling))?;
+        map.write_attribute_tx::<SiblingDartId>(trans, child_face_id, SiblingDartId(next_sibling))?;
 
         // Increment refinement level
-        map.write_attribute::<RefinementLevel>(
+        map.write_attribute_tx::<RefinementLevel>(
             trans,
             child_face_id,
             RefinementLevel(parent_refinement_level + 1),
@@ -520,7 +520,7 @@ fn split_boundary_edge_n_4_tx<T: CoordsFloat>(
     let dart1 = map.beta_tx::<1>(trans, sub_dart1)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
-    map.remove_attribute::<IsIrregular>(trans, dart1)?;
+    map.remove_attribute_tx::<IsIrregular>(trans, dart1)?;
     map.unlink_tx::<1>(trans, sub_dart1)?;
 
     Ok(dart1)
@@ -534,7 +534,7 @@ fn split_boundary_edge_n_2_tx<T: CoordsFloat>(
     let dart1 = map.beta_tx::<1>(trans, edge_dart)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
-    map.remove_attribute::<IsIrregular>(trans, dart1)?;
+    map.remove_attribute_tx::<IsIrregular>(trans, dart1)?;
     map.unlink_tx::<1>(trans, edge_dart)?;
 
     Ok(dart1)
@@ -555,7 +555,7 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
 
         let dart1 = start_dart;
         let dart2 = dart1 + 1;
-        map.write_attribute::<IsIrregular>(trans, dart2, IsIrregular(true))?;
+        map.write_attribute_tx::<IsIrregular>(trans, dart2, IsIrregular(true))?;
         let opposite_next = map.beta_tx::<1>(trans, opposite)?;
 
         map.unlink_tx::<2>(trans, edge_dart)?;
@@ -578,7 +578,7 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
         &dart_origin_tx(trans, map, next)?,
     );
 
-    map.write_vertex(trans, dart1, subdivde_point)?;
+    map.write_vertex_tx(trans, dart1, subdivde_point)?;
 
     Ok(dart1)
 }
@@ -625,7 +625,7 @@ fn connect_subdivision_edges_tx<T: CoordsFloat>(
         0 => {
             // First iteration: initialize and set center vertex
             state.going_from_center_first = going_from_center;
-            map.write_vertex(trans, going_from_center, *midpoint)?;
+            map.write_vertex_tx(trans, going_from_center, *midpoint)?;
         }
         3 => {
             // Last iteration: complete the connections
