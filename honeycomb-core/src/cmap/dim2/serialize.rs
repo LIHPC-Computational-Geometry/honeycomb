@@ -94,7 +94,7 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
 
         writeln!(writer, "[VERTICES]").expect("E: couldn't write to file");
         self.iter_vertices().for_each(|v| {
-            if let Some(val) = self.force_read_vertex(v) {
+            if let Some(val) = self.read_vertex(v) {
                 writeln!(
                     writer,
                     "{v} {} {}",
@@ -176,7 +176,7 @@ where
     let vertices = vertex_ids
         .iter()
         .map(|vid| {
-            map.force_read_vertex(*vid)
+            map.read_vertex(*vid)
                 .expect("E: found a topological vertex with no associated coordinates")
         })
         .flat_map(|v| [v.x(), v.y(), T::zero()].into_iter());

@@ -34,7 +34,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
         .par_bridge()
         .for_each(|(y_idx, x_idx)| {
             let vertex_id = map.vertex_id((1 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
-            map.force_write_vertex(
+            map.write_vertex(
                 vertex_id,
                 origin
                     + Vector2(
@@ -48,7 +48,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     (0..n_square_x).into_par_iter().for_each(|x_idx| {
         let y_idx = n_square_y - 1;
         let vertex_id = map.vertex_id((4 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -62,7 +62,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     (0..n_square_y).into_par_iter().for_each(|y_idx| {
         let x_idx = n_square_x - 1;
         let vertex_id = map.vertex_id((2 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType);
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -76,7 +76,7 @@ pub(crate) fn build_2d_grid<T: CoordsFloat>(
     {
         let (x_idx, y_idx) = (n_square_x - 1, n_square_y - 1);
         let vertex_id = map.vertex_id((3 + x_idx * 4 + y_idx * 4 * n_square_x) as DartIdType); // top right
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -146,7 +146,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
         .par_bridge()
         .for_each(|(y_idx, x_idx)| {
             let vertex_id = map.vertex_id((1 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
-            map.force_write_vertex(
+            map.write_vertex(
                 vertex_id,
                 origin
                     + Vector2(
@@ -160,7 +160,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     (0..n_square_x).into_par_iter().for_each(|x_idx| {
         let y_idx = n_square_y - 1;
         let vertex_id = map.vertex_id((4 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -174,7 +174,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     (0..n_square_y).into_par_iter().for_each(|y_idx| {
         let x_idx = n_square_x - 1;
         let vertex_id = map.vertex_id((2 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType);
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -188,7 +188,7 @@ pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
     {
         let (x_idx, y_idx) = (n_square_x - 1, n_square_y - 1);
         let vertex_id = map.vertex_id((6 + x_idx * 6 + y_idx * 6 * n_square_x) as DartIdType); // top right
-        map.force_write_vertex(
+        map.write_vertex(
             vertex_id,
             origin
                 + Vector2(
@@ -261,7 +261,7 @@ pub(crate) fn build_3d_grid<T: CoordsFloat>(
         .filter(|d| *d as VertexIdType == map.vertex_id(*d))
         .for_each(|d| {
             let v = origin + generate_hex_offset(d, n_cells_per_axis, lengths);
-            map.force_write_vertex(d as VertexIdType, v);
+            map.write_vertex(d as VertexIdType, v);
         });
 
     // check the number of built volumes
@@ -452,7 +452,7 @@ pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
         .filter(|d| *d as VertexIdType == map.vertex_id(*d))
         .for_each(|d| {
             let v = origin + generate_tet_offset(d, n_cells_per_axis, lengths);
-            map.force_write_vertex(d as VertexIdType, v);
+            map.write_vertex(d as VertexIdType, v);
         });
 
     // check the number of built volumes

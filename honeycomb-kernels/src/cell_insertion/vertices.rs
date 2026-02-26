@@ -262,9 +262,9 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 /// let mut map: CMap2<_> = CMapBuilder::<2>::from_n_darts(2)
 ///                             .build()
 ///                             .unwrap();
-/// map.force_link::<2>(1, 2);
-/// map.force_write_vertex(1, (0.0, 0.0));
-/// map.force_write_vertex(2, (1.0, 0.0));
+/// map.link::<2>(1, 2);
+/// map.write_vertex(1, (0.0, 0.0));
+/// map.write_vertex(2, (1.0, 0.0));
 ///
 /// let nd = map.allocate_unused_darts(6);
 ///
@@ -291,9 +291,9 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 ///     map.beta::<1>(map.beta::<1>(map.beta::<1>(1))),
 /// ];
 /// assert_eq!(&new_darts, &[3, 4, 5]);
-/// assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
-/// assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
-/// assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
+/// assert_eq!(map.read_vertex(3), Some(Vertex2(0.25, 0.0)));
+/// assert_eq!(map.read_vertex(4), Some(Vertex2(0.50, 0.0)));
+/// assert_eq!(map.read_vertex(5), Some(Vertex2(0.75, 0.0)));
 ///
 /// assert_eq!(map.beta::<1>(1), 3);
 /// assert_eq!(map.beta::<1>(3), 4);

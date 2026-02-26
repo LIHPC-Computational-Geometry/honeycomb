@@ -21,17 +21,17 @@ mod vertices {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2).unwrap();
-        map.force_link::<1>(2, 3).unwrap();
-        map.force_link::<1>(4, 5).unwrap();
-        map.force_link::<1>(5, 6).unwrap();
-        map.force_link::<2>(1, 6).unwrap();
-        map.force_link::<2>(2, 5).unwrap();
-        map.force_link::<2>(3, 4).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
-        map.force_write_vertex(3, (2.0, 0.0));
-        map.force_write_vertex(4, (3.0, 0.0));
+        map.link::<1>(1, 2).unwrap();
+        map.link::<1>(2, 3).unwrap();
+        map.link::<1>(4, 5).unwrap();
+        map.link::<1>(5, 6).unwrap();
+        map.link::<2>(1, 6).unwrap();
+        map.link::<2>(2, 5).unwrap();
+        map.link::<2>(3, 4).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
+        map.write_vertex(3, (2.0, 0.0));
+        map.write_vertex(4, (3.0, 0.0));
         // split
         let nds = map.allocate_used_darts(2);
         let res = atomically_with_err(|t| insert_vertex_on_edge(&map, t, 2, (nds, nds + 1), None));
@@ -53,9 +53,9 @@ mod vertices {
         assert_eq!(map.vertex_id(8), 7);
         assert_eq!(map.vertex_id(7), 7);
 
-        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
-        assert_eq!(map.force_read_vertex(7), Some(Vertex2::from((1.5, 0.0))));
-        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((2.0, 0.0))));
+        assert_eq!(map.read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(7), Some(Vertex2::from((1.5, 0.0))));
+        assert_eq!(map.read_vertex(3), Some(Vertex2::from((2.0, 0.0))));
     }
 
     #[test]
@@ -65,9 +65,9 @@ mod vertices {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
+        map.link::<2>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.allocate_used_darts(2);
         let res =
@@ -86,9 +86,9 @@ mod vertices {
         assert_eq!(map.vertex_id(3), 3);
         assert_eq!(map.vertex_id(4), 3);
 
-        assert_eq!(map.force_read_vertex(1), Some(Vertex2::from((0.0, 0.0))));
-        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.6, 0.0))));
-        assert_eq!(map.force_read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
+        assert_eq!(map.read_vertex(1), Some(Vertex2::from((0.0, 0.0))));
+        assert_eq!(map.read_vertex(3), Some(Vertex2::from((0.6, 0.0))));
+        assert_eq!(map.read_vertex(2), Some(Vertex2::from((1.0, 0.0))));
     }
 
     #[test]
@@ -96,9 +96,9 @@ mod vertices {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
+        map.link::<1>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
         // split
         let nd = map.allocate_used_darts(1); // a single dart is enough in this case
         let res =
@@ -109,7 +109,7 @@ mod vertices {
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 2);
         assert_eq!(map.beta::<2>(3), NULL_DART_ID);
-        assert_eq!(map.force_read_vertex(3), Some(Vertex2::from((0.5, 0.0))));
+        assert_eq!(map.read_vertex(3), Some(Vertex2::from((0.5, 0.0))));
     }
 
     #[test]
@@ -118,9 +118,9 @@ mod vertices {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
+        map.link::<2>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        // map.write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.allocate_used_darts(2);
         let res = atomically_with_err(|t| insert_vertex_on_edge(&map, t, 1, (nds, nds + 1), None));
@@ -136,17 +136,17 @@ mod vertices {
         //  1         2         3         4
         //    ---1-->   ---2-->   ---3-->
         let mut map: CMap2<f64> = newmap(6);
-        map.force_link::<1>(1, 2).unwrap();
-        map.force_link::<1>(2, 3).unwrap();
-        map.force_link::<1>(4, 5).unwrap();
-        map.force_link::<1>(5, 6).unwrap();
-        map.force_link::<2>(1, 6).unwrap();
-        map.force_link::<2>(2, 5).unwrap();
-        map.force_link::<2>(3, 4).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
-        map.force_write_vertex(3, (2.0, 0.0));
-        map.force_write_vertex(4, (3.0, 0.0));
+        map.link::<1>(1, 2).unwrap();
+        map.link::<1>(2, 3).unwrap();
+        map.link::<1>(4, 5).unwrap();
+        map.link::<1>(5, 6).unwrap();
+        map.link::<2>(1, 6).unwrap();
+        map.link::<2>(2, 5).unwrap();
+        map.link::<2>(3, 4).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
+        map.write_vertex(3, (2.0, 0.0));
+        map.write_vertex(4, (3.0, 0.0));
         // split
         let nds = map.allocate_used_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
@@ -159,9 +159,9 @@ mod vertices {
         //  1         2 -7-8-9- 3         4
         //    ---1-->             ---3-->
         assert_eq!(&new_darts[0..3], &[7, 8, 9]);
-        assert_eq!(map.force_read_vertex(7), Some(Vertex2(1.25, 0.0)));
-        assert_eq!(map.force_read_vertex(8), Some(Vertex2(1.50, 0.0)));
-        assert_eq!(map.force_read_vertex(9), Some(Vertex2(1.75, 0.0)));
+        assert_eq!(map.read_vertex(7), Some(Vertex2(1.25, 0.0)));
+        assert_eq!(map.read_vertex(8), Some(Vertex2(1.50, 0.0)));
+        assert_eq!(map.read_vertex(9), Some(Vertex2(1.75, 0.0)));
 
         assert_eq!(map.beta::<1>(2), 7);
         assert_eq!(map.beta::<1>(7), 8);
@@ -186,9 +186,9 @@ mod vertices {
         //  1         2
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
+        map.link::<2>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.allocate_used_darts(6);
         let new_darts = (nds..nds + 6).collect::<Vec<_>>();
@@ -201,9 +201,9 @@ mod vertices {
         //  1 -3-4-5- 2
         //    >->->->
         assert_eq!(&new_darts[0..3], &[3, 4, 5]);
-        assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
+        assert_eq!(map.read_vertex(3), Some(Vertex2(0.25, 0.0)));
+        assert_eq!(map.read_vertex(4), Some(Vertex2(0.50, 0.0)));
+        assert_eq!(map.read_vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -226,9 +226,9 @@ mod vertices {
         // before
         //  1 -----> 2 ->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<1>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 0.0));
+        map.link::<1>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        map.write_vertex(2, (1.0, 0.0));
         // split
         let nds = map.allocate_used_darts(3);
         let res = atomically_with_err(|t| {
@@ -251,9 +251,9 @@ mod vertices {
         // after
         //  1 -> 3 -> 4 -> 5 -> 2 ->
         // assert_eq!(&new_darts, &[3, 4, 5]);
-        assert_eq!(map.force_read_vertex(3), Some(Vertex2(0.25, 0.0)));
-        assert_eq!(map.force_read_vertex(4), Some(Vertex2(0.50, 0.0)));
-        assert_eq!(map.force_read_vertex(5), Some(Vertex2(0.75, 0.0)));
+        assert_eq!(map.read_vertex(3), Some(Vertex2(0.25, 0.0)));
+        assert_eq!(map.read_vertex(4), Some(Vertex2(0.50, 0.0)));
+        assert_eq!(map.read_vertex(5), Some(Vertex2(0.75, 0.0)));
 
         assert_eq!(map.beta::<1>(1), 3);
         assert_eq!(map.beta::<1>(3), 4);
@@ -272,9 +272,9 @@ mod vertices {
         //  1         ?
         //    ---1-->
         let mut map: CMap2<f64> = newmap(2);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_write_vertex(1, (0.0, 0.0));
-        // map.force_write_vertex(2, (1.0, 0.0)); missing vertex!
+        map.link::<2>(1, 2).unwrap();
+        map.write_vertex(1, (0.0, 0.0));
+        // map.write_vertex(2, (1.0, 0.0)); missing vertex!
         // split
         let nds = map.allocate_used_darts(6);
         let res = atomically_with_err(|t| {

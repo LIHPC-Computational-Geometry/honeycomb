@@ -58,7 +58,7 @@ pub fn generate_first_mesh<T: CoordsFloat>(
         .filter(|(_, n_d, _)| *n_d != 0)
         .for_each(|(f, n_d, start)| {
             let new_darts = (start..start + n_d as DartIdType).collect::<Vec<_>>();
-            let anchor = map.force_remove_attribute::<FaceAnchor>(f);
+            let anchor = map.remove_attribute::<FaceAnchor>(f);
             // make sure new edges are anchored
             if let Some(a) = anchor {
                 atomically(|t| {
@@ -107,15 +107,15 @@ pub fn generate_first_mesh<T: CoordsFloat>(
     }));
     debug_assert!(
         map.par_iter_vertices()
-            .all(|v| map.force_read_attribute::<VertexAnchor>(v).is_some())
+            .all(|v| map.read_attribute::<VertexAnchor>(v).is_some())
     );
     debug_assert!(
         map.par_iter_edges()
-            .all(|e| map.force_read_attribute::<EdgeAnchor>(e).is_some())
+            .all(|e| map.read_attribute::<EdgeAnchor>(e).is_some())
     );
     debug_assert!(
         map.par_iter_faces()
-            .all(|f| map.force_read_attribute::<FaceAnchor>(f).is_some())
+            .all(|f| map.read_attribute::<FaceAnchor>(f).is_some())
     );
 
     // TODO: print the whole config / args
@@ -409,10 +409,10 @@ pub fn remesh<T: CoordsFloat>(
                 let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
                 if r != NULL_DART_ID {
                     debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(l))
+                        map.read_attribute::<FaceAnchor>(map.face_id(l))
                             .is_some()
                             && map
-                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
+                                .read_attribute::<FaceAnchor>(map.face_id(r))
                                 .is_some()
                     );
 
@@ -444,10 +444,10 @@ pub fn remesh<T: CoordsFloat>(
                     }
 
                     debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(l))
+                        map.read_attribute::<FaceAnchor>(map.face_id(l))
                             .is_some()
                             && map
-                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
+                                .read_attribute::<FaceAnchor>(map.face_id(r))
                                 .is_some()
                     );
                 }

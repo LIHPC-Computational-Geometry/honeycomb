@@ -7,7 +7,7 @@ use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 /// 2-links
 impl<T: CoordsFloat> CMap3<T> {
     /// 2-link operation.
-    pub(crate) fn two_link(
+    pub(crate) fn two_link_tx(
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -17,7 +17,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 2-link operation.
-    pub(crate) fn force_two_link(
+    pub(crate) fn two_link(
         &self,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
@@ -29,7 +29,7 @@ impl<T: CoordsFloat> CMap3<T> {
 /// 2-unlinks
 impl<T: CoordsFloat> CMap3<T> {
     /// 2-unlink operation.
-    pub(crate) fn two_unlink(
+    pub(crate) fn two_unlink_tx(
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
@@ -38,7 +38,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 2-unlink operation.
-    pub(crate) fn force_two_unlink(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+    pub(crate) fn two_unlink(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
         atomically_with_err(|t| self.betas.two_unlink_core(t, lhs_dart_id))
     }
 }

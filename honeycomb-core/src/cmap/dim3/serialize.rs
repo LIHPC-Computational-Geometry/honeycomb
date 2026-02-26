@@ -95,7 +95,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
         writeln!(writer, "[VERTICES]").expect("E: couldn't write to file");
         self.iter_vertices().for_each(|v| {
-            if let Some(val) = self.force_read_vertex(v) {
+            if let Some(val) = self.read_vertex(v) {
                 writeln!(
                     writer,
                     "{v} {} {} {}",

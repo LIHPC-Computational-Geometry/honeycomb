@@ -73,7 +73,7 @@ unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
 /// - We use the builder structure: [`CMapBuilder`][crate::prelude::CMapBuilder]
 /// - We insert a few assertions to demonstrate the progressive changes applied to the structure
 /// - Even though volumes are represented in the figure, they are not stored in the structure
-/// - We use a lot of methods with the `force_` prefix; these are convenience methods when
+/// - We use a lot of methods with the `` prefix; these are convenience methods when
 ///   synchronization isn't needed
 impl<T: CoordsFloat> CMap3<T> {
     /// Creates a new 3D combinatorial map.

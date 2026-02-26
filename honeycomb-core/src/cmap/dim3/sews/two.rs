@@ -11,7 +11,7 @@ use crate::{
 impl<T: CoordsFloat> CMap3<T> {
     #[allow(clippy::too_many_lines)]
     /// 2-sew transactional operation.
-    pub(crate) fn two_sew(
+    pub(crate) fn two_sew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -56,7 +56,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
         }
 
-        try_or_coerce!(self.two_link(t, ld, rd), SewError);
+        try_or_coerce!(self.two_link_tx(t, ld, rd), SewError);
 
         // merge edge attributes
         try_or_coerce!(
@@ -106,7 +106,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
     /// 2-unsew transactional operation.
     #[allow(clippy::too_many_lines)]
-    pub(crate) fn two_unsew(
+    pub(crate) fn two_unsew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -115,7 +115,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let b1ld = self.beta_tx::<1>(t, ld)?.max(self.beta_tx::<3>(t, ld)?);
         let b1rd = self.beta_tx::<1>(t, rd)?.max(self.beta_tx::<3>(t, rd)?);
 
-        try_or_coerce!(self.two_unlink(t, ld), SewError);
+        try_or_coerce!(self.two_unlink_tx(t, ld), SewError);
 
         let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
         let (vid_l_newl, vid_l_newr) = (self.vertex_id_tx(t, ld)?, self.vertex_id_tx(t, b1rd)?);

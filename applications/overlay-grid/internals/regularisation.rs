@@ -57,8 +57,8 @@ fn regularize_edge<T: CoordsFloat>(map: &CMap2<T>, edge_dart: u32, dart1: u32) -
     debug_assert!(!is_regular(map, edge_dart2));
     debug_assert!(!is_regular(map, edge_dart));
 
-    map.force_remove_attribute::<IsIrregular>(edge_dart);
-    map.force_remove_attribute::<IsIrregular>(edge_dart2);
+    map.remove_attribute::<IsIrregular>(edge_dart);
+    map.remove_attribute::<IsIrregular>(edge_dart2);
 
     // Use pre-allocated darts instead of allocating new ones
     let dart2 = dart1 + 1;
@@ -68,33 +68,33 @@ fn regularize_edge<T: CoordsFloat>(map: &CMap2<T>, edge_dart: u32, dart1: u32) -
     let tri_dart2_opposite = dart1 + 5;
 
     let vertex = Vertex2::<T>::average(&dart_origin(map, next_opposite), &dart_origin(map, next));
-    map.force_write_vertex(dart1, vertex);
+    map.write_vertex(dart1, vertex);
 
-    map.force_unlink::<1>(prev).unwrap();
-    map.force_unlink::<1>(next).unwrap();
-    map.force_unlink::<1>(next_opposite).unwrap();
-    map.force_unlink::<1>(prev2).unwrap();
-    map.force_unlink::<2>(next).unwrap();
+    map.unlink::<1>(prev).unwrap();
+    map.unlink::<1>(next).unwrap();
+    map.unlink::<1>(next_opposite).unwrap();
+    map.unlink::<1>(prev2).unwrap();
+    map.unlink::<2>(next).unwrap();
 
     // connecting everything in upper quad
-    map.force_link::<1>(prev, tri_dart1_opposite).unwrap();
-    map.force_link::<1>(tri_dart1_opposite, dart1).unwrap();
-    map.force_link::<1>(dart1, next_next).unwrap();
-    map.force_link::<1>(next, tri_dart1).unwrap();
-    map.force_link::<1>(tri_dart1, edge_dart).unwrap();
-    map.force_link::<2>(tri_dart1, tri_dart1_opposite).unwrap();
+    map.link::<1>(prev, tri_dart1_opposite).unwrap();
+    map.link::<1>(tri_dart1_opposite, dart1).unwrap();
+    map.link::<1>(dart1, next_next).unwrap();
+    map.link::<1>(next, tri_dart1).unwrap();
+    map.link::<1>(tri_dart1, edge_dart).unwrap();
+    map.link::<2>(tri_dart1, tri_dart1_opposite).unwrap();
 
     // connecting everything in lower quad
-    map.force_link::<1>(tri_dart2, dart2).unwrap();
-    map.force_link::<1>(dart2, prev2).unwrap();
-    map.force_link::<1>(prev2, tri_dart2).unwrap();
-    map.force_link::<1>(next_opposite, tri_dart2_opposite)
+    map.link::<1>(tri_dart2, dart2).unwrap();
+    map.link::<1>(dart2, prev2).unwrap();
+    map.link::<1>(prev2, tri_dart2).unwrap();
+    map.link::<1>(next_opposite, tri_dart2_opposite)
         .unwrap();
-    map.force_link::<1>(tri_dart2_opposite, edge_dart2).unwrap();
-    map.force_link::<2>(tri_dart2, tri_dart2_opposite).unwrap();
+    map.link::<1>(tri_dart2_opposite, edge_dart2).unwrap();
+    map.link::<2>(tri_dart2, tri_dart2_opposite).unwrap();
 
-    map.force_link::<2>(next, dart2).unwrap();
-    map.force_link::<2>(next_opposite, dart1).unwrap();
+    map.link::<2>(next, dart2).unwrap();
+    map.link::<2>(next_opposite, dart1).unwrap();
 
     dart1 + 6
 }
@@ -203,8 +203,8 @@ fn regularize_consecutive_chain<T: CoordsFloat>(
             let dart2 = chunk[1];
 
             // Verify they form a valid pair with same refinement level
-            let level1 = map.force_read_attribute::<RefinementLevel>(map.face_id(dart1));
-            let level2 = map.force_read_attribute::<RefinementLevel>(map.face_id(dart2));
+            let level1 = map.read_attribute::<RefinementLevel>(map.face_id(dart1));
+            let level2 = map.read_attribute::<RefinementLevel>(map.face_id(dart2));
 
             if level1 == level2 {
                 dart_counter = regularize_edge(map, dart1, dart_counter);
