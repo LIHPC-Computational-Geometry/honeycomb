@@ -7,7 +7,7 @@ use crate::stm::{Transaction, TransactionClosureResult, abort, atomically_with_e
 /// 1-links
 impl<T: CoordsFloat> CMap3<T> {
     /// 1-link operation.
-    pub(crate) fn one_link(
+    pub(crate) fn one_link_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -25,15 +25,15 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
     /// retried until validated.
-    pub(crate) fn force_one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.one_link(t, ld, rd))
+    pub(crate) fn one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|t| self.one_link_tx(t, ld, rd))
     }
 }
 
 /// 1-unlinks
 impl<T: CoordsFloat> CMap3<T> {
     /// 1-unlink operation.
-    pub(crate) fn one_unlink(
+    pub(crate) fn one_unlink_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -55,7 +55,7 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to `one_unlink`, but internally uses a transaction that will be
     /// retried until validated.
-    pub(crate) fn force_one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.one_unlink(t, ld))
+    pub(crate) fn one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
+        atomically_with_err(|t| self.one_unlink_tx(t, ld))
     }
 }

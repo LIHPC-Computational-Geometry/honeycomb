@@ -11,7 +11,7 @@ use crate::{
 impl<T: CoordsFloat> CMap3<T> {
     /// 3-sew operation.
     #[allow(clippy::too_many_lines)]
-    pub(crate) fn three_sew(
+    pub(crate) fn three_sew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -96,7 +96,7 @@ impl<T: CoordsFloat> CMap3<T> {
         // (*): these branch corresponds to incomplete merges (at best),
         //      or incorrect structure (at worst). that's not a problem
         //      because `three_link` will detect inconsistencies
-        try_or_coerce!(self.three_link(t, ld, rd), SewError);
+        try_or_coerce!(self.three_link_tx(t, ld, rd), SewError);
 
         // merge face, edge, vertex attributes
         try_or_coerce!(
@@ -146,14 +146,14 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 3-unsew operation.
-    pub(crate) fn three_unsew(
+    pub(crate) fn three_unsew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
         let rd = self.beta_tx::<3>(t, ld)?;
 
-        try_or_coerce!(self.three_unlink(t, ld), SewError);
+        try_or_coerce!(self.three_unlink_tx(t, ld), SewError);
 
         let mut l_side = Vec::with_capacity(10);
         for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {

@@ -73,8 +73,8 @@ mod cmap {
     //     assert_eq!(map.beta::<1>(d), new_map.beta::<1>(d));
     //     assert_eq!(map.beta::<2>(d), new_map.beta::<2>(d));
     //     assert_eq!(
-    //         map.force_read_vertex(d as VertexIdType),
-    //         new_map.force_read_vertex(d as VertexIdType)
+    //         map.read_vertex(d as VertexIdType),
+    //         new_map.read_vertex(d as VertexIdType)
     //     );
     // });
     // }
@@ -102,8 +102,8 @@ mod cmap {
             assert_eq!(map.beta::<1>(d), new_map.beta::<1>(d));
             assert_eq!(map.beta::<2>(d), new_map.beta::<2>(d));
             assert_eq!(
-                map.force_read_vertex(d as VertexIdType),
-                new_map.force_read_vertex(d as VertexIdType)
+                map.read_vertex(d as VertexIdType),
+                new_map.read_vertex(d as VertexIdType)
             );
         });
     }

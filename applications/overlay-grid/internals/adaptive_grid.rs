@@ -105,9 +105,9 @@ pub fn refine_with_pairing<T: CoordsFloat>(
     let mut start_end = (0, 0);
 
     let face1 = map.face_id(working_dart);
-    let face2 = map.force_read_attribute::<SiblingDartId>(face1).unwrap().0;
-    let face3 = map.force_read_attribute::<SiblingDartId>(face2).unwrap().0;
-    let face4 = map.force_read_attribute::<SiblingDartId>(face3).unwrap().0;
+    let face2 = map.read_attribute::<SiblingDartId>(face1).unwrap().0;
+    let face3 = map.read_attribute::<SiblingDartId>(face2).unwrap().0;
+    let face4 = map.read_attribute::<SiblingDartId>(face3).unwrap().0;
 
     // Mark the future unbalance
     let local_balance_pile = update_balance_pile_for_neighbors(face1, face2, face3, face4, map);
@@ -221,7 +221,7 @@ fn sanitize_balance_pile<T: CoordsFloat>(map: &CMap2<T>, balance_pile: &Vec<u32>
 
         // Follow the sibling chain to get all 4 faces
         for _ in 1..4 {
-            if let Some(sibling_attr) = map.force_read_attribute::<SiblingDartId>(current_face) {
+            if let Some(sibling_attr) = map.read_attribute::<SiblingDartId>(current_face) {
                 current_face = sibling_attr.0;
                 // Avoid infinite loops if there's a cycle shorter than 4
                 if !sibling_faces.contains(&current_face) {
@@ -252,10 +252,7 @@ fn update_balance_pile_for_neighbors<T: CoordsFloat>(
     face4: u32,
     map: &CMap2<T>,
 ) -> Vec<u32> {
-    let current_depth = map
-        .force_read_attribute::<RefinementLevel>(face1)
-        .unwrap()
-        .0;
+    let current_depth = map.read_attribute::<RefinementLevel>(face1).unwrap().0;
 
     let mut balance_stack = Vec::new();
 
@@ -277,7 +274,7 @@ fn update_balance_pile_for_neighbors<T: CoordsFloat>(
 
             let opposite_face = map.face_id(opposite);
             let opposite_depth = map
-                .force_read_attribute::<RefinementLevel>(opposite_face)
+                .read_attribute::<RefinementLevel>(opposite_face)
                 .unwrap()
                 .0;
 
@@ -349,10 +346,10 @@ pub fn refine_cell_tx<T: CoordsFloat>(
 
     // Step 2: Prepare geo vertices distribution
     let parent_geo_range = map
-        .read_attribute::<GeoVertices>(trans, face_id)?
+        .read_attribute_tx::<GeoVertices>(trans, face_id)?
         .unwrap_or(GeoVertices((0, 0)))
         .0;
-    map.remove_attribute::<GeoVertices>(trans, face_id)?;
+    map.remove_attribute_tx::<GeoVertices>(trans, face_id)?;
 
     let mut quadrant_ranges = [(0u32, 0u32); 4];
     if parent_geo_range.1 != 0 {
@@ -455,7 +452,7 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
     parent_face_id: u32,
 ) -> TransactionClosureResult<u32, LinkError> {
     let parent_refinement_level = map
-        .read_attribute::<RefinementLevel>(trans, parent_face_id)?
+        .read_attribute_tx::<RefinementLevel>(trans, parent_face_id)?
         .unwrap()
         .0;
 
@@ -466,7 +463,7 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
 
         // Assign geo vertices if this quadrant has any
         if quadrant_ranges[i].1 > 0 {
-            map.write_attribute::<GeoVertices>(
+            map.write_attribute_tx::<GeoVertices>(
                 trans,
                 child_face_id,
                 GeoVertices(quadrant_ranges[i]),
@@ -476,10 +473,10 @@ fn update_child_cell_attributes_tx<T: CoordsFloat>(
 
         // Set sibling relationship (circular)
         let next_sibling = map.face_id_tx(trans, face_darts[(i + 1) % 4])?;
-        map.write_attribute::<SiblingDartId>(trans, child_face_id, SiblingDartId(next_sibling))?;
+        map.write_attribute_tx::<SiblingDartId>(trans, child_face_id, SiblingDartId(next_sibling))?;
 
         // Increment refinement level
-        map.write_attribute::<RefinementLevel>(
+        map.write_attribute_tx::<RefinementLevel>(
             trans,
             child_face_id,
             RefinementLevel(parent_refinement_level + 1),
@@ -520,8 +517,8 @@ fn split_boundary_edge_n_4_tx<T: CoordsFloat>(
     let dart1 = map.beta_tx::<1>(trans, sub_dart1)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
-    map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    map.unlink::<1>(trans, sub_dart1)?;
+    map.remove_attribute_tx::<IsIrregular>(trans, dart1)?;
+    map.unlink_tx::<1>(trans, sub_dart1)?;
 
     Ok(dart1)
 }
@@ -534,8 +531,8 @@ fn split_boundary_edge_n_2_tx<T: CoordsFloat>(
     let dart1 = map.beta_tx::<1>(trans, edge_dart)?;
 
     // we'll use the pre-existing dart1, so it's not irregular anymore
-    map.remove_attribute::<IsIrregular>(trans, dart1)?;
-    map.unlink::<1>(trans, edge_dart)?;
+    map.remove_attribute_tx::<IsIrregular>(trans, dart1)?;
+    map.unlink_tx::<1>(trans, edge_dart)?;
 
     Ok(dart1)
 }
@@ -555,30 +552,30 @@ fn split_boundary_edge_n_1_tx<T: CoordsFloat>(
 
         let dart1 = start_dart;
         let dart2 = dart1 + 1;
-        map.write_attribute::<IsIrregular>(trans, dart2, IsIrregular(true))?;
+        map.write_attribute_tx::<IsIrregular>(trans, dart2, IsIrregular(true))?;
         let opposite_next = map.beta_tx::<1>(trans, opposite)?;
 
-        map.unlink::<2>(trans, edge_dart)?;
-        map.unlink::<1>(trans, opposite)?;
-        map.link::<2>(trans, dart1, opposite)?;
-        map.link::<2>(trans, edge_dart, dart2)?;
-        map.link::<1>(trans, opposite, dart2)?;
-        map.link::<1>(trans, dart2, opposite_next)?;
+        map.unlink_tx::<2>(trans, edge_dart)?;
+        map.unlink_tx::<1>(trans, opposite)?;
+        map.link_tx::<2>(trans, dart1, opposite)?;
+        map.link_tx::<2>(trans, edge_dart, dart2)?;
+        map.link_tx::<1>(trans, opposite, dart2)?;
+        map.link_tx::<1>(trans, dart2, opposite_next)?;
         dart1
     } else {
         map.claim_dart_tx(trans, start_dart)?;
         start_dart
     };
 
-    map.unlink::<1>(trans, edge_dart)?;
-    map.link::<1>(trans, dart1, next)?;
+    map.unlink_tx::<1>(trans, edge_dart)?;
+    map.link_tx::<1>(trans, dart1, next)?;
 
     let subdivde_point = Vertex2::<T>::average(
         &dart_origin_tx(trans, map, edge_dart)?,
         &dart_origin_tx(trans, map, next)?,
     );
 
-    map.write_vertex(trans, dart1, subdivde_point)?;
+    map.write_vertex_tx(trans, dart1, subdivde_point)?;
 
     Ok(dart1)
 }
@@ -599,12 +596,12 @@ fn create_inner_darts_tx<T: CoordsFloat>(
     let edge_dart_next = map.beta_tx::<1>(trans, edge_dart)?;
 
     if edge_dart_next != NULL_DART_ID && !is_regular_tx(trans, map, edge_dart_next)? {
-        map.link::<1>(trans, edge_dart_next, going_to_center)?
+        map.link_tx::<1>(trans, edge_dart_next, going_to_center)?
     } else {
-        map.link::<1>(trans, edge_dart, going_to_center)?
+        map.link_tx::<1>(trans, edge_dart, going_to_center)?
     }
 
-    map.link::<1>(trans, going_to_center, going_from_center)?;
+    map.link_tx::<1>(trans, going_to_center, going_from_center)?;
 
     Ok((going_to_center, going_from_center))
 }
@@ -625,25 +622,25 @@ fn connect_subdivision_edges_tx<T: CoordsFloat>(
         0 => {
             // First iteration: initialize and set center vertex
             state.going_from_center_first = going_from_center;
-            map.write_vertex(trans, going_from_center, *midpoint)?;
+            map.write_vertex_tx(trans, going_from_center, *midpoint)?;
         }
         3 => {
             // Last iteration: complete the connections
 
-            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+            map.link_tx::<2>(trans, going_from_center, state.going_to_center_prev)?;
 
-            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
+            map.link_tx::<1>(trans, going_from_center, state.dart1_prev)?;
 
-            map.link::<2>(trans, going_to_center, state.going_from_center_first)?;
+            map.link_tx::<2>(trans, going_to_center, state.going_from_center_first)?;
 
-            map.link::<1>(trans, state.going_from_center_first, dart1)?;
+            map.link_tx::<1>(trans, state.going_from_center_first, dart1)?;
         }
         _ => {
             // Middle iterations: connect to previous iteration
 
-            map.link::<2>(trans, going_from_center, state.going_to_center_prev)?;
+            map.link_tx::<2>(trans, going_from_center, state.going_to_center_prev)?;
 
-            map.link::<1>(trans, going_from_center, state.dart1_prev)?;
+            map.link_tx::<1>(trans, going_from_center, state.dart1_prev)?;
         }
     }
 

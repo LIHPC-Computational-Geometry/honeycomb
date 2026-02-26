@@ -62,25 +62,21 @@ pub fn dualize_map<T: CoordsFloat>(map: &CMap2<T>) -> CMap2<T> {
             let current_new_dart = new_dart + i as u32;
 
             let centroid = calculate_face_centroid(map, dart);
-            dual_map.force_write_vertex(current_new_dart, centroid);
+            dual_map.write_vertex(current_new_dart, centroid);
 
             let opposite = map.beta::<2>(dart);
-            map.force_write_attribute::<B2Mapping>(opposite, B2Mapping(current_new_dart));
-            let attr = map.force_read_attribute::<B2Mapping>(dart);
+            map.write_attribute::<B2Mapping>(opposite, B2Mapping(current_new_dart));
+            let attr = map.read_attribute::<B2Mapping>(dart);
             if let Some(attr) = attr {
                 let dual_opposite_dart = attr.0;
-                let _ = dual_map.force_link::<2>(current_new_dart, dual_opposite_dart);
+                let _ = dual_map.link::<2>(current_new_dart, dual_opposite_dart);
             }
         }
 
-        dual_map.force_link::<1>(new_dart, new_dart + 3).unwrap();
-        dual_map
-            .force_link::<1>(new_dart + 3, new_dart + 2)
-            .unwrap();
-        dual_map
-            .force_link::<1>(new_dart + 2, new_dart + 1)
-            .unwrap();
-        dual_map.force_link::<1>(new_dart + 1, new_dart).unwrap();
+        dual_map.link::<1>(new_dart, new_dart + 3).unwrap();
+        dual_map.link::<1>(new_dart + 3, new_dart + 2).unwrap();
+        dual_map.link::<1>(new_dart + 2, new_dart + 1).unwrap();
+        dual_map.link::<1>(new_dart + 1, new_dart).unwrap();
     });
 
     dual_map

@@ -77,7 +77,7 @@ fn in_sphere<T: CoordsFloat>(
     let [a, b, c, d] = [
         {
             let vid = map.vertex_id_tx(t, vol_id as DartIdType)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
+            if let Some(v) = map.read_vertex_tx(t, vid)? {
                 v
             } else {
                 return abort(DelaunayError::CavityBuilding(
@@ -90,7 +90,7 @@ fn in_sphere<T: CoordsFloat>(
         {
             let b1 = map.beta_tx::<1>(t, vol_id as DartIdType)?;
             let vid = map.vertex_id_tx(t, b1)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
+            if let Some(v) = map.read_vertex_tx(t, vid)? {
                 v
             } else {
                 return abort(DelaunayError::CavityBuilding(
@@ -103,7 +103,7 @@ fn in_sphere<T: CoordsFloat>(
         {
             let b0 = map.beta_tx::<0>(t, vol_id as DartIdType)?;
             let vid = map.vertex_id_tx(t, b0)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
+            if let Some(v) = map.read_vertex_tx(t, vid)? {
                 v
             } else {
                 return abort(DelaunayError::CavityBuilding(
@@ -117,7 +117,7 @@ fn in_sphere<T: CoordsFloat>(
             let b2 = map.beta_tx::<2>(t, vol_id as DartIdType)?;
             let b0b2 = map.beta_tx::<0>(t, b2)?;
             let vid = map.vertex_id_tx(t, b0b2)?;
-            if let Some(v) = map.read_vertex(t, vid)? {
+            if let Some(v) = map.read_vertex_tx(t, vid)? {
                 v
             } else {
                 return abort(DelaunayError::CavityBuilding(

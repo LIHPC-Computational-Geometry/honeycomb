@@ -161,12 +161,12 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
                         buffer.push(d?);
                     }
                     for &d in &buffer {
-                        try_or_coerce!(map.unsew::<1>(t, d), CavityError);
+                        try_or_coerce!(map.unsew_tx::<1>(t, d), CavityError);
                         if map.beta_tx::<2>(t, d)? != NULL_DART_ID {
-                            try_or_coerce!(map.unsew::<2>(t, d), CavityError);
+                            try_or_coerce!(map.unsew_tx::<2>(t, d), CavityError);
                         }
                         if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                            try_or_coerce!(map.unsew::<3>(t, d), CavityError);
+                            try_or_coerce!(map.unsew_tx::<3>(t, d), CavityError);
                         }
                     }
                     for d in buffer.drain(..) {
@@ -326,16 +326,16 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for &d in &buffer {
             if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                try_or_coerce!(map.unsew::<3>(t, d), CavityError);
+                try_or_coerce!(map.unsew_tx::<3>(t, d), CavityError);
             }
         }
         for &d in &buffer {
             if map.beta_tx::<2>(t, d)? != NULL_DART_ID {
-                try_or_coerce!(map.unsew::<2>(t, d), CavityError);
+                try_or_coerce!(map.unsew_tx::<2>(t, d), CavityError);
             }
         }
         for &d in &buffer {
-            try_or_coerce!(map.unlink::<1>(t, d), CavityError);
+            try_or_coerce!(map.unlink_tx::<1>(t, d), CavityError);
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
@@ -346,13 +346,13 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
     // necessary for tets that had two or more faces adjacent to the boundary
     for &[(d1, _), (d2, _), (d3, _)] in cavity_map.values() {
         if map.beta_tx::<2>(t, d1)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d1), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d1), CavityError);
         }
         if map.beta_tx::<2>(t, d2)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d2), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d2), CavityError);
         }
         if map.beta_tx::<2>(t, d3)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d3), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d3), CavityError);
         }
     }
 
@@ -406,22 +406,22 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
             nds.try_into().expect("E: unreachable");
         try_or_coerce!(make_incomplete_tet(t, map, nds, point), CavityError);
 
-        try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d2, db), CavityError);
         let b2db = map.beta_tx::<2>(t, db_neigh)?;
         if b2db != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2db, d2), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2db, d2), CavityError);
         }
 
-        try_or_coerce!(map.sew::<2>(t, d5, da), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d5, da), CavityError);
         let b2da = map.beta_tx::<2>(t, da_neigh)?;
         if b2da != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2da, d5), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2da, d5), CavityError);
         }
 
-        try_or_coerce!(map.sew::<2>(t, d8, dc), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d8, dc), CavityError);
         let b2dc = map.beta_tx::<2>(t, dc_neigh)?;
         if b2dc != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2dc, d8), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2dc, d8), CavityError);
         }
     }
 
@@ -435,22 +435,22 @@ fn make_incomplete_tet<T: CoordsFloat>(
     p: Vertex3<T>,
 ) -> TransactionClosureResult<(), LinkError> {
     // build 3 triangles
-    map.link::<1>(t, d1, d2)?;
-    map.link::<1>(t, d2, d3)?;
-    map.link::<1>(t, d3, d1)?;
-    map.link::<1>(t, d4, d5)?;
-    map.link::<1>(t, d5, d6)?;
-    map.link::<1>(t, d6, d4)?;
-    map.link::<1>(t, d7, d8)?;
-    map.link::<1>(t, d8, d9)?;
-    map.link::<1>(t, d9, d7)?;
+    map.link_tx::<1>(t, d1, d2)?;
+    map.link_tx::<1>(t, d2, d3)?;
+    map.link_tx::<1>(t, d3, d1)?;
+    map.link_tx::<1>(t, d4, d5)?;
+    map.link_tx::<1>(t, d5, d6)?;
+    map.link_tx::<1>(t, d6, d4)?;
+    map.link_tx::<1>(t, d7, d8)?;
+    map.link_tx::<1>(t, d8, d9)?;
+    map.link_tx::<1>(t, d9, d7)?;
     // link the sides that will be adjacent to the point inserted by the cavity
-    map.link::<2>(t, d3, d4)?;
-    map.link::<2>(t, d6, d7)?;
-    map.link::<2>(t, d9, d1)?;
+    map.link_tx::<2>(t, d3, d4)?;
+    map.link_tx::<2>(t, d6, d7)?;
+    map.link_tx::<2>(t, d9, d1)?;
 
     let vid = map.vertex_id_tx(t, d1)?;
-    map.write_vertex(t, vid, p)?;
+    map.write_vertex_tx(t, vid, p)?;
 
     Ok(())
 }

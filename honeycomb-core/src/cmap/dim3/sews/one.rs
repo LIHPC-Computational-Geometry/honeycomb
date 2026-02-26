@@ -11,7 +11,7 @@ use crate::{
 /// **1-(un)sews internals)**
 impl<T: CoordsFloat> CMap3<T> {
     /// 1-sew transactional operation.
-    pub(crate) fn one_sew(
+    pub(crate) fn one_sew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -24,7 +24,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let vid_l_old = self.vertex_id_tx(t, b3ld)?;
         let vid_r_old = self.vertex_id_tx(t, rd)?;
 
-        try_or_coerce!(self.one_link(t, ld, rd), SewError);
+        try_or_coerce!(self.one_link_tx(t, ld, rd), SewError);
 
         if b3ld != NULL_DART_ID {
             let new_vid = vid_r_old.min(vid_l_old);
@@ -47,7 +47,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 1-unsew transactional operation.
-    pub(crate) fn one_unsew(
+    pub(crate) fn one_unsew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -55,7 +55,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let rd = self.beta_tx::<1>(t, ld)?;
         let b3ld = self.beta_tx::<3>(t, ld)?.max(self.beta_tx::<2>(t, ld)?);
 
-        try_or_coerce!(self.one_unlink(t, ld), SewError);
+        try_or_coerce!(self.one_unlink_tx(t, ld), SewError);
 
         let vid_l_new = self.vertex_id_tx(t, b3ld)?;
         let vid_r_new = self.vertex_id_tx(t, rd)?;

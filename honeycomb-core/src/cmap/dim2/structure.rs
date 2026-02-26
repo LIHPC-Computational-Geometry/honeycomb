@@ -47,7 +47,7 @@ use super::CMAP2_BETA;
 /// - we create the map using its builder structure: [`CMapBuilder`][crate::cmap::CMapBuilder]
 /// - we insert a few assertions to demonstrate the progressive changes applied to the structure
 /// - even though the faces are represented in the figure, they are not stored in the structure
-/// - we use a lot of methods with the `force_` prefix; these are convenience methods when
+/// - we use a lot of methods with the `` prefix; these are convenience methods when
 ///   synchronization isn't needed
 ///
 /// ```
@@ -59,12 +59,12 @@ use super::CMAP2_BETA;
 ///
 /// // build a triangle (A)
 /// let mut map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(3).build().unwrap(); // three darts
-/// map.force_link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
-/// map.force_link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
-/// map.force_link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3
-/// map.force_write_vertex(1, (0.0, 0.0));
-/// map.force_write_vertex(2, (1.0, 0.0));
-/// map.force_write_vertex(3, (0.0, 1.0));
+/// map.link::<1>(1, 2); // beta1(1) = 2 & beta0(2) = 1
+/// map.link::<1>(2, 3); // beta1(2) = 3 & beta0(3) = 2
+/// map.link::<1>(3, 1); // beta1(3) = 1 & beta0(1) = 3
+/// map.write_vertex(1, (0.0, 0.0));
+/// map.write_vertex(2, (1.0, 0.0));
+/// map.write_vertex(3, (0.0, 1.0));
 ///
 /// // we can go through the face using an orbit
 /// {
@@ -78,19 +78,19 @@ use super::CMAP2_BETA;
 /// // build a second triangle (B)
 /// let first_added_dart_id = map.allocate_used_darts(3);
 /// assert_eq!(first_added_dart_id, 4);
-/// map.force_link::<1>(4, 5);
-/// map.force_link::<1>(5, 6);
-/// map.force_link::<1>(6, 4);
-/// map.force_write_vertex(4, (0.0, 2.0));
-/// map.force_write_vertex(5, (2.0, 0.0));
-/// map.force_write_vertex(6, (1.0, 1.0));
+/// map.link::<1>(4, 5);
+/// map.link::<1>(5, 6);
+/// map.link::<1>(6, 4);
+/// map.write_vertex(4, (0.0, 2.0));
+/// map.write_vertex(5, (2.0, 0.0));
+/// map.write_vertex(6, (1.0, 1.0));
 ///
 /// // there should be two faces now
 /// let faces: Vec<_> = map.iter_faces().collect();
 /// assert_eq!(&faces, &[1, 4]);
 ///
 /// // sew both triangles (C)
-/// map.force_sew::<2>(2, 4);
+/// map.sew::<2>(2, 4);
 ///
 /// // there are 5 edges now, making up a square & its diagonal
 /// let edges: Vec<_> = map.iter_edges().collect();
@@ -98,33 +98,33 @@ use super::CMAP2_BETA;
 ///
 /// // adjust bottom-right & top-left vertex position (D)
 /// assert_eq!(
-///     map.force_write_vertex(2, Vertex2::from((1.0, 0.0))),
+///     map.write_vertex(2, Vertex2::from((1.0, 0.0))),
 ///     Some(Vertex2(1.5, 0.0)) // `write` act as a `replace`
 /// );
 /// assert_eq!(
-///     map.force_write_vertex(3, Vertex2::from((0.0, 1.0))),
+///     map.write_vertex(3, Vertex2::from((0.0, 1.0))),
 ///     Some(Vertex2(0.0, 1.5)) // these values were the average of sewn vertices
 /// );
 ///
 /// // separate the diagonal from the rest (E)
-/// map.force_unsew::<1>(1);
-/// map.force_unsew::<1>(2);
-/// map.force_unsew::<1>(6);
-/// map.force_unsew::<1>(4);
+/// map.unsew::<1>(1);
+/// map.unsew::<1>(2);
+/// map.unsew::<1>(6);
+/// map.unsew::<1>(4);
 /// // break up & remove the diagonal
-/// map.force_unsew::<2>(2); // this makes dart 2 and 4 free
+/// map.unsew::<2>(2); // this makes dart 2 and 4 free
 /// map.release_dart(2);
 /// map.release_dart(4);
 /// // sew the square back up
-/// map.force_sew::<1>(1, 5);
-/// map.force_sew::<1>(6, 3);
+/// map.sew::<1>(1, 5);
+/// map.sew::<1>(6, 3);
 ///
 /// // there's only the square face left
 /// let faces: Vec<_> = map.iter_faces().collect();
 /// assert_eq!(&faces, &[1]);
 /// // we can check the vertices
 /// let vertices = map.iter_vertices();
-/// let mut value_iterator = vertices.map(|vertex_id| map.force_read_vertex(vertex_id).unwrap());
+/// let mut value_iterator = vertices.map(|vertex_id| map.read_vertex(vertex_id).unwrap());
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
