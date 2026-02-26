@@ -74,12 +74,8 @@ pub fn dualize_map<T: CoordsFloat>(map: &CMap2<T>) -> CMap2<T> {
         }
 
         dual_map.link::<1>(new_dart, new_dart + 3).unwrap();
-        dual_map
-            .link::<1>(new_dart + 3, new_dart + 2)
-            .unwrap();
-        dual_map
-            .link::<1>(new_dart + 2, new_dart + 1)
-            .unwrap();
+        dual_map.link::<1>(new_dart + 3, new_dart + 2).unwrap();
+        dual_map.link::<1>(new_dart + 2, new_dart + 1).unwrap();
         dual_map.link::<1>(new_dart + 1, new_dart).unwrap();
     });
 

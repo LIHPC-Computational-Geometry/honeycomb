@@ -88,8 +88,7 @@ fn regularize_edge<T: CoordsFloat>(map: &CMap2<T>, edge_dart: u32, dart1: u32) -
     map.link::<1>(tri_dart2, dart2).unwrap();
     map.link::<1>(dart2, prev2).unwrap();
     map.link::<1>(prev2, tri_dart2).unwrap();
-    map.link::<1>(next_opposite, tri_dart2_opposite)
-        .unwrap();
+    map.link::<1>(next_opposite, tri_dart2_opposite).unwrap();
     map.link::<1>(tri_dart2_opposite, edge_dart2).unwrap();
     map.link::<2>(tri_dart2, tri_dart2_opposite).unwrap();
 

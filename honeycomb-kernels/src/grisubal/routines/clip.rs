@@ -45,9 +45,7 @@ fn mark_faces<T: CoordsFloat>(
     let mut queue: VecDeque<FaceIdType> = (1..cmap.n_darts() as DartIdType)
         .filter_map(|dart_id| {
             // use darts on the left side of the boundary as starting points to walk through faces
-            if cmap.read_attribute::<Boundary>(dart_id) == Some(mark)
-                && !cmap.is_free(dart_id)
-            {
+            if cmap.read_attribute::<Boundary>(dart_id) == Some(mark) && !cmap.is_free(dart_id) {
                 return Some(cmap.face_id(dart_id));
             }
             None

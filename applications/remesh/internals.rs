@@ -409,11 +409,8 @@ pub fn remesh<T: CoordsFloat>(
                 let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
                 if r != NULL_DART_ID {
                     debug_assert!(
-                        map.read_attribute::<FaceAnchor>(map.face_id(l))
-                            .is_some()
-                            && map
-                                .read_attribute::<FaceAnchor>(map.face_id(r))
-                                .is_some()
+                        map.read_attribute::<FaceAnchor>(map.face_id(l)).is_some()
+                            && map.read_attribute::<FaceAnchor>(map.face_id(r)).is_some()
                     );
 
                     if let Err(er) = atomically_with_err(|t| {
@@ -444,11 +441,8 @@ pub fn remesh<T: CoordsFloat>(
                     }
 
                     debug_assert!(
-                        map.read_attribute::<FaceAnchor>(map.face_id(l))
-                            .is_some()
-                            && map
-                                .read_attribute::<FaceAnchor>(map.face_id(r))
-                                .is_some()
+                        map.read_attribute::<FaceAnchor>(map.face_id(l)).is_some()
+                            && map.read_attribute::<FaceAnchor>(map.face_id(r)).is_some()
                     );
                 }
             });
