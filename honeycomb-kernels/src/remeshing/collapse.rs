@@ -169,9 +169,9 @@ fn is_collapsible<T: CoordsFloat>(
 
     let (l_vid, r_vid) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, b1l)?);
     let (l_anchor, r_anchor, edge_anchor) = (
-        unwrap_or_retry(map.read_attribute::<VertexAnchor>(t, l_vid)?)?,
-        unwrap_or_retry(map.read_attribute::<VertexAnchor>(t, r_vid)?)?,
-        unwrap_or_retry(map.read_attribute::<EdgeAnchor>(t, e)?)?,
+        unwrap_or_retry(map.read_attribute_tx::<VertexAnchor>(t, l_vid)?)?,
+        unwrap_or_retry(map.read_attribute_tx::<VertexAnchor>(t, r_vid)?)?,
+        unwrap_or_retry(map.read_attribute_tx::<EdgeAnchor>(t, e)?)?,
     );
 
     match AttributeUpdate::merge(l_anchor, r_anchor) {
@@ -274,10 +274,10 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     let l_vid = map.vertex_id_tx(t, l)?;
     let l_fid = map.face_id_tx(t, b2b1l)?;
     let r_fid = map.face_id_tx(t, b2b0r)?;
-    let tmp_vertex = map.read_vertex(t, l_vid)?;
-    let tmp_anchor = map.read_attribute::<VertexAnchor>(t, l_vid)?;
-    let l_face_anchor = map.read_attribute::<FaceAnchor>(t, l_fid)?;
-    let r_face_anchor = map.read_attribute::<FaceAnchor>(t, r_fid)?;
+    let tmp_vertex = map.read_vertex_tx(t, l_vid)?;
+    let tmp_anchor = map.read_attribute_tx::<VertexAnchor>(t, l_vid)?;
+    let l_face_anchor = map.read_attribute_tx::<FaceAnchor>(t, l_fid)?;
+    let r_face_anchor = map.read_attribute_tx::<FaceAnchor>(t, r_fid)?;
 
     if r != NULL_DART_ID {
         try_or_coerce!(map.unsew_tx::<2>(t, l), EdgeCollapseError);
@@ -304,21 +304,21 @@ fn collapse_edge_to_base<T: CoordsFloat>(
 
     if new_vid != NULL_VERTEX_ID {
         if let Some(v) = tmp_vertex {
-            map.write_vertex(t, new_vid, v)?;
+            map.write_vertex_tx(t, new_vid, v)?;
         } // else eprintln! ?
         if let Some(a) = tmp_anchor {
-            map.write_attribute(t, new_vid, a)?;
+            map.write_attribute_tx(t, new_vid, a)?;
         }
     }
     if let Some(f_a) = l_face_anchor
         && !map.is_unused_tx(t, b0l)?
     {
         let new_fid = map.face_id_tx(t, b0l)?;
-        map.write_attribute(t, new_fid, f_a)?;
+        map.write_attribute_tx(t, new_fid, f_a)?;
     }
     if let Some(f_a) = r_face_anchor {
         let new_fid = map.face_id_tx(t, b1r)?;
-        map.write_attribute(t, new_fid, f_a)?;
+        map.write_attribute_tx(t, new_fid, f_a)?;
     }
 
     Ok(new_vid)

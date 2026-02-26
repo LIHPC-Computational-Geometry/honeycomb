@@ -63,7 +63,7 @@ pub fn generate_first_mesh<T: CoordsFloat>(
             if let Some(a) = anchor {
                 atomically(|t| {
                     for &d in &new_darts {
-                        map.write_attribute(t, d, EdgeAnchor::from(a))?;
+                        map.write_attribute_tx(t, d, EdgeAnchor::from(a))?;
                     }
                     Ok(())
                 });
@@ -87,7 +87,7 @@ pub fn generate_first_mesh<T: CoordsFloat>(
                 atomically(|t| {
                     for &d in &new_darts {
                         let fid = map.face_id_tx(t, d)?;
-                        map.write_attribute(t, fid, a)?;
+                        map.write_attribute_tx(t, fid, a)?;
                     }
                     Ok(())
                 });
@@ -483,8 +483,8 @@ fn compute_diff_to_target<T: CoordsFloat>(
 ) -> StmClosureResult<f64> {
     let (vid1, vid2) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, r)?);
     let (v1, v2) = (
-        unwrap_or_retry(map.read_vertex(t, vid1)?)?,
-        unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+        unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?,
+        unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?,
     );
     Ok(((v2 - v1).norm().to_f64().unwrap() - target) / target)
 }
@@ -500,8 +500,8 @@ fn check_tri_orientation<T: CoordsFloat>(
     let vid2 = map.vertex_id_tx(t, b1)?;
     let b1b1 = map.beta_tx::<1>(t, b1)?;
     let vid3 = map.vertex_id_tx(t, b1b1)?;
-    let v1 = unwrap_or_retry(map.read_vertex(t, vid1)?)?;
-    let v2 = unwrap_or_retry(map.read_vertex(t, vid2)?)?;
-    let v3 = unwrap_or_retry(map.read_vertex(t, vid3)?)?;
+    let v1 = unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?;
+    let v2 = unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?;
+    let v3 = unwrap_or_retry(map.read_vertex_tx(t, vid3)?)?;
     Ok(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero())
 }

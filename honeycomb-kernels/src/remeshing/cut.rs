@@ -58,12 +58,12 @@ pub fn cut_outer_edge<T: CoordsFloat>(
 
     let f_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_tx(t, e)?;
-        map.remove_attribute::<FaceAnchor>(t, fid)?
+        map.remove_attribute_tx::<FaceAnchor>(t, fid)?
     } else {
         None
     };
     let e_anchor = if map.contains_attribute::<EdgeAnchor>() {
-        map.read_attribute::<EdgeAnchor>(t, e)?
+        map.read_attribute_tx::<EdgeAnchor>(t, e)?
     } else {
         None
     };
@@ -73,10 +73,10 @@ pub fn cut_outer_edge<T: CoordsFloat>(
 
     let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
     let new_v = Vertex2::average(
-        &unwrap_or_retry(map.read_vertex(t, vid1)?)?,
-        &unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+        &unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?,
+        &unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?,
     );
-    map.write_vertex(t, nd1, new_v)?;
+    map.write_vertex_tx(t, nd1, new_v)?;
 
     map.unsew_tx::<1>(t, ld)?;
     map.unsew_tx::<1>(t, b1ld)?;
@@ -90,17 +90,17 @@ pub fn cut_outer_edge<T: CoordsFloat>(
     if let Some(a) = f_anchor {
         let fid1 = map.face_id_tx(t, nd1)?;
         let fid2 = map.face_id_tx(t, nd2)?;
-        map.write_attribute(t, fid1, a)?;
-        map.write_attribute(t, fid2, a)?;
+        map.write_attribute_tx(t, fid1, a)?;
+        map.write_attribute_tx(t, fid2, a)?;
         if map.contains_attribute::<EdgeAnchor>() {
             let eid = map.edge_id_tx(t, nd1)?;
-            map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+            map.write_attribute_tx(t, eid, EdgeAnchor::from(a))?;
         }
     }
     if let Some(a) = e_anchor {
         let vid = map.vertex_id_tx(t, nd1)?;
-        map.write_attribute(t, vid, VertexAnchor::from(a))?;
-        map.write_attribute(t, nd3 as EdgeIdType, a)?;
+        map.write_attribute_tx(t, vid, VertexAnchor::from(a))?;
+        map.write_attribute_tx(t, nd3 as EdgeIdType, a)?;
     }
 
     Ok(())
@@ -167,7 +167,7 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 
     let lf_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_tx(t, ld)?;
-        map.remove_attribute::<FaceAnchor>(t, fid)?
+        map.remove_attribute_tx::<FaceAnchor>(t, fid)?
     } else {
         None
     };
@@ -175,11 +175,11 @@ pub fn cut_inner_edge<T: CoordsFloat>(
         && map.contains_attribute::<EdgeAnchor>()
     {
         let eid = map.edge_id_tx(t, nd1)?;
-        map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        map.write_attribute_tx(t, eid, EdgeAnchor::from(a))?;
     }
     let rf_anchor = if map.contains_attribute::<FaceAnchor>() {
         let fid = map.face_id_tx(t, rd)?;
-        map.remove_attribute::<FaceAnchor>(t, fid)?
+        map.remove_attribute_tx::<FaceAnchor>(t, fid)?
     } else {
         None
     };
@@ -187,15 +187,15 @@ pub fn cut_inner_edge<T: CoordsFloat>(
         && map.contains_attribute::<EdgeAnchor>()
     {
         let eid = map.edge_id_tx(t, nd4)?;
-        map.write_attribute(t, eid, EdgeAnchor::from(a))?;
+        map.write_attribute_tx(t, eid, EdgeAnchor::from(a))?;
     }
     if map.contains_attribute::<EdgeAnchor>()
-        && let Some(a) = map.read_attribute::<EdgeAnchor>(t, e)?
+        && let Some(a) = map.read_attribute_tx::<EdgeAnchor>(t, e)?
     {
         let vid1 = map.vertex_id_tx(t, nd1)?;
         let vid2 = map.vertex_id_tx(t, nd4)?;
-        map.write_attribute(t, vid1, VertexAnchor::from(a))?;
-        map.write_attribute(t, vid2, VertexAnchor::from(a))?;
+        map.write_attribute_tx(t, vid1, VertexAnchor::from(a))?;
+        map.write_attribute_tx(t, vid2, VertexAnchor::from(a))?;
     }
 
     let (b0ld, b1ld) = (map.beta_tx::<0>(t, ld)?, map.beta_tx::<1>(t, ld)?);
@@ -203,10 +203,10 @@ pub fn cut_inner_edge<T: CoordsFloat>(
 
     let (vid1, vid2) = (map.vertex_id_tx(t, ld)?, map.vertex_id_tx(t, b1ld)?);
     let new_v = Vertex2::average(
-        &unwrap_or_retry(map.read_vertex(t, vid1)?)?,
-        &unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+        &unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?,
+        &unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?,
     );
-    map.write_vertex(t, nd1, new_v)?;
+    map.write_vertex_tx(t, nd1, new_v)?;
 
     map.unsew_tx::<2>(t, ld)?;
     map.unsew_tx::<1>(t, ld)?;
@@ -231,14 +231,14 @@ pub fn cut_inner_edge<T: CoordsFloat>(
     if let Some(a) = lf_anchor {
         let fid1 = map.face_id_tx(t, nd1)?;
         let fid2 = map.face_id_tx(t, nd2)?;
-        map.write_attribute(t, fid1, a)?;
-        map.write_attribute(t, fid2, a)?;
+        map.write_attribute_tx(t, fid1, a)?;
+        map.write_attribute_tx(t, fid2, a)?;
     }
     if let Some(a) = rf_anchor {
         let fid4 = map.face_id_tx(t, nd4)?;
         let fid5 = map.face_id_tx(t, nd5)?;
-        map.write_attribute(t, fid4, a)?;
-        map.write_attribute(t, fid5, a)?;
+        map.write_attribute_tx(t, fid4, a)?;
+        map.write_attribute_tx(t, fid5, a)?;
     }
 
     Ok(())

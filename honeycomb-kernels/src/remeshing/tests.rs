@@ -630,10 +630,10 @@ mod triangulate_and_classify {
             atomically_with_err(|t| {
                 // the clean generalization would be to take each new edge (pair of new darts)
                 // and write the new anchor values
-                let anchor = map.remove_attribute::<FaceAnchor>(t, f)?;
+                let anchor = map.remove_attribute_tx::<FaceAnchor>(t, f)?;
                 if let Some(a) = anchor {
-                    map.write_attribute(t, nd, EdgeAnchor::from(a))?;
-                    // map.write_attribute(t, nd + 1, EdgeAnchor::from(a))?;
+                    map.write_attribute_tx(t, nd, EdgeAnchor::from(a))?;
+                    // map.write_attribute_tx(t, nd + 1, EdgeAnchor::from(a))?;
                 } else {
                     // we only iterate on faces of the original grid, meaning they were all classified
                     unreachable!()
@@ -642,8 +642,8 @@ mod triangulate_and_classify {
                 if let Some(a) = anchor {
                     let l_face_id = map.face_id_tx(t, nd)?;
                     let r_face_id = map.face_id_tx(t, nd + 1)?;
-                    map.write_attribute(t, l_face_id, a)?;
-                    map.write_attribute(t, r_face_id, a)?;
+                    map.write_attribute_tx(t, l_face_id, a)?;
+                    map.write_attribute_tx(t, r_face_id, a)?;
                 } else {
                     unreachable!()
                 }
@@ -695,10 +695,10 @@ mod triangulate_and_classify {
             atomically_with_err(|t| {
                 // the clean generalization would be to take each new edge (pair of new darts)
                 // and write the new anchor values
-                let anchor = map.remove_attribute::<FaceAnchor>(t, f)?;
+                let anchor = map.remove_attribute_tx::<FaceAnchor>(t, f)?;
                 if let Some(a) = anchor {
-                    map.write_attribute(t, nd, EdgeAnchor::from(a))?;
-                    // map.write_attribute(t, nd + 1, EdgeAnchor::from(a))?;
+                    map.write_attribute_tx(t, nd, EdgeAnchor::from(a))?;
+                    // map.write_attribute_tx(t, nd + 1, EdgeAnchor::from(a))?;
                 } else {
                     // we only iterate on faces of the original grid, meaning they were all classified
                     unreachable!()
@@ -707,8 +707,8 @@ mod triangulate_and_classify {
                 if let Some(a) = anchor {
                     let l_face_id = map.face_id_tx(t, nd)?;
                     let r_face_id = map.face_id_tx(t, nd + 1)?;
-                    map.write_attribute(t, l_face_id, a)?;
-                    map.write_attribute(t, r_face_id, a)?;
+                    map.write_attribute_tx(t, l_face_id, a)?;
+                    map.write_attribute_tx(t, r_face_id, a)?;
                 } else {
                     unreachable!()
                 }
