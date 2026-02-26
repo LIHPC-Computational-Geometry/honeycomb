@@ -13,7 +13,7 @@ use crate::internals::model::IsIrregular;
 pub fn dart_origin<T: CoordsFloat>(map: &CMap2<T>, dart: u32) -> Vertex2<T> {
     assert_ne!(dart, NULL_DART_ID);
 
-    map.force_read_vertex(map.vertex_id(dart)).unwrap()
+    map.read_vertex(map.vertex_id(dart)).unwrap()
 }
 
 pub fn canonical_beta1_tx<T: CoordsFloat>(
@@ -125,7 +125,7 @@ pub fn is_regular_tx<T: CoordsFloat>(
 pub fn is_regular<T: CoordsFloat>(map: &CMap2<T>, dart: u32) -> bool {
     assert_ne!(dart, NULL_DART_ID);
 
-    let attr = map.force_read_attribute::<IsIrregular>(dart);
+    let attr = map.read_attribute::<IsIrregular>(dart);
     attr.is_none()
 }
 
@@ -145,14 +145,14 @@ pub fn get_quadrant<T: CoordsFloat>(vertex: &Vertex2<T>, midpoint: &Vertex2<T>) 
 
 pub fn remove_dangling_darts<T: CoordsFloat>(map: &mut CMap2<T>) {
     map.par_iter_vertices().for_each(|vertex_id| {
-        let vertex = map.force_read_vertex(map.vertex_id(vertex_id));
+        let vertex = map.read_vertex(map.vertex_id(vertex_id));
         if vertex.is_none() {
             // look for a dart in the orbit that actually has a vertex.
             // it's probably been "stolen" when a dart with a small id has been linked
             map.i_cell::<0>(vertex_id).for_each(|d| {
-                let v = map.force_read_vertex(d);
+                let v = map.read_vertex(d);
                 if let Some(vertex) = v {
-                    map.force_write_vertex(vertex_id, vertex);
+                    map.write_vertex(vertex_id, vertex);
                 }
             });
         }

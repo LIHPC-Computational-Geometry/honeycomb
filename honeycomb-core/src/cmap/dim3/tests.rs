@@ -19,35 +19,35 @@ impl std::process::Termination for CMap3<f64> {
 
 // --- High-level tests
 
-// force_* methods
+// * methods
 
 #[test]
 fn build_tet() -> anyhow::Result<CMap3<f64>> {
     let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build()?; // 3*4 darts
 
     // face z- (base)
-    map.force_link::<1>(1, 2)?;
-    map.force_link::<1>(2, 3)?;
-    map.force_link::<1>(3, 1)?;
+    map.link::<1>(1, 2)?;
+    map.link::<1>(2, 3)?;
+    map.link::<1>(3, 1)?;
     // face y-
-    map.force_link::<1>(4, 5)?;
-    map.force_link::<1>(5, 6)?;
-    map.force_link::<1>(6, 4)?;
+    map.link::<1>(4, 5)?;
+    map.link::<1>(5, 6)?;
+    map.link::<1>(6, 4)?;
     // face x-
-    map.force_link::<1>(7, 8)?;
-    map.force_link::<1>(8, 9)?;
-    map.force_link::<1>(9, 7)?;
+    map.link::<1>(7, 8)?;
+    map.link::<1>(8, 9)?;
+    map.link::<1>(9, 7)?;
     // face x+/y+
-    map.force_link::<1>(10, 11)?;
-    map.force_link::<1>(11, 12)?;
-    map.force_link::<1>(12, 10)?;
+    map.link::<1>(10, 11)?;
+    map.link::<1>(11, 12)?;
+    map.link::<1>(12, 10)?;
     // link triangles to get the tet
-    map.force_link::<2>(1, 4)?;
-    map.force_link::<2>(2, 7)?;
-    map.force_link::<2>(3, 10)?;
-    map.force_link::<2>(5, 12)?;
-    map.force_link::<2>(6, 8)?;
-    map.force_link::<2>(9, 11)?;
+    map.link::<2>(1, 4)?;
+    map.link::<2>(2, 7)?;
+    map.link::<2>(3, 10)?;
+    map.link::<2>(5, 12)?;
+    map.link::<2>(6, 8)?;
+    map.link::<2>(9, 11)?;
 
     {
         let mut vertices = map.iter_vertices();
@@ -61,10 +61,10 @@ fn build_tet() -> anyhow::Result<CMap3<f64>> {
         assert_eq!(&darts, &[2, 3, 1]);
     }
 
-    map.force_write_vertex(1, (1.0, 0.0, 0.0));
-    map.force_write_vertex(2, (0.0, 0.0, 0.0));
-    map.force_write_vertex(3, (0.0, 0.5, 0.0));
-    map.force_write_vertex(6, (0.5, 0.25, 1.0));
+    map.write_vertex(1, (1.0, 0.0, 0.0));
+    map.write_vertex(2, (0.0, 0.0, 0.0));
+    map.write_vertex(3, (0.0, 0.5, 0.0));
+    map.write_vertex(6, (0.5, 0.25, 1.0));
 
     Ok(map)
 }
@@ -78,33 +78,33 @@ fn sew_tets() -> anyhow::Result<CMap3<f64>> {
 
     let _ = map.allocate_used_darts(12);
     // face z- (base)
-    map.force_link::<1>(13, 14)?;
-    map.force_link::<1>(14, 15)?;
-    map.force_link::<1>(15, 13)?;
+    map.link::<1>(13, 14)?;
+    map.link::<1>(14, 15)?;
+    map.link::<1>(15, 13)?;
     // face x-/y-
-    map.force_link::<1>(16, 17)?;
-    map.force_link::<1>(17, 18)?;
-    map.force_link::<1>(18, 16)?;
+    map.link::<1>(16, 17)?;
+    map.link::<1>(17, 18)?;
+    map.link::<1>(18, 16)?;
     // face y+
-    map.force_link::<1>(19, 20)?;
-    map.force_link::<1>(20, 21)?;
-    map.force_link::<1>(21, 19)?;
+    map.link::<1>(19, 20)?;
+    map.link::<1>(20, 21)?;
+    map.link::<1>(21, 19)?;
     // face x+
-    map.force_link::<1>(22, 23)?;
-    map.force_link::<1>(23, 24)?;
-    map.force_link::<1>(24, 22)?;
+    map.link::<1>(22, 23)?;
+    map.link::<1>(23, 24)?;
+    map.link::<1>(24, 22)?;
     // link triangles to get the tet
-    map.force_link::<2>(13, 16)?;
-    map.force_link::<2>(14, 19)?;
-    map.force_link::<2>(15, 22)?;
-    map.force_link::<2>(17, 24)?;
-    map.force_link::<2>(18, 20)?;
-    map.force_link::<2>(21, 23)?;
+    map.link::<2>(13, 16)?;
+    map.link::<2>(14, 19)?;
+    map.link::<2>(15, 22)?;
+    map.link::<2>(17, 24)?;
+    map.link::<2>(18, 20)?;
+    map.link::<2>(21, 23)?;
 
-    map.force_write_vertex(13, (2.5, 1.5, 0.0));
-    map.force_write_vertex(14, (1.5, 2.0, 0.0));
-    map.force_write_vertex(15, (2.5, 2.0, 0.0));
-    map.force_write_vertex(18, (1.5, 1.75, 1.0));
+    map.write_vertex(13, (2.5, 1.5, 0.0));
+    map.write_vertex(14, (1.5, 2.0, 0.0));
+    map.write_vertex(15, (2.5, 2.0, 0.0));
+    map.write_vertex(18, (1.5, 1.75, 1.0));
 
     {
         let mut volumes = map.iter_volumes();
@@ -140,7 +140,7 @@ fn sew_tets() -> anyhow::Result<CMap3<f64>> {
     // Sew both tetrahedrons along a face (C)
 
     assert_eq!(map.n_vertices(), 8);
-    map.force_sew::<3>(10, 16)?;
+    map.sew::<3>(10, 16)?;
     assert_eq!(map.n_vertices(), 5);
 
     // this results in a quad-base pyramid
@@ -176,7 +176,7 @@ fn unsew_tets() -> anyhow::Result<()> {
     let map = sew_tets().context("Failed to sew first tetrahedra")?;
 
     // this should get us back to the state before the first 3-sew
-    map.force_unsew::<3>(10)?;
+    map.unsew::<3>(10)?;
     assert_eq!(map.n_vertices(), 8);
 
     {
@@ -244,9 +244,9 @@ fn merge_tets_into_pyramid() -> anyhow::Result<()> {
         let ld = map.beta::<2>(dart);
         let rd = map.beta::<2>(b3d);
 
-        map.force_unsew::<2>(dart)?;
-        map.force_unsew::<2>(b3d)?;
-        map.force_sew::<2>(ld, rd)?;
+        map.unsew::<2>(dart)?;
+        map.unsew::<2>(b3d)?;
+        map.sew::<2>(ld, rd)?;
         Ok(())
     }
 
@@ -254,19 +254,19 @@ fn merge_tets_into_pyramid() -> anyhow::Result<()> {
 
     // Adjust shared vertices (D) to make a symmetrical square-base pyramid
     assert_eq!(
-        map.force_write_vertex(3, (0.0, 1.0, 0.0)),
+        map.write_vertex(3, (0.0, 1.0, 0.0)),
         Some(Vertex3(0.75, 1.25, 0.0))
     );
     assert_eq!(
-        map.force_write_vertex(1, (1.0, 0.0, 0.0)),
+        map.write_vertex(1, (1.0, 0.0, 0.0)),
         Some(Vertex3(1.75, 0.75, 0.0))
     );
     assert_eq!(
-        map.force_write_vertex(6, (0.5, 0.5, 1.0)),
+        map.write_vertex(6, (0.5, 0.5, 1.0)),
         Some(Vertex3(1.0, 1.0, 1.0))
     );
     assert_eq!(
-        map.force_write_vertex(15, (1.0, 1.0, 0.0)),
+        map.write_vertex(15, (1.0, 1.0, 0.0)),
         Some(Vertex3(2.5, 2.0, 0.0))
     );
 
@@ -276,12 +276,12 @@ fn merge_tets_into_pyramid() -> anyhow::Result<()> {
     rebuild_edge(&map, 12)?;
 
     // delete old face components
-    map.force_unlink::<1>(10)?;
-    map.force_unlink::<1>(11)?;
-    map.force_unlink::<1>(12)?;
-    map.force_unlink::<3>(10)?;
-    map.force_unlink::<3>(11)?;
-    map.force_unlink::<3>(12)?;
+    map.unlink::<1>(10)?;
+    map.unlink::<1>(11)?;
+    map.unlink::<1>(12)?;
+    map.unlink::<3>(10)?;
+    map.unlink::<3>(11)?;
+    map.unlink::<3>(12)?;
     map.release_dart(10)?;
     map.release_dart(11)?;
     map.release_dart(12)?;
@@ -665,9 +665,9 @@ fn reserve_darts() {
 #[test]
 fn remove_vertex_twice() {
     let map: CMap3<f64> = CMap3::new(4);
-    assert!(map.force_write_vertex(1, (1.0, 1.0, 1.0)).is_none());
-    assert_eq!(map.force_remove_vertex(1), Some(Vertex3(1.0, 1.0, 1.0)));
-    assert!(map.force_remove_vertex(1).is_none());
+    assert!(map.write_vertex(1, (1.0, 1.0, 1.0)).is_none());
+    assert_eq!(map.remove_vertex(1), Some(Vertex3(1.0, 1.0, 1.0)));
+    assert!(map.remove_vertex(1).is_none());
 }
 
 #[test]
@@ -692,16 +692,16 @@ mod one_sew {
     #[test]
     fn topo_no_b3_image() -> anyhow::Result<()> {
         let map: CMap3<f64> = CMap3::new(8);
-        // map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3)?;
-        map.force_link::<1>(3, 4)?;
-        map.force_link::<1>(4, 1)?;
-        map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-        map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-        map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-        map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+        // map.link::<1>(1, 2);
+        map.link::<1>(2, 3)?;
+        map.link::<1>(3, 4)?;
+        map.link::<1>(4, 1)?;
+        map.write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        map.write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+        map.write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+        map.write_vertex(4, Vertex3(0.0, 1.0, 0.0));
 
-        map.force_sew::<1>(1, 2)?;
+        map.sew::<1>(1, 2)?;
 
         assert_eq!(
             &[3, 4, 1, 2],
@@ -718,36 +718,36 @@ mod one_sew {
     #[test]
     fn topo_b3_image() -> anyhow::Result<()> {
         let map: CMap3<f64> = CMap3::new(8);
-        // map.force_link::<1>(1, 2);
-        map.force_link::<1>(2, 3)?;
-        map.force_link::<1>(3, 4)?;
-        map.force_link::<1>(4, 1)?;
-        map.force_write_vertex(1, Vertex3(0.0, 0.0, 0.0));
-        map.force_write_vertex(2, Vertex3(1.0, 0.0, 0.0));
-        map.force_write_vertex(3, Vertex3(1.0, 1.0, 0.0));
-        map.force_write_vertex(4, Vertex3(0.0, 1.0, 0.0));
+        // map.link::<1>(1, 2);
+        map.link::<1>(2, 3)?;
+        map.link::<1>(3, 4)?;
+        map.link::<1>(4, 1)?;
+        map.write_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        map.write_vertex(2, Vertex3(1.0, 0.0, 0.0));
+        map.write_vertex(3, Vertex3(1.0, 1.0, 0.0));
+        map.write_vertex(4, Vertex3(0.0, 1.0, 0.0));
 
-        map.force_link::<1>(5, 6)?;
-        map.force_link::<1>(6, 7)?;
-        map.force_link::<1>(7, 8)?;
-        // map.force_link::<1>(8, 5);
-        map.force_write_vertex(5, Vertex3(0.5, 0.0, 1.0));
-        map.force_write_vertex(6, Vertex3(0.0, 0.0, 1.0));
-        map.force_write_vertex(7, Vertex3(0.0, 1.0, 1.0));
-        map.force_write_vertex(8, Vertex3(1.0, 1.0, 1.0));
+        map.link::<1>(5, 6)?;
+        map.link::<1>(6, 7)?;
+        map.link::<1>(7, 8)?;
+        // map.link::<1>(8, 5);
+        map.write_vertex(5, Vertex3(0.5, 0.0, 1.0));
+        map.write_vertex(6, Vertex3(0.0, 0.0, 1.0));
+        map.write_vertex(7, Vertex3(0.0, 1.0, 1.0));
+        map.write_vertex(8, Vertex3(1.0, 1.0, 1.0));
 
-        map.force_sew::<3>(1, 5)?;
+        map.sew::<3>(1, 5)?;
         assert_eq!(map.beta::<3>(1), 5);
         assert_eq!(map.beta::<3>(2), 8);
         assert_eq!(map.beta::<3>(3), 7);
         assert_eq!(map.beta::<3>(4), 6);
 
-        map.force_sew::<1>(1, 2)?;
+        map.sew::<1>(1, 2)?;
 
         assert_eq!(map.beta::<1>(1), 2);
         assert_eq!(map.beta::<1>(8), 5);
         assert_eq!(map.vertex_id(5), 2);
-        assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.75, 0.0, 0.5)));
+        assert_eq!(map.read_vertex(2), Some(Vertex3(0.75, 0.0, 0.5)));
 
         Ok(())
     }
@@ -757,9 +757,9 @@ mod one_sew {
         // 1-sew unfree dart
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<1>(1, 2)?;
+            map.link::<1>(1, 2)?;
 
-            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+            assert!(map.sew::<1>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeBase(1, 1, 3))
             )));
@@ -767,9 +767,9 @@ mod one_sew {
         // 1-sew to unfree dart
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<1>(2, 3)?;
+            map.link::<1>(2, 3)?;
 
-            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+            assert!(map.sew::<1>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeImage(0, 1, 3))
             )));
@@ -781,13 +781,13 @@ mod one_sew {
         // 1-sew to dart with incompatible b3 topology
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(5).build()?;
-            map.force_link::<3>(1, 2)?;
-            map.force_link::<3>(3, 4)?;
-            map.force_link::<1>(4, 5)?;
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+            map.link::<3>(1, 2)?;
+            map.link::<3>(3, 4)?;
+            map.link::<1>(4, 5)?;
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 1.0, 0.0));
 
-            assert!(map.force_sew::<1>(1, 3).is_err_and(|e| matches!(
+            assert!(map.sew::<1>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeBase(1, 4, 2))
             )));
@@ -799,7 +799,7 @@ mod one_sew {
     #[test]
     fn geom_no_orbit() -> anyhow::Result<()> {
         let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(2).build()?;
-        map.force_write_vertex(2, (0.0, 1.0, 0.0));
+        map.write_vertex(2, (0.0, 1.0, 0.0));
 
         atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2))?;
 
@@ -819,9 +819,9 @@ mod one_sew {
         // new vid == rd == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<3>(1, 3)?;
-            map.force_write_vertex(2, (0.0, 1.0, 0.0));
-            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+            map.link::<3>(1, 3)?;
+            map.write_vertex(2, (0.0, 1.0, 0.0));
+            map.write_vertex(3, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2))?;
 
@@ -837,9 +837,9 @@ mod one_sew {
         // new vid == b3ld == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<3>(1, 2)?;
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+            map.link::<3>(1, 2)?;
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 3))?;
 
@@ -861,9 +861,9 @@ mod one_sew {
         // new vid == rd == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<2>(1, 3)?;
-            map.force_write_vertex(2, (0.0, 1.0, 0.0));
-            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+            map.link::<2>(1, 3)?;
+            map.write_vertex(2, (0.0, 1.0, 0.0));
+            map.write_vertex(3, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2))?;
 
@@ -879,9 +879,9 @@ mod one_sew {
         // new vid == b2ld == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<2>(1, 2)?;
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+            map.link::<2>(1, 2)?;
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 3))?;
 
@@ -903,12 +903,12 @@ mod one_sew {
         // new vid == rd == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<2>(1, 3)?;
-            map.force_link::<3>(1, 4)?;
+            map.link::<2>(1, 3)?;
+            map.link::<3>(1, 4)?;
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 3);
-            map.force_write_vertex(2, (0.0, 1.0, 0.0));
-            map.force_write_vertex(3, (0.0, 0.0, 0.0));
+            map.write_vertex(2, (0.0, 1.0, 0.0));
+            map.write_vertex(3, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2))?;
 
@@ -925,12 +925,12 @@ mod one_sew {
         // new vid == b2ld == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<2>(1, 2)?;
-            map.force_link::<3>(1, 3)?;
+            map.link::<2>(1, 2)?;
+            map.link::<3>(1, 3)?;
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 2);
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(4, (0.0, 1.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(4, (0.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 4))?;
 
@@ -947,12 +947,12 @@ mod one_sew {
         // new vid == b3ld == 2
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<2>(1, 4)?;
-            map.force_link::<3>(1, 2)?;
+            map.link::<2>(1, 4)?;
+            map.link::<3>(1, 2)?;
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(4), 2);
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 1.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 3))?;
 
@@ -975,7 +975,7 @@ mod one_sew {
     #[test]
     fn geom_missing_data() -> anyhow::Result<()> {
         let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-        map.force_link::<2>(1, 3)?;
+        map.link::<2>(1, 3)?;
 
         assert!(
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2)).is_err_and(|e| matches!(
@@ -984,8 +984,8 @@ mod one_sew {
             ))
         );
 
-        map.force_unlink::<2>(1)?;
-        map.force_link::<3>(1, 4)?;
+        map.unlink::<2>(1)?;
+        map.link::<3>(1, 4)?;
 
         assert!(
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2)).is_err_and(|e| matches!(
@@ -994,7 +994,7 @@ mod one_sew {
             ))
         );
 
-        map.force_link::<2>(1, 3)?;
+        map.link::<2>(1, 3)?;
 
         assert!(
             atomically_with_err(|t| map.sew_tx::<1>(t, 1, 2)).is_err_and(|e| matches!(
@@ -1019,9 +1019,9 @@ mod two_sew {
         // 2-sew unfree dart
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<2>(1, 2)?;
+            map.link::<2>(1, 2)?;
 
-            assert!(map.force_sew::<2>(1, 3).is_err_and(|e| matches!(
+            assert!(map.sew::<2>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeBase(2, 1, 3))
             )));
@@ -1029,9 +1029,9 @@ mod two_sew {
         // 2-sew to unfree dart
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build()?;
-            map.force_link::<2>(2, 3)?;
+            map.link::<2>(2, 3)?;
 
-            assert!(map.force_sew::<2>(1, 3).is_err_and(|e| matches!(
+            assert!(map.sew::<2>(1, 3).is_err_and(|e| matches!(
                 e,
                 SewError::FailedLink(LinkError::NonFreeImage(2, 1, 3))
             )));
@@ -1045,15 +1045,15 @@ mod two_sew {
         let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(2).build()?;
         assert_eq!(map.vertex_id(1), 1);
         assert_eq!(map.vertex_id(2), 2);
-        map.force_write_vertex(1, (0.0, 0.0, 0.0));
-        map.force_write_vertex(2, (1.0, 1.0, 0.0));
+        map.write_vertex(1, (0.0, 0.0, 0.0));
+        map.write_vertex(2, (1.0, 1.0, 0.0));
 
         atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2))?;
 
         assert_eq!(map.vertex_id(1), 1);
         assert_eq!(map.vertex_id(2), 2);
-        assert_eq!(map.force_read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
-        assert_eq!(map.force_read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
+        assert_eq!(map.read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
+        assert_eq!(map.read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
 
         Ok(())
     }
@@ -1063,16 +1063,16 @@ mod two_sew {
         // new vid == ld & rd
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<1>(1, 3)?;
-            map.force_link::<1>(2, 4)?;
+            map.link::<1>(1, 3)?;
+            map.link::<1>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(1, (0.0, 0.0, 0.0));
-            map.force_write_vertex(2, (1.0, 1.0, 0.0));
-            map.force_write_vertex(3, (1.0, 1.0, 0.0));
-            map.force_write_vertex(4, (0.0, 0.0, 0.0));
+            map.write_vertex(1, (0.0, 0.0, 0.0));
+            map.write_vertex(2, (1.0, 1.0, 0.0));
+            map.write_vertex(3, (1.0, 1.0, 0.0));
+            map.write_vertex(4, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2))?;
 
@@ -1080,22 +1080,22 @@ mod two_sew {
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 2);
             assert_eq!(map.vertex_id(4), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
         }
         // new vid == b1rd & b1ld
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<1>(3, 1)?;
-            map.force_link::<1>(4, 2)?;
+            map.link::<1>(3, 1)?;
+            map.link::<1>(4, 2)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(1, (1.0, 1.0, 0.0));
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 0.0, 0.0));
-            map.force_write_vertex(4, (1.0, 1.0, 0.0));
+            map.write_vertex(1, (1.0, 1.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 0.0, 0.0));
+            map.write_vertex(4, (1.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 3, 4))?;
 
@@ -1103,8 +1103,8 @@ mod two_sew {
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 2);
             assert_eq!(map.vertex_id(4), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
         }
 
         Ok(())
@@ -1115,16 +1115,16 @@ mod two_sew {
         // new vid == ld & rd
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<3>(1, 3)?;
-            map.force_link::<3>(2, 4)?;
+            map.link::<3>(1, 3)?;
+            map.link::<3>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(1, (0.0, 0.0, 0.0));
-            map.force_write_vertex(2, (1.0, 1.0, 0.0));
-            map.force_write_vertex(3, (1.0, 1.0, 0.0));
-            map.force_write_vertex(4, (0.0, 0.0, 0.0));
+            map.write_vertex(1, (0.0, 0.0, 0.0));
+            map.write_vertex(2, (1.0, 1.0, 0.0));
+            map.write_vertex(3, (1.0, 1.0, 0.0));
+            map.write_vertex(4, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2))?;
 
@@ -1132,22 +1132,22 @@ mod two_sew {
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 2);
             assert_eq!(map.vertex_id(4), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
         }
         // new vid == b3rd & b3ld
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<3>(1, 3)?;
-            map.force_link::<3>(2, 4)?;
+            map.link::<3>(1, 3)?;
+            map.link::<3>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(1, (1.0, 1.0, 0.0));
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (0.0, 0.0, 0.0));
-            map.force_write_vertex(4, (1.0, 1.0, 0.0));
+            map.write_vertex(1, (1.0, 1.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (0.0, 0.0, 0.0));
+            map.write_vertex(4, (1.0, 1.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 3, 4))?;
 
@@ -1155,8 +1155,8 @@ mod two_sew {
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 2);
             assert_eq!(map.vertex_id(4), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
         }
 
         Ok(())
@@ -1167,20 +1167,20 @@ mod two_sew {
         // new vid == ld & rd
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(6).build()?;
-            map.force_link::<3>(1, 5)?;
-            map.force_link::<3>(2, 6)?;
-            map.force_link::<1>(1, 3)?;
-            map.force_link::<1>(2, 4)?;
+            map.link::<3>(1, 5)?;
+            map.link::<3>(2, 6)?;
+            map.link::<1>(1, 3)?;
+            map.link::<1>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
             assert_eq!(map.vertex_id(5), 3);
             assert_eq!(map.vertex_id(6), 4);
-            map.force_write_vertex(1, (0.0, 0.0, 0.0));
-            map.force_write_vertex(2, (1.0, 1.0, 0.0));
-            map.force_write_vertex(3, (1.0, 1.0, 0.0));
-            map.force_write_vertex(4, (0.0, 0.0, 0.0));
+            map.write_vertex(1, (0.0, 0.0, 0.0));
+            map.write_vertex(2, (1.0, 1.0, 0.0));
+            map.write_vertex(3, (1.0, 1.0, 0.0));
+            map.write_vertex(4, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2))?;
 
@@ -1190,26 +1190,26 @@ mod two_sew {
             assert_eq!(map.vertex_id(4), 1);
             assert_eq!(map.vertex_id(5), 2);
             assert_eq!(map.vertex_id(6), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
         }
         // new vid == b1rd & b1ld
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(6).build()?;
-            map.force_link::<3>(5, 3)?;
-            map.force_link::<3>(6, 4)?;
-            map.force_link::<1>(5, 1)?;
-            map.force_link::<1>(6, 2)?;
+            map.link::<3>(5, 3)?;
+            map.link::<3>(6, 4)?;
+            map.link::<1>(5, 1)?;
+            map.link::<1>(6, 2)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 1);
             assert_eq!(map.vertex_id(4), 2);
             assert_eq!(map.vertex_id(5), 5);
             assert_eq!(map.vertex_id(6), 6);
-            map.force_write_vertex(5, (0.0, 0.0, 0.0));
-            map.force_write_vertex(6, (1.0, 1.0, 0.0));
-            map.force_write_vertex(1, (1.0, 1.0, 0.0));
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(5, (0.0, 0.0, 0.0));
+            map.write_vertex(6, (1.0, 1.0, 0.0));
+            map.write_vertex(1, (1.0, 1.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 5, 6))?;
 
@@ -1219,26 +1219,26 @@ mod two_sew {
             assert_eq!(map.vertex_id(4), 2);
             assert_eq!(map.vertex_id(5), 2);
             assert_eq!(map.vertex_id(6), 1);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(0.0, 0.0, 0.0)));
         }
         // new vid == b3rd & b3ld
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(6).build()?;
-            map.force_link::<3>(3, 1)?;
-            map.force_link::<3>(4, 2)?;
-            map.force_link::<1>(3, 5)?;
-            map.force_link::<1>(4, 6)?;
+            map.link::<3>(3, 1)?;
+            map.link::<3>(4, 2)?;
+            map.link::<1>(3, 5)?;
+            map.link::<1>(4, 6)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
             assert_eq!(map.vertex_id(5), 1);
             assert_eq!(map.vertex_id(6), 2);
-            map.force_write_vertex(1, (0.0, 0.0, 0.0));
-            map.force_write_vertex(2, (1.0, 1.0, 0.0));
-            map.force_write_vertex(3, (1.0, 1.0, 0.0));
-            map.force_write_vertex(4, (0.0, 0.0, 0.0));
+            map.write_vertex(1, (0.0, 0.0, 0.0));
+            map.write_vertex(2, (1.0, 1.0, 0.0));
+            map.write_vertex(3, (1.0, 1.0, 0.0));
+            map.write_vertex(4, (0.0, 0.0, 0.0));
 
             atomically_with_err(|t| map.sew_tx::<2>(t, 3, 4))?;
 
@@ -1248,8 +1248,8 @@ mod two_sew {
             assert_eq!(map.vertex_id(4), 1);
             assert_eq!(map.vertex_id(5), 1);
             assert_eq!(map.vertex_id(6), 2);
-            assert_eq!(map.force_read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
-            assert_eq!(map.force_read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex(1), Some(Vertex3(0.0, 0.0, 0.0)));
+            assert_eq!(map.read_vertex(2), Some(Vertex3(1.0, 1.0, 0.0)));
         }
 
         Ok(())
@@ -1260,14 +1260,14 @@ mod two_sew {
         // missing on ld vertex
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<1>(1, 3)?;
-            map.force_link::<1>(2, 4)?;
+            map.link::<1>(1, 3)?;
+            map.link::<1>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(2, (0.0, 0.0, 0.0));
-            map.force_write_vertex(3, (1.0, 0.0, 0.0));
+            map.write_vertex(2, (0.0, 0.0, 0.0));
+            map.write_vertex(3, (1.0, 0.0, 0.0));
 
             assert!(
                 atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2)).is_err_and(|e| matches!(
@@ -1279,14 +1279,14 @@ mod two_sew {
         // missing on rd vertex
         {
             let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(4).build()?;
-            map.force_link::<1>(1, 3)?;
-            map.force_link::<1>(2, 4)?;
+            map.link::<1>(1, 3)?;
+            map.link::<1>(2, 4)?;
             assert_eq!(map.vertex_id(1), 1);
             assert_eq!(map.vertex_id(2), 2);
             assert_eq!(map.vertex_id(3), 3);
             assert_eq!(map.vertex_id(4), 4);
-            map.force_write_vertex(1, (0.0, 0.0, 0.0));
-            map.force_write_vertex(4, (1.0, 0.0, 0.0));
+            map.write_vertex(1, (0.0, 0.0, 0.0));
+            map.write_vertex(4, (1.0, 0.0, 0.0));
 
             assert!(
                 atomically_with_err(|t| map.sew_tx::<2>(t, 1, 2)).is_err_and(|e| matches!(
@@ -1323,7 +1323,7 @@ mod two_sew {
         })?;
 
         assert!(
-            map.force_sew::<2>(1, 5)
+            map.sew::<2>(1, 5)
                 .is_err_and(|e| e == SewError::BadGeometry(2, 1, 5))
         );
 
@@ -1374,11 +1374,11 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 1, 8))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
         }
         // new_vids = rds
         {
@@ -1409,11 +1409,11 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 8, 1))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.0));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(8).unwrap(), Vertex3(1.0, 0.0, 1.0));
         }
 
         Ok(())
@@ -1448,10 +1448,10 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 1, 8))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
         }
         // new_vids = rds
         {
@@ -1480,10 +1480,10 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 8, 1))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
         }
 
         Ok(())
@@ -1522,10 +1522,10 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 1, 8))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
         }
         // new_vids = rds
         {
@@ -1558,10 +1558,10 @@ mod three_sew {
 
             atomically_with_err(|t| map.sew_tx::<3>(t, 8, 1))?;
 
-            assert_eq!(map.force_read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
-            assert_eq!(map.force_read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
-            assert_eq!(map.force_read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(1).unwrap(), Vertex3(0.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(2).unwrap(), Vertex3(1.0, 0.0, 0.5));
+            assert_eq!(map.read_vertex(3).unwrap(), Vertex3(1.0, 1.0, 0.5));
+            assert_eq!(map.read_vertex(4).unwrap(), Vertex3(0.0, 1.0, 0.5));
         }
 
         Ok(())
@@ -1626,7 +1626,7 @@ mod three_sew {
         })?;
 
         assert!(
-            map.force_sew::<3>(1, 5)
+            map.sew::<3>(1, 5)
                 .is_err_and(|e| e == SewError::BadGeometry(3, 1, 5))
         );
 
@@ -1641,11 +1641,11 @@ fn sew_ordering() {
     loom::model(|| {
         // setup the map
         let map: CMap3<f64> = CMap3::new(5);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_link::<1>(4, 5).unwrap();
-        map.force_write_vertex(2, Vertex3(1.0, 1.0, 1.0));
-        map.force_write_vertex(3, Vertex3(1.0, 2.0, 1.0));
-        map.force_write_vertex(5, Vertex3(2.0, 2.0, 1.0));
+        map.link::<2>(1, 2).unwrap();
+        map.link::<1>(4, 5).unwrap();
+        map.write_vertex(2, Vertex3(1.0, 1.0, 1.0));
+        map.write_vertex(3, Vertex3(1.0, 2.0, 1.0));
+        map.write_vertex(5, Vertex3(2.0, 2.0, 1.0));
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
 
@@ -1655,24 +1655,24 @@ fn sew_ordering() {
         // this will result in a single vertex being defined, of ID 2
         // depending on the order of execution of the sews, the value may change
 
-        let t1 = loom::thread::spawn(move || while m1.force_sew::<1>(1, 3).is_err() {});
+        let t1 = loom::thread::spawn(move || while m1.sew::<1>(1, 3).is_err() {});
 
-        let t2 = loom::thread::spawn(move || while m2.force_sew::<2>(3, 4).is_err() {});
+        let t2 = loom::thread::spawn(move || while m2.sew::<2>(3, 4).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();
 
         // all paths should result in the same topological result here
-        let v2 = arc.force_remove_vertex(2);
-        let v3 = arc.force_remove_vertex(3);
-        let v5 = arc.force_remove_vertex(5);
+        let v2 = arc.remove_vertex(2);
+        let v3 = arc.remove_vertex(3);
+        let v5 = arc.remove_vertex(5);
         assert!(v2.is_some());
         assert!(v3.is_none());
         assert!(v5.is_none());
         assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
-        assert!(arc.force_read_vertex(2).is_none());
-        assert!(arc.force_read_vertex(3).is_none());
-        assert!(arc.force_read_vertex(5).is_none());
+        assert!(arc.read_vertex(2).is_none());
+        assert!(arc.read_vertex(3).is_none());
+        assert!(arc.read_vertex(5).is_none());
     });
 }
 
@@ -1681,14 +1681,14 @@ fn sew_ordering_with_txtions() {
     loom::model(|| {
         // setup the map
         let map: CMap3<f64> = CMap3::new(5);
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_link::<2>(3, 4).unwrap();
+        map.link::<2>(1, 2).unwrap();
+        map.link::<2>(3, 4).unwrap();
         // only one vertex is defined
         // the idea is to use CMapError, along with transaction control to ensure
         // we don't proceed with a sew on no value
-        map.force_write_vertex(2, Vertex3(1.0, 1.0, 1.0));
-        // map.force_write_vertex(3, Vertex3(1.0, 2.0, 1.0));
-        // map.force_write_vertex(5, Vertex3(2.0, 2.0, 1.0));
+        map.write_vertex(2, Vertex3(1.0, 1.0, 1.0));
+        // map.write_vertex(3, Vertex3(1.0, 2.0, 1.0));
+        // map.write_vertex(5, Vertex3(2.0, 2.0, 1.0));
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
 
@@ -1793,12 +1793,12 @@ fn unsew_ordering() {
         let mut map: CMap3<f64> = CMap3::new(5);
         map.attributes.add_storage::<Weight>(6);
 
-        map.force_link::<2>(1, 2).unwrap();
-        map.force_link::<2>(3, 4).unwrap();
-        map.force_link::<1>(1, 3).unwrap();
-        map.force_link::<1>(4, 5).unwrap();
-        map.force_write_vertex(2, Vertex3(0.0, 0.0, 0.0));
-        map.force_write_attribute(2, Weight(33));
+        map.link::<2>(1, 2).unwrap();
+        map.link::<2>(3, 4).unwrap();
+        map.link::<1>(1, 3).unwrap();
+        map.link::<1>(4, 5).unwrap();
+        map.write_vertex(2, Vertex3(0.0, 0.0, 0.0));
+        map.write_attribute(2, Weight(33));
         let arc = loom::sync::Arc::new(map);
         let (m1, m2) = (arc.clone(), arc.clone());
 
@@ -1807,9 +1807,9 @@ fn unsew_ordering() {
         // - 2-unsew 3 and 4 (t2)
         // this will result in different weights, defined on IDs 2, 3, and 5
 
-        let t1 = loom::thread::spawn(move || while m1.force_unsew::<1>(1).is_err() {});
+        let t1 = loom::thread::spawn(move || while m1.unsew::<1>(1).is_err() {});
 
-        let t2 = loom::thread::spawn(move || while m2.force_unsew::<2>(3).is_err() {});
+        let t2 = loom::thread::spawn(move || while m2.unsew::<2>(3).is_err() {});
 
         t1.join().unwrap();
         t2.join().unwrap();
@@ -1817,15 +1817,15 @@ fn unsew_ordering() {
         // all paths should result in the same topological result here
 
         // We don't check for exact values here as they might differ based on execution order
-        let w2 = arc.force_remove_attribute::<Weight>(2);
-        let w3 = arc.force_remove_attribute::<Weight>(3);
-        let w5 = arc.force_remove_attribute::<Weight>(5);
+        let w2 = arc.remove_attribute::<Weight>(2);
+        let w3 = arc.remove_attribute::<Weight>(3);
+        let w5 = arc.remove_attribute::<Weight>(5);
         assert!(w2.is_some());
         assert!(w3.is_some());
         assert!(w5.is_some());
-        assert!(arc.force_read_attribute::<Weight>(2).is_none());
-        assert!(arc.force_read_attribute::<Weight>(3).is_none());
-        assert!(arc.force_read_attribute::<Weight>(5).is_none());
+        assert!(arc.read_attribute::<Weight>(2).is_none());
+        assert!(arc.read_attribute::<Weight>(3).is_none());
+        assert!(arc.read_attribute::<Weight>(5).is_none());
     });
 }
 

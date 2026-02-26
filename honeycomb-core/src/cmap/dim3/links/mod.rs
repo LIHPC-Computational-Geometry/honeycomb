@@ -50,9 +50,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(t, lhs_dart_id, rhs_dart_id),
-            2 => self.two_link(t, lhs_dart_id, rhs_dart_id),
-            3 => self.three_link(t, lhs_dart_id, rhs_dart_id),
+            1 => self.one_link_tx(t, lhs_dart_id, rhs_dart_id),
+            2 => self.two_link_tx(t, lhs_dart_id, rhs_dart_id),
+            3 => self.three_link_tx(t, lhs_dart_id, rhs_dart_id),
             _ => unreachable!(),
         }
     }
@@ -96,9 +96,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(t, lhs_dart_id),
-            2 => self.two_unlink(t, lhs_dart_id),
-            3 => self.three_unlink(t, lhs_dart_id),
+            1 => self.one_unlink_tx(t, lhs_dart_id),
+            2 => self.two_unlink_tx(t, lhs_dart_id),
+            3 => self.three_unlink_tx(t, lhs_dart_id),
             _ => unreachable!(),
         }
     }
@@ -118,7 +118,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `lhs_dart_id` is already `I`-free.
-    pub fn force_link<const I: u8>(
+    pub fn link<const I: u8>(
         &self,
         lhs_dart_id: DartIdType,
         rhs_dart_id: DartIdType,
@@ -127,9 +127,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_link(lhs_dart_id, rhs_dart_id),
-            2 => self.force_two_link(lhs_dart_id, rhs_dart_id),
-            3 => self.force_three_link(lhs_dart_id, rhs_dart_id),
+            1 => self.one_link(lhs_dart_id, rhs_dart_id),
+            2 => self.two_link(lhs_dart_id, rhs_dart_id),
+            3 => self.three_link(lhs_dart_id, rhs_dart_id),
             _ => unreachable!(),
         }
     }
@@ -149,14 +149,14 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `lhs_dart_id` is already `I`-free.
-    pub fn force_unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+    pub fn unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_unlink(lhs_dart_id),
-            2 => self.force_two_unlink(lhs_dart_id),
-            3 => self.force_three_unlink(lhs_dart_id),
+            1 => self.one_unlink(lhs_dart_id),
+            2 => self.two_unlink(lhs_dart_id),
+            3 => self.three_unlink(lhs_dart_id),
             _ => unreachable!(),
         }
     }

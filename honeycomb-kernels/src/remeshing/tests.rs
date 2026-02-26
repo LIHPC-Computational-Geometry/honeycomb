@@ -370,7 +370,7 @@ mod capture_and_classify {
         // there should be 13 nodes, 13 curves, and a single surface
         assert_eq!(
             map.iter_vertices()
-                .filter_map(|v| map.force_read_attribute::<VertexAnchor>(v))
+                .filter_map(|v| map.read_attribute::<VertexAnchor>(v))
                 .count(),
             13
         );
@@ -379,7 +379,7 @@ mod capture_and_classify {
 
         let mut set = HashSet::default();
         map.iter_edges()
-            .filter_map(|e| map.force_read_attribute::<EdgeAnchor>(e))
+            .filter_map(|e| map.read_attribute::<EdgeAnchor>(e))
             .for_each(|a| {
                 set.insert(a);
             });
@@ -442,10 +442,10 @@ mod capture_and_classify {
         // disjoint surfaces should have different IDs
         let d1 = map.allocate_used_darts(4);
         let (d2, d3, d4) = (d1 + 1, d1 + 2, d1 + 3);
-        let _ = map.force_link::<1>(d1, d2);
-        let _ = map.force_link::<1>(d2, d3);
-        let _ = map.force_link::<1>(d3, d4);
-        let _ = map.force_link::<1>(d4, d1);
+        let _ = map.link::<1>(d1, d2);
+        let _ = map.link::<1>(d2, d3);
+        let _ = map.link::<1>(d3, d4);
+        let _ = map.link::<1>(d4, d1);
 
         assert_eq!(classify_capture(&map), Ok(()));
 
@@ -455,11 +455,11 @@ mod capture_and_classify {
                 .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
         });
         assert!(on_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Curve(_))
         )));
         assert!(off_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Surface(_))
         )));
 
@@ -467,31 +467,31 @@ mod capture_and_classify {
             .iter_edges()
             .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
         assert!(on_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e),
+            map.read_attribute::<EdgeAnchor>(e),
             Some(EdgeAnchor::Curve(_))
         )));
         assert!(off_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e),
+            map.read_attribute::<EdgeAnchor>(e),
             Some(EdgeAnchor::Surface(_))
         )));
 
         assert!(map.iter_faces().all(|f| matches!(
-            map.force_read_attribute::<FaceAnchor>(f),
+            map.read_attribute::<FaceAnchor>(f),
             Some(FaceAnchor::Surface(_))
         )));
 
         // there are two disjoint boundaries => curves
         assert!(matches!(
-            map.force_read_attribute::<VertexAnchor>(1),
+            map.read_attribute::<VertexAnchor>(1),
             Some(VertexAnchor::Curve(_))
         ));
         assert!(matches!(
-            map.force_read_attribute::<VertexAnchor>(d1),
+            map.read_attribute::<VertexAnchor>(d1),
             Some(VertexAnchor::Curve(_))
         ));
         assert_ne!(
-            map.force_read_attribute::<VertexAnchor>(1),
-            map.force_read_attribute::<VertexAnchor>(d1)
+            map.read_attribute::<VertexAnchor>(1),
+            map.read_attribute::<VertexAnchor>(d1)
         );
     }
 
@@ -507,10 +507,10 @@ mod capture_and_classify {
             .add_attribute::<FaceAnchor>()
             .build()
             .unwrap();
-        map.force_write_attribute(1, VertexAnchor::Node(1));
-        map.force_write_attribute(6, VertexAnchor::Node(2));
-        map.force_write_attribute(12, VertexAnchor::Node(3));
-        map.force_write_attribute(15, VertexAnchor::Node(4));
+        map.write_attribute(1, VertexAnchor::Node(1));
+        map.write_attribute(6, VertexAnchor::Node(2));
+        map.write_attribute(12, VertexAnchor::Node(3));
+        map.write_attribute(15, VertexAnchor::Node(4));
 
         assert_eq!(classify_capture(&map), Ok(()));
 
@@ -520,11 +520,11 @@ mod capture_and_classify {
                 .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
         });
         assert!(on_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Curve(_) | VertexAnchor::Node(_)) // we have 4 nodes in there
         )));
         assert!(off_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Surface(_))
         )));
 
@@ -532,16 +532,16 @@ mod capture_and_classify {
             .iter_edges()
             .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
         assert!(on_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e),
+            map.read_attribute::<EdgeAnchor>(e),
             Some(EdgeAnchor::Curve(_))
         )));
         assert!(off_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e),
+            map.read_attribute::<EdgeAnchor>(e),
             Some(EdgeAnchor::Surface(_))
         )));
 
         assert!(map.iter_faces().all(|f| matches!(
-            map.force_read_attribute::<FaceAnchor>(f),
+            map.read_attribute::<FaceAnchor>(f),
             Some(FaceAnchor::Surface(_))
         )));
     }
@@ -592,10 +592,10 @@ mod triangulate_and_classify {
             .add_attribute::<FaceAnchor>()
             .build()
             .unwrap();
-        map.force_write_attribute(1, VertexAnchor::Node(1));
-        map.force_write_attribute(6, VertexAnchor::Node(2));
-        map.force_write_attribute(12, VertexAnchor::Node(3));
-        map.force_write_attribute(15, VertexAnchor::Node(4));
+        map.write_attribute(1, VertexAnchor::Node(1));
+        map.write_attribute(6, VertexAnchor::Node(2));
+        map.write_attribute(12, VertexAnchor::Node(3));
+        map.write_attribute(15, VertexAnchor::Node(4));
 
         let faces = map.iter_faces().collect::<Vec<_>>();
         for f in faces {
@@ -656,16 +656,16 @@ mod triangulate_and_classify {
             .iter_edges()
             .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
         assert!(on_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            map.read_attribute::<EdgeAnchor>(e).unwrap(),
             EdgeAnchor::Curve(_)
         )));
         assert!(off_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            map.read_attribute::<EdgeAnchor>(e).unwrap(),
             EdgeAnchor::Surface(_)
         )));
 
         assert!(map.iter_faces().all(|f| matches!(
-            map.force_read_attribute::<FaceAnchor>(f).unwrap(),
+            map.read_attribute::<FaceAnchor>(f).unwrap(),
             FaceAnchor::Surface(_)
         )));
     }
@@ -682,10 +682,10 @@ mod triangulate_and_classify {
             .add_attribute::<FaceAnchor>()
             .build()
             .unwrap();
-        map.force_write_attribute(1, VertexAnchor::Node(1));
-        map.force_write_attribute(6, VertexAnchor::Node(2));
-        map.force_write_attribute(12, VertexAnchor::Node(3));
-        map.force_write_attribute(15, VertexAnchor::Node(4));
+        map.write_attribute(1, VertexAnchor::Node(1));
+        map.write_attribute(6, VertexAnchor::Node(2));
+        map.write_attribute(12, VertexAnchor::Node(3));
+        map.write_attribute(15, VertexAnchor::Node(4));
 
         assert_eq!(classify_capture(&map), Ok(()));
 
@@ -722,11 +722,11 @@ mod triangulate_and_classify {
                 .any(|dd| map.beta::<2>(dd) == NULL_DART_ID)
         });
         assert!(on_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Curve(_) | VertexAnchor::Node(_)) // we have 4 nodes in there
         )));
         assert!(off_boundary.into_iter().all(|v| matches!(
-            map.force_read_attribute::<VertexAnchor>(v),
+            map.read_attribute::<VertexAnchor>(v),
             Some(VertexAnchor::Surface(_))
         )));
 
@@ -734,16 +734,16 @@ mod triangulate_and_classify {
             .iter_edges()
             .partition(|e| map.beta::<2>(*e) == NULL_DART_ID);
         assert!(on_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            map.read_attribute::<EdgeAnchor>(e).unwrap(),
             EdgeAnchor::Curve(_)
         )));
         assert!(off_boundary.into_iter().all(|e| matches!(
-            map.force_read_attribute::<EdgeAnchor>(e).unwrap(),
+            map.read_attribute::<EdgeAnchor>(e).unwrap(),
             EdgeAnchor::Surface(_)
         )));
 
         assert!(map.iter_faces().all(|f| matches!(
-            map.force_read_attribute::<FaceAnchor>(f).unwrap(),
+            map.read_attribute::<FaceAnchor>(f).unwrap(),
             FaceAnchor::Surface(_)
         )));
     }
@@ -813,13 +813,13 @@ mod triangulate_and_classify {
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
                         .is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .read_attribute::<FaceAnchor>(map.face_id(d))
                         .is_some())
             );
 
@@ -829,13 +829,13 @@ mod triangulate_and_classify {
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
                         .is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .read_attribute::<FaceAnchor>(map.face_id(d))
                         .is_some())
             );
 
@@ -845,13 +845,13 @@ mod triangulate_and_classify {
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<EdgeAnchor>(map.edge_id(d))
+                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
                         .is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
                     .all(|d| map
-                        .force_read_attribute::<FaceAnchor>(map.face_id(d))
+                        .read_attribute::<FaceAnchor>(map.face_id(d))
                         .is_some())
             );
         }

@@ -49,10 +49,10 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
             let mut dart_id = cmap.beta::<1>(edge_id as DartIdType);
             for v in intermediates {
                 let vid = cmap.vertex_id(dart_id);
-                let _ = cmap.force_write_vertex(vid, *v);
+                let _ = cmap.write_vertex(vid, *v);
                 if cmap.contains_attribute::<VertexAnchor>() {
                     let _ = cmap
-                        .force_write_attribute::<VertexAnchor>(vid, VertexAnchor::Node(i as u32));
+                        .write_attribute::<VertexAnchor>(vid, VertexAnchor::Node(i as u32));
                 }
                 dart_id = cmap.beta::<1>(dart_id);
             }
@@ -96,23 +96,23 @@ fn build_base_edge<T: CoordsFloat>(
     // remove deprecated connectivities & save what data is necessary
     let b1_start_old = cmap.beta::<1>(start);
     let b0_end_old = cmap.beta::<0>(end);
-    cmap.force_unlink::<1>(start).unwrap();
-    cmap.force_unlink::<1>(b0_end_old).unwrap();
+    cmap.unlink::<1>(start).unwrap();
+    cmap.unlink::<1>(b0_end_old).unwrap();
 
-    cmap.force_link::<2>(d_new, b2_d_new).unwrap();
+    cmap.link::<2>(d_new, b2_d_new).unwrap();
 
     // rebuild - this is the final construct if there are no intermediates
-    cmap.force_link::<1>(start, d_new).unwrap();
-    cmap.force_link::<1>(b2_d_new, b1_start_old).unwrap();
-    cmap.force_link::<1>(d_new, end).unwrap();
-    cmap.force_link::<1>(b0_end_old, b2_d_new).unwrap();
+    cmap.link::<1>(start, d_new).unwrap();
+    cmap.link::<1>(b2_d_new, b1_start_old).unwrap();
+    cmap.link::<1>(d_new, end).unwrap();
+    cmap.link::<1>(b0_end_old, b2_d_new).unwrap();
 }
 
 fn mark_boundary<T: CoordsFloat>(cmap: &CMap2<T>, start: DartIdType, end: DartIdType) {
     let mut d_boundary = cmap.beta::<1>(start);
     while d_boundary != end {
-        cmap.force_write_attribute::<Boundary>(d_boundary, Boundary::Left);
-        cmap.force_write_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
+        cmap.write_attribute::<Boundary>(d_boundary, Boundary::Left);
+        cmap.write_attribute::<Boundary>(cmap.beta::<2>(d_boundary), Boundary::Right);
         d_boundary = cmap.beta::<1>(d_boundary);
     }
 }

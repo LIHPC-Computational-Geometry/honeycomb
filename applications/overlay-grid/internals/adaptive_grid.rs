@@ -105,9 +105,9 @@ pub fn refine_with_pairing<T: CoordsFloat>(
     let mut start_end = (0, 0);
 
     let face1 = map.face_id(working_dart);
-    let face2 = map.force_read_attribute::<SiblingDartId>(face1).unwrap().0;
-    let face3 = map.force_read_attribute::<SiblingDartId>(face2).unwrap().0;
-    let face4 = map.force_read_attribute::<SiblingDartId>(face3).unwrap().0;
+    let face2 = map.read_attribute::<SiblingDartId>(face1).unwrap().0;
+    let face3 = map.read_attribute::<SiblingDartId>(face2).unwrap().0;
+    let face4 = map.read_attribute::<SiblingDartId>(face3).unwrap().0;
 
     // Mark the future unbalance
     let local_balance_pile = update_balance_pile_for_neighbors(face1, face2, face3, face4, map);
@@ -221,7 +221,7 @@ fn sanitize_balance_pile<T: CoordsFloat>(map: &CMap2<T>, balance_pile: &Vec<u32>
 
         // Follow the sibling chain to get all 4 faces
         for _ in 1..4 {
-            if let Some(sibling_attr) = map.force_read_attribute::<SiblingDartId>(current_face) {
+            if let Some(sibling_attr) = map.read_attribute::<SiblingDartId>(current_face) {
                 current_face = sibling_attr.0;
                 // Avoid infinite loops if there's a cycle shorter than 4
                 if !sibling_faces.contains(&current_face) {
@@ -253,7 +253,7 @@ fn update_balance_pile_for_neighbors<T: CoordsFloat>(
     map: &CMap2<T>,
 ) -> Vec<u32> {
     let current_depth = map
-        .force_read_attribute::<RefinementLevel>(face1)
+        .read_attribute::<RefinementLevel>(face1)
         .unwrap()
         .0;
 
@@ -277,7 +277,7 @@ fn update_balance_pile_for_neighbors<T: CoordsFloat>(
 
             let opposite_face = map.face_id(opposite);
             let opposite_depth = map
-                .force_read_attribute::<RefinementLevel>(opposite_face)
+                .read_attribute::<RefinementLevel>(opposite_face)
                 .unwrap()
                 .0;
 

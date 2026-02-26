@@ -35,7 +35,7 @@ fn get_sparse_map(n_square: usize) -> CMap2<FloatType> {
     // because of the way we built the map in the square_cmap2 function & the ID computation
     // policy, we can safely remove a vertex we know is defined
     assert_eq!(
-        map.force_remove_vertex(1).unwrap(),
+        map.remove_vertex(1).unwrap(),
         Vertex2::from((0.0, 0.0))
     );
     map
@@ -96,7 +96,7 @@ library_benchmark_group!(
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn read_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_read_vertex(1))
+    black_box(map.read_vertex(1))
 }
 
 #[library_benchmark]
@@ -104,7 +104,7 @@ fn read_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
 fn read_missing_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_read_vertex(1))
+    black_box(map.read_vertex(1))
 }
 
 #[library_benchmark]
@@ -112,7 +112,7 @@ fn read_missing_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>>
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
 fn insert_vertex(map: &mut CMap2<FloatType>) {
-    map.force_write_vertex(1, (0.0, 0.0));
+    map.write_vertex(1, (0.0, 0.0));
     black_box(map);
 }
 
@@ -121,7 +121,7 @@ fn insert_vertex(map: &mut CMap2<FloatType>) {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn replace_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_write_vertex(1, (0.0, 0.0)))
+    black_box(map.write_vertex(1, (0.0, 0.0)))
 }
 
 #[library_benchmark]
@@ -129,7 +129,7 @@ fn replace_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
 fn set_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_write_vertex(1, (0.0, 0.0)))
+    black_box(map.write_vertex(1, (0.0, 0.0)))
 }
 
 #[library_benchmark]
@@ -137,7 +137,7 @@ fn set_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
 #[bench::medium(&mut get_map(64))]
 #[bench::large(&mut get_map(256))]
 fn remove_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_remove_vertex(1))
+    black_box(map.remove_vertex(1))
 }
 
 #[library_benchmark]
@@ -145,7 +145,7 @@ fn remove_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
 #[bench::medium(&mut get_sparse_map(64))]
 #[bench::large(&mut get_sparse_map(256))]
 fn remove_missing_vertex(map: &mut CMap2<FloatType>) -> Option<Vertex2<FloatType>> {
-    black_box(map.force_remove_vertex(1))
+    black_box(map.remove_vertex(1))
 }
 
 library_benchmark_group!(
