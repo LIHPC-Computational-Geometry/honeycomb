@@ -450,7 +450,7 @@ fn make_incomplete_tet<T: CoordsFloat>(
     map.link_tx::<2>(t, d9, d1)?;
 
     let vid = map.vertex_id_tx(t, d1)?;
-    map.write_vertex(t, vid, p)?;
+    map.write_vertex_tx(t, vid, p)?;
 
     Ok(())
 }

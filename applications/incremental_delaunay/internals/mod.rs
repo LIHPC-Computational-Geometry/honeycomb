@@ -241,15 +241,15 @@ pub fn compute_tet_orientation<T: CoordsFloat>(
 ) -> TransactionClosureResult<f64, CavityError> {
     let v1 = {
         let vid = map.vertex_id_tx(t, d1)?;
-        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
+        unwrap_or_abort(map.read_vertex_tx(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
     let v2 = {
         let vid = map.vertex_id_tx(t, d2)?;
-        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
+        unwrap_or_abort(map.read_vertex_tx(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
     let v3 = {
         let vid = map.vertex_id_tx(t, d3)?;
-        unwrap_or_abort(map.read_vertex(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
+        unwrap_or_abort(map.read_vertex_tx(t, vid)?, CavityError::InconsistentState("Topological vertices have missing coordinates"))?
     };
 
     let c1 = (v1 - p).to_f64().expect("E: unreachable");
