@@ -812,15 +812,11 @@ mod triangulate_and_classify {
             assert_eq!(new_v, 24);
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<EdgeAnchor>(map.edge_id(d)).is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<FaceAnchor>(map.face_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<FaceAnchor>(map.face_id(d)).is_some())
             );
 
             // this collapses to left vertex
@@ -828,15 +824,11 @@ mod triangulate_and_classify {
             assert_eq!(new_v, 2);
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<EdgeAnchor>(map.edge_id(d)).is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<FaceAnchor>(map.face_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<FaceAnchor>(map.face_id(d)).is_some())
             );
 
             // this collapses to right vertex
@@ -844,15 +836,11 @@ mod triangulate_and_classify {
             assert_eq!(new_v, 21);
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<EdgeAnchor>(map.edge_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<EdgeAnchor>(map.edge_id(d)).is_some())
             );
             assert!(
                 map.orbit(OrbitPolicy::Vertex, new_v as DartIdType)
-                    .all(|d| map
-                        .read_attribute::<FaceAnchor>(map.face_id(d))
-                        .is_some())
+                    .all(|d| map.read_attribute::<FaceAnchor>(map.face_id(d)).is_some())
             );
         }
     }

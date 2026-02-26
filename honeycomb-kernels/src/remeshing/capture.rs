@@ -224,10 +224,7 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
                                 .is_none()
                         })
                         .for_each(|d| {
-                            cmap.write_attribute(
-                                cmap.edge_id(d),
-                                EdgeAnchor::Surface(surface_id),
-                            );
+                            cmap.write_attribute(cmap.edge_id(d), EdgeAnchor::Surface(surface_id));
                             if cmap
                                 .read_attribute::<VertexAnchor>(cmap.vertex_id(d))
                                 .is_none()

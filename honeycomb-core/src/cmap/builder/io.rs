@@ -484,18 +484,9 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the triangle
                                         let d0 = cmap.allocate_used_darts(3);
                                         let (d1, d2) = (d0 + 1, d0 + 2);
-                                        cmap.write_vertex(
-                                            d0 as VertexIdType,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.write_vertex(
-                                            d1 as VertexIdType,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.write_vertex(
-                                            d2 as VertexIdType,
-                                            vertices[vids[2]],
-                                        );
+                                        cmap.write_vertex(d0 as VertexIdType, vertices[vids[0]]);
+                                        cmap.write_vertex(d1 as VertexIdType, vertices[vids[1]]);
+                                        cmap.write_vertex(d2 as VertexIdType, vertices[vids[2]]);
                                         cmap.link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.link::<1>(d2, d0).unwrap(); // edge d2 links vertices vids[2] & vids[0]
@@ -540,22 +531,10 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the quad
                                         let d0 = cmap.allocate_used_darts(4);
                                         let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
-                                        cmap.write_vertex(
-                                            d0 as VertexIdType,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.write_vertex(
-                                            d1 as VertexIdType,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.write_vertex(
-                                            d2 as VertexIdType,
-                                            vertices[vids[2]],
-                                        );
-                                        cmap.write_vertex(
-                                            d3 as VertexIdType,
-                                            vertices[vids[3]],
-                                        );
+                                        cmap.write_vertex(d0 as VertexIdType, vertices[vids[0]]);
+                                        cmap.write_vertex(d1 as VertexIdType, vertices[vids[1]]);
+                                        cmap.write_vertex(d2 as VertexIdType, vertices[vids[2]]);
+                                        cmap.write_vertex(d3 as VertexIdType, vertices[vids[3]]);
                                         cmap.link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.link::<1>(d2, d3).unwrap(); // edge d2 links vertices vids[2] & vids[3]

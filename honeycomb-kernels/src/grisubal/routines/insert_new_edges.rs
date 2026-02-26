@@ -51,8 +51,7 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
                 let vid = cmap.vertex_id(dart_id);
                 let _ = cmap.write_vertex(vid, *v);
                 if cmap.contains_attribute::<VertexAnchor>() {
-                    let _ = cmap
-                        .write_attribute::<VertexAnchor>(vid, VertexAnchor::Node(i as u32));
+                    let _ = cmap.write_attribute::<VertexAnchor>(vid, VertexAnchor::Node(i as u32));
                 }
                 dart_id = cmap.beta::<1>(dart_id);
             }

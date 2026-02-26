@@ -252,10 +252,7 @@ fn update_balance_pile_for_neighbors<T: CoordsFloat>(
     face4: u32,
     map: &CMap2<T>,
 ) -> Vec<u32> {
-    let current_depth = map
-        .read_attribute::<RefinementLevel>(face1)
-        .unwrap()
-        .0;
+    let current_depth = map.read_attribute::<RefinementLevel>(face1).unwrap().0;
 
     let mut balance_stack = Vec::new();
 
