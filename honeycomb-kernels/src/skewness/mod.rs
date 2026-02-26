@@ -95,9 +95,9 @@ pub fn compute_face_skewness_3d<T: CoordsFloat>(map: &CMap3<T>, fid: FaceIdType)
 
     loop {
         let theta = atomically(|t| {
-            let v1 = map.read_vertex(t, vid1)?.unwrap();
-            let v2 = map.read_vertex(t, vid2)?.unwrap();
-            let v3 = map.read_vertex(t, vid3)?.unwrap();
+            let v1 = map.read_vertex_tx(t, vid1)?.unwrap();
+            let v2 = map.read_vertex_tx(t, vid2)?.unwrap();
+            let v3 = map.read_vertex_tx(t, vid3)?.unwrap();
             let vin = v1 - v2;
             let vout = v3 - v2;
             Ok(T::acos(vin.dot(&vout) / (vin.norm() * vout.norm())))

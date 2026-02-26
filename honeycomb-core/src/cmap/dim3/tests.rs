@@ -359,10 +359,10 @@ fn build_tet_tx() -> anyhow::Result<CMap3<f64>> {
     }
 
     atomically(|t| {
-        map.write_vertex(t, 1, (1.0, 0.0, 0.0))?;
-        map.write_vertex(t, 2, (0.0, 0.0, 0.0))?;
-        map.write_vertex(t, 3, (0.0, 0.5, 0.0))?;
-        map.write_vertex(t, 6, (0.5, 0.25, 1.0))?;
+        map.write_vertex_tx(t, 1, (1.0, 0.0, 0.0))?;
+        map.write_vertex_tx(t, 2, (0.0, 0.0, 0.0))?;
+        map.write_vertex_tx(t, 3, (0.0, 0.5, 0.0))?;
+        map.write_vertex_tx(t, 6, (0.5, 0.25, 1.0))?;
         Ok(())
     });
 
@@ -401,10 +401,10 @@ fn sew_tets_tx() -> anyhow::Result<CMap3<f64>> {
         map.link_tx::<2>(t, 18, 20)?;
         map.link_tx::<2>(t, 21, 23)?;
 
-        map.write_vertex(t, 13, (2.5, 1.5, 0.0))?;
-        map.write_vertex(t, 14, (1.5, 2.0, 0.0))?;
-        map.write_vertex(t, 15, (2.5, 2.0, 0.0))?;
-        map.write_vertex(t, 18, (1.5, 1.75, 1.0))?;
+        map.write_vertex_tx(t, 13, (2.5, 1.5, 0.0))?;
+        map.write_vertex_tx(t, 14, (1.5, 2.0, 0.0))?;
+        map.write_vertex_tx(t, 15, (2.5, 2.0, 0.0))?;
+        map.write_vertex_tx(t, 18, (1.5, 1.75, 1.0))?;
         Ok(())
     })?;
 
@@ -583,19 +583,19 @@ fn merge_tets_into_pyramid_tx() -> anyhow::Result<()> {
     atomically(|t| {
         // this makes it a symmetrical square-base pyramid
         assert_eq!(
-            map.write_vertex(t, 3, (0.0, 1.0, 0.0))?,
+            map.write_vertex_tx(t, 3, (0.0, 1.0, 0.0))?,
             Some(Vertex3(0.75, 1.25, 0.0))
         );
         assert_eq!(
-            map.write_vertex(t, 1, (1.0, 0.0, 0.0))?,
+            map.write_vertex_tx(t, 1, (1.0, 0.0, 0.0))?,
             Some(Vertex3(1.75, 0.75, 0.0))
         );
         assert_eq!(
-            map.write_vertex(t, 6, (0.5, 0.5, 1.0))?,
+            map.write_vertex_tx(t, 6, (0.5, 0.5, 1.0))?,
             Some(Vertex3(1.0, 1.0, 1.0))
         );
         assert_eq!(
-            map.write_vertex(t, 15, (1.0, 1.0, 0.0))?,
+            map.write_vertex_tx(t, 15, (1.0, 1.0, 0.0))?,
             Some(Vertex3(2.5, 2.0, 0.0))
         );
         Ok(())
@@ -805,9 +805,9 @@ mod one_sew {
 
         atomically(|t| {
             assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-            assert_eq!(map.read_vertex(t, 1)?, None);
+            assert_eq!(map.read_vertex_tx(t, 1)?, None);
             assert_eq!(map.vertex_id_tx(t, 2)?, 2);
-            assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 1.0, 0.0)));
+            assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 1.0, 0.0)));
             Ok(())
         });
 
@@ -827,10 +827,10 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -845,10 +845,10 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -869,10 +869,10 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -887,10 +887,10 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -914,11 +914,11 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 4)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -936,11 +936,11 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 4)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -958,11 +958,11 @@ mod one_sew {
 
             atomically(|t| {
                 assert_eq!(map.vertex_id_tx(t, 1)?, 1);
-                assert_eq!(map.read_vertex(t, 1)?, None);
+                assert_eq!(map.read_vertex_tx(t, 1)?, None);
                 assert_eq!(map.vertex_id_tx(t, 2)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 3)?, 2);
                 assert_eq!(map.vertex_id_tx(t, 4)?, 2);
-                assert_eq!(map.read_vertex(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
+                assert_eq!(map.read_vertex_tx(t, 2)?, Some(Vertex3(0.0, 0.5, 0.0)));
                 Ok(())
             });
         }
@@ -1311,14 +1311,14 @@ mod two_sew {
             map.link_tx::<1>(t, 6, 7)?;
             map.link_tx::<1>(t, 7, 8)?;
             map.link_tx::<1>(t, 8, 5)?;
-            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
-            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-            map.write_vertex(t, 6, Vertex3(1.0, 0.0, 1.0))?;
-            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-            map.write_vertex(t, 8, Vertex3(0.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex_tx(t, 6, Vertex3(1.0, 0.0, 1.0))?;
+            map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 8, Vertex3(0.0, 1.0, 1.0))?;
             Ok(())
         })?;
 
@@ -1354,20 +1354,20 @@ mod three_sew {
                 map.link_tx::<1>(t, 2, 3)?;
                 map.link_tx::<1>(t, 3, 4)?;
                 map.link_tx::<1>(t, 4, 1)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
                 // map.link_tx
                 // ::<1>(t, 7, 8)?;
                 map.link_tx::<1>(t, 8, 5)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1389,20 +1389,20 @@ mod three_sew {
                 map.link_tx::<1>(t, 2, 3)?;
                 map.link_tx::<1>(t, 3, 4)?;
                 map.link_tx::<1>(t, 4, 1)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
                 // map.link_tx
                 // ::<1>(t, 7, 8)?;
                 map.link_tx::<1>(t, 8, 5)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1429,19 +1429,19 @@ mod three_sew {
                 map.link_tx::<1>(t, 2, 3)?;
                 map.link_tx::<1>(t, 3, 4)?;
                 map.link_tx::<1>(t, 4, 1)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
                 map.link_tx::<1>(t, 7, 8)?;
                 map.link_tx::<1>(t, 8, 5)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1461,19 +1461,19 @@ mod three_sew {
                 map.link_tx::<1>(t, 2, 3)?;
                 map.link_tx::<1>(t, 3, 4)?;
                 map.link_tx::<1>(t, 4, 1)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
                 map.link_tx::<1>(t, 7, 8)?;
                 map.link_tx::<1>(t, 8, 5)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1503,19 +1503,19 @@ mod three_sew {
                 map.link_tx::<2>(t, 2, 10)?;
                 map.link_tx::<2>(t, 3, 11)?;
                 map.link_tx::<2>(t, 4, 12)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
                 map.link_tx::<1>(t, 7, 8)?;
                 map.link_tx::<1>(t, 8, 5)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1535,10 +1535,10 @@ mod three_sew {
                 map.link_tx::<1>(t, 2, 3)?;
                 map.link_tx::<1>(t, 3, 4)?;
                 map.link_tx::<1>(t, 4, 1)?;
-                map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-                map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-                map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-                map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+                map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+                map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
                 map.link_tx::<1>(t, 5, 6)?;
                 map.link_tx::<1>(t, 6, 7)?;
@@ -1548,10 +1548,10 @@ mod three_sew {
                 map.link_tx::<2>(t, 6, 10)?;
                 map.link_tx::<2>(t, 7, 11)?;
                 map.link_tx::<2>(t, 8, 12)?;
-                map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-                map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-                map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-                map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+                map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+                map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
                 Ok(())
             })?;
@@ -1575,19 +1575,19 @@ mod three_sew {
             map.link_tx::<1>(t, 2, 3)?;
             map.link_tx::<1>(t, 3, 4)?;
             map.link_tx::<1>(t, 4, 1)?;
-            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-            // map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            // map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
 
             map.link_tx::<1>(t, 5, 6)?;
             map.link_tx::<1>(t, 6, 7)?;
             map.link_tx::<1>(t, 7, 8)?;
             map.link_tx::<1>(t, 8, 5)?;
-            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-            // map.write_vertex(t, 6, Vertex3(0.0, 1.0, 1.0))?;
-            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-            map.write_vertex(t, 8, Vertex3(1.0, 0.0, 1.0))?;
+            map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            // map.write_vertex_tx(t, 6, Vertex3(0.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 8, Vertex3(1.0, 0.0, 1.0))?;
 
             Ok(())
         })?;
@@ -1614,14 +1614,14 @@ mod three_sew {
             map.link_tx::<1>(t, 6, 7)?;
             map.link_tx::<1>(t, 7, 8)?;
             map.link_tx::<1>(t, 8, 5)?;
-            map.write_vertex(t, 1, Vertex3(0.0, 0.0, 0.0))?;
-            map.write_vertex(t, 2, Vertex3(1.0, 0.0, 0.0))?;
-            map.write_vertex(t, 3, Vertex3(1.0, 1.0, 0.0))?;
-            map.write_vertex(t, 4, Vertex3(0.0, 1.0, 0.0))?;
-            map.write_vertex(t, 5, Vertex3(0.0, 0.0, 1.0))?;
-            map.write_vertex(t, 6, Vertex3(1.0, 0.0, 1.0))?;
-            map.write_vertex(t, 7, Vertex3(1.0, 1.0, 1.0))?;
-            map.write_vertex(t, 8, Vertex3(0.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 1, Vertex3(0.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 2, Vertex3(1.0, 0.0, 0.0))?;
+            map.write_vertex_tx(t, 3, Vertex3(1.0, 1.0, 0.0))?;
+            map.write_vertex_tx(t, 4, Vertex3(0.0, 1.0, 0.0))?;
+            map.write_vertex_tx(t, 5, Vertex3(0.0, 0.0, 1.0))?;
+            map.write_vertex_tx(t, 6, Vertex3(1.0, 0.0, 1.0))?;
+            map.write_vertex_tx(t, 7, Vertex3(1.0, 1.0, 1.0))?;
+            map.write_vertex_tx(t, 8, Vertex3(0.0, 1.0, 1.0))?;
             Ok(())
         })?;
 
@@ -1741,9 +1741,9 @@ fn sew_ordering_with_txtions() {
         // all paths should result in the same topological result here
         let (v2, v3, v5) = atomically(|t| {
             Ok((
-                arc.remove_vertex(t, 2)?,
-                arc.remove_vertex(t, 3)?,
-                arc.remove_vertex(t, 5)?,
+                arc.remove_vertex_tx(t, 2)?,
+                arc.remove_vertex_tx(t, 3)?,
+                arc.remove_vertex_tx(t, 5)?,
             ))
         });
         assert!(v2.is_some());
@@ -1751,9 +1751,9 @@ fn sew_ordering_with_txtions() {
         assert!(v5.is_none());
         assert_eq!(arc.orbit(OrbitPolicy::Vertex, 2).count(), 3);
         atomically(|t| {
-            assert!(arc.read_vertex(t, 2)?.is_none());
-            assert!(arc.read_vertex(t, 3)?.is_none());
-            assert!(arc.read_vertex(t, 5)?.is_none());
+            assert!(arc.read_vertex_tx(t, 2)?.is_none());
+            assert!(arc.read_vertex_tx(t, 3)?.is_none());
+            assert!(arc.read_vertex_tx(t, 5)?.is_none());
             Ok(())
         });
 
@@ -1841,8 +1841,8 @@ fn unsew_ordering_with_txtions() {
             map.link_tx::<2>(t, 3, 4)?;
             map.link_tx::<1>(t, 1, 3)?;
             map.link_tx::<1>(t, 4, 5)?;
-            map.write_vertex(t, 2, (0.0, 0.0, 0.0))?;
-            map.write_attribute(t, 2, Weight(33))?;
+            map.write_vertex_tx(t, 2, (0.0, 0.0, 0.0))?;
+            map.write_attribute_tx(t, 2, Weight(33))?;
             Ok(())
         });
         assert!(res.is_ok());
@@ -1888,18 +1888,18 @@ fn unsew_ordering_with_txtions() {
         // We don't check for exact values here as they might differ based on execution order
         let (w2, w3, w5) = atomically(|t| {
             Ok((
-                arc.remove_attribute::<Weight>(t, 2)?,
-                arc.remove_attribute::<Weight>(t, 3)?,
-                arc.remove_attribute::<Weight>(t, 5)?,
+                arc.remove_attribute_tx::<Weight>(t, 2)?,
+                arc.remove_attribute_tx::<Weight>(t, 3)?,
+                arc.remove_attribute_tx::<Weight>(t, 5)?,
             ))
         });
         assert!(w2.is_some());
         assert!(w3.is_some());
         assert!(w5.is_some());
         atomically(|t| {
-            assert!(arc.read_attribute::<Weight>(t, 2)?.is_none());
-            assert!(arc.read_attribute::<Weight>(t, 3)?.is_none());
-            assert!(arc.read_attribute::<Weight>(t, 5)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 2)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 3)?.is_none());
+            assert!(arc.read_attribute_tx::<Weight>(t, 5)?.is_none());
             Ok(())
         });
     });
