@@ -30,6 +30,12 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
     data: Vec<TVar<Option<T>>>,
 }
 
+impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
+    pub(crate) fn set_atomic(&self, id: usize, val: A) {
+        self.data[id].write_atomic(val);
+    }
+}
+
 unsafe impl<A: AttributeBind + AttributeUpdate> Send for AttrSparseVec<A> {}
 unsafe impl<A: AttributeBind + AttributeUpdate> Sync for AttrSparseVec<A> {}
 
