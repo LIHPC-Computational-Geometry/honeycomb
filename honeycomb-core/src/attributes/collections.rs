@@ -32,7 +32,7 @@ pub struct AttrSparseVec<T: AttributeBind + AttributeUpdate> {
 
 impl<A: AttributeBind + AttributeUpdate> AttrSparseVec<A> {
     pub(crate) fn set_atomic(&self, id: usize, val: A) {
-        self.data[id].write_atomic(val);
+        self.data[id].write_atomic(Some(val));
     }
 }
 
