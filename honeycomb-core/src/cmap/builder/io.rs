@@ -9,7 +9,7 @@ use vtkio::{IOBuffer, Vtk};
 
 use crate::attributes::AttrStorageManager;
 use crate::cmap::{BuilderError, CMap2, CMap3, DartIdType, VertexIdType};
-use crate::geometry::{CoordsFloat, Vertex2};
+use crate::geometry::{CoordsFloat, Vertex2, Vertex3};
 
 // --- Custom
 
@@ -198,7 +198,7 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
             if it.next().is_some() {
                 return Err(BuilderError::BadValue("incorrect vertex line format"));
             }
-            map.force_write_vertex(id, (T::from(x).unwrap(), T::from(y).unwrap()));
+            map.set_vertex(id, Vertex2(T::from(x).unwrap(), T::from(y).unwrap()));
         }
     }
 
@@ -315,9 +315,9 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
             if it.next().is_some() {
                 return Err(BuilderError::BadValue("incorrect vertex line format"));
             }
-            map.force_write_vertex(
+            map.set_vertex(
                 id,
-                (
+                Vertex3(
                     T::from(x).unwrap(),
                     T::from(y).unwrap(),
                     T::from(z).unwrap(),
@@ -484,18 +484,9 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the triangle
                                         let d0 = cmap.allocate_used_darts(3);
                                         let (d1, d2) = (d0 + 1, d0 + 2);
-                                        cmap.force_write_vertex(
-                                            d0 as VertexIdType,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.force_write_vertex(
-                                            d1 as VertexIdType,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.force_write_vertex(
-                                            d2 as VertexIdType,
-                                            vertices[vids[2]],
-                                        );
+                                        cmap.set_vertex(d0 as VertexIdType, vertices[vids[0]]);
+                                        cmap.set_vertex(d1 as VertexIdType, vertices[vids[1]]);
+                                        cmap.set_vertex(d2 as VertexIdType, vertices[vids[2]]);
                                         cmap.force_link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d0).unwrap(); // edge d2 links vertices vids[2] & vids[0]
@@ -517,10 +508,7 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                             let di = d0 + i as DartIdType;
                                             let dip1 =
                                                 if i == n_vertices - 1 { d0 } else { di + 1 };
-                                            cmap.force_write_vertex(
-                                                di as VertexIdType,
-                                                vertices[vids[i]],
-                                            );
+                                            cmap.set_vertex(di as VertexIdType, vertices[vids[i]]);
                                             cmap.force_link::<1>(di, dip1).unwrap();
                                             sew_buffer
                                                 .insert((vids[i], vids[(i + 1) % n_vertices]), di);
@@ -540,22 +528,10 @@ pub fn build_2d_from_vtk<T: CoordsFloat>(
                                         // build the quad
                                         let d0 = cmap.allocate_used_darts(4);
                                         let (d1, d2, d3) = (d0 + 1, d0 + 2, d0 + 3);
-                                        cmap.force_write_vertex(
-                                            d0 as VertexIdType,
-                                            vertices[vids[0]],
-                                        );
-                                        cmap.force_write_vertex(
-                                            d1 as VertexIdType,
-                                            vertices[vids[1]],
-                                        );
-                                        cmap.force_write_vertex(
-                                            d2 as VertexIdType,
-                                            vertices[vids[2]],
-                                        );
-                                        cmap.force_write_vertex(
-                                            d3 as VertexIdType,
-                                            vertices[vids[3]],
-                                        );
+                                        cmap.set_vertex(d0 as VertexIdType, vertices[vids[0]]);
+                                        cmap.set_vertex(d1 as VertexIdType, vertices[vids[1]]);
+                                        cmap.set_vertex(d2 as VertexIdType, vertices[vids[2]]);
+                                        cmap.set_vertex(d3 as VertexIdType, vertices[vids[3]]);
                                         cmap.force_link::<1>(d0, d1).unwrap(); // edge d0 links vertices vids[0] & vids[1]
                                         cmap.force_link::<1>(d1, d2).unwrap(); // edge d1 links vertices vids[1] & vids[2]
                                         cmap.force_link::<1>(d2, d3).unwrap(); // edge d2 links vertices vids[2] & vids[3]
