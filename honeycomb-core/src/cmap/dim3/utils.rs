@@ -37,7 +37,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Set a vertex value for the corresponding ID.
-    pub fn set_vertex<const I: u8>(&self, vid: VertexIdType, v: Vertex3<T>) {
+    pub fn set_vertex(&self, vid: VertexIdType, v: Vertex3<T>) {
         self.vertices.set_atomic(vid as usize, v);
     }
 }
