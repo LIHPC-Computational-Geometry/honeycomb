@@ -1,7 +1,7 @@
 //! [`CMap2`] utilities implementations
 
-use crate::cmap::{CMap2, DartIdType};
-use crate::geometry::CoordsFloat;
+use crate::cmap::{CMap2, DartIdType, VertexIdType};
+use crate::geometry::{CoordsFloat, Vertex2};
 
 use super::CMAP2_BETA;
 
@@ -24,5 +24,10 @@ impl<T: CoordsFloat> CMap2<T> {
         self.betas[(0, dart_id)].write_atomic(b0);
         self.betas[(1, dart_id)].write_atomic(b1);
         self.betas[(2, dart_id)].write_atomic(b2);
+    }
+
+    /// Set a vertex value for the corresponding ID.
+    pub fn set_vertex(&self, vid: VertexIdType, v: Vertex2<T>) {
+        self.vertices.set_atomic(vid as usize, v);
     }
 }
