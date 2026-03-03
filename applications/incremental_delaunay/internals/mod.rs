@@ -27,7 +27,10 @@ use cavity::{
 };
 use delaunay::{DelaunayError, compute_delaunay_cavity_3d};
 
-use crate::internals::sample::{compute_brio, sample_points};
+use crate::internals::{
+    cavity::TETS,
+    sample::{compute_brio, sample_points},
+};
 
 thread_local! {
     pub static LAST_INSERTED: Cell<VolumeIdType> = const { Cell::new(1) };
@@ -85,9 +88,13 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let start = map.allocate_unused_darts(n_alloc);
     // initialize the search offset for dart reservations
     let block_size = (20 * 12 * n_points) / rayon::current_num_threads();
+    TETS.with_borrow_mut(|tets| tets.update(0..n_alloc as DartIdType, &map));
     rayon::broadcast(|_| {
         let tid = rayon::current_thread_index().expect("E: unreachable");
-        DART_BLOCK_START.set(TVar::new(start + (tid * block_size) as DartIdType));
+        let block_start = start + (tid * block_size) as DartIdType;
+        let block_end = block_start + block_size as DartIdType;
+        DART_BLOCK_START.set(TVar::new(block_start));
+        TETS.with_borrow_mut(|tets| tets.update(block_start..block_end, &map));
     });
     println!(
         "|-> init time      : {:>8.3e}",
@@ -108,12 +115,13 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 Err(e) => match e {
                     DelaunayError::CircumsphereSingularity => break,
                     DelaunayError::CavityBuilding(e) => match e {
-                        CavityError::FailedOp(_)
-                        | CavityError::FailedReservation(_)
-                        | CavityError::InconsistentState(_) => {
+                        CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                            println!("{e}");
                             continue;
                         }
-                        CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
+                        CavityError::FailedRelease(_)
+                        | CavityError::NonExtendable(_)
+                        | CavityError::FailedReservation(_) => {
                             break;
                         }
                     },

@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, ops::Range};
 
 use honeycomb::{
     core::{
@@ -11,7 +11,8 @@ use honeycomb::{
             StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
         },
     },
-    stm::{TVar, TransactionError},
+    prelude::VertexIdType,
+    stm::{TVar, TransactionError, atomically, atomically_with_err, unwrap_or_abort},
 };
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use smallvec::{SmallVec, smallvec};
@@ -20,6 +21,7 @@ use super::compute_tet_orientation;
 
 thread_local! {
     pub static DART_BLOCK_START: RefCell<TVar<DartIdType>> = RefCell::new(TVar::new(1));
+    pub static TETS: RefCell<IncompleteTets> = RefCell::new(IncompleteTets::default());
 }
 
 type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
@@ -60,6 +62,54 @@ pub enum CavityError {
 impl From<LinkError> for CavityError {
     fn from(value: LinkError) -> Self {
         Self::FailedOp(SewError::FailedLink(value))
+    }
+}
+
+pub struct IncompleteTets {
+    tets: Vec<[DartIdType; 9]>,
+    index: TVar<usize>,
+}
+
+impl IncompleteTets {
+    pub fn update<T: CoordsFloat>(&mut self, range: Range<DartIdType>, map: &CMap3<T>) {
+        self.tets.drain(0..self.index.read_atomic());
+        self.index.write_atomic(0);
+        self.tets.extend(
+            range
+                .filter(|&d| atomically(|t| map.is_unused_tx(t, d)))
+                .collect::<Vec<_>>()
+                .chunks_exact(9)
+                .map(|c| {
+                    let &[d1, d2, d3, d4, d5, d6, d7, d8, d9] = c else {
+                        unreachable!()
+                    };
+
+                    atomically_with_err(|t| {
+                        make_incomplete_tet(t, map, [d1, d2, d3, d4, d5, d6, d7, d8, d9])
+                    })
+                    .expect("E: unreachable");
+
+                    [d1, d2, d3, d4, d5, d6, d7, d8, d9]
+                }),
+        );
+    }
+
+    pub fn get(
+        &self,
+        t: &mut Transaction,
+    ) -> TransactionClosureResult<[DartIdType; 9], DartReservationError> {
+        let v = unwrap_or_abort(self.tets.get(self.index.read(t)?), DartReservationError(0))?;
+        self.index.modify(t, |i| i + 1)?;
+        Ok(*v)
+    }
+}
+
+impl Default for IncompleteTets {
+    fn default() -> Self {
+        Self {
+            tets: vec![],
+            index: TVar::new(0),
+        }
     }
 }
 
@@ -374,37 +424,35 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         mut free_darts,
     } = cavity;
     let n_required_darts = boundary.len() * 9;
-    free_darts.truncate(n_required_darts);
-    for d in &free_darts {
-        map.claim_dart_tx(t, *d)?;
-    }
-    if free_darts.len() < n_required_darts {
-        let start = DART_BLOCK_START.with_borrow(|r| r.read(t))?;
-        // this method returns claimed darts
-        let mut new_darts: Vec<DartIdType> = try_or_coerce!(
-            map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
-            CavityError
-        );
-        DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType))?;
-        free_darts.append(&mut new_darts);
-    }
-    free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
+    // free_darts.truncate(n_required_darts);
+    // for d in &free_darts {
+    //     map.claim_dart_tx(t, *d)?;
+    // }
+    // if free_darts.len() < n_required_darts {
+    //     let start = DART_BLOCK_START.with_borrow(|r| r.read(t))?;
+    //     // this method returns claimed darts
+    //     let mut new_darts: Vec<DartIdType> = try_or_coerce!(
+    //         map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
+    //         CavityError
+    //     );
+    //     DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType))?;
+    //     free_darts.append(&mut new_darts);
+    // }
+    // free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
 
     let tmp = free_darts[1];
 
-    assert_eq!(free_darts.len() % 9, 0);
-    debug_assert!(
-        free_darts
-            .iter()
-            .all(|&d| { free_darts.iter().filter(|&&dd| d == dd).count() == 1 })
-    );
+    // assert_eq!(free_darts.len() % 9, 0);
+    // debug_assert!(
+    //     free_darts
+    //         .iter()
+    //         .all(|&d| { free_darts.iter().filter(|&&dd| d == dd).count() == 1 })
+    // );
 
-    for ((_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]), nds) in
-        boundary.into_iter().zip(free_darts.chunks_exact(9))
-    {
-        let nds @ [_d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
-            nds.try_into().expect("E: unreachable");
-        try_or_coerce!(make_incomplete_tet(t, map, nds, point), CavityError);
+    for (_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]) in boundary.into_iter() {
+        let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
+            try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
+        map.write_vertex(t, d1 as VertexIdType, point)?;
 
         try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
         let b2db = map.beta_tx::<2>(t, db_neigh)?;
@@ -431,9 +479,13 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
 fn make_incomplete_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
-    p: Vertex3<T>,
+    nds @ [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
+    // p: Vertex3<T>,
 ) -> TransactionClosureResult<(), LinkError> {
+    for d in nds {
+        map.claim_dart_tx(t, d)?;
+    }
+
     // build 3 triangles
     map.link::<1>(t, d1, d2)?;
     map.link::<1>(t, d2, d3)?;
@@ -449,8 +501,8 @@ fn make_incomplete_tet<T: CoordsFloat>(
     map.link::<2>(t, d6, d7)?;
     map.link::<2>(t, d9, d1)?;
 
-    let vid = map.vertex_id_tx(t, d1)?;
-    map.write_vertex(t, vid, p)?;
+    // let vid = map.vertex_id_tx(t, d1)?;
+    // map.write_vertex(t, vid, p)?;
 
     Ok(())
 }
