@@ -42,7 +42,6 @@ impl<T: CoordsFloat> Cavity3<T> {
 pub struct CarvedCavity3<T: CoordsFloat> {
     point: Vertex3<T>,
     boundary: CavityBoundary3,
-    free_darts: Vec<DartIdType>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -124,7 +123,6 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
     let CarvedCavity3 {
         point,
         mut boundary,
-        mut free_darts,
     } = cavity;
 
     // d1 = d, d2 = b1(d), d3 = b0(d)
@@ -221,7 +219,6 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
                     }
                     for d in buffer.drain(..) {
                         try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-                        free_darts.push(d);
                     }
                 }
 
@@ -246,11 +243,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
         break;
     }
 
-    Ok(CarvedCavity3 {
-        point,
-        boundary,
-        free_darts,
-    })
+    Ok(CarvedCavity3 { point, boundary })
 }
 
 /// Compute data representations for a cavity's boundary and internal elements.
@@ -367,7 +360,6 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
     cavity: Cavity3<T>,
 ) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
     let (cavity_map, cavity_internals) = map_cavity_3d(t, map, &cavity)?;
-    let mut free_darts = Vec::new();
     let mut buffer = Vec::with_capacity(6);
 
     for f in cavity_internals {
@@ -389,7 +381,6 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-            free_darts.push(d);
         }
     }
 
@@ -409,7 +400,6 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
     Ok(CarvedCavity3 {
         point: cavity.point,
         boundary: cavity_map,
-        free_darts,
     })
 }
 
@@ -418,41 +408,16 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     map: &CMap3<T>,
     cavity: CarvedCavity3<T>,
 ) -> TransactionClosureResult<VolumeIdType, CavityError> {
-    let CarvedCavity3 {
-        point,
-        boundary,
-        mut free_darts,
-    } = cavity;
-    let n_required_darts = boundary.len() * 9;
-    // free_darts.truncate(n_required_darts);
-    // for d in &free_darts {
-    //     map.claim_dart_tx(t, *d)?;
-    // }
-    // if free_darts.len() < n_required_darts {
-    //     let start = DART_BLOCK_START.with_borrow(|r| r.read(t))?;
-    //     // this method returns claimed darts
-    //     let mut new_darts: Vec<DartIdType> = try_or_coerce!(
-    //         map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
-    //         CavityError
-    //     );
-    //     DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType))?;
-    //     free_darts.append(&mut new_darts);
-    // }
-    // free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
-
-    let tmp = free_darts[1];
-
-    // assert_eq!(free_darts.len() % 9, 0);
-    // debug_assert!(
-    //     free_darts
-    //         .iter()
-    //         .all(|&d| { free_darts.iter().filter(|&&dd| d == dd).count() == 1 })
-    // );
+    let CarvedCavity3 { point, boundary } = cavity;
+    let mut tmp = None;
 
     for (_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]) in boundary.into_iter() {
         let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
         map.write_vertex(t, d1 as VertexIdType, point)?;
+        if tmp.is_none() {
+            tmp = Some(d1);
+        }
 
         try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
         let b2db = map.beta_tx::<2>(t, db_neigh)?;
@@ -473,7 +438,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         }
     }
 
-    Ok(map.volume_id_tx(t, tmp)?)
+    Ok(map.volume_id_tx(t, tmp.unwrap())?)
 }
 
 fn make_incomplete_tet<T: CoordsFloat>(
