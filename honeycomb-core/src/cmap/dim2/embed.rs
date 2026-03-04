@@ -37,7 +37,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn read_vertex(
+    pub fn read_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -68,7 +68,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn write_vertex(
+    pub fn write_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -95,7 +95,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn remove_vertex(
+    pub fn remove_vertex_tx(
         &self,
         t: &mut Transaction,
         vertex_id: VertexIdType,
@@ -108,7 +108,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be
     /// retried until validated.
-    pub fn force_read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
+    pub fn read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         atomically(|t| self.vertices.read(t, vertex_id))
     }
 
@@ -116,7 +116,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `write_vertex`, but internally uses a transaction that will be
     /// retried until validated.
-    pub fn force_write_vertex(
+    pub fn write_vertex(
         &self,
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex2<T>>,
@@ -130,7 +130,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will
     /// be retried until validated.
-    pub fn force_remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
+    pub fn remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex2<T>> {
         atomically(|t| self.vertices.remove(t, vertex_id))
     }
 }
@@ -158,7 +158,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn read_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,
@@ -189,7 +189,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn write_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,
@@ -216,7 +216,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - the index lands out of bounds,
     /// - the index cannot be converted to `usize`.
-    pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn remove_attribute_tx<A: AttributeBind + AttributeUpdate>(
         &self,
         t: &mut Transaction,
         id: A::IdentifierType,
@@ -229,7 +229,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `read_attribute`, but internally uses a transaction that will be
     /// retried until validated.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn force_read_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
@@ -241,7 +241,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `write_attribute`, but internally uses a transaction that will be
     /// retried until validated.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn force_write_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
         val: A,
@@ -254,7 +254,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// This variant is equivalent to `remove_attribute`, but internally uses a transaction that
     /// will be retried until validated.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn force_remove_attribute<A: AttributeBind + AttributeUpdate>(
+    pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {

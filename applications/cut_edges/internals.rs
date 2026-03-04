@@ -38,7 +38,7 @@ pub fn cut_edges<T: CoordsFloat>(
                 map.vertex_id(e as DartIdType),
                 map.vertex_id(map.beta::<1>(e as DartIdType)),
             );
-            match (map.force_read_vertex(vid1), map.force_read_vertex(vid2)) {
+            match (map.read_vertex(vid1), map.read_vertex(vid2)) {
                 (Some(v1), Some(v2)) => (v2 - v1).norm() > target_length,
                 (_, _) => false,
             }
@@ -83,7 +83,7 @@ pub fn cut_edges<T: CoordsFloat>(
                 map.vertex_id(e as DartIdType),
                 map.vertex_id(map.beta::<1>(e as DartIdType)),
             );
-            match (map.force_read_vertex(vid1), map.force_read_vertex(vid2)) {
+            match (map.read_vertex(vid1), map.read_vertex(vid2)) {
                 (Some(v1), Some(v2)) => (v2 - v1).norm() > target_length,
                 (_, _) => false,
             }

@@ -33,7 +33,7 @@ fn main() {
                     let (ddown, dright, dup, dleft) = (square, square + 1, square + 2, square + 3);
                     let (dbefore1, dbefore2, dafter1, dafter2) = (ddown, dup, dleft, dright);
 
-                    let _ = map.force_link::<2>(dsplit1, dsplit2); // infallible
+                    let _ = map.link::<2>(dsplit1, dsplit2); // infallible
 
                     // internal (un)sews can fail, so we retry until success
                     while atomically_with_err(|trans| {

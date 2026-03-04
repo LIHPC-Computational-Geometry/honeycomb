@@ -44,7 +44,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - the two darts are not `I`-sewable.
-    pub fn sew<const I: u8>(
+    pub fn sew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -54,9 +54,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_sew(t, ld, rd),
-            2 => self.two_sew(t, ld, rd),
-            3 => self.three_sew(t, ld, rd),
+            1 => self.one_sew_tx(t, ld, rd),
+            2 => self.two_sew_tx(t, ld, rd),
+            3 => self.three_sew_tx(t, ld, rd),
             _ => unreachable!(),
         }
     }
@@ -97,7 +97,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unsew<const I: u8>(
+    pub fn unsew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -106,9 +106,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unsew(t, ld),
-            2 => self.two_unsew(t, ld),
-            3 => self.three_unsew(t, ld),
+            1 => self.one_unsew_tx(t, ld),
+            2 => self.two_unsew_tx(t, ld),
+            3 => self.three_unsew_tx(t, ld),
             _ => unreachable!(),
         }
     }
@@ -118,14 +118,14 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
+    pub fn sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => atomically_with_err(|t| self.one_sew(t, ld, rd)),
-            2 => atomically_with_err(|t| self.two_sew(t, ld, rd)),
-            3 => atomically_with_err(|t| self.three_sew(t, ld, rd)),
+            1 => atomically_with_err(|t| self.one_sew_tx(t, ld, rd)),
+            2 => atomically_with_err(|t| self.two_sew_tx(t, ld, rd)),
+            3 => atomically_with_err(|t| self.three_sew_tx(t, ld, rd)),
             _ => unreachable!(),
         }
     }
@@ -135,14 +135,14 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
+    pub fn unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => atomically_with_err(|t| self.one_unsew(t, ld)),
-            2 => atomically_with_err(|t| self.two_unsew(t, ld)),
-            3 => atomically_with_err(|t| self.three_unsew(t, ld)),
+            1 => atomically_with_err(|t| self.one_unsew_tx(t, ld)),
+            2 => atomically_with_err(|t| self.two_unsew_tx(t, ld)),
+            3 => atomically_with_err(|t| self.three_unsew_tx(t, ld)),
             _ => unreachable!(),
         }
     }

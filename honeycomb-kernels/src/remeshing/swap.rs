@@ -88,8 +88,8 @@ pub fn swap_edge<T: CoordsFloat>(
     let (l_a, r_a) = if map.contains_attribute::<FaceAnchor>() {
         let l_fid = map.face_id_tx(t, l)?;
         let r_fid = map.face_id_tx(t, r)?;
-        let l_a = map.remove_attribute::<FaceAnchor>(t, l_fid)?;
-        let r_a = map.remove_attribute::<FaceAnchor>(t, r_fid)?;
+        let l_a = map.remove_attribute_tx::<FaceAnchor>(t, l_fid)?;
+        let r_a = map.remove_attribute_tx::<FaceAnchor>(t, r_fid)?;
         if l_a != r_a {
             abort(EdgeSwapError::NotSwappable(
                 "edge separates two distinct surfaces",
@@ -106,37 +106,37 @@ pub fn swap_edge<T: CoordsFloat>(
         abort(EdgeSwapError::BadTopology)?;
     }
 
-    try_or_coerce!(map.unsew::<1>(t, l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, r), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b0l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b0r), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b1l), EdgeSwapError);
-    try_or_coerce!(map.unsew::<1>(t, b1r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b0l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b0r), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b1l), EdgeSwapError);
+    try_or_coerce!(map.unsew_tx::<1>(t, b1r), EdgeSwapError);
 
     // remove vertex attributes to keep existing values unchanged
     let l_vid = map.vertex_id_tx(t, l)?;
     let r_vid = map.vertex_id_tx(t, r)?;
-    let _ = map.remove_vertex(t, l_vid)?;
-    let _ = map.remove_vertex(t, r_vid)?;
+    let _ = map.remove_vertex_tx(t, l_vid)?;
+    let _ = map.remove_vertex_tx(t, r_vid)?;
     if map.contains_attribute::<VertexAnchor>() {
-        map.remove_attribute::<VertexAnchor>(t, l_vid)?;
-        map.remove_attribute::<VertexAnchor>(t, r_vid)?;
+        map.remove_attribute_tx::<VertexAnchor>(t, l_vid)?;
+        map.remove_attribute_tx::<VertexAnchor>(t, r_vid)?;
     }
 
-    try_or_coerce!(map.sew::<1>(t, l, b0r), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b0r, b1l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b1l, l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, r, b0l), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b0l, b1r), EdgeSwapError);
-    try_or_coerce!(map.sew::<1>(t, b1r, r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, l, b0r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b0r, b1l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b1l, l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, r, b0l), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b0l, b1r), EdgeSwapError);
+    try_or_coerce!(map.sew_tx::<1>(t, b1r, r), EdgeSwapError);
 
     // update anchors
     match (l_a, r_a) {
         (Some(l_a), Some(r_a)) => {
             let l_fid = map.face_id_tx(t, l)?;
             let r_fid = map.face_id_tx(t, r)?;
-            map.write_attribute(t, l_fid, l_a)?;
-            map.write_attribute(t, r_fid, r_a)?;
+            map.write_attribute_tx(t, l_fid, l_a)?;
+            map.write_attribute_tx(t, r_fid, r_a)?;
         }
         (Some(_), None) | (None, Some(_)) => unreachable!(),
         (None, None) => {}

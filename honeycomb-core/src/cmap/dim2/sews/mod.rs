@@ -43,7 +43,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - the two darts are not `I`-sewable.
-    pub fn sew<const I: u8>(
+    pub fn sew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -95,7 +95,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unsew<const I: u8>(
+    pub fn unsew_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -115,7 +115,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`sew`][Self::sew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
+    pub fn sew<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -131,7 +131,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
+    pub fn unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
