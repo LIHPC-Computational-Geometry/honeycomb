@@ -16,7 +16,7 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{TVar, TransactionClosureResult, unwrap_or_abort},
+    stm::{TransactionClosureResult, atomically, unwrap_or_abort},
 };
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
@@ -99,23 +99,27 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     brio_r1.into_iter().for_each(|p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
-                Ok(()) => {
+                Ok(last_inserted) => {
                     count += 1;
+                    LAST_INSERTED.set(last_inserted);
                     break;
                 }
-                Err(e) => match e {
-                    DelaunayError::CircumsphereSingularity => break,
-                    DelaunayError::CavityBuilding(e) => match e {
-                        CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
-                            continue;
-                        }
-                        CavityError::FailedRelease(_)
-                        | CavityError::NonExtendable(_)
-                        | CavityError::FailedReservation(_) => {
-                            break;
-                        }
-                    },
-                },
+                Err(e) => {
+                    // eprintln!("E: insertion failed - {e}");
+                    match e {
+                        DelaunayError::CircumsphereSingularity => break,
+                        DelaunayError::CavityBuilding(e) => match e {
+                            CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                                continue;
+                            }
+                            CavityError::FailedRelease(_)
+                            | CavityError::NonExtendable(_)
+                            | CavityError::FailedReservation(_) => {
+                                break;
+                            }
+                        },
+                    }
+                }
             }
         }
     });
@@ -148,13 +152,14 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 //     c.into_iter().for_each(|&p| {
                 loop {
                     match atomically_with_err(|t| insert_points(t, &map, p)) {
-                        Ok(()) => {
+                        Ok(last_inserted) => {
                             let tid = rayon::current_thread_index().expect("E: unreachable");
                             counters[tid].fetch_add(1, Ordering::Relaxed);
+                            LAST_INSERTED.set(last_inserted);
                             break;
                         }
                         Err(e) => {
-                            eprintln!("E: insertion failed - {e}");
+                            // eprintln!("E: insertion failed - {e}");
                             match e {
                                 DelaunayError::CircumsphereSingularity => break,
                                 DelaunayError::CavityBuilding(e) => match e {
@@ -194,7 +199,7 @@ fn insert_points<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     p: Vertex3<T>,
-) -> TransactionClosureResult<(), DelaunayError> {
+) -> TransactionClosureResult<VolumeIdType, DelaunayError> {
     let start = if map.is_unused_tx(t, LAST_INSERTED.get())? {
         1 // technically this could be unused too
     } else {
@@ -233,8 +238,7 @@ fn insert_points<T: CoordsFloat>(
     );
     // rebuild
     let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, map, cavity), DelaunayError);
-    LAST_INSERTED.set(last_inserted);
-    Ok(())
+    Ok(last_inserted)
 }
 
 #[rustfmt::skip]

@@ -416,7 +416,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         let vid = map.vertex_id_tx(t, d1)?;
         map.write_vertex(t, vid, point)?;
         if tmp.is_none() {
-            tmp = Some(d1);
+            tmp = Some(d2);
         }
 
         try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
