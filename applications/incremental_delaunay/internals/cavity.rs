@@ -62,12 +62,22 @@ impl From<LinkError> for CavityError {
     }
 }
 
+/// Pre-made incomplete tetrahedra storage structure.
+///
+/// This structure is used to store a thread-local list of pre-constructed, incomplete tetrahedra
+/// that can be used during the remeshing phase. This allows us to remove the tetrahedra
+/// construction from the main point insertion transaction.
+///
+/// "Incomplete" tetrahedra refers to tetrahedra missing a face. When the Delaunay cavity is
+/// carved out before remeshing, boundaries of the cavity are left in the mesh in order to
+/// preserve attribute data and geometry when operating on the boundary of the mesh.
 pub struct IncompleteTets {
     tets: Vec<[DartIdType; 9]>,
     index: TVar<usize>,
 }
 
 impl IncompleteTets {
+    /// Rebuild and update tet list using the specified range of darts.
     pub fn update<T: CoordsFloat>(&mut self, range: Range<DartIdType>, map: &CMap3<T>) {
         self.tets.drain(0..self.index.read_atomic());
         self.index.write_atomic(0);
@@ -91,6 +101,7 @@ impl IncompleteTets {
         );
     }
 
+    /// Return darts making up an incomplete tetrahedra
     pub fn get(
         &self,
         t: &mut Transaction,
