@@ -454,10 +454,10 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
 fn make_incomplete_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    nds @ [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
+    darts @ [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
     // p: Vertex3<T>,
 ) -> TransactionClosureResult<(), LinkError> {
-    for d in nds {
+    for d in darts {
         map.claim_dart_tx(t, d)?;
     }
 
