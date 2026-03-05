@@ -142,7 +142,6 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 let block_end = block_start + block_size as DartIdType;
                 TETS.with_borrow_mut(|tets| tets.update(block_start..block_end, &map));
             });
-            println!("finished building tets");
             instant = Instant::now();
             round_idx += 1;
             let rnn = round.len();
