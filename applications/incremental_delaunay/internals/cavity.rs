@@ -414,7 +414,7 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
         let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
         let vid = map.vertex_id_tx(t, d1)?;
-        map.write_vertex(t, vid, point)?;
+        map.write_vertex_tx(t, vid, point)?;
         if tmp.is_none() {
             tmp = Some(d2);
         }
