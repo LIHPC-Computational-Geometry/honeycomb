@@ -16,7 +16,7 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{TransactionClosureResult, atomically, unwrap_or_abort},
+    stm::{TransactionClosureResult, unwrap_or_abort},
 };
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;

@@ -11,7 +11,6 @@ use honeycomb::{
             StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
         },
     },
-    prelude::VertexIdType,
     stm::{TVar, TransactionError, atomically, atomically_with_err, unwrap_or_abort},
 };
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
