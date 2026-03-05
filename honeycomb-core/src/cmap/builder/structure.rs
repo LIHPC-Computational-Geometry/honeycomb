@@ -67,6 +67,7 @@ pub enum BuilderError {
 pub struct CMapBuilder<const D: usize> {
     builder_kind: BuilderType,
     attributes: AttrStorageManager,
+    enable_vid_cache: bool,
 }
 
 enum BuilderType {
@@ -101,10 +102,13 @@ impl<T: CoordsFloat> Builder<T> for CMapBuilder<3> {
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
         match self.builder_kind {
-            BuilderType::CMap(cfile) => super::io::build_3d_from_cmap_file(cfile, self.attributes),
-            BuilderType::FreeDarts(n_darts) => Ok(CMap3::new_with_undefined_attributes(
+            BuilderType::CMap(cfile) => {
+                super::io::build_3d_from_cmap_file(cfile, self.attributes, self.enable_vid_cache)
+            }
+            BuilderType::FreeDarts(n_darts) => Ok(CMap3::from_data(
                 n_darts,
                 self.attributes,
+                self.enable_vid_cache,
             )),
             BuilderType::Vtk(_vfile) => unimplemented!(),
         }
@@ -119,6 +123,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::FreeDarts(n_darts),
             attributes: other.attributes,
+            enable_vid_cache: false,
         }
     }
 
@@ -128,6 +133,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::FreeDarts(n_darts),
             attributes: AttrStorageManager::default(),
+            enable_vid_cache: false,
         }
     }
 
@@ -147,6 +153,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::CMap(cmap_file),
             attributes: AttrStorageManager::default(),
+            enable_vid_cache: false,
         }
     }
 
@@ -163,6 +170,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::Vtk(vtk_file),
             attributes: AttrStorageManager::default(),
+            enable_vid_cache: false,
         }
     }
 
@@ -181,6 +189,18 @@ impl<const D: usize> CMapBuilder<D> {
     #[must_use = "unused builder object"]
     pub fn add_attribute<A: AttributeBind + 'static>(mut self) -> Self {
         self.attributes.add_storage::<A>(1);
+        self
+    }
+
+    /// Enable usage of an internal vertex ID cache.
+    ///
+    /// By default, vertex IDs are recomputed at each call of the `vertex_id(_tx)` methods. By
+    /// enabling this cache, vertex IDs associated to darts are instead stored in a dedicated
+    /// collection, and updated on (un)sews. This can be useful for algorithm which frequently
+    /// use this data.
+    #[must_use = "unused builder object"]
+    pub fn enable_vertex_id_cache(mut self, enable: bool) -> Self {
+        self.enable_vid_cache = enable;
         self
     }
 

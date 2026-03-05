@@ -23,7 +23,9 @@ impl std::process::Termination for CMap3<f64> {
 
 #[test]
 fn build_tet() -> anyhow::Result<CMap3<f64>> {
-    let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12).build()?; // 3*4 darts
+    let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(12)
+        .enable_vertex_id_cache(true)
+        .build()?; // 3*4 darts
 
     // face z- (base)
     map.link::<1>(1, 2)?;
@@ -48,6 +50,8 @@ fn build_tet() -> anyhow::Result<CMap3<f64>> {
     map.link::<2>(5, 12)?;
     map.link::<2>(6, 8)?;
     map.link::<2>(9, 11)?;
+
+    map.update_vertex_id_cache();
 
     {
         let mut vertices = map.iter_vertices();
@@ -101,6 +105,7 @@ fn sew_tets() -> anyhow::Result<CMap3<f64>> {
     map.link::<2>(18, 20)?;
     map.link::<2>(21, 23)?;
 
+    map.update_vertex_id_cache();
     map.write_vertex(13, (2.5, 1.5, 0.0));
     map.write_vertex(14, (1.5, 2.0, 0.0));
     map.write_vertex(15, (2.5, 2.0, 0.0));

@@ -13,6 +13,9 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
+        // the main difference with 2D implementation is the beta 3 image check
+        // if both darts have a b3 image, then we need to 1-link b3(rd) to b3(ld) as well
+        // this is handled by `one_link`, but we need to merge old vertex data
         self.betas.one_link_core(t, ld, rd)?;
         let (b3_ld, b3_rd) = (self.beta_tx::<3>(t, ld)?, self.beta_tx::<3>(t, rd)?);
         if b3_ld != NULL_DART_ID && b3_rd != NULL_DART_ID {
