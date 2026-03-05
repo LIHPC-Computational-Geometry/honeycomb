@@ -20,7 +20,6 @@ use smallvec::{SmallVec, smallvec};
 use super::compute_tet_orientation;
 
 thread_local! {
-    pub static DART_BLOCK_START: RefCell<TVar<DartIdType>> = RefCell::new(TVar::new(1));
     pub static TETS: RefCell<IncompleteTets> = RefCell::new(IncompleteTets::default());
 }
 
@@ -414,7 +413,8 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     for (_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]) in boundary.into_iter() {
         let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
-        map.write_vertex(t, d1 as VertexIdType, point)?;
+        let vid = map.vertex_id_tx(t, d1)?;
+        map.write_vertex(t, vid, point)?;
         if tmp.is_none() {
             tmp = Some(d1);
         }
