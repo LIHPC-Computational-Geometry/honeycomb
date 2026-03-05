@@ -16,18 +16,18 @@ use honeycomb::{
         stm::{Transaction, abort, atomically_with_err, try_or_coerce},
     },
     prelude::{NULL_DART_ID, grid_generation::GridBuilder},
-    stm::{TVar, TransactionClosureResult, unwrap_or_abort},
+    stm::{TransactionClosureResult, unwrap_or_abort},
 };
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
 
-use cavity::{
-    CavityError, DART_BLOCK_START, carve_cavity_3d, extend_to_starshaped_cavity_3d,
-    rebuild_cavity_3d,
-};
+use cavity::{CavityError, carve_cavity_3d, extend_to_starshaped_cavity_3d, rebuild_cavity_3d};
 use delaunay::{DelaunayError, compute_delaunay_cavity_3d};
 
-use crate::internals::sample::{compute_brio, sample_points};
+use crate::internals::{
+    cavity::TETS,
+    sample::{compute_brio, sample_points},
+};
 
 thread_local! {
     pub static LAST_INSERTED: Cell<VolumeIdType> = const { Cell::new(1) };
@@ -81,14 +81,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     instant = Instant::now();
     // typical point distribution will result in 6-8*n_points tets
     // 20 gives some leeway, 12 is the number of darts per tet
-    let n_alloc = 20 * 12 * n_points;
-    let start = map.allocate_unused_darts(n_alloc);
+    let n_darts_seq = 20 * 12 * brio_r1.len();
+    let n_darts_tot = 20 * 12 * n_points;
+    let start = map.allocate_unused_darts(n_darts_tot) + n_darts_seq as DartIdType;
     // initialize the search offset for dart reservations
-    let block_size = (20 * 12 * n_points) / rayon::current_num_threads();
-    rayon::broadcast(|_| {
-        let tid = rayon::current_thread_index().expect("E: unreachable");
-        DART_BLOCK_START.set(TVar::new(start + (tid * block_size) as DartIdType));
-    });
+    let block_size = (20 * 12 * n_points - n_darts_seq) / rayon::current_num_threads();
+    TETS.with_borrow_mut(|tets| tets.update(0..n_darts_seq as DartIdType, &map));
     println!(
         "|-> init time      : {:>8.3e}",
         instant.elapsed().as_secs_f32()
@@ -101,23 +99,27 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     brio_r1.into_iter().for_each(|p| {
         loop {
             match atomically_with_err(|t| insert_points(t, &map, p)) {
-                Ok(()) => {
+                Ok(last_inserted) => {
                     count += 1;
+                    LAST_INSERTED.set(last_inserted);
                     break;
                 }
-                Err(e) => match e {
-                    DelaunayError::CircumsphereSingularity => break,
-                    DelaunayError::CavityBuilding(e) => match e {
-                        CavityError::FailedOp(_)
-                        | CavityError::FailedReservation(_)
-                        | CavityError::InconsistentState(_) => {
-                            continue;
-                        }
-                        CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
-                            break;
-                        }
-                    },
-                },
+                Err(e) => {
+                    // eprintln!("E: insertion failed - {e}");
+                    match e {
+                        DelaunayError::CircumsphereSingularity => break,
+                        DelaunayError::CavityBuilding(e) => match e {
+                            CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                                continue;
+                            }
+                            CavityError::FailedRelease(_)
+                            | CavityError::NonExtendable(_)
+                            | CavityError::FailedReservation(_) => {
+                                break;
+                            }
+                        },
+                    }
+                }
             }
         }
     });
@@ -134,6 +136,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     if let Some(brio_rs) = brs {
         let mut round_idx = 1;
         for round in brio_rs {
+            rayon::broadcast(|_| {
+                let tid = rayon::current_thread_index().expect("E: unreachable");
+                let block_start = start + (tid * block_size) as DartIdType;
+                let block_end = block_start + block_size as DartIdType;
+                TETS.with_borrow_mut(|tets| tets.update(block_start..block_end, &map));
+            });
             instant = Instant::now();
             round_idx += 1;
             let rnn = round.len();
@@ -143,9 +151,10 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 //     c.into_iter().for_each(|&p| {
                 loop {
                     match atomically_with_err(|t| insert_points(t, &map, p)) {
-                        Ok(()) => {
+                        Ok(last_inserted) => {
                             let tid = rayon::current_thread_index().expect("E: unreachable");
                             counters[tid].fetch_add(1, Ordering::Relaxed);
+                            LAST_INSERTED.set(last_inserted);
                             break;
                         }
                         Err(e) => {
@@ -154,12 +163,12 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                 DelaunayError::CircumsphereSingularity => break,
                                 DelaunayError::CavityBuilding(e) => match e {
                                     CavityError::FailedOp(_)
-                                    | CavityError::FailedReservation(_)
                                     | CavityError::InconsistentState(_) => {
                                         continue;
                                     }
                                     CavityError::FailedRelease(_)
-                                    | CavityError::NonExtendable(_) => {
+                                    | CavityError::NonExtendable(_)
+                                    | CavityError::FailedReservation(_) => {
                                         break;
                                     }
                                 },
@@ -189,7 +198,7 @@ fn insert_points<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
     p: Vertex3<T>,
-) -> TransactionClosureResult<(), DelaunayError> {
+) -> TransactionClosureResult<VolumeIdType, DelaunayError> {
     let start = if map.is_unused_tx(t, LAST_INSERTED.get())? {
         1 // technically this could be unused too
     } else {
@@ -228,8 +237,7 @@ fn insert_points<T: CoordsFloat>(
     );
     // rebuild
     let last_inserted = try_or_coerce!(rebuild_cavity_3d(t, map, cavity), DelaunayError);
-    LAST_INSERTED.set(last_inserted);
-    Ok(())
+    Ok(last_inserted)
 }
 
 #[rustfmt::skip]
