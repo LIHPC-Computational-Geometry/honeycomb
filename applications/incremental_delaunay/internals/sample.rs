@@ -6,6 +6,7 @@ use rand::{
     rngs::SmallRng,
 };
 
+#[allow(clippy::upper_case_acronyms)]
 pub type BRIO<T> = (Vec<Vertex3<T>>, Option<Vec<Vec<Vertex3<T>>>>);
 
 /// Biased sort implementation
@@ -35,12 +36,9 @@ pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64, probability
     // build round collections
 
     let mut rounds = vec![vec![]; n_rounds];
-    points
-        .into_iter()
-        .zip(rounds_idx.into_iter())
-        .for_each(|(p, i)| {
-            rounds[i].push(p);
-        });
+    points.into_iter().zip(rounds_idx).for_each(|(p, i)| {
+        rounds[i].push(p);
+    });
 
     // concatenate all first rounds with less than 2048 points for sequential execution
     // this will form round 1, next rounds will then use a dynamic number of threads for execution

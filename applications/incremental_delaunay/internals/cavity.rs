@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, ops::Range};
 
 use honeycomb::{
     core::{
@@ -11,7 +11,7 @@ use honeycomb::{
             StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
         },
     },
-    stm::{TVar, TransactionError},
+    stm::{TVar, TransactionError, atomically, atomically_with_err, unwrap_or_abort},
 };
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use smallvec::{SmallVec, smallvec};
@@ -19,7 +19,7 @@ use smallvec::{SmallVec, smallvec};
 use super::compute_tet_orientation;
 
 thread_local! {
-    pub static DART_BLOCK_START: RefCell<TVar<DartIdType>> = RefCell::new(TVar::new(1));
+    pub static TETS: RefCell<IncompleteTets> = RefCell::new(IncompleteTets::default());
 }
 
 type CavityBoundary3 = HashMap<FaceIdType, [(DartIdType, DartIdType); 3]>;
@@ -40,7 +40,6 @@ impl<T: CoordsFloat> Cavity3<T> {
 pub struct CarvedCavity3<T: CoordsFloat> {
     point: Vertex3<T>,
     boundary: CavityBoundary3,
-    free_darts: Vec<DartIdType>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -63,6 +62,54 @@ impl From<LinkError> for CavityError {
     }
 }
 
+pub struct IncompleteTets {
+    tets: Vec<[DartIdType; 9]>,
+    index: TVar<usize>,
+}
+
+impl IncompleteTets {
+    pub fn update<T: CoordsFloat>(&mut self, range: Range<DartIdType>, map: &CMap3<T>) {
+        self.tets.drain(0..self.index.read_atomic());
+        self.index.write_atomic(0);
+        self.tets.extend(
+            range
+                .filter(|&d| atomically(|t| map.is_unused_tx(t, d)))
+                .collect::<Vec<_>>()
+                .chunks_exact(9)
+                .map(|c| {
+                    let &[d1, d2, d3, d4, d5, d6, d7, d8, d9] = c else {
+                        unreachable!()
+                    };
+
+                    atomically_with_err(|t| {
+                        make_incomplete_tet(t, map, [d1, d2, d3, d4, d5, d6, d7, d8, d9])
+                    })
+                    .expect("E: unreachable");
+
+                    [d1, d2, d3, d4, d5, d6, d7, d8, d9]
+                }),
+        );
+    }
+
+    pub fn get(
+        &self,
+        t: &mut Transaction,
+    ) -> TransactionClosureResult<[DartIdType; 9], DartReservationError> {
+        let v = unwrap_or_abort(self.tets.get(self.index.read(t)?), DartReservationError(0))?;
+        self.index.modify(t, |i| i + 1)?;
+        Ok(*v)
+    }
+}
+
+impl Default for IncompleteTets {
+    fn default() -> Self {
+        Self {
+            tets: vec![],
+            index: TVar::new(0),
+        }
+    }
+}
+
 // -- cavity computation
 
 /// Extend a cavity until it can be triangulated from its point.
@@ -74,7 +121,6 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
     let CarvedCavity3 {
         point,
         mut boundary,
-        mut free_darts,
     } = cavity;
 
     // d1 = d, d2 = b1(d), d3 = b0(d)
@@ -161,17 +207,16 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
                         buffer.push(d?);
                     }
                     for &d in &buffer {
-                        try_or_coerce!(map.unsew::<1>(t, d), CavityError);
+                        try_or_coerce!(map.unsew_tx::<1>(t, d), CavityError);
                         if map.beta_tx::<2>(t, d)? != NULL_DART_ID {
-                            try_or_coerce!(map.unsew::<2>(t, d), CavityError);
+                            try_or_coerce!(map.unsew_tx::<2>(t, d), CavityError);
                         }
                         if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                            try_or_coerce!(map.unsew::<3>(t, d), CavityError);
+                            try_or_coerce!(map.unsew_tx::<3>(t, d), CavityError);
                         }
                     }
                     for d in buffer.drain(..) {
                         try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-                        free_darts.push(d);
                     }
                 }
 
@@ -196,11 +241,7 @@ pub fn extend_to_starshaped_cavity_3d<T: CoordsFloat>(
         break;
     }
 
-    Ok(CarvedCavity3 {
-        point,
-        boundary,
-        free_darts,
-    })
+    Ok(CarvedCavity3 { point, boundary })
 }
 
 /// Compute data representations for a cavity's boundary and internal elements.
@@ -317,7 +358,6 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
     cavity: Cavity3<T>,
 ) -> TransactionClosureResult<CarvedCavity3<T>, CavityError> {
     let (cavity_map, cavity_internals) = map_cavity_3d(t, map, &cavity)?;
-    let mut free_darts = Vec::new();
     let mut buffer = Vec::with_capacity(6);
 
     for f in cavity_internals {
@@ -326,40 +366,38 @@ pub fn carve_cavity_3d<T: CoordsFloat>(
         }
         for &d in &buffer {
             if map.beta_tx::<3>(t, d)? != NULL_DART_ID {
-                try_or_coerce!(map.unsew::<3>(t, d), CavityError);
+                try_or_coerce!(map.unsew_tx::<3>(t, d), CavityError);
             }
         }
         for &d in &buffer {
             if map.beta_tx::<2>(t, d)? != NULL_DART_ID {
-                try_or_coerce!(map.unsew::<2>(t, d), CavityError);
+                try_or_coerce!(map.unsew_tx::<2>(t, d), CavityError);
             }
         }
         for &d in &buffer {
-            try_or_coerce!(map.unlink::<1>(t, d), CavityError);
+            try_or_coerce!(map.unlink_tx::<1>(t, d), CavityError);
         }
         for d in buffer.drain(..) {
             try_or_coerce!(map.release_dart_tx(t, d), CavityError);
-            free_darts.push(d);
         }
     }
 
     // necessary for tets that had two or more faces adjacent to the boundary
     for &[(d1, _), (d2, _), (d3, _)] in cavity_map.values() {
         if map.beta_tx::<2>(t, d1)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d1), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d1), CavityError);
         }
         if map.beta_tx::<2>(t, d2)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d2), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d2), CavityError);
         }
         if map.beta_tx::<2>(t, d3)? != NULL_DART_ID {
-            try_or_coerce!(map.unsew::<2>(t, d3), CavityError);
+            try_or_coerce!(map.unsew_tx::<2>(t, d3), CavityError);
         }
     }
 
     Ok(CarvedCavity3 {
         point: cavity.point,
         boundary: cavity_map,
-        free_darts,
     })
 }
 
@@ -368,89 +406,64 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     map: &CMap3<T>,
     cavity: CarvedCavity3<T>,
 ) -> TransactionClosureResult<VolumeIdType, CavityError> {
-    let CarvedCavity3 {
-        point,
-        boundary,
-        mut free_darts,
-    } = cavity;
-    let n_required_darts = boundary.len() * 9;
-    free_darts.truncate(n_required_darts);
-    for d in &free_darts {
-        map.claim_dart_tx(t, *d)?;
-    }
-    if free_darts.len() < n_required_darts {
-        let start = DART_BLOCK_START.with_borrow(|r| r.read(t))?;
-        // this method returns claimed darts
-        let mut new_darts: Vec<DartIdType> = try_or_coerce!(
-            map.reserve_darts_from_tx(t, n_required_darts - free_darts.len(), start),
-            CavityError
-        );
-        DART_BLOCK_START.with_borrow(|r| r.modify(t, |v| v + new_darts.len() as DartIdType));
-        free_darts.append(&mut new_darts);
-    }
-    free_darts.sort(); // TODO: figure out why this is needed to keep a valid structure
+    let CarvedCavity3 { point, boundary } = cavity;
+    let mut tmp = None;
 
-    let tmp = free_darts[1];
+    for (_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]) in boundary.into_iter() {
+        let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
+            try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
+        let vid = map.vertex_id_tx(t, d1)?;
+        map.write_vertex_tx(t, vid, point)?;
+        if tmp.is_none() {
+            tmp = Some(d2);
+        }
 
-    assert_eq!(free_darts.len() % 9, 0);
-    debug_assert!(
-        free_darts
-            .iter()
-            .all(|&d| { free_darts.iter().filter(|&&dd| d == dd).count() == 1 })
-    );
-
-    for ((_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]), nds) in
-        boundary.into_iter().zip(free_darts.chunks_exact(9))
-    {
-        let nds @ [_d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
-            nds.try_into().expect("E: unreachable");
-        try_or_coerce!(make_incomplete_tet(t, map, nds, point), CavityError);
-
-        try_or_coerce!(map.sew::<2>(t, d2, db), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d2, db), CavityError);
         let b2db = map.beta_tx::<2>(t, db_neigh)?;
         if b2db != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2db, d2), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2db, d2), CavityError);
         }
 
-        try_or_coerce!(map.sew::<2>(t, d5, da), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d5, da), CavityError);
         let b2da = map.beta_tx::<2>(t, da_neigh)?;
         if b2da != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2da, d5), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2da, d5), CavityError);
         }
 
-        try_or_coerce!(map.sew::<2>(t, d8, dc), CavityError);
+        try_or_coerce!(map.sew_tx::<2>(t, d8, dc), CavityError);
         let b2dc = map.beta_tx::<2>(t, dc_neigh)?;
         if b2dc != NULL_DART_ID {
-            try_or_coerce!(map.sew::<3>(t, b2dc, d8), CavityError);
+            try_or_coerce!(map.sew_tx::<3>(t, b2dc, d8), CavityError);
         }
     }
 
-    Ok(map.volume_id_tx(t, tmp)?)
+    Ok(map.volume_id_tx(t, tmp.unwrap())?)
 }
 
 fn make_incomplete_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
-    p: Vertex3<T>,
+    nds @ [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
+    // p: Vertex3<T>,
 ) -> TransactionClosureResult<(), LinkError> {
-    // build 3 triangles
-    map.link::<1>(t, d1, d2)?;
-    map.link::<1>(t, d2, d3)?;
-    map.link::<1>(t, d3, d1)?;
-    map.link::<1>(t, d4, d5)?;
-    map.link::<1>(t, d5, d6)?;
-    map.link::<1>(t, d6, d4)?;
-    map.link::<1>(t, d7, d8)?;
-    map.link::<1>(t, d8, d9)?;
-    map.link::<1>(t, d9, d7)?;
-    // link the sides that will be adjacent to the point inserted by the cavity
-    map.link::<2>(t, d3, d4)?;
-    map.link::<2>(t, d6, d7)?;
-    map.link::<2>(t, d9, d1)?;
+    for d in nds {
+        map.claim_dart_tx(t, d)?;
+    }
 
-    let vid = map.vertex_id_tx(t, d1)?;
-    map.write_vertex(t, vid, p)?;
+    // build 3 triangles
+    map.link_tx::<1>(t, d1, d2)?;
+    map.link_tx::<1>(t, d2, d3)?;
+    map.link_tx::<1>(t, d3, d1)?;
+    map.link_tx::<1>(t, d4, d5)?;
+    map.link_tx::<1>(t, d5, d6)?;
+    map.link_tx::<1>(t, d6, d4)?;
+    map.link_tx::<1>(t, d7, d8)?;
+    map.link_tx::<1>(t, d8, d9)?;
+    map.link_tx::<1>(t, d9, d7)?;
+    // link the sides that will be adjacent to the point inserted by the cavity
+    map.link_tx::<2>(t, d3, d4)?;
+    map.link_tx::<2>(t, d6, d7)?;
+    map.link_tx::<2>(t, d9, d1)?;
 
     Ok(())
 }

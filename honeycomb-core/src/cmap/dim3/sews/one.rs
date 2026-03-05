@@ -11,7 +11,7 @@ use crate::{
 /// **1-(un)sews internals)**
 impl<T: CoordsFloat> CMap3<T> {
     /// 1-sew transactional operation.
-    pub(crate) fn one_sew(
+    pub(crate) fn one_sew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -38,7 +38,7 @@ impl<T: CoordsFloat> CMap3<T> {
             }
         }
 
-        try_or_coerce!(self.one_link(t, ld, rd), SewError);
+        try_or_coerce!(self.one_link_tx(t, ld, rd), SewError);
 
         if b3ld != NULL_DART_ID && vid_l_old != vid_r_old {
             let new_vid = vid_r_old.min(vid_l_old);
@@ -66,7 +66,7 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// 1-unsew transactional operation.
-    pub(crate) fn one_unsew(
+    pub(crate) fn one_unsew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -74,7 +74,7 @@ impl<T: CoordsFloat> CMap3<T> {
         let rd = self.beta_tx::<1>(t, ld)?;
         let b3ld = self.beta_tx::<3>(t, ld)?.max(self.beta_tx::<2>(t, ld)?);
 
-        try_or_coerce!(self.one_unlink(t, ld), SewError);
+        try_or_coerce!(self.one_unlink_tx(t, ld), SewError);
 
         let mut new_l_orbit = Vec::with_capacity(16);
         let mut vid_l_new = b3ld;

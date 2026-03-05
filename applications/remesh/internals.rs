@@ -58,12 +58,12 @@ pub fn generate_first_mesh<T: CoordsFloat>(
         .filter(|(_, n_d, _)| *n_d != 0)
         .for_each(|(f, n_d, start)| {
             let new_darts = (start..start + n_d as DartIdType).collect::<Vec<_>>();
-            let anchor = map.force_remove_attribute::<FaceAnchor>(f);
+            let anchor = map.remove_attribute::<FaceAnchor>(f);
             // make sure new edges are anchored
             if let Some(a) = anchor {
                 atomically(|t| {
                     for &d in &new_darts {
-                        map.write_attribute(t, d, EdgeAnchor::from(a))?;
+                        map.write_attribute_tx(t, d, EdgeAnchor::from(a))?;
                     }
                     Ok(())
                 });
@@ -87,7 +87,7 @@ pub fn generate_first_mesh<T: CoordsFloat>(
                 atomically(|t| {
                     for &d in &new_darts {
                         let fid = map.face_id_tx(t, d)?;
-                        map.write_attribute(t, fid, a)?;
+                        map.write_attribute_tx(t, fid, a)?;
                     }
                     Ok(())
                 });
@@ -107,15 +107,15 @@ pub fn generate_first_mesh<T: CoordsFloat>(
     }));
     debug_assert!(
         map.par_iter_vertices()
-            .all(|v| map.force_read_attribute::<VertexAnchor>(v).is_some())
+            .all(|v| map.read_attribute::<VertexAnchor>(v).is_some())
     );
     debug_assert!(
         map.par_iter_edges()
-            .all(|e| map.force_read_attribute::<EdgeAnchor>(e).is_some())
+            .all(|e| map.read_attribute::<EdgeAnchor>(e).is_some())
     );
     debug_assert!(
         map.par_iter_faces()
-            .all(|f| map.force_read_attribute::<FaceAnchor>(f).is_some())
+            .all(|f| map.read_attribute::<FaceAnchor>(f).is_some())
     );
 
     // TODO: print the whole config / args
@@ -409,11 +409,8 @@ pub fn remesh<T: CoordsFloat>(
                 let (l, r) = (e as DartIdType, map.beta::<2>(e as DartIdType));
                 if r != NULL_DART_ID {
                     debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(l))
-                            .is_some()
-                            && map
-                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
-                                .is_some()
+                        map.read_attribute::<FaceAnchor>(map.face_id(l)).is_some()
+                            && map.read_attribute::<FaceAnchor>(map.face_id(r)).is_some()
                     );
 
                     if let Err(er) = atomically_with_err(|t| {
@@ -444,11 +441,8 @@ pub fn remesh<T: CoordsFloat>(
                     }
 
                     debug_assert!(
-                        map.force_read_attribute::<FaceAnchor>(map.face_id(l))
-                            .is_some()
-                            && map
-                                .force_read_attribute::<FaceAnchor>(map.face_id(r))
-                                .is_some()
+                        map.read_attribute::<FaceAnchor>(map.face_id(l)).is_some()
+                            && map.read_attribute::<FaceAnchor>(map.face_id(r)).is_some()
                     );
                 }
             });
@@ -483,8 +477,8 @@ fn compute_diff_to_target<T: CoordsFloat>(
 ) -> StmClosureResult<f64> {
     let (vid1, vid2) = (map.vertex_id_tx(t, l)?, map.vertex_id_tx(t, r)?);
     let (v1, v2) = (
-        unwrap_or_retry(map.read_vertex(t, vid1)?)?,
-        unwrap_or_retry(map.read_vertex(t, vid2)?)?,
+        unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?,
+        unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?,
     );
     Ok(((v2 - v1).norm().to_f64().unwrap() - target) / target)
 }
@@ -500,8 +494,8 @@ fn check_tri_orientation<T: CoordsFloat>(
     let vid2 = map.vertex_id_tx(t, b1)?;
     let b1b1 = map.beta_tx::<1>(t, b1)?;
     let vid3 = map.vertex_id_tx(t, b1b1)?;
-    let v1 = unwrap_or_retry(map.read_vertex(t, vid1)?)?;
-    let v2 = unwrap_or_retry(map.read_vertex(t, vid2)?)?;
-    let v3 = unwrap_or_retry(map.read_vertex(t, vid3)?)?;
+    let v1 = unwrap_or_retry(map.read_vertex_tx(t, vid1)?)?;
+    let v2 = unwrap_or_retry(map.read_vertex_tx(t, vid2)?)?;
+    let v3 = unwrap_or_retry(map.read_vertex_tx(t, vid3)?)?;
     Ok(Vertex2::cross_product_from_vertices(&v1, &v2, &v3) > T::zero())
 }

@@ -36,7 +36,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - the two darts are not `I`-linkable.
-    pub fn link<const I: u8>(
+    pub fn link_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -46,8 +46,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(t, ld, rd),
-            2 => self.two_link(t, ld, rd),
+            1 => self.one_link_tx(t, ld, rd),
+            2 => self.two_link_tx(t, ld, rd),
             _ => unreachable!(),
         }
     }
@@ -82,7 +82,7 @@ impl<T: CoordsFloat> CMap2<T> {
     /// The method may panic if:
     /// - `I >= 3` or `I == 0`,
     /// - `ld` is already `I`-free.
-    pub fn unlink<const I: u8>(
+    pub fn unlink_tx<const I: u8>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
@@ -91,8 +91,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(t, ld),
-            2 => self.two_unlink(t, ld),
+            1 => self.one_unlink_tx(t, ld),
+            2 => self.two_unlink_tx(t, ld),
             _ => unreachable!(),
         }
     }
@@ -102,13 +102,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`link`][Self::link], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn force_link<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
+    pub fn link<const I: u8>(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_link(ld, rd),
-            2 => self.force_two_link(ld, rd),
+            1 => self.one_link(ld, rd),
+            2 => self.two_link(ld, rd),
             _ => unreachable!(),
         }
     }
@@ -118,13 +118,13 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
-    pub fn force_unlink<const I: u8>(&self, ld: DartIdType) -> Result<(), LinkError> {
+    pub fn unlink<const I: u8>(&self, ld: DartIdType) -> Result<(), LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.force_one_unlink(ld),
-            2 => self.force_two_unlink(ld),
+            1 => self.one_unlink(ld),
+            2 => self.two_unlink(ld),
             _ => unreachable!(),
         }
     }

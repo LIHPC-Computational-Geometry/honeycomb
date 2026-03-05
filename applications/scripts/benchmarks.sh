@@ -9,8 +9,8 @@
 #   - strong scaling
 # - Delaunay triangulation
 #   - sequential execution
-#   - weak scaling (from minimal triangulation)
-#   - weak scaling (from growing triangulation)
+#   - weak scaling
+#   - strong scaling
 # - Overlay grid mesh
 #   - sequential execution
 #   - strong scaling
@@ -32,8 +32,7 @@ sh ${SCRIPT_DIR}/remesh.sh
 
 # Delaunay
 
-# sh ${SCRIPT_DIR}/delaunay_min.sh
-sh ${SCRIPT_DIR}/delaunay_opt.sh
+sh ${SCRIPT_DIR}/delaunay.sh
 
 # Overlay grid mesh
 

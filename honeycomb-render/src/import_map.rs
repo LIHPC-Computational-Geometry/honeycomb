@@ -136,7 +136,7 @@ pub fn extract_data_from_map<T: CoordsFloat>(mut commands: Commands, cmap: Res<M
         .map(|(idx, vid)| {
             index_map.insert(*vid, idx);
             let v = cmap
-                .force_read_vertex(*vid)
+                .read_vertex(*vid)
                 .expect("E: found a topological vertex with no associated coordinates");
             // sane unwraps; will crash if the coordinates cannot be converted to f32
             Vec3::from((v.0.to_f32().unwrap(), v.1.to_f32().unwrap(), 0.0))
@@ -290,7 +290,7 @@ pub fn extract_data_from_3d_map<T: CoordsFloat>(mut commands: Commands, cmap: Re
         .map(|(idx, vid)| {
             index_map.insert(*vid, idx);
             let v = cmap
-                .force_read_vertex(*vid)
+                .read_vertex(*vid)
                 .expect("E: found a topological vertex with no associated coordinates");
             // sane unwraps; will crash if the coordinates cannot be converted to f32
             Vec3::from((

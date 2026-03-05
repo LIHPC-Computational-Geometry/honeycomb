@@ -4,8 +4,8 @@
 
 use rayon::prelude::*;
 
-use crate::cmap::{CMap3, DartIdType, OrbitPolicy};
-use crate::geometry::CoordsFloat;
+use crate::cmap::{CMap3, DartIdType, OrbitPolicy, VertexIdType};
+use crate::geometry::{CoordsFloat, Vertex3};
 
 use super::CMAP3_BETA;
 
@@ -36,6 +36,11 @@ impl<T: CoordsFloat> CMap3<T> {
         self.betas[(1, dart_id)].write_atomic(b1);
         self.betas[(2, dart_id)].write_atomic(b2);
         self.betas[(3, dart_id)].write_atomic(b3);
+    }
+
+    /// Set a vertex value for the corresponding ID.
+    pub fn set_vertex(&self, vid: VertexIdType, v: Vertex3<T>) {
+        self.vertices.set_atomic(vid as usize, v);
     }
 
     pub fn update_vertex_id_cache(&self) {
