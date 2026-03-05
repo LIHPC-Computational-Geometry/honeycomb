@@ -168,7 +168,7 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
     for (i, dart) in cmap
         .iter_vertices()
         .filter_map(|v| {
-            cmap.force_read_attribute::<VertexAnchor>(v).and_then(|_| {
+            cmap.read_attribute::<VertexAnchor>(v).and_then(|_| {
                 cmap.orbit(OrbitPolicy::Vertex, v)
                     .find(|d| cmap.beta::<2>(*d) == NULL_DART_ID)
             })
@@ -191,12 +191,12 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
             }
         })
         .find(|d| {
-            cmap.force_read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
+            cmap.read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
                 .is_none()
         })
     {
         curve_id += 1; // use a new curve id
-        cmap.force_write_attribute(
+        cmap.write_attribute(
             cmap.vertex_id(dart),
             VertexAnchor::Curve(curve_id as CurveIdType),
         );
@@ -210,29 +210,26 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
     marked.insert(0);
     cmap.iter_faces()
         // does this filter item updated in the for_each block?
-        // .filter(|f| cmap.force_read_attribute::<FaceAnchor>(*f).is_some())
+        // .filter(|f| cmap.read_attribute::<FaceAnchor>(*f).is_some())
         .for_each(|f| {
-            if cmap.force_read_attribute::<FaceAnchor>(f).is_none() {
+            if cmap.read_attribute::<FaceAnchor>(f).is_none() {
                 queue.clear();
                 queue.push_front(f);
                 while let Some(crt) = queue.pop_front() {
                     // if the filter works correctly, this if isn't useful
-                    cmap.force_write_attribute(crt, FaceAnchor::Surface(surface_id));
+                    cmap.write_attribute(crt, FaceAnchor::Surface(surface_id));
                     cmap.orbit(OrbitPolicy::Face, crt as DartIdType)
                         .filter(|d| {
-                            cmap.force_read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
+                            cmap.read_attribute::<EdgeAnchor>(cmap.edge_id(*d))
                                 .is_none()
                         })
                         .for_each(|d| {
-                            cmap.force_write_attribute(
-                                cmap.edge_id(d),
-                                EdgeAnchor::Surface(surface_id),
-                            );
+                            cmap.write_attribute(cmap.edge_id(d), EdgeAnchor::Surface(surface_id));
                             if cmap
-                                .force_read_attribute::<VertexAnchor>(cmap.vertex_id(d))
+                                .read_attribute::<VertexAnchor>(cmap.vertex_id(d))
                                 .is_none()
                             {
-                                cmap.force_write_attribute(
+                                cmap.write_attribute(
                                     cmap.vertex_id(d),
                                     VertexAnchor::Surface(surface_id),
                                 );
@@ -250,17 +247,17 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
     // in debug mode, ensure all entities are classified
     debug_assert!(
         cmap.iter_vertices()
-            .all(|v| cmap.force_read_attribute::<VertexAnchor>(v).is_some()),
+            .all(|v| cmap.read_attribute::<VertexAnchor>(v).is_some()),
         "E: Not all vertices are classified",
     );
     debug_assert!(
         cmap.iter_edges()
-            .all(|e| cmap.force_read_attribute::<EdgeAnchor>(e).is_some()),
+            .all(|e| cmap.read_attribute::<EdgeAnchor>(e).is_some()),
         "E: Not all edges are classified",
     );
     debug_assert!(
         cmap.iter_faces()
-            .all(|f| cmap.force_read_attribute::<FaceAnchor>(f).is_some()),
+            .all(|f| cmap.read_attribute::<FaceAnchor>(f).is_some()),
         "E: Not all faces are classified",
     );
 
@@ -279,18 +276,18 @@ fn mark_curve<T: CoordsFloat>(
 ) -> Result<(), ClassificationError> {
     // only write attribute on the edge for the first one
     // since we start from an anchored vertex
-    cmap.force_write_attribute::<EdgeAnchor>(cmap.edge_id(start), EdgeAnchor::Curve(curve_id));
+    cmap.write_attribute::<EdgeAnchor>(cmap.edge_id(start), EdgeAnchor::Curve(curve_id));
     let mut next = cmap.beta::<1>(start);
     while cmap
-        .force_read_attribute::<VertexAnchor>(cmap.vertex_id(next))
+        .read_attribute::<VertexAnchor>(cmap.vertex_id(next))
         .is_none()
     {
         if let Some(crt) = cmap
             .orbit(OrbitPolicy::Vertex, next)
             .find(|d| cmap.beta::<2>(*d) == NULL_DART_ID)
         {
-            cmap.force_write_attribute(cmap.vertex_id(crt), VertexAnchor::Curve(curve_id));
-            cmap.force_write_attribute(cmap.edge_id(crt), EdgeAnchor::Curve(curve_id));
+            cmap.write_attribute(cmap.vertex_id(crt), VertexAnchor::Curve(curve_id));
+            cmap.write_attribute(cmap.edge_id(crt), EdgeAnchor::Curve(curve_id));
             next = cmap.beta::<1>(crt);
         } else {
             // this should be unreachable as long as the geometry is closed and the node is on the boundary

@@ -57,7 +57,7 @@ pub fn process_cell<T: CoordsFloat>(
     }
     for &d in &darts {
         let vid = cmap.vertex_id_tx(t, d)?;
-        let v = if let Some(val) = cmap.read_vertex(t, vid)? {
+        let v = if let Some(val) = cmap.read_vertex_tx(t, vid)? {
             val
         } else {
             abort(TriangulateError::UndefinedFace(
@@ -101,25 +101,25 @@ pub fn process_cell<T: CoordsFloat>(
         // THIS CANNOT BE PARALLELIZED AS IS
         let b0_sdart = cmap.beta_tx::<0>(t, *sdart)?;
         let vid = cmap.vertex_id_tx(t, *sdart)?;
-        let v0 = cmap.read_vertex(t, vid)?.unwrap();
-        try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
+        let v0 = cmap.read_vertex_tx(t, vid)?.unwrap();
+        try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
         let mut d0 = *sdart;
         for sl in new_darts.chunks_exact(2) {
             let [d1, d2] = sl else { unreachable!() };
             let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
             let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-            try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
-            try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
-            try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
+            try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<2>(t, *d1, *d2), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, *d2, b1b1_d0), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, b1_d0, *d1), TriangulateError);
+            try_or_coerce!(cmap.sew_tx::<1>(t, *d1, d0), TriangulateError);
             d0 = *d2;
         }
         let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
         let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-        try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, b1b1_d0, d0), TriangulateError);
         let vid = cmap.vertex_id_tx(t, *sdart)?;
-        cmap.write_vertex(t, vid, v0)?;
+        cmap.write_vertex_tx(t, vid, v0)?;
     } else {
         // println!("W: face {face_id} isn't fannable -- skipping triangulation");
         abort(TriangulateError::NonFannable)?;
@@ -187,25 +187,25 @@ pub fn process_convex_cell<T: CoordsFloat>(
     // THIS CANNOT BE PARALLELIZED AS IS
     let b0_sdart = cmap.beta_tx::<0>(t, sdart)?;
     let vid = cmap.vertex_id_tx(t, sdart)?;
-    let v0 = cmap.read_vertex(t, vid)?.unwrap();
-    try_or_coerce!(cmap.unsew::<1>(t, b0_sdart), TriangulateError);
+    let v0 = cmap.read_vertex_tx(t, vid)?.unwrap();
+    try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
     let mut d0 = sdart;
     for sl in new_darts.chunks_exact(2) {
         let [d1, d2] = sl else { unreachable!() };
         let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
         let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-        try_or_coerce!(cmap.unsew::<1>(t, b1_d0), TriangulateError);
-        try_or_coerce!(cmap.sew::<2>(t, *d1, *d2), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, *d2, b1b1_d0), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, b1_d0, *d1), TriangulateError);
-        try_or_coerce!(cmap.sew::<1>(t, *d1, d0), TriangulateError);
+        try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<2>(t, *d1, *d2), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, *d2, b1b1_d0), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, b1_d0, *d1), TriangulateError);
+        try_or_coerce!(cmap.sew_tx::<1>(t, *d1, d0), TriangulateError);
         d0 = *d2;
     }
     let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
     let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
-    try_or_coerce!(cmap.sew::<1>(t, b1b1_d0, d0), TriangulateError);
+    try_or_coerce!(cmap.sew_tx::<1>(t, b1b1_d0, d0), TriangulateError);
     let vid = cmap.vertex_id_tx(t, sdart)?;
-    cmap.write_vertex(t, vid, v0)?;
+    cmap.write_vertex_tx(t, vid, v0)?;
 
     Ok(())
 }

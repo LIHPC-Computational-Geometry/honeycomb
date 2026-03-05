@@ -13,7 +13,7 @@ use crate::internals::model::IsIrregular;
 pub fn dart_origin<T: CoordsFloat>(map: &CMap2<T>, dart: u32) -> Vertex2<T> {
     assert_ne!(dart, NULL_DART_ID);
 
-    map.force_read_vertex(map.vertex_id(dart)).unwrap()
+    map.read_vertex(map.vertex_id(dart)).unwrap()
 }
 
 pub fn canonical_beta1_tx<T: CoordsFloat>(
@@ -42,7 +42,7 @@ pub fn dart_origin_tx<T: CoordsFloat>(
     //assert_ne!(dart, NULL_DART_ID);
 
     let v_id = map.vertex_id_tx(trans, dart)?;
-    match map.read_vertex(trans, v_id)? {
+    match map.read_vertex_tx(trans, v_id)? {
         Some(vertex) => Ok(vertex),
         None => Ok(try_getting_dart_origin_from_orbit(trans, map, dart)),
     }
@@ -62,7 +62,7 @@ fn try_getting_dart_origin_from_orbit<T: CoordsFloat>(
         .collect();
 
     for ve in orbit_darts {
-        if let Ok(Some(v)) = map.read_vertex(trans, ve) {
+        if let Ok(Some(v)) = map.read_vertex_tx(trans, ve) {
             found_vertex = v;
             break;
         }
@@ -117,7 +117,7 @@ pub fn is_regular_tx<T: CoordsFloat>(
     dart: u32,
 ) -> Result<bool, StmError> {
     Ok(!map
-        .read_attribute::<IsIrregular>(trans, dart)?
+        .read_attribute_tx::<IsIrregular>(trans, dart)?
         .unwrap_or(IsIrregular(false))
         .0)
 }
@@ -125,7 +125,7 @@ pub fn is_regular_tx<T: CoordsFloat>(
 pub fn is_regular<T: CoordsFloat>(map: &CMap2<T>, dart: u32) -> bool {
     assert_ne!(dart, NULL_DART_ID);
 
-    let attr = map.force_read_attribute::<IsIrregular>(dart);
+    let attr = map.read_attribute::<IsIrregular>(dart);
     attr.is_none()
 }
 
@@ -145,14 +145,14 @@ pub fn get_quadrant<T: CoordsFloat>(vertex: &Vertex2<T>, midpoint: &Vertex2<T>) 
 
 pub fn remove_dangling_darts<T: CoordsFloat>(map: &mut CMap2<T>) {
     map.par_iter_vertices().for_each(|vertex_id| {
-        let vertex = map.force_read_vertex(map.vertex_id(vertex_id));
+        let vertex = map.read_vertex(map.vertex_id(vertex_id));
         if vertex.is_none() {
             // look for a dart in the orbit that actually has a vertex.
             // it's probably been "stolen" when a dart with a small id has been linked
             map.i_cell::<0>(vertex_id).for_each(|d| {
-                let v = map.force_read_vertex(d);
+                let v = map.read_vertex(d);
                 if let Some(vertex) = v {
-                    map.force_write_vertex(vertex_id, vertex);
+                    map.write_vertex(vertex_id, vertex);
                 }
             });
         }

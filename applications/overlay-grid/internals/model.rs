@@ -367,18 +367,18 @@ pub fn manual_grid<T: CoordsFloat>(nb_verts: usize) -> (CMap2<T>, Vec<Vertex2<T>
         .build()
         .unwrap();
 
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
+    map.link::<1>(1, 2).unwrap();
+    map.link::<1>(2, 3).unwrap();
+    map.link::<1>(3, 4).unwrap();
+    map.link::<1>(4, 1).unwrap();
 
-    map.force_write_vertex(1, Vertex2(T::from(-10.0).unwrap(), T::from(-10.0).unwrap()));
-    map.force_write_vertex(2, Vertex2(T::from(10.0).unwrap(), T::from(-10.0).unwrap()));
-    map.force_write_vertex(3, Vertex2(T::from(10.0).unwrap(), T::from(10.0).unwrap()));
-    map.force_write_vertex(4, Vertex2(T::from(-10.0).unwrap(), T::from(10.0).unwrap()));
+    map.write_vertex(1, Vertex2(T::from(-10.0).unwrap(), T::from(-10.0).unwrap()));
+    map.write_vertex(2, Vertex2(T::from(10.0).unwrap(), T::from(-10.0).unwrap()));
+    map.write_vertex(3, Vertex2(T::from(10.0).unwrap(), T::from(10.0).unwrap()));
+    map.write_vertex(4, Vertex2(T::from(-10.0).unwrap(), T::from(10.0).unwrap()));
 
-    map.force_write_attribute::<GeoVertices>(1, GeoVertices((0u32, geo_verts.len() as u32)));
-    map.force_write_attribute::<RefinementLevel>(1, RefinementLevel(0));
+    map.write_attribute::<GeoVertices>(1, GeoVertices((0u32, geo_verts.len() as u32)));
+    map.write_attribute::<RefinementLevel>(1, RefinementLevel(0));
 
     (map, geo_verts)
 }
@@ -427,19 +427,19 @@ pub fn vtk_grid<T: CoordsFloat>(file_path: &str) -> Result<(CMap2<T>, Vec<Vertex
         .build()
         .unwrap();
 
-    map.force_link::<1>(1, 2).unwrap();
-    map.force_link::<1>(2, 3).unwrap();
-    map.force_link::<1>(3, 4).unwrap();
-    map.force_link::<1>(4, 1).unwrap();
+    map.link::<1>(1, 2).unwrap();
+    map.link::<1>(2, 3).unwrap();
+    map.link::<1>(3, 4).unwrap();
+    map.link::<1>(4, 1).unwrap();
 
     // Set vertices based on geometry bounds with padding
-    map.force_write_vertex(1, Vertex2(grid_min_x, grid_min_y)); // Bottom-left
-    map.force_write_vertex(2, Vertex2(grid_max_x, grid_min_y)); // Bottom-right
-    map.force_write_vertex(3, Vertex2(grid_max_x, grid_max_y)); // Top-right
-    map.force_write_vertex(4, Vertex2(grid_min_x, grid_max_y)); // Top-left
+    map.write_vertex(1, Vertex2(grid_min_x, grid_min_y)); // Bottom-left
+    map.write_vertex(2, Vertex2(grid_max_x, grid_min_y)); // Bottom-right
+    map.write_vertex(3, Vertex2(grid_max_x, grid_max_y)); // Top-right
+    map.write_vertex(4, Vertex2(grid_min_x, grid_max_y)); // Top-left
 
-    map.force_write_attribute::<GeoVertices>(1, GeoVertices((0u32, geo_verts.len() as u32)));
-    map.force_write_attribute::<RefinementLevel>(1, RefinementLevel(0));
+    map.write_attribute::<GeoVertices>(1, GeoVertices((0u32, geo_verts.len() as u32)));
+    map.write_attribute::<RefinementLevel>(1, RefinementLevel(0));
 
     Ok((map, geo_verts))
 }

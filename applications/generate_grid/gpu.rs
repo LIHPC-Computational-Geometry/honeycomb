@@ -81,7 +81,7 @@ pub fn build_2d<T: CoordsFloat>(
 
         let vertices = vertices.as_slice()?;
         map.par_iter_vertices().for_each(|d| {
-            map.force_write_vertex(d as VertexIdType, vertices[d as usize]);
+            map.set_vertex(d as VertexIdType, vertices[d as usize]);
         });
         Ok(map)
     }
@@ -164,7 +164,7 @@ pub fn build_3d<T: CoordsFloat>(
 
         let vertices = vertices.as_slice()?;
         map.par_iter_vertices().for_each(|d| {
-            map.force_write_vertex(d as VertexIdType, vertices[d as usize]);
+            map.set_vertex(d as VertexIdType, vertices[d as usize]);
         });
         Ok(map)
     }

@@ -7,7 +7,6 @@
 //! - cell fusion routines
 //! - swap-based cell edition routines
 
-mod anchoring;
 mod capture;
 mod collapse;
 mod cut;
