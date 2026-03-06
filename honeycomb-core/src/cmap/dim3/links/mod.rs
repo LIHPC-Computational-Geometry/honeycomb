@@ -2,6 +2,8 @@ mod one;
 mod three;
 mod two;
 
+use fast_stm::atomically_with_err;
+
 use crate::cmap::{CMap3, DartIdType, LinkError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult};
@@ -127,9 +129,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(lhs_dart_id, rhs_dart_id),
-            2 => self.two_link(lhs_dart_id, rhs_dart_id),
-            3 => self.three_link(lhs_dart_id, rhs_dart_id),
+            1 => atomically_with_err(|t| self.one_link_tx(t, lhs_dart_id, rhs_dart_id)),
+            2 => atomically_with_err(|t| self.two_link_tx(t, lhs_dart_id, rhs_dart_id)),
+            3 => atomically_with_err(|t| self.three_link_tx(t, lhs_dart_id, rhs_dart_id)),
             _ => unreachable!(),
         }
     }
@@ -154,9 +156,9 @@ impl<T: CoordsFloat> CMap3<T> {
         assert!(I < 4);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(lhs_dart_id),
-            2 => self.two_unlink(lhs_dart_id),
-            3 => self.three_unlink(lhs_dart_id),
+            1 => atomically_with_err(|t| self.one_unlink_tx(t, lhs_dart_id)),
+            2 => atomically_with_err(|t| self.two_unlink_tx(t, lhs_dart_id)),
+            3 => atomically_with_err(|t| self.three_unlink_tx(t, lhs_dart_id)),
             _ => unreachable!(),
         }
     }

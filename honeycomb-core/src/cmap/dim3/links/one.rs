@@ -2,7 +2,7 @@
 
 use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
 use crate::geometry::CoordsFloat;
-use crate::stm::{Transaction, TransactionClosureResult, abort, atomically_with_err};
+use crate::stm::{Transaction, TransactionClosureResult, abort};
 
 /// 1-links
 impl<T: CoordsFloat> CMap3<T> {
@@ -19,14 +19,6 @@ impl<T: CoordsFloat> CMap3<T> {
             self.betas.one_link_core(t, b3_rd, b3_ld)?;
         }
         Ok(())
-    }
-
-    /// 1-link operation.
-    ///
-    /// This variant is equivalent to `one_link`, but internally uses a transaction that will be
-    /// retried until validated.
-    pub(crate) fn one_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.one_link_tx(t, ld, rd))
     }
 }
 
@@ -49,13 +41,5 @@ impl<T: CoordsFloat> CMap3<T> {
             self.betas.one_unlink_core(t, b3_rd)?;
         }
         Ok(())
-    }
-
-    /// 1-unlink operation.
-    ///
-    /// This variant is equivalent to `one_unlink`, but internally uses a transaction that will be
-    /// retried until validated.
-    pub(crate) fn one_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.one_unlink_tx(t, ld))
     }
 }

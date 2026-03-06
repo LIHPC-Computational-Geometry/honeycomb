@@ -2,7 +2,7 @@
 
 use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
 use crate::geometry::CoordsFloat;
-use crate::stm::{Transaction, TransactionClosureResult, abort, atomically_with_err};
+use crate::stm::{Transaction, TransactionClosureResult, abort};
 
 /// 3-links
 impl<T: CoordsFloat> CMap3<T> {
@@ -48,11 +48,6 @@ impl<T: CoordsFloat> CMap3<T> {
         //      - we're trying to sew open faces that are offset by one (or more) dart(s)
         //      in both case, this is way too clunky to be considered valid
         Ok(())
-    }
-
-    /// 3-link operation.
-    pub(crate) fn three_link(&self, ld: DartIdType, rd: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.three_link_tx(t, ld, rd))
     }
 }
 
@@ -100,10 +95,5 @@ impl<T: CoordsFloat> CMap3<T> {
         //       construct
         // (**): if we land on NULL on one side, the other side should be NULL as well
         Ok(())
-    }
-
-    /// 3-unlink operation.
-    pub(crate) fn three_unlink(&self, ld: DartIdType) -> Result<(), LinkError> {
-        atomically_with_err(|t| self.three_unlink_tx(t, ld))
     }
 }
