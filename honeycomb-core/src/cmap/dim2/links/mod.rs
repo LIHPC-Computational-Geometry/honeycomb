@@ -1,6 +1,8 @@
 mod one;
 mod two;
 
+use fast_stm::atomically_with_err;
+
 use crate::cmap::{CMap2, DartIdType, LinkError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult};
@@ -107,8 +109,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_link(ld, rd),
-            2 => self.two_link(ld, rd),
+            1 => atomically_with_err(|t| self.one_link_tx(t, ld, rd)),
+            2 => atomically_with_err(|t| self.two_link_tx(t, ld, rd)),
             _ => unreachable!(),
         }
     }
@@ -123,8 +125,8 @@ impl<T: CoordsFloat> CMap2<T> {
         assert!(I < 3);
         assert_ne!(I, 0);
         match I {
-            1 => self.one_unlink(ld),
-            2 => self.two_unlink(ld),
+            1 => atomically_with_err(|t| self.one_unlink_tx(t, ld)),
+            2 => atomically_with_err(|t| self.two_unlink_tx(t, ld)),
             _ => unreachable!(),
         }
     }
