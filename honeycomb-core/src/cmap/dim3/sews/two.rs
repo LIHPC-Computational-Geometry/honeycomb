@@ -59,16 +59,23 @@ impl<T: CoordsFloat> CMap3<T> {
         try_or_coerce!(self.two_link_tx(t, ld, rd), SewError);
 
         // merge edge attributes
-        try_or_coerce!(
-            self.attributes
-                .merge_attributes(t, OrbitPolicy::Edge, eid_l.min(eid_r), eid_l, eid_r),
-            SewError
-        );
+        if eid_l != eid_r {
+            try_or_coerce!(
+                self.attributes.merge_attributes(
+                    t,
+                    OrbitPolicy::Edge,
+                    eid_l.min(eid_r),
+                    eid_l,
+                    eid_r
+                ),
+                SewError
+            );
+        }
 
         // merge vertex attributes depending on whether
         // - there was an existing orbit at each end
         // - there was an existing orbit on each side
-        if b1rd != NULL_DART_ID {
+        if b1rd != NULL_DART_ID && vid_l != vid_b1r {
             try_or_coerce!(
                 self.vertices.merge(t, vid_l.min(vid_b1r), vid_l, vid_b1r),
                 SewError
@@ -84,7 +91,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 SewError
             );
         }
-        if b1ld != NULL_DART_ID {
+        if b1ld != NULL_DART_ID && vid_b1l != vid_r {
             try_or_coerce!(
                 self.vertices.merge(t, vid_b1l.min(vid_r), vid_b1l, vid_r),
                 SewError
@@ -118,57 +125,62 @@ impl<T: CoordsFloat> CMap3<T> {
         try_or_coerce!(self.two_unlink_tx(t, ld), SewError);
 
         let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
-        let (vid_l_newl, vid_l_newr) = (self.vertex_id_tx(t, ld)?, self.vertex_id_tx(t, b1rd)?);
-        let (vid_r_newl, vid_r_newr) = (self.vertex_id_tx(t, b1ld)?, self.vertex_id_tx(t, rd)?);
 
         // split edge attributes
-        try_or_coerce!(
-            self.attributes.split_attributes(
-                t,
-                OrbitPolicy::Edge,
-                eid_newl,
-                eid_newr,
-                eid_newl.min(eid_newr),
-            ),
-            SewError
-        );
+        if eid_newl != eid_newr {
+            try_or_coerce!(
+                self.attributes.split_attributes(
+                    t,
+                    OrbitPolicy::Edge,
+                    eid_newl,
+                    eid_newr,
+                    eid_newl.min(eid_newr),
+                ),
+                SewError
+            );
+        }
 
         // split vertex attributes depending on whether two distinct orbits were formed by unlink
-        if b1rd != NULL_DART_ID && vid_l_newl != vid_r_newr {
-            try_or_coerce!(
-                self.vertices
-                    .split(t, vid_l_newl, vid_l_newr, vid_l_newl.min(vid_l_newr)),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_l_newl,
-                    vid_l_newr,
-                    vid_l_newl.min(vid_l_newr)
-                ),
-                SewError
-            );
+        if b1rd != NULL_DART_ID {
+            let (vid_l_newl, vid_l_newr) = (self.vertex_id_tx(t, ld)?, self.vertex_id_tx(t, b1rd)?);
+            if vid_l_newl != vid_l_newr {
+                try_or_coerce!(
+                    self.vertices
+                        .split(t, vid_l_newl, vid_l_newr, vid_l_newl.min(vid_l_newr)),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.attributes.split_attributes(
+                        t,
+                        OrbitPolicy::Vertex,
+                        vid_l_newl,
+                        vid_l_newr,
+                        vid_l_newl.min(vid_l_newr)
+                    ),
+                    SewError
+                );
+            }
         }
-        if b1ld != NULL_DART_ID && vid_r_newl != vid_r_newr {
-            try_or_coerce!(
-                self.vertices
-                    .split(t, vid_r_newl, vid_r_newr, vid_r_newl.min(vid_r_newr)),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_r_newl,
-                    vid_r_newr,
-                    vid_r_newl.min(vid_r_newr)
-                ),
-                SewError
-            );
+        if b1ld != NULL_DART_ID {
+            let (vid_r_newl, vid_r_newr) = (self.vertex_id_tx(t, b1ld)?, self.vertex_id_tx(t, rd)?);
+            if vid_r_newl != vid_r_newr {
+                try_or_coerce!(
+                    self.vertices
+                        .split(t, vid_r_newl, vid_r_newr, vid_r_newl.min(vid_r_newr)),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.attributes.split_attributes(
+                        t,
+                        OrbitPolicy::Vertex,
+                        vid_r_newl,
+                        vid_r_newr,
+                        vid_r_newl.min(vid_r_newr)
+                    ),
+                    SewError
+                );
+            }
         }
-
         Ok(())
     }
 }

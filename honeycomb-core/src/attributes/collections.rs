@@ -93,9 +93,10 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         lhs_inp: DartIdType,
         rhs_inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
+        assert_ne!(lhs_inp, rhs_inp);
         let new_v = match (
-            self.data[lhs_inp as usize].read(t)?,
-            self.data[rhs_inp as usize].read(t)?,
+            self.data[lhs_inp as usize].replace(t, None)?,
+            self.data[rhs_inp as usize].replace(t, None)?,
         ) {
             (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
             (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
@@ -103,8 +104,6 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         };
         match new_v {
             Ok(v) => {
-                self.data[rhs_inp as usize].write(t, None)?;
-                self.data[lhs_inp as usize].write(t, None)?;
                 self.data[out as usize].write(t, Some(v))?;
                 Ok(())
             }
@@ -119,14 +118,14 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError> {
-        let res = if let Some(val) = self.data[inp as usize].read(t)? {
+        assert_ne!(lhs_out, rhs_out);
+        let res = if let Some(val) = self.data[inp as usize].replace(t, None)? {
             AttributeUpdate::split(val)
         } else {
             AttributeUpdate::split_from_none()
         };
         match res {
             Ok((lhs_val, rhs_val)) => {
-                self.data[inp as usize].write(t, None)?;
                 self.data[lhs_out as usize].write(t, Some(lhs_val))?;
                 self.data[rhs_out as usize].write(t, Some(rhs_val))?;
                 Ok(())

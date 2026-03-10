@@ -64,7 +64,7 @@ impl<T: CoordsFloat> CMap2<T> {
         );
 
         // merge vertices & attributes from the old IDs to the new one
-        if b1rd != NULL_DART_ID {
+        if b1rd != NULL_DART_ID && ld_vid != b1rd_vid {
             try_or_coerce!(
                 self.vertices
                     .merge(t, ld_vid.min(b1rd_vid), ld_vid, b1rd_vid),
@@ -81,7 +81,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 SewError
             );
         }
-        if b1ld != NULL_DART_ID {
+        if b1ld != NULL_DART_ID && b1ld_vid != rd_vid {
             try_or_coerce!(
                 self.vertices
                     .merge(t, b1ld_vid.min(rd_vid), b1ld_vid, rd_vid),
@@ -130,7 +130,7 @@ impl<T: CoordsFloat> CMap2<T> {
             SewError
         );
         // split vertex attributes
-        if b1rd != NULL_DART_ID {
+        if b1rd != NULL_DART_ID && new_lv_ld != new_lv_rd {
             try_or_coerce!(
                 self.vertices
                     .split(t, new_lv_ld, new_lv_rd, new_lv_ld.min(new_lv_rd)),
@@ -147,7 +147,7 @@ impl<T: CoordsFloat> CMap2<T> {
                 SewError
             );
         }
-        if b1ld != NULL_DART_ID {
+        if b1ld != NULL_DART_ID && new_rv_ld != new_rv_rd {
             try_or_coerce!(
                 self.vertices
                     .split(t, new_rv_ld, new_rv_rd, new_rv_ld.min(new_rv_rd)),

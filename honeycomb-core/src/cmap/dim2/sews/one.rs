@@ -19,9 +19,9 @@ impl<T: CoordsFloat> CMap2<T> {
 
         try_or_coerce!(self.link_tx::<1>(t, ld, rd), SewError);
 
-        if b2ld != NULL_DART_ID {
+        if b2ld != NULL_DART_ID && b2l_vid != r_vid {
             try_or_coerce!(
-                self.vertices.merge(t, b2l_vid.min(r_vid), b2l_vid, r_vid,),
+                self.vertices.merge(t, b2l_vid.min(r_vid), b2l_vid, r_vid),
                 SewError
             );
             try_or_coerce!(
@@ -52,21 +52,24 @@ impl<T: CoordsFloat> CMap2<T> {
         if b2ld != NULL_DART_ID {
             // split vertex attributes
             let (new_lhs, new_rhs) = (self.vertex_id_tx(t, b2ld)?, self.vertex_id_tx(t, rd)?);
-            try_or_coerce!(
-                self.vertices
-                    .split(t, new_lhs, new_rhs, new_lhs.min(new_rhs)),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    new_lhs,
-                    new_rhs,
-                    new_lhs.min(new_rhs),
-                ),
-                SewError
-            );
+
+            if new_lhs != new_rhs {
+                try_or_coerce!(
+                    self.vertices
+                        .split(t, new_lhs, new_rhs, new_lhs.min(new_rhs)),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.attributes.split_attributes(
+                        t,
+                        OrbitPolicy::Vertex,
+                        new_lhs,
+                        new_rhs,
+                        new_lhs.min(new_rhs),
+                    ),
+                    SewError
+                );
+            }
         }
         Ok(())
     }

@@ -181,16 +181,18 @@ impl<T: CoordsFloat> CMap3<T> {
         for (l, r) in l_side.into_iter().zip(r_side.into_iter()) {
             // edge
             let (eid_l, eid_r) = (self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?);
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Edge,
-                    eid_l,
-                    eid_r,
-                    eid_l.min(eid_r)
-                ),
-                SewError
-            );
+            if eid_l != eid_r {
+                try_or_coerce!(
+                    self.attributes.split_attributes(
+                        t,
+                        OrbitPolicy::Edge,
+                        eid_l,
+                        eid_r,
+                        eid_l.min(eid_r)
+                    ),
+                    SewError
+                );
+            }
 
             // vertices
             let (b1l, b2l) = (self.beta_tx::<1>(t, l)?, self.beta_tx::<2>(t, l)?);
@@ -198,40 +200,44 @@ impl<T: CoordsFloat> CMap3<T> {
                 self.vertex_id_tx(t, b1l.max(b2l))?,
                 self.vertex_id_tx(t, r)?,
             );
-            try_or_coerce!(
-                self.vertices.split(t, vid_l, vid_r, vid_l.min(vid_r)),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_l,
-                    vid_r,
-                    vid_l.min(vid_r)
-                ),
-                SewError
-            );
-            if self.beta_tx::<0>(t, l)? == NULL_DART_ID {
-                let (b1r, b2r) = (self.beta_tx::<1>(t, r)?, self.beta_tx::<2>(t, r)?);
-                let (lvid_l, lvid_r) = (
-                    self.vertex_id_tx(t, l)?,
-                    self.vertex_id_tx(t, b1r.max(b2r))?,
-                );
+            if vid_l != vid_r {
                 try_or_coerce!(
-                    self.vertices.split(t, lvid_l, lvid_r, lvid_l.min(lvid_r)),
+                    self.vertices.split(t, vid_l, vid_r, vid_l.min(vid_r)),
                     SewError
                 );
                 try_or_coerce!(
                     self.attributes.split_attributes(
                         t,
                         OrbitPolicy::Vertex,
-                        lvid_l,
-                        lvid_r,
-                        lvid_l.min(lvid_r),
+                        vid_l,
+                        vid_r,
+                        vid_l.min(vid_r)
                     ),
                     SewError
                 );
+            }
+            if self.beta_tx::<0>(t, l)? == NULL_DART_ID {
+                let (b1r, b2r) = (self.beta_tx::<1>(t, r)?, self.beta_tx::<2>(t, r)?);
+                let (lvid_l, lvid_r) = (
+                    self.vertex_id_tx(t, l)?,
+                    self.vertex_id_tx(t, b1r.max(b2r))?,
+                );
+                if lvid_l != lvid_r {
+                    try_or_coerce!(
+                        self.vertices.split(t, lvid_l, lvid_r, lvid_l.min(lvid_r)),
+                        SewError
+                    );
+                    try_or_coerce!(
+                        self.attributes.split_attributes(
+                            t,
+                            OrbitPolicy::Vertex,
+                            lvid_l,
+                            lvid_r,
+                            lvid_l.min(lvid_r),
+                        ),
+                        SewError
+                    );
+                }
             }
         }
         Ok(())
