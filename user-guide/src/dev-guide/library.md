@@ -1,36 +1,34 @@
-# Published crates
+# Libraries
+
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
 
 ---
 
 Several crates of this project are published on the registry _crates.io_: the main crate, **honeycomb** (not yet 
 published), as well as specialized crates **honeycomb-core**, **honeycomb-kernels**, and **honeycomb-render**.
 
----
 
 ## honeycomb
 
 **honeycomb** is the main crate provided to users and serve as the entrypoint for combinatorial map usage. It is
 exclusively made up of re-exports from the core, kernels and render crate to provide a clean, all-in-one dependency.
 
-### Usage
-
 At the moment, the `honeycomb` name is not available on crates.io; this means that using this crate requires adding
 the dependency using the git repository:
 
 ```toml
 # [dependencies]
-honeycomb = { git = "https://github.com/LIHPC-Computational-Geometry/honeycomb" }
+honeycomb = {
+  git = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
+}
 ```
-
-
----
 
 ## honeycomb-core
 
 **honeycomb-core** is a Rust crate that provides basic structures and operations for combinatorial map manipulation.
 This includes map structures, methods implementation, type aliases and geometric modeling for mesh representation.
-
-### Implemented features
+The following features are available:
 
 - a builder structure to handle map creation: `CMapBuilder`.
 - 2D and 3D combinatorial maps, usable in concurrent contexts: `CMap2`/`CMap3`. this includes:
@@ -46,8 +44,6 @@ This includes map structures, methods implementation, type aliases and geometric
     - `Vector3` / `Vertex3`.
 
 
----
-
 ## honeycomb-kernels
 
 **honeycomb-kernels** is a Rust crate that provides implementations of meshing kernels using the core crate's
@@ -61,13 +57,6 @@ combinatorial maps. These implementations have multiple purposes:
 Explanations provided in this guide focus on the overall workflow of algorithms; Implementation-specific details and
 hypothesis are listed in the documentation of the crate.
 
-### Implemented algorithms
-
-- [Grisubal](../kernels/grisubal.md)
-- [Polygon triangulations](../kernels/triangulations.md)
-- [2D remeshing primitives and pipeline](../kernels/remeshing.md)
-
----
 
 ## honeycomb-render
 
@@ -75,8 +64,6 @@ hypothesis are listed in the documentation of the crate.
 combinatorial map. It is designed to be used directly in the code by reading data through a reference to the map (as
 opposed to a binary that would read serialized data). This render tool can be used to quickly debug algorithm results
 by looking at the resulting structure instead of reading hard-to-interpret numerical data.
-
-### Usage
 
 Use the [exported functions](../../honeycomb_render/index.html) to render a given combinatorial map. **You may need
 to run the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow

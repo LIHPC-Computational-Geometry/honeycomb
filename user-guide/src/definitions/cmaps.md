@@ -1,4 +1,13 @@
-# Combinatorial Maps
+# Combinatorial maps
+
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
+
+---
+
+## Definition
+
+### Maps
 
 N-dimensional combinatorial maps, noted *N-map*, are objects made up of
 two main elements:
@@ -24,3 +33,4 @@ Operations on a combinatorial map can affect its topology, shape or both:
 
 The specifics on how data is encoded is detailed in attribute-specific
 sections.
+

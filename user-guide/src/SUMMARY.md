@@ -2,35 +2,38 @@
 
 [Welcome](index.md)
 
-# Project Structure
-
-- [Workspace](./project-structure/workspace.md)
-- [Published crates](./project-structure/published.md)
-- [Other content](./project-structure/others.md)
-- [Contributing](./project-structure/contributing.md)
-
-# Usage
-
-- [Adding generic attributes to maps](./usage/attributes.md)
-- [Concurrency / Parallelism](./usage/stm.md)
-- [Serialization](./usage/serialization.md)
-
-# Kernels
-
-- [Grisubal](./kernels/grisubal.md)
-- [Polygon triangulation](./kernels/triangulations.md)
-- [Remeshing](./kernels/remeshing.md)
-
 # Definitions
 
-- [Introduction](./definitions/introduction.md)
-- [Combinatorial Maps](./definitions/cmaps.md)
-    - [Darts](./definitions/darts.md)
-    - [Beta Functions](./definitions/betaf.md)
-    - [Orbits](./definitions/orbits.md)
-    - [Embedding](./definitions/embedding.md)
-- [Basic Operations](./definitions/basicops.md)
-    - [Add / Remove a dimension](./definitions/changeNdim.md)
-    - [Add / Remove a free dart](./definitions/changeNdart.md)
-    - [Sewing / Unsewing operation](./definitions/sew.md)
+- [Combinatorial maps](./definitions/cmaps.md)
+  - [Components](./definitions/components.md)
+  - [Cell representation](./definitions/cells.md)
+  - [Embedding](./definitions/embedding.md)
+  - [Element insertion and deletion](./definitions/insertion.md)
+  - [Sewing operation](./definitions/sews.md)
+- [Transactional memory](./definitions/stm.md)
+- [Resources]()
 
+# User guide
+
+- [Setup]()
+- [Tutorial #1: Basics]()
+- [Tutorial #2: Algorithm writing]()
+- [Tutorial #3: Parallel meshing]()
+- [Tutorial #3b: Optimization]()
+
+# Developer guide
+
+- [Contributing](./dev-guide/contributing.md)
+- [Project structure](./dev-guide/project-structure.md)
+  - [Library](./dev-guide/library.md)
+  - [Applications]()
+
+# Code examples
+
+- [Serialization](./examples/serialization.md)
+- [Generic attribute system](./examples/attributes.md)
+- [Parallel Laplace smoothing](./examples/smoothing.md)
+
+--------
+
+[License](license.md)

@@ -1,4 +1,20 @@
-# Beta Functions
+# Components
+
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
+
+---
+
+## Darts
+
+Darts are the finest grain composing combinatorial maps. The structure of the map is given by the relationship between
+darts, defined through beta functions. Additionally, a null dart is defined, we denote it *∅*.
+
+In our implementation, darts exist implicitly through indexing and their associated data. There are no dart *objects*
+in a strict sense, there is only a given number of dart, their associated data ordered by an array-like logic, and a
+record of "unused" slots that can be used for dart insertion. Because of this, we assimilate dart and dart index.
+
+## Beta functions
 
 Each combinatorial map of dimension *N* defines *N* beta functions linking the set of darts together (e.g. a 2-map
 contains *β<sub>1</sub>* and *β<sub>2</sub>*). These functions model the topology of the map, giving information about
@@ -14,7 +30,7 @@ The *β<sub>i</sub>* functions can be interpreted as navigation functions along 
 makes you navigate along the edges, *β<sub>2</sub>* along the faces, etc. This can be generalized to *N* dimensions,
 but we are only interested in 2D and 3D at the moment.
 
-## Properties
+### Properties
 
 For a given dart *d*, we define two properties:
 
@@ -42,3 +58,4 @@ For a given dart *d*, we define two properties:
     <img src="../images/bg_map.svg" alt="Embed" />
     <figcaption><i>Build up a larger map</i></figcaption>
 </figure>
+
