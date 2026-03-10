@@ -39,33 +39,30 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            // Node merges
-            assert!(storage.merge(t, 1, 1, 2).is_ok());
-            assert!(storage.read(t, 1)?.is_some());
-            assert!(storage.read(t, 2)?.is_none());
-            assert!(storage.merge(t, 1, 1, 3).is_err());
-            assert!(storage.read(t, 3)?.is_some());
-            // Curve merges
-            assert!(storage.merge(t, 4, 4, 5).is_ok());
-            assert!(storage.read(t, 4)?.is_some());
-            assert!(storage.read(t, 5)?.is_none());
-            assert!(storage.merge(t, 6, 4, 6).is_err());
-            assert!(storage.read(t, 6)?.is_some());
-            // Surface merges
-            assert!(storage.merge(t, 7, 7, 8).is_ok());
-            assert!(storage.read(t, 7)?.is_some());
-            assert!(storage.read(t, 8)?.is_none());
-            assert!(storage.merge(t, 7, 7, 9).is_err());
-            assert!(storage.read(t, 9)?.is_some());
-            // Body merges
-            assert!(storage.merge(t, 11, 12, 11).is_ok());
-            assert!(storage.read(t, 11)?.is_some());
-            assert!(storage.read(t, 12)?.is_none());
-            assert!(storage.merge(t, 10, 10, 11).is_err());
-            assert!(storage.read(t, 11)?.is_some());
-            Ok(())
-        });
+        // Node merges
+        assert!(atomically_with_err(|t| storage.merge(t, 1, 1, 2)).is_ok());
+        assert!(atomically(|t| storage.read(t, 1)).is_some());
+        assert!(atomically(|t| storage.read(t, 2)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 1, 1, 3)).is_err());
+        assert!(atomically(|t| storage.read(t, 3)).is_some());
+        // Curve merges
+        assert!(atomically_with_err(|t| storage.merge(t, 4, 4, 5)).is_ok());
+        assert!(atomically(|t| storage.read(t, 4)).is_some());
+        assert!(atomically(|t| storage.read(t, 5)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 6, 4, 6)).is_err());
+        assert!(atomically(|t| storage.read(t, 6)).is_some());
+        // Surface merges
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 7)).is_some());
+        assert!(atomically(|t| storage.read(t, 8)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 9)).is_err());
+        assert!(atomically(|t| storage.read(t, 9)).is_some());
+        // Body merges
+        assert!(atomically_with_err(|t| storage.merge(t, 11, 12, 11)).is_ok());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
+        assert!(atomically(|t| storage.read(t, 12)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 10, 10, 11)).is_err());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
     }
 
     #[test]
@@ -85,61 +82,23 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            assert!(storage.merge(t, 3, 4, 3).is_ok());
-            assert!(
-                storage
-                    .read(t, 3)?
-                    .is_some_and(|v| v == VertexAnchor::Surface(3))
-            );
-            assert!(storage.merge(t, 2, 3, 2).is_ok());
-            assert!(
-                storage
-                    .read(t, 2)?
-                    .is_some_and(|v| v == VertexAnchor::Curve(2))
-            );
-            assert!(storage.merge(t, 1, 2, 1).is_ok());
-            assert!(
-                storage
-                    .read(t, 1)?
-                    .is_some_and(|v| v == VertexAnchor::Node(1))
-            );
-            assert!(storage.merge(t, 5, 1, 5).is_ok());
-            assert!(
-                storage
-                    .read(t, 5)?
-                    .is_some_and(|v| v == VertexAnchor::Node(1))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 3, 4, 3)).is_ok());
+        assert!(atomically(|t| storage.read(t, 3)).is_some_and(|v| v == VertexAnchor::Surface(3)));
+        assert!(atomically_with_err(|t| storage.merge(t, 2, 3, 2)).is_ok());
+        assert!(atomically(|t| storage.read(t, 2)).is_some_and(|v| v == VertexAnchor::Curve(2)));
+        assert!(atomically_with_err(|t| storage.merge(t, 1, 2, 1)).is_ok());
+        assert!(atomically(|t| storage.read(t, 1)).is_some_and(|v| v == VertexAnchor::Node(1)));
+        assert!(atomically_with_err(|t| storage.merge(t, 5, 1, 5)).is_ok());
+        assert!(atomically(|t| storage.read(t, 5)).is_some_and(|v| v == VertexAnchor::Node(1)));
 
-        atomically(|t| {
-            assert!(storage.merge(t, 6, 10, 6).is_ok());
-            assert!(
-                storage
-                    .read(t, 6)?
-                    .is_some_and(|v| v == VertexAnchor::Node(10))
-            );
-            assert!(storage.merge(t, 8, 8, 9).is_ok());
-            assert!(
-                storage
-                    .read(t, 8)?
-                    .is_some_and(|v| v == VertexAnchor::Surface(8))
-            );
-            assert!(storage.merge(t, 7, 7, 8).is_ok());
-            assert!(
-                storage
-                    .read(t, 7)?
-                    .is_some_and(|v| v == VertexAnchor::Curve(9))
-            );
-            assert!(storage.merge(t, 6, 6, 7).is_ok());
-            assert!(
-                storage
-                    .read(t, 6)?
-                    .is_some_and(|v| v == VertexAnchor::Node(10))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 6, 10, 6)).is_ok());
+        assert!(atomically(|t| storage.read(t, 6)).is_some_and(|v| v == VertexAnchor::Node(10)));
+        assert!(atomically_with_err(|t| storage.merge(t, 8, 8, 9)).is_ok());
+        assert!(atomically(|t| storage.read(t, 8)).is_some_and(|v| v == VertexAnchor::Surface(8)));
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 7)).is_some_and(|v| v == VertexAnchor::Curve(9)));
+        assert!(atomically_with_err(|t| storage.merge(t, 6, 6, 7)).is_ok());
+        assert!(atomically(|t| storage.read(t, 6)).is_some_and(|v| v == VertexAnchor::Node(10)));
     }
 
     #[test]
@@ -158,27 +117,24 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            // Curve merges
-            assert!(storage.merge(t, 4, 4, 5).is_ok());
-            assert!(storage.read(t, 4)?.is_some());
-            assert!(storage.read(t, 5)?.is_none());
-            assert!(storage.merge(t, 6, 4, 6).is_err());
-            assert!(storage.read(t, 6)?.is_some());
-            // Surface merges
-            assert!(storage.merge(t, 7, 7, 8).is_ok());
-            assert!(storage.read(t, 7)?.is_some());
-            assert!(storage.read(t, 8)?.is_none());
-            assert!(storage.merge(t, 7, 7, 9).is_err());
-            assert!(storage.read(t, 9)?.is_some());
-            // Body merges
-            assert!(storage.merge(t, 11, 12, 11).is_ok());
-            assert!(storage.read(t, 11)?.is_some());
-            assert!(storage.read(t, 12)?.is_none());
-            assert!(storage.merge(t, 10, 10, 11).is_err());
-            assert!(storage.read(t, 11)?.is_some());
-            Ok(())
-        });
+        // Curve merges
+        assert!(atomically_with_err(|t| storage.merge(t, 4, 4, 5)).is_ok());
+        assert!(atomically(|t| storage.read(t, 4)).is_some());
+        assert!(atomically(|t| storage.read(t, 5)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 6, 4, 6)).is_err());
+        assert!(atomically(|t| storage.read(t, 6)).is_some());
+        // Surface merges
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 7)).is_some());
+        assert!(atomically(|t| storage.read(t, 8)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 9)).is_err());
+        assert!(atomically(|t| storage.read(t, 9)).is_some());
+        // Body merges
+        assert!(atomically_with_err(|t| storage.merge(t, 11, 12, 11)).is_ok());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
+        assert!(atomically(|t| storage.read(t, 12)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 10, 10, 11)).is_err());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
     }
 
     #[test]
@@ -196,49 +152,19 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            assert!(storage.merge(t, 3, 4, 3).is_ok());
-            assert!(
-                storage
-                    .read(t, 3)?
-                    .is_some_and(|v| v == EdgeAnchor::Surface(3))
-            );
-            assert!(storage.merge(t, 2, 3, 2).is_ok());
-            assert!(
-                storage
-                    .read(t, 2)?
-                    .is_some_and(|v| v == EdgeAnchor::Curve(2))
-            );
-            assert!(storage.merge(t, 5, 2, 5).is_ok());
-            assert!(
-                storage
-                    .read(t, 5)?
-                    .is_some_and(|v| v == EdgeAnchor::Curve(2))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 3, 4, 3)).is_ok());
+        assert!(atomically(|t| storage.read(t, 3)).is_some_and(|v| v == EdgeAnchor::Surface(3)));
+        assert!(atomically_with_err(|t| storage.merge(t, 2, 3, 2)).is_ok());
+        assert!(atomically(|t| storage.read(t, 2)).is_some_and(|v| v == EdgeAnchor::Curve(2)));
+        assert!(atomically_with_err(|t| storage.merge(t, 5, 2, 5)).is_ok());
+        assert!(atomically(|t| storage.read(t, 5)).is_some_and(|v| v == EdgeAnchor::Curve(2)));
 
-        atomically(|t| {
-            assert!(storage.merge(t, 8, 8, 9).is_ok());
-            assert!(
-                storage
-                    .read(t, 8)?
-                    .is_some_and(|v| v == EdgeAnchor::Surface(8))
-            );
-            assert!(storage.merge(t, 7, 7, 8).is_ok());
-            assert!(
-                storage
-                    .read(t, 7)?
-                    .is_some_and(|v| v == EdgeAnchor::Curve(9))
-            );
-            assert!(storage.merge(t, 10, 10, 7).is_ok());
-            assert!(
-                storage
-                    .read(t, 10)?
-                    .is_some_and(|v| v == EdgeAnchor::Curve(9))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 8, 8, 9)).is_ok());
+        assert!(atomically(|t| storage.read(t, 8)).is_some_and(|v| v == EdgeAnchor::Surface(8)));
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 7)).is_some_and(|v| v == EdgeAnchor::Curve(9)));
+        assert!(atomically_with_err(|t| storage.merge(t, 10, 10, 7)).is_ok());
+        assert!(atomically(|t| storage.read(t, 10)).is_some_and(|v| v == EdgeAnchor::Curve(9)));
     }
 
     #[test]
@@ -254,21 +180,18 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            // Surface merges
-            assert!(storage.merge(t, 7, 7, 8).is_ok());
-            assert!(storage.read(t, 7)?.is_some());
-            assert!(storage.read(t, 8)?.is_none());
-            assert!(storage.merge(t, 7, 7, 9).is_err());
-            assert!(storage.read(t, 9)?.is_some());
-            // Body merges
-            assert!(storage.merge(t, 11, 12, 11).is_ok());
-            assert!(storage.read(t, 11)?.is_some());
-            assert!(storage.read(t, 12)?.is_none());
-            assert!(storage.merge(t, 10, 10, 11).is_err());
-            assert!(storage.read(t, 11)?.is_some());
-            Ok(())
-        });
+        // Surface merges
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 7)).is_some());
+        assert!(atomically(|t| storage.read(t, 8)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 7, 7, 9)).is_err());
+        assert!(atomically(|t| storage.read(t, 9)).is_some());
+        // Body merges
+        assert!(atomically_with_err(|t| storage.merge(t, 11, 12, 11)).is_ok());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
+        assert!(atomically(|t| storage.read(t, 12)).is_none());
+        assert!(atomically_with_err(|t| storage.merge(t, 10, 10, 11)).is_err());
+        assert!(atomically(|t| storage.read(t, 11)).is_some());
     }
 
     #[test]
@@ -284,37 +207,15 @@ mod anchors {
             Ok(())
         });
 
-        atomically(|t| {
-            assert!(storage.merge(t, 3, 4, 3).is_ok());
-            assert!(
-                storage
-                    .read(t, 3)?
-                    .is_some_and(|v| v == FaceAnchor::Surface(3))
-            );
-            assert!(storage.merge(t, 5, 3, 5).is_ok());
-            assert!(
-                storage
-                    .read(t, 5)?
-                    .is_some_and(|v| v == FaceAnchor::Surface(3))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 3, 4, 3)).is_ok());
+        assert!(atomically(|t| storage.read(t, 3)).is_some_and(|v| v == FaceAnchor::Surface(3)));
+        assert!(atomically_with_err(|t| storage.merge(t, 5, 3, 5)).is_ok());
+        assert!(atomically(|t| storage.read(t, 5)).is_some_and(|v| v == FaceAnchor::Surface(3)));
 
-        atomically(|t| {
-            assert!(storage.merge(t, 8, 8, 9).is_ok());
-            assert!(
-                storage
-                    .read(t, 8)?
-                    .is_some_and(|v| v == FaceAnchor::Surface(8))
-            );
-            assert!(storage.merge(t, 10, 10, 8).is_ok());
-            assert!(
-                storage
-                    .read(t, 10)?
-                    .is_some_and(|v| v == FaceAnchor::Surface(8))
-            );
-            Ok(())
-        });
+        assert!(atomically_with_err(|t| storage.merge(t, 8, 8, 9)).is_ok());
+        assert!(atomically(|t| storage.read(t, 8)).is_some_and(|v| v == FaceAnchor::Surface(8)));
+        assert!(atomically_with_err(|t| storage.merge(t, 10, 10, 8)).is_ok());
+        assert!(atomically(|t| storage.read(t, 10)).is_some_and(|v| v == FaceAnchor::Surface(8)));
     }
 
     #[test]
