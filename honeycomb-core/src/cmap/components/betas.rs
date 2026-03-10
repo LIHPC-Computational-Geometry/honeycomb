@@ -88,29 +88,29 @@ impl<const N: usize> BetaFunctions<N> {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
-    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    /// - `ld: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rd: DartIdentifier` -- ID of the second dart to be linked.
     ///
     /// # Panics
     ///
-    /// This method may panic if `lhs_dart_id` isn't 1-free or `rhs_dart_id` isn't 0-free.
+    /// This method may panic if `ld` isn't 1-free or `rd` isn't 0-free.
     ///
     pub fn one_link_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
-        rhs_dart_id: DartIdType,
+        ld: DartIdType,
+        rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(1, lhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(1, lhs_dart_id, rhs_dart_id));
+        let b1ld = self[(1, ld)].replace(t, rd)?;
+        let b0rd = self[(0, rd)].replace(t, ld)?;
+
+        if b1ld != NULL_DART_ID {
+            return abort(LinkError::NonFreeBase(1, ld, rd));
         }
-        if self[(0, rhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(0, lhs_dart_id, rhs_dart_id));
+        if b0rd != NULL_DART_ID {
+            return abort(LinkError::NonFreeImage(0, ld, rd));
         }
-        // set beta_1(lhs_dart) to rhs_dart
-        self[(1, lhs_dart_id)].write(t, rhs_dart_id)?;
-        // set beta_0(rhs_dart) to lhs_dart
-        self[(0, rhs_dart_id)].write(t, lhs_dart_id)?;
+
         Ok(())
     }
 
@@ -122,45 +122,47 @@ impl<const N: usize> BetaFunctions<N> {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the first dart to be linked.
-    /// - `rhs_dart_id: DartIdentifier` -- ID of the second dart to be linked.
+    /// - `ld: DartIdentifier` -- ID of the first dart to be linked.
+    /// - `rd: DartIdentifier` -- ID of the second dart to be linked.
     ///
     /// # Panics
     ///
-    /// This method may panic if one of `lhs_dart_id` or `rhs_dart_id` isn't 2-free.
+    /// This method may panic if one of `ld` or `rd` isn't 2-free.
     pub fn two_link_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
-        rhs_dart_id: DartIdType,
+        ld: DartIdType,
+        rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(2, lhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(2, lhs_dart_id, rhs_dart_id));
+        let b2ld = self[(2, ld)].replace(t, rd)?;
+        let b2rd = self[(2, rd)].replace(t, ld)?;
+
+        if b2ld != NULL_DART_ID {
+            return abort(LinkError::NonFreeBase(2, ld, rd));
         }
-        if self[(2, rhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(2, lhs_dart_id, rhs_dart_id));
+        if b2rd != NULL_DART_ID {
+            return abort(LinkError::NonFreeImage(2, ld, rd));
         }
-        // set beta_2(lhs_dart) to rhs_dart
-        self[(2, lhs_dart_id)].write(t, rhs_dart_id)?;
-        // set beta_2(rhs_dart) to lhs_dart
-        self[(2, rhs_dart_id)].write(t, lhs_dart_id)?;
+
         Ok(())
     }
 
     pub fn three_link_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
-        rhs_dart_id: DartIdType,
+        ld: DartIdType,
+        rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        if self[(3, lhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(3, lhs_dart_id, rhs_dart_id));
+        let b3ld = self[(3, ld)].replace(t, rd)?;
+        let b3rd = self[(3, rd)].replace(t, ld)?;
+
+        if b3ld != NULL_DART_ID {
+            return abort(LinkError::NonFreeBase(3, ld, rd));
         }
-        if self[(3, rhs_dart_id)].read(t)? != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(3, lhs_dart_id, rhs_dart_id));
+        if b3rd != NULL_DART_ID {
+            return abort(LinkError::NonFreeImage(3, ld, rd));
         }
-        self[(3, lhs_dart_id)].write(t, rhs_dart_id)?;
-        self[(3, rhs_dart_id)].write(t, lhs_dart_id)?;
+
         Ok(())
     }
 
@@ -173,23 +175,23 @@ impl<const N: usize> BetaFunctions<N> {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    /// - `ld: DartIdentifier` -- ID of the dart to unlink.
     ///
     /// # Panics
     ///
-    /// This method may panic if one of `lhs_dart_id` is already 1-free.
+    /// This method may panic if one of `ld` is already 1-free.
     pub fn one_unlink_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
+        ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // set beta_1(lhs_dart) to NullDart
-        let rhs_dart_id = self[(1, lhs_dart_id)].replace(t, NULL_DART_ID)?;
-        if rhs_dart_id == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(1, lhs_dart_id));
+        let rd = self[(1, ld)].replace(t, NULL_DART_ID)?;
+        if rd == NULL_DART_ID {
+            return abort(LinkError::AlreadyFree(1, ld));
         }
         // set beta_0(rhs_dart) to NullDart
-        self[(0, rhs_dart_id)].write(t, NULL_DART_ID)?;
+        self[(0, rd)].write(t, NULL_DART_ID)?;
         Ok(())
     }
 
@@ -201,38 +203,38 @@ impl<const N: usize> BetaFunctions<N> {
     ///
     /// # Arguments
     ///
-    /// - `lhs_dart_id: DartIdentifier` -- ID of the dart to unlink.
+    /// - `ld: DartIdentifier` -- ID of the dart to unlink.
     ///
     /// # Panics
     ///
-    /// This method may panic if one of `lhs_dart_id` is already 2-free.
+    /// This method may panic if one of `ld` is already 2-free.
     pub fn two_unlink_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
+        ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // set beta_2(dart) to NullDart
-        let rhs_dart_id = self[(2, lhs_dart_id)].replace(t, NULL_DART_ID)?;
-        if rhs_dart_id == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(2, lhs_dart_id));
+        let rd = self[(2, ld)].replace(t, NULL_DART_ID)?;
+        if rd == NULL_DART_ID {
+            return abort(LinkError::AlreadyFree(2, ld));
         }
         // set beta_2(beta_2(dart)) to NullDart
-        self[(2, rhs_dart_id)].write(t, NULL_DART_ID)?;
+        self[(2, rd)].write(t, NULL_DART_ID)?;
         Ok(())
     }
 
     pub fn three_unlink_core(
         &self,
         t: &mut Transaction,
-        lhs_dart_id: DartIdType,
+        ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // set beta_3(lhs_dart) to NullDart
-        let rhs_dart_id = self[(3, lhs_dart_id)].replace(t, NULL_DART_ID)?;
-        if rhs_dart_id == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(3, lhs_dart_id));
+        let rd = self[(3, ld)].replace(t, NULL_DART_ID)?;
+        if rd == NULL_DART_ID {
+            return abort(LinkError::AlreadyFree(3, ld));
         }
         // set beta_3(rhs_dart) to NullDart
-        self[(3, rhs_dart_id)].write(t, NULL_DART_ID)?;
+        self[(3, rd)].write(t, NULL_DART_ID)?;
         Ok(())
     }
 }
