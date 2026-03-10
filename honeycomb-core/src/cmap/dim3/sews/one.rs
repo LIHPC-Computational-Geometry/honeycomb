@@ -26,7 +26,7 @@ impl<T: CoordsFloat> CMap3<T> {
 
         try_or_coerce!(self.one_link_tx(t, ld, rd), SewError);
 
-        if b3ld != NULL_DART_ID {
+        if b3ld != NULL_DART_ID && vid_l_old != vid_r_old {
             let new_vid = vid_r_old.min(vid_l_old);
             try_or_coerce!(
                 self.vertices.merge(t, new_vid, vid_l_old, vid_r_old),
@@ -57,25 +57,27 @@ impl<T: CoordsFloat> CMap3<T> {
 
         try_or_coerce!(self.one_unlink_tx(t, ld), SewError);
 
-        let vid_l_new = self.vertex_id_tx(t, b3ld)?;
-        let vid_r_new = self.vertex_id_tx(t, rd)?;
         // perf: branch miss vs redundancy
-        if b3ld != NULL_DART_ID && vid_l_new != vid_r_new {
-            try_or_coerce!(
-                self.vertices
-                    .split(t, vid_l_new, vid_r_new, vid_l_new.min(vid_r_new)),
-                SewError
-            );
-            try_or_coerce!(
-                self.attributes.split_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    vid_l_new,
-                    vid_r_new,
-                    vid_l_new.min(vid_r_new),
-                ),
-                SewError
-            );
+        if b3ld != NULL_DART_ID {
+            let vid_l_new = self.vertex_id_tx(t, b3ld)?;
+            let vid_r_new = self.vertex_id_tx(t, rd)?;
+            if vid_l_new != vid_r_new {
+                try_or_coerce!(
+                    self.vertices
+                        .split(t, vid_l_new, vid_r_new, vid_l_new.min(vid_r_new)),
+                    SewError
+                );
+                try_or_coerce!(
+                    self.attributes.split_attributes(
+                        t,
+                        OrbitPolicy::Vertex,
+                        vid_l_new,
+                        vid_r_new,
+                        vid_l_new.min(vid_r_new),
+                    ),
+                    SewError
+                );
+            }
         }
         Ok(())
     }
