@@ -13,10 +13,6 @@ The sew operation can be divided into two parts:
 - a geometrical update, which corresponds to an update of the affected embedded data, called
   attributes in our code
 
-Note that the implementation is not as simple as doing one and then the other for consistency
-reasons: changing the topology affects our ability to retrieve the embedded data, therefore the
-result is highly sensitive to operation order.
-
 ### Topology
 
 The *i-link* operation corresponds to the aforementioned topological update. Given two darts

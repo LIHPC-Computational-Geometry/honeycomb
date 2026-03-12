@@ -17,8 +17,8 @@ get programs to compile, but it would respectively yield an incorrect or impract
   variable: for example, we can write an operation that does not progress until all of the used data
   is locked. However, locks are error-prone, have very poor composability.
 
-The nature of meshing operations disqualify both mechanisms. They are complex, access many
-variables, and are often comprised of multiple steps. For example, the following operation is
+The nature of meshing operations makes both mechanisms very unpractical. They are complex, access
+many variables, and are often comprised of multiple steps. For example, the following operation is
 executed on all affected attributes of a sew:
 
 <figure style="text-align:center">
@@ -28,7 +28,7 @@ executed on all affected attributes of a sew:
 
 Because the map can go through invalid intermediate states during a single operation, we need to
 ensure another thread will not use one of these as the starting point for another operation. This
-rules out atomic variables.
+rules out fine-grained atomics.
 
 The sew operation is the main method used to create new connectivities in the map. This means that
 most high-level meshing operations will call this method multiple times. If these meshing operations

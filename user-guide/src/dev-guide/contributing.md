@@ -16,8 +16,8 @@ The repository contains a Nix flake to easily setup a development environment:
 nix develop
 ```
 
-Most notably, it handles `hwloc` install on both MacOs and Linux, as well as the libraries `bevy`
-depends on on Linux.
+Most notably, it handles `hwloc` install on both MacOs and Linux, as well as Linux-specific
+dependencies for our visualizer (used by `bevy`).
 
 ## Checks
 
