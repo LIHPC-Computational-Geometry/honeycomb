@@ -196,17 +196,48 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
     ) -> TransactionClosureResult<(), SewError> {
         let rd = self.beta_tx::<3>(t, ld)?;
-
-        try_or_coerce!(self.three_unlink_tx(t, ld), SewError);
-
         let mut l_side = Vec::with_capacity(10);
-        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[1, 0]), ld) {
-            l_side.push(d?);
-        }
         let mut r_side = Vec::with_capacity(10);
-        for d in self.orbit_tx(t, OrbitPolicy::Custom(&[0, 1]), rd) {
-            r_side.push(d?);
+        l_side.push(ld);
+        r_side.push(rd);
+
+        try_or_coerce!(self.betas.three_unlink_core(t, ld), SewError);
+        let (mut l, mut r) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
+        // while we haven't completed the loop, or reached an end
+        while l != ld && l != NULL_DART_ID {
+            if l != self.beta_tx::<3>(t, r)? {
+                // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
+                abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
+            }
+            try_or_coerce!(self.betas.three_unlink_core(t, l), SewError);
+            l_side.push(l);
+            r_side.push(r);
+            (l, r) = (self.beta_tx::<1>(t, l)?, self.beta_tx::<0>(t, r)?);
         }
+        // the face was open, so we need to cover the other direction
+        // for meshes, we should be working on complete faces at all times,
+        // so branch prediction will hopefully save use
+        if l == NULL_DART_ID {
+            if r != NULL_DART_ID {
+                // (**)
+                abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
+            }
+            (l, r) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
+            while l != NULL_DART_ID {
+                if l != self.beta_tx::<3>(t, r)? {
+                    // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
+                    abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
+                }
+                assert_eq!(l, self.beta_tx::<3>(t, r)?); // (*)
+                try_or_coerce!(self.betas.three_unlink_core(t, l), SewError);
+                l_side.push(l);
+                r_side.push(r);
+                (l, r) = (self.beta_tx::<0>(t, l)?, self.beta_tx::<1>(t, r)?);
+            }
+        }
+        // (*) : this can be changed, but the idea here is to ensure we're unlinking the expected
+        //       construct
+        // (**): if we land on NULL on one side, the other side should be NULL as well
 
         // faces
         let l_face = l_side.iter().min().copied().expect("E: unreachable");
