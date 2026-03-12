@@ -1,9 +1,8 @@
 [book]
 authors = ["imrn99"]
 language = "en"
-multilingual = false
 src = "src"
-title = "Honeycomb - User Guide"
+title = "The Honeycomb Book"
 
 [output.html]
 site-url = "/honeycomb/"

@@ -1,8 +1,12 @@
 # Contributing
 
-Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues to report bugs,
-missing documentation or suggest improvements of the project.
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
 
+--- 
+
+Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues
+to report bugs, missing documentation or suggest improvements of the project.
 
 ## Environment
 
@@ -12,8 +16,8 @@ The repository contains a Nix flake to easily setup a development environment:
 nix develop
 ```
 
-Most notably, it handles `hwloc` install on both MacOs and Linux, as well as the libraries `bevy` depends on on Linux.
-
+Most notably, it handles `hwloc` install on both MacOs and Linux, as well as Linux-specific
+dependencies for our visualizer (used by `bevy`).
 
 ## Checks
 

@@ -1,5 +1,10 @@
 # Embedding
 
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
+
+---
+
 Embedding, or embedded data refers to the association of topological
 entities (darts, *i*-cells) to geometrical data (spatial positions,
 vertices, faces, volumes).

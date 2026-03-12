@@ -24,7 +24,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - uses: peaceiris/actions-mdbook@v2
         with:
-          mdbook-version: "0.4.36"
+          mdbook-version: "0.5.2"
       - name: Install hwloc
         run: sudo apt-get update && sudo apt-get install -y libhwloc-dev libudev-dev
       # Generate
