@@ -1,4 +1,9 @@
-# Orbits
+# Cell representation
+
+**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
+at some point.**
+
+---
 
 We define orbits as a set of darts that are accessible from a given dart,
 using a certain set of beta functions. For example:
