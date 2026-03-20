@@ -108,7 +108,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), SewError> {
+    ) -> TransactionClosureResult<DartIdType, SewError> {
         let rd = self.beta_tx::<2>(t, ld)?;
         let b1ld = self.beta_tx::<1>(t, ld)?;
         let b1rd = self.beta_tx::<1>(t, rd)?;
@@ -165,6 +165,6 @@ impl<T: CoordsFloat> CMap2<T> {
             );
         }
 
-        Ok(())
+        Ok(rd)
     }
 }

@@ -99,7 +99,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), SewError> {
+    ) -> TransactionClosureResult<DartIdType, SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -131,7 +131,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`unsew`][Self::unsew], but internally uses a transaction that
     /// will be retried until validated.
-    pub fn unsew<const I: u8>(&self, ld: DartIdType) -> Result<(), SewError> {
+    pub fn unsew<const I: u8>(&self, ld: DartIdType) -> Result<DartIdType, SewError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
