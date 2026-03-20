@@ -93,7 +93,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -151,7 +151,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `lhs_dart_id` is already `I`-free.
-    pub fn unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+    pub fn unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);

@@ -58,7 +58,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         let rd = self.beta_tx::<3>(t, ld)?;
 
         self.betas.three_unlink_core(t, ld)?;
@@ -94,6 +94,6 @@ impl<T: CoordsFloat> CMap3<T> {
         // (*) : this can be changed, but the idea here is to ensure we're unlinking the expected
         //       construct
         // (**): if we land on NULL on one side, the other side should be NULL as well
-        Ok(())
+        Ok(rd)
     }
 }

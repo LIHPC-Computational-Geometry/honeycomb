@@ -72,7 +72,9 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// The second dart ID is fetched using `I` and `ld`.
     ///
-    /// # Errors
+    /// # Return / Errors
+    ///
+    /// This method returns the old value of *β<sub>I</sub>(ld)*.
     ///
     /// This method should be called in a transactional context. The `Result` is then used to
     /// validate the transaction; Errors should not be processed manually, only processed via the
@@ -88,7 +90,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
@@ -120,7 +122,7 @@ impl<T: CoordsFloat> CMap2<T> {
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
-    pub fn unlink<const I: u8>(&self, ld: DartIdType) -> Result<(), LinkError> {
+    pub fn unlink<const I: u8>(&self, ld: DartIdType) -> Result<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 3);
         assert_ne!(I, 0);
