@@ -3,6 +3,8 @@ name: Documentation
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -32,13 +34,14 @@ jobs:
         run: cargo +nightly doc --all --no-deps --all-features
       - name: Generate user guide
         run: mdbook build user-guide/
-      # Deploy
       - name: Aggregate files
         run: |
           mv user-guide/book target/doc/user-guide && \
           cp docs/index.html target/doc && \
           cp docs/index.css  target/doc
+      # Deploy only if the job is executed for a push to master
       - name: Deploy Docs
+        if: github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
