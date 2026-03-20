@@ -305,6 +305,6 @@ impl<T: CoordsFloat> CMap3<T> {
         }
         self.attributes.clear_attribute_values(t, dart_id)?;
         self.vertices.clear_slot(t, dart_id)?;
-        Ok(self.unused_darts[dart_id].replace(t, true)?) // Ok(_?) necessary for err type coercion
+        Ok(self.unused_darts[dart_id].exchange(t, true)?) // Ok(_?) necessary for err type coercion
     }
 }
