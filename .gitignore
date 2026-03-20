@@ -1,38 +1,42 @@
 # Rust
-# Cargo.lock
+/.cargo
+/vendor
 /target
-
-# wasm
-*/pkg
 
 # local IDE configs
 /.idea
 /.vscode
 
-# Python
-/venv
-
-# ignore csv, svg, txt files in root directory
+# ignore csv, svg, txt, zip files in root directory, cluster log files
 /*.csv
 /*.svg
 /*.txt
+/*.zip
+/*.e
+/*.o
 
 # ignore wild vtk files
 *.vtk
 !/applications/shape.vtk
 
+# shell files (mostly cluster-related)
+/*.sh
+!/applications/scripts/*.sh
+
 # ignore coverage-related files
 *.profraw
 *.lcov
 
-# ignore perf files
+# perf
 perf.data
 perf.data.old
-
-# ignore heaptrack files
+# heaptrack
 *.zst
+# sa;ply
+*.json.gz
 
 # ignore bench result directories
 /fixed
 /grid
 /thread
+/out
