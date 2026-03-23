@@ -44,13 +44,19 @@ impl<T: CoordsFloat> CMap3<T> {
             // for meshes, we should be working on complete faces at all times,
             // so branch prediction will hopefully save use
             if r != NULL_DART_ID {
-                // (*)
+                // if we land on NULL on one side, the other side should be NULL as well
+                // if that is not the case, it means (either):
+                //
+                // - we're trying to sew open faces with a different number of darts
+                // - we're trying to sew open faces that are offset by one (or more) dart(s)
+                //
+                // in both case, this is way too clunky to be considered valid
                 abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
             }
             (l, r) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
             while l != NULL_DART_ID {
                 if r == NULL_DART_ID {
-                    // (*)
+                    // if we land on NULL on one side, the other side should be NULL as well
                     abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
                 }
                 l_side.push(l);
@@ -58,11 +64,6 @@ impl<T: CoordsFloat> CMap3<T> {
                 (l, r) = (self.beta_tx::<0>(t, l)?, self.beta_tx::<1>(t, r)?);
             }
         }
-        // (*): if we land on NULL on one side, the other side should be NULL as well
-        //      if that is not the case, it means (either):
-        //      - we're trying to sew open faces with a different number of darts
-        //      - we're trying to sew open faces that are offset by one (or more) dart(s)
-        //      in both case, this is way too clunky to be considered valid
 
         let l_face = l_side.iter().min().copied().expect("E: unreachable");
         let r_face = r_side.iter().min().copied().expect("E: unreachable");
@@ -219,13 +220,15 @@ impl<T: CoordsFloat> CMap3<T> {
         // so branch prediction will hopefully save use
         if l == NULL_DART_ID {
             if r != NULL_DART_ID {
-                // (**)
+                // if we land on NULL on one side, the other side should be NULL as well
                 abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
             }
             (l, r) = (self.beta_tx::<0>(t, ld)?, self.beta_tx::<1>(t, rd)?);
             while l != NULL_DART_ID {
                 if l != self.beta_tx::<3>(t, r)? {
-                    // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
+                    // this can be changed, but the idea here is to ensure we're unlinking
+                    // the expected construct
+                    // FIXME: add dedicated err ~LinkError::DivergentStructures ?
                     abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
                 }
                 assert_eq!(l, self.beta_tx::<3>(t, r)?); // (*)
@@ -235,9 +238,6 @@ impl<T: CoordsFloat> CMap3<T> {
                 (l, r) = (self.beta_tx::<0>(t, l)?, self.beta_tx::<1>(t, r)?);
             }
         }
-        // (*) : this can be changed, but the idea here is to ensure we're unlinking the expected
-        //       construct
-        // (**): if we land on NULL on one side, the other side should be NULL as well
 
         // faces
         let l_face = l_side.iter().min().copied().expect("E: unreachable");
