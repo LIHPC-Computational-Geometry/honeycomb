@@ -51,7 +51,7 @@ fast-stm      = { version = "0.7.0", default-features = false }
 iai-callgrind = "0.16.1"
 loom          = "0.7.2"
 num-traits    = "0.2.19"
-vtkio         = { version = "0.7.0-rc1", default-features = false }
+vtkio         = { version = "0.7.0-rc2", default-features = false }
 
 # applications
 bindgen           = "0.72.1"
