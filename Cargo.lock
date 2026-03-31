@@ -221,7 +221,7 @@ dependencies = [
  "rand 0.10.0",
  "rayon",
  "regex",
- "rustc-hash 2.1.1",
+ "rustc-hash 2.1.2",
  "smallvec 2.0.0-alpha.12",
  "thiserror 2.0.18",
  "tikv-jemallocator",
@@ -1296,7 +1296,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "rustc-hash 2.1.1",
+ "rustc-hash 2.1.2",
  "shlex",
  "syn 2.0.117",
 ]
@@ -2123,7 +2123,7 @@ checksum = "faca6b9b0df86db534598a2936e3dd7a292f73e32b2b2949ded3fca5dcc22c1a"
 dependencies = [
  "cfg-if",
  "parking_lot",
- "rustc-hash 2.1.1",
+ "rustc-hash 2.1.2",
  "rustversion",
  "thiserror 2.0.18",
 ]
@@ -2677,7 +2677,7 @@ dependencies = [
  "loom",
  "num-traits",
  "rayon",
- "rustc-hash 2.1.1",
+ "rustc-hash 2.1.2",
  "rustversion",
  "thiserror 2.0.18",
  "vtkio",
@@ -2690,7 +2690,7 @@ dependencies = [
  "honeycomb-core",
  "num-traits",
  "rayon",
- "rustc-hash 2.1.1",
+ "rustc-hash 2.1.2",
  "rustversion",
  "smallvec 2.0.0-alpha.12",
  "thiserror 2.0.18",
@@ -4272,9 +4272,9 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustc-hash"
-version = "2.1.1"
+version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
+checksum = "94300abf3f1ae2e2b8ffb7b58043de3d399c73fa6f4b73826402a5c457614dbe"
 
 [[package]]
 name = "rustc_version"

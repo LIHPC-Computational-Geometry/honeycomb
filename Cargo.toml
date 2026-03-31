@@ -40,7 +40,7 @@ anyhow      = "1.0.102"
 cfg-if      = "1"
 itertools   = "0.14.0"
 rayon       = "1.10.0"
-rustc-hash  = "2.1.1"
+rustc-hash  = "2.1.2"
 rustversion = "1.0.18"
 thiserror   = "2.0.18"
 
