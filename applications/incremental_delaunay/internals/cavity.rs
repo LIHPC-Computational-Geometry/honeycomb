@@ -83,7 +83,7 @@ impl IncompleteTets {
         self.index.write_atomic(0);
         self.tets.extend(
             range
-                .filter(|&d| atomically(|t| map.is_unused_tx(t, d)))
+                .filter(|&d| atomically(|t| Ok(map.is_unused_tx(t, d)? & map.is_free_tx(t, d)?)))
                 .collect::<Vec<_>>()
                 .chunks_exact(9)
                 .map(|c| {
@@ -421,8 +421,11 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
     let mut tmp = None;
 
     for (_, [(da, da_neigh), (db, db_neigh), (dc, dc_neigh)]) in boundary.into_iter() {
-        let [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
+        let darts @ [d1, d2, _, _, d5, _, _, d8, _]: [DartIdType; 9] =
             try_or_coerce!(TETS.with_borrow(|tets| tets.get(t)), CavityError);
+        for d in darts {
+            map.claim_dart_tx(t, d)?;
+        }
         let vid = map.vertex_id_tx(t, d1)?;
         map.write_vertex_tx(t, vid, point)?;
         if tmp.is_none() {
@@ -454,13 +457,9 @@ pub fn rebuild_cavity_3d<T: CoordsFloat>(
 fn make_incomplete_tet<T: CoordsFloat>(
     t: &mut Transaction,
     map: &CMap3<T>,
-    darts @ [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
+    [d1, d2, d3, d4, d5, d6, d7, d8, d9]: [DartIdType; 9],
     // p: Vertex3<T>,
 ) -> TransactionClosureResult<(), LinkError> {
-    for d in darts {
-        map.claim_dart_tx(t, d)?;
-    }
-
     // build 3 triangles
     map.link_tx::<1>(t, d1, d2)?;
     map.link_tx::<1>(t, d2, d3)?;
