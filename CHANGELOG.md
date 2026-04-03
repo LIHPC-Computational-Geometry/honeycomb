@@ -6,6 +6,99 @@
 
 ---
 
+## 0.11.0
+
+### Workspace
+
+*deps:*
+- bump anyhow from 1.0.101 to 1.0.102 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/431
+- bump crate-ci/typos from 1.44.0 to 1.45.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/458
+- bump codecov/codecov-action from 5.5.2 to 6.0.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/457
+- bump clap from 4.5.57 to 4.6.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/448
+- bump rustc-hash from 2.1.1 to 2.1.2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/455
+- bump nalgebra from 0.34.1 to 0.34.2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/456
+- bump vtkio from 0.7.0-rc1 to 0.7.0-rc2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/452
+- bump coupe from `6abd08f` to `30dce98` by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/453
+- bump cudarc from 0.19.2 to 0.19.4 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/454
+- update `fast-stm` to `0.7.1` by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/460
+
+*ci:*
+- build doc on PR, deploy only on push to master by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/451
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- add util method to set a vertex value by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/436
+
+*refactor:*
+- merge and split attributes only if the orbit composition changes by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/445
+- **remove `force_` prefix from non-transactional method variants** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/435
+- **add `_tx` suffix to `CMap3` transactional embedding methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/435
+- **add `_tx` suffix to `CMap2` transactional embedding methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/435
+- **add `_tx` suffix to `CMap3` transactional link and sew methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/435
+- **add `_tx` suffix to `CMap2` transactional link and sew methods** by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/435
+- inline `link` operation in `CMap3` sew internals by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/447
+- use `TVar::replace` instead of `read`+`write` in core components by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/445
+- remove internal non-tx variants of link ops by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/445
+- update STM lib features by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/428
+
+*fix:*
+- add explicit doc_cfg attribute usage by @imrn99
+
+#### honeycomb-kernels
+
+<sup>meshing kernel implementations using combinatorial maps</sup>
+
+*test:*
+- use STM properly in anchor attribute tests by @imrn99
+
+#### applications
+
+<sup>examples and benchmarks</sup>
+
+*refactor:*
+- replace seq/par insertion split with automatic work split and dispatch by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/430
+- rewrite Delaunay bench script by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/434
+- increment `DART_BLOCK_START` to reduce free dart search time by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/433
+- pre-make new tets outside of transactions by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/439
+
+*fix:*
+- reserve premade tets' darts in main insertion loop by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/459
+
+
+---
+
 ## 0.10.2
 
 ### Workspace
