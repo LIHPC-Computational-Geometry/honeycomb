@@ -58,7 +58,7 @@ bindgen           = "0.72.1"
 clap              = "4.6.0"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.19.4"
-hwlocality        = "1.0.0-alpha.7"
+hwlocality        = "1.0.0-alpha.12"
 nalgebra          = "0.34.2"
 rand              = "0.10.0"
 regex             = "1.12.3"
