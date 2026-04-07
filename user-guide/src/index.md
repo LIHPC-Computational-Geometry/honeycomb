@@ -48,7 +48,7 @@ to its `Cargo.toml`:
 # [dependencies]
 honeycomb = {
   git = "https://github.com/LIHPC-Computational-Geometry/honeycomb",
-  tag = "0.10.2" # it is highly encouraged to pin version using a tag or a revision
+  tag = "0.11.0" # it is highly encouraged to pin version using a tag or a revision
 }
 ```
 
@@ -56,9 +56,9 @@ Alternatively, you can add the sub-crates that are currently published on crates
 
 ```toml
 # [dependencies]
-honeycomb-core    = "0.10.2"
-honeycomb-kernels = "0.10.2"
-honeycomb-render  = "0.10.2"
+honeycomb-core    = "0.11.0"
+honeycomb-kernels = "0.11.0"
+honeycomb-render  = "0.11.0"
 ```
 
 Note that the documentation hosted on GitHub corresponds to the master branch.
