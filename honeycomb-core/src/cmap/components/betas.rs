@@ -101,8 +101,8 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b1ld = self[(1, ld)].replace(t, rd)?;
-        let b0rd = self[(0, rd)].replace(t, ld)?;
+        let b1ld = self[(1, ld)].exchange(t, rd)?;
+        let b0rd = self[(0, rd)].exchange(t, ld)?;
 
         if b1ld != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(1, ld, rd));
@@ -134,8 +134,8 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b2ld = self[(2, ld)].replace(t, rd)?;
-        let b2rd = self[(2, rd)].replace(t, ld)?;
+        let b2ld = self[(2, ld)].exchange(t, rd)?;
+        let b2rd = self[(2, rd)].exchange(t, ld)?;
 
         if b2ld != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(2, ld, rd));
@@ -153,8 +153,8 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b3ld = self[(3, ld)].replace(t, rd)?;
-        let b3rd = self[(3, rd)].replace(t, ld)?;
+        let b3ld = self[(3, ld)].exchange(t, rd)?;
+        let b3rd = self[(3, rd)].exchange(t, ld)?;
 
         if b3ld != NULL_DART_ID {
             return abort(LinkError::NonFreeBase(3, ld, rd));
@@ -186,7 +186,7 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_1(lhs_dart) to NullDart
-        let rd = self[(1, ld)].replace(t, NULL_DART_ID)?;
+        let rd = self[(1, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
             return abort(LinkError::AlreadyFree(1, ld));
         }
@@ -214,7 +214,7 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_2(dart) to NullDart
-        let rd = self[(2, ld)].replace(t, NULL_DART_ID)?;
+        let rd = self[(2, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
             return abort(LinkError::AlreadyFree(2, ld));
         }
@@ -229,7 +229,7 @@ impl<const N: usize> BetaFunctions<N> {
         ld: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
         // set beta_3(lhs_dart) to NullDart
-        let rd = self[(3, ld)].replace(t, NULL_DART_ID)?;
+        let rd = self[(3, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
             return abort(LinkError::AlreadyFree(3, ld));
         }
