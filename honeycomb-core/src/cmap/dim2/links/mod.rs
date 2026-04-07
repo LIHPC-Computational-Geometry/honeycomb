@@ -33,6 +33,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// `?` operator. The policy in case of failure can be defined when creating the transaction,
     /// using `Transaction::with_control`.
     ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
+    ///
     /// # Panics
     ///
     /// The method may panic if:
@@ -54,6 +57,7 @@ impl<T: CoordsFloat> CMap2<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// `I`-unlink operator.
     ///
     /// # Description
@@ -80,6 +84,9 @@ impl<T: CoordsFloat> CMap2<T> {
     /// validate the transaction; Errors should not be processed manually, only processed via the
     /// `?` operator. The policy in case of failure can be defined when creating the transaction,
     /// using `Transaction::with_control`.
+    ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
     ///
     /// # Panics
     ///

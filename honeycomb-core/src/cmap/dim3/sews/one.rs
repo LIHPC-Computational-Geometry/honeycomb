@@ -60,12 +60,11 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, SewError> {
-        let rd = self.beta_tx::<1>(t, ld)?;
+        let rd = try_or_coerce!(self.betas.one_unlink_core(t, ld), SewError);
         let b3ld = self.beta_tx::<3>(t, ld)?;
         let b3rd = self.beta_tx::<3>(t, rd)?;
         let b2ld = self.beta_tx::<2>(t, ld)?;
 
-        try_or_coerce!(self.betas.one_unlink_core(t, ld), SewError);
         if b3ld != NULL_DART_ID && b3rd != NULL_DART_ID {
             if self.beta_tx::<1>(t, b3rd)? != b3ld {
                 // FIXME: add dedicated variant ~LinkError::DivergentStructures ?

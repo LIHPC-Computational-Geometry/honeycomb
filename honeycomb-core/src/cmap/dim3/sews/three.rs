@@ -190,19 +190,19 @@ impl<T: CoordsFloat> CMap3<T> {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     /// 3-unsew operation.
     pub(crate) fn three_unsew_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, SewError> {
-        let rd = self.beta_tx::<3>(t, ld)?;
+        let rd = try_or_coerce!(self.betas.three_unlink_core(t, ld), SewError);
         let mut l_side = Vec::with_capacity(10);
         let mut r_side = Vec::with_capacity(10);
         l_side.push(ld);
         r_side.push(rd);
 
-        try_or_coerce!(self.betas.three_unlink_core(t, ld), SewError);
         let (mut l, mut r) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while l != ld && l != NULL_DART_ID {

@@ -118,11 +118,9 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, SewError> {
-        let rd = self.beta_tx::<2>(t, ld)?;
+        let rd = try_or_coerce!(self.two_unlink_tx(t, ld), SewError);
         let b1ld = self.beta_tx::<1>(t, ld)?.max(self.beta_tx::<3>(t, ld)?);
         let b1rd = self.beta_tx::<1>(t, rd)?.max(self.beta_tx::<3>(t, rd)?);
-
-        try_or_coerce!(self.two_unlink_tx(t, ld), SewError);
 
         let (eid_newl, eid_newr) = (self.edge_id_tx(t, ld)?, self.edge_id_tx(t, rd)?);
 

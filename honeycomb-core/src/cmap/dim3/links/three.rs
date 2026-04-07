@@ -59,9 +59,8 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
-        let rd = self.beta_tx::<3>(t, ld)?;
+        let rd = self.betas.three_unlink_core(t, ld)?;
 
-        self.betas.three_unlink_core(t, ld)?;
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {

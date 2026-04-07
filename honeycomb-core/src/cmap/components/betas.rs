@@ -227,7 +227,7 @@ impl<const N: usize> BetaFunctions<N> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_3(lhs_dart) to NullDart
         let rd = self[(3, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
@@ -235,6 +235,6 @@ impl<const N: usize> BetaFunctions<N> {
         }
         // set beta_3(rhs_dart) to NullDart
         self[(3, rd)].write(t, NULL_DART_ID)?;
-        Ok(())
+        Ok(rd)
     }
 }

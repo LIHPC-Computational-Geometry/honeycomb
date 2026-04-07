@@ -44,10 +44,9 @@ impl<T: CoordsFloat> CMap2<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, SewError> {
-        let rd = self.beta_tx::<1>(t, ld)?;
         let b2ld = self.beta_tx::<2>(t, ld)?;
 
-        try_or_coerce!(self.unlink_tx::<1>(t, ld), SewError);
+        let rd = try_or_coerce!(self.unlink_tx::<1>(t, ld), SewError);
 
         if b2ld != NULL_DART_ID {
             // split vertex attributes
