@@ -59,6 +59,7 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// `I`-unlink operator.
     ///
     /// # Description
@@ -77,12 +78,17 @@ impl<T: CoordsFloat> CMap3<T> {
     ///
     /// The second dart ID is fetched using `I` and `lhs_dart_id`.
     ///
-    /// # Errors
+    /// # Return / Errors
+    ///
+    /// This method returns the old value of *β<sub>I</sub>(ld)*.
     ///
     /// This method should be called in a transactional context. The `Result` is then used to
     /// validate the transaction; Errors should not be processed manually, only processed via the
     /// `?` operator. The policy in case of failure can be defined when creating the transaction,
     /// using `Transaction::with_control`.
+    ///
+    /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
+    /// more detail about the latter.
     ///
     /// # Panics
     ///
@@ -93,7 +99,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);
@@ -136,12 +142,15 @@ impl<T: CoordsFloat> CMap3<T> {
         }
     }
 
+    #[allow(clippy::missing_errors_doc)]
     /// `I`-unlink operator.
     ///
     /// This variant is equivalent to [`unlink`][Self::unlink], but internally uses a transaction
     /// that will be retried until validated.
     ///
-    /// # Errors
+    /// # Return / Errors
+    ///
+    /// This method returns the old value of *β<sub>I</sub>(ld)*.
     ///
     /// It may return an error if the transaction fails or if the link fails; See [`LinkError`] for
     /// more detail about the latter.
@@ -151,7 +160,7 @@ impl<T: CoordsFloat> CMap3<T> {
     /// The method may panic if:
     /// - `I >= 4` or `I == 0`,
     /// - `lhs_dart_id` is already `I`-free.
-    pub fn unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<(), LinkError> {
+    pub fn unlink<const I: u8>(&self, lhs_dart_id: DartIdType) -> Result<DartIdType, LinkError> {
         // these assertions + match on a const are optimized away
         assert!(I < 4);
         assert_ne!(I, 0);

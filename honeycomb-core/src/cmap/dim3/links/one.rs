@@ -29,7 +29,7 @@ impl<T: CoordsFloat> CMap3<T> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         let rd = self.beta_tx::<1>(t, ld)?;
         self.betas.one_unlink_core(t, ld)?;
         let (b3_ld, b3_rd) = (self.beta_tx::<3>(t, ld)?, self.beta_tx::<3>(t, rd)?);
@@ -40,6 +40,6 @@ impl<T: CoordsFloat> CMap3<T> {
             }
             self.betas.one_unlink_core(t, b3_rd)?;
         }
-        Ok(())
+        Ok(rd)
     }
 }

@@ -24,7 +24,7 @@ impl<T: CoordsFloat> CMap2<T> {
         &self,
         t: &mut Transaction,
         lhs_dart_id: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         self.betas.one_unlink_core(t, lhs_dart_id)
     }
 }

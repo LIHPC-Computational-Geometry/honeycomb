@@ -184,7 +184,7 @@ impl<const N: usize> BetaFunctions<N> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_1(lhs_dart) to NullDart
         let rd = self[(1, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
@@ -192,7 +192,7 @@ impl<const N: usize> BetaFunctions<N> {
         }
         // set beta_0(rhs_dart) to NullDart
         self[(0, rd)].write(t, NULL_DART_ID)?;
-        Ok(())
+        Ok(rd)
     }
 
     /// 2-unlink operation.
@@ -212,7 +212,7 @@ impl<const N: usize> BetaFunctions<N> {
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_2(dart) to NullDart
         let rd = self[(2, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
@@ -220,14 +220,14 @@ impl<const N: usize> BetaFunctions<N> {
         }
         // set beta_2(beta_2(dart)) to NullDart
         self[(2, rd)].write(t, NULL_DART_ID)?;
-        Ok(())
+        Ok(rd)
     }
 
     pub fn three_unlink_core(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
-    ) -> TransactionClosureResult<(), LinkError> {
+    ) -> TransactionClosureResult<DartIdType, LinkError> {
         // set beta_3(lhs_dart) to NullDart
         let rd = self[(3, ld)].exchange(t, NULL_DART_ID)?;
         if rd == NULL_DART_ID {
@@ -235,6 +235,6 @@ impl<const N: usize> BetaFunctions<N> {
         }
         // set beta_3(rhs_dart) to NullDart
         self[(3, rd)].write(t, NULL_DART_ID)?;
-        Ok(())
+        Ok(rd)
     }
 }
