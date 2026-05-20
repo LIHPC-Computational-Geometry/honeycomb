@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["draw_inspected_data","draw_options","extract_data_from_3d_map","extract_data_from_map","render_dart_enabled","render_darts","render_darts_3d","render_edge_enabled","render_edges","render_face_enabled","render_faces","render_vertex_enabled","render_vertices"]};

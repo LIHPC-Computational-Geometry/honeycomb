@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EdgeAnchor","FaceAnchor","VertexAnchor"],"fn":["is_orbit_orientation_consistent"],"type":["BodyIdType","CurveIdType","NodeIdType","SurfaceIdType"]};
