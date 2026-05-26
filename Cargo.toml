@@ -59,7 +59,7 @@ clap              = "4.6.1"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.19.7"
 hwlocality        = "1.0.0-alpha.12"
-nalgebra          = "0.34.2"
+nalgebra          = "0.35.0"
 rand              = "0.10.1"
 regex             = "1.12.3"
 smallvec          = "2.0.0-alpha.12"
