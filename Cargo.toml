@@ -63,7 +63,7 @@ nalgebra          = "0.34.2"
 rand              = "0.10.1"
 regex             = "1.12.3"
 smallvec          = "2.0.0-alpha.12"
-tikv-jemallocator = "0.6.1"
+tikv-jemallocator = "0.7.0"
 
 # render
 bevy             = { version = "0.14.2", default-features = false }
