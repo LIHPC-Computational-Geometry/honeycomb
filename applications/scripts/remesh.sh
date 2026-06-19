@@ -84,49 +84,49 @@ RAYON_NUM_THREADS=1 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_1.out
 RAYON_NUM_THREADS=3 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_3.out
 RAYON_NUM_THREADS=9 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_9.out
 RAYON_NUM_THREADS=18 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_18.out
 RAYON_NUM_THREADS=36 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_36.out
 RAYON_NUM_THREADS=54 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_54.out
 RAYON_NUM_THREADS=72 ${TARGET_DIR}/remesh \
     --clip right \
     --target-length 0.002 \
     ${SCRIPT_DIR}/shape.vtk \
-    2.0 2.0 \
+    1.0 1.0 \
     --n-rounds 10 \
     >> out/refine/remesh_sc_72.out
 

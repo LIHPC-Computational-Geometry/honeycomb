@@ -12,7 +12,7 @@ mkdir out
 
 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    10000 \
+    98304 \
     >> out/delaunay_seq.out
 
 
@@ -27,31 +27,31 @@ ${TARGET_DIR}/incremental-delaunay \
 
 RAYON_NUM_THREADS=1 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    16384 \
+    32768 \
     >> out/delaunay_ws_1.out
 RAYON_NUM_THREADS=3 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    49152 \
+    98304 \
     >> out/delaunay_ws_3.out
 RAYON_NUM_THREADS=9 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    147456 \
+    294912 \
     >> out/delaunay_ws_9.out
 RAYON_NUM_THREADS=18 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    294912 \
+    589824 \
     >> out/delaunay_ws_18.out
 RAYON_NUM_THREADS=36 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    589824 \
+    1179648 \
     >> out/delaunay_ws_36.out
 RAYON_NUM_THREADS=54 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    884736 \
+    1769472 \
     >> out/delaunay_ws_54.out
 RAYON_NUM_THREADS=72 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    2359296 \
     >> out/delaunay_ws_72.out
 
 # Strong scaling
@@ -66,29 +66,29 @@ RAYON_NUM_THREADS=72 ${TARGET_DIR}/incremental-delaunay \
 
 RAYON_NUM_THREADS=1 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_1.out
 RAYON_NUM_THREADS=3 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_3.out
 RAYON_NUM_THREADS=9 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_9.out
 RAYON_NUM_THREADS=18 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_18.out
 RAYON_NUM_THREADS=36 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_36.out
 RAYON_NUM_THREADS=54 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_54.out
 RAYON_NUM_THREADS=72 ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
-    1179648 \
+    589824 \
     >> out/delaunay_ss_72.out
