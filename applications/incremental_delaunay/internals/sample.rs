@@ -77,7 +77,7 @@ pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64, probability
                 .unwrap();
 
                 let mut r: Vec<_> = r.into_iter().zip(partition).collect();
-                r.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
+                r.sort_by_key(|(_, p_a)| *p_a);
 
                 r.into_iter().map(|(p, _)| p)
             })
@@ -109,7 +109,7 @@ pub fn compute_brio<T: CoordsFloat>(points: Vec<Point3D>, seed: u64, probability
             .unwrap();
 
             let mut r: Vec<_> = r.into_iter().zip(partition).collect();
-            r.sort_by(|(_, p_a), (_, p_b)| p_a.cmp(p_b));
+            r.sort_by_key(|(_, p_a)| *p_a);
 
             r.into_iter()
                 .map(|(p, _)| {
