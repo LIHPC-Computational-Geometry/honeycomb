@@ -253,7 +253,7 @@ impl<T: CoordsFloat> CMap3<T> {
             SewError
         );
 
-        for (l, r) in l_side.into_iter().zip(r_side.into_iter()) {
+        for (l, r) in l_side.into_iter().zip(r_side) {
             // edge
             let (eid_l, eid_r) = (self.edge_id_tx(t, l)?, self.edge_id_tx(t, r)?);
             if eid_l != eid_r {
