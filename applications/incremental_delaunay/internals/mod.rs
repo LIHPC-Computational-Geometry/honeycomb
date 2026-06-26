@@ -104,26 +104,31 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                     LAST_INSERTED.set(last_inserted);
                     break;
                 }
-                Err(e) => {
-                    // eprintln!("E: insertion failed - {e}");
-                    match e {
-                        DelaunayError::CircumsphereSingularity => break,
-                        DelaunayError::CavityBuilding(e) => match e {
-                            CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
-                                continue;
+                        Err(e) => {
+                            // eprintln!("E: insertion failed - {e}");
+                            match e {
+                                DelaunayError::CircumsphereSingularity => break,
+                                DelaunayError::CavityBuilding(e) => match e {
+                                    CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                                        continue;
+                                    }
+                                    CavityError::FailedRelease(_)
+                                    | CavityError::NonExtendable(_) => {
+                                        break;
+                                    }
+                                    CavityError::FailedReservation(_) => {
+                                        TETS.with_borrow_mut(|tets| {
+                                            tets.refill(&map, 0..n_darts_seq as DartIdType)
+                                        });
+                                        continue;
+                                    }
+                                },
                             }
-                            CavityError::FailedRelease(_)
-                            | CavityError::NonExtendable(_)
-                            | CavityError::FailedReservation(_) => {
-                                break;
-                            }
-                        },
+                        }
                     }
                 }
-            }
-        }
-    });
-    let time = instant.elapsed().as_secs_f32();
+            });
+            let time = instant.elapsed().as_secs_f32();
     println!(
         " {:>10} | {:>13} | {:>18} | {:>8.3e} | {:>10.3e}",
         1,
@@ -167,9 +172,19 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                         continue;
                                     }
                                     CavityError::FailedRelease(_)
-                                    | CavityError::NonExtendable(_)
-                                    | CavityError::FailedReservation(_) => {
+                                    | CavityError::NonExtendable(_) => {
                                         break;
+                                    }
+                                    CavityError::FailedReservation(_) => {
+                                        let tid = rayon::current_thread_index()
+                                            .expect("E: unreachable");
+                                        let block_start =
+                                            start + (tid * block_size) as DartIdType;
+                                        let block_end = block_start + block_size as DartIdType;
+                                        TETS.with_borrow_mut(|tets| {
+                                            tets.refill(&map, block_start..block_end)
+                                        });
+                                        continue;
                                     }
                                 },
                             }
