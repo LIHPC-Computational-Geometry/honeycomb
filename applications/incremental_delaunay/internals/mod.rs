@@ -4,7 +4,7 @@ mod sample;
 
 use std::{
     cell::Cell,
-    sync::atomic::{AtomicUsize, Ordering},
+    sync::atomic::{AtomicU64, AtomicUsize, Ordering},
     time::Instant,
 };
 
@@ -155,9 +155,8 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
             round_idx += 1;
             let rnn = round.len();
             let counters: Vec<AtomicUsize> = (0..n_threads).map(|_| AtomicUsize::new(0)).collect();
+            let refill_time = AtomicU64::new(0);
             round.into_par_iter().for_each(|p| {
-                // round.par_chunks(round.len().div_ceil(4)).for_each(|c| {
-                //     c.into_iter().for_each(|&p| {
                 loop {
                     match atomically_with_err(|t| insert_points(t, &map, p)) {
                         Ok(last_inserted) => {
@@ -167,7 +166,6 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                             break;
                         }
                         Err(e) => {
-                            // eprintln!("E: insertion failed - {e}");
                             match e {
                                 DelaunayError::CircumsphereSingularity => break,
                                 DelaunayError::CavityBuilding(e) => match e {
@@ -188,9 +186,14 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                         let block_start =
                                             start + (tid * block_size) as DartIdType;
                                         let block_end = block_start + block_size as DartIdType;
+                                        let refill_start = Instant::now();
                                         TETS.with_borrow_mut(|tets| {
                                             tets.refill(&map, block_start..block_end)
                                         });
+                                        refill_time.fetch_add(
+                                            refill_start.elapsed().as_nanos() as u64,
+                                            Ordering::Relaxed,
+                                        );
                                         continue;
                                     }
                                 },
@@ -198,9 +201,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                         }
                     }
                 }
-                // });
             });
-            let time = instant.elapsed().as_secs_f32();
+            let time = instant.elapsed().as_secs_f32()
+                - (refill_time.load(Ordering::Relaxed) as f32 / 1e9);
             let count: usize = counters.iter().map(|c| c.load(Ordering::Relaxed)).sum();
             println!(
                 " {:>10} | {:>13} | {:>18} | {:>8.3e} | {:>10.3e}",
