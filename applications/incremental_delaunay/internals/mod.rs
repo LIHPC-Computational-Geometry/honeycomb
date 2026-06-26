@@ -87,7 +87,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     let start = map.allocate_unused_darts(n_darts_tot) + n_darts_seq as DartIdType;
     // initialize the search offset for dart reservations
     let block_size = (20 * 12 * n_points - n_darts_seq) / rayon::current_num_threads();
-    TETS.with_borrow_mut(|tets| tets.update(0..n_darts_seq as DartIdType, &map));
+    TETS.with_borrow_mut(|tets| tets.refill(&map, 0..n_darts_seq as DartIdType));
     println!(
         "|-> init time      : {:>8.3e}",
         instant.elapsed().as_secs_f32()
@@ -105,34 +105,34 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                     LAST_INSERTED.set(last_inserted);
                     break;
                 }
-                        Err(e) => {
-                            // eprintln!("E: insertion failed - {e}");
-                            match e {
-                                DelaunayError::CircumsphereSingularity => break,
-                                DelaunayError::CavityBuilding(e) => match e {
-                                    CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
-                                        continue;
-                                    }
-                                    CavityError::FailedRelease(_)
-                                    | CavityError::NonExtendable(_) => {
-                                        break;
-                                    }
-                                    CavityError::FailedReservation(_) => {
-                                        if no_refill {
-                                            break;
-                                        }
-                                        TETS.with_borrow_mut(|tets| {
-                                            tets.refill(&map, 0..n_darts_seq as DartIdType)
-                                        });
-                                        continue;
-                                    }
-                                },
+                Err(e) => {
+                    // eprintln!("E: insertion failed - {e}");
+                    match e {
+                        DelaunayError::CircumsphereSingularity => break,
+                        DelaunayError::CavityBuilding(e) => match e {
+                            CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                                continue;
                             }
-                        }
+                            CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
+                                break;
+                            }
+                            CavityError::FailedReservation(_) => {
+                                if no_refill {
+                                    break;
+                                } else {
+                                    TETS.with_borrow_mut(|tets| {
+                                        tets.refill(&map, 0..n_darts_seq as DartIdType)
+                                    });
+                                    continue;
+                                }
+                            }
+                        },
                     }
                 }
-            });
-            let time = instant.elapsed().as_secs_f32();
+            }
+        }
+    });
+    let time = instant.elapsed().as_secs_f32();
     println!(
         " {:>10} | {:>13} | {:>18} | {:>8.3e} | {:>10.3e}",
         1,
@@ -149,7 +149,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                 let tid = rayon::current_thread_index().expect("E: unreachable");
                 let block_start = start + (tid * block_size) as DartIdType;
                 let block_end = block_start + block_size as DartIdType;
-                TETS.with_borrow_mut(|tets| tets.update(block_start..block_end, &map));
+                TETS.with_borrow_mut(|tets| tets.refill(&map, block_start..block_end));
             });
             instant = Instant::now();
             round_idx += 1;
@@ -165,26 +165,22 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                             LAST_INSERTED.set(last_inserted);
                             break;
                         }
-                        Err(e) => {
-                            match e {
-                                DelaunayError::CircumsphereSingularity => break,
-                                DelaunayError::CavityBuilding(e) => match e {
-                                    CavityError::FailedOp(_)
-                                    | CavityError::InconsistentState(_) => {
-                                        continue;
-                                    }
-                                    CavityError::FailedRelease(_)
-                                    | CavityError::NonExtendable(_) => {
+                        Err(e) => match e {
+                            DelaunayError::CircumsphereSingularity => break,
+                            DelaunayError::CavityBuilding(e) => match e {
+                                CavityError::FailedOp(_) | CavityError::InconsistentState(_) => {
+                                    continue;
+                                }
+                                CavityError::FailedRelease(_) | CavityError::NonExtendable(_) => {
+                                    break;
+                                }
+                                CavityError::FailedReservation(_) => {
+                                    if no_refill {
                                         break;
-                                    }
-                                    CavityError::FailedReservation(_) => {
-                                        if no_refill {
-                                            break;
-                                        }
-                                        let tid = rayon::current_thread_index()
-                                            .expect("E: unreachable");
-                                        let block_start =
-                                            start + (tid * block_size) as DartIdType;
+                                    } else {
+                                        let tid =
+                                            rayon::current_thread_index().expect("E: unreachable");
+                                        let block_start = start + (tid * block_size) as DartIdType;
                                         let block_end = block_start + block_size as DartIdType;
                                         let refill_start = Instant::now();
                                         TETS.with_borrow_mut(|tets| {
@@ -196,9 +192,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                         );
                                         continue;
                                     }
-                                },
-                            }
-                        }
+                                }
+                            },
+                        },
                     }
                 }
             });

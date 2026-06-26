@@ -11,7 +11,7 @@ use honeycomb::{
             StmClosureResult, Transaction, TransactionClosureResult, abort, retry, try_or_coerce,
         },
     },
-    stm::{TVar, TransactionError, atomically, atomically_with_err, unwrap_or_abort},
+    stm::{TVar, TransactionError, atomically_with_err, unwrap_or_abort},
 };
 use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use smallvec::{SmallVec, smallvec};
@@ -77,26 +77,22 @@ pub struct IncompleteTets {
 }
 
 impl IncompleteTets {
-    /// Rebuild and update tet list using the specified range of darts.
-    pub fn update<T: CoordsFloat>(&mut self, range: Range<DartIdType>, map: &CMap3<T>) {
+    /// Drain consumed tets and rebuild incomplete tets from unused+free darts in `range`.
+    pub fn refill<T: CoordsFloat>(&mut self, map: &CMap3<T>, range: Range<DartIdType>) {
         self.tets.drain(0..self.index.read_atomic());
         self.index.write_atomic(0);
         self.tets.extend(
             range
-                .filter(|&d| atomically(|t| Ok(map.is_unused_tx(t, d)? & map.is_free_tx(t, d)?)))
+                .filter(|&d| map.is_unused(d) && map.is_free(d))
                 .collect::<Vec<_>>()
                 .chunks_exact(9)
                 .map(|c| {
-                    let &[d1, d2, d3, d4, d5, d6, d7, d8, d9] = c else {
-                        unreachable!()
-                    };
+                    let darts: [DartIdType; 9] = c.try_into().expect("E: unreachable");
 
-                    atomically_with_err(|t| {
-                        make_incomplete_tet(t, map, [d1, d2, d3, d4, d5, d6, d7, d8, d9])
-                    })
-                    .expect("E: unreachable");
+                    atomically_with_err(|t| make_incomplete_tet(t, map, darts))
+                        .expect("E: unreachable");
 
-                    [d1, d2, d3, d4, d5, d6, d7, d8, d9]
+                    darts
                 }),
         );
     }
@@ -109,31 +105,6 @@ impl IncompleteTets {
         let v = unwrap_or_abort(self.tets.get(self.index.read(t)?), DartReservationError(0))?;
         self.index.modify(t, |i| i + 1)?;
         Ok(*v)
-    }
-
-    /// Drain consumed tets and rebuild incomplete tets from unused+free darts in `range`.
-    pub fn refill<T: CoordsFloat>(&mut self, map: &CMap3<T>, range: Range<DartIdType>) {
-        let consumed = self.index.read_atomic();
-        self.tets.drain(0..consumed);
-        self.index.write_atomic(0);
-
-        let candidates: Vec<_> = range
-            .filter(|&d| map.is_unused(d) && map.is_free(d))
-            .collect();
-
-        for chunk in candidates.chunks_exact(9) {
-            let darts: [DartIdType; 9] = chunk.try_into().unwrap();
-            let ok = atomically_with_err(|t| {
-                for &d in &darts {
-                    map.claim_dart_tx(t, d)?;
-                }
-                make_incomplete_tet(t, map, darts)
-            })
-            .is_ok();
-            if ok {
-                self.tets.push(darts);
-            }
-        }
     }
 }
 
