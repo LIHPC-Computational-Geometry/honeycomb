@@ -47,8 +47,7 @@ fn run_bench<T: CoordsFloat>(
     no_refill: bool,
     save: Option<FileFormat>,
 ) {
-    let map =
-        internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, seed, probability, no_refill);
+    let map = internals::delaunay_box_3d::<T>(lx, ly, lz, n_points, seed, probability, no_refill);
 
     finalize_3d(map, save);
 }
