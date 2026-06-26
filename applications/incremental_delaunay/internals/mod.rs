@@ -41,6 +41,7 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
     n_points: usize,
     seed: u64,
     probability: f64,
+    no_refill: bool,
 ) -> CMap3<T> {
     assert!(lx > 0.0);
     assert!(ly > 0.0);
@@ -117,6 +118,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                         break;
                                     }
                                     CavityError::FailedReservation(_) => {
+                                        if no_refill {
+                                            break;
+                                        }
                                         TETS.with_borrow_mut(|tets| {
                                             tets.refill(&map, 0..n_darts_seq as DartIdType)
                                         });
@@ -176,6 +180,9 @@ pub fn delaunay_box_3d<T: CoordsFloat>(
                                         break;
                                     }
                                     CavityError::FailedReservation(_) => {
+                                        if no_refill {
+                                            break;
+                                        }
                                         let tid = rayon::current_thread_index()
                                             .expect("E: unreachable");
                                         let block_start =

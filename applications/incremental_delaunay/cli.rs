@@ -31,4 +31,7 @@ pub struct Cli {
     /// Execute benchmarks using `f32` instead of the default `f64`
     #[arg(long("simple-precision"))]
     pub simple_precision: bool,
+    /// Disable mid-round tet pool refilling
+    #[arg(long("no-refill"))]
+    pub no_refill: bool,
 }
