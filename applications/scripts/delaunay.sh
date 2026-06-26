@@ -14,6 +14,30 @@ ${TARGET_DIR}/incremental-delaunay \
     1 1 1 \
     98304 \
     >> out/delaunay_seq.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    512 \
+    >> out/delaunay_seq_1.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    4608 \
+    >> out/delaunay_seq_9.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    9216 \
+    >> out/delaunay_seq_18.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    18432 \
+    >> out/delaunay_seq_36.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    27648 \
+    >> out/delaunay_seq_54.out
+${TARGET_DIR}/incremental-delaunay \
+    1 1 1 \
+    36864 \
+    >> out/delaunay_seq_72.out
 
 
 # Delaunay (weak scaling, large starting triangulation)
