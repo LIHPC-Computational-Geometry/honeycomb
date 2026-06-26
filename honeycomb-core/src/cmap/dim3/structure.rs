@@ -136,6 +136,12 @@ impl<T: CoordsFloat> CMap3<T> {
     }
 
     /// Return whether a given dart is unused or not.
+    #[must_use = "unused return value"]
+    pub fn is_unused(&self, d: DartIdType) -> bool {
+        self.unused_darts[d].read_atomic()
+    }
+
+    /// Return whether a given dart is unused or not.
     ///
     /// # Errors
     ///

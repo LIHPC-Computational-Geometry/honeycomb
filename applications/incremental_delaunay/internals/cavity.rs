@@ -110,6 +110,31 @@ impl IncompleteTets {
         self.index.modify(t, |i| i + 1)?;
         Ok(*v)
     }
+
+    /// Drain consumed tets and rebuild incomplete tets from unused+free darts in `range`.
+    pub fn refill<T: CoordsFloat>(&mut self, map: &CMap3<T>, range: Range<DartIdType>) {
+        let consumed = self.index.read_atomic();
+        self.tets.drain(0..consumed);
+        self.index.write_atomic(0);
+
+        let candidates: Vec<_> = range
+            .filter(|&d| map.is_unused(d) && map.is_free(d))
+            .collect();
+
+        for chunk in candidates.chunks_exact(9) {
+            let darts: [DartIdType; 9] = chunk.try_into().unwrap();
+            let ok = atomically_with_err(|t| {
+                for &d in &darts {
+                    map.claim_dart_tx(t, d)?;
+                }
+                make_incomplete_tet(t, map, darts)
+            })
+            .is_ok();
+            if ok {
+                self.tets.push(darts);
+            }
+        }
+    }
 }
 
 impl Default for IncompleteTets {
