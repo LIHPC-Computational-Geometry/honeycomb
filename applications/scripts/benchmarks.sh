@@ -24,7 +24,7 @@ mkdir out
 
 # Grid generation
 
-# sh ${SCRIPT_DIR}/gridgen.sh
+sh ${SCRIPT_DIR}/gridgen.sh
 
 # Remesh pipeline
 
