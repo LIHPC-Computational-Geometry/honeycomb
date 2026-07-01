@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Run typos spell check
-      uses: crate-ci/typos@v1.47.1
+      uses: crate-ci/typos@v1.48.0
       with:
         config: ./.typos.toml
