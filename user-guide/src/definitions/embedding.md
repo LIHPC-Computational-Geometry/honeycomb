@@ -29,8 +29,8 @@ uses a generic system to handle this. We do not store cell identifiers in collec
 compute identifiers as needed for data access.  
 
 <figure style="text-align:center">
-    <img src="../images/embedding.png" alt="MapMeshEquivalent" width=100%/>
-    <figcaption><i>2-map example and its components values.</i></figcaption>
+    <img src="../images/embedding.png" alt="CellID" width=100%/>
+    <figcaption><i>0-cell ID computation process for a 2-map.</i></figcaption>
 </figure>
 
 Identifiers are used to index specific attribute storages, which are distinguished using attribute
