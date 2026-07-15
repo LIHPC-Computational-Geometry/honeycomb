@@ -1,41 +1,56 @@
 # Sewing operation
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
+
+Sew and unsew operations update the beta function values to modify the topological relation between
+two or more darts. An \\(i\\)-dimensional sew can be interpreted as creating a connection between
+two \\(i\\)-dimensional cell. That connection takes the form of an adjacency, and the definition of
+the operation ensures that local structure remains consistent (in particular,  cells incident to
+the new adjacency).
 
 ## Sewing
 
 The sew operation can be divided into two parts:
 
-- a topological update, which corresponds to linking the darts
-- a geometrical update, which corresponds to an update of the affected embedded data, called
-  attributes in our code
+- a topological update, which corresponds to a \\(\beta\\) function update to model a new
+  topological relation
+- a geometrical update, which corresponds to an update of the affected embedded data (attributes)
+
+We call \\(i\\)-link the sub-operation corresponding to the topological update; Our implementation
+provide it along with sews due to performance and flexibility concerns.
 
 ### Topology
 
-The *i-link* operation corresponds to the aforementioned topological update. Given two darts
-*d<sub>a</sub>* and *d<sub>b</sub>*, and a given beta function *β<sub>i</sub>*, a link operation
-corresponds to the update of the *β<sub>i</sub>* function in order to have
-*β<sub>i</sub>(d<sub>a</sub>) = d<sub>b</sub>* and/or *β<sub>i</sub>(d<sub>b</sub>) = d<sub>a</sub>*
-depending on darts order and *i*. For example:
+The \\(i\\)-link operation corresponds to the aforementioned topological update. Given two darts
+\\(d_a\\) and \\(d_b\\), and a given beta function \\(\beta_i\\), a link operation
+corresponds to the update of the \\(\beta_i\\) function in order to have
+... 
 
-- *1-link(d<sub>a</sub>,d<sub>b</sub>)* results in:
-    - *β<sub>1</sub>(d<sub>a</sub>) = d<sub>b</sub>*
-    - **if *β<sub>0</sub>* is defined**, *β<sub>0</sub>(d<sub>b</sub>) = d<sub>a</sub>*
-- *1-link(d<sub>b</sub>,d<sub>a</sub>)* results in:
-    - *β<sub>1</sub>(d<sub>b</sub>) = d<sub>a</sub>*
-    - **if *β<sub>0</sub>* is defined**, *β<sub>0</sub>(d<sub>a</sub>) = d<sub>b</sub>*
-- *2-link(d<sub>a</sub>,d<sub>b</sub>)* results in:
-    - *β<sub>2</sub>(d<sub>a</sub>) = d<sub>b</sub>*
-    - *β<sub>2</sub>(d<sub>b</sub>) = d<sub>a</sub>*
-- *2-link(d<sub>b</sub>,d<sub>a</sub>)* results in the same changes as *2-link(d<sub>a</sub>,d<sub>b</sub>)*
+
+<figure style="text-align:center">
+    <img src="../images/1sew.svg" alt="OneSew" width=70%/>
+    <figcaption><i>1-sew between d<sub>1</sub> and d<sub>4</sub>.</i></figcaption>
+</figure>
+
+<figure style="text-align:center">
+    <img src="../images/2sew.svg" alt="TwoSew" width=100%/>
+    <figcaption><i>2-sew between d<sub>2</sub> and d<sub>5</sub>.</i></figcaption>
+</figure>
 
 Exact properties of the link operation directly depends on the property
 of the modified beta function.
 
+<figure style="text-align:center">
+    <img src="../images/3sewable.svg" alt="ThreeSewable" width=80%/>
+    <figcaption><i>Example of non 3-sewable (left) and 3-sewable (right) orbits.</i></figcaption>
+</figure>
+
 ### Geometry
+
+<figure style="text-align:center">
+    <img src="../images/embedding-sew.png" alt="OneSew" width=100%/>
+    <figcaption><i>Effect of 2-sew on i-cell composition.</i></figcaption>
+</figure>
 
 The *i-sew* operation corresponds to an *i-link* operation, coupled with an update of the affected
 attributes. *How* the attributes are updated is defined through trait implementation in the Rust
