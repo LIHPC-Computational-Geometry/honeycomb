@@ -1,51 +1,72 @@
 # Cell representation
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
 
-We define orbits as a set of darts that are accessible from a given dart,
-using a certain set of beta functions. For example:
-
-- *⟨β<sub>1</sub>⟩(d)* refers to all darts accessible from *d* using
-  *β<sub>1</sub>* recursively any number of times.
-- *⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)* refers to all darts accessible
-  from *d* using any combination of *β<sub>1</sub>* and *β<sub>3</sub>*.
-
-## *i*-cells
-
-A specific subset of orbits, referred to as *i*-cells are defined and often
-used in algorithms. The general definition is the following:
-
-- **if i = 0**:  *0-cell(d) = ⟨{ β<sub>j</sub> o β<sub>k</sub> with 1 ≤ j < k ≤ N }⟩(d)*
-- **else**: *i-cell(d) = ⟨β<sub>1</sub>, β<sub>2</sub>, ..., β<sub>i-1</sub>, β<sub>i+1</sub>, ..., β<sub>N</sub>⟩(d)*
-
-In our case, we can use specialized definitions for our dimensions:
-
-| *i* | Geometry | 2-map                                                                                       | 3-map                                                                                                                                                     |
-|-----|----------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 0   | Vertex   | *⟨β<sub>1</sub> o β<sub>2</sub>⟩(d)* <br> **or** <br> *⟨β<sub>2</sub> o β<sub>-1</sub>⟩(d)* | *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>1</sub> o β<sub>3</sub>⟩(d)* <br> **or** <br> *⟨β<sub>3</sub> o β<sub>2</sub>, β<sub>3</sub> o β<sub>-1</sub>⟩(d)* |
-| 1   | Edge     | *⟨β<sub>2</sub>⟩(d)*                                                                        | *⟨β<sub>2</sub>, β<sub>3</sub>⟩(d)*                                                                                                                       |
-| 2   | Face     | *⟨β<sub>1</sub>⟩(d)*                                                                        | *⟨β<sub>1</sub>, β<sub>3</sub>⟩(d)*                                                                                                                       |
-| 3   | Volume   | -                                                                                           | *⟨β<sub>1</sub>, β<sub>2</sub>⟩(d)*                                                                                                                       |
-
-## Examples
+## Orbits
 
 <figure style="text-align:center">
-    <img src="../images/bg_orbit_face.svg" alt="Embed" />
-    <figcaption>
-        <i>2-cell (face) associated to d<sub>2</sub>; 
-        Note that the 2-faces of d<sub>1</sub>, d<sub>3</sub>, d<sub>4</sub> are the same
-    </i></figcaption>
+    <img src="../images/2map.svg" alt="MapMeshEquivalent" width=100%/>
+    <figcaption><i>2-map example and its components values.</i></figcaption>
 </figure>
 
-<figure style="text-align:center">
-    <img src="../images/bg_orbit_edge.svg" alt="Embed" />
-    <figcaption><i>1-cell (edge) associated to d<sub>2</sub></i></figcaption>
-</figure>
+In our \\(2\\)-map example, applying \\(\beta_1\\) recursively to \\(d_1\\) makes us cycle through
+darts \\(d_1\\), \\(d_2\\), \\(d_3\\), that belong to different edges. Applying \\(\beta_2\\)
+to \\(d_6\\) makes us cycle between \\(d_6\\) and \\(d_8\\), both belonging to different faces.
+This set of darts accessible from a starting dart via a given \\(\beta_i\\) function is called
+**orbit**.
+
+> **Definition**: Orbit
+>
+> We call **orbit of \\(d\\) by \\( \lbrace f_1, f_2, ..., f_k \rbrace \\) and denote
+> \\( \langle f_1, f_2, ..., f_k \rangle (d)\\)** the set of darts retrievable from \\(d\\) using
+> any composition of \\(f_1, f_2, ..., f_k\\), including recursions. In other words,
+> \\( \langle f_1, f_2, ..., f_k \rangle (d)\\) refers to the set of darts connected to
+> \\(d\\), via the \\(f_1, f_2, ..., f_k\\) functions.
+>
+> The set is obtained by doing a Breadth First Search algorithm from the starting dart \\(d\\),
+> where each connected node is the image of the current dart via one function
+> \\(f \in \lbrace f_1, f_2, ..., f_k \rbrace\\). The order in which nodes are explored is
+> determined by the order of the function set. 
+
+For example, the orbit \\(\langle \beta _2 \rangle (d)\\) refers to the subset of unique darts
+accessible from dart \\(d\\) using any composition of \\(\beta_2\\), including recursive ones.
+The orbit \\(\langle \beta_1, \beta_0 \rangle (d_7)\\) refers to darts accessible from dart
+\\(d_7\\) using any composition of \\(\beta_1\\) and \\(\beta_0\\). The computation process is
+detailed below.
 
 <figure style="text-align:center">
-    <img src="../images/bg_orbit_vertex.svg" alt="Embed" />
-    <figcaption><i>0-cell (vertex) associated to d<sub>7</sub></i></figcaption>
+    <img src="../images/orbit-bfs.svg" alt="OrbitComputationProcess" width=100%/>
+    <figcaption><i>Orbit computation BFS.</i></figcaption>
 </figure>
+
+## \\(i\\)-cells
+
+Specific values of orbits can be used to define the cells commonly used in meshing algorithms.
+These specific values are referred to as \\(i\\)-cells. For example the subset of dart defined by
+\\( \langle \beta_1 \rangle (d)\\) corresponds to darts of a face, i.e., a \\(2\\)-cell. The subset
+of dart defined by orbit \\( \langle \beta_2 \rangle (d)\\) corresponds to darts of an edge, i.e.,
+a \\(1\\)-cell.
+
+<figure style="text-align:center">
+    <img src="../images/icells.svg" alt="iCells" width=100%/>
+    <figcaption><i>0-cell, 1-cell, and 2-cell of d<sub>3</sub>.</i></figcaption>
+</figure>
+
+> **Definition**: \\(0\\)-cell
+>
+> Let \\(d \in D\\). The \\(0\\)-dimensional cell associated to dart \\(d\\) is
+> \\( \langle { \beta_j \circ \beta_k, 1 \le j < k \le N } \rangle (d)\\).
+
+> **Definition**: \\(i\\)-cell, \\(i \ne 0\\)
+>
+> Let \\(d \in D\\). The \\(i\\)-dimensional cell associated to dart \\(d\\) is
+> \\(\langle \beta _1, ..., \beta _{i-1}, \beta _{i+1}, ..., \beta _N \rangle (d)\\).
+
+Our interest lies in mesh representation, so we use these definitions applied to dimension 2 and 3.
+
+| *i* | Geometry | 2-map                                            | 3-map                                      |
+|-----|----------|--------------------------------------------------|------------ -------------------------------|
+| 0   | Vertex   | \\( \langle \beta_1 \circ \beta_2 \rangle (d)\\) | \\(\langle \beta_1 \circ \beta_2, \beta_1 \circ \beta_3, \beta_2 \circ \beta_3 \rangle (d)\\) |
+| 1   | Edge     | \\(\langle \beta_2 \rangle (d)\\)                | \\(\langle \beta_2, \beta_3 \rangle (d)\\) |
+| 2   | Face     | \\(\langle \beta_1 \rangle (d)\\)                | \\(\langle \beta_1, \beta_3 \rangle (d)\\) |
+| 3   | Volume   | -                                                | \\(\langle \beta_1, \beta_2 \rangle (d)\\) |

@@ -8,7 +8,7 @@
   - [Components](./definitions/components.md)
   - [Cell representation](./definitions/cells.md)
   - [Embedding](./definitions/embedding.md)
-  - [Element insertion and deletion](./definitions/insertion.md)
+  - [Element insertion and deletion](./definitions/ops.md)
   - [Sewing operation](./definitions/sews.md)
 - [Transactional memory](./definitions/stm.md)
 - [Resources]()

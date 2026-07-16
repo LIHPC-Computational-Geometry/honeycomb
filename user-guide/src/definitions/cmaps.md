@@ -1,36 +1,25 @@
 # Combinatorial maps
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
 
-## Definition
+Combinatorial maps are combinatorial, graph-like, data structures which can be seen as the
+formalization of half-edges to higher dimensions. They can be used in dimension two and three for
+mesh representation, including both surface and volume 3D meshing.
 
-### Maps
-
-N-dimensional combinatorial maps, noted *N-map*, are objects made up of
-two main elements:
-
-- A set of darts, darts being the smallest elements making up the map
-- N beta functions, linking the darts of the map
-
-Additionally, we can define *embedded data* as spatial anchoring of the
-darts making up the map. While the first two elements hold topological
-information, embedded data gives information about the "shape" of the
-map (e.g. vertices position in a spatial domain).
-
-With these elements, we can represent and operate on meshes.
-
-## Example
-
-Operations on a combinatorial map can affect its topology, shape or both:
+Roughly speaking, a map is simply a set of abstract elements, called darts, augmented with functions defined on this set of darts, which describe topological relations between them. This section
+presents the notions useful to understand maps, as they are the mai structure offered by the
+library.
 
 <figure style="text-align:center">
-    <img src="../images/bg_hcmap_example.svg" alt="MapMeshEquivalent" />
-    <figcaption><i>Core crate quickstart example</i></figcaption>
+    <img src="../images/meshmap.svg" alt="MapMeshEquivalent" width=70%/>
+    <figcaption><i>Simple 2D mesh and its map representation.</i></figcaption>
 </figure>
 
-The specifics on how data is encoded is detailed in attribute-specific
-sections.
+All of the definitions we present in this section are based on G. Damiand and P. Lienhardt
+_Combinatorial Maps: Efficient Data Structures for Computer Graphics and Image Processing_;
+The reader may refer to this book for more details.
 
+<figure style="text-align:center">
+    <img src="../images/3meshmap.svg" alt="MapMeshEquivalent" width=100%/>
+    <figcaption><i>Simple 3D mesh and its map representation.</i></figcaption>
+</figure>

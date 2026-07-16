@@ -6,3 +6,4 @@ title = "The Honeycomb Book"
 
 [output.html]
 site-url = "/honeycomb/"
+mathjax-support = true
