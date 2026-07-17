@@ -45,16 +45,16 @@ fn main() {
             // the transaction will ensure that we do not validate an operation
             // where inputs have changed due to instruction interleaving between threads
             // here, it will retry the transaction until it can be validated
-            atomically(|trans| {
+            atomically(|tx| {
                 let mut new_val = Vertex2::default();
                 for v in neigh {
-                    let vertex = map.read_vertex(trans, *v)?.unwrap();
+                    let vertex = map.read_vertex_tx(tx, *v)?.unwrap();
                     new_val.0 += vertex.0;
                     new_val.1 += vertex.1;
                 }
                 new_val.0 /= neigh.len() as f64;
                 new_val.1 /= neigh.len() as f64;
-                map.write_vertex(trans, *vid, new_val)
+                map.write_vertex_tx(tx, *vid, new_val)
             });
         });
 
