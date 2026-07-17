@@ -11,7 +11,7 @@
   - [Element insertion and deletion](./definitions/ops.md)
   - [Sewing operation](./definitions/sews.md)
 - [Transactional memory](./definitions/stm.md)
-- [Resources]()
+- [Resources](./definitions/resources.md)
 
 # User guide
 
