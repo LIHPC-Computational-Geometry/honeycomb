@@ -1,15 +1,9 @@
 # Project structure
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
 
-The project root is organized using Cargo workspaces at the moment. This may change when other languages are
-introduced to the project.
-
-The [repository][GH] hosts both published crates (usable content) as well as complementary content such as benchmarks,
-examples or this guide.
+The project root is organized using Cargo workspaces. The [repository][GH] hosts both published
+crates (libraries) as well as complementary content such as benchmarks, examples or this guide.
 
 [GH]: https://github.com/LIHPC-Computational-Geometry/honeycomb
 
@@ -23,5 +17,5 @@ The following libraries are available:
 The repository also hosts:
 
 - The `applications` crate, which contains a collection of algorithms which are used as benchmarks
-  and/or examples
-- This book's source files, available in the `user-guide` directory
+  and/or examples.
+- This book's source files, available in the `user-guide` directory.
