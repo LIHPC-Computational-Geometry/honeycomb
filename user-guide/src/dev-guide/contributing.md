@@ -1,8 +1,5 @@
 # Contributing
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 --- 
 
 Contributions are welcome and accepted as pull requests on [GitHub][GH]. Feel free to use issues
@@ -53,10 +50,12 @@ Note that a most of the code possess documentation, including private modules / 
 the complete documentation by using the following instructions:
 
 ```shell
+# Book
 mdbook serve --open user-guide/
 ```
 
 ```shell
+# Rust API
 cargo +nightly doc --all --all-features --no-deps --document-private-items
 ```
 

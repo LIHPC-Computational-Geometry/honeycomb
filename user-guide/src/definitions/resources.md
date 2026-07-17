@@ -2,7 +2,7 @@
 
 ---
 
-This page groups a few references mentionned in this book, as well as others which help understand
+This page groups a few references mentioned in this book, as well as others which help understand
 all mechanism leveraged in the framework.
 
 ## Rust
@@ -31,4 +31,4 @@ all mechanism leveraged in the framework.
 ## Algorithms
 
 References are given on a case by case basis when it comes to algorithms. Some were loosely adapted
-from references while others were direct re-implementations. 
+from references while others were direct re-implementations.

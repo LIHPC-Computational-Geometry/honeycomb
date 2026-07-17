@@ -1,12 +1,8 @@
 # Libraries
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
 
-Several crates of this project are published on the registry _crates.io_: the main crate, **honeycomb** (not yet 
-published), as well as specialized crates **honeycomb-core**, **honeycomb-kernels**, and **honeycomb-render**.
+The repository hosts four crates.
 
 
 ## honeycomb
@@ -21,6 +17,7 @@ the dependency using the git repository:
 # [dependencies]
 honeycomb = {
   git = "https://github.com/LIHPC-Computational-Geometry/honeycomb"
+  # tag = "X.X.X"
 }
 ```
 
@@ -32,7 +29,7 @@ The following features are available:
 
 - a builder structure to handle map creation: `CMapBuilder`.
 - 2D and 3D combinatorial maps, usable in concurrent contexts: `CMap2`/`CMap3`. this includes:
-    - all regular operations (sew, unsew, beta images, ...),
+    - all regular operations (sew, unsew, beta image accesses, ...),
     - a custom embedding logic to associate vertices and attributes to darts.
 - abstractions over attributes, to allow arbitrary items binding to the map using the
   same embedding logic as vertices:
@@ -49,23 +46,24 @@ The following features are available:
 **honeycomb-kernels** is a Rust crate that provides implementations of meshing kernels using the core crate's
 combinatorial maps. These implementations have multiple purposes:
 
-1. Writing code using n-maps from a user's perspective
+1. Writing code using \\(N\\)-maps from a user's perspective
 2. Covering a wide range of operations, with routines that are more topology-heavy / geometry-heavy / balanced
 3. Stressing the data structure, to identify its advantages and its pitfalls in a meshing context
 4. Testing for more unwanted behaviors / bugs
 
-Explanations provided in this guide focus on the overall workflow of algorithms; Implementation-specific details and
-hypothesis are listed in the documentation of the crate.
-
+When discussing algorithms, explanations provided in this guide focus on the high-level workflow;
+Implementation-specific details and hypothesis are kept to the documentation of the crate.
 
 ## honeycomb-render
 
-**honeycomb-render** is a Rust crate that provides a simple visualization framework to allow the user to render their
-combinatorial map. It is designed to be used directly in the code by reading data through a reference to the map (as
-opposed to a binary that would read serialized data). This render tool can be used to quickly debug algorithm results
-by looking at the resulting structure instead of reading hard-to-interpret numerical data.
+**honeycomb-render** is a Rust crate that provides a simple visualization framework to allow the
+user to render their combinatorial map. It is designed to be used directly in the code by reading
+data through a reference to the map (as opposed to a binary that would read serialized data). This
+render tool can be used to quickly debug algorithm results by looking at the resulting structure
+instead of reading hard-to-interpret raw data.
 
-Use the [exported functions](../../honeycomb_render/index.html) to render a given combinatorial map. **You may need
-to run the program in `release` mode to render large maps**. All items used to build that tool are kept public to allow
-users to customize the render logic (e.g. to render a specific attribute).
+Use the [exported functions](../../honeycomb_render/index.html) to render a given combinatorial map.
+**You may need to run the program in `release` mode to render large maps**. All items used to build
+that tool are kept public to allow users to customize the render logic (e.g. to render a specific
+attribute).
 
