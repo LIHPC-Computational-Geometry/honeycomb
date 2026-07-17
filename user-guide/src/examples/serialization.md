@@ -1,8 +1,5 @@
 # (De)Serialization
 
-**This content has been copy-pasted from the previous guide. It is up-to-date but should be improved
-at some point.**
-
 ---
 
 Our crate implements two different serialization logics. We use a custom format for combinatorial
