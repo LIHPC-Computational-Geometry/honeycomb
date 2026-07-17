@@ -35,6 +35,8 @@ get programs to compile, but it would respectively yield an incorrect or impract
   data is locked. However, locks are error-prone, have very poor composability. Issues that come
   with those grow along the number of locks used.
 
+We detail how these usual mechanisms fail to provide the guarantees we need in one of
+[our paper](https://epubs.siam.org/doi/10.1137/1.9781611979138.8).
 
 
 ## Software Transactional Memory

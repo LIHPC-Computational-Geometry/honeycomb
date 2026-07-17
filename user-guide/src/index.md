@@ -19,7 +19,7 @@ The goal is to converge towards a (or multiple) structure(s) which could be used
 experiment with parallel meshing algorithm, specifically targeting many-core architectures.
 
 More extensive explanations regarding our needs and design choices of this solution is included in
-[one of our paper](https://drive.google.com/file/d/1D_SLFSMMlBc2ycZURztTXnwX6jN0A8r8/view).
+[one of our paper](https://epubs.siam.org/doi/10.1137/1.9781611979138.8).
 
 ## Requirements
 
