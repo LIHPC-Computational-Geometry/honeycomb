@@ -82,7 +82,7 @@ tetrahedron meshing. Multiple meshing kernels are applied in a loop until a cert
 satisfied, or for a given number of rounds.
 
 <figure style="text-align:center">
-    <img src="../images/remesh_loop.svg" alt="GridIndexing" width=100%/>
+    <img src="../images/all-remesh-ops.svg" alt="GridIndexing" width=80%/>
     <figcaption><i>Remeshing loop structure.</i></figcaption>
 </figure>
 
