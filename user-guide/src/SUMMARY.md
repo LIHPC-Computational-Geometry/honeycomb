@@ -26,7 +26,7 @@
 - [Contributing](./dev-guide/contributing.md)
 - [Project structure](./dev-guide/project-structure.md)
   - [Library](./dev-guide/library.md)
-  - [Applications]()
+  - [Applications](./dev-guide/apps.md)
 
 # Code examples
 
