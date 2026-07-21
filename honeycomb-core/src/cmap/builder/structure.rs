@@ -36,6 +36,14 @@ pub enum BuilderError {
     #[error("unknown header in cmap file - {0}")]
     UnknownHeader(String),
 
+    // INP-related variants
+    /// Specified Abaqus INP file contains inconsistent or malformed mesh data.
+    #[error("invalid/corrupted data in the inp file - {0}")]
+    BadInpData(&'static str),
+    /// Specified Abaqus INP file contains unsupported mesh data.
+    #[error("unsupported data in the inp file - {0}")]
+    UnsupportedInpData(&'static str),
+
     // vtk-related variants
     /// Specified VTK file contains inconsistent data.
     #[error("invalid/corrupted data in the vtk file - {0}")]
@@ -72,6 +80,7 @@ pub struct CMapBuilder<const D: usize> {
 enum BuilderType {
     CMap(CMapFile),
     FreeDarts(usize),
+    Inp(String),
     Vtk(Vtk),
 }
 
@@ -91,6 +100,7 @@ impl<T: CoordsFloat> Builder<T> for CMapBuilder<2> {
                 n_darts,
                 self.attributes,
             )),
+            BuilderType::Inp(_) => unreachable!("INP input is only available for 3-maps"),
             BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
         }
     }
@@ -106,7 +116,32 @@ impl<T: CoordsFloat> Builder<T> for CMapBuilder<3> {
                 n_darts,
                 self.attributes,
             )),
+            BuilderType::Inp(content) => super::io::build_3d_from_inp(&content, self.attributes),
             BuilderType::Vtk(_vfile) => unimplemented!(),
+        }
+    }
+}
+
+impl CMapBuilder<3> {
+    /// Create a builder structure from an Abaqus INP file containing C3D8 hexahedra.
+    ///
+    /// Node coordinates and hexahedral connectivity are imported. Other Abaqus data, such as
+    /// sets, materials, sections, surfaces, and analysis steps, is ignored.
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if the file cannot be opened or read. Invalid INP content is
+    /// reported by [`Self::build`].
+    #[must_use = "unused builder object"]
+    pub fn from_inp_file(file_path: impl AsRef<std::path::Path> + std::fmt::Debug) -> Self {
+        let mut f = File::open(file_path).expect("E: could not open specified file");
+        let mut content = String::new();
+        f.read_to_string(&mut content)
+            .expect("E: could not read content from file");
+
+        Self {
+            builder_kind: BuilderType::Inp(content),
+            attributes: AttrStorageManager::default(),
         }
     }
 }
