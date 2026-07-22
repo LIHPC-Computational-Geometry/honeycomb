@@ -608,9 +608,15 @@ pub(crate) fn build_3d_from_inp<T: CoordsFloat>(
     for (vertex_id, node_id) in vertex_nodes {
         let [x, y, z] = input.nodes[&node_id];
         let vertex = Vertex3(
-            T::from(x).ok_or(BuilderError::BadInpData("node coordinate is out of range"))?,
-            T::from(y).ok_or(BuilderError::BadInpData("node coordinate is out of range"))?,
-            T::from(z).ok_or(BuilderError::BadInpData("node coordinate is out of range"))?,
+            T::from(x).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
+            T::from(y).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
+            T::from(z).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
         );
         map.set_vertex(vertex_id, vertex);
     }
