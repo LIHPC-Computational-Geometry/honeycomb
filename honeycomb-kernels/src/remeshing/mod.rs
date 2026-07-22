@@ -16,7 +16,10 @@ mod swap;
 pub use capture::{ClassificationError, capture_geometry, classify_capture};
 pub use collapse::{EdgeCollapseError, collapse_edge};
 pub use cut::{cut_inner_edge, cut_outer_edge};
-pub use relaxation::{move_vertex_to_average, neighbor_based_smooth};
+pub use relaxation::{
+    move_vertex_to_average, move_vertex_to_average_3d, neighbor_based_smooth,
+    neighbor_based_smooth_3d,
+};
 pub use swap::{EdgeSwapError, swap_edge};
 
 #[cfg(test)]

@@ -7,7 +7,7 @@ use applications::FileFormat;
 #[derive(Parser)]
 #[command(version, about, arg_required_else_help(true))]
 pub struct Cli {
-    /// Input map as a VTK file
+    /// Input 3-map as a CMAP or Abaqus INP file
     #[arg(short, long, required(true))]
     pub input: PathBuf,
     /// Number of applications of the relaxation algorithm

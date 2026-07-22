@@ -49,11 +49,11 @@ pub fn init_3d_map_from_file<T: CoordsFloat>(input: PathBuf) -> (CMap3<T>, u64, 
 
     let map: CMap3<T> = if input_map.ends_with(".cmap") {
         CMapBuilder::<3>::from_cmap_file(input_map).build().unwrap()
-    } else if input_map.ends_with(".vtk") {
-        unimplemented!("E: VTK initialization isn't supported for 3-map")
+    } else if input_map.ends_with(".inp") {
+        CMapBuilder::<3>::from_inp_file(input_map).build().unwrap()
     } else {
         panic!(
-            "E: Unknown file format; only .cmap or .vtk files are supported for map initialization"
+            "E: Unknown file format; only .cmap or .inp files are supported for 3-map initialization"
         );
     };
 
