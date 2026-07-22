@@ -331,22 +331,31 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
 
 // --- Abaqus INP
 
+/// Node identifier used by an Abaqus input.
 type InpNodeId = usize;
 
+/// Parsed nodes and C3D8 element connectivity from an Abaqus INP document.
 struct InpFile {
+    /// Node coordinates indexed by their identifier.
     nodes: HashMap<InpNodeId, [f64; 3]>,
+    /// C3D8 elements stored in Abaqus local node order.
     elements: Vec<[InpNodeId; 8]>,
 }
 
+/// Section currently being read from an Abaqus INP document.
 enum InpSection {
+    /// Data outside a supported section.
     None,
+    /// A `*NODE` section.
     Nodes,
+    /// A supported `*ELEMENT` section.
     Elements,
 }
 
 impl TryFrom<&str> for InpFile {
     type Error = BuilderError;
 
+    /// Parse the supported subset of Abaqus INP data.
     #[allow(clippy::too_many_lines)]
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let mut nodes = HashMap::default();
@@ -460,9 +469,7 @@ impl TryFrom<&str> for InpFile {
     }
 }
 
-// A C3D8 volume uses six outward-oriented quad cycles. The local vertex order follows the
-// Abaqus convention. The dart offsets correspond to the cube representation used by the regular
-// 3D grid builder.
+/// Outward-oriented quadrilateral faces, expressed in Abaqus C3D8 local node order.
 const HEX_FACES: [[usize; 4]; 6] = [
     [0, 1, 2, 3],
     [1, 0, 4, 5],
@@ -471,12 +478,19 @@ const HEX_FACES: [[usize; 4]; 6] = [
     [0, 3, 7, 4],
     [5, 4, 7, 6],
 ];
+
+/// First dart of each face in the internal 24-dart hexahedron representation.
 const HEX_FACE_DART_OFFSETS: [DartIdType; 6] = [0, 4, 8, 12, 16, 20];
+
+/// Representative dart of each vertex in the internal hexahedron representation.
 const HEX_VERTEX_DART_OFFSETS: [DartIdType; 8] = [0, 1, 2, 3, 6, 7, 11, 15];
+
+/// Beta-2 image of each dart, expressed as an offset within its hexahedron.
 const HEX_BETA_2_OFFSETS: [DartIdType; 24] = [
     4, 8, 12, 16, 0, 19, 20, 9, 1, 7, 23, 13, 2, 11, 22, 17, 3, 15, 21, 5, 6, 18, 14, 10,
 ];
 
+/// Initialize the beta relations of one 24-dart hexahedron.
 fn initialize_hex<T: CoordsFloat>(map: &CMap3<T>, first_dart: DartIdType) {
     for face_offset in HEX_FACE_DART_OFFSETS {
         for edge_offset in 0..4 {
@@ -489,17 +503,24 @@ fn initialize_hex<T: CoordsFloat>(map: &CMap3<T>, first_dart: DartIdType) {
     }
 }
 
+/// Face waiting to be matched with an adjacent element.
 #[derive(Clone, Copy)]
 struct PendingFace {
+    /// Face nodes in their oriented local order.
     nodes: [InpNodeId; 4],
+    /// First dart of the corresponding quadrilateral face.
     first_dart: DartIdType,
 }
 
+/// Current sewing state of a face shared by mesh elements.
 enum FaceState {
+    /// The first occurrence of a face.
     Pending(PendingFace),
+    /// A face already shared by two elements.
     Sewn,
 }
 
+/// Return an orientation-independent key for a quadrilateral face.
 fn face_key(mut nodes: [InpNodeId; 4]) -> [InpNodeId; 4] {
     nodes.sort_unstable();
     nodes
