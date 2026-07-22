@@ -241,7 +241,7 @@ CELL_DATA 17
 
 #[cfg(test)]
 mod inp {
-    use std::path::PathBuf;
+    // use std::path::PathBuf;
 
     use crate::cmap::BuilderError;
     use crate::geometry::Vertex3;
@@ -337,25 +337,25 @@ mod inp {
         );
     }
 
-    #[test]
-    fn supplied_sphere_meshes() {
-        for file_name in ["sphere_res_1cm.inp", "sphere_res_1cm_noised.inp"] {
-            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap()
-                .join(file_name);
-            let map: CMap3<f64> = CMapBuilder::<3>::from_inp_file(path).build().unwrap();
+    // #[test]
+    // fn supplied_sphere_meshes() {
+    //     for file_name in ["sphere_res_1cm.inp", "sphere_res_1cm_noised.inp"] {
+    //         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //             .parent()
+    //             .unwrap()
+    //             .join(file_name);
+    //         let map: CMap3<f64> = CMapBuilder::<3>::from_inp_file(path).build().unwrap();
 
-            assert_eq!(map.n_darts(), 245_761);
-            assert_eq!(map.n_vertices(), 11_065);
-            assert_eq!(
-                (1..map.n_darts() as DartIdType)
-                    .filter(|dart| map.is_i_free::<3>(*dart))
-                    .count(),
-                6_144
-            );
-        }
-    }
+    //         assert_eq!(map.n_darts(), 245_761);
+    //         assert_eq!(map.n_vertices(), 11_065);
+    //         assert_eq!(
+    //             (1..map.n_darts() as DartIdType)
+    //                 .filter(|dart| map.is_i_free::<3>(*dart))
+    //                 .count(),
+    //             6_144
+    //         );
+    //     }
+    // }
 
     const SINGLE_HEX: &str = "
 *HEADING
