@@ -50,26 +50,6 @@ pub fn build_vertex_graph<T: CoordsFloat>(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use honeycomb::prelude::grid_generation::GridBuilder;
-
-    use super::build_vertex_graph;
-
-    #[test]
-    fn boundary_vertices_have_complete_neighborhoods() {
-        let map = GridBuilder::<2, f64>::unit_grid(2);
-        let graph = build_vertex_graph(&map, false);
-        let mut degrees = graph
-            .into_iter()
-            .map(|(_, neighbors)| neighbors.len())
-            .collect::<Vec<_>>();
-        degrees.sort_unstable();
-
-        assert_eq!(degrees, [2, 2, 2, 2, 3, 3, 3, 3, 4]);
-    }
-}
-
 pub fn shift<T: CoordsFloat>(
     map: &CMap2<T>,
     graph: &[(VertexIdType, Vec<VertexIdType>)],
@@ -164,5 +144,25 @@ pub fn taubin<T: CoordsFloat>(
         if round >= n_rounds {
             break;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use honeycomb::prelude::grid_generation::GridBuilder;
+
+    use super::build_vertex_graph;
+
+    #[test]
+    fn boundary_vertices_have_complete_neighborhoods() {
+        let map = GridBuilder::<2, f64>::unit_grid(2);
+        let graph = build_vertex_graph(&map, false);
+        let mut degrees = graph
+            .into_iter()
+            .map(|(_, neighbors)| neighbors.len())
+            .collect::<Vec<_>>();
+        degrees.sort_unstable();
+
+        assert_eq!(degrees, [2, 2, 2, 2, 3, 3, 3, 3, 4]);
     }
 }

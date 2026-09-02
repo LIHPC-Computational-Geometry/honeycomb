@@ -50,22 +50,6 @@ pub fn build_vertex_graph<T: CoordsFloat>(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use honeycomb::prelude::grid_generation::GridBuilder;
-
-    use super::build_vertex_graph;
-
-    #[test]
-    fn boundary_vertices_have_complete_neighborhoods() {
-        let map = GridBuilder::<3, f64>::hex_grid(1, 1.0);
-        let graph = build_vertex_graph(&map, false);
-
-        assert_eq!(graph.len(), 8);
-        assert!(graph.iter().all(|(_, neighbors)| neighbors.len() == 3));
-    }
-}
-
 pub fn shift<T: CoordsFloat>(
     map: &CMap3<T>,
     graph: &[(VertexIdType, Vec<VertexIdType>)],
@@ -153,5 +137,21 @@ pub fn taubin<T: CoordsFloat>(
         if round >= n_rounds {
             break;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use honeycomb::prelude::grid_generation::GridBuilder;
+
+    use super::build_vertex_graph;
+
+    #[test]
+    fn boundary_vertices_have_complete_neighborhoods() {
+        let map = GridBuilder::<3, f64>::hex_grid(1, 1.0);
+        let graph = build_vertex_graph(&map, false);
+
+        assert_eq!(graph.len(), 8);
+        assert!(graph.iter().all(|(_, neighbors)| neighbors.len() == 3));
     }
 }

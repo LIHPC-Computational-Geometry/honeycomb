@@ -85,10 +85,10 @@ impl IncompleteTets {
             range
                 .filter(|&d| map.is_unused(d) && map.is_free(d))
                 .collect::<Vec<_>>()
-                .chunks_exact(9)
-                .map(|c| {
-                    let darts: [DartIdType; 9] = c.try_into().expect("E: unreachable");
-
+                .as_chunks::<9>()
+                .0
+                .iter()
+                .map(|&darts| {
                     atomically_with_err(|t| make_incomplete_tet(t, map, darts))
                         .expect("E: unreachable");
 

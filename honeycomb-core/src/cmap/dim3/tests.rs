@@ -223,12 +223,12 @@ fn unsew_tets() -> anyhow::Result<()> {
         assert_eq!(edges.next(), None);
 
         let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 10).collect();
-        assert!(darts.len() == 3);
+        assert_eq!(darts.len(), 3);
         assert!(darts.contains(&10));
         assert!(darts.contains(&11));
         assert!(darts.contains(&12));
         let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 16).collect();
-        assert!(darts.len() == 3);
+        assert_eq!(darts.len(), 3);
         assert!(darts.contains(&16));
         assert!(darts.contains(&17));
         assert!(darts.contains(&18));
@@ -541,7 +541,7 @@ fn unsew_tets_tx() -> anyhow::Result<()> {
             }
             Ok(tmp)
         });
-        assert!(darts.len() == 3);
+        assert_eq!(darts.len(), 3);
         assert!(darts.contains(&10));
         assert!(darts.contains(&11));
         assert!(darts.contains(&12));
@@ -552,7 +552,7 @@ fn unsew_tets_tx() -> anyhow::Result<()> {
             }
             Ok(tmp)
         });
-        assert!(darts.len() == 3);
+        assert_eq!(darts.len(), 3);
         assert!(darts.contains(&16));
         assert!(darts.contains(&17));
         assert!(darts.contains(&18));
