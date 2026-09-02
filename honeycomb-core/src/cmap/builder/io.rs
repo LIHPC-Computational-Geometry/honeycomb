@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 
 use itertools::multizip;
 use num_traits::Zero;
-use rustc_hash::FxHashMap as HashMap;
+use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
@@ -324,6 +324,301 @@ pub fn build_3d_from_cmap_file<T: CoordsFloat>(
                 ),
             );
         }
+    }
+
+    Ok(map)
+}
+
+// --- Abaqus INP
+
+/// Node identifier used by an Abaqus input.
+type InpNodeId = usize;
+
+/// Parsed nodes and C3D8 element connectivity from an Abaqus INP document.
+struct InpFile {
+    /// Node coordinates indexed by their identifier.
+    nodes: HashMap<InpNodeId, [f64; 3]>,
+    /// C3D8 elements stored in Abaqus local node order.
+    elements: Vec<[InpNodeId; 8]>,
+}
+
+/// Section currently being read from an Abaqus INP document.
+enum InpSection {
+    /// Data outside a supported section.
+    None,
+    /// A `*NODE` section.
+    Nodes,
+    /// A supported `*ELEMENT` section.
+    Elements,
+}
+
+impl TryFrom<&str> for InpFile {
+    type Error = BuilderError;
+
+    /// Parse the supported subset of Abaqus INP data.
+    #[allow(clippy::too_many_lines)]
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let mut nodes = HashMap::default();
+        let mut elements = Vec::new();
+        let mut element_ids = HashSet::<usize>::default();
+        let mut section = InpSection::None;
+
+        for raw_line in value.lines() {
+            let line = raw_line.trim();
+            if line.is_empty() || line.starts_with("**") {
+                continue;
+            }
+
+            if line.starts_with('*') {
+                let mut header = line.split(',');
+                let keyword = header.next().expect("E: non-empty header").trim();
+                if keyword.eq_ignore_ascii_case("*NODE") {
+                    section = InpSection::Nodes;
+                } else if keyword.eq_ignore_ascii_case("*ELEMENT") {
+                    let element_type = header.find_map(|parameter| {
+                        let (name, value) = parameter.split_once('=')?;
+                        name.trim()
+                            .eq_ignore_ascii_case("TYPE")
+                            .then(|| value.trim().to_ascii_uppercase())
+                    });
+                    let Some(element_type) = element_type else {
+                        return Err(BuilderError::BadInpData(
+                            "element section has no TYPE parameter",
+                        ));
+                    };
+                    if !element_type.starts_with("C3D8") {
+                        return Err(BuilderError::UnsupportedInpData(
+                            "only C3D8 element types are supported",
+                        ));
+                    }
+                    section = InpSection::Elements;
+                } else {
+                    section = InpSection::None;
+                }
+                continue;
+            }
+
+            let fields = line.split(',').map(str::trim).collect::<Vec<_>>();
+            match section {
+                InpSection::None => {}
+                InpSection::Nodes => {
+                    if fields.len() != 4 || fields.iter().any(|field| field.is_empty()) {
+                        return Err(BuilderError::BadInpData("invalid node record"));
+                    }
+                    let node_id = fields[0]
+                        .parse()
+                        .map_err(|_| BuilderError::BadInpData("invalid node identifier"))?;
+                    let coordinates = [
+                        fields[1]
+                            .parse()
+                            .map_err(|_| BuilderError::BadInpData("invalid node coordinate"))?,
+                        fields[2]
+                            .parse()
+                            .map_err(|_| BuilderError::BadInpData("invalid node coordinate"))?,
+                        fields[3]
+                            .parse()
+                            .map_err(|_| BuilderError::BadInpData("invalid node coordinate"))?,
+                    ];
+                    if nodes.insert(node_id, coordinates).is_some() {
+                        return Err(BuilderError::BadInpData("duplicate node identifier"));
+                    }
+                }
+                InpSection::Elements => {
+                    if fields.len() != 9 || fields.iter().any(|field| field.is_empty()) {
+                        return Err(BuilderError::BadInpData("invalid C3D8 element record"));
+                    }
+                    let element_id = fields[0]
+                        .parse()
+                        .map_err(|_| BuilderError::BadInpData("invalid element identifier"))?;
+                    if !element_ids.insert(element_id) {
+                        return Err(BuilderError::BadInpData("duplicate element identifier"));
+                    }
+                    let mut element = [0; 8];
+                    for (node_id, field) in element.iter_mut().zip(fields.iter().skip(1)) {
+                        *node_id = field.parse().map_err(|_| {
+                            BuilderError::BadInpData("invalid element node identifier")
+                        })?;
+                    }
+                    if element.into_iter().collect::<HashSet<_>>().len() != 8 {
+                        return Err(BuilderError::BadInpData(
+                            "C3D8 element contains duplicate nodes",
+                        ));
+                    }
+                    elements.push(element);
+                }
+            }
+        }
+
+        if nodes.is_empty() {
+            return Err(BuilderError::BadInpData("file contains no nodes"));
+        }
+        if elements.is_empty() {
+            return Err(BuilderError::BadInpData("file contains no C3D8 elements"));
+        }
+        if elements
+            .iter()
+            .flatten()
+            .any(|node_id| !nodes.contains_key(node_id))
+        {
+            return Err(BuilderError::BadInpData(
+                "element references an undefined node",
+            ));
+        }
+
+        Ok(Self { nodes, elements })
+    }
+}
+
+/// Outward-oriented quadrilateral faces, expressed in Abaqus C3D8 local node order.
+const HEX_FACES: [[usize; 4]; 6] = [
+    [0, 1, 2, 3],
+    [1, 0, 4, 5],
+    [2, 1, 5, 6],
+    [3, 2, 6, 7],
+    [0, 3, 7, 4],
+    [5, 4, 7, 6],
+];
+
+/// First dart of each face in the internal 24-dart hexahedron representation.
+const HEX_FACE_DART_OFFSETS: [DartIdType; 6] = [0, 4, 8, 12, 16, 20];
+
+/// Representative dart of each vertex in the internal hexahedron representation.
+const HEX_VERTEX_DART_OFFSETS: [DartIdType; 8] = [0, 1, 2, 3, 6, 7, 11, 15];
+
+/// Beta-2 image of each dart, expressed as an offset within its hexahedron.
+const HEX_BETA_2_OFFSETS: [DartIdType; 24] = [
+    4, 8, 12, 16, 0, 19, 20, 9, 1, 7, 23, 13, 2, 11, 22, 17, 3, 15, 21, 5, 6, 18, 14, 10,
+];
+
+/// Initialize the beta relations of one 24-dart hexahedron.
+fn initialize_hex<T: CoordsFloat>(map: &CMap3<T>, first_dart: DartIdType) {
+    for face_offset in HEX_FACE_DART_OFFSETS {
+        for edge_offset in 0..4 {
+            let dart = first_dart + face_offset + edge_offset;
+            let previous = first_dart + face_offset + (edge_offset + 3) % 4;
+            let next = first_dart + face_offset + (edge_offset + 1) % 4;
+            let beta_2 = first_dart + HEX_BETA_2_OFFSETS[(face_offset + edge_offset) as usize];
+            map.set_betas(dart, [previous, next, beta_2, 0]);
+        }
+    }
+}
+
+/// Face waiting to be matched with an adjacent element.
+#[derive(Clone, Copy)]
+struct PendingFace {
+    /// Face nodes in their oriented local order.
+    nodes: [InpNodeId; 4],
+    /// First dart of the corresponding quadrilateral face.
+    first_dart: DartIdType,
+}
+
+/// Current sewing state of a face shared by mesh elements.
+enum FaceState {
+    /// The first occurrence of a face.
+    Pending(PendingFace),
+    /// A face already shared by two elements.
+    Sewn,
+}
+
+/// Return an orientation-independent key for a quadrilateral face.
+fn face_key(mut nodes: [InpNodeId; 4]) -> [InpNodeId; 4] {
+    nodes.sort_unstable();
+    nodes
+}
+
+/// Build a 3-map from the mesh contained in an Abaqus INP document.
+pub(crate) fn build_3d_from_inp<T: CoordsFloat>(
+    content: &str,
+    manager: AttrStorageManager,
+) -> Result<CMap3<T>, BuilderError> {
+    let input = InpFile::try_from(content)?;
+    let n_darts = input
+        .elements
+        .len()
+        .checked_mul(24)
+        .filter(|count| *count <= DartIdType::MAX as usize)
+        .ok_or(BuilderError::BadInpData("mesh contains too many elements"))?;
+    let map = CMap3::new_with_undefined_attributes(n_darts, manager);
+    let mut faces = HashMap::<[InpNodeId; 4], FaceState>::default();
+
+    for (element_index, element) in input.elements.iter().enumerate() {
+        let first_dart = 1 + DartIdType::try_from(element_index * 24)
+            .map_err(|_| BuilderError::BadInpData("mesh contains too many elements"))?;
+        initialize_hex(&map, first_dart);
+
+        for (face, &dart_offset) in HEX_FACES.iter().zip(&HEX_FACE_DART_OFFSETS) {
+            let ordered_nodes = face.map(|index| element[index]);
+            let key = face_key(ordered_nodes);
+            match faces.get_mut(&key) {
+                None => {
+                    faces.insert(
+                        key,
+                        FaceState::Pending(PendingFace {
+                            nodes: ordered_nodes,
+                            first_dart: first_dart + dart_offset,
+                        }),
+                    );
+                }
+                Some(state @ FaceState::Pending(_)) => {
+                    let FaceState::Pending(previous) = *state else {
+                        unreachable!()
+                    };
+                    let Some(reverse_edge_offset) = (0..4).find(|&index| {
+                        ordered_nodes[index] == previous.nodes[1]
+                            && ordered_nodes[(index + 1) % 4] == previous.nodes[0]
+                    }) else {
+                        return Err(BuilderError::BadInpData(
+                            "adjacent elements have inconsistent face orientations",
+                        ));
+                    };
+                    map.link::<3>(
+                        previous.first_dart,
+                        first_dart + dart_offset + reverse_edge_offset as DartIdType,
+                    )
+                    .map_err(|_| BuilderError::BadInpData("could not link adjacent elements"))?;
+                    *state = FaceState::Sewn;
+                }
+                Some(FaceState::Sewn) => {
+                    return Err(BuilderError::BadInpData(
+                        "face is shared by more than two elements",
+                    ));
+                }
+            }
+        }
+    }
+
+    // A node ID normally maps to one vertex orbit. If a deck reuses an ID across topologically
+    // disconnected components, each orbit still needs its own copy of the coordinate.
+    let mut vertex_nodes = HashMap::<VertexIdType, InpNodeId>::default();
+    for (element_index, element) in input.elements.iter().enumerate() {
+        let first_dart = 1 + element_index as DartIdType * 24;
+        for (&node_id, &dart_offset) in element.iter().zip(&HEX_VERTEX_DART_OFFSETS) {
+            let vertex_id = map.vertex_id(first_dart + dart_offset);
+            if vertex_nodes
+                .insert(vertex_id, node_id)
+                .is_some_and(|previous| previous != node_id)
+            {
+                return Err(BuilderError::BadInpData(
+                    "topology merges different node identifiers",
+                ));
+            }
+        }
+    }
+
+    for (vertex_id, node_id) in vertex_nodes {
+        let [x, y, z] = input.nodes[&node_id];
+        let vertex = Vertex3(
+            T::from(x).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
+            T::from(y).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
+            T::from(z).ok_or(BuilderError::BadInpData(
+                "cannot represent coordinate value in desired FP type",
+            ))?,
+        );
+        map.set_vertex(vertex_id, vertex);
     }
 
     Ok(map)

@@ -236,3 +236,161 @@ POINT_DATA 9
 CELL_DATA 17
 ";
 }
+
+// ------ Abaqus INP
+
+#[cfg(test)]
+mod inp {
+    // use std::path::PathBuf;
+
+    use crate::cmap::BuilderError;
+    use crate::geometry::Vertex3;
+
+    use super::super::io::build_3d_from_inp;
+    use super::*;
+
+    fn build(input: &str) -> Result<CMap3<f64>, BuilderError> {
+        build_3d_from_inp(input, AttrStorageManager::default())
+    }
+
+    #[test]
+    fn single_hex() {
+        let map = build(SINGLE_HEX).unwrap();
+
+        assert_eq!(map.n_darts(), 25);
+        assert_eq!(map.iter_vertices().count(), 8);
+        assert_eq!(map.iter_edges().count(), 12);
+        assert_eq!(map.iter_faces().count(), 6);
+        assert_eq!(map.iter_volumes().count(), 1);
+        assert_eq!(
+            map.iter_vertices()
+                .filter_map(|vertex| map.read_vertex(vertex))
+                .count(),
+            8
+        );
+        assert_eq!(
+            map.read_vertex(map.vertex_id(1)),
+            Some(Vertex3(0.0, 0.0, 0.0))
+        );
+        assert_eq!(
+            map.read_vertex(map.vertex_id(12)),
+            Some(Vertex3(1.0, 1.0, 1.0))
+        );
+    }
+
+    #[test]
+    fn adjacent_hexes_are_sewn_using_connectivity() {
+        let map = build(TWO_HEXES).unwrap();
+
+        assert_eq!(map.n_darts(), 49);
+        assert_eq!(map.iter_vertices().count(), 12);
+        assert_eq!(map.iter_edges().count(), 20);
+        assert_eq!(map.iter_faces().count(), 11);
+        assert_eq!(map.iter_volumes().count(), 2);
+        assert_eq!(
+            map.iter_faces()
+                .filter(|face| map.is_i_free::<3>(*face))
+                .count(),
+            10
+        );
+    }
+
+    #[test]
+    fn parses_sparse_ids_multiple_blocks_and_ignored_sections() {
+        let input = TWO_HEXES
+            .replace("*ELEMENT, TYPE=C3D8R", "*ELEMENT, ELSET=ONE, TYPE=c3d8r")
+            .replace("2, 2, 9, 10, 3, 6, 11, 12, 7", "*MATERIAL, NAME=IGNORED\n*ELASTIC\n1, 2\n*ELEMENT, TYPE=C3D8, ELSET=TWO\n200, 2, 9, 10, 3, 6, 11, 12, 7");
+        let map = build(&input).unwrap();
+
+        assert_eq!(map.iter_vertices().count(), 12);
+        assert_eq!(map.iter_volumes().count(), 2);
+    }
+
+    #[test]
+    fn rejects_bad_or_unsupported_mesh_data() {
+        assert_eq!(
+            build(SINGLE_HEX.replace("C3D8R", "C3D4").as_str())
+                .err()
+                .unwrap(),
+            BuilderError::UnsupportedInpData("only C3D8 element types are supported")
+        );
+        assert_eq!(
+            build(SINGLE_HEX.replace(", 8\n", ", 99\n").as_str())
+                .err()
+                .unwrap(),
+            BuilderError::BadInpData("element references an undefined node")
+        );
+
+        let same_orientation =
+            format!("{SINGLE_HEX}\n*ELEMENT, TYPE=C3D8R\n2, 1, 2, 3, 4, 5, 6, 7, 8\n");
+        assert_eq!(
+            build(&same_orientation).err().unwrap(),
+            BuilderError::BadInpData("adjacent elements have inconsistent face orientations")
+        );
+
+        let non_manifold = format!(
+            "{TWO_HEXES}\n*NODE\n13, 0, 0, 2\n14, 1, 0, 2\n15, 1, 1, 2\n16, 0, 1, 2\n*ELEMENT, TYPE=C3D8R\n3, 2, 3, 7, 6, 13, 14, 15, 16\n"
+        );
+        assert_eq!(
+            build(&non_manifold).err().unwrap(),
+            BuilderError::BadInpData("face is shared by more than two elements")
+        );
+    }
+
+    // #[test]
+    // fn supplied_sphere_meshes() {
+    //     for file_name in ["sphere_res_1cm.inp", "sphere_res_1cm_noised.inp"] {
+    //         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //             .parent()
+    //             .unwrap()
+    //             .join(file_name);
+    //         let map: CMap3<f64> = CMapBuilder::<3>::from_inp_file(path).build().unwrap();
+
+    //         assert_eq!(map.n_darts(), 245_761);
+    //         assert_eq!(map.n_vertices(), 11_065);
+    //         assert_eq!(
+    //             (1..map.n_darts() as DartIdType)
+    //                 .filter(|dart| map.is_i_free::<3>(*dart))
+    //                 .count(),
+    //             6_144
+    //         );
+    //     }
+    // }
+
+    const SINGLE_HEX: &str = "
+*HEADING
+ignored
+** a comment
+*NODE, NSET=ALL
+1, 0, 0, 0
+2, 1, 0, 0
+3, 1, 1, 0
+4, 0, 1, 0
+5, 0, 0, 1
+6, 1, 0, 1
+7, 1, 1, 1
+8, 0, 1, 1
+*ELEMENT, TYPE=C3D8R
+1, 1, 2, 3, 4, 5, 6, 7, 8
+*SOLID SECTION, ELSET=ALL, MATERIAL=IGNORED
+";
+
+    const TWO_HEXES: &str = "
+*NODE
+1, 0, 0, 0
+2, 1, 0, 0
+3, 1, 1, 0
+4, 0, 1, 0
+5, 0, 0, 1
+6, 1, 0, 1
+7, 1, 1, 1
+8, 0, 1, 1
+9, 2, 0, 0
+10, 2, 1, 0
+11, 2, 0, 1
+12, 2, 1, 1
+*ELEMENT, TYPE=C3D8R
+1, 1, 2, 3, 4, 5, 6, 7, 8
+2, 2, 9, 10, 3, 6, 11, 12, 7
+";
+}
