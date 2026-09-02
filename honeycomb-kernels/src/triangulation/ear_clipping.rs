@@ -159,9 +159,7 @@ fn process_cell<T: CoordsFloat>(
     let mut darts = darts.clone();
     let mut vertices = vertices.clone();
     let mut n = darts.len();
-    for sl in new_darts.chunks_exact(2) {
-        let &[nd1, nd2] = sl else { unreachable!() };
-
+    for &[nd1, nd2] in new_darts.as_chunks::<2>().0 {
         let Some(ear) = (0..n).find(|idx| {
             // we're checking whether ABC is an ear or not
             let v1 = &vertices[*idx]; // A

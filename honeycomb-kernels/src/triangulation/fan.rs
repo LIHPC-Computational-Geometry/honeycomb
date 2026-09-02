@@ -104,8 +104,7 @@ pub fn process_cell<T: CoordsFloat>(
         let v0 = cmap.read_vertex_tx(t, vid)?.unwrap();
         try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
         let mut d0 = *sdart;
-        for sl in new_darts.chunks_exact(2) {
-            let [d1, d2] = sl else { unreachable!() };
+        for [d1, d2] in new_darts.as_chunks::<2>().0 {
             let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
             let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
             try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
@@ -190,8 +189,7 @@ pub fn process_convex_cell<T: CoordsFloat>(
     let v0 = cmap.read_vertex_tx(t, vid)?.unwrap();
     try_or_coerce!(cmap.unsew_tx::<1>(t, b0_sdart), TriangulateError);
     let mut d0 = sdart;
-    for sl in new_darts.chunks_exact(2) {
-        let [d1, d2] = sl else { unreachable!() };
+    for [d1, d2] in new_darts.as_chunks::<2>().0 {
         let b1_d0 = cmap.beta_tx::<1>(t, d0)?;
         let b1b1_d0 = cmap.beta_tx::<1>(t, b1_d0)?;
         try_or_coerce!(cmap.unsew_tx::<1>(t, b1_d0), TriangulateError);
