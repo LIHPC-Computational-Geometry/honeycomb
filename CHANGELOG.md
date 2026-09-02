@@ -6,6 +6,89 @@
 
 ---
 
+## 0.12.0
+
+### Workspace
+
+*deps:*
+- bump hwlocality from 1.0.0-alpha.11 to 1.0.0-alpha.12 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/462
+- bump rand from 0.10.0 to 0.10.2 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/464 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/484
+- bump clap from 4.6.0 to 4.6.6 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/465
+- bump rayon from 1.11.0 to 1.12.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/466
+- bump crate-ci/typos from 1.45.0 to 1.50.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/467 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/473 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/481 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/500
+- bump cudarc from 0.19.4 to 0.19.9 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/468 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/469 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/476
+- bump nalgebra from 0.34.2 to 0.35.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/471
+- bump tikv-jemallocator from 0.6.1 to 0.7.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/470
+- bump codecov/codecov-action from 6.0.0 to 7.0.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/472 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/480
+- bump regex from 1.12.3 to 1.13.1 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/474 https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/487
+- bump itertools from 0.14.0 to 0.15.0 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/477
+- bump actions/checkout from 6 to 7 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/482
+- bump rustc-hash from 2.1.2 to 2.1.3 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/483
+- bump rustversion from 1.0.22 to 1.0.23 by @dependabot[bot]
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/486
+- bump anyhow from 1.0.103 to 1.0.104 by @dependabot[bot]
+- bump thiserror from 2.0.18 to 2.0.20 by @dependabot[bot]
+
+*doc:*
+- overhaul the Honeycomb Book content and illustrations by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/485
+- expand and polish the book's resources, applications, development, STM, and examples pages by @imrn99
+
+### Published crates
+
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- return the unlinked image dart ID from `unlink` and `unsew` methods by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/450
+- support Abaqus `inp` files for 3D hexahedral mesh initialization by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/493
+
+#### honeycomb-kernels
+
+<sup>meshing kernel implementations using combinatorial maps</sup>
+
+*new:*
+- implement 3D vertex smoothing by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/499
+
+### Others
+
+#### applications
+
+<sup>examples and benchmarks</sup>
+
+*new:*
+- add a 3D vertex smoothing application by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/499
+- rebuild tetrahedra from unused elements during Delaunay insertion rounds and add a CLI switch to disable it by @imrn99
+
+*refactor:*
+- increase benchmark problem sizes and add a sequential Delaunay suite by @imrn99
+  in https://github.com/LIHPC-Computational-Geometry/honeycomb/pull/475
+- account for mid-round tetrahedra rebuild time separately by @imrn99
+
+*fix:*
+- convert the vertex type passed to `set_vertex` in GPU grid generation by @imrn99
+- clean up premade tetrahedra handling in Delaunay insertion by @imrn99
+
+---
+
 ## 0.11.0
 
 ### Workspace

@@ -206,7 +206,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "applications"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "bindgen",
  "cfg-if",
@@ -2620,7 +2620,7 @@ checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 
 [[package]]
 name = "honeycomb"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "honeycomb-core",
  "honeycomb-kernels",
@@ -2630,7 +2630,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-core"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "anyhow",
  "downcast-rs 2.0.2",
@@ -2647,7 +2647,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-kernels"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "honeycomb-core",
  "num-traits",
@@ -2661,7 +2661,7 @@ dependencies = [
 
 [[package]]
 name = "honeycomb-render"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "bevy",
  "bevy_egui",
