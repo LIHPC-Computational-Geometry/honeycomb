@@ -48,6 +48,11 @@ path = "shift_vertices/main.rs"
 
 [[bin]]
 doc  = false
+name = "shift-vertices-3d"
+path = "shift_vertices_3d/main.rs"
+
+[[bin]]
+doc  = false
 name = "triangulate"
 path = "triangulate/main.rs"
 

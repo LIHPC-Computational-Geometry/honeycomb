@@ -1,6 +1,6 @@
 use honeycomb_core::{
-    cmap::{CMap2, VertexIdType},
-    geometry::{CoordsFloat, Vector2},
+    cmap::{CMap2, CMap3, VertexIdType},
+    geometry::{CoordsFloat, Vector2, Vector3},
     stm::{StmClosureResult, Transaction},
 };
 
@@ -96,4 +96,91 @@ pub fn neighbor_based_smooth<T: CoordsFloat>(
     map.write_vertex_tx(t, vid, p + delta)?;
 
     Ok(())
+}
+
+/// Move a 3-map vertex to the average of the supplied neighboring vertices.
+///
+/// # Errors
+///
+/// This function will abort and raise an error if the transaction cannot be completed.
+///
+/// # Panics
+///
+/// This function may panic if one of the vertices has no associated coordinates.
+#[inline]
+pub fn move_vertex_to_average_3d<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    vid: VertexIdType,
+    others: &[VertexIdType],
+) -> StmClosureResult<()> {
+    neighbor_based_smooth_3d(t, map, vid, others, T::one())
+}
+
+/// Smooth a 3-map vertex toward the average of the supplied neighboring vertices.
+///
+/// # Errors
+///
+/// This function will abort and raise an error if the transaction cannot be completed.
+///
+/// # Panics
+///
+/// This function may panic if one of the vertices has no associated coordinates.
+#[inline]
+pub fn neighbor_based_smooth_3d<T: CoordsFloat>(
+    t: &mut Transaction,
+    map: &CMap3<T>,
+    vid: VertexIdType,
+    neighbors_id: &[VertexIdType],
+    lambda: T,
+) -> StmClosureResult<()> {
+    let p = map
+        .read_vertex_tx(t, vid)?
+        .expect("E: no coordinates associated to vertex ID");
+
+    let n = neighbors_id.len();
+    let mut neighbors: smallvec::SmallVec<_, 16> = smallvec::SmallVec::with_capacity(n);
+    for &nid in neighbors_id {
+        neighbors.push(
+            map.read_vertex_tx(t, nid)?
+                .expect("E: no coordinates associated to vertex ID"),
+        );
+    }
+
+    let delta = neighbors
+        .into_iter()
+        .map(|v| v - p)
+        .fold(Vector3::default(), |a, b| a + b)
+        * lambda
+        / T::from(n).unwrap();
+
+    map.write_vertex_tx(t, vid, p + delta)?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use honeycomb_core::{
+        cmap::{CMap3, CMapBuilder},
+        geometry::Vertex3,
+        stm::atomically,
+    };
+
+    use super::{move_vertex_to_average_3d, neighbor_based_smooth_3d};
+
+    #[test]
+    fn smooth_vertices_3d() {
+        let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(3).build().unwrap();
+        map.set_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        map.set_vertex(2, Vertex3(2.0, 0.0, 0.0));
+        map.set_vertex(3, Vertex3(0.0, 2.0, 2.0));
+
+        atomically(|transaction| move_vertex_to_average_3d(transaction, &map, 1, &[2, 3]));
+        assert_eq!(map.read_vertex(1), Some(Vertex3(1.0, 1.0, 1.0)));
+
+        map.set_vertex(1, Vertex3(0.0, 0.0, 0.0));
+        atomically(|transaction| neighbor_based_smooth_3d(transaction, &map, 1, &[2, 3], 0.5));
+        assert_eq!(map.read_vertex(1), Some(Vertex3(0.5, 0.5, 0.5)));
+    }
 }

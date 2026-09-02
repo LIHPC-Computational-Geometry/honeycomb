@@ -1,14 +1,14 @@
 use honeycomb::{
     prelude::{
-        CMap2, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
-        remeshing::{move_vertex_to_average, neighbor_based_smooth},
+        CMap3, CoordsFloat, DartIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
+        remeshing::{move_vertex_to_average_3d, neighbor_based_smooth_3d},
     },
     stm::atomically,
 };
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
 
-fn vertex_neighbors<T: CoordsFloat>(map: &CMap2<T>, v: VertexIdType) -> Vec<VertexIdType> {
+fn vertex_neighbors<T: CoordsFloat>(map: &CMap3<T>, v: VertexIdType) -> Vec<VertexIdType> {
     let mut neighbors = HashSet::default();
     for dart in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
         let beta_2 = map.beta::<2>(dart);
@@ -33,7 +33,7 @@ fn vertex_neighbors<T: CoordsFloat>(map: &CMap2<T>, v: VertexIdType) -> Vec<Vert
 }
 
 pub fn build_vertex_graph<T: CoordsFloat>(
-    map: &CMap2<T>,
+    map: &CMap3<T>,
     sort: bool,
 ) -> Vec<(VertexIdType, Vec<VertexIdType>)> {
     if sort {
@@ -58,34 +58,28 @@ mod tests {
 
     #[test]
     fn boundary_vertices_have_complete_neighborhoods() {
-        let map = GridBuilder::<2, f64>::unit_grid(2);
+        let map = GridBuilder::<3, f64>::hex_grid(1, 1.0);
         let graph = build_vertex_graph(&map, false);
-        let mut degrees = graph
-            .into_iter()
-            .map(|(_, neighbors)| neighbors.len())
-            .collect::<Vec<_>>();
-        degrees.sort_unstable();
 
-        assert_eq!(degrees, [2, 2, 2, 2, 3, 3, 3, 3, 4]);
+        assert_eq!(graph.len(), 8);
+        assert!(graph.iter().all(|(_, neighbors)| neighbors.len() == 3));
     }
 }
 
 pub fn shift<T: CoordsFloat>(
-    map: &CMap2<T>,
+    map: &CMap3<T>,
     graph: &[(VertexIdType, Vec<VertexIdType>)],
     n_rounds: usize,
 ) {
     println!(" Round | process_time | throughput(vertex/s)");
-    // main loop
     let mut round = 0;
-    let mut process_time;
     let n_v = graph.len();
     loop {
         let instant = std::time::Instant::now();
         graph.par_iter().for_each(|(vid, neigh)| {
-            atomically(|t| move_vertex_to_average(t, map, *vid, neigh));
+            atomically(|t| move_vertex_to_average_3d(t, map, *vid, neigh));
         });
-        process_time = instant.elapsed().as_secs_f64();
+        let process_time = instant.elapsed().as_secs_f64();
         println!(
             " {:>5} | {:>12.6e} | {:>20.6e}",
             round,
@@ -101,22 +95,20 @@ pub fn shift<T: CoordsFloat>(
 }
 
 pub fn laplace<T: CoordsFloat>(
-    map: &CMap2<T>,
+    map: &CMap3<T>,
     graph: &[(VertexIdType, Vec<VertexIdType>)],
     n_rounds: usize,
     lambda: T,
 ) {
     println!(" Round | process_time | throughput(vertex/s)");
-    // main loop
     let mut round = 0;
-    let mut process_time;
     let n_v = graph.len();
     loop {
         let instant = std::time::Instant::now();
         graph.par_iter().for_each(|(vid, neigh)| {
-            atomically(|t| neighbor_based_smooth(t, map, *vid, neigh, lambda));
+            atomically(|t| neighbor_based_smooth_3d(t, map, *vid, neigh, lambda));
         });
-        process_time = instant.elapsed().as_secs_f64();
+        let process_time = instant.elapsed().as_secs_f64();
         println!(
             " {:>5} | {:>12.6e} | {:>20.6e}",
             round,
@@ -132,27 +124,24 @@ pub fn laplace<T: CoordsFloat>(
 }
 
 pub fn taubin<T: CoordsFloat>(
-    map: &CMap2<T>,
+    map: &CMap3<T>,
     graph: &[(VertexIdType, Vec<VertexIdType>)],
     n_rounds: usize,
     lambda: T,
     k: T,
 ) {
     println!(" Round | process_time | throughput(vertex/s)");
-    // main loop
     let mut round = 0;
-    let mut process_time;
     let n_v = graph.len();
-
     let mu = T::one() / (k - T::one() / lambda);
 
     loop {
         let instant = std::time::Instant::now();
         let scale = if round % 2 == 0 { lambda } else { mu };
         graph.par_iter().for_each(|(vid, neigh)| {
-            atomically(|t| neighbor_based_smooth(t, map, *vid, neigh, scale));
+            atomically(|t| neighbor_based_smooth_3d(t, map, *vid, neigh, scale));
         });
-        process_time = instant.elapsed().as_secs_f64();
+        let process_time = instant.elapsed().as_secs_f64();
         println!(
             " {:>5} | {:>12.6e} | {:>20.6e}",
             round,
