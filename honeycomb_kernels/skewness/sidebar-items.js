@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["compute_face_skewness_2d","compute_face_skewness_3d"]};
