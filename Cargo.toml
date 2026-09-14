@@ -54,7 +54,7 @@ num-traits    = "0.2.19"
 vtkio         = { version = "0.7.0-rc2", default-features = false }
 
 # applications
-bindgen           = "0.72.1"
+bindgen           = "0.73.2"
 clap              = "4.6.1"
 coupe             = { git = "https://github.com/LIHPC-Computational-Geometry/coupe" }
 cudarc            = "0.19.7"
