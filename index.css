@@ -1,0 +1,215 @@
+@import url("https://fonts.cdnfonts.com/css/jetbrains-mono-2");
+body[a="dark"] {
+  background-color:#212121;
+  color:#fafafa
+}
+body[a="dark"] a {
+  color:#0071bc
+}
+body[a="dark"] a:visited {
+  color:#a359e9
+}
+body[a="dark"] details {
+  border:thin solid #fafafa
+}
+body[a="dark"] details summary {
+  color:#fafafa
+}
+body[a="dark"] details[open] summary {
+  border-bottom:1px solid #fafafa
+}
+body[a="dark"] pre {
+  background:#212121
+}
+body[a="dark"] code:not(pre>code) {
+  background-color:#fafafa;
+  color:#212121
+}
+body[a="dark"] *:target {
+  background:#ff0;
+  color:#fafafa
+}
+body[a="dark"] table,
+body[a="dark"] th,
+body[a="dark"] td {
+  border:thin solid #fafafa
+}
+body[a="dark"] .toc {
+  border:thin solid #fafafa;
+  padding:1rem
+}
+body[a="dark"] figcaption {
+  color:#000
+}
+body[a="dark"] blockquote {
+  border:thin solid #fafafa
+}
+body[a="light"] {
+  background-color:#fff;
+  color:#212121
+}
+body[a="light"] a {
+  color:#1e70bf
+}
+body[a="light"] a:visited {
+  color:#921292
+}
+body[a="light"] details {
+  border:thin solid #212121
+}
+body[a="light"] details summary {
+  color:#212121
+}
+body[a="light"] details[open] summary {
+  border-bottom:1px solid #212121
+}
+body[a="light"] pre {
+  background:#fff
+}
+body[a="light"] code:not(pre>code) {
+  background-color:#212121;
+  color:#fff
+}
+body[a="light"] *:target {
+  background:#ff0;
+  color:#212121
+}
+body[a="light"] table,
+body[a="light"] th,
+body[a="light"] td {
+  border:thin solid #212121
+}
+body[a="light"] .toc {
+  border:thin solid #212121;
+  padding:1rem
+}
+body[a="light"] figcaption {
+  color:#666
+}
+body[a="light"] blockquote {
+  border:thin solid #212121
+}
+@media (prefers-color-scheme: dark) {
+  body[a="auto"] {
+    background-color:#212121;
+    color:#fafafa
+  }
+  body[a="auto"] a {
+    color:#0071bc
+  }
+  body[a="auto"] a:visited {
+    color:#a359e9
+  }
+  body[a="auto"] details {
+    border:thin solid #fafafa
+  }
+  body[a="auto"] details summary {
+    color:#fafafa
+  }
+  body[a="auto"] details[open] summary {
+    border-bottom:1px solid #fafafa
+  }
+  body[a="auto"] pre {
+    background:#212121
+  }
+  body[a="auto"] code:not(pre>code) {
+    background-color:#fafafa;
+    color:#212121
+  }
+  body[a="auto"] *:target {
+    background:#ff0;
+    color:#fafafa
+  }
+  body[a="auto"] table,
+  body[a="auto"] th,
+  body[a="auto"] td {
+    border:thin solid #fafafa
+  }
+  body[a="auto"] .toc {
+    border:thin solid #fafafa;
+    padding:1rem
+  }
+  body[a="auto"] figcaption {
+    color:#000
+  }
+  body[a="auto"] blockquote {
+    border:thin solid #fafafa
+  }
+}
+@media (prefers-color-scheme: light) {
+  body[a="auto"] {
+    background-color:#fff;
+    color:#212121
+  }
+  body[a="auto"] a {
+    color:#1e70bf
+  }
+  body[a="auto"] a:visited {
+    color:#921292
+  }
+  body[a="auto"] details {
+    border:thin solid #212121
+  }
+  body[a="auto"] details summary {
+    color:#212121
+  }
+  body[a="auto"] details[open] summary {
+    border-bottom:1px solid #212121
+  }
+  body[a="auto"] pre {
+    background:#fff
+  }
+  body[a="auto"] code:not(pre>code) {
+    background-color:#212121;
+    color:#fff
+  }
+  body[a="auto"] *:target {
+    background:#ff0;
+    color:#212121
+  }
+  body[a="auto"] table,
+  body[a="auto"] th,
+  body[a="auto"] td {
+    border:thin solid #212121
+  }
+  body[a="auto"] .toc {
+    border:thin solid #212121;
+    padding:1rem
+  }
+  body[a="auto"] figcaption {
+    color:#666
+  }
+  body[a="auto"] blockquote {
+    border:thin solid #212121
+  }
+}
+html {
+  height:100%
+}
+body {
+  font-family:"JetBrains Mono", monospace;
+  font-size:16px;
+  line-height:1.2;
+  margin:0;
+  min-height:100%;
+  overflow-wrap:break-word;
+  hyphens:auto
+}
+h2, h3, h4, h5, h6 {
+  margin-top:1.5rem
+}
+p {
+  margin:1rem 0
+}
+li {
+  margin:0.4rem 0
+}
+a {
+  text-decoration:none
+}
+a:hover {
+  text-decoration:underline
+}
+.centered { margin: 0 auto; max-width: 768px; }
+
+
