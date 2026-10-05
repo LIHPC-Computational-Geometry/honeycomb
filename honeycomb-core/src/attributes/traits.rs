@@ -157,6 +157,17 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
     /// only processed via the `?` operator.
     fn clear_slot(&self, t: &mut Transaction, id: DartIdType) -> StmClosureResult<()>;
 
+    /// Set a value to `None`, bypassing the transactional machinery
+    ///
+    /// This is the atomic counterpart of [`clear_slot`][Self::clear_slot]. The operation cannot
+    /// be rolled back; see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `id: DartIdType` -- ID of the value to clear / set to `None`.
+    fn clear_slot_atomic(&self, id: DartIdType);
+
     /// Return the number of stored attributes, i.e. the number of used slots in the storage (not
     /// its length).
     #[must_use = "unused return value"]
@@ -199,6 +210,31 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         rhs_inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError>;
 
+    /// Merge attributes to specified index, bypassing the transactional machinery
+    ///
+    /// This is the atomic counterpart of [`merge`][Self::merge]. Input values are only discarded
+    /// once the merge routine succeeds, so a failing merge leaves the storage unmodified;
+    /// however, the operation as a whole cannot be rolled back once applied, and is not atomic
+    /// with respect to concurrent accesses. See the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `lhs_inp: DartIdentifier` -- Identifier of one attribute value to merge.
+    /// - `rhs_inp: DartIdentifier` -- Identifier of the other attribute value to merge.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if the merge fails (e.g. because one merging
+    /// value is missing).
+    fn merge_atomic(
+        &self,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> Result<(), AttributeError>;
+
     /// Split attribute to specified indices
     ///
     /// # Arguments
@@ -233,6 +269,31 @@ pub trait UnknownAttributeStorage: Any + Debug + Downcast {
         rhs_out: DartIdType,
         inp: DartIdType,
     ) -> TransactionClosureResult<(), AttributeError>;
+
+    /// Split attribute to specified indices, bypassing the transactional machinery
+    ///
+    /// This is the atomic counterpart of [`split`][Self::split]. The input value is only
+    /// discarded once the split routine succeeds, so a failing split leaves the storage
+    /// unmodified; however, the operation as a whole cannot be rolled back once applied, and is
+    /// not atomic with respect to concurrent accesses. See the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `rhs_out: DartIdentifier` -- Identifier to associate the result with.
+    /// - `inp: DartIdentifier` -- Identifier of the attribute value to split.
+    ///
+    /// # Errors
+    ///
+    /// This method will fail, returning an error, if the split fails (e.g. because there is no
+    /// value to split from).
+    fn split_atomic(
+        &self,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> Result<(), AttributeError>;
 }
 
 impl_downcast!(UnknownAttributeStorage);
@@ -263,6 +324,23 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - may panic if the index cannot be converted to `usize`
     fn read(&self, t: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
 
+    /// Read the value of an element at a given index, bypassing the transactional machinery.
+    ///
+    /// This is the atomic counterpart of [`read`][Self::read]. The operation provides no
+    /// conflict detection; see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn read_atomic(&self, id: A::IdentifierType) -> Option<A>;
+
     #[allow(clippy::missing_errors_doc)]
     /// Write the value of an element at a given index and return the old value.
     ///
@@ -290,6 +368,26 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
         val: A,
     ) -> StmClosureResult<Option<A>>;
 
+    /// Write the value of an element at a given index and return the old value, bypassing the
+    /// transactional machinery.
+    ///
+    /// This is the atomic counterpart of [`write`][Self::write]. The old value is fetched
+    /// before the new one is stored; the sequence is not atomic as a whole, and the operation
+    /// provides no conflict detection nor rollback. See the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    /// - `val: A` -- Attribute value.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn write_atomic(&self, id: A::IdentifierType, val: A) -> Option<A>;
+
     #[allow(clippy::missing_errors_doc)]
     /// Remove the value at a given index and return it.
     ///
@@ -310,4 +408,22 @@ pub trait AttributeStorage<A: AttributeBind>: UnknownAttributeStorage {
     /// - should panic if the index lands out of bounds
     /// - may panic if the index cannot be converted to `usize`
     fn remove(&self, t: &mut Transaction, id: A::IdentifierType) -> StmClosureResult<Option<A>>;
+
+    /// Remove the value at a given index and return it, bypassing the transactional machinery.
+    ///
+    /// This is the atomic counterpart of [`remove`][Self::remove]. The old value is fetched
+    /// before `None` is stored; the sequence is not atomic as a whole, and the operation
+    /// provides no conflict detection nor rollback. See the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `index: A::IdentifierType` -- Cell index.
+    ///
+    /// # Panics
+    ///
+    /// The method:
+    /// - should panic if the index lands out of bounds
+    /// - may panic if the index cannot be converted to `usize`
+    fn remove_atomic(&self, id: A::IdentifierType) -> Option<A>;
 }

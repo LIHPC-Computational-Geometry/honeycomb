@@ -6,11 +6,13 @@
 #[cfg(feature = "par-internals")]
 use rayon::prelude::*;
 
+use std::marker::PhantomData;
+
 use crate::{
     attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage},
     cmap::{
-        DartIdType, DartReleaseError, DartReservationError,
-        components::{betas::BetaFunctions, unused::UnusedDarts},
+        DartIdType, DartReleaseError, DartReservationError, TransactionalController,
+        components::{access::AccessController, betas::BetaFunctions, unused::UnusedDarts},
     },
     geometry::{CoordsFloat, Vertex3},
     stm::{StmClosureResult, Transaction, TransactionClosureResult, abort, atomically_with_err},
@@ -19,7 +21,13 @@ use crate::{
 use super::CMAP3_BETA;
 
 /// Main map object.
-pub struct CMap3<T: CoordsFloat> {
+///
+/// ## Generics
+///
+/// - `T: CoordsFloat` -- Generic FP type for coordinates representation
+/// - `AC: AccessController` -- Access controller regulating how internal data is accessed;
+///   defaults to the fully transactional [`TransactionalController`]
+pub struct CMap3<T: CoordsFloat, AC: AccessController = TransactionalController> {
     /// List of vertices making up the represented mesh
     pub(super) attributes: AttrStorageManager,
     /// List of vertices making up the represented mesh
@@ -29,10 +37,12 @@ pub struct CMap3<T: CoordsFloat> {
     pub(super) unused_darts: UnusedDarts,
     /// Array representation of the beta functions
     pub(super) betas: BetaFunctions<CMAP3_BETA>,
+    /// Access controller of the map
+    pub(super) ac: PhantomData<AC>,
 }
 
-unsafe impl<T: CoordsFloat> Send for CMap3<T> {}
-unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
+unsafe impl<T: CoordsFloat, AC: AccessController> Send for CMap3<T, AC> {}
+unsafe impl<T: CoordsFloat, AC: AccessController> Sync for CMap3<T, AC> {}
 #[doc(hidden)]
 /// # 3D combinatorial map implementation
 ///
@@ -75,7 +85,7 @@ unsafe impl<T: CoordsFloat> Sync for CMap3<T> {}
 /// - Even though volumes are represented in the figure, they are not stored in the structure
 /// - We use a lot of methods with the `` prefix; these are convenience methods when
 ///   synchronization isn't needed
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// Creates a new 3D combinatorial map.
     #[allow(unused)]
     #[must_use = "unused return value"]
@@ -85,6 +95,7 @@ impl<T: CoordsFloat> CMap3<T> {
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
+            ac: PhantomData,
         }
     }
 
@@ -104,12 +115,13 @@ impl<T: CoordsFloat> CMap3<T> {
             vertices: AttrSparseVec::new(n_darts + 1),
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
+            ac: PhantomData,
         }
     }
 }
 
 /// **Dart-related methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     // --- read
 
     /// Return the current number of darts.
@@ -150,7 +162,11 @@ impl<T: CoordsFloat> CMap3<T> {
     /// only processed via the `?` operator.
     #[must_use = "unused return value"]
     pub fn is_unused_tx(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<bool> {
-        self.unused_darts[d].read(t)
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            self.unused_darts[d].read(t)
+        } else {
+            Ok(self.unused_darts[d].read_atomic())
+        }
     }
 
     // --- edit
@@ -276,7 +292,12 @@ impl<T: CoordsFloat> CMap3<T> {
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
     pub fn claim_dart_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<()> {
-        self.unused_darts[dart_id].write(t, false)
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            self.unused_darts[dart_id].write(t, false)
+        } else {
+            self.unused_darts[dart_id].write_atomic(false);
+            Ok(())
+        }
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -309,8 +330,15 @@ impl<T: CoordsFloat> CMap3<T> {
         if !self.is_free_tx(t, dart_id)? {
             abort(DartReleaseError(dart_id))?;
         }
-        self.attributes.clear_attribute_values(t, dart_id)?;
-        self.vertices.clear_slot(t, dart_id)?;
-        Ok(self.unused_darts[dart_id].exchange(t, true)?) // Ok(_?) necessary for err type coercion
+        self.clear_attribute_values(t, dart_id)?;
+        self.vertex_remove(t, dart_id)?;
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            Ok(self.unused_darts[dart_id].exchange(t, true)?) // Ok(_?) necessary for err type coercion
+        } else {
+            // no exchange_atomic primitive: compose a read followed by a write
+            let old = self.unused_darts[dart_id].read_atomic();
+            self.unused_darts[dart_id].write_atomic(true);
+            Ok(old)
+        }
     }
 }

@@ -6,10 +6,12 @@
 #[cfg(feature = "par-internals")]
 use rayon::prelude::*;
 
+use std::marker::PhantomData;
+
 use crate::attributes::{AttrSparseVec, AttrStorageManager, UnknownAttributeStorage};
 use crate::cmap::{
-    DartIdType, DartReleaseError, DartReservationError,
-    components::{betas::BetaFunctions, unused::UnusedDarts},
+    DartIdType, DartReleaseError, DartReservationError, TransactionalController,
+    components::{access::AccessController, betas::BetaFunctions, unused::UnusedDarts},
 };
 use crate::geometry::{CoordsFloat, Vertex2};
 use crate::stm::{
@@ -36,6 +38,8 @@ use super::CMAP2_BETA;
 /// ## Generics
 ///
 /// - `T: CoordsFloat` -- Generic FP type for coordinates representation
+/// - `AC: AccessController` -- Access controller regulating how internal data is accessed;
+///   defaults to the fully transactional [`TransactionalController`]
 ///
 /// ## Example
 ///
@@ -129,7 +133,7 @@ use super::CMAP2_BETA;
 /// assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
 /// # }
 /// ```
-pub struct CMap2<T: CoordsFloat> {
+pub struct CMap2<T: CoordsFloat, AC: AccessController = TransactionalController> {
     /// List of vertices making up the represented mesh
     pub(super) attributes: AttrStorageManager,
     /// List of vertices making up the represented mesh
@@ -141,14 +145,16 @@ pub struct CMap2<T: CoordsFloat> {
     pub(super) betas: BetaFunctions<CMAP2_BETA>,
     /// Current number of darts
     pub(super) n_darts: usize,
+    /// Access controller of the map
+    pub(super) ac: PhantomData<AC>,
 }
 
-unsafe impl<T: CoordsFloat> Send for CMap2<T> {}
-unsafe impl<T: CoordsFloat> Sync for CMap2<T> {}
+unsafe impl<T: CoordsFloat, AC: AccessController> Send for CMap2<T, AC> {}
+unsafe impl<T: CoordsFloat, AC: AccessController> Sync for CMap2<T, AC> {}
 
 #[doc(hidden)]
 /// **Constructor convenience implementations**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// Creates a new 2D combinatorial map.
     #[allow(unused)]
     #[must_use = "unused return value"]
@@ -159,6 +165,7 @@ impl<T: CoordsFloat> CMap2<T> {
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
+            ac: PhantomData,
         }
     }
 
@@ -179,12 +186,13 @@ impl<T: CoordsFloat> CMap2<T> {
             unused_darts: UnusedDarts::new(n_darts + 1),
             betas: BetaFunctions::new(n_darts + 1),
             n_darts: n_darts + 1,
+            ac: PhantomData,
         }
     }
 }
 
 /// **Dart-related methods**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     // --- read
 
     /// Return the current number of darts.
@@ -225,7 +233,11 @@ impl<T: CoordsFloat> CMap2<T> {
     /// only processed via the `?` operator.
     #[must_use = "unused return value"]
     pub fn is_unused_tx(&self, t: &mut Transaction, d: DartIdType) -> StmClosureResult<bool> {
-        self.unused_darts[d].read(t)
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            self.unused_darts[d].read(t)
+        } else {
+            Ok(self.unused_darts[d].read_atomic())
+        }
     }
 
     // --- allocation
@@ -355,7 +367,12 @@ impl<T: CoordsFloat> CMap2<T> {
     /// validate the transaction passed as argument. Errors should not be processed manually,
     /// only processed via the `?` operator.
     pub fn claim_dart_tx(&self, t: &mut Transaction, dart_id: DartIdType) -> StmClosureResult<()> {
-        self.unused_darts[dart_id].write(t, false)
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            self.unused_darts[dart_id].write(t, false)
+        } else {
+            self.unused_darts[dart_id].write_atomic(false);
+            Ok(())
+        }
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -388,8 +405,15 @@ impl<T: CoordsFloat> CMap2<T> {
         if !self.is_free_tx(t, dart_id)? {
             abort(DartReleaseError(dart_id))?;
         }
-        self.attributes.clear_attribute_values(t, dart_id)?;
-        self.vertices.clear_slot(t, dart_id)?;
-        Ok(self.unused_darts[dart_id].exchange(t, true)?) // Ok(_?) necessary for err type coercion
+        self.clear_attribute_values(t, dart_id)?;
+        self.vertex_remove(t, dart_id)?;
+        if AC::UNUSED_DARTS_TX_ACCESS {
+            Ok(self.unused_darts[dart_id].exchange(t, true)?) // Ok(_?) necessary for err type coercion
+        } else {
+            // no exchange_atomic primitive: compose a read followed by a write
+            let old = self.unused_darts[dart_id].read_atomic();
+            self.unused_darts[dart_id].write_atomic(true);
+            Ok(old)
+        }
     }
 }

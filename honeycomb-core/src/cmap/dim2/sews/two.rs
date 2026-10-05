@@ -1,11 +1,11 @@
-use crate::attributes::{AttributeStorage, UnknownAttributeStorage};
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, OrbitPolicy, SewError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 
 #[doc(hidden)]
 /// **2-(un)sews internals**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// 2-sew transactional implementation.
     #[allow(clippy::too_many_lines)]
     pub(super) fn two_sew(
@@ -34,10 +34,10 @@ impl<T: CoordsFloat> CMap2<T> {
             Some(b1l_vertex), // b1ld
             Some(r_vertex),   // rd
         ) = (
-            self.vertices.read(t, ld_vid)?,   // ld
-            self.vertices.read(t, b1rd_vid)?, // b1rd
-            self.vertices.read(t, b1ld_vid)?, // b1ld
-            self.vertices.read(t, rd_vid)?,   // rd
+            self.vertex_read(t, ld_vid)?,   // ld
+            self.vertex_read(t, b1rd_vid)?, // b1rd
+            self.vertex_read(t, b1ld_vid)?, // b1ld
+            self.vertex_read(t, rd_vid)?,   // rd
         ) {
             let ld_vector = b1l_vertex - l_vertex;
             let rd_vector = b1r_vertex - r_vertex;
@@ -53,25 +53,18 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // merge edge attributes
         try_or_coerce!(
-            self.attributes.merge_attributes(
-                t,
-                OrbitPolicy::Edge,
-                ld_eid.min(rd_eid),
-                ld_eid,
-                rd_eid,
-            ),
+            self.merge_attributes(t, OrbitPolicy::Edge, ld_eid.min(rd_eid), ld_eid, rd_eid,),
             SewError
         );
 
         // merge vertices & attributes from the old IDs to the new one
         if b1rd != NULL_DART_ID && ld_vid != b1rd_vid {
             try_or_coerce!(
-                self.vertices
-                    .merge(t, ld_vid.min(b1rd_vid), ld_vid, b1rd_vid),
+                self.vertex_merge(t, ld_vid.min(b1rd_vid), ld_vid, b1rd_vid),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.merge_attributes(
+                self.merge_attributes(
                     t,
                     OrbitPolicy::Vertex,
                     ld_vid.min(b1rd_vid),
@@ -83,12 +76,11 @@ impl<T: CoordsFloat> CMap2<T> {
         }
         if b1ld != NULL_DART_ID && b1ld_vid != rd_vid {
             try_or_coerce!(
-                self.vertices
-                    .merge(t, b1ld_vid.min(rd_vid), b1ld_vid, rd_vid),
+                self.vertex_merge(t, b1ld_vid.min(rd_vid), b1ld_vid, rd_vid),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.merge_attributes(
+                self.merge_attributes(
                     t,
                     OrbitPolicy::Vertex,
                     b1ld_vid.min(rd_vid),
@@ -118,7 +110,7 @@ impl<T: CoordsFloat> CMap2<T> {
 
         // split edge attributes
         try_or_coerce!(
-            self.attributes.split_attributes(
+            self.split_attributes(
                 t,
                 OrbitPolicy::Edge,
                 ld as EdgeIdType, // valid in 2D
@@ -130,12 +122,11 @@ impl<T: CoordsFloat> CMap2<T> {
         // split vertex attributes
         if b1rd != NULL_DART_ID && new_lv_ld != new_lv_rd {
             try_or_coerce!(
-                self.vertices
-                    .split(t, new_lv_ld, new_lv_rd, new_lv_ld.min(new_lv_rd)),
+                self.vertex_split(t, new_lv_ld, new_lv_rd, new_lv_ld.min(new_lv_rd)),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.split_attributes(
+                self.split_attributes(
                     t,
                     OrbitPolicy::Vertex,
                     new_lv_ld,
@@ -147,12 +138,11 @@ impl<T: CoordsFloat> CMap2<T> {
         }
         if b1ld != NULL_DART_ID && new_rv_ld != new_rv_rd {
             try_or_coerce!(
-                self.vertices
-                    .split(t, new_rv_ld, new_rv_rd, new_rv_ld.min(new_rv_rd)),
+                self.vertex_split(t, new_rv_ld, new_rv_rd, new_rv_ld.min(new_rv_rd)),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.split_attributes(
+                self.split_attributes(
                     t,
                     OrbitPolicy::Vertex,
                     new_rv_ld,
