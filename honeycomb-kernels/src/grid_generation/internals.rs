@@ -1,4 +1,4 @@
-use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder, DartIdType, VertexIdType};
+use honeycomb_core::cmap::{AccessController, CMap2, CMap3, CMapBuilder, DartIdType, VertexIdType};
 use honeycomb_core::geometry::{CoordsFloat, Vector2, Vector3, Vertex2, Vertex3};
 use rayon::prelude::*;
 
@@ -6,14 +6,14 @@ use rayon::prelude::*;
 
 /// Internal grid-building routine
 #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
-pub(crate) fn build_2d_grid<T: CoordsFloat>(
-    builder: CMapBuilder<2>,
+pub(crate) fn build_2d_grid<T: CoordsFloat, AC: AccessController>(
+    builder: CMapBuilder<2, AC>,
     origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
-) -> CMap2<T> {
-    let map: CMap2<T> =
-        CMapBuilder::from_n_darts_and_attributes(4 * n_square_x * n_square_y, builder)
+) -> CMap2<T, AC> {
+    let map: CMap2<T, AC> =
+        CMapBuilder::<2, AC>::from_n_darts_and_attributes(4 * n_square_x * n_square_y, builder)
             .build()
             .unwrap();
 
@@ -118,14 +118,14 @@ fn generate_square_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [
 
 /// Internal grid-building routine
 #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
-pub(crate) fn build_2d_splitgrid<T: CoordsFloat>(
-    builder: CMapBuilder<2>,
+pub(crate) fn build_2d_splitgrid<T: CoordsFloat, AC: AccessController>(
+    builder: CMapBuilder<2, AC>,
     origin: Vertex2<T>,
     [n_square_x, n_square_y]: [usize; 2],
     [len_per_x, len_per_y]: [T; 2],
-) -> CMap2<T> {
-    let map: CMap2<T> =
-        CMapBuilder::<2>::from_n_darts_and_attributes(6 * n_square_x * n_square_y, builder)
+) -> CMap2<T, AC> {
+    let map: CMap2<T, AC> =
+        CMapBuilder::<2, AC>::from_n_darts_and_attributes(6 * n_square_x * n_square_y, builder)
             .build()
             .unwrap();
 
@@ -234,16 +234,16 @@ fn generate_tris_beta_values(n_x: usize, n_y: usize) -> impl Iterator<Item = [Da
 
 /// Internal grid-building routine
 #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
-pub(crate) fn build_3d_grid<T: CoordsFloat>(
-    builder: CMapBuilder<3>,
+pub(crate) fn build_3d_grid<T: CoordsFloat, AC: AccessController>(
+    builder: CMapBuilder<3, AC>,
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
-) -> CMap3<T> {
+) -> CMap3<T, AC> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 24 * n_square_x * n_square_y * n_square_z;
 
-    let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+    let map: CMap3<T, AC> = CMapBuilder::<3, AC>::from_n_darts_and_attributes(n_darts, builder)
         .build()
         .unwrap();
 
@@ -425,16 +425,16 @@ fn generate_hex_offset<T: CoordsFloat>(
 
 /// Internal grid-building routine
 #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
-pub(crate) fn build_3d_tetgrid<T: CoordsFloat>(
-    builder: CMapBuilder<3>,
+pub(crate) fn build_3d_tetgrid<T: CoordsFloat, AC: AccessController>(
+    builder: CMapBuilder<3, AC>,
     origin: Vertex3<T>,
     n_cells_per_axis: [usize; 3],
     lengths: [T; 3],
-) -> CMap3<T> {
+) -> CMap3<T, AC> {
     let [n_square_x, n_square_y, n_square_z] = n_cells_per_axis;
     let n_darts = 60 * n_square_x * n_square_y * n_square_z;
 
-    let map: CMap3<T> = CMapBuilder::<3>::from_n_darts_and_attributes(n_darts, builder)
+    let map: CMap3<T, AC> = CMapBuilder::<3, AC>::from_n_darts_and_attributes(n_darts, builder)
         .build()
         .unwrap();
 

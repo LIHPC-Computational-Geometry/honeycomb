@@ -1,8 +1,8 @@
 use honeycomb_core::{
     attributes::{AttributeError, AttributeUpdate},
     cmap::{
-        CMap2, DartIdType, DartReleaseError, EdgeIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID,
-        NULL_VERTEX_ID, SewError, VertexIdType,
+        AccessController, CMap2, DartIdType, DartReleaseError, EdgeIdType, LinkError, NULL_DART_ID,
+        NULL_EDGE_ID, NULL_VERTEX_ID, SewError, VertexIdType,
     },
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce, unwrap_or_retry},
@@ -94,9 +94,9 @@ impl From<LinkError> for EdgeCollapseError {
 /// have no associated coordinates.
 /// </div>
 #[allow(clippy::many_single_char_names)]
-pub fn collapse_edge<T: CoordsFloat>(
+pub fn collapse_edge<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     e: EdgeIdType,
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
     if e == NULL_EDGE_ID {
@@ -154,9 +154,9 @@ enum Collapsible {
     Right,
 }
 
-fn is_collapsible<T: CoordsFloat>(
+fn is_collapsible<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     e: EdgeIdType,
 ) -> TransactionClosureResult<Collapsible, EdgeCollapseError> {
     if !map.contains_attribute::<VertexAnchor>() {
@@ -204,9 +204,9 @@ fn is_collapsible<T: CoordsFloat>(
 
 // ---- midpoint collapse
 
-fn collapse_edge_to_midpoint<T: CoordsFloat>(
+fn collapse_edge_to_midpoint<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType),
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
@@ -230,9 +230,9 @@ fn collapse_edge_to_midpoint<T: CoordsFloat>(
     })
 }
 
-fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
+fn collapse_halfcell_to_midpoint<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     (b0d, d, b1d): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<(), EdgeCollapseError> {
     try_or_coerce!(map.unsew_tx::<1>(t, d), EdgeCollapseError);
@@ -262,9 +262,9 @@ fn collapse_halfcell_to_midpoint<T: CoordsFloat>(
 
 // ---- base collapse
 
-fn collapse_edge_to_base<T: CoordsFloat>(
+fn collapse_edge_to_base<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     (b0l, l, b1l): (DartIdType, DartIdType, DartIdType), // base == l
     (b0r, r, b1r): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<VertexIdType, EdgeCollapseError> {
@@ -324,9 +324,9 @@ fn collapse_edge_to_base<T: CoordsFloat>(
     Ok(new_vid)
 }
 
-fn collapse_halfcell_to_base<T: CoordsFloat>(
+fn collapse_halfcell_to_base<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     // d_previous_edge, d_edge, d_next_edge
     (d_pe, d_e, d_ne): (DartIdType, DartIdType, DartIdType),
 ) -> TransactionClosureResult<(), EdgeCollapseError> {

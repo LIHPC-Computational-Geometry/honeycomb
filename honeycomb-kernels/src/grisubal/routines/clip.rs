@@ -2,7 +2,9 @@
 
 use std::collections::VecDeque;
 
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, NULL_DART_ID, OrbitPolicy};
+use honeycomb_core::cmap::{
+    AccessController, CMap2, DartIdType, FaceIdType, NULL_DART_ID, OrbitPolicy,
+};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use rustc_hash::FxHashSet as HashSet;
 
@@ -11,7 +13,9 @@ use crate::grisubal::model::Boundary;
 use crate::utils::VertexAnchor;
 
 /// Clip content on the left side of the boundary.
-pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
+pub fn clip_left<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
+) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
     let marked = mark_faces(cmap, Boundary::Left, Boundary::Right)?;
 
@@ -22,7 +26,9 @@ pub fn clip_left<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalErro
 }
 
 /// Clip content on the right side of the boundary.
-pub fn clip_right<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalError> {
+pub fn clip_right<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
+) -> Result<(), GrisubalError> {
     // color faces using a bfs starting on multiple nodes
     let marked = mark_faces(cmap, Boundary::Right, Boundary::Left)?;
 
@@ -35,8 +41,8 @@ pub fn clip_right<T: CoordsFloat>(cmap: &mut CMap2<T>) -> Result<(), GrisubalErr
 // --- internals
 
 #[allow(clippy::cast_possible_truncation)]
-fn mark_faces<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+fn mark_faces<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     mark: Boundary,
     other: Boundary,
 ) -> Result<HashSet<FaceIdType>, GrisubalError> {
@@ -79,8 +85,8 @@ fn mark_faces<T: CoordsFloat>(
 }
 
 #[allow(clippy::cast_possible_truncation)]
-fn delete_darts<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+fn delete_darts<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
     marked: HashSet<FaceIdType>,
     kept_boundary: Boundary,
 ) {

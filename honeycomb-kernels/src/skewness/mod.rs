@@ -4,7 +4,7 @@
 //! [here](https://en.wikipedia.org/wiki/Types_of_mesh#Skewness)
 
 use honeycomb_core::{
-    cmap::{CMap2, CMap3, DartIdType, FaceIdType},
+    cmap::{AccessController, CMap2, CMap3, DartIdType, FaceIdType},
     geometry::CoordsFloat,
     stm::atomically,
 };
@@ -13,7 +13,7 @@ use honeycomb_core::{
 ///
 /// # Arguments
 ///
-/// - `map: &CMap2<T>` -- Input map.
+/// - `map: &CMap2<T, AC>` -- Input map.
 /// - `fid: FaceIdType` -- Face to compute the skewness of.
 ///
 /// # Return
@@ -26,7 +26,10 @@ use honeycomb_core::{
 /// This function will panic if a topological vertex has no associated coordinates.
 // #[inline] // bench and adjust
 #[must_use = "unused return value"]
-pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType) -> T {
+pub fn compute_face_skewness_2d<T: CoordsFloat, AC: AccessController>(
+    map: &CMap2<T, AC>,
+    fid: FaceIdType,
+) -> T {
     let (mut d1, mut d2, mut d3) = (
         fid as DartIdType,
         map.beta::<1>(fid as DartIdType),
@@ -69,7 +72,7 @@ pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType)
 ///
 /// # Arguments
 ///
-/// - `map: &CMap3<T>` -- Input map.
+/// - `map: &CMap3<T, AC>` -- Input map.
 /// - `fid: FaceIdType` -- Face to compute the skewness of.
 ///
 /// # Return
@@ -82,7 +85,10 @@ pub fn compute_face_skewness_2d<T: CoordsFloat>(map: &CMap2<T>, fid: FaceIdType)
 /// This function will panic if a topological vertex has no associated coordinates.
 // #[inline] // bench and adjust
 #[must_use = "unused return value"]
-pub fn compute_face_skewness_3d<T: CoordsFloat>(map: &CMap3<T>, fid: FaceIdType) -> T {
+pub fn compute_face_skewness_3d<T: CoordsFloat, AC: AccessController>(
+    map: &CMap3<T, AC>,
+    fid: FaceIdType,
+) -> T {
     let (mut d1, mut d2, mut d3) = (
         fid as DartIdType,
         map.beta::<1>(fid as DartIdType),

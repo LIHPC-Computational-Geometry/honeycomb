@@ -1,6 +1,9 @@
 use honeycomb_core::{
     attributes::{AttrSparseVec, AttributeStorage, UnknownAttributeStorage},
-    cmap::{CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy},
+    cmap::{
+        AtomicController, CMap2, CMapBuilder, DartIdType, NULL_DART_ID, OrbitPolicy,
+        TransactionalController,
+    },
     stm::{atomically, atomically_with_err},
 };
 use rustc_hash::FxHashSet as HashSet;
@@ -266,7 +269,8 @@ mod capture_and_classify {
     fn capture_example() {
         // how likely is this to break?
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../applications/shape.vtk");
-        let map = capture_geometry(path, [1.0; 2], Clip::Right).unwrap();
+        let map: CMap2<f64, AtomicController> =
+            capture_geometry(path, [1.0; 2], Clip::Right).unwrap();
 
         // there should be 13 nodes, 13 curves, and a single surface
         assert_eq!(
@@ -332,7 +336,7 @@ mod capture_and_classify {
     fn classify_without_anchored_vertex_values() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+        let mut map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
             .n_cells([4; 2])
             .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
@@ -400,7 +404,7 @@ mod capture_and_classify {
     fn classify_with_anchored_vertex_values() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+        let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
             .n_cells([2; 2])
             .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
@@ -463,7 +467,7 @@ mod triangulate_and_classify {
     fn tri_before_class_no_anchor_value() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+        let mut map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
             .n_cells([4; 2])
             .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
@@ -485,14 +489,17 @@ mod triangulate_and_classify {
     fn tri_before_class() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
-            .n_cells([2; 2])
-            .len_per_cell([1.0; 2])
-            .add_attribute::<VertexAnchor>()
-            .add_attribute::<EdgeAnchor>()
-            .add_attribute::<FaceAnchor>()
-            .build()
-            .unwrap();
+        // NOTE: this test requires rollback semantics (a failing earclip must leave
+        // the map untouched), hence the explicit transactional controller
+        let mut map: CMap2<f64, TransactionalController> =
+            GridBuilder::<2, f64, TransactionalController>::default()
+                .n_cells([2; 2])
+                .len_per_cell([1.0; 2])
+                .add_attribute::<VertexAnchor>()
+                .add_attribute::<EdgeAnchor>()
+                .add_attribute::<FaceAnchor>()
+                .build()
+                .unwrap();
         map.write_attribute(1, VertexAnchor::Node(1));
         map.write_attribute(6, VertexAnchor::Node(2));
         map.write_attribute(12, VertexAnchor::Node(3));
@@ -514,7 +521,7 @@ mod triangulate_and_classify {
     fn tri_after_class_no_anchor_value() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+        let mut map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
             .n_cells([4; 2])
             .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
@@ -575,7 +582,7 @@ mod triangulate_and_classify {
     fn tri_after_class() {
         // classifying a map with no anchored vertices values should result in all
         // cells being anchored to surfaces
-        let mut map: CMap2<f64> = GridBuilder::<2, f64>::default()
+        let mut map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
             .n_cells([2; 2])
             .len_per_cell([1.0; 2])
             .add_attribute::<VertexAnchor>()
@@ -657,7 +664,7 @@ mod triangulate_and_classify {
 
         #[test]
         fn collapse_edge_errs() {
-            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
                 .n_cells([2; 2])
                 .len_per_cell([1.0; 2])
                 .add_attribute::<VertexAnchor>()
@@ -678,7 +685,7 @@ mod triangulate_and_classify {
                 Err(EdgeCollapseError::BadTopology)
             );
 
-            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
                 .n_cells([2; 2])
                 .len_per_cell([1.0; 2])
                 .split_cells(true)
@@ -697,7 +704,7 @@ mod triangulate_and_classify {
 
         #[test]
         fn collapse_edge_seq() {
-            let map: CMap2<f64> = GridBuilder::<2, f64>::default()
+            let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::default()
                 .n_cells([3; 2])
                 .len_per_cell([1.0; 2])
                 .split_cells(true)
@@ -757,7 +764,7 @@ mod swap {
 
     #[test]
     fn swap_edge_errs() {
-        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_triangles(1);
+        let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::unit_triangles(1);
 
         assert!(
             atomically_with_err(|t| swap_edge(t, &map, 0))
@@ -768,7 +775,7 @@ mod swap {
                 .is_err_and(|e| e == EdgeSwapError::IncompleteEdge)
         );
 
-        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_grid(2);
+        let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::unit_grid(2);
 
         assert!(
             atomically_with_err(|t| swap_edge(t, &map, 2))
@@ -778,7 +785,7 @@ mod swap {
 
     #[test]
     fn swap_edge_seq() {
-        let map: CMap2<f64> = GridBuilder::<2, f64>::unit_triangles(1);
+        let map: CMap2<f64, AtomicController> = GridBuilder::<2, f64>::unit_triangles(1);
 
         // before
         //
