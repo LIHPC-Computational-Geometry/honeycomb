@@ -1,11 +1,12 @@
 //! 3D link implementations
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, abort};
 
 /// 3-links
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// 3-link operation.
     pub(crate) fn three_link_tx(
         &self,
@@ -13,7 +14,7 @@ impl<T: CoordsFloat> CMap3<T> {
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        self.betas.three_link_core(t, ld, rd)?;
+        self.betas.three_link_core::<AC>(t, ld, rd)?;
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
         while lside != ld && lside != NULL_DART_ID {
@@ -21,7 +22,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // (*)
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
-            self.betas.three_link_core(t, lside, rside)?;
+            self.betas.three_link_core::<AC>(t, lside, rside)?;
             (lside, rside) = (self.beta_tx::<1>(t, lside)?, self.beta_tx::<0>(t, rside)?);
         }
         // the face was open, so we need to cover the other direction
@@ -38,7 +39,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     // (*)
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
                 }
-                self.betas.three_link_core(t, lside, rside)?;
+                self.betas.three_link_core::<AC>(t, lside, rside)?;
                 (lside, rside) = (self.beta_tx::<0>(t, lside)?, self.beta_tx::<1>(t, rside)?);
             }
         }
@@ -52,14 +53,14 @@ impl<T: CoordsFloat> CMap3<T> {
 }
 
 /// 3-unlinks
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// 3-unlink operation.
     pub(crate) fn three_unlink_tx(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
-        let rd = self.betas.three_unlink_core(t, ld)?;
+        let rd = self.betas.three_unlink_core::<AC>(t, ld)?;
 
         let (mut lside, mut rside) = (self.beta_tx::<1>(t, ld)?, self.beta_tx::<0>(t, rd)?);
         // while we haven't completed the loop, or reached an end
@@ -68,7 +69,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // (*); FIXME: add dedicated err ~LinkError::DivergentStructures ?
                 abort(LinkError::AsymmetricalFaces(ld, rd))?;
             }
-            self.betas.three_unlink_core(t, lside)?;
+            self.betas.three_unlink_core::<AC>(t, lside)?;
             (lside, rside) = (self.beta_tx::<1>(t, lside)?, self.beta_tx::<0>(t, rside)?);
         }
         // the face was open, so we need to cover the other direction
@@ -86,7 +87,7 @@ impl<T: CoordsFloat> CMap3<T> {
                     abort(LinkError::AsymmetricalFaces(ld, rd))?;
                 }
                 assert_eq!(lside, self.beta_tx::<3>(t, rside)?); // (*)
-                self.betas.three_unlink_core(t, lside)?;
+                self.betas.three_unlink_core::<AC>(t, lside)?;
                 (lside, rside) = (self.beta_tx::<0>(t, lside)?, self.beta_tx::<1>(t, rside)?);
             }
         }

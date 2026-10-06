@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy},
+    cmap::{AccessController, CMap2, DartIdType, NULL_DART_ID, OrbitPolicy},
     geometry::CoordsFloat,
 };
 use rustc_hash::FxHashSet as HashSet;
@@ -43,11 +43,11 @@ use crate::{
 ///
 /// This function may panic if the specified VTK file cannot be opened.
 #[allow(clippy::needless_pass_by_value)]
-pub fn capture_geometry<T: CoordsFloat>(
+pub fn capture_geometry<T: CoordsFloat, AC: AccessController>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
     clip: Clip,
-) -> Result<CMap2<T>, GrisubalError> {
+) -> Result<CMap2<T, AC>, GrisubalError> {
     // --- IMPORT VTK INPUT
     let geometry_vtk = match Vtk::import(file_path) {
         Ok(vtk) => vtk,
@@ -65,7 +65,7 @@ pub fn capture_geometry<T: CoordsFloat>(
     let [cx, cy] = grid_cell_sizes;
 
     // --- BUILD THE GRID
-    let mut cmap = GridBuilder::<2, T>::default()
+    let mut cmap = GridBuilder::<2, T, AC>::default()
         .n_cells([nx, ny])
         .len_per_cell([cx, cy])
         .origin([origin.0, origin.1])
@@ -145,7 +145,9 @@ pub enum ClassificationError {
 /// In `debug` mode, we use assertions to check every single i-cell of the mesh has been
 /// classified. If that is not the case, the function fill panic.
 #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
-pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), ClassificationError> {
+pub fn classify_capture<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
+) -> Result<(), ClassificationError> {
     if !cmap.contains_attribute::<VertexAnchor>() {
         Err(ClassificationError::MissingAttribute(
             std::any::type_name::<VertexAnchor>(),
@@ -269,8 +271,8 @@ pub fn classify_capture<T: CoordsFloat>(cmap: &CMap2<T>) -> Result<(), Classific
 /// All entities making up the boundary (vertices, edges) are anchored to the `curve_id` curve.
 /// The only exception is the vertex associated to the starting dart.
 #[allow(clippy::cast_possible_truncation)]
-fn mark_curve<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+fn mark_curve<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     start: DartIdType,
     curve_id: CurveIdType,
 ) -> Result<(), ClassificationError> {

@@ -1,11 +1,13 @@
 use std::fs::File;
 use std::io::Read;
+use std::marker::PhantomData;
 
 use thiserror::Error;
 use vtkio::Vtk;
 
 use crate::attributes::{AttrStorageManager, AttributeBind};
-use crate::cmap::{CMap2, CMap3};
+use crate::cmap::components::access::AccessController;
+use crate::cmap::{CMap2, CMap3, TransactionalController};
 use crate::geometry::CoordsFloat;
 
 use super::io::CMapFile;
@@ -55,6 +57,12 @@ pub enum BuilderError {
 
 /// # Combinatorial map builder structure
 ///
+/// ## Generics
+///
+/// - `const D: usize` -- Dimension of the built map.
+/// - `AC: AccessController` -- Access controller of the built map; defaults to the fully
+///   transactional [`TransactionalController`].
+///
 /// ## Example
 ///
 /// ```rust
@@ -72,9 +80,10 @@ pub enum BuilderError {
 /// # Ok(())
 /// # }
 /// ```
-pub struct CMapBuilder<const D: usize> {
+pub struct CMapBuilder<const D: usize, AC: AccessController = TransactionalController> {
     builder_kind: BuilderType,
     attributes: AttrStorageManager,
+    ac: PhantomData<AC>,
 }
 
 enum BuilderType {
@@ -85,38 +94,46 @@ enum BuilderType {
 }
 
 #[doc(hidden)]
-pub trait Builder<T: CoordsFloat> {
+pub trait Builder<T: CoordsFloat, AC: AccessController> {
     type MapType;
     fn build(self) -> Result<Self::MapType, BuilderError>;
 }
 
-impl<T: CoordsFloat> Builder<T> for CMapBuilder<2> {
-    type MapType = CMap2<T>;
+impl<T: CoordsFloat, AC: AccessController> Builder<T, AC> for CMapBuilder<2, AC> {
+    type MapType = CMap2<T, AC>;
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
         match self.builder_kind {
-            BuilderType::CMap(cfile) => super::io::build_2d_from_cmap_file(cfile, self.attributes),
-            BuilderType::FreeDarts(n_darts) => Ok(CMap2::new_with_undefined_attributes(
+            BuilderType::CMap(cfile) => {
+                super::io::build_2d_from_cmap_file::<T, AC>(cfile, self.attributes)
+            }
+            BuilderType::FreeDarts(n_darts) => Ok(CMap2::<T, AC>::new_with_undefined_attributes(
                 n_darts,
                 self.attributes,
             )),
             BuilderType::Inp(_) => unreachable!("INP input is only available for 3-maps"),
-            BuilderType::Vtk(vfile) => super::io::build_2d_from_vtk(vfile, self.attributes),
+            BuilderType::Vtk(vfile) => {
+                super::io::build_2d_from_vtk::<T, AC>(vfile, self.attributes)
+            }
         }
     }
 }
 
-impl<T: CoordsFloat> Builder<T> for CMapBuilder<3> {
-    type MapType = CMap3<T>;
+impl<T: CoordsFloat, AC: AccessController> Builder<T, AC> for CMapBuilder<3, AC> {
+    type MapType = CMap3<T, AC>;
 
     fn build(self) -> Result<Self::MapType, BuilderError> {
         match self.builder_kind {
-            BuilderType::CMap(cfile) => super::io::build_3d_from_cmap_file(cfile, self.attributes),
-            BuilderType::FreeDarts(n_darts) => Ok(CMap3::new_with_undefined_attributes(
+            BuilderType::CMap(cfile) => {
+                super::io::build_3d_from_cmap_file::<T, AC>(cfile, self.attributes)
+            }
+            BuilderType::FreeDarts(n_darts) => Ok(CMap3::<T, AC>::new_with_undefined_attributes(
                 n_darts,
                 self.attributes,
             )),
-            BuilderType::Inp(content) => super::io::build_3d_from_inp(&content, self.attributes),
+            BuilderType::Inp(content) => {
+                super::io::build_3d_from_inp::<T, AC>(&content, self.attributes)
+            }
             BuilderType::Vtk(_vfile) => unimplemented!(),
         }
     }
@@ -142,11 +159,12 @@ impl CMapBuilder<3> {
         Self {
             builder_kind: BuilderType::Inp(content),
             attributes: AttrStorageManager::default(),
+            ac: PhantomData,
         }
     }
 }
 /// # Regular methods
-impl<const D: usize> CMapBuilder<D> {
+impl<const D: usize, AC: AccessController> CMapBuilder<D, AC> {
     /// Create a builder structure for a map with a set number of darts and the attribute set of
     /// another builder.
     #[must_use = "unused builder object"]
@@ -154,6 +172,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::FreeDarts(n_darts),
             attributes: other.attributes,
+            ac: PhantomData,
         }
     }
 
@@ -163,6 +182,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::FreeDarts(n_darts),
             attributes: AttrStorageManager::default(),
+            ac: PhantomData,
         }
     }
 
@@ -182,6 +202,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::CMap(cmap_file),
             attributes: AttrStorageManager::default(),
+            ac: PhantomData,
         }
     }
 
@@ -198,6 +219,7 @@ impl<const D: usize> CMapBuilder<D> {
         Self {
             builder_kind: BuilderType::Vtk(vtk_file),
             attributes: AttrStorageManager::default(),
+            ac: PhantomData,
         }
     }
 
@@ -237,9 +259,9 @@ impl<const D: usize> CMapBuilder<D> {
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
     #[allow(private_interfaces, private_bounds)]
-    pub fn build<T: CoordsFloat>(self) -> Result<<Self as Builder<T>>::MapType, BuilderError>
+    pub fn build<T: CoordsFloat>(self) -> Result<<Self as Builder<T, AC>>::MapType, BuilderError>
     where
-        Self: Builder<T>,
+        Self: Builder<T, AC>,
     {
         Builder::build(self)
     }

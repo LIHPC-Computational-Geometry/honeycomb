@@ -3,7 +3,7 @@
 use fast_stm::abort;
 
 use crate::{
-    attributes::UnknownAttributeStorage,
+    cmap::components::access::AccessController,
     cmap::{CMap3, DartIdType, LinkError, NULL_DART_ID, OrbitPolicy, SewError},
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, try_or_coerce},
@@ -11,7 +11,7 @@ use crate::{
 
 #[doc(hidden)]
 /// **1-(un)sews internals)**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// 1-sew transactional operation.
     pub(crate) fn one_sew_tx(
         &self,
@@ -28,26 +28,20 @@ impl<T: CoordsFloat> CMap3<T> {
         let vid_l_old = self.vertex_id_tx(t, b3ld.max(b2ld))?;
         let vid_r_old = self.vertex_id_tx(t, rd)?;
 
-        try_or_coerce!(self.betas.one_link_core(t, ld, rd), SewError);
+        try_or_coerce!(self.betas.one_link_core::<AC>(t, ld, rd), SewError);
         if b3ld != NULL_DART_ID && b3rd != NULL_DART_ID {
-            try_or_coerce!(self.betas.one_link_core(t, b3rd, b3ld), SewError);
+            try_or_coerce!(self.betas.one_link_core::<AC>(t, b3rd, b3ld), SewError);
         }
 
         let b3ld = b3ld.max(b2ld);
         if b3ld != NULL_DART_ID && vid_l_old != vid_r_old {
             let new_vid = vid_r_old.min(vid_l_old);
             try_or_coerce!(
-                self.vertices.merge(t, new_vid, vid_l_old, vid_r_old),
+                self.vertex_merge(t, new_vid, vid_l_old, vid_r_old),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.merge_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    new_vid,
-                    vid_l_old,
-                    vid_r_old
-                ),
+                self.merge_attributes(t, OrbitPolicy::Vertex, new_vid, vid_l_old, vid_r_old),
                 SewError
             );
         }
@@ -60,7 +54,7 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, SewError> {
-        let rd = try_or_coerce!(self.betas.one_unlink_core(t, ld), SewError);
+        let rd = try_or_coerce!(self.betas.one_unlink_core::<AC>(t, ld), SewError);
         let b3ld = self.beta_tx::<3>(t, ld)?;
         let b3rd = self.beta_tx::<3>(t, rd)?;
         let b2ld = self.beta_tx::<2>(t, ld)?;
@@ -71,7 +65,7 @@ impl<T: CoordsFloat> CMap3<T> {
                 // FIXME: do we need this check?
                 abort(SewError::FailedLink(LinkError::AsymmetricalFaces(ld, rd)))?;
             }
-            try_or_coerce!(self.betas.one_unlink_core(t, b3rd), SewError);
+            try_or_coerce!(self.betas.one_unlink_core::<AC>(t, b3rd), SewError);
         }
 
         let b3ld = b3ld.max(b2ld);
@@ -81,12 +75,11 @@ impl<T: CoordsFloat> CMap3<T> {
             let vid_r_new = self.vertex_id_tx(t, rd)?;
             if vid_l_new != vid_r_new {
                 try_or_coerce!(
-                    self.vertices
-                        .split(t, vid_l_new, vid_r_new, vid_l_new.min(vid_r_new)),
+                    self.vertex_split(t, vid_l_new, vid_r_new, vid_l_new.min(vid_r_new)),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_attributes(
+                    self.split_attributes(
                         t,
                         OrbitPolicy::Vertex,
                         vid_l_new,

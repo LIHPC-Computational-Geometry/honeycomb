@@ -7,13 +7,14 @@ use vtkio::{
     },
 };
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{
     CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, OrbitPolicy, VertexIdType,
 };
 use crate::geometry::CoordsFloat;
 
 /// **Serialization methods**
-impl<T: CoordsFloat + 'static> CMap2<T> {
+impl<T: CoordsFloat + 'static, AC: AccessController> CMap2<T, AC> {
     // --- Custom
 
     /// Serialize the map under a custom format.
@@ -162,9 +163,10 @@ impl<T: CoordsFloat + 'static> CMap2<T> {
 }
 
 /// Internal building routine for VTK serialization.
-fn build_unstructured_piece<T>(map: &CMap2<T>) -> UnstructuredGridPiece
+fn build_unstructured_piece<T, AC>(map: &CMap2<T, AC>) -> UnstructuredGridPiece
 where
     T: CoordsFloat + 'static,
+    AC: AccessController,
 {
     // common data
     let vertex_ids: Vec<VertexIdType> = map.iter_vertices().collect();

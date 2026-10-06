@@ -7,6 +7,7 @@ mod dim3;
 mod error;
 
 pub use builder::{BuilderError, CMapBuilder};
+pub use components::access::{AccessController, AtomicController, TransactionalController};
 pub use components::{
     identifiers::{
         DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID,
