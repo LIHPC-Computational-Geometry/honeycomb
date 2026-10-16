@@ -1,12 +1,13 @@
 //! [`CMap2`] utilities implementations
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap2, DartIdType, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex2};
 
 use super::CMAP2_BETA;
 
 /// **Utilities**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// Set the value of β<sub>`I`</sub>(`dart_id`) to `new_val`.
     pub fn set_beta<const I: u8>(&self, dart_id: DartIdType, new_val: DartIdType) {
         self.betas[(I, dart_id)].write_atomic(new_val);

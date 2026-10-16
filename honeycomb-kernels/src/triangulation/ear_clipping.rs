@@ -1,4 +1,4 @@
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType, FaceIdType, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
@@ -54,9 +54,9 @@ use crate::triangulation::{TriangulateError, check_requirements};
 /// the face satisfies requirements mentioned above because of the [Two ears theorem][TET].
 ///
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
-pub fn earclip_cell_countercw<T: CoordsFloat>(
+pub fn earclip_cell_countercw<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    cmap: &CMap2<T>,
+    cmap: &CMap2<T, AC>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
@@ -114,9 +114,9 @@ pub fn earclip_cell_countercw<T: CoordsFloat>(
 /// the face satisfies requirements mentioned above because of the [Two ears theorem][TET].
 ///
 /// [TET]: https://en.wikipedia.org/wiki/Two_ears_theorem
-pub fn earclip_cell_cw<T: CoordsFloat>(
+pub fn earclip_cell_cw<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    cmap: &CMap2<T>,
+    cmap: &CMap2<T, AC>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
@@ -127,9 +127,9 @@ pub fn earclip_cell_cw<T: CoordsFloat>(
 
 // -- internals
 
-fn process_cell<T: CoordsFloat>(
+fn process_cell<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    cmap: &CMap2<T>,
+    cmap: &CMap2<T, AC>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
     is_inside_fn: impl FnOnce(&Vertex2<T>, &Vertex2<T>, &Vertex2<T>) -> bool + Copy,

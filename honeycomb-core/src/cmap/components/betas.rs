@@ -6,6 +6,7 @@ use rayon::prelude::*;
 use crate::cmap::{LinkError, NULL_DART_ID};
 use crate::stm::{TVar, Transaction, TransactionClosureResult, abort};
 
+use super::access::AccessController;
 use super::identifiers::DartIdType;
 
 /// Beta functions storage.
@@ -86,6 +87,10 @@ impl<const N: usize> BetaFunctions<N> {
     /// its sewing counterpart, this method does not contain any code to update the attributes or
     /// geometrical data of the affected cell(s). The *β<sub>0</sub>* function is also updated.
     ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    ///
     /// # Arguments
     ///
     /// - `ld: DartIdentifier` -- ID of the first dart to be linked.
@@ -95,20 +100,34 @@ impl<const N: usize> BetaFunctions<N> {
     ///
     /// This method may panic if `ld` isn't 1-free or `rd` isn't 0-free.
     ///
-    pub fn one_link_core(
+    pub fn one_link_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b1ld = self[(1, ld)].exchange(t, rd)?;
-        let b0rd = self[(0, rd)].exchange(t, ld)?;
+        if AC::BETAS_TX_ACCESS {
+            let b1ld = self[(1, ld)].exchange(t, rd)?;
+            let b0rd = self[(0, rd)].exchange(t, ld)?;
 
-        if b1ld != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(1, ld, rd));
-        }
-        if b0rd != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(0, ld, rd));
+            if b1ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(1, ld, rd));
+            }
+            if b0rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(0, ld, rd));
+            }
+        } else {
+            let b1ld = self[(1, ld)].read_atomic();
+            let b0rd = self[(0, rd)].read_atomic();
+
+            if b1ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(1, ld, rd));
+            }
+            if b0rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(0, ld, rd));
+            }
+            self[(1, ld)].write_atomic(rd);
+            self[(0, rd)].write_atomic(ld);
         }
 
         Ok(())
@@ -120,6 +139,10 @@ impl<const N: usize> BetaFunctions<N> {
     /// its sewing counterpart, this method does not contain any code to update the attributes or
     /// geometrical data of the affected cell(s).
     ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    ///
     /// # Arguments
     ///
     /// - `ld: DartIdentifier` -- ID of the first dart to be linked.
@@ -128,39 +151,72 @@ impl<const N: usize> BetaFunctions<N> {
     /// # Panics
     ///
     /// This method may panic if one of `ld` or `rd` isn't 2-free.
-    pub fn two_link_core(
+    pub fn two_link_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b2ld = self[(2, ld)].exchange(t, rd)?;
-        let b2rd = self[(2, rd)].exchange(t, ld)?;
+        if AC::BETAS_TX_ACCESS {
+            let b2ld = self[(2, ld)].exchange(t, rd)?;
+            let b2rd = self[(2, rd)].exchange(t, ld)?;
 
-        if b2ld != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(2, ld, rd));
-        }
-        if b2rd != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(2, ld, rd));
+            if b2ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(2, ld, rd));
+            }
+            if b2rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(2, ld, rd));
+            }
+        } else {
+            let b2ld = self[(2, ld)].read_atomic();
+            let b2rd = self[(2, rd)].read_atomic();
+
+            if b2ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(2, ld, rd));
+            }
+            if b2rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(2, ld, rd));
+            }
+            self[(2, ld)].write_atomic(rd);
+            self[(2, rd)].write_atomic(ld);
         }
 
         Ok(())
     }
 
-    pub fn three_link_core(
+    /// 3-link operation.
+    ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    pub fn three_link_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
         rd: DartIdType,
     ) -> TransactionClosureResult<(), LinkError> {
-        let b3ld = self[(3, ld)].exchange(t, rd)?;
-        let b3rd = self[(3, rd)].exchange(t, ld)?;
+        if AC::BETAS_TX_ACCESS {
+            let b3ld = self[(3, ld)].exchange(t, rd)?;
+            let b3rd = self[(3, rd)].exchange(t, ld)?;
 
-        if b3ld != NULL_DART_ID {
-            return abort(LinkError::NonFreeBase(3, ld, rd));
-        }
-        if b3rd != NULL_DART_ID {
-            return abort(LinkError::NonFreeImage(3, ld, rd));
+            if b3ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(3, ld, rd));
+            }
+            if b3rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(3, ld, rd));
+            }
+        } else {
+            let b3ld = self[(3, ld)].read_atomic();
+            let b3rd = self[(3, rd)].read_atomic();
+
+            if b3ld != NULL_DART_ID {
+                return abort(LinkError::NonFreeBase(3, ld, rd));
+            }
+            if b3rd != NULL_DART_ID {
+                return abort(LinkError::NonFreeImage(3, ld, rd));
+            }
+            self[(3, ld)].write_atomic(rd);
+            self[(3, rd)].write_atomic(ld);
         }
 
         Ok(())
@@ -173,6 +229,10 @@ impl<const N: usize> BetaFunctions<N> {
     /// the attributes or geometrical data of the affected cell(s). The *β<sub>0</sub>* function is
     /// also updated.
     ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    ///
     /// # Arguments
     ///
     /// - `ld: DartIdentifier` -- ID of the dart to unlink.
@@ -180,18 +240,31 @@ impl<const N: usize> BetaFunctions<N> {
     /// # Panics
     ///
     /// This method may panic if one of `ld` is already 1-free.
-    pub fn one_unlink_core(
+    pub fn one_unlink_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
-        // set beta_1(lhs_dart) to NullDart
-        let rd = self[(1, ld)].exchange(t, NULL_DART_ID)?;
-        if rd == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(1, ld));
-        }
-        // set beta_0(rhs_dart) to NullDart
-        self[(0, rd)].write(t, NULL_DART_ID)?;
+        let rd = if AC::BETAS_TX_ACCESS {
+            // set beta_1(lhs_dart) to NullDart
+            let rd = self[(1, ld)].exchange(t, NULL_DART_ID)?;
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(1, ld));
+            }
+            // set beta_0(rhs_dart) to NullDart
+            self[(0, rd)].write(t, NULL_DART_ID)?;
+            rd
+        } else {
+            // set beta_1(lhs_dart) to NullDart
+            let rd = self[(1, ld)].read_atomic();
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(1, ld));
+            }
+            self[(1, ld)].write_atomic(NULL_DART_ID);
+            // set beta_0(rhs_dart) to NullDart
+            self[(0, rd)].write_atomic(NULL_DART_ID);
+            rd
+        };
         Ok(rd)
     }
 
@@ -201,6 +274,10 @@ impl<const N: usize> BetaFunctions<N> {
     /// function. Unlike its sewing counterpart, this method does not contain any code to update
     /// the attributes or geometrical data of the affected cell(s).
     ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    ///
     /// # Arguments
     ///
     /// - `ld: DartIdentifier` -- ID of the dart to unlink.
@@ -208,33 +285,64 @@ impl<const N: usize> BetaFunctions<N> {
     /// # Panics
     ///
     /// This method may panic if one of `ld` is already 2-free.
-    pub fn two_unlink_core(
+    pub fn two_unlink_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
-        // set beta_2(dart) to NullDart
-        let rd = self[(2, ld)].exchange(t, NULL_DART_ID)?;
-        if rd == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(2, ld));
-        }
-        // set beta_2(beta_2(dart)) to NullDart
-        self[(2, rd)].write(t, NULL_DART_ID)?;
+        let rd = if AC::BETAS_TX_ACCESS {
+            // set beta_2(dart) to NullDart
+            let rd = self[(2, ld)].exchange(t, NULL_DART_ID)?;
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(2, ld));
+            }
+            // set beta_2(beta_2(dart)) to NullDart
+            self[(2, rd)].write(t, NULL_DART_ID)?;
+            rd
+        } else {
+            // set beta_2(dart) to NullDart
+            let rd = self[(2, ld)].read_atomic();
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(2, ld));
+            }
+            self[(2, ld)].write_atomic(NULL_DART_ID);
+            // set beta_2(beta_2(dart)) to NullDart
+            self[(2, rd)].write_atomic(NULL_DART_ID);
+            rd
+        };
         Ok(rd)
     }
 
-    pub fn three_unlink_core(
+    /// 3-unlink operation.
+    ///
+    /// The `AC` generic parameter regulates how the *β* values are accessed; see
+    /// [`AccessController`]. In atomic mode, freeness is checked **before** any write, since
+    /// atomic operations cannot be rolled back.
+    pub fn three_unlink_core<AC: AccessController>(
         &self,
         t: &mut Transaction,
         ld: DartIdType,
     ) -> TransactionClosureResult<DartIdType, LinkError> {
-        // set beta_3(lhs_dart) to NullDart
-        let rd = self[(3, ld)].exchange(t, NULL_DART_ID)?;
-        if rd == NULL_DART_ID {
-            return abort(LinkError::AlreadyFree(3, ld));
-        }
-        // set beta_3(rhs_dart) to NullDart
-        self[(3, rd)].write(t, NULL_DART_ID)?;
+        let rd = if AC::BETAS_TX_ACCESS {
+            // set beta_3(lhs_dart) to NullDart
+            let rd = self[(3, ld)].exchange(t, NULL_DART_ID)?;
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(3, ld));
+            }
+            // set beta_3(rhs_dart) to NullDart
+            self[(3, rd)].write(t, NULL_DART_ID)?;
+            rd
+        } else {
+            // set beta_3(lhs_dart) to NullDart
+            let rd = self[(3, ld)].read_atomic();
+            if rd == NULL_DART_ID {
+                return abort(LinkError::AlreadyFree(3, ld));
+            }
+            self[(3, ld)].write_atomic(NULL_DART_ID);
+            // set beta_3(rhs_dart) to NullDart
+            self[(3, rd)].write_atomic(NULL_DART_ID);
+            rd
+        };
         Ok(rd)
     }
 }

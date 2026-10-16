@@ -7,9 +7,12 @@ use std::{
 };
 
 use clap::ValueEnum;
-use honeycomb::prelude::{CMap2, CMap3, CMapBuilder, CoordsFloat};
 #[cfg(feature = "render")]
 use honeycomb::render::{render_2d_map, render_3d_map};
+use honeycomb::{
+    core::cmap::AccessController,
+    prelude::{CMap2, CMap3, CMapBuilder, CoordsFloat},
+};
 #[cfg(feature = "bind-threads")]
 use hwlocality::{
     Topology,
@@ -76,7 +79,10 @@ pub fn hash_file(path: &str) -> Result<u64, std::io::Error> {
     Ok(hasher.finish())
 }
 
-pub fn finalize_2d<T: CoordsFloat>(map: CMap2<T>, save: Option<FileFormat>) {
+pub fn finalize_2d<T: CoordsFloat, AC: AccessController>(
+    map: CMap2<T, AC>,
+    save: Option<FileFormat>,
+) {
     match save {
         Some(FileFormat::Cmap) => {
             // FIXME: update serialize sig

@@ -4,7 +4,10 @@ mod internals;
 use std::path::PathBuf;
 
 use clap::Parser;
-use honeycomb::prelude::CoordsFloat;
+use honeycomb::{
+    core::cmap::{AtomicController, CMap2, TransactionalController},
+    prelude::CoordsFloat,
+};
 
 use applications::{Clip as AppClip, FileFormat, bind_rayon_threads, finalize_2d};
 
@@ -52,7 +55,7 @@ fn run_bench<T: CoordsFloat>(
     enable_early_ret: bool,
     save: Option<FileFormat>,
 ) {
-    let mut map = internals::generate_first_mesh(
+    let mut map: CMap2<T> = internals::generate_first_mesh(
         input,
         target_length,
         lens.map(|v| T::from(v).unwrap()),

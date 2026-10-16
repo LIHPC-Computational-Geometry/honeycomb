@@ -6,7 +6,7 @@
 
 // ------ IMPORTS
 
-use honeycomb_core::cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType, EdgeIdType, NULL_DART_ID};
 use honeycomb_core::geometry::CoordsFloat;
 use rustc_hash::FxHashMap as HashMap;
 
@@ -14,8 +14,8 @@ use super::{DartSlices, IntersectionsPerEdge};
 
 // ------ CONTENT
 
-pub(crate) fn group_intersections_per_edge<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+pub(crate) fn group_intersections_per_edge<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
     intersection_metadata: Vec<(DartIdType, T)>,
 ) -> (IntersectionsPerEdge<T>, DartSlices) {
     // group intersection data per edge, and associate an ID to each
