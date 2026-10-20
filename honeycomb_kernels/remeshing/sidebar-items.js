@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ClassificationError","EdgeCollapseError","EdgeSwapError"],"fn":["capture_geometry","classify_capture","collapse_edge","cut_inner_edge","cut_outer_edge","move_vertex_to_average","move_vertex_to_average_3d","neighbor_based_smooth","neighbor_based_smooth_3d","swap_edge"]};
