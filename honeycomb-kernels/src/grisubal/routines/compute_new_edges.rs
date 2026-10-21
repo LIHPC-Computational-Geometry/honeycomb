@@ -4,15 +4,15 @@
 //! the list of "atomic" segments to search for connections between intersections, discarding
 //! regular points and registering points of interests.
 
-use honeycomb_core::cmap::{CMap2, DartIdType};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType};
 use honeycomb_core::geometry::CoordsFloat;
 
 use crate::grisubal::model::{Geometry2, GeometryVertex, MapEdge};
 
 use super::Segments;
 
-pub(crate) fn generate_edge_data<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+pub(crate) fn generate_edge_data<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     geometry: &Geometry2<T>,
     new_segments: &Segments,
     intersection_darts: &[DartIdType],

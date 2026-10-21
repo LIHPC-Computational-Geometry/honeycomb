@@ -5,14 +5,151 @@
 //! generic attributes
 
 use crate::attributes::{
-    AttributeBind, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
+    AttributeBind, AttributeError, AttributeStorage, AttributeUpdate, UnknownAttributeStorage,
 };
-use crate::cmap::{CMap3, VertexIdType};
+use crate::cmap::components::access::AccessController;
+use crate::cmap::{CMap3, DartIdType, OrbitPolicy, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex3};
-use crate::stm::{StmClosureResult, Transaction, atomically};
+use crate::stm::{
+    StmClosureResult, Transaction, TransactionClosureResult, TransactionError, atomically,
+};
+
+/// **Access-routed internals**
+///
+/// These methods route each access to the map's embedded data through either the transactional
+/// machinery or direct atomic operations, depending on the map's access controller `AC`. They
+/// are the building blocks used by all other operations of the structure, so that every access
+/// is consistently regulated.
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
+    /// Route a vertex read according to `AC::VERTICES_TX_ACCESS`.
+    pub(super) fn vertex_read(
+        &self,
+        t: &mut Transaction,
+        vertex_id: VertexIdType,
+    ) -> StmClosureResult<Option<Vertex3<T>>> {
+        if AC::VERTICES_TX_ACCESS {
+            self.vertices.read(t, vertex_id)
+        } else {
+            Ok(self.vertices.read_atomic(vertex_id))
+        }
+    }
+
+    /// Route a vertex write according to `AC::VERTICES_TX_ACCESS`.
+    pub(super) fn vertex_write(
+        &self,
+        t: &mut Transaction,
+        vertex_id: VertexIdType,
+        vertex: Vertex3<T>,
+    ) -> StmClosureResult<Option<Vertex3<T>>> {
+        if AC::VERTICES_TX_ACCESS {
+            self.vertices.write(t, vertex_id, vertex)
+        } else {
+            Ok(self.vertices.write_atomic(vertex_id, vertex))
+        }
+    }
+
+    /// Route a vertex removal according to `AC::VERTICES_TX_ACCESS`.
+    pub(super) fn vertex_remove(
+        &self,
+        t: &mut Transaction,
+        vertex_id: VertexIdType,
+    ) -> StmClosureResult<Option<Vertex3<T>>> {
+        if AC::VERTICES_TX_ACCESS {
+            self.vertices.remove(t, vertex_id)
+        } else {
+            Ok(self.vertices.remove_atomic(vertex_id))
+        }
+    }
+
+    /// Route a vertex merge according to `AC::VERTICES_TX_ACCESS`.
+    pub(super) fn vertex_merge(
+        &self,
+        t: &mut Transaction,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> TransactionClosureResult<(), AttributeError> {
+        if AC::VERTICES_TX_ACCESS {
+            self.vertices.merge(t, out, lhs_inp, rhs_inp)
+        } else {
+            self.vertices
+                .merge_atomic(out, lhs_inp, rhs_inp)
+                .map_err(TransactionError::Abort)
+        }
+    }
+
+    /// Route a vertex split according to `AC::VERTICES_TX_ACCESS`.
+    pub(super) fn vertex_split(
+        &self,
+        t: &mut Transaction,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> TransactionClosureResult<(), AttributeError> {
+        if AC::VERTICES_TX_ACCESS {
+            self.vertices.split(t, lhs_out, rhs_out, inp)
+        } else {
+            self.vertices
+                .split_atomic(lhs_out, rhs_out, inp)
+                .map_err(TransactionError::Abort)
+        }
+    }
+
+    /// Route a user attribute merge according to `AC::ATTRIBUTES_TX_ACCESS`.
+    pub(super) fn merge_attributes(
+        &self,
+        t: &mut Transaction,
+        orbit_policy: OrbitPolicy,
+        id_out: DartIdType,
+        id_in_lhs: DartIdType,
+        id_in_rhs: DartIdType,
+    ) -> TransactionClosureResult<(), AttributeError> {
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes
+                .merge_attributes(t, orbit_policy, id_out, id_in_lhs, id_in_rhs)
+        } else {
+            self.attributes
+                .merge_attributes_atomic(orbit_policy, id_out, id_in_lhs, id_in_rhs)
+                .map_err(TransactionError::Abort)
+        }
+    }
+
+    /// Route a user attribute split according to `AC::ATTRIBUTES_TX_ACCESS`.
+    pub(super) fn split_attributes(
+        &self,
+        t: &mut Transaction,
+        orbit_policy: OrbitPolicy,
+        id_out_lhs: DartIdType,
+        id_out_rhs: DartIdType,
+        id_in: DartIdType,
+    ) -> TransactionClosureResult<(), AttributeError> {
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes
+                .split_attributes(t, orbit_policy, id_out_lhs, id_out_rhs, id_in)
+        } else {
+            self.attributes
+                .split_attributes_atomic(orbit_policy, id_out_lhs, id_out_rhs, id_in)
+                .map_err(TransactionError::Abort)
+        }
+    }
+
+    /// Route user attribute slot clears according to `AC::ATTRIBUTES_TX_ACCESS`.
+    pub(super) fn clear_attribute_values(
+        &self,
+        t: &mut Transaction,
+        id: DartIdType,
+    ) -> StmClosureResult<()> {
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes.clear_attribute_values(t, id)
+        } else {
+            self.attributes.clear_attribute_values_atomic(id);
+            Ok(())
+        }
+    }
+}
 
 /// ## **Built-in vertex-related methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// Return the current number of vertices.
     #[must_use = "unused return value"]
     pub fn n_vertices(&self) -> usize {
@@ -43,7 +180,7 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         vertex_id: VertexIdType,
     ) -> StmClosureResult<Option<Vertex3<T>>> {
-        self.vertices.read(t, vertex_id)
+        self.vertex_read(t, vertex_id)
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -75,7 +212,7 @@ impl<T: CoordsFloat> CMap3<T> {
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex3<T>>,
     ) -> StmClosureResult<Option<Vertex3<T>>> {
-        self.vertices.write(t, vertex_id, vertex.into())
+        self.vertex_write(t, vertex_id, vertex.into())
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -101,43 +238,58 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         vertex_id: VertexIdType,
     ) -> StmClosureResult<Option<Vertex3<T>>> {
-        self.vertices.remove(t, vertex_id)
+        self.vertex_remove(t, vertex_id)
     }
 
     /// Read the vertex associated to a given identifier.
     ///
     /// This variant is equivalent to `read_vertex`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// retried until validated. If the map's access controller regulates vertices atomically, no
+    /// transaction is created and the value is read directly.
     #[must_use = "unused return value"]
     pub fn read_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex3<T>> {
-        atomically(|t| self.vertices.read(t, vertex_id))
+        if AC::VERTICES_TX_ACCESS {
+            atomically(|t| self.vertices.read(t, vertex_id))
+        } else {
+            self.vertices.read_atomic(vertex_id)
+        }
     }
 
     /// Write a vertex to a given identifier, and return its old value.
     ///
     /// This variant is equivalent to `write_vertex`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// retried until validated. If the map's access controller regulates vertices atomically, no
+    /// transaction is created and the value is written directly.
     pub fn write_vertex(
         &self,
         vertex_id: VertexIdType,
         vertex: impl Into<Vertex3<T>>,
     ) -> Option<Vertex3<T>> {
         let tmp = vertex.into();
-        atomically(|t| self.vertices.write(t, vertex_id, tmp))
+        if AC::VERTICES_TX_ACCESS {
+            atomically(|t| self.vertices.write(t, vertex_id, tmp))
+        } else {
+            self.vertices.write_atomic(vertex_id, tmp)
+        }
     }
 
     #[allow(clippy::must_use_candidate)]
     /// Remove the vertex associated to a given identifier and return it.
     ///
     /// This variant is equivalent to `remove_vertex`, but internally uses a transaction that will
-    /// be retried until validated.
+    /// be retried until validated. If the map's access controller regulates vertices atomically,
+    /// no transaction is created and the value is removed directly.
     pub fn remove_vertex(&self, vertex_id: VertexIdType) -> Option<Vertex3<T>> {
-        atomically(|t| self.vertices.remove(t, vertex_id))
+        if AC::VERTICES_TX_ACCESS {
+            atomically(|t| self.vertices.remove(t, vertex_id))
+        } else {
+            self.vertices.remove_atomic(vertex_id)
+        }
     }
 }
 
 /// ## **Generic attribute-related methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     #[allow(clippy::missing_errors_doc)]
     /// Return the attribute `A` value associated to a given identifier.
     ///
@@ -164,7 +316,11 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.read_attribute::<A>(t, id)
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes.read_attribute::<A>(t, id)
+        } else {
+            Ok(self.attributes.read_attribute_atomic::<A>(id))
+        }
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -196,7 +352,11 @@ impl<T: CoordsFloat> CMap3<T> {
         id: A::IdentifierType,
         val: A,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.write_attribute::<A>(t, id, val)
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes.write_attribute::<A>(t, id, val)
+        } else {
+            Ok(self.attributes.write_attribute_atomic::<A>(id, val))
+        }
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -222,44 +382,63 @@ impl<T: CoordsFloat> CMap3<T> {
         t: &mut Transaction,
         id: A::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
-        self.attributes.remove_attribute::<A>(t, id)
+        if AC::ATTRIBUTES_TX_ACCESS {
+            self.attributes.remove_attribute::<A>(t, id)
+        } else {
+            Ok(self.attributes.remove_attribute_atomic::<A>(id))
+        }
     }
 
     /// Return the attribute `A` value associated to a given identifier.
     ///
     /// This variant is equivalent to `read_attribute`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// retried until validated. If the map's access controller regulates user attributes
+    /// atomically, no transaction is created and the value is read directly.
     #[allow(clippy::needless_pass_by_value)]
     pub fn read_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        atomically(|t| self.attributes.read_attribute::<A>(t, id.clone()))
+        if AC::ATTRIBUTES_TX_ACCESS {
+            atomically(|t| self.attributes.read_attribute::<A>(t, id.clone()))
+        } else {
+            self.attributes.read_attribute_atomic::<A>(id)
+        }
     }
 
     /// Replace the attribute `A` value associated to a given identifier and return its old value.
     ///
     /// This variant is equivalent to `write_attribute`, but internally uses a transaction that will be
-    /// retried until validated.
+    /// retried until validated. If the map's access controller regulates user attributes
+    /// atomically, no transaction is created and the value is written directly.
     #[allow(clippy::needless_pass_by_value)]
     pub fn write_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
         val: A,
     ) -> Option<A> {
-        atomically(|t| self.attributes.write_attribute::<A>(t, id.clone(), val))
+        if AC::ATTRIBUTES_TX_ACCESS {
+            atomically(|t| self.attributes.write_attribute::<A>(t, id.clone(), val))
+        } else {
+            self.attributes.write_attribute_atomic::<A>(id, val)
+        }
     }
 
     /// Remove the attribute `A` value associated to a given identifier and return it.
     ///
     /// This variant is equivalent to `remove_attribute`, but internally uses a transaction that
-    /// will be retried until validated.
+    /// will be retried until validated. If the map's access controller regulates user attributes
+    /// atomically, no transaction is created and the value is removed directly.
     #[allow(clippy::needless_pass_by_value)]
     pub fn remove_attribute<A: AttributeBind + AttributeUpdate>(
         &self,
         id: A::IdentifierType,
     ) -> Option<A> {
-        atomically(|t| self.attributes.remove_attribute::<A>(t, id.clone()))
+        if AC::ATTRIBUTES_TX_ACCESS {
+            atomically(|t| self.attributes.remove_attribute::<A>(t, id.clone()))
+        } else {
+            self.attributes.remove_attribute_atomic::<A>(id)
+        }
     }
     // --- big guns
 

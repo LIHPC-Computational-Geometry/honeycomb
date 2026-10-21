@@ -2,7 +2,7 @@
 //
 //! Use the information computed at step 4 and insert all new edges into the map.
 
-use honeycomb_core::cmap::{CMap2, DartIdType};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType};
 use honeycomb_core::geometry::CoordsFloat;
 use honeycomb_core::stm::atomically_with_err;
 
@@ -11,7 +11,10 @@ use crate::grisubal::model::{Boundary, MapEdge};
 use crate::utils::VertexAnchor;
 
 #[allow(clippy::cast_possible_truncation)]
-pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[MapEdge<T>]) {
+pub(crate) fn insert_edges_in_map<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
+    edges: &[MapEdge<T>],
+) {
     let dart_slices = build_workload(cmap, edges);
 
     for (
@@ -62,8 +65,8 @@ pub(crate) fn insert_edges_in_map<T: CoordsFloat>(cmap: &mut CMap2<T>, edges: &[
 }
 
 #[allow(clippy::cast_possible_truncation)]
-fn build_workload<T: CoordsFloat>(
-    cmap: &mut CMap2<T>,
+fn build_workload<T: CoordsFloat, AC: AccessController>(
+    cmap: &mut CMap2<T, AC>,
     edges: &[MapEdge<T>],
 ) -> Vec<Vec<DartIdType>> {
     // allocate all darts needed
@@ -86,8 +89,8 @@ fn build_workload<T: CoordsFloat>(
         .collect()
 }
 
-fn build_base_edge<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+fn build_base_edge<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     start: DartIdType,
     end: DartIdType,
     [d_new, b2_d_new]: [DartIdType; 2],
@@ -107,7 +110,11 @@ fn build_base_edge<T: CoordsFloat>(
     cmap.link::<1>(b0_end_old, b2_d_new).unwrap();
 }
 
-fn mark_boundary<T: CoordsFloat>(cmap: &CMap2<T>, start: DartIdType, end: DartIdType) {
+fn mark_boundary<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
+    start: DartIdType,
+    end: DartIdType,
+) {
     let mut d_boundary = cmap.beta::<1>(start);
     while d_boundary != end {
         cmap.write_attribute::<Boundary>(d_boundary, Boundary::Left);

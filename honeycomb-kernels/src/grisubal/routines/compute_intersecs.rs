@@ -9,7 +9,7 @@ use std::{
     collections::VecDeque,
 };
 
-use honeycomb_core::cmap::{CMap2, DartIdType, NULL_DART_ID};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType, NULL_DART_ID};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 
 use crate::grisubal::model::{Geometry2, GeometryVertex, GridCellId};
@@ -60,8 +60,8 @@ macro_rules! up_intersec {
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss
 )]
-pub(crate) fn generate_intersection_data<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+pub(crate) fn generate_intersection_data<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     geometry: &Geometry2<T>,
     [nx, _ny]: [usize; 2],
     [cx, cy]: [T; 2],

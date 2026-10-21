@@ -2,7 +2,7 @@
 
 use honeycomb_core::{
     attributes::AttributeError,
-    cmap::{CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError},
+    cmap::{AccessController, CMap2, DartIdType, EdgeIdType, LinkError, NULL_DART_ID, SewError},
     geometry::{CoordsFloat, Vertex2},
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
@@ -52,7 +52,7 @@ impl From<AttributeError> for VertexInsertionError {
 ///
 /// # Arguments
 ///
-/// - `cmap: &mut CMap2<T>` -- Reference to the modified map.
+/// - `cmap: &mut CMap2<T, AC>` -- Reference to the modified map.
 /// - `t: &mut Transaction` -- Associated transaction.
 /// - `edge_id: EdgeIdentifier` -- Target edge.
 /// - `new_darts: (DartIdentifier, DartIdentifier)` -- Dart IDs used to build the new vertex/segments.
@@ -80,8 +80,8 @@ impl From<AttributeError> for VertexInsertionError {
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
 #[allow(clippy::too_many_lines)]
-pub fn insert_vertex_on_edge<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+pub fn insert_vertex_on_edge<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     t: &mut Transaction,
     edge_id: EdgeIdType,
     new_darts: (DartIdType, DartIdType), // 2D => statically known number of darts
@@ -218,7 +218,7 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 ///
 /// # Arguments
 ///
-/// - `cmap: &mut CMap2<T>` -- Reference to the modified map.
+/// - `cmap: &mut CMap2<T, AC>` -- Reference to the modified map.
 /// - `t: &mut Transaction` -- Associated transaction.
 /// - `edge_id: EdgeIdentifier` -- Target edge.
 /// - `new_darts: &[DartIdentifier]` -- Dart IDs used to build the new vertices/segments.
@@ -310,8 +310,8 @@ pub fn insert_vertex_on_edge<T: CoordsFloat>(
 /// assert_eq!(map.beta::<2>(4), 6);
 /// assert_eq!(map.beta::<2>(5), 2);
 /// ```
-pub fn insert_vertices_on_edge<T: CoordsFloat>(
-    cmap: &CMap2<T>,
+pub fn insert_vertices_on_edge<T: CoordsFloat, AC: AccessController>(
+    cmap: &CMap2<T, AC>,
     t: &mut Transaction,
     edge_id: EdgeIdType,
     new_darts: &[DartIdType],

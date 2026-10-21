@@ -8,6 +8,7 @@ use vtkio::model::{CellType, DataSet, VertexNumbers};
 use vtkio::{IOBuffer, Vtk};
 
 use crate::attributes::AttrStorageManager;
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{BuilderError, CMap2, CMap3, DartIdType, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex2, Vertex3};
 
@@ -105,17 +106,17 @@ impl TryFrom<String> for CMapFile {
 
 // ------ building routines
 
-pub fn build_2d_from_cmap_file<T: CoordsFloat>(
+pub fn build_2d_from_cmap_file<T: CoordsFloat, AC: AccessController>(
     f: CMapFile,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
-) -> Result<CMap2<T>, BuilderError> {
+) -> Result<CMap2<T, AC>, BuilderError> {
     if f.meta.1 != 2 {
         // mismatched dim
         return Err(BuilderError::BadMetaData(
             "mismatch between requested dimension and header",
         ));
     }
-    let map = CMap2::new_with_undefined_attributes(f.meta.2, manager);
+    let map = CMap2::<T, AC>::new_with_undefined_attributes(f.meta.2, manager);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();
@@ -206,17 +207,17 @@ pub fn build_2d_from_cmap_file<T: CoordsFloat>(
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn build_3d_from_cmap_file<T: CoordsFloat>(
+pub fn build_3d_from_cmap_file<T: CoordsFloat, AC: AccessController>(
     f: CMapFile,
     manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
-) -> Result<CMap3<T>, BuilderError> {
+) -> Result<CMap3<T, AC>, BuilderError> {
     if f.meta.1 != 3 {
         // mismatched dim
         return Err(BuilderError::BadMetaData(
             "mismatch between requested dimension and header",
         ));
     }
-    let map = CMap3::new_with_undefined_attributes(f.meta.2, manager);
+    let map = CMap3::<T, AC>::new_with_undefined_attributes(f.meta.2, manager);
 
     // putting it in a scope to drop the data
     let betas = f.betas.lines().collect::<Vec<_>>();
@@ -491,7 +492,10 @@ const HEX_BETA_2_OFFSETS: [DartIdType; 24] = [
 ];
 
 /// Initialize the beta relations of one 24-dart hexahedron.
-fn initialize_hex<T: CoordsFloat>(map: &CMap3<T>, first_dart: DartIdType) {
+fn initialize_hex<T: CoordsFloat, AC: AccessController>(
+    map: &CMap3<T, AC>,
+    first_dart: DartIdType,
+) {
     for face_offset in HEX_FACE_DART_OFFSETS {
         for edge_offset in 0..4 {
             let dart = first_dart + face_offset + edge_offset;
@@ -527,10 +531,10 @@ fn face_key(mut nodes: [InpNodeId; 4]) -> [InpNodeId; 4] {
 }
 
 /// Build a 3-map from the mesh contained in an Abaqus INP document.
-pub(crate) fn build_3d_from_inp<T: CoordsFloat>(
+pub(crate) fn build_3d_from_inp<T: CoordsFloat, AC: AccessController>(
     content: &str,
     manager: AttrStorageManager,
-) -> Result<CMap3<T>, BuilderError> {
+) -> Result<CMap3<T, AC>, BuilderError> {
     let input = InpFile::try_from(content)?;
     let n_darts = input
         .elements
@@ -538,7 +542,7 @@ pub(crate) fn build_3d_from_inp<T: CoordsFloat>(
         .checked_mul(24)
         .filter(|count| *count <= DartIdType::MAX as usize)
         .ok_or(BuilderError::BadInpData("mesh contains too many elements"))?;
-    let map = CMap3::new_with_undefined_attributes(n_darts, manager);
+    let map = CMap3::<T, AC>::new_with_undefined_attributes(n_darts, manager);
     let mut faces = HashMap::<[InpNodeId; 4], FaceState>::default();
 
     for (element_index, element) in input.elements.iter().enumerate() {
@@ -673,11 +677,11 @@ macro_rules! build_vertices {
 ///         - the number of coordinates cannot be divided by `3`, meaning a tuple is incomplete
 ///         - the number of `Cells` and `CellTypes` isn't equal
 ///         - a given cell has an inconsistent number of vertices with its specified cell type
-pub fn build_2d_from_vtk<T: CoordsFloat>(
+pub fn build_2d_from_vtk<T: CoordsFloat, AC: AccessController>(
     value: Vtk,
     mut _manager: AttrStorageManager, // FIXME: find a cleaner solution to populate the manager
-) -> Result<CMap2<T>, BuilderError> {
-    let mut cmap: CMap2<T> = CMap2::new(0);
+) -> Result<CMap2<T, AC>, BuilderError> {
+    let mut cmap: CMap2<T, AC> = CMap2::new(0);
     let mut sew_buffer: BTreeMap<(usize, usize), DartIdType> = BTreeMap::new();
     match value.data {
         DataSet::ImageData { .. }

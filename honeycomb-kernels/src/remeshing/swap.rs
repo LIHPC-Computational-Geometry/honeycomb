@@ -1,5 +1,5 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, SewError},
+    cmap::{AccessController, CMap2, DartIdType, EdgeIdType, NULL_DART_ID, NULL_EDGE_ID, SewError},
     geometry::CoordsFloat,
     stm::{Transaction, TransactionClosureResult, abort, try_or_coerce},
 };
@@ -73,9 +73,9 @@ pub enum EdgeSwapError {
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
 #[inline]
-pub fn swap_edge<T: CoordsFloat>(
+pub fn swap_edge<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     e: EdgeIdType,
 ) -> TransactionClosureResult<(), EdgeSwapError> {
     if e == NULL_EDGE_ID {

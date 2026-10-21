@@ -79,6 +79,10 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         Ok(())
     }
 
+    fn clear_slot_atomic(&self, id: DartIdType) {
+        self.remove_atomic(A::IdentifierType::from(id));
+    }
+
     fn n_attributes(&self) -> usize {
         self.data
             .iter()
@@ -111,6 +115,34 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
         }
     }
 
+    fn merge_atomic(
+        &self,
+        out: DartIdType,
+        lhs_inp: DartIdType,
+        rhs_inp: DartIdType,
+    ) -> Result<(), AttributeError> {
+        assert_ne!(lhs_inp, rhs_inp);
+        // fetch inputs without removing them, so that a failing merge
+        // leaves the storage unmodified (there is no rollback to rely on)
+        let new_v = match (
+            self.data[lhs_inp as usize].read_atomic(),
+            self.data[rhs_inp as usize].read_atomic(),
+        ) {
+            (Some(v1), Some(v2)) => AttributeUpdate::merge(v1, v2),
+            (Some(v), None) | (None, Some(v)) => AttributeUpdate::merge_incomplete(v),
+            (None, None) => AttributeUpdate::merge_from_none(),
+        };
+        match new_v {
+            Ok(v) => {
+                self.data[lhs_inp as usize].write_atomic(None);
+                self.data[rhs_inp as usize].write_atomic(None);
+                self.data[out as usize].write_atomic(Some(v));
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+
     fn split(
         &self,
         t: &mut Transaction,
@@ -131,6 +163,31 @@ impl<A: AttributeBind + AttributeUpdate> UnknownAttributeStorage for AttrSparseV
                 Ok(())
             }
             Err(e) => abort(e),
+        }
+    }
+
+    fn split_atomic(
+        &self,
+        lhs_out: DartIdType,
+        rhs_out: DartIdType,
+        inp: DartIdType,
+    ) -> Result<(), AttributeError> {
+        assert_ne!(lhs_out, rhs_out);
+        // fetch the input without removing it, so that a failing split
+        // leaves the storage unmodified (there is no rollback to rely on)
+        let res = if let Some(val) = self.data[inp as usize].read_atomic() {
+            AttributeUpdate::split(val)
+        } else {
+            AttributeUpdate::split_from_none()
+        };
+        match res {
+            Ok((lhs_val, rhs_val)) => {
+                self.data[inp as usize].write_atomic(None);
+                self.data[lhs_out as usize].write_atomic(Some(lhs_val));
+                self.data[rhs_out as usize].write_atomic(Some(rhs_val));
+                Ok(())
+            }
+            Err(e) => Err(e),
         }
     }
 }
@@ -159,5 +216,23 @@ impl<A: AttributeBind + AttributeUpdate> AttributeStorage<A> for AttrSparseVec<A
         id: <A as AttributeBind>::IdentifierType,
     ) -> StmClosureResult<Option<A>> {
         self.data[id.to_usize().unwrap()].exchange(t, None)
+    }
+
+    fn read_atomic(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
+        self.data[id.to_usize().unwrap()].read_atomic()
+    }
+
+    fn write_atomic(&self, id: <A as AttributeBind>::IdentifierType, val: A) -> Option<A> {
+        let slot = &self.data[id.to_usize().unwrap()];
+        let old = slot.read_atomic();
+        slot.write_atomic(Some(val));
+        old
+    }
+
+    fn remove_atomic(&self, id: <A as AttributeBind>::IdentifierType) -> Option<A> {
+        let slot = &self.data[id.to_usize().unwrap()];
+        let old = slot.read_atomic();
+        slot.write_atomic(None);
+        old
     }
 }
