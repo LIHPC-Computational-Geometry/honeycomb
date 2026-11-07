@@ -2,7 +2,10 @@ use anyhow::Context;
 
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap3, CMapBuilder, DartIdType, LinkError, OrbitPolicy, SewError, VertexIdType},
+    cmap::{
+        AccessController, AtomicController, CMap3, CMapBuilder, DartIdType, LinkError, OrbitPolicy,
+        SewError, TransactionalController, VertexIdType,
+    },
     geometry::Vertex3,
     stm::{StmError, TVar, TransactionError, atomically, atomically_with_err},
 };
@@ -1762,7 +1765,7 @@ fn sew_ordering_with_txtions() {
     });
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct Weight(pub u32);
 
 impl AttributeUpdate for Weight {
@@ -1903,4 +1906,136 @@ fn unsew_ordering_with_txtions() {
             Ok(())
         });
     });
+}
+
+// --- ACCESS CONTROLLERS
+
+/// Two-tetrahedra scenario, parameterized over the access controller.
+///
+/// This chains the `build_tet`, `sew_tets` and `unsew_tets` flows: build two tetrahedra,
+/// sew them along a face (merging vertices & attributes), then unsew. Running it under
+/// different controllers must yield the exact same states at every step.
+fn tets_scenario<AC: AccessController>() -> anyhow::Result<()> {
+    // Build a tetrahedron (A)
+    let mut map: CMap3<f64, AC> = CMapBuilder::<3, AC>::from_n_darts(12).build()?; // 3*4 darts
+
+    // face z- (base)
+    map.link::<1>(1, 2)?;
+    map.link::<1>(2, 3)?;
+    map.link::<1>(3, 1)?;
+    // face y-
+    map.link::<1>(4, 5)?;
+    map.link::<1>(5, 6)?;
+    map.link::<1>(6, 4)?;
+    // face x-
+    map.link::<1>(7, 8)?;
+    map.link::<1>(8, 9)?;
+    map.link::<1>(9, 7)?;
+    // face x+/y+
+    map.link::<1>(10, 11)?;
+    map.link::<1>(11, 12)?;
+    map.link::<1>(12, 10)?;
+    // link triangles to get the tet
+    map.link::<2>(1, 4)?;
+    map.link::<2>(2, 7)?;
+    map.link::<2>(3, 10)?;
+    map.link::<2>(5, 12)?;
+    map.link::<2>(6, 8)?;
+    map.link::<2>(9, 11)?;
+
+    map.write_vertex(1, (1.0, 0.0, 0.0));
+    map.write_vertex(2, (0.0, 0.0, 0.0));
+    map.write_vertex(3, (0.0, 0.5, 0.0));
+    map.write_vertex(6, (0.5, 0.25, 1.0));
+
+    // Build a second tetrahedron (B)
+    let _ = map.allocate_used_darts(12);
+    // face z- (base)
+    map.link::<1>(13, 14)?;
+    map.link::<1>(14, 15)?;
+    map.link::<1>(15, 13)?;
+    // face x-/y-
+    map.link::<1>(16, 17)?;
+    map.link::<1>(17, 18)?;
+    map.link::<1>(18, 16)?;
+    // face y+
+    map.link::<1>(19, 20)?;
+    map.link::<1>(20, 21)?;
+    map.link::<1>(21, 19)?;
+    // face x+
+    map.link::<1>(22, 23)?;
+    map.link::<1>(23, 24)?;
+    map.link::<1>(24, 22)?;
+    // link triangles to get the tet
+    map.link::<2>(13, 16)?;
+    map.link::<2>(14, 19)?;
+    map.link::<2>(15, 22)?;
+    map.link::<2>(17, 24)?;
+    map.link::<2>(18, 20)?;
+    map.link::<2>(21, 23)?;
+
+    map.write_vertex(13, (2.5, 1.5, 0.0));
+    map.write_vertex(14, (1.5, 2.0, 0.0));
+    map.write_vertex(15, (2.5, 2.0, 0.0));
+    map.write_vertex(18, (1.5, 1.75, 1.0));
+
+    // Sew both tetrahedrons along a face (C)
+    assert_eq!(map.n_vertices(), 8);
+    map.sew::<3>(10, 16)?;
+    assert_eq!(map.n_vertices(), 5);
+
+    // this results in a quad-base pyramid
+    // the pyramid is split in two volumes along the (base) diagonal plane
+    {
+        let mut faces = map.iter_faces();
+        assert_eq!(faces.next(), Some(1));
+        assert_eq!(faces.next(), Some(4));
+        assert_eq!(faces.next(), Some(7));
+        assert_eq!(faces.next(), Some(10));
+        assert_eq!(faces.next(), Some(13));
+        // face 16 is now fused with 10
+        assert_eq!(faces.next(), Some(19));
+        assert_eq!(faces.next(), Some(22));
+        assert_eq!(faces.next(), None);
+        // there should be 9 edges total; quad base pyramid (8) + the base split diagonal (1)
+        assert_eq!(map.iter_edges().count(), 9);
+
+        let darts: Vec<_> = map.orbit(OrbitPolicy::Face, 10).collect();
+        assert!(darts.contains(&10));
+        assert!(darts.contains(&11));
+        assert!(darts.contains(&12));
+        assert!(darts.contains(&16));
+        assert!(darts.contains(&17));
+        assert!(darts.contains(&18));
+    }
+
+    // Unsew (D): this should get us back to the state before the 3-sew
+    map.unsew::<3>(10)?;
+    assert_eq!(map.n_vertices(), 8);
+
+    Ok(())
+}
+
+#[test]
+fn tets_scenario_transactional() {
+    tets_scenario::<TransactionalController>().unwrap();
+}
+
+#[test]
+fn tets_scenario_atomic() {
+    tets_scenario::<AtomicController>().unwrap();
+}
+
+#[test]
+fn builder_explicit_controller() {
+    // explicit controller selection through the builder generics
+    let map: CMap3<f64, AtomicController> = CMapBuilder::<3, AtomicController>::from_n_darts(10)
+        .build()
+        .unwrap();
+    assert_eq!(map.n_darts(), 11);
+    assert!(!map.is_unused(1));
+
+    // default builder still yields the transactional default
+    let map: CMap3<f64> = CMapBuilder::<3>::from_n_darts(10).build().unwrap();
+    assert_eq!(map.n_darts(), 11);
 }

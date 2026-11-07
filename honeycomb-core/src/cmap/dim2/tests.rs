@@ -1,6 +1,9 @@
 use crate::{
     attributes::{AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate},
-    cmap::{CMap2, CMapBuilder, DartIdType, LinkError, OrbitPolicy, SewError, VertexIdType},
+    cmap::{
+        AccessController, AtomicController, CMap2, CMapBuilder, DartIdType, LinkError, OrbitPolicy,
+        SewError, TransactionalController, VertexIdType,
+    },
     geometry::Vertex2,
     stm::{StmError, TransactionError, atomically, atomically_with_err},
 };
@@ -703,7 +706,7 @@ fn io_write() {
 
 // --- PARALLEL
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct Weight(pub u32);
 
 impl AttributeUpdate for Weight {
@@ -992,4 +995,222 @@ fn unsew_ordering_with_txtions() {
         let path2 = w2.0 == 9 && w3.0 == 8 && w5.0 == 16;
         assert!(path1 || path2);
     });
+}
+
+// --- ACCESS CONTROLLERS
+
+// provided controller flags are verified at compile time
+const _: () = {
+    // fully transactional controller
+    assert!(<TransactionalController as AccessController>::BETAS_TX_ACCESS);
+    assert!(<TransactionalController as AccessController>::UNUSED_DARTS_TX_ACCESS);
+    assert!(<TransactionalController as AccessController>::VERTICES_TX_ACCESS);
+    assert!(<TransactionalController as AccessController>::ATTRIBUTES_TX_ACCESS);
+    // fully atomic controller
+    assert!(!<AtomicController as AccessController>::BETAS_TX_ACCESS);
+    assert!(!<AtomicController as AccessController>::UNUSED_DARTS_TX_ACCESS);
+    assert!(!<AtomicController as AccessController>::VERTICES_TX_ACCESS);
+    assert!(!<AtomicController as AccessController>::ATTRIBUTES_TX_ACCESS);
+};
+
+/// User-defined mixed controller: transactional topology & vertices, atomic dart tracking
+/// & user attributes. Valid sequentially; used to check the plumbing of custom controllers.
+struct MixedController;
+
+impl AccessController for MixedController {
+    const BETAS_TX_ACCESS: bool = true;
+    const UNUSED_DARTS_TX_ACCESS: bool = false;
+    const VERTICES_TX_ACCESS: bool = true;
+    const ATTRIBUTES_TX_ACCESS: bool = false;
+}
+
+/// Reference scenario, parameterized over the access controller.
+///
+/// This is the `example_test` flow: two triangles sewn into a square & diagonal, then torn
+/// apart and reduced to the square. Running it under different controllers must yield the
+/// exact same states at every step.
+fn square_scenario<AC: AccessController>() {
+    // build a triangle (A)
+    let mut map: CMap2<f64, AC> = CMapBuilder::<2, AC>::from_n_darts(3).build().unwrap();
+    map.link::<1>(1, 2).unwrap();
+    map.link::<1>(2, 3).unwrap();
+    map.link::<1>(3, 1).unwrap();
+    map.write_vertex(1, (0.0, 0.0));
+    map.write_vertex(2, (1.0, 0.0));
+    map.write_vertex(3, (0.0, 1.0));
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(faces.len(), 1);
+    assert_eq!(faces[0], 1);
+
+    // build a second triangle (B)
+    let first_added_dart_id = map.allocate_used_darts(3);
+    assert_eq!(first_added_dart_id, 4);
+    map.link::<1>(4, 5).unwrap();
+    map.link::<1>(5, 6).unwrap();
+    map.link::<1>(6, 4).unwrap();
+    map.write_vertex(4, (0.0, 2.0));
+    map.write_vertex(5, (2.0, 0.0));
+    map.write_vertex(6, (1.0, 1.0));
+
+    // checks
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1, 4]);
+
+    // sew both triangles (C)
+    map.sew::<2>(2, 4).unwrap();
+
+    // checks
+    assert_eq!(map.beta::<2>(2), 4);
+    assert_eq!(map.vertex_id(2), 2);
+    assert_eq!(map.vertex_id(5), 2);
+    assert_eq!(map.read_vertex(2).unwrap(), Vertex2::from((1.5, 0.0)));
+    assert_eq!(map.vertex_id(3), 3);
+    assert_eq!(map.vertex_id(4), 3);
+    assert_eq!(map.read_vertex(3).unwrap(), Vertex2::from((0.0, 1.5)));
+    let edges: Vec<_> = map.iter_edges().collect();
+    assert_eq!(&edges, &[1, 2, 3, 5, 6]);
+
+    // adjust bottom-right & top-left vertex position (D)
+    assert_eq!(
+        map.write_vertex(2, Vertex2::from((1.0, 0.0))),
+        Some(Vertex2::from((1.5, 0.0)))
+    );
+    assert_eq!(
+        map.write_vertex(3, Vertex2::from((0.0, 1.0))),
+        Some(Vertex2::from((0.0, 1.5)))
+    );
+
+    // separate the diagonal from the rest (E)
+    map.unsew::<1>(1).unwrap();
+    map.unsew::<1>(2).unwrap();
+    map.unsew::<1>(6).unwrap();
+    map.unsew::<1>(4).unwrap();
+    // break up & remove the diagonal
+    map.unsew::<2>(2).unwrap();
+    assert_eq!(map.release_dart(2), Ok(false));
+    assert_eq!(map.release_dart(4), Ok(false));
+    // sew the square back up
+    map.sew::<1>(1, 5).unwrap();
+    map.sew::<1>(6, 3).unwrap();
+
+    // there's only the square face left
+    let faces: Vec<_> = map.iter_faces().collect();
+    assert_eq!(&faces, &[1]);
+    // we can check the vertices
+    let vertices = map.iter_vertices();
+    let mut value_iterator = vertices.map(|vertex_id| map.read_vertex(vertex_id).unwrap());
+    assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 0.0)))); // vertex ID 1
+    assert_eq!(value_iterator.next(), Some(Vertex2::from((0.0, 1.0)))); // vertex ID 3
+    assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 0.0)))); // vertex ID 5
+    assert_eq!(value_iterator.next(), Some(Vertex2::from((1.0, 1.0)))); // vertex ID 6
+    assert_eq!(value_iterator.next(), None);
+
+    // released darts can be reclaimed
+    assert_eq!(map.reserve_darts(2).unwrap(), vec![2, 4]);
+    assert!(!map.is_unused(2));
+    assert!(!map.is_unused(4));
+
+    // linking an already-linked dart fails identically regardless of the controller
+    assert!(matches!(
+        map.link::<1>(1, 2),
+        Err(LinkError::NonFreeBase(1, 1, 2))
+    ));
+}
+
+#[test]
+fn square_scenario_transactional() {
+    square_scenario::<TransactionalController>();
+}
+
+#[test]
+fn square_scenario_atomic() {
+    square_scenario::<AtomicController>();
+}
+
+#[test]
+fn square_scenario_mixed() {
+    square_scenario::<MixedController>();
+}
+
+/// Attribute-oriented scenario, parameterized over the access controller.
+///
+/// Two sews merge vertices & user attributes, then two unsews split them back. The values
+/// are chosen so that every intermediate state is deterministic.
+fn attribute_scenario<AC: AccessController>() {
+    let mut map: CMap2<f64, AC> = CMapBuilder::<2, AC>::from_n_darts(5)
+        .add_attribute::<Weight>()
+        .build()
+        .unwrap();
+
+    map.link::<2>(1, 2).unwrap();
+    map.link::<1>(4, 5).unwrap();
+    map.write_vertex(2, Vertex2(1.0, 1.0));
+    map.write_vertex(3, Vertex2(1.0, 2.0));
+    map.write_vertex(5, Vertex2(2.0, 2.0));
+
+    // initial attribute values
+    assert_eq!(map.write_attribute::<Weight>(2, Weight(4)), None);
+    assert_eq!(map.write_attribute::<Weight>(3, Weight(8)), None);
+    assert_eq!(map.write_attribute::<Weight>(5, Weight(16)), None);
+    assert_eq!(map.read_attribute::<Weight>(2), Some(Weight(4)));
+
+    // 1-sew (1, 3) merges vertices 2 & 3 (weights 4 + 8)
+    map.sew::<1>(1, 3).unwrap();
+    assert_eq!(map.read_attribute::<Weight>(2), Some(Weight(12)));
+    assert_eq!(map.read_attribute::<Weight>(3), None);
+
+    // 2-sew (3, 4) merges vertices 2 & 5 (weights 12 + 16)
+    map.sew::<2>(3, 4).unwrap();
+    assert_eq!(map.read_attribute::<Weight>(2), Some(Weight(28)));
+    assert_eq!(map.read_attribute::<Weight>(5), None);
+    assert_eq!(map.read_vertex(2), Some(Vertex2(1.5, 1.75)));
+
+    // 2-unsew (3) splits vertex 2 into vertices 2 & 5 (weights 14 / 14)
+    map.unsew::<2>(3).unwrap();
+    assert_eq!(map.read_attribute::<Weight>(2), Some(Weight(14)));
+    assert_eq!(map.read_attribute::<Weight>(5), Some(Weight(14)));
+
+    // 1-unsew (1) splits vertex 2 into vertices 2 & 3 (weights 7 / 7)
+    map.unsew::<1>(1).unwrap();
+    assert_eq!(map.read_attribute::<Weight>(2), Some(Weight(7)));
+    assert_eq!(map.read_attribute::<Weight>(3), Some(Weight(7)));
+    assert_eq!(map.read_attribute::<Weight>(5), Some(Weight(14)));
+
+    // removals
+    assert_eq!(map.remove_attribute::<Weight>(2), Some(Weight(7)));
+    assert_eq!(map.remove_attribute::<Weight>(2), None);
+    assert!(map.contains_attribute::<Weight>());
+    map.remove_attribute_storage::<Weight>();
+    assert!(!map.contains_attribute::<Weight>());
+}
+
+#[test]
+fn attribute_scenario_transactional() {
+    attribute_scenario::<TransactionalController>();
+}
+
+#[test]
+fn attribute_scenario_atomic() {
+    attribute_scenario::<AtomicController>();
+}
+
+#[test]
+fn attribute_scenario_mixed() {
+    attribute_scenario::<MixedController>();
+}
+
+#[test]
+fn builder_explicit_controller() {
+    // explicit controller selection through the builder generics
+    let map: CMap2<f64, AtomicController> = CMapBuilder::<2, AtomicController>::from_n_darts(3)
+        .build()
+        .unwrap();
+    assert_eq!(map.n_darts(), 4);
+    assert!(!map.is_unused(1));
+
+    // default builder still yields the transactional default
+    let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(3).build().unwrap();
+    assert_eq!(map.n_darts(), 4);
 }

@@ -7,12 +7,13 @@ use std::collections::VecDeque;
 
 use rustc_hash::FxHashSet as HashSet;
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy, try_from_fn};
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, Transaction};
 
 /// **Orbits**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// Generic orbit implementation.
     ///
     /// # Arguments

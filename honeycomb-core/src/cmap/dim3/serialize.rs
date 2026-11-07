@@ -1,10 +1,11 @@
 use crate::{
+    cmap::components::access::AccessController,
     cmap::{CMap3, DartIdType},
     geometry::CoordsFloat,
 };
 
 /// **Serialization methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     // --- Custom
 
     /// Serialize the map under a custom format.

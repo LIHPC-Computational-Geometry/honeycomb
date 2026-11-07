@@ -1,6 +1,7 @@
 use std::{path::PathBuf, time::Instant};
 
 use honeycomb::{
+    core::cmap::{AccessController, AtomicController},
     kernels::{
         grisubal::Clip,
         remeshing::{
@@ -17,13 +18,13 @@ use rayon::{iter::Either, prelude::*};
 
 use applications::{get_num_threads, hash_file, prof_start, prof_stop};
 
-pub fn generate_first_mesh<T: CoordsFloat>(
+pub fn generate_first_mesh<T: CoordsFloat, AC: AccessController>(
     input: PathBuf,
     target_length: f64,
     [lx, ly]: [T; 2],
     clip: applications::Clip,
     // backend: Backend,
-) -> CMap2<T> {
+) -> CMap2<T, AC> {
     let input_map = input.to_str().unwrap();
 
     // load map from file
@@ -31,7 +32,7 @@ pub fn generate_first_mesh<T: CoordsFloat>(
 
     // -- capture via grid overlap
     let mut instant = Instant::now();
-    let mut map: CMap2<T> = capture_geometry(input_map, [lx, ly], Clip::from(clip)).unwrap();
+    let mut map: CMap2<T, AC> = capture_geometry(input_map, [lx, ly], Clip::from(clip)).unwrap();
     let capture_time = instant.elapsed();
 
     // -- classification
@@ -140,8 +141,8 @@ pub fn generate_first_mesh<T: CoordsFloat>(
 }
 
 #[allow(clippy::print_literal)]
-pub fn remesh<T: CoordsFloat>(
-    map: &mut CMap2<T>,
+pub fn remesh<T: CoordsFloat, AC: AccessController>(
+    map: &mut CMap2<T, AC>,
     n_rounds: usize,
     n_relax_rounds: usize,
     target_length: f64,
@@ -176,7 +177,7 @@ pub fn remesh<T: CoordsFloat>(
         print!("{n:>5}"); // "Round"
         // not using the map method because it uses a sequential iterator
         let n_unused = (1..map.n_darts() as DartIdType)
-            .into_par_iter()
+            .into_iter()
             .filter(|d| map.is_unused(*d))
             .count();
         print!(" | {:>15}", map.n_darts() - n_unused);
@@ -186,7 +187,7 @@ pub fn remesh<T: CoordsFloat>(
         prof_start!("HCBENCH_REMESH_GRAPH");
         let mut instant = Instant::now();
         let nodes: Vec<(_, Vec<_>)> = map
-            .par_iter_vertices()
+            .iter_vertices()
             .filter_map(|v| {
                 let mut neigh = Vec::with_capacity(10);
                 for d in map.orbit(OrbitPolicy::Vertex, v as DartIdType) {
@@ -208,7 +209,7 @@ pub fn remesh<T: CoordsFloat>(
         instant = Instant::now();
         r = 0;
         loop {
-            nodes.par_iter().for_each(|(vid, neighbors)| {
+            nodes.iter().for_each(|(vid, neighbors)| {
                 let _ = atomically_with_err(|t| {
                     move_vertex_to_average(t, map, *vid, neighbors)?;
                     if !is_orbit_orientation_consistent(t, map, *vid)? {
@@ -255,7 +256,7 @@ pub fn remesh<T: CoordsFloat>(
         // -- check early return conds if enabled
         if enable_early_ret {
             instant = Instant::now();
-            let n_e = map.par_iter_edges().count();
+            let n_e = map.iter_edges().count();
             let n_e_outside_tol = long_edges.len() + short_edges.len();
             // if 95%+ edges are in the target length tolerance range, finish early
             if (n_e_outside_tol as f64 / n_e as f64) < target_tolerance {
@@ -279,9 +280,9 @@ pub fn remesh<T: CoordsFloat>(
             (tmp..tmp + n_darts as DartIdType).collect::<Vec<_>>()
         } else {
             (1..map.n_darts() as DartIdType)
-                .into_par_iter()
+                .into_iter()
                 .filter(|&d| map.is_unused(d))
-                .take_any(n_darts)
+                .take(n_darts)
                 .collect()
         };
         let alloc_time = instant.elapsed().as_secs_f64();
@@ -293,8 +294,8 @@ pub fn remesh<T: CoordsFloat>(
         print!(" | {n_e:>14}");
         instant = Instant::now();
         long_edges
-            .into_par_iter()
-            .zip(new_darts.par_chunks_exact(6))
+            .into_iter()
+            .zip(new_darts.chunks_exact(6))
             .for_each(|(e, sl)| {
                 let &[d1, d2, d3, d4, d5, d6] = sl else {
                     unreachable!()
@@ -360,7 +361,7 @@ pub fn remesh<T: CoordsFloat>(
         prof_start!("HCBENCH_REMESH_COLLAPSE");
         print!(" | {:>19}", short_edges.len());
         instant = Instant::now();
-        short_edges.into_par_iter().for_each(|e| {
+        short_edges.into_iter().for_each(|e| {
             while let Err(er) = atomically_with_err(|t| {
                 if map.is_unused_tx(t, e as DartIdType)? {
                     // needed as some operations may remove some edges besides the one processed
@@ -398,7 +399,7 @@ pub fn remesh<T: CoordsFloat>(
         // -- swap
         prof_start!("HCBENCH_REMESH_SWAP");
         instant = Instant::now();
-        map.par_iter_edges()
+        map.iter_edges()
             .map(|e| {
                 let (l, r) = (e as DartIdType, map.beta::<1>(e as DartIdType));
                 let diff = atomically(|t| compute_diff_to_target(t, map, l, r, target_length));
@@ -468,9 +469,9 @@ pub fn remesh<T: CoordsFloat>(
 }
 
 #[inline]
-fn compute_diff_to_target<T: CoordsFloat>(
+fn compute_diff_to_target<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     l: DartIdType,
     r: DartIdType,
     target: f64,
@@ -484,9 +485,9 @@ fn compute_diff_to_target<T: CoordsFloat>(
 }
 
 #[inline]
-fn check_tri_orientation<T: CoordsFloat>(
+fn check_tri_orientation<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     d: DartIdType,
 ) -> StmClosureResult<bool> {
     let vid1 = map.vertex_id_tx(t, d)?;

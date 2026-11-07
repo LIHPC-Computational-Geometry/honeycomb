@@ -4,6 +4,28 @@
 
 ### To be released
 
+#### honeycomb-core
+
+<sup>core definitions and tools for combinatorial map implementation</sup>
+
+*new:*
+- introduce access controllers, a state-based synchronization policy for `CMap2`/`CMap3` internal
+  data: the new `AccessController` trait and its associated constants decide, at compile time,
+  whether each data category (*β* functions, unused dart tracking, vertex embeddings, user
+  attributes) is accessed transactionally or through direct atomic operations
+- provide `TransactionalController` (default, fully transactional) and `AtomicController`
+  (fully atomic, no conflict detection / rollback) implementations; users may define custom
+  mixed controllers
+- `CMap2`, `CMap3` and `CMapBuilder` gain an `AC: AccessController` generic parameter defaulting
+  to `TransactionalController`, making the change non-breaking for existing code
+- add atomic counterparts (`*_atomic`) to the attribute storage traits and manager, and route
+  all internal accesses of map methods through the controller policy
+
+*breaking (attribute storage implementors):*
+- `UnknownAttributeStorage` and `AttributeStorage` now require atomic method implementations
+  (`clear_slot_atomic`, `merge_atomic`, `split_atomic`, `read_atomic`, `write_atomic`,
+  `remove_atomic`)
+
 ---
 
 ## 0.12.0

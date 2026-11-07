@@ -1,5 +1,5 @@
 use honeycomb_core::{
-    cmap::{CMap2, CMap3, VertexIdType},
+    cmap::{AccessController, CMap2, CMap3, VertexIdType},
     geometry::{CoordsFloat, Vector2, Vector3},
     stm::{StmClosureResult, Transaction},
 };
@@ -30,9 +30,9 @@ use honeycomb_core::{
 ///
 /// [BENCH]: https://github.com/LIHPC-Computational-Geometry/honeycomb/tree/master/benches/src
 #[inline]
-pub fn move_vertex_to_average<T: CoordsFloat>(
+pub fn move_vertex_to_average<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     vid: VertexIdType,
     others: &[VertexIdType],
 ) -> StmClosureResult<()> {
@@ -66,9 +66,9 @@ pub fn move_vertex_to_average<T: CoordsFloat>(
 ///
 /// This function may panic if one vertex in the `neighbors_id` list has no associated coordinates.
 #[inline]
-pub fn neighbor_based_smooth<T: CoordsFloat>(
+pub fn neighbor_based_smooth<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     vid: VertexIdType,
     neighbors_id: &[VertexIdType],
     lambda: T,
@@ -108,9 +108,9 @@ pub fn neighbor_based_smooth<T: CoordsFloat>(
 ///
 /// This function may panic if one of the vertices has no associated coordinates.
 #[inline]
-pub fn move_vertex_to_average_3d<T: CoordsFloat>(
+pub fn move_vertex_to_average_3d<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap3<T>,
+    map: &CMap3<T, AC>,
     vid: VertexIdType,
     others: &[VertexIdType],
 ) -> StmClosureResult<()> {
@@ -127,9 +127,9 @@ pub fn move_vertex_to_average_3d<T: CoordsFloat>(
 ///
 /// This function may panic if one of the vertices has no associated coordinates.
 #[inline]
-pub fn neighbor_based_smooth_3d<T: CoordsFloat>(
+pub fn neighbor_based_smooth_3d<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap3<T>,
+    map: &CMap3<T, AC>,
     vid: VertexIdType,
     neighbors_id: &[VertexIdType],
     lambda: T,

@@ -8,7 +8,7 @@ mod internals;
 mod tests;
 
 use honeycomb_core::attributes::AttributeBind;
-use honeycomb_core::cmap::{CMap2, CMap3, CMapBuilder};
+use honeycomb_core::cmap::{AccessController, AtomicController, CMap2, CMap3, CMapBuilder};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2, Vertex3};
 
 /// # Builder-level error enum
@@ -32,16 +32,19 @@ pub enum GridBuilderError {
 ///
 /// - `const D: usize` -- Dimension of the grid. Should be 2 or 3.
 /// - `T: CoordsFloat` -- Generic FP type that will be used by the map's vertices.
+/// - `AC: AccessController` -- Access controller of the generated map; defaults to the
+///   fully atomic [`AtomicController`], since grid generation is a sequential process.
 ///
 /// ## Example
 ///
 /// ```rust
 /// # use honeycomb_kernels::grid_generation::{GridBuilderError};
 /// # fn main() -> Result<(), GridBuilderError> {
-/// use honeycomb_core::cmap::CMap3;
+/// use honeycomb_core::cmap::{AtomicController, CMap3};
 /// use honeycomb_kernels::grid_generation::{GridBuilder};
 ///
-/// let map: CMap3<f64> = GridBuilder::<3, f64>::default()
+/// // grids are sequential to build, hence the atomic default controller
+/// let map: CMap3<f64, AtomicController> = GridBuilder::<3, f64>::default()
 ///     .n_cells([2, 3, 2])
 ///     .len_per_cell([1.0; 3])
 ///     .build()?;
@@ -49,8 +52,8 @@ pub enum GridBuilderError {
 /// # Ok(())
 /// # }
 /// ```
-pub struct GridBuilder<const D: usize, T: CoordsFloat> {
-    pub(crate) map_builder: CMapBuilder<D>,
+pub struct GridBuilder<const D: usize, T: CoordsFloat, AC: AccessController = AtomicController> {
+    pub(crate) map_builder: CMapBuilder<D, AC>,
     pub(crate) origin: [T; D],
     pub(crate) n_cells: Option<[usize; D]>,
     pub(crate) len_per_cell: Option<[T; D]>,
@@ -58,10 +61,10 @@ pub struct GridBuilder<const D: usize, T: CoordsFloat> {
     pub(crate) split_cells: bool,
 }
 
-impl<const D: usize, T: CoordsFloat> Default for GridBuilder<D, T> {
+impl<const D: usize, T: CoordsFloat, AC: AccessController> Default for GridBuilder<D, T, AC> {
     fn default() -> Self {
         Self {
-            map_builder: CMapBuilder::<D>::from_n_darts(1),
+            map_builder: CMapBuilder::<D, AC>::from_n_darts(1),
             origin: [T::zero(); D],
             n_cells: None,
             len_per_cell: None,
@@ -71,7 +74,7 @@ impl<const D: usize, T: CoordsFloat> Default for GridBuilder<D, T> {
     }
 }
 
-impl<const D: usize, T: CoordsFloat> GridBuilder<D, T> {
+impl<const D: usize, T: CoordsFloat, AC: AccessController> GridBuilder<D, T, AC> {
     /// Set values for all dimensions
     #[must_use = "unused builder object"]
     pub fn n_cells(mut self, n_cells: [usize; D]) -> Self {
@@ -141,12 +144,12 @@ macro_rules! check_parameters {
     };
 }
 
-impl<T: CoordsFloat> GridBuilder<2, T> {
+impl<T: CoordsFloat, AC: AccessController> GridBuilder<2, T, AC> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
     #[allow(clippy::type_complexity)]
     pub(crate) fn parse_2d(
         self,
-    ) -> Result<(CMapBuilder<2>, Vertex2<T>, [usize; 2], [T; 2]), GridBuilderError> {
+    ) -> Result<(CMapBuilder<2, AC>, Vertex2<T>, [usize; 2], [T; 2]), GridBuilderError> {
         match (self.n_cells, self.len_per_cell, self.lens) {
             // from # cells and lengths per cell
             (Some([nx, ny]), Some([lpx, lpy]), lens) => {
@@ -204,12 +207,12 @@ impl<T: CoordsFloat> GridBuilder<2, T> {
     }
 }
 
-impl<T: CoordsFloat> GridBuilder<3, T> {
+impl<T: CoordsFloat, AC: AccessController> GridBuilder<3, T, AC> {
     /// Parse provided grid parameters to provide what's used to actually generate the grid.
     #[allow(clippy::type_complexity)]
     pub(crate) fn parse_3d(
         self,
-    ) -> Result<(CMapBuilder<3>, Vertex3<T>, [usize; 3], [T; 3]), GridBuilderError> {
+    ) -> Result<(CMapBuilder<3, AC>, Vertex3<T>, [usize; 3], [T; 3]), GridBuilderError> {
         match (self.n_cells, self.len_per_cell, self.lens) {
             // from # cells and lengths per cell
             (Some([nx, ny, nz]), Some([lpx, lpy, lpz]), lens) => {
@@ -280,7 +283,7 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
     }
 }
 
-impl<T: CoordsFloat> GridBuilder<2, T> {
+impl<T: CoordsFloat, AC: AccessController> GridBuilder<2, T, AC> {
     #[allow(clippy::missing_panics_doc)]
     /// Create a combinatorial map representing a 2D orthogonal grid.
     ///
@@ -289,7 +292,7 @@ impl<T: CoordsFloat> GridBuilder<2, T> {
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid.svg)
     #[must_use = "unused builder object"]
-    pub fn unit_grid(n_cells_per_axis: usize) -> CMap2<T> {
+    pub fn unit_grid(n_cells_per_axis: usize) -> CMap2<T, AC> {
         GridBuilder::default()
             .n_cells([n_cells_per_axis; 2])
             .len_per_cell([T::one(); 2])
@@ -306,7 +309,7 @@ impl<T: CoordsFloat> GridBuilder<2, T> {
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/bg_grid_tri.svg)
     #[must_use = "unused builder object"]
-    pub fn unit_triangles(n_square: usize) -> CMap2<T> {
+    pub fn unit_triangles(n_square: usize) -> CMap2<T, AC> {
         GridBuilder::default()
             .n_cells([n_square; 2])
             .len_per_cell([T::one(); 2])
@@ -329,7 +332,7 @@ impl<T: CoordsFloat> GridBuilder<2, T> {
     /// # Panics
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
-    pub fn build(self) -> Result<CMap2<T>, GridBuilderError> {
+    pub fn build(self) -> Result<CMap2<T, AC>, GridBuilderError> {
         let split = self.split_cells;
         self.parse_2d().map(|(builder, origin, ns, lens)| {
             if split {
@@ -341,7 +344,7 @@ impl<T: CoordsFloat> GridBuilder<2, T> {
     }
 }
 
-impl<T: CoordsFloat> GridBuilder<3, T> {
+impl<T: CoordsFloat, AC: AccessController> GridBuilder<3, T, AC> {
     #[allow(clippy::missing_panics_doc)]
     /// Create a combinatorial map representing a 3D orthogonal grid.
     ///
@@ -349,7 +352,7 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
     /// equal number of cells along each axis:
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/hex.svg)
-    pub fn hex_grid(n_cells_per_axis: usize, cell_length: T) -> CMap3<T> {
+    pub fn hex_grid(n_cells_per_axis: usize, cell_length: T) -> CMap3<T, AC> {
         GridBuilder::default()
             .n_cells([n_cells_per_axis; 3])
             .len_per_cell([cell_length; 3])
@@ -366,7 +369,7 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
     ///
     /// ![`CMAP2_GRID`](https://lihpc-computational-geometry.github.io/honeycomb/user-guide/images/tet.svg)
     #[must_use = "unused builder object"]
-    pub fn tet_grid(n_cells_per_axis: usize, cell_length: T) -> CMap3<T> {
+    pub fn tet_grid(n_cells_per_axis: usize, cell_length: T) -> CMap3<T, AC> {
         GridBuilder::default()
             .n_cells([n_cells_per_axis; 3])
             .len_per_cell([cell_length; 3])
@@ -389,7 +392,7 @@ impl<T: CoordsFloat> GridBuilder<3, T> {
     /// # Panics
     ///
     /// This method may panic if type casting goes wrong during parameters parsing.
-    pub fn build(self) -> Result<CMap3<T>, GridBuilderError> {
+    pub fn build(self) -> Result<CMap3<T, AC>, GridBuilderError> {
         let split = self.split_cells;
         self.parse_3d().map(|(builder, origin, ns, lens)| {
             if split {

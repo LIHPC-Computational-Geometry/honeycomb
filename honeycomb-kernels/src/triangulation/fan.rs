@@ -1,4 +1,4 @@
-use honeycomb_core::cmap::{CMap2, DartIdType, FaceIdType, OrbitPolicy};
+use honeycomb_core::cmap::{AccessController, CMap2, DartIdType, FaceIdType, OrbitPolicy};
 use honeycomb_core::geometry::{CoordsFloat, Vertex2};
 use honeycomb_core::stm::{Transaction, TransactionClosureResult, abort, try_or_coerce};
 use smallvec::SmallVec;
@@ -42,9 +42,9 @@ use crate::triangulation::{TriangulateError, check_requirements};
 ///
 /// Note that in any of these cases, the face will remain the same as it was before the function
 /// call.
-pub fn process_cell<T: CoordsFloat>(
+pub fn process_cell<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    cmap: &CMap2<T>,
+    cmap: &CMap2<T, AC>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {
@@ -162,9 +162,9 @@ pub fn process_cell<T: CoordsFloat>(
 ///
 /// Note that in any of these cases, the face will remain the same as it was before the function
 /// call.
-pub fn process_convex_cell<T: CoordsFloat>(
+pub fn process_convex_cell<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    cmap: &CMap2<T>,
+    cmap: &CMap2<T, AC>,
     face_id: FaceIdType,
     new_darts: &[DartIdType],
 ) -> TransactionClosureResult<(), TriangulateError> {

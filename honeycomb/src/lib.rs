@@ -61,9 +61,10 @@ pub mod prelude {
         AttrSparseVec, AttributeBind, AttributeError, AttributeUpdate,
     };
     pub use honeycomb_core::cmap::{
-        BuilderError, CMap2, CMap3, CMapBuilder, DartIdType, EdgeIdType, FaceIdType, LinkError,
-        NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID, NULL_VERTEX_ID, NULL_VOLUME_ID, OrbitPolicy,
-        SewError, VertexIdType, VolumeIdType,
+        AccessController, AtomicController, BuilderError, CMap2, CMap3, CMapBuilder, DartIdType,
+        EdgeIdType, FaceIdType, LinkError, NULL_DART_ID, NULL_EDGE_ID, NULL_FACE_ID,
+        NULL_VERTEX_ID, NULL_VOLUME_ID, OrbitPolicy, SewError, TransactionalController,
+        VertexIdType, VolumeIdType,
     };
     pub use honeycomb_core::geometry::{
         CoordsError, CoordsFloat, Vector2, Vector3, Vertex2, Vertex3,
