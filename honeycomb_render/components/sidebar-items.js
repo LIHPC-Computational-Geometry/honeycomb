@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Beta","Dart","DartId","Edge","EdgeId","Face","FaceId","Vertex","VertexId","Volume","VolumeId"]};
