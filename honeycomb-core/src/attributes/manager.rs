@@ -163,6 +163,20 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Clear all attribute values associated to a given dart, bypassing the transactional
+    /// machinery.
+    ///
+    /// This is the atomic counterpart of [`clear_attribute_values`][Self::clear_attribute_values].
+    /// The operations cannot be rolled back; see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    pub fn clear_attribute_values_atomic(&self, id: DartIdType) {
+        for map in &self.icells {
+            for storage in map.values() {
+                storage.clear_slot_atomic(id);
+            }
+        }
+    }
+
     // attribute-specific
 
     /// Add a new storage to the manager.
@@ -284,6 +298,25 @@ impl AttrStorageManager {
         Ok(())
     }
 
+    /// Execute a merging operation on all attributes associated with a given orbit
+    /// of the specified cells, bypassing the transactional machinery.
+    ///
+    /// This is the atomic counterpart of
+    /// [`merge_attributes`][Self::merge_attributes]. The operations cannot be rolled back; see
+    /// the synchronization contract of [`AccessController`][crate::cmap::AccessController].
+    pub fn merge_attributes_atomic(
+        &self,
+        orbit_policy: OrbitPolicy,
+        id_out: DartIdType,
+        id_in_lhs: DartIdType,
+        id_in_rhs: DartIdType,
+    ) -> Result<(), AttributeError> {
+        for storage in self.get_map(orbit_policy).values() {
+            storage.merge_atomic(id_out, id_in_lhs, id_in_rhs)?;
+        }
+        Ok(())
+    }
+
     /// Execute a splitting operation on all attributes associated with a given orbit
     /// of the specified cells.
     ///
@@ -314,6 +347,25 @@ impl AttrStorageManager {
     ) -> TransactionClosureResult<(), AttributeError> {
         for storage in self.get_map(orbit_policy).values() {
             storage.split(t, id_out_lhs, id_out_rhs, id_in)?;
+        }
+        Ok(())
+    }
+
+    /// Execute a splitting operation on all attributes associated with a given orbit
+    /// of the specified cells, bypassing the transactional machinery.
+    ///
+    /// This is the atomic counterpart of
+    /// [`split_attributes`][Self::split_attributes]. The operations cannot be rolled back; see
+    /// the synchronization contract of [`AccessController`][crate::cmap::AccessController].
+    pub fn split_attributes_atomic(
+        &self,
+        orbit_policy: OrbitPolicy,
+        id_out_lhs: DartIdType,
+        id_out_rhs: DartIdType,
+        id_in: DartIdType,
+    ) -> Result<(), AttributeError> {
+        for storage in self.get_map(orbit_policy).values() {
+            storage.split_atomic(id_out_lhs, id_out_rhs, id_in)?;
         }
         Ok(())
     }
@@ -360,6 +412,130 @@ impl AttrStorageManager {
                 std::any::type_name::<A>()
             );
             Ok(None)
+        }
+    }
+
+    /// Get the value of an attribute, bypassing the transactional machinery.
+    ///
+    /// This is the atomic counterpart of
+    /// [`read_attribute`][Self::read_attribute]. The operation provides no conflict detection;
+    /// see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute fetched.
+    ///
+    /// # Return
+    ///
+    /// Return the attribute's value, or `None` if there is no storage for this kind of
+    /// attribute in the manager.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
+    pub fn read_attribute_atomic<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.read_atomic(id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
+    }
+
+    /// Set the value of an attribute and return the old one, bypassing the transactional
+    /// machinery.
+    ///
+    /// This is the atomic counterpart of
+    /// [`write_attribute`][Self::write_attribute]. The operation provides no conflict detection
+    /// nor rollback; see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- ID of the cell to which the attribute is associated.
+    /// - `val: A` -- New value of the attribute for the given ID.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute being set.
+    ///
+    /// # Return
+    ///
+    /// Return the attribute's old value, or `None` if there is no storage for this kind of
+    /// attribute in the manager.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
+    pub fn write_attribute_atomic<A: AttributeBind>(
+        &self,
+        id: A::IdentifierType,
+        val: A,
+    ) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.write_atomic(id, val)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
+        }
+    }
+
+    /// Remove an item from an attribute storage and return it, bypassing the transactional
+    /// machinery.
+    ///
+    /// This is the atomic counterpart of
+    /// [`remove_attribute`][Self::remove_attribute]. The operation provides no conflict
+    /// detection nor rollback; see the synchronization contract of
+    /// [`AccessController`][crate::cmap::AccessController].
+    ///
+    /// # Arguments
+    ///
+    /// - `id: A::IdentifierType` -- Cell ID to which the attribute is associated.
+    ///
+    /// # Generic
+    ///
+    /// - `A: AttributeBind` -- Type of the attribute fetched.
+    ///
+    /// # Return
+    ///
+    /// Return the attribute's old value, or `None` if there is no storage for this kind of
+    /// attribute in the manager.
+    ///
+    /// # Panics
+    ///
+    /// This method may panic if:
+    /// - there's no storage associated with the specified attribute
+    /// - downcasting `Box<dyn UnknownAttributeStorage>` to `<A as AttributeBind>::StorageType` fails
+    /// - the index lands out of bounds
+    pub fn remove_attribute_atomic<A: AttributeBind>(&self, id: A::IdentifierType) -> Option<A> {
+        get_storage!(self, storage);
+        if let Some(st) = storage {
+            st.remove_atomic(id)
+        } else {
+            eprintln!(
+                "W: could not update storage of attribute {} - storage not found",
+                std::any::type_name::<A>()
+            );
+            None
         }
     }
 

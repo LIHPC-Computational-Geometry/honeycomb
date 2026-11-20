@@ -13,6 +13,7 @@ use std::collections::VecDeque;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{
     CMap3, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType, VolumeIdType,
 };
@@ -32,7 +33,7 @@ thread_local! {
 }
 
 /// **Beta-related methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     // --- read
 
     /// Return β<sub>`I`</sub>(`dart_id`).
@@ -52,7 +53,11 @@ impl<T: CoordsFloat> CMap3<T> {
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(I < 4);
-        self.betas[(I, dart_id)].read(t)
+        if AC::BETAS_TX_ACCESS {
+            self.betas[(I, dart_id)].read(t)
+        } else {
+            Ok(self.betas[(I, dart_id)].read_atomic())
+        }
     }
 
     /// Return β<sub>`i`</sub>(`dart_id`).
@@ -90,7 +95,11 @@ impl<T: CoordsFloat> CMap3<T> {
     #[must_use = "unused return value"]
     pub fn beta<const I: u8>(&self, dart_id: DartIdType) -> DartIdType {
         assert!(I < 4);
-        atomically(|t| self.betas[(I, dart_id)].read(t))
+        if AC::BETAS_TX_ACCESS {
+            atomically(|t| self.betas[(I, dart_id)].read(t))
+        } else {
+            self.betas[(I, dart_id)].read_atomic()
+        }
     }
 
     /// Return β<sub>`i`</sub>(`dart_id`).
@@ -157,7 +166,7 @@ impl<T: CoordsFloat> CMap3<T> {
 }
 
 /// **I-cell-related methods**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// Compute the ID of the vertex a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.
@@ -433,13 +442,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn par_iter_vertices(&self) -> impl ParallelIterator<Item = VertexIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
-            .filter_map(|d| {
-                if atomically(|t| self.is_unused_tx(t, d)) {
-                    None
-                } else {
-                    Some(d)
-                }
-            })
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
             .filter_map(|d| {
                 let vid = self.vertex_id(d);
                 if d == vid { Some(vid) } else { None }
@@ -451,13 +454,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn par_iter_edges(&self) -> impl ParallelIterator<Item = EdgeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
-            .filter_map(|d| {
-                if atomically(|t| self.is_unused_tx(t, d)) {
-                    None
-                } else {
-                    Some(d)
-                }
-            })
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
             .filter_map(|d| {
                 let eid = self.edge_id(d);
                 if d == eid { Some(eid) } else { None }
@@ -469,13 +466,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn par_iter_faces(&self) -> impl ParallelIterator<Item = FaceIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
-            .filter_map(|d| {
-                if atomically(|t| self.is_unused_tx(t, d)) {
-                    None
-                } else {
-                    Some(d)
-                }
-            })
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
             .filter_map(|d| {
                 let fid = self.face_id(d);
                 if d == fid { Some(fid) } else { None }
@@ -487,13 +478,7 @@ impl<T: CoordsFloat> CMap3<T> {
     pub fn par_iter_volumes(&self) -> impl ParallelIterator<Item = VolumeIdType> + '_ {
         (1..self.n_darts() as DartIdType)
             .into_par_iter()
-            .filter_map(|d| {
-                if atomically(|t| self.is_unused_tx(t, d)) {
-                    None
-                } else {
-                    Some(d)
-                }
-            })
+            .filter_map(|d| if self.is_unused(d) { None } else { Some(d) })
             .filter_map(|d| {
                 let vid = self.volume_id(d);
                 if d == vid { Some(vid) } else { None }

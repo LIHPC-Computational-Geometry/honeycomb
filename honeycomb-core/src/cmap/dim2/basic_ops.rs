@@ -13,6 +13,7 @@ use std::collections::VecDeque;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet as HashSet;
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap2, DartIdType, EdgeIdType, FaceIdType, NULL_DART_ID, VertexIdType};
 use crate::geometry::CoordsFloat;
 use crate::stm::{StmClosureResult, Transaction, atomically};
@@ -25,7 +26,7 @@ thread_local! {
 }
 
 /// **Beta-related methods**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     // --- read
 
     /// Return  β<sub>`I`</sub>(`dart_id`).
@@ -72,7 +73,11 @@ impl<T: CoordsFloat> CMap2<T> {
         dart_id: DartIdType,
     ) -> StmClosureResult<DartIdType> {
         assert!(I < 3);
-        self.betas[(I, dart_id)].read(t)
+        if AC::BETAS_TX_ACCESS {
+            self.betas[(I, dart_id)].read(t)
+        } else {
+            Ok(self.betas[(I, dart_id)].read_atomic())
+        }
     }
 
     /// Return  β<sub>`i`</sub>(`dart_id`).
@@ -147,7 +152,7 @@ impl<T: CoordsFloat> CMap2<T> {
 }
 
 /// **I-cell-related methods**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// Compute the ID of the vertex a given dart is part of.
     ///
     /// This corresponds to the minimum dart ID among darts composing the 0-cell orbit.

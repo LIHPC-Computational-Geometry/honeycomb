@@ -1,5 +1,5 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, OrbitPolicy, VertexIdType},
+    cmap::{AccessController, CMap2, DartIdType, OrbitPolicy, VertexIdType},
     geometry::{CoordsFloat, Vertex2},
     stm::{StmClosureResult, Transaction, unwrap_or_retry},
 };
@@ -14,9 +14,9 @@ use smallvec::SmallVec;
 /// This method is meant to be called in a context where the returned `Result` is used to
 /// validate the transaction passed as argument. Errors should not be processed manually,
 /// only processed via the `?` operator.
-pub fn is_orbit_orientation_consistent<T: CoordsFloat>(
+pub fn is_orbit_orientation_consistent<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     vid: VertexIdType,
 ) -> StmClosureResult<bool> {
     let mut tmp: SmallVec<DartIdType, 10> = SmallVec::new();

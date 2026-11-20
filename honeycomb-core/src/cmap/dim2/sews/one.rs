@@ -1,11 +1,11 @@
-use crate::attributes::UnknownAttributeStorage;
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap2, DartIdType, NULL_DART_ID, OrbitPolicy, SewError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, try_or_coerce};
 
 #[doc(hidden)]
 /// **1-(un)sews internals**
-impl<T: CoordsFloat> CMap2<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap2<T, AC> {
     /// 1-sew transactional implementation.
     pub(super) fn one_sew(
         &self,
@@ -21,17 +21,11 @@ impl<T: CoordsFloat> CMap2<T> {
 
         if b2ld != NULL_DART_ID && b2l_vid != r_vid {
             try_or_coerce!(
-                self.vertices.merge(t, b2l_vid.min(r_vid), b2l_vid, r_vid),
+                self.vertex_merge(t, b2l_vid.min(r_vid), b2l_vid, r_vid),
                 SewError
             );
             try_or_coerce!(
-                self.attributes.merge_attributes(
-                    t,
-                    OrbitPolicy::Vertex,
-                    b2l_vid.min(r_vid),
-                    b2l_vid,
-                    r_vid,
-                ),
+                self.merge_attributes(t, OrbitPolicy::Vertex, b2l_vid.min(r_vid), b2l_vid, r_vid,),
                 SewError
             );
         }
@@ -54,12 +48,11 @@ impl<T: CoordsFloat> CMap2<T> {
 
             if new_lhs != new_rhs {
                 try_or_coerce!(
-                    self.vertices
-                        .split(t, new_lhs, new_rhs, new_lhs.min(new_rhs)),
+                    self.vertex_split(t, new_lhs, new_rhs, new_lhs.min(new_rhs)),
                     SewError
                 );
                 try_or_coerce!(
-                    self.attributes.split_attributes(
+                    self.split_attributes(
                         t,
                         OrbitPolicy::Vertex,
                         new_lhs,

@@ -1,5 +1,5 @@
 use honeycomb_core::{
-    cmap::{CMap2, DartIdType, EdgeIdType, SewError},
+    cmap::{AccessController, CMap2, DartIdType, EdgeIdType, SewError},
     geometry::{CoordsFloat, Vertex2},
     stm::{Transaction, TransactionClosureResult, try_or_coerce, unwrap_or_retry},
 };
@@ -46,9 +46,9 @@ use crate::utils::{EdgeAnchor, FaceAnchor, VertexAnchor};
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
 #[inline]
-pub fn cut_outer_edge<T: CoordsFloat>(
+pub fn cut_outer_edge<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     e: EdgeIdType,
     [nd1, nd2, nd3]: [DartIdType; 3],
 ) -> TransactionClosureResult<(), SewError> {
@@ -151,9 +151,9 @@ pub fn cut_outer_edge<T: CoordsFloat>(
 /// modifications in case of failure at attribute level. The user can then choose to retry or
 /// abort as he wishes using `Transaction::with_control_and_err`.
 #[inline]
-pub fn cut_inner_edge<T: CoordsFloat>(
+pub fn cut_inner_edge<T: CoordsFloat, AC: AccessController>(
     t: &mut Transaction,
-    map: &CMap2<T>,
+    map: &CMap2<T, AC>,
     e: EdgeIdType,
     [nd1, nd2, nd3, nd4, nd5, nd6]: [DartIdType; 6],
 ) -> TransactionClosureResult<(), SewError> {

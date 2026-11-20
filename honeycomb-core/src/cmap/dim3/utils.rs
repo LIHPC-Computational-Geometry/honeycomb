@@ -2,13 +2,14 @@
 //!
 //! This module contains utility code for the [`CMap3`] structure.
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap3, DartIdType, VertexIdType};
 use crate::geometry::{CoordsFloat, Vertex3};
 
 use super::CMAP3_BETA;
 
 /// **Utilities**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// Set the value of the specified beta function of a dart.
     ///
     /// # Arguments

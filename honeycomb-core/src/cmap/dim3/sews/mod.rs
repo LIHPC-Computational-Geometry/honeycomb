@@ -2,12 +2,13 @@ mod one;
 mod three;
 mod two;
 
+use crate::cmap::components::access::AccessController;
 use crate::cmap::{CMap3, DartIdType, SewError};
 use crate::geometry::CoordsFloat;
 use crate::stm::{Transaction, TransactionClosureResult, atomically_with_err};
 
 /// # **Sew operations**
-impl<T: CoordsFloat> CMap3<T> {
+impl<T: CoordsFloat, AC: AccessController> CMap3<T, AC> {
     /// `I`-sew operator.
     ///
     /// # Description

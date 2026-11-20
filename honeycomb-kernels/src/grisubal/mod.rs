@@ -54,7 +54,10 @@ pub(crate) mod model;
 pub(crate) mod routines;
 pub(crate) mod timers;
 
-use honeycomb_core::{cmap::CMap2, geometry::CoordsFloat};
+use honeycomb_core::{
+    cmap::{AccessController, CMap2},
+    geometry::CoordsFloat,
+};
 use thiserror::Error;
 use vtkio::Vtk;
 
@@ -150,11 +153,11 @@ pub enum GrisubalError {
 /// # }
 /// ```
 #[allow(clippy::needless_pass_by_value)]
-pub fn grisubal<T: CoordsFloat>(
+pub fn grisubal<T: CoordsFloat, AC: AccessController>(
     file_path: impl AsRef<std::path::Path>,
     grid_cell_sizes: [T; 2],
     clip: Clip,
-) -> Result<CMap2<T>, GrisubalError> {
+) -> Result<CMap2<T, AC>, GrisubalError> {
     // INIT TIMER
     start_timer!(instant);
 
@@ -191,7 +194,7 @@ pub fn grisubal<T: CoordsFloat>(
     start_timer!(kernel);
 
     // --- BUILD THE GRID
-    let mut cmap = GridBuilder::<2, T>::default()
+    let mut cmap = GridBuilder::<2, T, AC>::default()
         .n_cells([nx, ny])
         .len_per_cell([cx, cy])
         .origin([origin.0, origin.1])
