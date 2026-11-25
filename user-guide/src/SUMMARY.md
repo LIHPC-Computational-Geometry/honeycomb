@@ -15,11 +15,11 @@
 
 # User guide
 
-- [Setup]()
-- [Tutorial #1: Basics]()
-- [Tutorial #2: Algorithm writing]()
-- [Tutorial #3: Parallel meshing]()
-- [Tutorial #3b: Optimization]()
+- [Setup](./user-guide/setup.md)
+- [Tutorial #1: Basics](./user-guide/tutorial1-basics.md)
+- [Tutorial #2: Algorithm writing](./user-guide/tutorial2-algorithms.md)
+- [Tutorial #3: Parallel meshing](./user-guide/tutorial3-parallel.md)
+- [Tutorial #4: Optimization](./user-guide/tutorial4-optimization.md)
 
 # Developer guide
 
