@@ -1,7 +1,7 @@
 use honeycomb_core::cmap::{CMap2, CMapBuilder};
 
 fn main() {
-    let map: CMap2<_> = CMapBuilder::<2, f64>::from_n_darts(4)
+    let map: CMap2<f64> = CMapBuilder::<2>::from_n_darts(4)
         .add_attribute::<Weight>()
         .build()
         .unwrap();
