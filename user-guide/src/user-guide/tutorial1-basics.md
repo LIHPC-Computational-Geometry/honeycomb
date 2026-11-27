@@ -10,7 +10,7 @@ This tutorial covers the basic usage patterns of the framework:
 - element insertion after creation,
 - cell querying.
 
-All examples use 2D maps (`CMap2`); the 3D variant (`CMap3`) follows the same principles.
+All examples use 2D maps (`CMap2`); the 3D variant (`CMap3`) follows the same principles. Prerequisites: [Combinatorial maps](../definitions/cmaps.md).
 
 ## Creating a map
 
@@ -34,7 +34,7 @@ coordinates) to match the new topology.
 
 Vertex coordinates are first written with
 [`write_vertex`](../../honeycomb_core/cmap/struct.CMap2.html#method.write_vertex).
-Some operations require new darts to be added to the mesh (e.g. spliting a quadrangular face into two triangles).
+Some operations require new darts to be added to the mesh (e.g. splitting a quadrangular face into two triangles).
 The [`allocate_used_darts`](../../honeycomb_core/cmap/struct.CMap2.html#method.allocate_used_darts)
 and [`allocate_unused_darts`](../../honeycomb_core/cmap/struct.CMap2.html#method.allocate_unused_darts) methods
 add new darts to the map structure and return the identifier of the first new dart. The structure uses a mark system
